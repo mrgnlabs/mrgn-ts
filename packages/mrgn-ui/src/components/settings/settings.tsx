@@ -19,6 +19,7 @@ import { Label } from "~/components/ui/label";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
 
 type SettingsOptions = {
   broadcastType: TransactionBroadcastType;
@@ -119,247 +120,6 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
     }
   }, [slippageForm.formState.isDirty, prevSlippageFormIsDirty, handleOnSlippageSubmit]);
 
-  const renderSection = (title: string, description: string, children: React.ReactNode) => {
-    return (
-      <div className="space-y-4">
-        <div className="space-y-0.5">
-          <Desktop>
-            <h3 className="font-normal ">{title}</h3>
-          </Desktop>
-          <p className="text-xs text-muted-foreground">{description}</p>
-        </div>
-        {children}
-      </div>
-    );
-  };
-
-  const renderTransactionMethodSection = () => {
-    return (
-      <FormField
-        control={form.control}
-        name="broadcastType"
-        render={({ field }) => (
-          <FormItem className="space-y-3 ">
-            <FormControl>
-              <RadioGroup defaultValue={field.value.toString()} className="flex justify-between">
-                {broadcastTypes.map((option) => (
-                  <div
-                    key={option.type}
-                    className={cn(
-                      "relative w-full font-light border border-transparent rounded bg-mfi-action-box-background-dark transition-colors hover:bg-mfi-action-box-background-dark/80",
-                      field.value === option.type && "border-mfi-action-box-highlight"
-                    )}
-                  >
-                    <RadioGroupItem value={option.type} id={option.type} className="hidden" />
-                    <Label
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        field.onChange(option.type);
-                      }}
-                      className={cn(
-                        "flex flex-col p-3 gap-2 h-auto w-full text-center cursor-pointer",
-                        option.isDisabled && "cursor-not-allowed opacity-50"
-                      )}
-                      htmlFor={option.type}
-                    >
-                      {option.label}
-                    </Label>
-                    {/* {option.type === recommendedBroadcastType && (
-                    <span className="absolute translate-y-6 bottom-0 left-0 border border-accent rounded-full text-muted-foreground bg-mfi-action-box-background-dark px-1 text-xs flex items-center gap-1">
-                      <IconSparkles size={12} /> Suggested
-                    </span>
-                  )} */}
-                  </div>
-                ))}
-              </RadioGroup>
-            </FormControl>
-          </FormItem>
-        )}
-      />
-    );
-  };
-
-  const renderTransactionPrioritySection = () => {
-    return (
-      <FormField
-        control={form.control}
-        name="priorityType"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormControl>
-              <RadioGroup defaultValue={field.value.toString()} className="flex justify-between">
-                {priorityTypes.map((option) => (
-                  <div
-                    key={option.type}
-                    className={cn(
-                      "relative w-full font-light border border-transparent rounded bg-mfi-action-box-background-dark transition-colors hover:bg-mfi-action-box-background-dark/80",
-                      field.value === option.type && "border-mfi-action-box-highlight"
-                    )}
-                  >
-                    <RadioGroupItem value={option.type} id={option.type} className="hidden" />
-                    <Label
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        field.onChange(option.type);
-                      }}
-                      className={"flex p-3 flex-col gap-2 h-auto w-full text-center cursor-pointer"}
-                      htmlFor={option.type}
-                    >
-                      {option.label}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </FormControl>
-          </FormItem>
-        )}
-      />
-    );
-  };
-
-  const renderPriorityFeeCapSection = () => {
-    return (
-      <>
-        <FormField
-          control={form.control}
-          name="maxCapType"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormControl>
-                <RadioGroup defaultValue={field.value} className="flex justify-between">
-                  {maxCapTypes.map((option) => (
-                    <div
-                      key={option.type}
-                      className={cn(
-                        "relative w-full font-light border border-transparent rounded bg-mfi-action-box-background-dark transition-colors hover:bg-mfi-action-box-background-dark/80",
-                        field.value === option.type && "border-mfi-action-box-highlight"
-                      )}
-                    >
-                      <RadioGroupItem value={option.type} id={option.type} className="hidden" />
-                      <Label
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          field.onChange(option.type);
-                        }}
-                        className="flex p-3 flex-col gap-2 h-auto w-full text-center cursor-pointer"
-                        htmlFor={option.type}
-                      >
-                        {option.label}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="maxCap"
-          rules={{ max: { value: 0.2, message: "Maximum priority fee is 0.2 SOL." } }}
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <div className={cn("relative", formValues.maxCapType === "DYNAMIC" && "hidden")}>
-                  <Input
-                    type="decimal"
-                    min={0}
-                    max={0.2}
-                    value={field.value}
-                    placeholder={field.value.toString()}
-                    onChange={(e) => field.onChange(e)}
-                    className={cn(
-                      "h-auto bg-mfi-action-box-background-dark py-3 px-4 border border-transparent transition-colors focus-visible:ring-0",
-                      "focussed:border-mfi-action-box-highlight text-lg md:text-base "
-                    )}
-                  />
-                  <span className="absolute inset-y-0 right-3 text-sm flex items-center">SOL</span>
-                </div>
-              </FormControl>
-              <FormMessage className="text-xs text-warning" />
-            </FormItem>
-          )}
-        />
-      </>
-    );
-  };
-
-  const renderSlippageSection = () => {
-    return (
-      <>
-        <FormField
-          control={slippageForm.control}
-          name="slippageBps"
-          render={({ field }) => (
-            <FormItem className="space-y-2">
-              <FormControl>
-                <RadioGroup
-                  onValueChange={(value) => {
-                    field.onChange(Number(value));
-                  }}
-                  defaultValue={field.value.toString()}
-                  className="flex gap-4 justify-between"
-                >
-                  {slippageOptions.map((option) => (
-                    <div
-                      key={option.label}
-                      className={cn(
-                        "relative w-full font-light border border-transparent rounded bg-mfi-action-box-background-dark transition-colors hover:bg-mfi-action-box-background-dark/80",
-                        field.value === option.value && "border-mfi-action-box-highlight"
-                      )}
-                    >
-                      <RadioGroupItem value={option.value.toString()} id={option.label.toString()} className="hidden" />
-                      <Label
-                        className={"flex p-2 flex-col h-auto w-full text-xs gap-0.5 text-center cursor-pointer"}
-                        htmlFor={option.label.toString()}
-                      >
-                        {option.label} <strong className="font-medium text-sm">{option.value} %</strong>
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <h4 className="font-normal text-sm">Or set manually</h4>
-        <FormField
-          control={slippageForm.control}
-          name="slippageBps"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="decimal"
-                    min={0}
-                    value={isCustomSlippage ? field.value : undefined}
-                    placeholder={isCustomSlippage ? field.value.toString() : "0"}
-                    onChange={(e) => field.onChange(e)}
-                    className={cn("h-auto py-3 px-4 border text-lg md:text-base", isCustomSlippage && "bg-accent")}
-                    autoFocus={false}
-                  />
-                  <span className="absolute inset-y-0 right-3 text-sm flex items-center">%</span>
-                </div>
-              </FormControl>
-              {field.value > MAX_SLIPPAGE_PERCENTAGE && (
-                <FormMessage className="text-xs px-1">
-                  {STATIC_SIMULATION_ERRORS.SLIPPAGE_TOO_HIGH.description}
-                </FormMessage>
-              )}
-            </FormItem>
-          )}
-        />
-      </>
-    );
-  };
-
   const handleTabChange = (value: "transaction" | "swap") => {
     setActiveTab(value);
   };
@@ -376,7 +136,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
             control={form.control}
             name="broadcastType"
             render={({ field }) => (
-              <FormItem className="space-y-3 ">
+              <FormItem className="space-y-2 ">
                 <FormControl>
                   <RadioGroup defaultValue={field.value.toString()} className="flex justify-between">
                     {broadcastTypes.map((option) => (
@@ -425,7 +185,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
             control={form.control}
             name="priorityType"
             render={({ field }) => (
-              <FormItem className="space-y-3">
+              <FormItem className="space-y-2">
                 <FormControl>
                   <RadioGroup defaultValue={field.value.toString()} className="flex justify-between">
                     {priorityTypes.map((option) => (
@@ -469,7 +229,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               control={form.control}
               name="maxCapType"
               render={({ field }) => (
-                <FormItem className="space-y-3">
+                <FormItem className={"space-y-2"}>
                   <FormControl>
                     <RadioGroup defaultValue={field.value} className="flex justify-between">
                       {maxCapTypes.map((option) => (
@@ -500,33 +260,35 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="maxCap"
-              rules={{ max: { value: 0.2, message: "Maximum priority fee is 0.2 SOL." } }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <div className={cn("relative", formValues.maxCapType === "DYNAMIC" && "hidden")}>
-                      <Input
-                        type="decimal"
-                        min={0}
-                        max={0.2}
-                        value={field.value}
-                        placeholder={field.value.toString()}
-                        onChange={(e) => field.onChange(e)}
-                        className={cn(
-                          "h-auto bg-mfi-action-box-background-dark py-3 px-4 border border-transparent transition-colors focus-visible:ring-0",
-                          "focussed:border-mfi-action-box-highlight text-lg md:text-base "
-                        )}
-                      />
-                      <span className="absolute inset-y-0 right-3 text-sm flex items-center">SOL</span>
-                    </div>
-                  </FormControl>
-                  <FormMessage className="text-xs text-warning" />
-                </FormItem>
-              )}
-            />
+            {formValues.maxCapType === "MANUAL" && (
+              <FormField
+                control={form.control}
+                name="maxCap"
+                rules={{ max: { value: 0.2, message: "Maximum priority fee is 0.2 SOL." } }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className={cn("relative", formValues.maxCapType === "DYNAMIC" && "hidden")}>
+                        <Input
+                          type="decimal"
+                          min={0}
+                          max={0.2}
+                          value={field.value}
+                          placeholder={field.value.toString()}
+                          onChange={(e) => field.onChange(e)}
+                          className={cn(
+                            "h-auto bg-mfi-action-box-background-dark py-3 px-4 border border-transparent transition-colors focus-visible:ring-0",
+                            "focussed:border-mfi-action-box-highlight text-lg md:text-base "
+                          )}
+                        />
+                        <span className="absolute inset-y-0 right-3 text-sm flex items-center">SOL</span>
+                      </div>
+                    </FormControl>
+                    <FormMessage className="text-xs text-warning" />
+                  </FormItem>
+                )}
+              />
+            )}
           </>
         </div>
       </div>
@@ -618,14 +380,45 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
   };
 
   return (
-    <div className="space-y-6 ">
-      <ToggleGroup type="single" value={activeTab} onValueChange={handleTabChange}>
-        <ToggleGroupItem value="transaction">Transaction Settings</ToggleGroupItem>
-        <ToggleGroupItem value="swap">Swap Settings</ToggleGroupItem>
-      </ToggleGroup>
+    <div className="space-y-4 w-full">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          {activeTab === "transaction" ? renderTransactionSettings() : renderSwapSettings()}
+          {props.slippageProps ? (
+            <>
+              <div className="flex flex-col items-center justify-center w-full gap-2 border-b border-mfi-action-box-border-dark pb-2">
+                <div className="w-full flex justify-between items-center ">
+                  <span className="text-xl font-medium">Settings</span>
+                  <Tabs
+                    defaultValue="transaction"
+                    className=""
+                    onValueChange={(value) => handleTabChange(value as "transaction" | "swap")}
+                  >
+                    <TabsList className="">
+                      <TabsTrigger value="transaction" className="">
+                        Transaction
+                      </TabsTrigger>
+                      <TabsTrigger value="swap" className="">
+                        Swap
+                      </TabsTrigger>
+                    </TabsList>
+                    {/* <TabsContent value="transaction">{renderTransactionSettings()}</TabsContent>
+                <TabsContent value="swap">{renderSwapSettings()}</TabsContent> */}
+                  </Tabs>{" "}
+                </div>
+                <span className="text-sm text-muted-foreground self-start">
+                  {activeTab === "transaction"
+                    ? "Manage your transactions and priority Fees."
+                    : "Manage your swap and slippage settings."}
+                </span>
+              </div>
+
+              <div className="w-full mt-2">
+                {activeTab === "transaction" ? renderTransactionSettings() : renderSwapSettings()}
+              </div>
+            </>
+          ) : (
+            renderTransactionSettings()
+          )}
         </form>
       </Form>
     </div>

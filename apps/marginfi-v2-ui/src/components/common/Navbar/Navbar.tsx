@@ -177,22 +177,6 @@ export const Navbar: FC = () => {
                 </PopoverContent>
               </Popover>
 
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
-                    <IconSettings size={20} />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80">
-                  <Settings
-                    onChange={(settings) => setTransactionSettings(settings, connection)}
-                    broadcastType={broadcastType}
-                    priorityType={priorityType}
-                    maxCap={maxCap}
-                    maxCapType={maxCapType}
-                  />
-                </PopoverContent>
-              </Popover>
               <ResponsiveSettingsWrapper
                 onChange={(settings) => setTransactionSettings(settings, connection)}
                 broadcastType={broadcastType}
