@@ -76,8 +76,14 @@ export interface LoopActionTxns extends ActionTxns {
   borrowAmount: BigNumber;
 }
 
+export interface TradeActionTxns extends LoopActionTxns {
+  marginfiAccount?: MarginfiAccountWrapper;
+}
+
 export interface ClosePositionActionTxns extends ActionTxns {
   actionQuote: QuoteResponse | null;
+  groupKey?: PublicKey;
+  closeTransactions?: SolanaTransaction[];
 }
 
 export interface RepayCollatActionTxns extends ActionTxns {
@@ -90,12 +96,18 @@ export interface StakeActionTxns extends ActionTxns {
   lastValidBlockHeight?: number;
 } // TOOD: implement this as actionSummary type
 
+export interface DepositSwapActionTxns extends ActionTxns {
+  actionQuote: QuoteResponse | null;
+}
+
 export interface CalculateLoopingProps
   extends Pick<LoopingProps, "marginfiAccount" | "borrowBank" | "depositBank" | "depositAmount" | "connection"> {
   targetLeverage: number;
   marginfiClient: MarginfiClient;
   slippageBps: number;
   platformFeeBps: number;
+  setupBankAddresses?: PublicKey[];
+  tradeState?: "long" | "short";
 }
 
 export interface CalculateRepayCollateralProps
@@ -152,7 +164,7 @@ export type LoopingProps = {
   borrowBank: ExtendedBankInfo;
   quote: QuoteResponse;
   connection: Connection;
-
+  setupBankAddresses?: PublicKey[];
   multiStepToast?: MultiStepToastHandle;
 };
 

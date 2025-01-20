@@ -109,6 +109,9 @@ export const ActionComplete = ({ isActionComplete, previousTxn, setIsActionCompl
             {(previousTxn.txnType === "STAKE" || previousTxn.txnType === "UNSTAKE") && (
               <screens.StakingScreen {...previousTxn.stakingOptions} txn={previousTxn.txn} txnLink={txnLink} />
             )}
+            {previousTxn.txnType === "DEPOSIT_SWAP" && (
+              <screens.DepositSwapScreen {...previousTxn.depositSwapOptions} txn={previousTxn.txn} txnLink={txnLink} />
+            )}
           </div>
           <DialogFooter className="mt-6">
             <div className="space-y-4 w-full">

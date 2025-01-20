@@ -22,7 +22,7 @@ import { IconLoader, IconPyth, IconSwitchboard } from "~/components/ui/icons";
 export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 
 export interface PreviewStat {
-  label: string;
+  label: string | React.JSX.Element;
   color?: "SUCCESS" | "ALERT" | "DESTRUCTIVE";
   value: () => React.JSX.Element;
 }

@@ -1,95 +1,106 @@
 import React from "react";
-
-import Image from "next/image";
 import { IconChevronDown } from "@tabler/icons-react";
 
-import { percentFormatter, tokenPriceFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { percentFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 import { Desktop, Mobile, cn } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStore } from "~/store";
-
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "~/components/ui/command";
-import { Button } from "~/components/ui/button";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "~/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
 
-import type { GroupData } from "~/store/tradeStore";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
+import { useExtendedPools } from "~/hooks/useExtendedPools";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 
 type TokenComboboxProps = {
-  selected: GroupData | null;
-  setSelected: (groupData: GroupData) => void;
+  selected: ArenaPoolV2Extended | null;
+  setSelected: (pool: ArenaPoolV2Extended) => void;
   children?: React.ReactNode;
 };
 
 export const TokenCombobox = ({ selected, setSelected, children }: TokenComboboxProps) => {
   const [open, setOpen] = React.useState(false);
-  const [groupMap] = useTradeStore((state) => [state.groupMap]);
-  const groups = Array.from(groupMap.values()).sort((a, b) => {
-    return a.pool.poolData && b.pool.poolData ? b.pool.poolData.totalLiquidity - a.pool.poolData.totalLiquidity : 0;
-  });
+
+  const arenaPools = useExtendedPools();
+
+  const arenaPoolsSorted = React.useMemo(() => {
+    return Object.values(arenaPools).sort((a, b) => {
+      const aTokenPrice = a.tokenBank.info.oraclePrice.priceRealtime.price.toNumber();
+      const aTokenDeposit = a.tokenBank.info.state.totalDeposits;
+
+      const bTokenPrice = b.tokenBank.info.oraclePrice.priceRealtime.price.toNumber();
+      const bTokenDeposit = b.tokenBank.info.state.totalDeposits;
+
+      return aTokenPrice * aTokenDeposit - bTokenPrice * bTokenDeposit;
+    });
+  }, [arenaPools]);
 
   return (
     <>
       <Desktop>
-        <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
-          <DialogTrigger asChild>
-            <div>{children ? children : <TokenTrigger selected={selected} />}</div>
-          </DialogTrigger>
-          <DialogContent className="p-4 bg-background m-0" hideClose={true} hidePadding={true} size="sm" position="top">
-            <DialogHeader className="sr-only">
-              <DialogTitle>Select a token</DialogTitle>
-              <DialogDescription>Select a token to trade</DialogDescription>
-            </DialogHeader>
+        <Popover open={open} onOpenChange={(open) => setOpen(open)}>
+          <PopoverTrigger asChild>
+            <div>{children ? children : <TokenTrigger selected={selected} open={open} />}</div>
+          </PopoverTrigger>
+          <PopoverContent className="p-4 bg-background m-0 w-[400px]" side="bottom" avoidCollisions={false}>
             <div className="h-[500px] relative overflow-auto">
-              <Command>
+              <Command
+                filter={(value, search) => {
+                  const selectedPool = arenaPoolsSorted.find((pool) => pool.groupPk.toBase58().toLowerCase() === value);
+                  return selectedPool?.tokenBank.meta.tokenSymbol.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
+                }}
+              >
                 <CommandInput placeholder="Select pool..." autoFocus={true} />
                 <CommandList>
                   <CommandEmpty>No results found.</CommandEmpty>
                   <CommandGroup>
-                    {groups.map((group, index) => (
+                    {arenaPoolsSorted.map((pool, index) => (
                       <CommandItem
                         key={index}
-                        className="gap-3 py-2 cursor-pointer rounded-md aria-selected:text-primary"
-                        value={group.client.group.address.toBase58().toLowerCase()}
+                        className="gap-3 py-2 cursor-pointer rounded-md text-primary aria-selected:bg-accent transition-colors"
+                        value={pool.groupPk.toBase58().toLowerCase()}
                         onSelect={(value) => {
-                          const selBank = groups.find(
-                            (group) => group.client.group.address.toBase58().toLowerCase() === value
+                          const selectedPool = arenaPoolsSorted.find(
+                            (pool) => pool.groupPk.toBase58().toLowerCase() === value
                           );
-                          if (!selBank) return;
-                          setSelected(selBank);
+                          if (!selectedPool) return;
+                          setSelected(selectedPool);
                           setOpen(false);
                         }}
                       >
-                        <Image
-                          src={group.pool.token.meta.tokenLogoUri}
-                          width={32}
-                          height={32}
-                          alt={group.pool.token.meta.tokenName}
-                          className="rounded-full"
-                        />
-                        <span>{group.pool.token.meta.tokenSymbol}</span>
-                        {group.pool.token.tokenData && (
+                        <div className="flex items-center gap-2 relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={pool.tokenBank.meta.tokenLogoUri}
+                            width={32}
+                            height={32}
+                            alt={pool.tokenBank.meta.tokenName}
+                            className="rounded-full w-[32px] h-[32px] object-cover"
+                          />
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={pool.quoteBank.meta.tokenLogoUri}
+                            width={16}
+                            height={16}
+                            alt={pool.quoteBank.meta.tokenName}
+                            className="rounded-full w-[16px] h-[16px] object-cover absolute -right-1 -bottom-1"
+                          />
+                        </div>
+
+                        <span>
+                          {pool.tokenBank.meta.tokenSymbol}/{pool.quoteBank.meta.tokenSymbol}
+                        </span>
+                        {pool.tokenBank.tokenData && (
                           <div className="flex items-center justify-between gap-1 w-[40%] text-xs ml-auto text-muted-foreground">
                             <span>
-                              {tokenPriceFormatter(group.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}
+                              {tokenPriceFormatter(pool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}
                             </span>
                             <span
                               className={cn(
-                                group.pool.token.tokenData?.priceChange24hr > 1
-                                  ? "text-mrgn-success"
-                                  : "text-mrgn-error"
+                                pool.tokenBank.tokenData?.priceChange24hr > 1 ? "text-mrgn-success" : "text-mrgn-error"
                               )}
                             >
-                              {group.pool.token.tokenData?.priceChange24hr > 1 ? "+" : ""}
-                              {percentFormatter.format(group.pool.token.tokenData?.priceChange24hr / 100)}
+                              {pool.tokenBank.tokenData?.priceChange24hr > 1 ? "+" : ""}
+                              {percentFormatter.format(pool.tokenBank.tokenData?.priceChange24hr / 100)}
                             </span>
                           </div>
                         )}
@@ -99,58 +110,64 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                 </CommandList>
               </Command>
             </div>
-          </DialogContent>
-        </Dialog>
+          </PopoverContent>
+        </Popover>
       </Desktop>
       <Mobile>
         <Drawer open={open} onOpenChange={(open) => setOpen(open)}>
           <DrawerTrigger asChild>
-            <div>{children ? children : <TokenTrigger selected={selected} />}</div>
+            <div>{children ? children : <TokenTrigger selected={selected} open={open} />}</div>
           </DrawerTrigger>
-          <DrawerContent className="h-full z-[55] mt-0 p-2" hideTopTrigger={true}>
-            <DialogHeader className="sr-only">
-              <DialogTitle>Select a token</DialogTitle>
-              <DialogDescription>Select a token to trade</DialogDescription>
-            </DialogHeader>
+          <DrawerContent className="h-full z-[55] mt-0 p-2">
             <Command>
-              <CommandInput placeholder="Select pool..." autoFocus={true} />
-              <CommandList className="max-h-[390px]">
+              <CommandInput placeholder="Select pool..." className="text-base" autoFocus={false} />
+              <CommandList className="">
                 <CommandEmpty>No results found.</CommandEmpty>
                 <CommandGroup>
-                  {groups.map((group, index) => (
+                  {arenaPoolsSorted.map((pool, index) => (
                     <CommandItem
                       key={index}
                       className="gap-3 py-2 cursor-pointer rounded-md aria-selected:text-primary"
-                      value={group.client.group.address.toBase58().toLowerCase()}
+                      value={pool.groupPk.toBase58().toLowerCase()}
                       onSelect={(value) => {
-                        const selBank = groups.find(
-                          (group) => group.client.group.address.toBase58().toLowerCase() === value
+                        const selectedPool = arenaPoolsSorted.find(
+                          (pool) => pool.groupPk.toBase58().toLowerCase() === value
                         );
-                        if (!selBank) return;
-                        setSelected(selBank);
+                        if (!selectedPool) return;
+                        setSelected(selectedPool);
                         setOpen(false);
                       }}
                     >
-                      <Image
-                        src={group.pool.token.meta.tokenLogoUri}
-                        width={32}
-                        height={32}
-                        alt={group.pool.token.meta.tokenName}
-                        className="rounded-full"
-                      />
-                      <span>{group.pool.token.meta.tokenSymbol}</span>
-                      {group.pool.token.tokenData && (
+                      <div className="flex items-center gap-2 relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={pool.tokenBank.meta.tokenLogoUri}
+                          width={32}
+                          height={32}
+                          alt={pool.tokenBank.meta.tokenName}
+                          className="rounded-full w-[32px] h-[32px] object-cover"
+                        />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={pool.quoteBank.meta.tokenLogoUri}
+                          width={16}
+                          height={16}
+                          alt={pool.quoteBank.meta.tokenName}
+                          className="rounded-full w-[16px] h-[16px] object-cover absolute -right-1 -bottom-1"
+                        />
+                      </div>
+                      <span>{pool.tokenBank.meta.tokenSymbol}</span>
+                      {pool.tokenBank.tokenData && (
                         <div className="flex items-center justify-between gap-1 text-sm ml-auto w-full text-muted-foreground max-w-[160px]">
                           <span>
-                            {tokenPriceFormatter(group.pool.token.info.oraclePrice.priceRealtime.price.toNumber())}
+                            {tokenPriceFormatter(pool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber())}
                           </span>
                           <span
                             className={cn(
-                              "text-xs",
-                              group.pool.token.tokenData?.priceChange24hr > 1 ? "text-mrgn-success" : "text-mrgn-error"
+                              pool.tokenBank.tokenData?.priceChange24hr > 1 ? "text-mrgn-success" : "text-mrgn-error"
                             )}
                           >
-                            {percentFormatter.format(group.pool.token.tokenData?.priceChange24hr / 100)}
+                            {percentFormatter.format(pool.tokenBank.tokenData?.priceChange24hr / 100)}
                           </span>
                         </div>
                       )}
@@ -166,26 +183,29 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
   );
 };
 
-const TokenTrigger = ({ selected }: { selected: GroupData | null }) => {
+type TokenTriggerProps = {
+  selected: ArenaPoolV2Extended | null;
+  open: boolean;
+};
+
+const TokenTrigger = ({ selected, open }: TokenTriggerProps) => {
   return (
-    <Button variant="secondary" size="lg" className="relative w-full justify-start pr-8 pl-3 py-3">
-      {selected !== null ? (
-        <>
-          <Image
-            src={selected.pool.token.meta.tokenLogoUri}
-            width={24}
-            height={24}
-            alt={`Pool ${selected}`}
-            className="rounded-full"
-          />{" "}
-          {selected.pool.token.meta.tokenSymbol}
-        </>
-      ) : (
-        <>Select pool</>
-      )}
-      <div>
-        <IconChevronDown size={18} className="ml-auto" />
-      </div>
-    </Button>
+    <div className="flex items-center px-2 py-1 justify-center font-medium text-base hover:bg-accent transition-colors cursor-pointer rounded-md  gap-2">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={selected?.tokenBank.meta.tokenLogoUri ?? ""}
+        alt={selected?.tokenBank.meta.tokenSymbol ?? ""}
+        width={28}
+        height={28}
+        className="bg-background border rounded-full lg:mb-0 w-[28px] h-[28px] object-cover"
+      />
+      <h1 className="flex items-center gap-1 ">
+        {selected?.tokenBank.meta.tokenSymbol}{" "}
+        <IconChevronDown
+          size={18}
+          className={cn(open ? "rotate-180 transition-all duration-200" : "rotate-0 transition-all duration-200")}
+        />
+      </h1>
+    </div>
   );
 };

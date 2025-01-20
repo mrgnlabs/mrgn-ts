@@ -105,3 +105,10 @@ export function shortenAddress(pubkey: Address, chars = 4): string {
   const pubkeyStr = pubkey.toString();
   return `${pubkeyStr.slice(0, chars)}...${pubkeyStr.slice(-chars)}`;
 }
+
+/**
+ * Converts basis points (bps) to a decimal percentage value.
+ */
+export function bpsToPercentile(bps: number): number {
+  return bps / 10000;
+}

@@ -1,76 +1,72 @@
 import React from "react";
 
 import Link from "next/link";
-import Image from "next/image";
 
 import { IconArrowRight } from "@tabler/icons-react";
-import { Connection } from "@solana/web3.js";
-import { aprToApy, numeralFormatter, percentFormatter, usdFormatter, USDC_MINT } from "@mrgnlabs/mrgn-common";
+import { Connection, PublicKey } from "@solana/web3.js";
+import {
+  aprToApy,
+  numeralFormatter,
+  percentFormatter,
+  usdFormatter,
+  USDC_MINT,
+  dynamicNumeralFormatter,
+} from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { Wallet } from "@mrgnlabs/mrgn-common";
+import { minidenticon } from "minidenticons";
 
-import { useTradeStore } from "~/store";
-import { ArenaBank, GroupData } from "~/store/tradeStore";
-import { getGroupPositionInfo } from "~/utils";
+import { useTradeStoreV2 } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
+import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
+import { useActionBoxProps } from "~/hooks/useActionBoxProps";
 
 interface YieldCardProps {
-  group: GroupData;
+  pool: ArenaPoolV2Extended;
 }
 
-export const YieldCard = ({ group }: YieldCardProps) => {
+export const YieldCard = ({ pool }: YieldCardProps) => {
   const { connection } = useConnection();
   const { wallet, connected } = useWallet();
-  const [fetchTradeState, nativeSolBalance, portfolio] = useTradeStore((state) => [
-    state.fetchTradeState,
+  const [refreshGroup, nativeSolBalance, groupsByGroupPk] = useTradeStoreV2((state) => [
+    state.refreshGroup,
     state.nativeSolBalance,
-    state.portfolio,
+    state.groupsByGroupPk,
   ]);
-  const positionInfo = React.useMemo(() => getGroupPositionInfo({ group }), [group]);
-  const isLeveraged = React.useMemo(() => positionInfo === "LONG" || positionInfo === "SHORT", [positionInfo]);
 
-  const collateralBank = group.pool.quoteTokens[0];
-
-  const isLPPosition = React.useCallback(
-    (bank: ArenaBank) => {
-      if (!portfolio) return false;
-      return portfolio.lpPositions.some((group) => group.groupPk.equals(bank.info.rawBank.group));
-    },
-    [portfolio]
-  );
+  const groupData = groupsByGroupPk[pool.groupPk.toBase58()];
 
   return (
-    <div
-      key={group.client.group.address.toBase58()}
-      className="relative bg-background border rounded-xl mb-12 pt-5 pb-2 px-4"
-    >
+    <div key={pool.groupPk.toBase58()} className="relative bg-background border rounded-xl mb-12 pt-5 pb-2 px-4">
       <Link
-        href={`/trade/${group.client.group.address.toBase58()}`}
+        href={`/trade/${pool.groupPk.toBase58()}`}
         className="group bg-background border rounded-xl absolute -top-5 left-3.5 px-2 py-1.5 flex items-center gap-2 transition-colors hover:bg-accent"
       >
         <div className="flex items-center -space-x-2.5">
-          <Image
-            src={group.pool.token.meta.tokenLogoUri}
-            alt={group.pool.token.meta.tokenSymbol}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={pool.tokenBank.meta.tokenLogoUri}
+            alt={pool.tokenBank.meta.tokenSymbol}
             width={24}
             height={24}
-            className="rounded-full bg-background z-10"
+            className="rounded-full bg-background z-10 w-[24px] h-[24px] object-cover"
           />
-          <Image
-            src={collateralBank.meta.tokenLogoUri}
-            alt={collateralBank.meta.tokenSymbol}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={pool.quoteBank.meta.tokenLogoUri}
+            alt={pool.quoteBank.meta.tokenSymbol}
             width={24}
             height={24}
-            className="rounded-full"
+            className="rounded-full w-[24px] h-[24px] object-cover"
           />
         </div>
         <span>
-          {group.pool.token.meta.tokenSymbol}/{collateralBank.meta.tokenSymbol}
+          {pool.tokenBank.meta.tokenSymbol}/{pool.quoteBank.meta.tokenSymbol}
         </span>
         <div className="flex items-center gap-1 text-mrgn-green">
           <span>Trade</span>
@@ -79,64 +75,73 @@ export const YieldCard = ({ group }: YieldCardProps) => {
       </Link>
       <YieldItem
         className="pt-2 pb-4 border-b items-center"
-        group={group}
-        bank={group.pool.token}
-        isLeveraged={isLeveraged}
-        isLPPosition={isLPPosition(group.pool.token)}
+        pool={pool}
+        admin={groupData.admin}
+        bankType="TOKEN"
         connected={connected}
         connection={connection}
         wallet={wallet}
         nativeSolBalance={nativeSolBalance}
-        fetchTradeState={fetchTradeState}
+        refreshGroup={refreshGroup}
       />
       <YieldItem
         className="pt-4 pb-2 items-center"
-        group={group}
-        bank={collateralBank}
-        isLeveraged={isLeveraged}
-        isLPPosition={isLPPosition(collateralBank)}
+        pool={pool}
+        admin={groupData.admin}
+        bankType="COLLATERAL"
         connected={connected}
         connection={connection}
         wallet={wallet}
         nativeSolBalance={nativeSolBalance}
-        fetchTradeState={fetchTradeState}
+        refreshGroup={refreshGroup}
       />
     </div>
   );
 };
 
 const YieldItem = ({
-  group,
-  bank,
-  className,
-  isLeveraged,
-  isLPPosition,
+  pool,
+  bankType,
+  admin,
   connected,
+  className,
   connection,
   wallet,
   nativeSolBalance,
-  fetchTradeState,
+  refreshGroup,
 }: {
-  group: GroupData;
-  bank: ArenaBank;
-  className?: string;
-  isLeveraged?: boolean;
-  isLPPosition?: boolean;
+  pool: ArenaPoolV2Extended;
+  bankType: "COLLATERAL" | "TOKEN";
+  admin: PublicKey;
   connected: boolean;
+  className?: string;
   connection: Connection;
   wallet: Wallet;
   nativeSolBalance: number;
-  fetchTradeState: (args: { connection: Connection; wallet: Wallet }) => void;
+  refreshGroup: (args: { groupPk: PublicKey; banks: PublicKey[]; connection: Connection; wallet: Wallet }) => void;
 }) => {
+  const { marginfiClient, wrappedAccount, accountSummary } = useActionBoxProps(pool.groupPk, [
+    pool.tokenBank,
+    pool.quoteBank,
+  ]);
+
+  const bank = React.useMemo(() => (bankType === "COLLATERAL" ? pool.quoteBank : pool.tokenBank), [bankType, pool]);
+
+  const isProvidingLiquidity = React.useMemo(
+    () => bank.isActive && bank.position.isLending && pool.status === GroupStatus.LP,
+    [bank, pool]
+  );
+
   return (
     <div className={cn("items-center", className)}>
       <div className="flex items-center gap-2">
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={bank.meta.tokenLogoUri}
           alt={bank.meta.tokenSymbol}
           width={24}
           height={24}
-          className="rounded-full"
+          className="rounded-full w-[24px] h-[24px] object-cover"
         />
         {bank.meta.tokenSymbol}
       </div>
@@ -144,6 +149,15 @@ const YieldItem = ({
         <div className="flex flex-col gap-1">
           <span className="text-muted-foreground text-sm">Total Deposits</span>
           <span>
+            {dynamicNumeralFormatter(
+              bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber(),
+              {
+                maxDisplay: 1000,
+              }
+            )}{" "}
+            {bank.meta.tokenSymbol}
+          </span>
+          <span className="text-xs text-muted-foreground">
             {usdFormatter.format(bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber())}
           </span>
         </div>
@@ -152,7 +166,7 @@ const YieldItem = ({
           <span className="text-mrgn-success">{percentFormatter.format(aprToApy(bank.info.state.lendingRate))}</span>
         </div>
       </div>
-      {bank.isActive && bank.position.isLending && isLPPosition && (
+      {bank.isActive && isProvidingLiquidity && (
         <div className="text-sm mb-4">
           <span className="text-muted-foreground">Supplied</span>{" "}
           {usdFormatter.format(bank.position.amount * bank.info.oraclePrice.priceRealtime.price.toNumber())}
@@ -167,15 +181,15 @@ const YieldItem = ({
       <ActionBoxProvider
         banks={[bank]}
         nativeSolBalance={nativeSolBalance}
-        marginfiClient={group.client}
-        selectedAccount={group.selectedAccount}
+        marginfiClient={marginfiClient}
+        selectedAccount={wrappedAccount}
         connected={connected}
-        accountSummaryArg={group.accountSummary}
+        accountSummaryArg={accountSummary}
         showActionComplete={false}
         hidePoolStats={["type"]}
       >
         <div className="flex flex-col gap-2 md:flex-row">
-          {bank.isActive && !isLeveraged && bank.position.isLending && group.selectedAccount && (
+          {isProvidingLiquidity && (
             <>
               <ActionBox.Lend
                 isDialog={true}
@@ -187,12 +201,14 @@ const YieldItem = ({
                   showAvailableCollateral: false,
                   captureEvent: () => {
                     capture("yield_withdraw_btn_click", {
-                      group: group.client.group.address.toBase58(),
+                      group: pool.groupPk.toBase58(),
                       bank: bank.meta.tokenSymbol,
                     });
                   },
                   onComplete: () => {
-                    fetchTradeState({
+                    refreshGroup({
+                      groupPk: pool.groupPk,
+                      banks: [pool.tokenBank.address, pool.quoteBank.address],
                       connection,
                       wallet,
                     });
@@ -204,7 +220,7 @@ const YieldItem = ({
                       variant="outline"
                       onClick={() => {
                         capture("position_add_btn_click", {
-                          group: group.client.group.address.toBase58(),
+                          group: pool.groupPk.toBase58(),
                           bank: bank.meta.tokenSymbol,
                         });
                       }}
@@ -218,7 +234,7 @@ const YieldItem = ({
             </>
           )}
 
-          {isLeveraged ? (
+          {pool.status === GroupStatus.LONG || pool.status === GroupStatus.SHORT ? (
             <div>
               <p className="text-xs text-muted-foreground mb-2">
                 You cannot provide liquidity with an open trade.{" "}
@@ -245,12 +261,14 @@ const YieldItem = ({
                 showAvailableCollateral: false,
                 captureEvent: () => {
                   capture("position_add_btn_click", {
-                    group: group.client.group.address.toBase58(),
+                    group: pool.groupPk.toBase58(),
                     bank: bank.meta.tokenSymbol,
                   });
                 },
                 onComplete: () => {
-                  fetchTradeState({
+                  refreshGroup({
+                    groupPk: pool.groupPk,
+                    banks: [pool.tokenBank.address, pool.quoteBank.address],
                     connection,
                     wallet,
                   });
@@ -263,7 +281,7 @@ const YieldItem = ({
                     className="gap-1 min-w-16"
                     onClick={() => {
                       capture("position_add_btn_click", {
-                        group: group.client.group.address.toBase58(),
+                        group: pool.groupPk.toBase58(),
                         bank: bank.meta.tokenSymbol,
                       });
                     }}

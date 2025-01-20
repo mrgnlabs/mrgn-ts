@@ -168,13 +168,9 @@ const executeLstAction = async ({
     const txnSig = await marginfiClient.processTransactions([...actionTxns.additionalTxns, actionTxns.actionTxn], {
       ...processOpts,
       callback: (index, success, sig, stepsToAdvance) =>
-        success &&
-        multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig, processOpts?.broadcastType)),
+        success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig)),
     });
-    multiStepToast.setSuccess(
-      txnSig[txnSig.length - 1],
-      composeExplorerUrl(txnSig[txnSig.length - 1], processOpts?.broadcastType)
-    );
+    multiStepToast.setSuccess(txnSig[txnSig.length - 1], composeExplorerUrl(txnSig[txnSig.length - 1]));
 
     return txnSig;
   } catch (error: any) {

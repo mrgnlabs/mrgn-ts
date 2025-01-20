@@ -4,6 +4,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionMessageType } from "./actions";
+import { MAX_SLIPPAGE_PERCENTAGE } from "./slippage.consts";
 
 // Static errors that are not expected to change
 export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
@@ -62,7 +63,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     actionMethod: "WARNING",
     description: "Transaction failed due to poor account health, please increase your collateral and try again.",
     code: 108,
-  },
+  }, // We should add an action to deposit collateral here, this is quite often being thrown in the arena
   USER_REJECTED: {
     isEnabled: false,
     actionMethod: "WARNING",
@@ -125,13 +126,13 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   },
   INSUFICIENT_LAMPORTS: {
     isEnabled: false,
-    actionMethod: "ERROR",
+    actionMethod: "WARNING",
     description: "You do not have enough SOL to execute the transaction",
     code: 119,
   },
   INSUFICIENT_FUNDS: {
     isEnabled: false,
-    actionMethod: "ERROR",
+    actionMethod: "WARNING",
     description: "You do not have available funds to execute this transaction.",
     code: 120,
   },
@@ -168,12 +169,68 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     actionMethod: "ERROR",
     code: 125,
   },
+  TRADE_FAILED: {
+    description: `Unable to execute trade, please try again.`,
+    isEnabled: false,
+    code: 142,
+  },
+  SLIPPAGE_TOO_HIGH: {
+    description: `Slippage tolerance exceeded ${MAX_SLIPPAGE_PERCENTAGE}%.`,
+    isEnabled: true,
+    actionMethod: "WARNING",
+    code: 130,
+  },
+  ACCOUNT_NOT_INITIALIZED: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "There was an issue with the marginfi account. Please refresh and try again.",
+    code: 131,
+  },
+  BANK_NOT_INITIALIZED: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "There was an issue with the marginfi bank. Please refresh and try again.",
+    code: 132,
+  },
+  MAX_AMOUNT_CALCULATION_FAILED: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "There was an issue with the max amount calculation. Please refresh and try again.",
+    code: 133,
+  },
+  SIMULATION_NOT_READY: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description:
+      "Transaction is not ready to execute yet. Please ensure it has been fully simulated before proceeding.",
+    code: 134,
+  },
+  DEPOSIT_FAILED: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "Failed to deposit funds. Please try again.",
+    retry: true,
+    code: 135,
+  },
+  CREATE_SWAP_FAILED: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "Failed to fetch Jupiter quote. Please try again.",
+    retry: true,
+    code: 136,
+  },
 };
 
 const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `Unable to repay using ${tokenSymbol}, please select another collateral.`,
   isEnabled: false,
   code: 141,
+});
+
+const createTradeFailedCheck = (): ActionMessageType => ({
+  description: `Unable to execute trade, please try again.`,
+  isEnabled: false,
+  code: 142,
 });
 
 const createInsufficientBalanceCheck = (tokenSymbol?: string): ActionMessageType => ({
@@ -314,6 +371,12 @@ const checkErrorCodeMatch = (errorMessage: string, errorCode: number): boolean =
   return errorMessage.includes(hex) || errorMessage.includes(errorCode.toString());
 };
 
+const checkErrorCodeExactMatch = (errorMessage: string, errorCode: number): boolean => {
+  const hex = "0x" + errorCode.toString(16);
+  const regex = new RegExp(`\\b${hex}\\b`);
+  return regex.test(errorMessage);
+};
+
 export const DYNAMIC_SIMULATION_ERRORS = {
   WITHDRAW_CHECK: createWithdrawCheck,
   REPAY_CHECK: createRepayCheck,
@@ -332,6 +395,7 @@ export const DYNAMIC_SIMULATION_ERRORS = {
   EXISTING_ISO_BORROW_CHECK: createExistingIsolatedBorrowCheck,
   INSUFFICIENT_BALANCE_CHECK: createInsufficientBalanceCheck,
   REPAY_COLLAT_FAILED_CHECK: createRepayCollatFailedCheck,
+  TRADE_FAILED_CHECK: createTradeFailedCheck,
 };
 
 const createCustomError = (description: string): ActionMessageType => ({
@@ -400,7 +464,8 @@ export const handleError = (
 
       if (
         error.message?.toLowerCase().includes("insufficient lamport") ||
-        error?.logs?.some((entry: string[]) => entry.includes("insufficient lamport"))
+        error?.logs?.some((entry: string[]) => entry.includes("insufficient lamport")) ||
+        checkErrorCodeExactMatch(error.message, 1)
       ) {
         return STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS;
       }
@@ -428,6 +493,10 @@ export const handleError = (
         (checkErrorCodeMatch(error.message, 6028) || error.message?.toLowerCase().includes("utilization ratio"))
       ) {
         return STATIC_SIMULATION_ERRORS.UTILIZATION_RATIO_INVALID;
+      }
+
+      if (isArena && checkErrorCodeMatch(error.message, 6001)) {
+        return STATIC_SIMULATION_ERRORS.SLIPPAGE;
       }
 
       if (checkErrorCodeMatch(error.message, 6043)) {

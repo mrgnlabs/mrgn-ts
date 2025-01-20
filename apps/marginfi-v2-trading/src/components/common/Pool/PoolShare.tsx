@@ -1,7 +1,5 @@
 import React from "react";
-
 import Link from "next/link";
-
 import {
   IconCopy,
   IconCheck,
@@ -13,11 +11,10 @@ import {
 } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
-import { useTradeStore } from "~/store";
-import { GroupData } from "~/store/tradeStore";
-
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
+import { useExtendedPool } from "~/hooks/useExtendedPools";
+import { ArenaPoolV2 } from "~/types/trade-store.types";
 
 const shareLinks = [
   {
@@ -43,10 +40,11 @@ const buildShareUrl = (link: string, url: string, text: string) => {
 };
 
 type PoolShareProps = {
-  activeGroup: GroupData;
+  activePool: ArenaPoolV2;
 };
 
-export const PoolShare = ({ activeGroup }: PoolShareProps) => {
+export const PoolShare = ({ activePool }: PoolShareProps) => {
+  const extendedPool = useExtendedPool(activePool);
   const [isUrlCopied, setIsUrlCopied] = React.useState(false);
   const copyUrlRef = React.useRef<HTMLInputElement>(null);
 
@@ -61,7 +59,8 @@ export const PoolShare = ({ activeGroup }: PoolShareProps) => {
     <Popover>
       <PopoverTrigger asChild>
         <Button size="sm" variant="outline" className="mt-4">
-          <IconShare size={16} /> Share {activeGroup.pool.token.meta.tokenSymbol} pool
+          <IconShare size={16} /> Share {extendedPool.tokenBank.meta.tokenSymbol}/
+          {extendedPool.quoteBank.meta.tokenSymbol} pool
         </Button>
       </PopoverTrigger>
       <PopoverContent className="pb-2">
@@ -70,10 +69,10 @@ export const PoolShare = ({ activeGroup }: PoolShareProps) => {
             <input
               ref={copyUrlRef}
               className="appearance-none text-xs bg-background border rounded-md w-full overflow-auto px-2 py-1 select-all outline-none"
-              value={`${window.location.origin}/trade/${activeGroup.client.group.address.toBase58()}`}
+              value={`${window.location.origin}/trade/${extendedPool.groupPk.toBase58()}`}
               readOnly
             />
-            <CopyToClipboard text={`${window.location.origin}/trade/${activeGroup.client.group.address.toBase58()}`}>
+            <CopyToClipboard text={`${window.location.origin}/trade/${extendedPool.groupPk.toBase58()}`}>
               <button
                 onClick={handleCopyUrl}
                 className="cursor-pointer rounded-md p-2 transition-colors hover:bg-accent"
@@ -86,8 +85,8 @@ export const PoolShare = ({ activeGroup }: PoolShareProps) => {
             <span className="-translate-y-0.5 font-medium">Share to:</span>
             <ul className="flex items-center justify-center gap-1">
               {shareLinks.map((link, index) => {
-                const url = `${window.location.origin}/trade/${activeGroup.client.group.address.toBase58()}`;
-                const text = `Long / short ${activeGroup.pool.token.meta.tokenSymbol} with leverage in The Arena`;
+                const url = `${window.location.origin}/trade/${extendedPool.groupPk.toBase58()}`;
+                const text = `Long / short ${extendedPool.tokenBank.meta.tokenSymbol} with leverage in The Arena`;
                 return (
                   <li key={index}>
                     <Link

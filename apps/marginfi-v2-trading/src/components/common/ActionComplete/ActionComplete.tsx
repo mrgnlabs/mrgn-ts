@@ -9,6 +9,7 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useUiStore } from "~/store";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 
+import { SharePosition } from "~/components/common/share-position/share-position";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +22,7 @@ import { Button } from "~/components/ui/button";
 
 import * as screens from "./screens";
 
-export const ActionComplete = () => {
+export const ArenaActionComplete = () => {
   const [isActionComplete, setIsActionComplete, previousTxn] = useUiStore((state) => [
     state.isActionComplete,
     state.setIsActionComplete,
@@ -64,11 +65,10 @@ export const ActionComplete = () => {
         className={cn(isMobile ? "z-[80]" : "z-[60]")}
       />
       <Dialog open={isActionComplete} onOpenChange={(open) => setIsActionComplete(open)}>
-        <DialogContent className="z-[70] w-full">
+        <DialogContent className=" w-full h-full flex flex-col sm:justify-center sm:items-center justify-start items-center pt-16 sm:pt-0">
           {/* <div className="space-y-12 w-full"> */}
-          <DialogHeader>
+          <DialogHeader className="sr-only">
             <DialogTitle className="space-y-4 text-center flex flex-col items-center justify-center">
-              <IconConfetti size={48} />
               <h2 className="font-medium text-xl">{headerText}</h2>
             </DialogTitle>
             <DialogDescription className="sr-only">{headerText}</DialogDescription>
@@ -84,10 +84,20 @@ export const ActionComplete = () => {
               <screens.ClosePositionScreen {...previousTxn.positionClosedOptions} txn={previousTxn.txn} />
             )}
           </div>
-          <DialogFooter className="mt-6">
-            <Button className="w-full mx-auto" onClick={() => setIsActionComplete(false)}>
-              Done
-            </Button>
+          <DialogFooter className="flex sm:flex-col gap-4 mt-6 w-full">
+            {previousTxn.txnType === "CLOSE_POSITION" && previousTxn.positionClosedOptions.pool ? (
+              <div className="flex items-center justify-center">
+                <SharePosition
+                  pool={previousTxn.positionClosedOptions.pool}
+                  triggerVariant="outline"
+                  triggerClassName="w-full max-w-none h-10"
+                />
+              </div>
+            ) : (
+              <Button className="w-full" onClick={() => setIsActionComplete(false)}>
+                Done
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

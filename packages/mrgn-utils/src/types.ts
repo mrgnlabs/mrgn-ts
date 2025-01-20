@@ -1,4 +1,4 @@
-import { QuoteResponse } from "@jup-ag/react-hook";
+import { QuoteResponse } from "@jup-ag/api";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 export enum LendingModes {
@@ -59,6 +59,22 @@ interface PreviousTxnPositionClosed {
   positionClosedOptions: {
     tokenBank: ExtendedBankInfo;
     collateralBank: ExtendedBankInfo;
+    size: number;
+    leverage: number;
+    entryPrice: number;
+    exitPrice: number;
+    pnl: number;
+  };
+}
+
+interface PreviousTxnDepositSwap {
+  txn: string;
+  txnType: "DEPOSIT_SWAP";
+  depositSwapOptions: {
+    depositBank: ActiveBankInfo;
+    swapBank: ActiveBankInfo;
+    depositAmount: number;
+    swapAmount: number;
   };
 }
 
@@ -85,4 +101,5 @@ export type PreviousTxn =
   | PreviousTxnLending
   | PreviousTxnTrading
   | PreviousTxnPositionClosed
-  | PreviousTxnStake;
+  | PreviousTxnStake
+  | PreviousTxnDepositSwap;

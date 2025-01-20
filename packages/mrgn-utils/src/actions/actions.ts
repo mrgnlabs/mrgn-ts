@@ -1,11 +1,20 @@
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { FEE_MARGIN, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { FEE_MARGIN, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { TransactionOptions, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { MultiStepToastHandle, showErrorToast } from "../toasts";
-import { MarginfiActionParams, LstActionParams, ActionTxns, RepayWithCollatProps, LoopingProps } from "./types";
+import {
+  MarginfiActionParams,
+  LstActionParams,
+  ActionTxns,
+  RepayWithCollatProps,
+  LoopingProps,
+  TradeActionTxns,
+  ClosePositionActionTxns,
+  DepositSwapActionTxns,
+} from "./types";
 import { WalletContextStateOverride } from "../wallet";
 import {
   deposit,
@@ -13,13 +22,17 @@ import {
   borrow,
   withdraw,
   looping,
+  trade,
   repayWithCollat,
   createAccountAndDeposit,
   createAccount,
   mintLstNative,
   mintLstToken,
   mintLstStakeToStake,
+  closePosition,
+  depositSwap,
 } from "./individualFlows";
+import { STATIC_SIMULATION_ERRORS } from "../errors";
 
 // ------------------------------------------------------------------//
 // Actions //
@@ -40,7 +53,7 @@ export async function createAccountAction({
   walletContextState?: WalletContextState | WalletContextStateOverride;
 }) {
   if (nativeSolBalance < FEE_MARGIN) {
-    showErrorToast("Not enough sol for fee.");
+    showErrorToast(STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS);
     return;
   }
 
@@ -52,7 +65,7 @@ export async function executeLendingAction(params: MarginfiActionParams) {
   let txnSig: string | string[] | undefined;
 
   if (params.nativeSolBalance < FEE_MARGIN) {
-    showErrorToast("Not enough sol for fee.");
+    showErrorToast(STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS);
     return;
   }
 
@@ -66,7 +79,7 @@ export async function executeLendingAction(params: MarginfiActionParams) {
   }
 
   if (!params.marginfiAccount) {
-    showErrorToast({ message: "Marginfi account not ready." });
+    showErrorToast(STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED);
     return;
   }
 
@@ -75,7 +88,7 @@ export async function executeLendingAction(params: MarginfiActionParams) {
   }
 
   if (!params.marginfiClient) {
-    showErrorToast({ message: "Client not ready." });
+    showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
     return;
   }
 
@@ -116,11 +129,56 @@ export async function executeLoopingAction(params: ExecuteLoopingActionProps) {
   let txnSig: string[] | undefined;
 
   if (!params.marginfiAccount) {
-    showErrorToast("Marginfi account not ready.");
+    showErrorToast(STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED);
     return;
   }
 
   txnSig = await looping(params);
+
+  return txnSig;
+}
+
+export interface ExecuteTradeActionProps extends LoopingProps {
+  marginfiClient: MarginfiClient;
+  actionTxns: TradeActionTxns;
+  processOpts: ProcessTransactionsClientOpts;
+  txOpts: TransactionOptions;
+  tradeSide: "long" | "short";
+}
+
+export async function executeTradeAction(params: ExecuteTradeActionProps) {
+  let txnSig: string[] | undefined;
+
+  txnSig = await trade(params);
+
+  return txnSig;
+}
+
+export interface ExecuteDepositSwapActionProps extends MarginfiActionParams {
+  swapBank: ExtendedBankInfo | null;
+  actionTxns: DepositSwapActionTxns;
+}
+
+export async function executeDepositSwapAction(params: ExecuteDepositSwapActionProps) {
+  let txnSig: string[] | undefined;
+
+  txnSig = await depositSwap(params);
+
+  return txnSig;
+}
+
+export interface ExecuteClosePositionActionProps {
+  marginfiClient: MarginfiClient;
+  actionTxns: ClosePositionActionTxns;
+  processOpts: ProcessTransactionsClientOpts;
+  txOpts: TransactionOptions;
+  multiStepToast: MultiStepToastHandle;
+}
+
+export async function executeClosePositionAction(params: ExecuteClosePositionActionProps) {
+  let txnSig: string[] | undefined;
+
+  txnSig = await closePosition(params);
 
   return txnSig;
 }
@@ -142,7 +200,7 @@ export async function executeLstAction({
   let txnSig: string | undefined;
 
   if (nativeSolBalance < FEE_MARGIN) {
-    showErrorToast("Not enough sol for fee.");
+    showErrorToast(STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS);
     return;
   }
 

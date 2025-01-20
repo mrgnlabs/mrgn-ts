@@ -2,25 +2,34 @@ import React from "react";
 
 import { useRouter } from "next/router";
 
-import { useTradeStore } from "~/store";
-import { GroupData } from "~/store/tradeStore";
+import { useTradeStoreV2 } from "~/store";
 
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { AdminPoolDetailHeader, AdminPoolDetailCard } from "~/components/common/admin";
+import { ArenaPoolV2 } from "~/types/trade-store.types";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
+import { Meta } from "~/components/common/Meta/Meta";
 
 export default function AdminGroupDetailsPage() {
-  const [initialized, groupMap] = useTradeStore((state) => [state.initialized, state.groupMap]);
+  const [initialized, poolsFetched, arenaPools, groupsByGroupPk] = useTradeStoreV2((state) => [
+    state.initialized,
+    state.poolsFetched,
+    state.arenaPools,
+    state.groupsByGroupPk,
+  ]);
   const { wallet } = useWallet();
   const router = useRouter();
-  const [activeGroup, setActiveGroup] = React.useState<GroupData | null>(null);
+  const [activePool, setActivePool] = React.useState<ArenaPoolV2 | null>(null);
 
   const ownPools = React.useMemo(() => {
-    const goups = [...groupMap.values()];
-    return goups.filter((group) => group.client.group.admin.equals(wallet.publicKey));
-  }, [groupMap, wallet]);
+    const pools = Object.values(arenaPools);
+    return pools.filter(
+      (pool) => groupsByGroupPk[pool.groupPk.toBase58()]?.admin.toBase58() === wallet.publicKey?.toBase58()
+    );
+  }, [arenaPools, groupsByGroupPk, wallet]);
 
   React.useEffect(() => {
-    if (!router.isReady || !initialized) return;
+    if (!router.isReady || !initialized || !poolsFetched) return;
 
     const group = router.query.group as string;
 
@@ -29,21 +38,23 @@ export default function AdminGroupDetailsPage() {
       return;
     }
 
-    const groupData = ownPools.find((pool) => pool.groupPk.toBase58() === group);
-    if (!groupData) {
+    const data = ownPools.find((pool) => pool.groupPk.toBase58() === group);
+    if (!data) {
       router.push("/404");
       return;
     }
 
-    setActiveGroup(groupData);
-  }, [router, ownPools, setActiveGroup, initialized]);
+    setActivePool(data);
+  }, [router, ownPools, setActivePool, initialized, poolsFetched]);
 
   return (
     <>
-      <div className="w-full space-y-12 max-w-8xl mx-auto px-4 pb-16 pt-8 md:pt-14 min-h-[calc(100vh-100px)]">
-        {activeGroup && <AdminPoolDetailHeader activeGroup={activeGroup} />}
-        {activeGroup && <AdminPoolDetailCard key={activeGroup.client.group.address.toBase58()} group={activeGroup} />}
-      </div>
+      <GeoBlockingWrapper>
+        <div className="w-full space-y-12 max-w-6xl mx-auto px-4 pb-16 pt-8 md:pt-14 min-h-[calc(100vh-100px)] mb-4 sm:mb-0">
+          {activePool && <AdminPoolDetailHeader activePool={activePool} />}
+          {activePool && <AdminPoolDetailCard activePool={activePool} />}
+        </div>
+      </GeoBlockingWrapper>
     </>
   );
 }

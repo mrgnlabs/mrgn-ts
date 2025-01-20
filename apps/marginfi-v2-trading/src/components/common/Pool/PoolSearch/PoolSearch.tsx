@@ -5,7 +5,7 @@ import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
 import { useDebounce } from "@uidotdev/usehooks";
 
-import { useTradeStore } from "~/store";
+import { useTradeStoreV2 } from "~/store";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { PoolSearchDefault, PoolSearchDialog } from "./components/";
@@ -28,11 +28,11 @@ export const PoolSearch = ({
   showNoResults = true,
 }: PoolSearchProps) => {
   const router = useRouter();
-  const [groupMap, searchBanks, searchResults, resetSearchResults] = useTradeStore((state) => [
-    state.groupMap,
-    state.searchBanks,
-    state.searchResults,
+  const [searchSummaryPools, searchPoolSummaryResults, resetSearchResults, arenaPools] = useTradeStoreV2((state) => [
+    state.searchSummaryPools,
+    state.searchPoolSummaryResults,
     state.resetSearchResults,
+    state.arenaPools,
   ]);
 
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -40,15 +40,15 @@ export const PoolSearch = ({
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const isMobile = useIsMobile();
 
-  const groups = [...groupMap.values()];
+  // const groups = [...groupMap.values()];
 
   React.useEffect(() => {
     if (!debouncedSearchQuery.length) {
       resetSearchResults();
       return;
     }
-    searchBanks(debouncedSearchQuery);
-  }, [debouncedSearchQuery, searchBanks, resetSearchResults]);
+    searchSummaryPools(debouncedSearchQuery);
+  }, [debouncedSearchQuery, searchSummaryPools, resetSearchResults]);
 
   const resetSearch = React.useCallback(() => {
     resetSearchResults();
@@ -62,13 +62,16 @@ export const PoolSearch = ({
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           resetSearch={resetSearch}
-          searchResults={searchResults}
+          searchResults={searchPoolSummaryResults}
           size={size}
           additionalContent={additionalContent}
           additionalContentQueryMin={additionalContentQueryMin}
           showNoResults={showNoResults}
           onBankSelect={(value) => {
-            const foundGroup = groups.find((g) => g.groupPk.toBase58().toLowerCase() === value);
+            const foundGroup = Object.entries(arenaPools).find(
+              ([key]) => key.toLowerCase() === value.toLowerCase()
+            )?.[1];
+
             if (!foundGroup) return;
 
             router.push(`/trade/${foundGroup.groupPk.toBase58()}`);
@@ -82,12 +85,15 @@ export const PoolSearch = ({
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           resetSearch={resetSearch}
-          searchResults={searchResults}
+          searchResults={searchPoolSummaryResults}
           additionalContent={additionalContent}
           additionalContentQueryMin={additionalContentQueryMin}
           showNoResults={showNoResults}
           onBankSelect={(value) => {
-            const foundGroup = groups.find((g) => g.groupPk.toBase58().toLowerCase() === value);
+            const foundGroup = Object.entries(arenaPools).find(
+              ([key]) => key.toLowerCase() === value.toLowerCase()
+            )?.[1];
+
             if (!foundGroup) return;
 
             router.push(`/trade/${foundGroup.groupPk.toBase58()}`);

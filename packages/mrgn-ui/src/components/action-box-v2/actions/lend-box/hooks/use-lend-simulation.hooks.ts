@@ -79,7 +79,7 @@ export function useLendSimulation({
 
   const handleActionSummary = React.useCallback(
     (summary?: AccountSummary, result?: SimulationResult) => {
-      if (selectedAccount && summary && selectedBank) {
+      if (summary && selectedBank) {
         return calculateSummary({
           simulationResult: result ?? undefined,
           bank: selectedBank,
@@ -88,7 +88,7 @@ export function useLendSimulation({
         });
       }
     },
-    [selectedAccount, selectedBank, lendMode]
+    [selectedBank, lendMode]
   );
 
   const fetchActionTxn = React.useCallback(

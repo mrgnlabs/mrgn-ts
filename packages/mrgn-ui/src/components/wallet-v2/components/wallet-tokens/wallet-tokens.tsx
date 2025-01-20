@@ -59,9 +59,12 @@ export const WalletTokens = ({ tokens, onTokenClick, className }: WalletTokensPr
             onClick={() => onTokenClick?.(token)}
           >
             <div className="flex items-center gap-3 w-3/5">
-              {token.image && (
-                <Image src={token.image} alt={token.symbol} className="w-9 h-9 rounded-full" width={36} height={36} />
-              )}
+              {token.image &&
+                (token.image.includes("mrgn-token-icons") ? (
+                  <Image src={token.image} alt={token.symbol} className="w-9 h-9 rounded-full" width={36} height={36} />
+                ) : (
+                  <img src={token.image} alt={token.symbol} className="w-9 h-9 rounded-full" width={36} height={36} />
+                ))}
               <div className="flex flex-col gap-0.5">
                 <span className="font-medium">{token.symbol}</span>
                 <span className="text-xs text-muted-foreground">{token.name}</span>

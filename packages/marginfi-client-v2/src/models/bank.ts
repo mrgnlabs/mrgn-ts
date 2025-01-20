@@ -73,12 +73,16 @@ interface BankConfigRaw {
   riskTier: RiskTierRaw;
   totalAssetValueInitLimit: BN;
   oracleMaxAge: number;
+  assetTag: number;
 
   interestRateConfig: InterestRateConfigRaw;
   operationalState: OperationalStateRaw;
 
   oracleSetup: OracleSetupRaw;
   oracleKeys: PublicKey[];
+
+  permissionlessBadDebtSettlement: boolean;
+  freezeSettings: boolean;
 }
 
 interface BankConfigCompactRaw extends Omit<BankConfigRaw, "oracleKeys"> {
@@ -237,7 +241,12 @@ class Bank {
     return Bank.fromAccountParsed(address, accountParsed, feedIdMap);
   }
 
-  static fromAccountParsed(address: PublicKey, accountParsed: BankRaw, feedIdMap: PythPushFeedIdMap, bankMetadata?: BankMetadata): Bank {
+  static fromAccountParsed(
+    address: PublicKey,
+    accountParsed: BankRaw,
+    feedIdMap: PythPushFeedIdMap,
+    bankMetadata?: BankMetadata
+  ): Bank {
     const flags = accountParsed.flags.toNumber();
 
     const mint = accountParsed.mint;
@@ -580,6 +589,7 @@ class BankConfig {
 
   public riskTier: RiskTier;
   public totalAssetValueInitLimit: BigNumber;
+  public assetTag: AssetTag;
 
   public interestRateConfig: InterestRateConfig;
   public operationalState: OperationalState;
@@ -587,6 +597,9 @@ class BankConfig {
   public oracleSetup: OracleSetup;
   public oracleKeys: PublicKey[];
   public oracleMaxAge: number;
+
+  public permissionlessBadDebtSettlement: boolean;
+  public freezeSettings: boolean;
 
   constructor(
     assetWeightInit: BigNumber,
@@ -597,11 +610,14 @@ class BankConfig {
     borrowLimit: BigNumber,
     riskTier: RiskTier,
     totalAssetValueInitLimit: BigNumber,
+    assetTag: AssetTag,
     oracleSetup: OracleSetup,
     oracleKeys: PublicKey[],
     oracleMaxAge: number,
     interestRateConfig: InterestRateConfig,
-    operationalState: OperationalState
+    operationalState: OperationalState,
+    permissionlessBadDebtSettlement: boolean,
+    freezeSettings: boolean
   ) {
     this.assetWeightInit = assetWeightInit;
     this.assetWeightMaint = assetWeightMaint;
@@ -611,11 +627,14 @@ class BankConfig {
     this.borrowLimit = borrowLimit;
     this.riskTier = riskTier;
     this.totalAssetValueInitLimit = totalAssetValueInitLimit;
+    this.assetTag = assetTag;
     this.oracleSetup = oracleSetup;
     this.oracleKeys = oracleKeys;
     this.interestRateConfig = interestRateConfig;
     this.operationalState = operationalState;
     this.oracleMaxAge = oracleMaxAge;
+    this.permissionlessBadDebtSettlement = permissionlessBadDebtSettlement;
+    this.freezeSettings = freezeSettings;
   }
 
   static fromAccountParsed(bankConfigRaw: BankConfigRaw): BankConfig {
@@ -628,6 +647,7 @@ class BankConfig {
     const riskTier = parseRiskTier(bankConfigRaw.riskTier);
     const operationalState = parseOperationalState(bankConfigRaw.operationalState);
     const totalAssetValueInitLimit = BigNumber(bankConfigRaw.totalAssetValueInitLimit.toString());
+    const assetTag = bankConfigRaw.assetTag as AssetTag;
     const oracleSetup = parseOracleSetup(bankConfigRaw.oracleSetup);
     const oracleKeys = bankConfigRaw.oracleKeys;
     const oracleMaxAge = bankConfigRaw.oracleMaxAge === 0 ? DEFAULT_ORACLE_MAX_AGE : bankConfigRaw.oracleMaxAge;
@@ -639,7 +659,10 @@ class BankConfig {
       plateauInterestRate: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.plateauInterestRate),
       protocolFixedFeeApr: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolFixedFeeApr),
       protocolIrFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolIrFee),
+      protocolOriginationFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolOriginationFee),
     };
+    const permissionlessBadDebtSettlement = bankConfigRaw.permissionlessBadDebtSettlement;
+    const freezeSettings = bankConfigRaw.freezeSettings;
 
     return {
       assetWeightInit,
@@ -651,10 +674,13 @@ class BankConfig {
       riskTier,
       operationalState,
       totalAssetValueInitLimit,
+      assetTag,
       oracleSetup,
       oracleKeys,
       oracleMaxAge,
       interestRateConfig,
+      permissionlessBadDebtSettlement,
+      freezeSettings,
     };
   }
 }
@@ -681,6 +707,7 @@ interface InterestRateConfig {
   insuranceIrFee: BigNumber;
   protocolFixedFeeApr: BigNumber;
   protocolIrFee: BigNumber;
+  protocolOriginationFee: BigNumber;
 }
 
 enum OracleSetup {
@@ -689,6 +716,12 @@ enum OracleSetup {
   SwitchboardV2 = "SwitchboardV2",
   PythPushOracle = "PythPushOracle",
   SwitchboardPull = "SwitchboardPull",
+}
+
+enum AssetTag {
+  DEFAULT = 0,
+  SOL = 1,
+  STAKED = 2,
 }
 
 // BankConfigOpt Args
@@ -703,6 +736,7 @@ interface BankConfigOpt {
   borrowLimit: BigNumber | null;
   riskTier: RiskTier | null;
   totalAssetValueInitLimit: BigNumber | null;
+  assetTag: AssetTag | null;
 
   interestRateConfig: InterestRateConfig | null;
   operationalState: OperationalState | null;
@@ -714,6 +748,7 @@ interface BankConfigOpt {
 
   oracleMaxAge: number | null;
   permissionlessBadDebtSettlement: boolean | null;
+  freezeSettings: boolean | null;
 }
 
 interface BankConfigOptRaw {
@@ -726,6 +761,7 @@ interface BankConfigOptRaw {
   depositLimit: BN | null;
   borrowLimit: BN | null;
   riskTier: { collateral: {} } | { isolated: {} } | null;
+  assetTag: number | null;
   totalAssetValueInitLimit: BN | null;
 
   interestRateConfig: InterestRateConfigRaw | null;
@@ -738,6 +774,7 @@ interface BankConfigOptRaw {
 
   oracleMaxAge: number | null;
   permissionlessBadDebtSettlement: boolean | null;
+  freezeSettings: boolean | null;
 }
 
 function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw {
@@ -753,6 +790,7 @@ function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw 
     borrowLimit: toBN(bankConfigOpt.borrowLimit),
     riskTier: bankConfigOpt.riskTier && serializeRiskTier(bankConfigOpt.riskTier),
     totalAssetValueInitLimit: toBN(bankConfigOpt.totalAssetValueInitLimit),
+    assetTag: bankConfigOpt.assetTag !== null ? Number(bankConfigOpt.assetTag) : 0,
     interestRateConfig:
       bankConfigOpt.interestRateConfig &&
       ({
@@ -771,68 +809,9 @@ function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw 
     },
     oracleMaxAge: bankConfigOpt.oracleMaxAge,
     permissionlessBadDebtSettlement: bankConfigOpt.permissionlessBadDebtSettlement,
+    freezeSettings: bankConfigOpt.freezeSettings,
   };
 }
-
-// function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw {
-//   const assetWeightInit = bankConfigOpt.assetWeightInit && {
-//     value: [...new BN(bankConfigOpt.assetWeightInit.toString()).toBuffer()],
-//   };
-//   const assetWeightMaint = bankConfigOpt.assetWeightMaint && {
-//     value: [...new BN(bankConfigOpt.assetWeightMaint.toString()).toBuffer()],
-//   };
-//   const liabilityWeightInit = bankConfigOpt.liabilityWeightInit && {
-//     value: [...new BN(bankConfigOpt.liabilityWeightInit.toString()).toBuffer()],
-//   };
-//   const liabilityWeightMaint = bankConfigOpt.liabilityWeightMaint && {
-//     value: [...new BN(bankConfigOpt.liabilityWeightMaint.toString()).toBuffer()],
-//   };
-//   const depositLimit = bankConfigOpt.depositLimit && new BN(bankConfigOpt.depositLimit.toString());
-//   const borrowLimit = bankConfigOpt.borrowLimit && new BN(bankConfigOpt.borrowLimit.toString());
-//   const riskTier = bankConfigOpt.riskTier && serializeRiskTier(bankConfigOpt.riskTier); // parseRiskTier(bankConfigRaw.riskTier);
-//   const operationalState = bankConfigOpt.operationalState && serializeOperationalState(bankConfigOpt.operationalState);
-//   const totalAssetValueInitLimit =
-//     bankConfigOpt.totalAssetValueInitLimit && new BN(bankConfigOpt.totalAssetValueInitLimit.toString());
-//   const oracle = bankConfigOpt.oracle && {
-//     setup: serializeOracleSetup(bankConfigOpt.oracle.setup),
-//     keys: bankConfigOpt.oracle.keys,
-//   };
-//   const interestRateConfig = bankConfigOpt.interestRateConfig && {
-//     insuranceFeeFixedApr: {
-//       value: [...new BN(bankConfigOpt.interestRateConfig.insuranceFeeFixedApr.toString()).toBuffer()],
-//     },
-//     maxInterestRate: { value: [...new BN(bankConfigOpt.interestRateConfig.maxInterestRate.toString()).toBuffer()] },
-//     insuranceIrFee: { value: [...new BN(bankConfigOpt.interestRateConfig.insuranceIrFee.toString()).toBuffer()] },
-//     optimalUtilizationRate: {
-//       value: [...new BN(bankConfigOpt.interestRateConfig.optimalUtilizationRate.toString()).toBuffer()],
-//     },
-//     plateauInterestRate: {
-//       value: [...new BN(bankConfigOpt.interestRateConfig.plateauInterestRate.toString()).toBuffer()],
-//     },
-//     protocolFixedFeeApr: {
-//       value: [...new BN(bankConfigOpt.interestRateConfig.protocolFixedFeeApr.toString()).toBuffer()],
-//     },
-//     protocolIrFee: { value: [...new BN(bankConfigOpt.interestRateConfig.protocolIrFee.toString()).toBuffer()] },
-//   };
-//   const oracleMaxAge = bankConfigOpt.oracleMaxAge;
-//   const permissionlessBadDebtSettlement = bankConfigOpt.permissionlessBadDebtSettlement;
-
-//   return {
-//     assetWeightInit,
-//     assetWeightMaint,
-//     liabilityWeightInit,
-//     liabilityWeightMaint,
-//     depositLimit,
-//     borrowLimit,
-//     riskTier,
-//     operationalState,
-//     totalAssetValueInitLimit,
-//     oracle,
-//     interestRateConfig,
-//     oracleMaxAge,
-//     permissionlessBadDebtSettlement,
-//   };
-// }
 
 function parseRiskTier(riskTierRaw: RiskTierRaw): RiskTier {
   switch (Object.keys(riskTierRaw)[0].toLowerCase()) {
@@ -885,7 +864,7 @@ function serializeOperationalState(
 }
 
 function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
-  const oracleKey = Object.keys(oracleSetupRaw)[0].toLowerCase()
+  const oracleKey = Object.keys(oracleSetupRaw)[0].toLowerCase();
   switch (oracleKey) {
     case "none":
       return OracleSetup.None;
@@ -902,7 +881,9 @@ function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
   }
 }
 
-function serializeOracleSetup(oracleSetup: OracleSetup): { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} } | { switchboardPull: {} } {
+function serializeOracleSetup(
+  oracleSetup: OracleSetup
+): { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} } | { switchboardPull: {} } {
   switch (oracleSetup) {
     case OracleSetup.None:
       return { none: {} };
@@ -972,6 +953,7 @@ export {
   serializeBankConfigOpt,
   computeMaxLeverage,
   computeLoopingParams,
+  AssetTag,
 };
 
 // ----------------------------------------------------------------------------

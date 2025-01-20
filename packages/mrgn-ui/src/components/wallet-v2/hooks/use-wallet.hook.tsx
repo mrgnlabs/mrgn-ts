@@ -99,18 +99,32 @@ const web3AuthChainConfig = {
   tickerName: "Solana",
 };
 
+const web3authAdapterConfig =
+  process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui"
+    ? {
+        appName: "marginfi",
+        appUrl: "https://app.marginfi.com",
+        logoDark: "https://marginfi-v2-ui-git-staging-mrgn.vercel.app/mrgn.svg",
+        mode: "dark" as const,
+        theme: {
+          gray: "#0E1010",
+        },
+        useLogoLoader: true,
+      }
+    : {
+        appName: "The Arena",
+        appUrl: "https://www.thearena.trade",
+        logoLight: "https://www.thearena.trade/icon.svg",
+        mode: "dark" as const,
+        theme: {
+          gray: "#0E1010",
+        },
+        useLogoLoader: true,
+      };
+
 const web3AuthOpenLoginAdapterSettings = {
   uxMode: "redirect",
-  whiteLabel: {
-    appName: "marginfi",
-    appUrl: "https://app.marginfi.com",
-    logoDark: "https://marginfi-v2-ui-git-staging-mrgn.vercel.app/mrgn.svg",
-    mode: "dark",
-    theme: {
-      gray: "#0E1010",
-    },
-    useLogoLoader: true,
-  },
+  whiteLabel: web3authAdapterConfig,
 } as const;
 
 // create an object that matches wallet adapter context state

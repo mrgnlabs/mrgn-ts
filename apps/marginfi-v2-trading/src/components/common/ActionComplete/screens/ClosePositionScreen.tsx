@@ -1,60 +1,83 @@
 import React from "react";
 
 import Link from "next/link";
-import Image from "next/image";
 
 import { IconExternalLink } from "@tabler/icons-react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
+import { PnlLabel, PnlBadge } from "~/components/common/pnl-display";
+import { composeExplorerUrl } from "@mrgnlabs/mrgn-utils";
 
 interface Props {
   tokenBank: ExtendedBankInfo;
-  collateralBank: ExtendedBankInfo;
+  size: number;
+  leverage: number;
+  entryPrice: number;
+  exitPrice: number;
+  pnl: number;
   txn: string;
+  txnLink?: string;
 }
 
-export const ClosePositionScreen = ({ tokenBank, collateralBank, txn }: Props) => {
+export const ClosePositionScreen = ({ tokenBank, size, leverage, entryPrice, exitPrice, pnl, txn, txnLink }: Props) => {
   return (
     <>
-      <div className="flex flex-col items-center gap-2 border-b border-border pb-10">
-        <div className="flex items-center justify-center gap-2">
-          {tokenBank && (
-            <Image
-              className="rounded-full w-9 h-9"
+      <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
+        <div className="flex flex-col items-center justify-center gap-2">
+          <div className="flex items-center">
+            <img
+              className="rounded-full z-20"
               src={tokenBank.meta.tokenLogoUri}
               alt={(tokenBank.meta.tokenSymbol || "Token") + "  logo"}
-              width={36}
-              height={36}
+              width={52}
+              height={52}
             />
-          )}
-          <h3 className="text-4xl font-medium">{`${tokenBank?.meta.tokenSymbol}/${collateralBank?.meta.tokenSymbol}`}</h3>
+          </div>
+          <h3 className="text-2xl font-medium text-center">{tokenBank?.meta.tokenSymbol} position closed</h3>
+        </div>
+
+        <div className="flex items-center justify-center gap-2">
+          <PnlLabel pnl={pnl} positionSize={size} className="text-3xl" />
+          <PnlBadge pnl={pnl} positionSize={size} className="text-sm" />
         </div>
       </div>
       <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
-        {tokenBank?.isActive && tokenBank?.position && (
+        <dt>Size</dt>
+        <dd className="text-right">
+          $
+          {dynamicNumeralFormatter(size, {
+            ignoreMinDisplay: true,
+          })}
+        </dd>
+        <dt>Leverage</dt>
+        <dd className="text-right">{leverage}x</dd>
+        {entryPrice ? (
           <>
-            <dt>
-              Total {tokenBank.meta.tokenSymbol} {tokenBank.position.isLending ? "Deposits" : "Borrows"}
-            </dt>
+            <dt>Entry Price</dt>
             <dd className="text-right">
-              {tokenBank.position.amount} {tokenBank.meta.tokenSymbol}
+              $
+              {dynamicNumeralFormatter(entryPrice, {
+                ignoreMinDisplay: true,
+              })}
             </dd>
           </>
+        ) : (
+          <></>
         )}
-        {collateralBank?.isActive && collateralBank?.position && (
-          <>
-            <dt>
-              Total {collateralBank.meta.tokenSymbol} {collateralBank.position.isLending ? "Deposits" : "Borrows"}
-            </dt>
-            <dd className="text-right">
-              {collateralBank.position.amount} {collateralBank.meta.tokenSymbol}
-            </dd>
-          </>
-        )}
+        <dt>Exit Price</dt>
+        <dd className="text-right">
+          $
+          {dynamicNumeralFormatter(exitPrice, {
+            ignoreMinDisplay: true,
+          })}
+        </dd>
         <dt>Transaction</dt>
         <dd className="text-right">
           <Link
-            href={`https://solscan.io/tx/${txn}`}
+            href={txnLink ?? composeExplorerUrl(txn) ?? ""}
             className="flex items-center justify-end gap-1.5 text-foreground text-sm underline hover:no-underline"
             target="_blank"
             rel="noopener noreferrer"

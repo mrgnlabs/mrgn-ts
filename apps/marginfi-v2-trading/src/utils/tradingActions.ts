@@ -35,9 +35,9 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { TradeSide } from "~/components/common/TradingBox/tradingBox.utils";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
+import { TradeSide } from "~/components/common/trade-box-v2";
 
 export async function createMarginfiGroup({
   marginfiClient,
@@ -186,13 +186,12 @@ export async function executeLeverageAction({
   slippageBps: number;
   broadcastType: TransactionBroadcastType;
 }) {
-  if (marginfiClient === null) {
-    showErrorToast("Marginfi client not ready");
+  if (!marginfiClient) {
+    showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
     return;
   }
-
-  if (loopActionTxns === null) {
-    showErrorToast("Leverage routing not ready");
+  if (!loopActionTxns) {
+    showErrorToast(STATIC_SIMULATION_ERRORS.SIMULATION_NOT_READY);
     return;
   }
 

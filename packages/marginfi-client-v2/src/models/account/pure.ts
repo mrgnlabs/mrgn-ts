@@ -1033,6 +1033,15 @@ class MarginfiAccount {
     return { instructions: [accountAuthorityTransferIx], keys: [] };
   }
 
+  async makeCloseAccountIx(program: MarginfiProgram): Promise<InstructionsWrapper> {
+    const ix = await instructions.makeCloseAccountIx(program, {
+      marginfiAccountPk: this.address,
+      feePayerPk: this.authority,
+      authorityPk: this.authority,
+    });
+    return { instructions: [ix], keys: [] };
+  }
+
   projectActiveBalancesNoCpi(program: MarginfiProgram, instructions: TransactionInstruction[]): PublicKey[] {
     let projectedBalances = [...this.balances.map((b) => ({ active: b.active, bankPk: b.bankPk }))];
 

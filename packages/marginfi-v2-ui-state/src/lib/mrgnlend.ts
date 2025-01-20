@@ -6,6 +6,7 @@ import {
   buildFeedIdMap,
   findOracleKey,
   getPriceWithConfidence,
+  MarginfiAccount,
   MarginfiAccountWrapper,
   MarginfiGroup,
   MarginfiProgram,
@@ -252,28 +253,53 @@ export async function makeEmissionsPriceMap(
   return tokenMap;
 }
 
-function makeExtendedBankMetadata(bank: Bank, tokenMetadata: TokenMetadata): ExtendedBankMetadata {
+function makeExtendedBankMetadata(
+  bank: Bank,
+  tokenMetadata: TokenMetadata,
+  overrideIcon?: boolean
+): ExtendedBankMetadata {
   return {
     address: bank.address,
     tokenSymbol: tokenMetadata.symbol,
     tokenName: tokenMetadata.name,
-    tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png`,
+    tokenLogoUri: overrideIcon
+      ? tokenMetadata.icon ?? "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png"
+      : `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png`,
   };
 }
+
+export type UserDataProps = UserDataWrappedProps | UserDataRawProps;
+
+type UserDataWrappedProps = {
+  nativeSolBalance: number;
+  marginfiAccount: MarginfiAccountWrapper | null;
+  tokenAccount: TokenAccount;
+};
+
+type UserDataRawProps = {
+  nativeSolBalance: number;
+  marginfiAccount: MarginfiAccount | null;
+  tokenAccount: TokenAccount;
+  banks: Map<string, Bank>;
+  oraclePrices: Map<string, OraclePrice>;
+};
 
 function makeExtendedBankInfo(
   tokenMetadata: TokenMetadata,
   bank: Bank,
   oraclePrice: OraclePrice,
   emissionTokenPrice?: TokenPrice,
-  userData?: {
-    nativeSolBalance: number;
-    marginfiAccount: MarginfiAccountWrapper | null;
-    tokenAccount: TokenAccount;
-  }
+  userData?: UserDataProps,
+  overrideIcon?: boolean
 ): ExtendedBankInfo {
+  function isUserDataRawProps(userData: UserDataWrappedProps | UserDataRawProps): userData is UserDataRawProps {
+    return (
+      (userData as UserDataRawProps).banks !== undefined && (userData as UserDataRawProps).oraclePrices !== undefined
+    );
+  }
+
   // Aggregate user-agnostic bank info
-  const meta = makeExtendedBankMetadata(bank, tokenMetadata);
+  const meta = makeExtendedBankMetadata(bank, tokenMetadata, overrideIcon);
   const bankInfo = makeBankInfo(bank, oraclePrice, emissionTokenPrice);
   let state: BankInfo = {
     rawBank: bank,
@@ -320,9 +346,19 @@ function makeExtendedBankInfo(
 
   let maxBorrow = 0;
   if (userData.marginfiAccount) {
-    const borrowPower = userData.marginfiAccount
-      .computeMaxBorrowForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR })
-      .toNumber();
+    let borrowPower: number;
+    if (isUserDataRawProps(userData)) {
+      borrowPower = userData.marginfiAccount
+        .computeMaxBorrowForBank(userData.banks, userData.oraclePrices, bank.address, {
+          volatilityFactor: VOLATILITY_FACTOR,
+        })
+        .toNumber();
+    } else {
+      borrowPower = userData.marginfiAccount
+        .computeMaxBorrowForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR })
+        .toNumber();
+    }
+
     maxBorrow = floor(
       Math.max(0, Math.min(borrowPower, borrowCapacity, bankInfo.availableLiquidity)),
       bankInfo.mintDecimals
@@ -332,7 +368,7 @@ function makeExtendedBankInfo(
   const positionRaw =
     userData.marginfiAccount &&
     userData.marginfiAccount.activeBalances.find((balance) => balance.bankPk.equals(bank.address));
-  if (!positionRaw) {
+  if (!userData.marginfiAccount || !positionRaw) {
     const userInfo = {
       tokenAccount: userData.tokenAccount,
       maxDeposit,
@@ -352,17 +388,42 @@ function makeExtendedBankInfo(
 
   // Calculate user-specific info relevant to their active position in this bank
 
-  const marginfiAccount = userData.marginfiAccount as MarginfiAccountWrapper;
+  // const marginfiAccount = userData.marginfiAccount as MarginfiAccountWrapper;
 
-  const position = makeLendingPosition(positionRaw, bank, bankInfo, oraclePrice, marginfiAccount);
+  let props:
+    | Pick<MakeLendingPositionRawProps, "marginfiAccount" | "banks" | "oraclePrices">
+    | Pick<MakeLendingPositionWrappedProps, "marginfiAccount">;
 
-  const maxWithdraw = floor(
-    Math.min(
-      marginfiAccount.computeMaxWithdrawForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR }).toNumber(),
-      bankInfo.availableLiquidity
-    ),
-    bankInfo.mintDecimals
-  );
+  if (isUserDataRawProps(userData)) {
+    props = {
+      marginfiAccount: userData.marginfiAccount,
+      banks: userData.banks,
+      oraclePrices: userData.oraclePrices,
+    };
+  } else {
+    props = {
+      marginfiAccount: userData.marginfiAccount,
+    };
+  }
+
+  const position = makeLendingPosition({ balance: positionRaw, bank, bankInfo, oraclePrice, ...props });
+
+  let withdrawPower: number;
+  if (isUserDataRawProps(userData)) {
+    withdrawPower = userData.marginfiAccount
+      .computeMaxWithdrawForBank(userData.banks, userData.oraclePrices, bank.address, {
+        volatilityFactor: VOLATILITY_FACTOR,
+      })
+      .toNumber();
+  } else {
+    withdrawPower = userData.marginfiAccount
+      .computeMaxWithdrawForBank(bank.address, {
+        volatilityFactor: VOLATILITY_FACTOR,
+      })
+      .toNumber();
+  }
+
+  const maxWithdraw = floor(Math.min(withdrawPower, bankInfo.availableLiquidity), bankInfo.mintDecimals);
 
   let maxRepay = 0;
   if (position) {
@@ -388,13 +449,28 @@ function makeExtendedBankInfo(
   };
 }
 
-export function makeLendingPosition(
-  balance: Balance,
-  bank: Bank,
-  bankInfo: BankState,
-  oraclePrice: OraclePrice,
-  marginfiAccount: MarginfiAccountWrapper
-): LendingPosition {
+type MakeLendingPositionProps = MakeLendingPositionWrappedProps | MakeLendingPositionRawProps;
+
+interface MakeLendingPositionWrappedProps {
+  balance: Balance;
+  bank: Bank;
+  bankInfo: BankState;
+  oraclePrice: OraclePrice;
+  marginfiAccount: MarginfiAccountWrapper;
+}
+
+interface MakeLendingPositionRawProps {
+  balance: Balance;
+  bank: Bank;
+  bankInfo: BankState;
+  oraclePrice: OraclePrice;
+  marginfiAccount: MarginfiAccount;
+  banks: Map<string, Bank>;
+  oraclePrices: Map<string, OraclePrice>;
+}
+
+export function makeLendingPosition(props: MakeLendingPositionProps): LendingPosition {
+  const { balance, bank, bankInfo, oraclePrice, marginfiAccount } = props;
   const amounts = balance.computeQuantity(bank);
   const usdValues = balance.computeUsdValue(bank, oraclePrice, MarginRequirementType.Equity);
   const weightedUSDValues = balance.getUsdValueWithPriceBias(bank, oraclePrice, MarginRequirementType.Maintenance);
@@ -411,7 +487,15 @@ export function makeLendingPosition(
   const isDust = uiToNative(amount, bankInfo.mintDecimals).isZero();
   const weightedUSDValue = isLending ? weightedUSDValues.assets.toNumber() : weightedUSDValues.liabilities.toNumber();
   const usdValue = isLending ? usdValues.assets.toNumber() : usdValues.liabilities.toNumber();
-  const liquidationPrice = marginfiAccount.computeLiquidationPriceForBank(bank.address);
+  let liquidationPrice: number | null = null;
+
+  if (marginfiAccount instanceof MarginfiAccountWrapper) {
+    liquidationPrice = marginfiAccount.computeLiquidationPriceForBank(bank.address);
+  } else if ("banks" in props && "oraclePrices" in props) {
+    const banks = props.banks;
+    const oraclePrices = props.oraclePrices;
+    liquidationPrice = marginfiAccount.computeLiquidationPriceForBank(banks, oraclePrices, bank.address);
+  }
 
   return {
     amount,
@@ -816,4 +900,5 @@ export type {
   InactiveBankInfo,
   ExtendedBankInfo,
   BankState,
+  BankInfo,
 };
