@@ -3,6 +3,7 @@ import { ExtendedBankInfo, ExtendedBankMetadata, Emissions } from "@mrgnlabs/mar
 import { aprToApy, nativeToUi, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { isBankOracleStale } from "./mrgnUtils";
+import BigNumber from "bignumber.js";
 
 export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 
@@ -80,7 +81,7 @@ export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): R
   const { lendingRate, borrowingRate, emissionsRate, emissions } = bank.info.state;
   let emissionsRemaining = nativeToUi(bank.info.rawBank.emissionsRemaining, bank.info.rawBank.mintDecimals);
 
-  if (emissionsRemaining > Number.MAX_SAFE_INTEGER) {
+  if (bank.info.rawBank.emissionsRemaining.gt(BigNumber(Number.MAX_SAFE_INTEGER))) {
     emissionsRemaining = Number.MAX_SAFE_INTEGER;
   } // --WARNING-- : this is to prevent the number from being too large to be cast to a number. If we want to use this number in the future, we need to find a better solution.
 
