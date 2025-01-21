@@ -78,6 +78,7 @@ export const LendingPortfolio = () => {
     setSimulationResult: setRewardsState,
     setErrorMessage: () => {}, // No error handling, should fail silently since it is on page load.
     setActionTxn,
+    setIsRewardsDialogOpen: setRewardsDialogOpen,
   });
 
   ////////////////////////////

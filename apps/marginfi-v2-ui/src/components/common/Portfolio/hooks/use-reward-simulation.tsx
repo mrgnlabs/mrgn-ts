@@ -1,12 +1,13 @@
 import React from "react";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ActionMessageType, captureSentryException } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, captureSentryException, showChildrenToast } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi, numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 
 import { RewardsType } from "../types";
 import { fetchAfterStateEmissions, fetchBeforeStateEmissions, generateWithdrawEmissionsTxn } from "../utils";
+import { Button } from "~/components/ui/button";
 
 type RewardSimulationProps = {
   simulationResult: RewardsType | null;
@@ -17,6 +18,7 @@ type RewardSimulationProps = {
   setSimulationResult: (result: RewardsType) => void;
   setActionTxn: (actionTxn: SolanaTransaction) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
+  setIsRewardsDialogOpen: (open: boolean) => void;
 };
 
 export const useRewardSimulation = ({
@@ -25,6 +27,7 @@ export const useRewardSimulation = ({
   extendedBankInfos,
   setSimulationResult,
   setActionTxn,
+  setIsRewardsDialogOpen,
 }: RewardSimulationProps) => {
   const handleSimulation = React.useCallback(async () => {
     try {
@@ -107,6 +110,14 @@ export const useRewardSimulation = ({
             rewards.tooltipContent = "You have earned rewards, press 'collect rewards' to claim.";
             rewards.totalRewardAmount += rewardAmount;
           }
+
+          showChildrenToast(
+            <div className="flex flex-col gap-4 justify-center items-start max-w-[300px] p-2">
+              <span>You have rewards available for collection. Review your rewards and collect.</span>
+              <Button onClick={() => setIsRewardsDialogOpen(true)}>Click to collect</Button>
+            </div>,
+            "bottom-right"
+          );
         }
       });
 

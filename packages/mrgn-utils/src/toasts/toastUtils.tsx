@@ -1,4 +1,4 @@
-import { Id, toast } from "react-toastify";
+import { Id, toast, ToastPosition } from "react-toastify";
 import { MultiStepToast, ToastStep, ToastStepWithStatus } from "./MultiStepToast";
 import { ErrorToast } from "./ErrorToast";
 import { WarningToast } from "./WarningToast";
@@ -219,6 +219,22 @@ export function showWarningToast(msgOrOptions: string | { message: string }) {
     style: {
       height: "100%",
       bottom: "12px",
+      background: "#ff0000",
+    },
+    className: "bg-mfi-toast-background rounded-md py-2 px-3 mx-2 md:w-max",
+  });
+}
+
+export function showChildrenToast(children: React.ReactNode, position: ToastPosition = "bottom-left") {
+  toast(() => children, {
+    hideProgressBar: true,
+    autoClose: false,
+    position: position,
+
+    style: {
+      height: "100%",
+      bottom: "12px",
+      right: "32px",
       background: "#ff0000",
     },
     className: "bg-mfi-toast-background rounded-md py-2 px-3 mx-2 md:w-max",
