@@ -23,7 +23,7 @@ import {
   useConnection,
 } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStoreV2 } from "~/store";
+import { useTradeStoreV2, useUiStore } from "~/store";
 
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
@@ -153,6 +153,10 @@ const YieldItem = ({
   });
   const { wallet, connected } = useWallet();
   const { connection } = useConnection();
+
+  const { setDisplaySettings } = useUiStore((state) => ({
+    setDisplaySettings: state.setDisplaySettings,
+  }));
 
   return (
     <div className={cn("items-center min-w-[300px] space-y-2 px-2 py-4", className)}>
@@ -384,6 +388,7 @@ const YieldItem = ({
         accountSummaryArg={accountSummary ?? undefined}
         showActionComplete={false}
         hidePoolStats={["type"]}
+        setDisplaySettings={setDisplaySettings}
       >
         <div className="flex flex-col gap-2 md:flex-row">
           {bank.isActive && bank.position.isLending && wrappedAccount && (

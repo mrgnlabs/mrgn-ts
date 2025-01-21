@@ -55,6 +55,8 @@ export const Navbar: FC = () => {
     setTransactionSettings,
     accountLabels,
     fetchAccountLabels,
+    displaySettings,
+    setDisplaySettings,
   } = useUiStore((state) => ({
     priorityType: state.priorityType,
     broadcastType: state.broadcastType,
@@ -64,6 +66,8 @@ export const Navbar: FC = () => {
     setTransactionSettings: state.setTransactionSettings,
     accountLabels: state.accountLabels,
     fetchAccountLabels: state.fetchAccountLabels,
+    displaySettings: state.displaySettings,
+    setDisplaySettings: state.setDisplaySettings,
   }));
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
@@ -183,8 +187,8 @@ export const Navbar: FC = () => {
                 priorityType={priorityType}
                 maxCap={maxCap}
                 maxCapType={maxCapType}
-                settingsDialogOpen={settingsDialogOpen}
-                setSettingsDialogOpen={setSettingsDialogOpen}
+                settingsDialogOpen={displaySettings}
+                setSettingsDialogOpen={setDisplaySettings}
               >
                 <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
                   <IconSettings size={20} />

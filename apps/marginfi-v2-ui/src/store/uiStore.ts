@@ -58,6 +58,7 @@ interface UiState {
   maxCapType: MaxCapType;
   priorityFees: PriorityFees;
   accountLabels: Record<string, string>;
+  displaySettings: boolean;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -71,6 +72,7 @@ interface UiState {
   setTransactionSettings: (settings: TransactionSettings, connection: Connection) => void;
   fetchPriorityFee: (connection: Connection, settings?: TransactionSettings) => void;
   fetchAccountLabels: (accounts: MarginfiAccountWrapper[]) => Promise<void>;
+  setDisplaySettings: (displaySettings: boolean) => void;
 }
 
 function createUiStore() {
@@ -95,6 +97,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   ...DEFAULT_PRIORITY_SETTINGS,
   priorityFees: {},
   accountLabels: {},
+  displaySettings: false,
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -169,6 +172,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
 
     set({ accountLabels: labels });
   },
+  setDisplaySettings: (displaySettings: boolean) => set({ displaySettings }),
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };

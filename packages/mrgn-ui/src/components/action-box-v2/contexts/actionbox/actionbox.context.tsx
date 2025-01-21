@@ -21,6 +21,7 @@ type ActionBoxContextType = {
   walletContextState?: WalletContextStateOverride | WalletContextState;
   accountSummaryArg?: AccountSummary;
   hidePoolStats?: HidePoolStats;
+  setDisplaySettings?: (displaySettings: boolean) => void;
 };
 
 const ActionBoxContext = React.createContext<ActionBoxContextType | null>(null);
