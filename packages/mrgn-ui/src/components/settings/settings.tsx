@@ -276,11 +276,12 @@ export const Settings = ({
                     <FormControl>
                       <div className={cn("relative", formValues.maxCapType === "DYNAMIC" && "hidden")}>
                         <Input
-                          type="decimal"
+                          type="number"
                           min={0}
                           max={0.2}
-                          value={field.value}
-                          placeholder={field.value.toString()}
+                          step={0.01}
+                          value={field.value ?? ""}
+                          placeholder={field.value?.toString() ?? "0"}
                           onChange={(e) => field.onChange(e)}
                           className={cn(
                             "h-auto bg-mfi-action-box-background-dark py-3 px-4 border border-transparent transition-colors focus-visible:ring-0",
@@ -361,9 +362,10 @@ export const Settings = ({
                 <FormControl>
                   <div className="relative">
                     <Input
-                      type="decimal"
+                      type="number"
                       min={0}
-                      value={isCustomSlippage ? field.value : undefined}
+                      step={0.01}
+                      value={isCustomSlippage ? field.value : ""}
                       placeholder={isCustomSlippage ? field.value.toString() : "0"}
                       onChange={(e) => field.onChange(e)}
                       className={cn("h-auto py-3 px-4 border text-lg md:text-base", isCustomSlippage && "bg-accent")}
