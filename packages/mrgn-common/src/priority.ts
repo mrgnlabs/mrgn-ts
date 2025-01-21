@@ -7,6 +7,12 @@ export type TransactionPriorityType = "NORMAL" | "HIGH" | "MAMAS";
 
 export type MaxCapType = "DYNAMIC" | "MANUAL";
 
+export type MaxCap = {
+  manualMaxCap: number;
+  bundleTipCap: number;
+  priorityFeeCap: number;
+};
+
 export type TransactionSettings = {
   broadcastType: TransactionBroadcastType;
   priorityType: TransactionPriorityType;

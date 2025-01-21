@@ -5,10 +5,9 @@ import {
   MaxCapType,
   TransactionBroadcastType,
   TransactionPriorityType,
+  MaxCap,
 } from "@mrgnlabs/mrgn-common";
 import { PriorityFees } from "@mrgnlabs/marginfi-client-v2";
-
-const ABSOLUTE_MAX_PRIORITY_FEE = 0.008;
 
 const enum PriotitizationFeeLevels {
   LOW = 2500,
@@ -32,8 +31,12 @@ export const DEFAULT_MAX_CAP = 0.01;
 export const DEFAULT_PRIORITY_SETTINGS = {
   priorityType: "NORMAL" as TransactionPriorityType,
   broadcastType: "DYNAMIC" as TransactionBroadcastType,
-  maxCap: DEFAULT_MAX_CAP,
   maxCapType: "DYNAMIC" as MaxCapType,
+  maxCap: {
+    manualMaxCap: DEFAULT_MAX_CAP,
+    bundleTipCap: DEFAULT_MAX_CAP,
+    priorityFeeCap: 1_000_000, // todo check
+  } as MaxCap,
 };
 
 export const uiToMicroLamports = (ui: number, limitCU: number = 1_400_000) => {
@@ -48,19 +51,17 @@ export const microLamportsToUi = (microLamports: number, limitCU: number = 1_400
   return Math.trunc(priorityFeeUi * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL;
 };
 
-export const calculateBundleTipCap = (
-  bundleTipData: TipFloorDataResponse,
-  userMaxCap: number,
-  multiplier: number = 2
-) => {
+export const calculateBundleTipCap = async (multiplier: number = 2) => {
+  const bundleTipData = await getBundleTipData();
+
   const { ema_landed_tips_50th_percentile, landed_tips_95th_percentile } = bundleTipData;
 
-  const maxCap = ABSOLUTE_MAX_PRIORITY_FEE; //Math.min(landed_tips_95th_percentile, ema_landed_tips_50th_percentile * multiplier);
+  const maxCap = Math.min(landed_tips_95th_percentile, ema_landed_tips_50th_percentile * multiplier);
 
-  return Math.min(userMaxCap, Math.trunc(maxCap * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL);
+  return Math.trunc(maxCap * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL;
 };
 
-export const calculatePriorityFeeCap = async (connection: Connection, userMaxCap: number, multiplier: number = 3) => {
+export const calculatePriorityFeeCap = async (connection: Connection, multiplier: number = 3) => {
   const { min, max, mean, median } = await getCalculatedPrioritizationFeeByPercentile(
     connection,
     {
@@ -71,11 +72,7 @@ export const calculatePriorityFeeCap = async (connection: Connection, userMaxCap
     20
   );
 
-  return Math.min(
-    // ABSOLUTE_MAX_PRIORITY_FEE,
-    userMaxCap,
-    microLamportsToUi(Math.max(median * multiplier, max.prioritizationFee))
-  );
+  return microLamportsToUi(Math.max(median * multiplier, max.prioritizationFee));
 };
 
 interface TipFloorDataResponse {
@@ -88,31 +85,31 @@ interface TipFloorDataResponse {
   ema_landed_tips_50th_percentile: number;
 }
 
+export const fetchMaxCap = async (connection: Connection) => {
+  const bundleTipCap = await calculateBundleTipCap();
+  const priorityFeeCap = await calculatePriorityFeeCap(connection);
+  return { bundleTipCap, priorityFeeCap };
+};
+
 export const fetchPriorityFee = async (
-  maxCapType: MaxCapType,
-  maxCap: number,
   broadcastType: TransactionBroadcastType,
   priorityType: TransactionPriorityType,
   connection: Connection
 ): Promise<PriorityFees> => {
-  const finalMaxCap =
-    maxCapType === "DYNAMIC" || Number.isNaN(maxCap) || Number(maxCap) === 0 ? DEFAULT_MAX_CAP : maxCap;
   if (broadcastType === "BUNDLE") {
-    const bundleTipUi = await getBundleTip(priorityType, finalMaxCap);
+    const bundleTipUi = await getBundleTip(priorityType);
     return { bundleTipUi };
   } else if (broadcastType === "RPC") {
     const priorityFeeMicro = await getRpcPriorityFeeMicroLamports(connection, priorityType);
     return { priorityFeeMicro };
   } else {
-    const bundleTipUi = await getBundleTip(priorityType, finalMaxCap);
+    const bundleTipUi = await getBundleTip(priorityType);
     const priorityFeeMicro = await getRpcPriorityFeeMicroLamports(connection, priorityType);
     return { bundleTipUi, priorityFeeMicro };
   }
 };
 
-export const getBundleTip = async (priorityType: TransactionPriorityType, userMaxCap: number) => {
-  const MIN_PRIORITY_FEE = 0.00001;
-
+export const getBundleTipData = async () => {
   const response = await fetch("/api/bundles/tip", {
     method: "GET",
     headers: {
@@ -129,6 +126,7 @@ export const getBundleTip = async (priorityType: TransactionPriorityType, userMa
     landed_tips_99th_percentile: 0.001,
     ema_landed_tips_50th_percentile: 0.00005,
   };
+
   if (!response || !response.ok) {
     console.error("Failed to fetch bundle tip");
   } else {
@@ -138,7 +136,13 @@ export const getBundleTip = async (priorityType: TransactionPriorityType, userMa
     }
   }
 
-  const maxCap = calculateBundleTipCap(bundleTipData, userMaxCap);
+  return bundleTipData;
+};
+
+export const getBundleTip = async (priorityType: TransactionPriorityType) => {
+  const MIN_PRIORITY_FEE = 0.00001;
+
+  const bundleTipData = await getBundleTipData();
 
   const { ema_landed_tips_50th_percentile, landed_tips_50th_percentile, landed_tips_75th_percentile } = bundleTipData;
 
@@ -160,7 +164,7 @@ export const getBundleTip = async (priorityType: TransactionPriorityType, userMa
     priorityFee = MIN_PRIORITY_FEE;
   }
 
-  return Math.min(maxCap, Math.trunc(priorityFee * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL);
+  return Math.trunc(priorityFee * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL;
 };
 
 type PriorityFeesPercentile = {
