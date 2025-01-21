@@ -2,7 +2,7 @@ import React from "react";
 
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
-import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/popover";
+import { Dialog, DialogTrigger, DialogContent } from "~/components/ui/dialog";
 import { Drawer, DrawerTrigger, DrawerContent } from "~/components/ui/drawer";
 
 import { Settings, SettingsProps } from "./settings";
@@ -33,12 +33,12 @@ export const ResponsiveSettingsWrapper = ({
       </Mobile>
 
       <Desktop>
-        <Popover open={settingsDialogOpen} onOpenChange={(open) => setSettingsDialogOpen(open)}>
-          <PopoverTrigger asChild>{children}</PopoverTrigger>
-          <PopoverContent className="p-4 max-w-[400px]">
+        <Dialog open={settingsDialogOpen} onOpenChange={(open) => setSettingsDialogOpen(open)}>
+          <DialogTrigger asChild>{children}</DialogTrigger>
+          <DialogContent className="p-4 max-w-[400px]">
             <Settings {...settingsProps} />
-          </PopoverContent>
-        </Popover>
+          </DialogContent>
+        </Dialog>
       </Desktop>
     </>
   );
