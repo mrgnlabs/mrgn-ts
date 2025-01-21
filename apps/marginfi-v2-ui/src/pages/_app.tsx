@@ -46,10 +46,12 @@ const Footer = dynamic(async () => (await import("~/components/desktop/Footer"))
 type MrgnAppProps = { path: string };
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
-  const [broadcastType, priorityFees, setIsFetchingData] = useUiStore((state) => [
+  const [broadcastType, priorityFees, setIsFetchingData, displaySettings, setDisplaySettings] = useUiStore((state) => [
     state.broadcastType,
     state.priorityFees,
     state.setIsFetchingData,
+    state.displaySettings,
+    state.setDisplaySettings,
   ]);
   const [
     isMrgnlendStoreInitialized,
@@ -107,6 +109,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                         selectedAccount={selectedAccount}
                         connected={false}
                         accountSummaryArg={accountSummary}
+                        setDisplaySettings={setDisplaySettings}
                       >
                         <Navbar />
 

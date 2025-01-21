@@ -5,7 +5,7 @@ import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useConnection } from "~/hooks/use-connection";
-import { useTradeStoreV2 } from "~/store";
+import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
@@ -36,6 +36,10 @@ export const PositionActionButtons = ({
 }: PositionActionButtonsProps) => {
   const { connection } = useConnection();
   const { wallet, connected } = useWallet();
+
+  const { setDisplaySettings } = useUiStore((state) => ({
+    setDisplaySettings: state.setDisplaySettings,
+  }));
 
   const [refreshGroup, nativeSolBalance, positionsByGroupPk, banksByBankPk] = useTradeStoreV2((state) => [
     state.refreshGroup,
@@ -82,6 +86,7 @@ export const PositionActionButtons = ({
       accountSummaryArg={accountSummary}
       showActionComplete={false}
       hidePoolStats={["type"]}
+      setDisplaySettings={setDisplaySettings}
     >
       <div className={cn("flex gap-3 w-full", className)}>
         <ActionBox.DepositSwap

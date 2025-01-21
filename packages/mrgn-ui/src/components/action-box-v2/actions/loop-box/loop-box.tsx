@@ -42,6 +42,7 @@ import { ApyStat } from "./components/apy-stat";
 import { ActionSimulationStatus } from "../../components";
 import { useActionContext } from "../../contexts";
 import BigNumber from "bignumber.js";
+import { IconSettings } from "@tabler/icons-react";
 
 // error handling
 export type LoopBoxProps = {
@@ -60,6 +61,7 @@ export type LoopBoxProps = {
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
+  setDisplaySettings?: (displaySettings: boolean) => void;
 };
 
 export const LoopBox = ({
@@ -73,6 +75,7 @@ export const LoopBox = ({
   isDialog,
   onComplete,
   captureEvent,
+  setDisplaySettings,
 }: LoopBoxProps) => {
   const [
     leverage,
@@ -474,7 +477,16 @@ export const LoopBox = ({
           isActive={selectedBank && amount > 0 ? true : false}
           actionType={ActionType.Loop}
         />
-        <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
+        {setDisplaySettings && (
+          <div className="flex justify-end gap-2 ml-auto">
+            <button
+              onClick={() => setDisplaySettings(true)}
+              className="text-xs gap-1 h-6 px-2 flex items-center rounded-full bg-mfi-action-box-accent hover:bg-mfi-action-box-accent/80 "
+            >
+              Settings <IconSettings size={20} />
+            </button>
+          </div>
+        )}
       </div>
 
       <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />

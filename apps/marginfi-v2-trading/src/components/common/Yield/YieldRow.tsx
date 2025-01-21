@@ -17,7 +17,7 @@ import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { Wallet } from "@mrgnlabs/mrgn-common";
 import { minidenticon } from "minidenticons";
 
-import { useTradeStoreV2 } from "~/store";
+import { useTradeStoreV2, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { mfiAddresses } from "~/utils/arenaUtils";
@@ -135,6 +135,10 @@ const YieldItem = ({
   ]);
   const [groupsByGroupPk] = useTradeStoreV2((state) => [state.groupsByGroupPk]);
 
+  const { setDisplaySettings } = useUiStore((state) => ({
+    setDisplaySettings: state.setDisplaySettings,
+  }));
+
   const bank = React.useMemo(() => (bankType === "COLLATERAL" ? pool.quoteBank : pool.tokenBank), [bankType, pool]);
 
   const isProvidingLiquidity = React.useMemo(
@@ -247,6 +251,7 @@ const YieldItem = ({
             accountSummaryArg={accountSummary}
             showActionComplete={false}
             hidePoolStats={["type"]}
+            setDisplaySettings={setDisplaySettings}
           >
             {isProvidingLiquidity && (
               <>

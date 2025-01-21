@@ -23,7 +23,7 @@ import {
 import { ActionButton, ActionCollateralProgressBar } from "~/components/action-box-v2/components";
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
-import { ActionMessage } from "~/components";
+import { ActionMessage, Settings } from "~/components";
 
 import { ActionSimulationStatus } from "../../components";
 import { SimulationStatus } from "../../utils";
@@ -39,6 +39,8 @@ import { nativeToUi } from "@mrgnlabs/mrgn-common";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { TooltipProvider } from "~/components/ui/tooltip";
 import { IconInfoCircle } from "~/components/ui/icons";
+import { IconSettings } from "@tabler/icons-react";
+import { Button } from "~/components/ui/button";
 
 export type DepositSwapBoxProps = {
   nativeSolBalance: number;
@@ -55,9 +57,10 @@ export type DepositSwapBoxProps = {
   showTokenSelection?: boolean;
   showTokenSelectionGroups?: boolean;
   hidePoolStats?: HidePoolStats;
-
+  displaySettings?: boolean;
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
+  setDisplaySettings?: (displaySettings: boolean) => void;
 };
 
 export const DepositSwapBox = ({
@@ -76,6 +79,8 @@ export const DepositSwapBox = ({
   onComplete,
   captureEvent,
   hidePoolStats,
+  displaySettings,
+  setDisplaySettings,
 }: DepositSwapBoxProps) => {
   const [
     amountRaw,
@@ -521,6 +526,16 @@ export const DepositSwapBox = ({
         />
       </div>
 
+      {setDisplaySettings && (
+        <div className="flex justify-end gap-2 ml-auto">
+          <button
+            onClick={() => setDisplaySettings(true)}
+            className="text-xs gap-1 h-6 px-2 flex items-center rounded-full bg-mfi-action-box-accent hover:bg-mfi-action-box-accent/80 "
+          >
+            Settings <IconSettings size={20} />
+          </button>
+        </div>
+      )}
       <ActionSimulationStatus
         simulationStatus={isSimulating.status}
         hasErrorMessages={additionalActionMessages.length > 0}
