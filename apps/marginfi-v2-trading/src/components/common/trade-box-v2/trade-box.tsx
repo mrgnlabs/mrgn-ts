@@ -96,6 +96,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     priorityFees,
     setIsActionComplete,
     setPreviousTxn,
+    setDisplaySettings,
   ] = useUiStore((state) => [
     state.slippageBps,
     state.setSlippageBps,
@@ -104,6 +105,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     state.priorityFees,
     state.setIsActionComplete,
     state.setPreviousTxn,
+    state.setDisplaySettings,
   ]);
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
   const [refreshGroup, tokenAccountMap] = useTradeStoreV2((state) => [state.refreshGroup, state.tokenAccountMap]);
@@ -478,14 +480,16 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
               hasErrorMessages={dynamicActionMessages.length > 0}
               isActive={depositBank && amount > 0 ? true : false}
             />
-            <TradingBoxSettingsDialog
-              setSlippageBps={(value) => setSlippageBps(value * 100)}
-              slippageBps={slippageBps / 100}
-            >
-              <button className="text-xs gap-1 h-6 px-2 flex items-center rounded-full border bg-transparent hover:bg-accent text-muted-foreground">
-                Settings <IconSettings size={16} />
-              </button>
-            </TradingBoxSettingsDialog>
+            {setDisplaySettings && (
+              <div className="flex justify-end gap-2 ml-auto">
+                <button
+                  onClick={() => setDisplaySettings(true)}
+                  className="text-xs gap-1 h-6 px-2 flex items-center rounded-full bg-mfi-action-box-accent hover:bg-mfi-action-box-accent/80 "
+                >
+                  Settings <IconSettings size={20} />
+                </button>
+              </div>
+            )}
           </div>
           <Stats
             activePool={activePoolExtended}
