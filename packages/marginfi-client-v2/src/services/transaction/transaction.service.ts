@@ -12,6 +12,7 @@ import {
   addTransactionMetadata,
   microLamportsToUi,
   getComputeBudgetUnits,
+  MaxCapType,
 } from "@mrgnlabs/mrgn-common";
 import {
   VersionedTransaction,

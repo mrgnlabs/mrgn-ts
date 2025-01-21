@@ -5,12 +5,13 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes, PreviousTxn } from "~/types";
 import {
+  MaxCap,
   MaxCapType,
   TransactionBroadcastType,
   TransactionPriorityType,
   TransactionSettings,
 } from "@mrgnlabs/mrgn-common";
-import { DEFAULT_PRIORITY_SETTINGS, fetchPriorityFee } from "@mrgnlabs/mrgn-utils";
+import { DEFAULT_PRIORITY_SETTINGS, fetchMaxCap, fetchPriorityFee } from "@mrgnlabs/mrgn-utils";
 import { PriorityFees } from "@mrgnlabs/marginfi-client-v2";
 import { Connection } from "@solana/web3.js";
 
@@ -39,7 +40,7 @@ interface UiState {
   broadcastType: TransactionBroadcastType;
   priorityType: TransactionPriorityType;
   maxCapType: MaxCapType;
-  maxCap: number;
+  maxCap: MaxCap;
   priorityFees: PriorityFees;
   displaySettings: boolean;
 
@@ -87,11 +88,9 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   isActionBoxInputFocussed: false,
   walletState: WalletState.DEFAULT,
   isOnrampActive: false,
-  broadcastType: DEFAULT_PRIORITY_SETTINGS.broadcastType,
-  priorityType: DEFAULT_PRIORITY_SETTINGS.priorityType,
-  maxCapType: DEFAULT_PRIORITY_SETTINGS.maxCapType,
-  maxCap: DEFAULT_PRIORITY_SETTINGS.maxCap,
   priorityFees: {},
+  ...DEFAULT_PRIORITY_SETTINGS,
+
   displaySettings: false,
   // Actions
   setIsWalletAuthDialogOpen: (isOpen: boolean) => set({ isWalletAuthDialogOpen: isOpen }),
@@ -106,12 +105,24 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setWalletState: (walletState: WalletState) => set({ walletState: walletState }),
   setIsActionBoxInputFocussed: (isFocussed: boolean) => set({ isActionBoxInputFocussed: isFocussed }),
   setIsOnrampActive: (isOnrampActive: boolean) => set({ isOnrampActive: isOnrampActive }),
-  setTransactionSettings: (settings: TransactionSettings) => set({ ...settings }),
-  fetchPriorityFee: async (connection: Connection) => {
-    const { maxCapType, maxCap, broadcastType, priorityType } = get();
+  setTransactionSettings: (settings: TransactionSettings, connection: Connection) => {
+    const { broadcastType, priorityType, maxCapType } = settings;
+    set({ broadcastType, priorityType, maxCapType });
+    get().fetchPriorityFee(connection, settings);
+  },
+  fetchPriorityFee: async (connection: Connection, settings?: TransactionSettings) => {
+    const { priorityType, broadcastType } = settings ?? get();
+    const { maxCap } = get();
+
+    const manualMaxCap = settings?.maxCap ?? maxCap.manualMaxCap;
+
     try {
-      const priorityFees = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
-      set({ priorityFees });
+      const { bundleTipCap, priorityFeeCap } = await fetchMaxCap(connection);
+      const priorityFees = await fetchPriorityFee(broadcastType, priorityType, connection);
+      set({
+        priorityFees,
+        maxCap: { manualMaxCap, bundleTipCap, priorityFeeCap },
+      });
     } catch (error) {
       console.error(error);
     }
