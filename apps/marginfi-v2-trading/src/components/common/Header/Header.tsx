@@ -152,15 +152,17 @@ export const Header = () => {
               </div>
             )}
             <ResponsiveSettingsWrapper
-              onChange={(settings) => setTransactionSettings(settings, connection)}
-              broadcastType={broadcastType}
-              priorityType={priorityType}
-              maxCap={maxCap}
-              maxCapType={maxCapType}
-              slippageProps={{
-                slippageBps: slippageBps / 100,
-                setSlippageBps: (value) => setSlippageBps(value * 100),
+              transactionOptions={{
+                broadcastType,
+                priorityType,
+                maxCap: maxCap.manualMaxCap,
+                maxCapType,
               }}
+              jupiterOptions={{
+                slippageBps: slippageBps / 100,
+              }}
+              onTransactionOptionsChange={(settings) => setTransactionSettings(settings, connection)}
+              onJupiterOptionsChange={(settings) => setSlippageBps(settings.slippageBps * 100)}
               settingsDialogOpen={displaySettings}
               setSettingsDialogOpen={setDisplaySettings}
             >

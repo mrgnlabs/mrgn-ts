@@ -52,6 +52,8 @@ export const Navbar: FC = () => {
     priorityFees,
     maxCap,
     maxCapType,
+    slippageBps,
+    setSlippageBps,
     setTransactionSettings,
     accountLabels,
     fetchAccountLabels,
@@ -63,6 +65,8 @@ export const Navbar: FC = () => {
     priorityFees: state.priorityFees,
     maxCap: state.maxCap,
     maxCapType: state.maxCapType,
+    slippageBps: state.slippageBps,
+    setSlippageBps: state.setSlippageBps,
     setTransactionSettings: state.setTransactionSettings,
     accountLabels: state.accountLabels,
     fetchAccountLabels: state.fetchAccountLabels,
@@ -182,11 +186,17 @@ export const Navbar: FC = () => {
               </Popover>
 
               <ResponsiveSettingsWrapper
-                onChange={(settings) => setTransactionSettings(settings, connection)}
-                broadcastType={broadcastType}
-                priorityType={priorityType}
-                maxCap={maxCap}
-                maxCapType={maxCapType}
+                transactionOptions={{
+                  broadcastType,
+                  priorityType,
+                  maxCap: maxCap.manualMaxCap,
+                  maxCapType,
+                }}
+                jupiterOptions={{
+                  slippageBps: slippageBps / 100,
+                }}
+                onTransactionOptionsChange={(settings) => setTransactionSettings(settings, connection)}
+                onJupiterOptionsChange={(settings) => setSlippageBps(settings.slippageBps * 100)}
                 settingsDialogOpen={displaySettings}
                 setSettingsDialogOpen={setDisplaySettings}
               >

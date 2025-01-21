@@ -2,12 +2,19 @@ import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
 import {
+  MaxCap,
   MaxCapType,
   TransactionBroadcastType,
   TransactionPriorityType,
   TransactionSettings,
 } from "@mrgnlabs/mrgn-common";
-import { LendingModes, PoolTypes, DEFAULT_PRIORITY_SETTINGS, fetchPriorityFee } from "@mrgnlabs/mrgn-utils";
+import {
+  LendingModes,
+  PoolTypes,
+  DEFAULT_PRIORITY_SETTINGS,
+  fetchPriorityFee,
+  fetchMaxCap,
+} from "@mrgnlabs/mrgn-utils";
 
 import { SortType, sortDirection, SortAssetOption } from "~/types";
 import { Connection } from "@solana/web3.js";
@@ -49,13 +56,14 @@ interface UiState {
   isFilteredUserPositions: boolean;
   isOraclesStale: boolean;
   lendingMode: LendingModes;
+  slippageBps: number;
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
   assetListSearch: string;
   broadcastType: TransactionBroadcastType;
   priorityType: TransactionPriorityType;
-  maxCap: number;
   maxCapType: MaxCapType;
+  maxCap: MaxCap;
   priorityFees: PriorityFees;
   accountLabels: Record<string, string>;
   displaySettings: boolean;
@@ -66,6 +74,7 @@ interface UiState {
   setIsFilteredUserPositions: (isFilteredUserPositions: boolean) => void;
   setIsOraclesStale: (isOraclesStale: boolean) => void;
   setLendingMode: (lendingMode: LendingModes) => void;
+  setSlippageBps: (slippageBps: number) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
   setAssetListSearch: (search: string) => void;
@@ -86,6 +95,7 @@ function createUiStore() {
 
 const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   // State
+  slippageBps: 100,
   isMenuDrawerOpen: false,
   isFetchingData: false,
   isFilteredUserPositions: false,
@@ -94,9 +104,9 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   poolFilter: PoolTypes.ALL,
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
   assetListSearch: "",
-  ...DEFAULT_PRIORITY_SETTINGS,
   priorityFees: {},
   accountLabels: {},
+  ...DEFAULT_PRIORITY_SETTINGS,
   displaySettings: false,
 
   // Actions
@@ -108,20 +118,29 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     set({
       lendingMode: lendingMode,
     }),
+  setSlippageBps: (slippageBps: number) => set({ slippageBps: slippageBps }),
   setIsOraclesStale: (isOraclesStale: boolean) => set({ isOraclesStale: isOraclesStale }),
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setAssetListSearch: (search: string) => set({ assetListSearch: search }),
   setTransactionSettings: (settings: TransactionSettings, connection: Connection) => {
-    set({ ...settings });
+    const { broadcastType, priorityType, maxCapType } = settings;
+    set({ broadcastType, priorityType, maxCapType });
     get().fetchPriorityFee(connection, settings);
   },
   fetchPriorityFee: async (connection: Connection, settings?: TransactionSettings) => {
-    const { maxCapType, maxCap, priorityType, broadcastType } = settings ?? get();
+    const { priorityType, broadcastType } = settings ?? get();
+    const { maxCap } = get();
+
+    const manualMaxCap = settings?.maxCap ?? maxCap.manualMaxCap;
 
     try {
-      const priorityFees = await fetchPriorityFee(maxCapType, maxCap, broadcastType, priorityType, connection);
-      set({ priorityFees });
+      const { bundleTipCap, priorityFeeCap } = await fetchMaxCap(connection);
+      const priorityFees = await fetchPriorityFee(broadcastType, priorityType, connection);
+      set({
+        priorityFees,
+        maxCap: { manualMaxCap, bundleTipCap, priorityFeeCap },
+      });
     } catch (error) {
       console.error(error);
     }

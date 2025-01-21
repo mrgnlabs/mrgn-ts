@@ -1,6 +1,5 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import { useDebounce } from "@uidotdev/usehooks";
 
 import {
   cn,
@@ -8,24 +7,24 @@ import {
   slippageOptions,
   MAX_SLIPPAGE_PERCENTAGE,
   STATIC_SIMULATION_ERRORS,
-  Mobile,
-  Desktop,
 } from "@mrgnlabs/mrgn-utils";
 import { MaxCapType, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
 
 import { Form, FormControl, FormField, FormItem, FormMessage } from "~/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Label } from "~/components/ui/label";
-import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "~/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
-type SettingsOptions = {
+type TransactionOptions = {
   broadcastType: TransactionBroadcastType;
   priorityType: TransactionPriorityType;
   maxCapType: MaxCapType;
   maxCap: number;
+};
+
+type JupiterOptions = {
+  slippageBps: number;
 };
 
 const broadcastTypes: { type: TransactionBroadcastType; label: string; isDisabled: boolean }[] = [
@@ -45,22 +44,29 @@ const priorityTypes: { type: TransactionPriorityType; label: string }[] = [
   { type: "MAMAS", label: "Mamas" },
 ];
 
-interface SettingsForm extends SettingsOptions {}
+interface TransactionSettingsForm extends TransactionOptions {}
 
-export interface SettingsProps extends SettingsOptions {
+export interface SettingsProps {
+  transactionOptions: TransactionOptions;
+  jupiterOptions: JupiterOptions;
+
+  onTransactionOptionsChange: (options: TransactionOptions) => void;
+  onJupiterOptionsChange: (options: JupiterOptions) => void;
+
   recommendedBroadcastType?: TransactionBroadcastType;
-  onChange: (options: SettingsOptions) => void;
-  slippageProps?: {
-    slippageBps: number;
-    setSlippageBps: (slippageBps: number) => void;
-  };
 }
 
-export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...props }: SettingsProps) => {
+export const Settings = ({
+  transactionOptions,
+  jupiterOptions,
+  onTransactionOptionsChange,
+  onJupiterOptionsChange,
+  recommendedBroadcastType = "BUNDLE",
+}: SettingsProps) => {
   const [activeTab, setActiveTab] = React.useState<"transaction" | "swap">("transaction");
 
-  const form = useForm<SettingsForm>({
-    defaultValues: props,
+  const form = useForm<TransactionSettingsForm>({
+    defaultValues: transactionOptions,
   });
 
   const prevIsDirty = usePrevious(form.formState.isDirty);
@@ -68,11 +74,11 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
   const formValues = form.watch();
 
   const onSubmit = React.useCallback(
-    (data: SettingsForm) => {
-      onChange(data);
+    (data: TransactionSettingsForm) => {
+      onTransactionOptionsChange(data);
       form.reset(data);
     },
-    [form, onChange]
+    [form, onTransactionOptionsChange]
   );
 
   const handleOnSubmit = React.useCallback(() => {
@@ -90,7 +96,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
     slippageBps: number;
   }>({
     defaultValues: {
-      slippageBps: props.slippageProps?.slippageBps,
+      slippageBps: jupiterOptions.slippageBps,
     },
   });
   const prevSlippageFormIsDirty = usePrevious(slippageForm.formState.isDirty);
@@ -98,16 +104,16 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
   const slippageFormWatch = slippageForm.watch();
 
   const isCustomSlippage = React.useMemo(
-    () => (slippageOptions.find((value) => value.value === slippageFormWatch.slippageBps) ? false : true),
-    [slippageFormWatch.slippageBps]
+    () => (slippageOptions.find((value) => value.value === jupiterOptions.slippageBps) ? false : true),
+    [jupiterOptions.slippageBps]
   );
 
   const onSlippageSubmit = React.useCallback(
     (data: { slippageBps: number }) => {
-      props.slippageProps?.setSlippageBps(data.slippageBps);
+      onJupiterOptionsChange(data);
       slippageForm.reset(data);
     },
-    [slippageForm, props.slippageProps]
+    [slippageForm, onJupiterOptionsChange]
   );
 
   const handleOnSlippageSubmit = React.useCallback(() => {
@@ -383,7 +389,7 @@ export const Settings = ({ onChange, recommendedBroadcastType = "BUNDLE", ...pro
     <div className="space-y-4 w-full">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          {props.slippageProps ? (
+          {jupiterOptions ? (
             <>
               <div className="flex flex-col items-center justify-center w-full gap-2 border-b border-mfi-action-box-border-dark pb-2">
                 <div className="w-full flex justify-between items-center ">
