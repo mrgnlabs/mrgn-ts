@@ -476,6 +476,29 @@ export const LendBox = ({
     ]
   );
 
+  const hasErrorsWarnings = React.useMemo(() => {
+    console.log(additionalActionMessages.concat(actionMessages));
+    return (
+      additionalActionMessages
+        .concat(actionMessages)
+        .filter((value) => value.actionMethod !== "INFO" && value.description).length > 0
+    );
+  }, [additionalActionMessages, actionMessages]);
+
+  React.useEffect(() => {
+    if (selectedBank && selectedBank.info.rawBank.config.assetTag === 2) {
+      // TODO: figure out fees / rent and remove hardcoded value
+      setAmountRaw((lendMode === ActionType.Deposit ? maxAmount - 0.05 : maxAmount).toString());
+      setAdditionalActionMessages([
+        {
+          description: "Staked accounts must be deposited and withdrawn in full",
+          isEnabled: true,
+          actionMethod: "INFO",
+        },
+      ]);
+    }
+  }, [selectedBank, maxAmount, setAmountRaw, lendMode]);
+
   React.useEffect(() => {
     if (marginfiClient) {
       refreshSelectedBanks(banks);
@@ -539,7 +562,7 @@ export const LendBox = ({
 
       <ActionSimulationStatus
         simulationStatus={isSimulating.status}
-        hasErrorMessages={additionalActionMessages.length > 0}
+        hasErrorMessages={hasErrorsWarnings}
         isActive={selectedBank && amount > 0 ? true : false}
       />
 
