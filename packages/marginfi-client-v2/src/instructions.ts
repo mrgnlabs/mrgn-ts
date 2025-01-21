@@ -467,6 +467,7 @@ const instructions = {
   makeAccountAuthorityTransferIx,
   makeGroupInitIx,
   makeCloseAccountIx,
+  makePoolAddPermissionlessStakedBankIx,
 };
 
 export default instructions;

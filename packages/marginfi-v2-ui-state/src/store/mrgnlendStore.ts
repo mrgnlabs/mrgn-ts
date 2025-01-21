@@ -14,6 +14,7 @@ import {
   makeExtendedBankEmission,
   TokenPriceMap,
   fetchGroupData,
+  filterStakedAssetBanks,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -42,6 +43,7 @@ interface MrgnlendState {
   tokenMetadataMap: TokenMetadataMap;
   extendedBankMetadatas: ExtendedBankMetadata[];
   extendedBankInfos: ExtendedBankInfo[];
+  stakedAssetBankInfos: ExtendedBankInfo[];
   protocolStats: ProtocolStats;
   selectedAccount: MarginfiAccountWrapper | null;
   nativeSolBalance: number;
@@ -154,6 +156,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   tokenMetadataMap: {},
   extendedBankMetadatas: [],
   extendedBankInfos: [],
+  stakeAccounts: [],
+  stakedAssetBankInfos: [],
   protocolStats: {
     deposits: 0,
     borrows: 0,
@@ -350,7 +354,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         }
       });
 
-      const [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
+      let [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
         (acc, { bank, oraclePrice, tokenMetadata }) => {
           const emissionTokenPriceData = priceMap[bank.emissionsMint.toBase58()];
 
@@ -374,6 +378,13 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         },
         [[], []] as [ExtendedBankInfo[], ExtendedBankMetadata[]]
       );
+
+      const [filteredBankInfos, stakedAssetBankInfos] = await filterStakedAssetBanks(
+        wallet?.publicKey || null,
+        extendedBankInfos
+      );
+
+      extendedBankInfos = filteredBankInfos;
 
       const sortedExtendedBankInfos = extendedBankInfos.sort(
         (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
@@ -412,6 +423,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         tokenMetadataMap,
         extendedBankInfos: sortedExtendedBankInfos,
         extendedBankMetadatas: sortedExtendedBankMetadatas,
+        stakedAssetBankInfos,
         protocolStats: {
           deposits,
           borrows,
