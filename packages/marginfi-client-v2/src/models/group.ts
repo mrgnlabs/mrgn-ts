@@ -190,10 +190,6 @@ class MarginfiGroup {
       [Buffer.from("mint"), stakePool.toBuffer()],
       SINGLE_POOL_PROGRAM_ID
     );
-    // const [bankKey] = PublicKey.findProgramAddressSync(
-    //   [this.address.toBuffer(), mint.toBuffer(), new BN(0).toArrayLike(Buffer, "le", 8)],
-    //   program.programId
-    // );
 
     const ix = await instructions.makePoolAddPermissionlessStakedBankIx(
       program,

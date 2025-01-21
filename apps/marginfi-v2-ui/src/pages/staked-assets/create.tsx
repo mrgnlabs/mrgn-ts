@@ -22,10 +22,12 @@ import { PublicKey, Transaction } from "@solana/web3.js";
 import { SINGLE_POOL_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import BN from "bn.js";
 
 type CreateStakedAssetForm = {
   voteAccountKey: string;
   assetName: string;
+  assetSymbol: string;
   assetLogo: File | null;
 };
 
@@ -38,6 +40,7 @@ export default function CreateStakedAssetPage() {
   const [form, setForm] = React.useState<CreateStakedAssetForm>({
     voteAccountKey: "",
     assetName: "",
+    assetSymbol: "",
     assetLogo: null,
   });
   const [isLoading, setIsLoading] = React.useState(false);
@@ -80,7 +83,6 @@ export default function CreateStakedAssetPage() {
   const executeCreatedStakedAssetSplPoolTxn = React.useCallback(
     async (txns: Transaction[], client: MarginfiClient, multiStepToast: MultiStepToastHandle) => {
       const txSignature = await client.processTransactions(txns, {
-        //addBankTx
         broadcastType: broadcastType,
         ...priorityFees,
         callback(index, success, signature, stepsToAdvance) {
@@ -118,10 +120,24 @@ export default function CreateStakedAssetPage() {
     return upload.ok;
   }, []);
 
-  const addMetadata = async () => {
-    // const response = await fetch(`/api/stakedPools/addMetadata?filename=${filename}`, {
-    //   method: "POST",
-    // });
+  const addMetadata = async (
+    voteAccount: PublicKey,
+    bankAddress: PublicKey,
+    tokenAddress: PublicKey,
+    tokenName: string,
+    tokenSymbol: string
+  ) => {
+    const response = await fetch(`/api/stakedPools/addMetadata`, {
+      method: "POST",
+      body: JSON.stringify({
+        bankAddress,
+        validatorVoteAccount: voteAccount,
+        tokenAddress,
+        tokenName,
+        tokenSymbol,
+        tokenDecimals: 9,
+      }),
+    });
 
     await new Promise((resolve) => setTimeout(resolve, 4000));
   };
@@ -151,14 +167,19 @@ export default function CreateStakedAssetPage() {
       }
 
       try {
+        const mintAddress = vendor.findPoolMintAddressByVoteAccount(new PublicKey(form.voteAccountKey));
+        const [bankKey] = PublicKey.findProgramAddressSync(
+          [client.group.address.toBuffer(), mintAddress.toBuffer(), new BN(0).toArrayLike(Buffer, "le", 8)],
+          client.program.programId
+        );
+
         await executeCreatedStakedAssetSplPoolTxn(txns, client, multiStepToast);
 
-        const addingMetadata = await addMetadata();
+        await addMetadata(new PublicKey(form.voteAccountKey), bankKey, mintAddress, form.assetName, form.assetSymbol);
 
         multiStepToast.setSuccessAndNext();
 
         if (form.assetLogo) {
-          const mintAddress = vendor.findPoolMintAddressByVoteAccount(new PublicKey(form.voteAccountKey));
           await uploadImage(form.assetLogo, mintAddress.toBase58());
         }
 
@@ -206,9 +227,19 @@ export default function CreateStakedAssetPage() {
           <Input
             required
             id="name"
-            placeholder="Enter asset ticker"
+            placeholder="Enter asset name"
             value={form.assetName}
             onChange={(e) => setForm({ ...form, assetName: e.target.value })}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="name">Asset Symbol</Label>
+          <Input
+            required
+            id="name"
+            placeholder="Enter asset ticker"
+            value={form.assetSymbol}
+            onChange={(e) => setForm({ ...form, assetSymbol: e.target.value })}
           />
         </div>
         <div className="flex flex-col gap-2">

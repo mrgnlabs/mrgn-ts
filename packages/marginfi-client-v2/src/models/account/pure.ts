@@ -875,7 +875,7 @@ class MarginfiAccount {
         ...makeHealthAccountMetas(banks, opt.observationBanksOverride, bankMetadataMap, this.authority)
       );
     } else {
-      remainingAccounts.push(...this.getHealthCheckAccounts(banks, [bank], [], bankMetadataMap));
+      // remainingAccounts.push(...this.getHealthCheckAccounts(banks, [bank], [], bankMetadataMap));
     }
 
     console.log("REMAINING ACCOUNTS");
