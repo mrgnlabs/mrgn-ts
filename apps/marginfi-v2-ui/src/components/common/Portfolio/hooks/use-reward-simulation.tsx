@@ -1,7 +1,7 @@
 import React from "react";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ActionMessageType, captureSentryException, showChildrenToast } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, captureSentryException, showChildrenToast, useIsMobile } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi, numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 
@@ -29,6 +29,7 @@ export const useRewardSimulation = ({
   setActionTxn,
   setIsRewardsDialogOpen,
 }: RewardSimulationProps) => {
+  const isMobile = useIsMobile();
   const handleSimulation = React.useCallback(async () => {
     try {
       if (!marginfiClient || !selectedAccount) {
@@ -116,7 +117,8 @@ export const useRewardSimulation = ({
               <span>You have rewards available for collection. Review your rewards and collect.</span>
               <Button onClick={() => setIsRewardsDialogOpen(true)}>Click to collect</Button>
             </div>,
-            "bottom-right"
+            "bottom-right",
+            isMobile
           );
         }
       });
@@ -141,7 +143,15 @@ export const useRewardSimulation = ({
         totalRewardAmount: 0,
       });
     }
-  }, [extendedBankInfos, marginfiClient, selectedAccount, setActionTxn, setSimulationResult]);
+  }, [
+    extendedBankInfos,
+    isMobile,
+    marginfiClient,
+    selectedAccount,
+    setActionTxn,
+    setIsRewardsDialogOpen,
+    setSimulationResult,
+  ]);
 
   return {
     handleSimulation,

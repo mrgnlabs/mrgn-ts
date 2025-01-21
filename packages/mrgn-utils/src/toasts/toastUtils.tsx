@@ -225,16 +225,20 @@ export function showWarningToast(msgOrOptions: string | { message: string }) {
   });
 }
 
-export function showChildrenToast(children: React.ReactNode, position: ToastPosition = "bottom-left") {
+export function showChildrenToast(
+  children: React.ReactNode,
+  position: ToastPosition = "bottom-left",
+  isMobile: boolean = false
+) {
   toast(() => children, {
     hideProgressBar: true,
     autoClose: false,
     position: position,
-
+    closeOnClick: true,
     style: {
       height: "100%",
       bottom: "12px",
-      right: "32px",
+      right: isMobile ? "0px" : "32px",
       background: "#ff0000",
     },
     className: "bg-mfi-toast-background rounded-md py-2 px-3 mx-2 md:w-max",
