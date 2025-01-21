@@ -219,6 +219,13 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     retry: true,
     code: 136,
   },
+  STAKED_ONLY_SOL_CHECK: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "While you have staked assets, you can only deposit staked assets and borrow SOL.",
+    retry: false,
+    code: 136,
+  },
 };
 
 const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMessageType => ({
@@ -475,6 +482,13 @@ export const handleError = (
         error.message?.toLowerCase().includes("deposit capacity exceeded")
       ) {
         return STATIC_SIMULATION_ERRORS.DEPOSIT_CAP_EXCEEDED;
+      }
+
+      if (
+        checkErrorCodeMatch(error.message, 6047) ||
+        error.message?.toLowerCase().includes("can only deposit staked assets")
+      ) {
+        return STATIC_SIMULATION_ERRORS.STAKED_ONLY_SOL_CHECK;
       }
 
       if (checkErrorCodeMatch(error.message, 6029) || error.message?.toLowerCase().includes("borrow cap exceeded")) {
