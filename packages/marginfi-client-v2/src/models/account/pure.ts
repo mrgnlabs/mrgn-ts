@@ -804,6 +804,10 @@ class MarginfiAccount {
       );
     }
 
+    if (opt.remainingAccounts && opt.remainingAccounts.length > 0) {
+      remainingAccounts.push(...opt.remainingAccounts);
+    }
+
     const ix = await instructions.makeWithdrawIx(
       program,
       {
@@ -1144,6 +1148,7 @@ export interface MakeWithdrawIxOpts {
   observationBanksOverride?: PublicKey[];
   wrapAndUnwrapSol?: boolean;
   createAtas?: boolean;
+  remainingAccounts?: AccountMeta[];
 }
 
 export interface MakeBorrowIxOpts {

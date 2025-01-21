@@ -22,6 +22,7 @@ import {
   SINGLE_POOL_PROGRAM_ID,
   SYSTEM_PROGRAM_ID,
   STAKE_PROGRAM_ID,
+  WSOL_MINT,
 } from "@mrgnlabs/mrgn-common";
 import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
@@ -1269,10 +1270,11 @@ class MarginfiAccountWrapper {
   async makeWithdrawStakedTx(amount: Amount, bankAddress: PublicKey, isWholePosition: boolean) {
     // Get bank and metadata
     const bank = this.client.getBankByPk(bankAddress);
+    const solBank = this.client.getBankByMint(WSOL_MINT);
     const bankMetadata = this.client.bankMetadataMap![bankAddress.toBase58()];
 
-    if (!bank) {
-      throw new Error("Bank not found");
+    if (!bank || !solBank) {
+      throw new Error("Banks not found");
     }
 
     if (!bankMetadata.validatorVoteAccount) {
@@ -1290,11 +1292,16 @@ class MarginfiAccountWrapper {
     //   throw new Error("Token account not found");
     // }
 
-    console.log("bank", bank);
     // 1: withdraw from marginfi bank
     const withdrawIxs = await this.makeWithdrawIx(amount, bankAddress, isWholePosition, {
       createAtas: true,
       wrapAndUnwrapSol: true,
+      remainingAccounts: [
+        { pubkey: lstMint, isSigner: false, isWritable: false },
+        { pubkey: pool, isSigner: false, isWritable: false },
+        { pubkey: solBank.address, isSigner: false, isWritable: false },
+        { pubkey: solBank.oracleKey, isSigner: false, isWritable: false },
+      ],
     });
 
     // 2: create stake account
