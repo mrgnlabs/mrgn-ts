@@ -34,17 +34,16 @@ type Config = {
 };
 
 const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
+  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
   SOL_ORACLE: new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"),
   MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
 
-  // Leave out anything you want to remain as default...
-  ASSET_WEIGHT_INIT: undefined,
-  ASSET_WEIGHT_MAINT: undefined,
-  DEPOSIT_LIMIT: undefined,
-  TOTAL_ASSET_VALUE_INIT_LIMIT: undefined,
-  ORACLE_MAX_AGE: undefined,
+  ASSET_WEIGHT_INIT: .8,
+  ASSET_WEIGHT_MAINT: .9,
+  DEPOSIT_LIMIT: new BN(10_000_000_000), // dunno, in native sol decimals...
+  TOTAL_ASSET_VALUE_INIT_LIMIT: new BN(100_000_000_000), // dunno, in $
+  ORACLE_MAX_AGE: 120,
 };
 
 async function main() {
@@ -79,21 +78,21 @@ async function main() {
 
   const transaction = new Transaction();
 
-  transaction.add(
-    await program.methods
-      .initStakedSettings(settings)
-      .accounts({
-        marginfiGroup: config.GROUP_KEY,
-        // admin: args.admin, // implied from group
-        feePayer: wallet.publicKey,
-        // staked_settings: deriveStakedSettings()
-        // rent = SYSVAR_RENT_PUBKEY,
-        // systemProgram: SystemProgram.programId,
-      })
-      .instruction()
-  );
-
   if (sendTx) {
+    transaction.add(
+      await program.methods
+        .initStakedSettings(settings)
+        .accounts({
+          marginfiGroup: config.GROUP_KEY,
+          // admin: args.admin, // implied from group
+          feePayer: wallet.publicKey,
+          // staked_settings: deriveStakedSettings()
+          // rent = SYSVAR_RENT_PUBKEY,
+          // systemProgram: SystemProgram.programId,
+        })
+        .instruction()
+    );
+    
     try {
       const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
       console.log("Transaction signature:", signature);
@@ -121,6 +120,19 @@ async function main() {
       console.log("oralce max age: " + stakedSettingsAcc.oracleMaxAge);
     }
   } else {
+    transaction.add(
+      await program.methods
+        .initStakedSettings(settings)
+        .accountsPartial({
+          marginfiGroup: config.GROUP_KEY,
+          admin: config.MULTISIG_PAYER,
+          feePayer: config.MULTISIG_PAYER,
+          // staked_settings: deriveStakedSettings()
+          // rent = SYSVAR_RENT_PUBKEY,
+          // systemProgram: SystemProgram.programId,
+        })
+        .instruction()
+    );
     transaction.feePayer = config.MULTISIG_PAYER; // Set the fee payer to Squads wallet
     const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;

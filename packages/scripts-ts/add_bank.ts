@@ -7,7 +7,12 @@ import { assertI80F48Approx, assertKeysEqual } from "./softTests";
 import { bigNumberToWrappedI80F48, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 // TODO move to package import after update
 import { InterestRateConfigRaw, BankConfigCompactRaw } from "../marginfi-client-v2/src/models/bank";
+import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
+/**
+ * If true, send the tx. If false, output the unsigned b58 tx to console.
+ */
+const sendTx = false;
 const verbose = true;
 
 type Config = {
@@ -20,17 +25,19 @@ type Config = {
   FEE_PAYER: PublicKey;
   BANK_MINT: PublicKey;
   SEED: number;
+  MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
 };
 
 const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
+  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
   ORACLE: new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"),
   SOL_ORACLE_FEED: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
-  ADMIN: new PublicKey("mfC1LoEk4mpM5yx1LjwR9QLZQ49AitxxWkK5Aciw7ZC"),
-  FEE_PAYER: new PublicKey("mfC1LoEk4mpM5yx1LjwR9QLZQ49AitxxWkK5Aciw7ZC"),
+  ADMIN: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
+  FEE_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
   BANK_MINT: new PublicKey("So11111111111111111111111111111111111111112"),
-  SEED: 1,
+  SEED: 0,
+  MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
 
   // TODO configurable settings up here (currently, scroll down)
 };
@@ -151,18 +158,30 @@ async function main() {
 
   transaction.add(ix);
 
-  try {
-    const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
-    console.log("Transaction signature:", signature);
-    const [bankKey] = deriveBankWithSeed(program.programId, config.GROUP_KEY, config.BANK_MINT, new BN(config.SEED));
-    console.log("bank key: " + bankKey);
-  } catch (error) {
-    console.error("Transaction failed:", error);
-  }
+  if (sendTx) {
+    try {
+      const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
+      console.log("Transaction signature:", signature);
+      const [bankKey] = deriveBankWithSeed(program.programId, config.GROUP_KEY, config.BANK_MINT, new BN(config.SEED));
+      console.log("bank key: " + bankKey);
+    } catch (error) {
+      console.error("Transaction failed:", error);
+    }
 
-  const feeWalletAfter = await provider.connection.getAccountInfo(feeState.globalFeeWallet);
-  if (verbose) {
-    console.log("fee wallet lamports after: " + feeWalletAfter.lamports);
+    const feeWalletAfter = await provider.connection.getAccountInfo(feeState.globalFeeWallet);
+    if (verbose) {
+      console.log("fee wallet lamports after: " + feeWalletAfter.lamports);
+    }
+  } else {
+        transaction.feePayer = config.MULTISIG_PAYER; // Set the fee payer to Squads wallet
+        const { blockhash } = await connection.getLatestBlockhash();
+        transaction.recentBlockhash = blockhash;
+        const serializedTransaction = transaction.serialize({
+          requireAllSignatures: false,
+          verifySignatures: false,
+        });
+        const base58Transaction = bs58.encode(serializedTransaction);
+        console.log("Base58-encoded transaction:", base58Transaction);
   }
 }
 
