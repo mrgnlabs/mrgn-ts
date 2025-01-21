@@ -122,9 +122,21 @@ export const BankList = ({
     return banks.filter(searchFilter);
   }, [banks, searchFilter]);
 
-  const globalBanks = React.useMemo(() => filteredBanks.filter((bank) => !bank.info.state.isIsolated), [filteredBanks]);
+  // global, non staked asset banks
+  const globalBanks = React.useMemo(
+    () => filteredBanks.filter((bank) => bank.info.rawBank.config.assetTag !== 2 && !bank.info.state.isIsolated),
+    [filteredBanks]
+  );
+
+  // isolated, non staked asset banks
   const isolatedBanks = React.useMemo(
-    () => filteredBanks.filter((bank) => bank.info.state.isIsolated),
+    () => filteredBanks.filter((bank) => bank.info.rawBank.config.assetTag !== 2 && bank.info.state.isIsolated),
+    [filteredBanks]
+  );
+
+  // staked asset banks
+  const stakedAssetBanks = React.useMemo(
+    () => filteredBanks.filter((bank) => bank.info.rawBank.config.assetTag === 2),
     [filteredBanks]
   );
 
@@ -308,6 +320,58 @@ export const BankList = ({
               );
             })}
           </CommandGroup>
+        )}
+        {/* STAKED ASSETS */}
+        {lendingMode === LendingModes.LEND && onSetSelectedBank && showTokenSelectionGroups && (
+          <>
+            {stakedAssetBanks.length > 0 && (
+              <CommandGroup heading="Staked asset pools">
+                {stakedAssetBanks.map((bank, index) => {
+                  return (
+                    <CommandItem
+                      key={index}
+                      value={bank.address?.toString().toLowerCase()}
+                      onSelect={(currentValue) => {
+                        onSetSelectedBank(
+                          banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
+                        );
+                        onClose();
+                      }}
+                      className="py-2 cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent hover:text-mfi-action-box-accent-foreground"
+                    >
+                      <BankItem
+                        rate={calculateRate(bank)}
+                        lendingMode={lendingMode}
+                        bank={bank}
+                        showBalanceOverride={false}
+                        nativeSolBalance={nativeSolBalance}
+                      />
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+            <CommandItem>
+              <div className="space-y-2 text-center w-full pt-3">
+                <p className="text-xs text-muted-foreground">Don&apos;t see your native stake available to deposit?</p>
+                <div className="flex flex-col gap-1 items-center justify-center">
+                  <Button variant="outline" className="mx-auto font-normal text-[11px]" size="sm">
+                    <Link href="/staked-assets/create">
+                      <span>Create staked asset pool</span>
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="link"
+                    className="mx-auto font-light text-[11px] gap-1 h-5 text-muted-foreground no-underline rounded-none px-0 hover:no-underline hover:text-foreground"
+                    size="sm"
+                  >
+                    <IconExternalLink size={12} />
+                    Learn more
+                  </Button>
+                </div>
+              </div>
+            </CommandItem>
+          </>
         )}
       </BankListCommand>
     </>

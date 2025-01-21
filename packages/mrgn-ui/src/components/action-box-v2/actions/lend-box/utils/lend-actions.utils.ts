@@ -1,8 +1,8 @@
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import { Connection, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { v4 as uuidv4 } from "uuid";
 
 import { MarginfiAccountWrapper, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo, getStakeAccountsCached } from "@mrgnlabs/marginfi-v2-ui-state";
 import { SolanaTransaction, TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
@@ -119,7 +119,8 @@ export async function calculateLendingTransaction(
   marginfiAccount: MarginfiAccountWrapper,
   bank: ExtendedBankInfo,
   actionMode: ActionType,
-  amount: number
+  amount: number,
+  connection?: Connection
 ): Promise<
   | {
       actionTxn: SolanaTransaction;
@@ -129,10 +130,33 @@ export async function calculateLendingTransaction(
 > {
   switch (actionMode) {
     case ActionType.Deposit:
-      const depositTx = await marginfiAccount.makeDepositTx(amount, bank.address);
+      let depositTx: SolanaTransaction;
+
+      if (marginfiAccount && connection && bank.info.rawBank.config.assetTag === 2) {
+        console.log("Depositing into staked asset bank");
+
+        const stakeAccounts = await getStakeAccountsCached(marginfiAccount.authority);
+        const stakeAccount = stakeAccounts.find((stakeAccount) =>
+          stakeAccount.poolMintKey.equals(bank.info.state.mint)
+        );
+
+        if (!stakeAccount) {
+          throw new Error("No stake account found for this staked asset bank");
+        }
+
+        depositTx = await marginfiAccount.makeDepositStakedTx(
+          amount,
+          bank.address,
+          stakeAccount.largestAccount.pubkey,
+          stakeAccount.validator
+        );
+      } else {
+        depositTx = await marginfiAccount.makeDepositTx(amount, bank.address);
+      }
+
       return {
         actionTxn: depositTx,
-        additionalTxns: [], // bundle tip ix is in depositTx
+        additionalTxns: [],
       };
     case ActionType.Borrow:
       const borrowTxObject = await marginfiAccount.makeBorrowTx(amount, bank.address, {
@@ -144,15 +168,29 @@ export async function calculateLendingTransaction(
         additionalTxns: borrowTxObject.feedCrankTxs,
       };
     case ActionType.Withdraw:
-      const withdrawTxObject = await marginfiAccount.makeWithdrawTx(
-        amount,
-        bank.address,
-        bank.isActive && isWholePosition(bank, amount)
-      );
-      return {
-        actionTxn: withdrawTxObject.withdrawTx,
-        additionalTxns: withdrawTxObject.feedCrankTxs,
-      };
+      if (bank.info.rawBank.config.assetTag === 2) {
+        console.log("Withdrawing from staked asset bank");
+        const withdrawTx = await marginfiAccount.makeWithdrawStakedTx(
+          amount,
+          bank.address,
+          bank.isActive && isWholePosition(bank, amount)
+        );
+        return {
+          actionTxn: withdrawTx,
+          additionalTxns: [],
+        };
+      } else {
+        const withdrawTxObject = await marginfiAccount.makeWithdrawTx(
+          amount,
+          bank.address,
+          bank.isActive && isWholePosition(bank, amount)
+        );
+
+        return {
+          actionTxn: withdrawTxObject.withdrawTx,
+          additionalTxns: withdrawTxObject.feedCrankTxs,
+        };
+      }
     case ActionType.Repay:
       const repayTx = await marginfiAccount.makeRepayTx(
         amount,
