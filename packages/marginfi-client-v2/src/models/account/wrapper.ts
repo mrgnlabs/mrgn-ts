@@ -20,6 +20,7 @@ import {
   STAKE_PROGRAM_ID,
   createAssociatedTokenAccountInstruction,
   SYSVAR_CLOCK_ID,
+  BankMetadataMap,
 } from "@mrgnlabs/mrgn-common";
 import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
@@ -1202,10 +1203,13 @@ class MarginfiAccountWrapper {
     const tokenProgramAddress = this.client.mintDatas.get(bankAddress.toBase58())?.tokenProgram;
     if (!tokenProgramAddress) throw Error("Withdraw mint not found");
 
+    if (!this.client.bankMetadataMap) throw Error("Bank metadata map not found");
+
     return this._marginfiAccount.makeWithdrawIx(
       this._program,
       this.client.banks,
       this.client.mintDatas,
+      this.client.bankMetadataMap,
       amount,
       bankAddress,
       withdrawAll,
@@ -1242,12 +1246,6 @@ class MarginfiAccountWrapper {
     const withdrawIxs = await this.makeWithdrawIx(amount, bankAddress, isWholePosition, {
       createAtas: true,
       wrapAndUnwrapSol: true,
-      remainingAccounts: [
-        { pubkey: lstMint, isSigner: false, isWritable: false },
-        { pubkey: pool, isSigner: false, isWritable: false },
-        { pubkey: solBank.address, isSigner: false, isWritable: false },
-        { pubkey: solBank.oracleKey, isSigner: false, isWritable: false },
-      ],
     });
 
     // 2: create stake account
@@ -1458,10 +1456,13 @@ class MarginfiAccountWrapper {
     const tokenProgramAddress = this.client.mintDatas.get(bankAddress.toBase58())?.tokenProgram;
     if (!tokenProgramAddress) throw Error("Borrow mint not found");
 
+    if (!this.client.bankMetadataMap) throw Error("Bank metadata map not found");
+
     return this._marginfiAccount.makeBorrowIx(
       this._program,
       this.client.banks,
       this.client.mintDatas,
+      this.client.bankMetadataMap,
       amount,
       bankAddress,
       borrowOpts
@@ -1653,11 +1654,14 @@ class MarginfiAccountWrapper {
     const liabTokenProgramAddress = this.client.mintDatas.get(liabBankAddress.toBase58())?.tokenProgram;
     if (!liabTokenProgramAddress) throw Error("Liability mint not found");
 
+    if (!this.client.bankMetadataMap) throw Error("Bank metadata map not found");
+
     return this._marginfiAccount.makeLendingAccountLiquidateIx(
       liquidateeMarginfiAccount,
       this._program,
       this.client.banks,
       this.client.mintDatas,
+      this.client.bankMetadataMap,
       assetBankAddress,
       assetQuantityUi,
       liabBankAddress
@@ -1845,8 +1849,18 @@ class MarginfiAccountWrapper {
   // Helpers
   // --------------------------------------------------------------------------
 
-  getHealthCheckAccounts(mandatoryBanks: Bank[] = [], excludedBanks: Bank[] = []): AccountMeta[] {
-    return this._marginfiAccount.getHealthCheckAccounts(this.client.banks, mandatoryBanks, excludedBanks);
+  getHealthCheckAccounts(
+    mandatoryBanks: Bank[] = [],
+    excludedBanks: Bank[] = [],
+    bankMetadataMap: BankMetadataMap,
+    authority: PublicKey
+  ): AccountMeta[] {
+    return this._marginfiAccount.getHealthCheckAccounts(
+      this.client.banks,
+      mandatoryBanks,
+      excludedBanks,
+      bankMetadataMap
+    );
   }
 
   private static async _fetchAccountData(
