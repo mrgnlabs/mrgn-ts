@@ -117,6 +117,9 @@ export const getAssetPriceData = (bank: ExtendedBankInfo): AssetPriceData => {
     case OracleSetup.PythPushOracle:
       oracle = "Pyth";
       break;
+    case OracleSetup.StakedWithPythPush:
+      oracle = "Pyth";
+      break;
     case OracleSetup.SwitchboardV2:
       oracle = "Switchboard";
       break;
