@@ -1,8 +1,11 @@
 import {
   Amount,
+  BankMetadata,
+  BankMetadataMap,
   InstructionsWrapper,
   NATIVE_MINT,
   TOKEN_2022_PROGRAM_ID,
+  WSOL_MINT,
   aprToApy,
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
@@ -31,6 +34,7 @@ import {
 } from "../..";
 import BN from "bn.js";
 import { Address, BorshCoder, BorshInstructionCoder, translateAddress } from "@coral-xyz/anchor";
+import { findPoolMintAddress, findPoolAddress } from "../../vendor/single-spl-pool";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -591,7 +595,8 @@ class MarginfiAccount {
   getHealthCheckAccounts(
     banks: Map<string, Bank>,
     mandatoryBanks: Bank[] = [],
-    excludedBanks: Bank[] = []
+    excludedBanks: Bank[] = [],
+    bankMetadataMap: BankMetadataMap
   ): AccountMeta[] {
     const mandatoryBanksSet = new Set(mandatoryBanks.map((b) => b.address.toBase58()));
     const excludedBanksSet = new Set(excludedBanks.map((b) => b.address.toBase58()));
@@ -619,7 +624,7 @@ class MarginfiAccount {
         return new PublicKey(newBank);
       });
 
-    return makeHealthAccountMetas(banks, projectedActiveBanks);
+    return makeHealthAccountMetas(banks, projectedActiveBanks, bankMetadataMap, this.authority);
   }
 
   // ----------------------------------------------------------------------------
@@ -740,6 +745,7 @@ class MarginfiAccount {
     program: MarginfiProgram,
     banks: Map<string, Bank>,
     mintDatas: Map<string, MintData>,
+    bankMetadataMap: BankMetadataMap,
     amount: Amount,
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
@@ -795,12 +801,14 @@ class MarginfiAccount {
       remainingAccounts.push({ pubkey: mintData.mint, isSigner: false, isWritable: false });
     }
     if (opt.observationBanksOverride !== undefined) {
-      remainingAccounts.push(...makeHealthAccountMetas(banks, opt.observationBanksOverride));
+      remainingAccounts.push(
+        ...makeHealthAccountMetas(banks, opt.observationBanksOverride, bankMetadataMap, this.authority)
+      );
     } else {
       remainingAccounts.push(
         ...(withdrawAll
-          ? this.getHealthCheckAccounts(banks, [], [bank])
-          : this.getHealthCheckAccounts(banks, [bank], []))
+          ? this.getHealthCheckAccounts(banks, [], [], bankMetadataMap)
+          : this.getHealthCheckAccounts(banks, [bank], [], bankMetadataMap))
       );
     }
 
@@ -830,6 +838,7 @@ class MarginfiAccount {
     program: MarginfiProgram,
     banks: Map<string, Bank>,
     mintDatas: Map<string, MintData>,
+    bankMetadataMap: BankMetadataMap,
     amount: Amount,
     bankAddress: PublicKey,
     opt: MakeBorrowIxOpts = {}
@@ -862,10 +871,17 @@ class MarginfiAccount {
       remainingAccounts.push({ pubkey: mintData.mint, isSigner: false, isWritable: false });
     }
     if (opt?.observationBanksOverride !== undefined) {
-      remainingAccounts.push(...makeHealthAccountMetas(banks, opt.observationBanksOverride));
+      remainingAccounts.push(
+        ...makeHealthAccountMetas(banks, opt.observationBanksOverride, bankMetadataMap, this.authority)
+      );
     } else {
-      remainingAccounts.push(...this.getHealthCheckAccounts(banks, [bank]));
+      remainingAccounts.push(...this.getHealthCheckAccounts(banks, [bank], [], bankMetadataMap));
     }
+
+    console.log("REMAINING ACCOUNTS");
+    remainingAccounts.forEach((acc) => {
+      console.log("ACCOUNT", acc.pubkey.toBase58());
+    });
 
     const ix = await instructions.makeBorrowIx(
       program,
@@ -935,6 +951,7 @@ class MarginfiAccount {
     program: MarginfiProgram,
     banks: Map<string, Bank>,
     mintDatas: Map<string, MintData>,
+    bankMetadataMap: BankMetadataMap,
     assetBankAddress: PublicKey,
     assetQuantityUi: Amount,
     liabilityBankAddress: PublicKey
@@ -964,8 +981,8 @@ class MarginfiAccount {
           isSigner: false,
           isWritable: false,
         },
-        ...this.getHealthCheckAccounts(banks, [liabilityBank, assetBank]),
-        ...liquidateeMarginfiAccount.getHealthCheckAccounts(banks),
+        ...this.getHealthCheckAccounts(banks, [liabilityBank, assetBank], [], bankMetadataMap),
+        ...liquidateeMarginfiAccount.getHealthCheckAccounts(banks, [], [], bankMetadataMap),
       ]
     );
 
@@ -1152,7 +1169,6 @@ export interface MakeWithdrawIxOpts {
   observationBanksOverride?: PublicKey[];
   wrapAndUnwrapSol?: boolean;
   createAtas?: boolean;
-  remainingAccounts?: AccountMeta[];
 }
 
 export interface MakeBorrowIxOpts {
@@ -1165,11 +1181,18 @@ export function isWeightedPrice(reqType: MarginRequirementType): boolean {
   return reqType === MarginRequirementType.Initial;
 }
 
-export function makeHealthAccountMetas(banks: Map<string, Bank>, banksToInclude: PublicKey[]): AccountMeta[] {
+export function makeHealthAccountMetas(
+  banks: Map<string, Bank>,
+  banksToInclude: PublicKey[],
+  bankMetadataMap?: BankMetadataMap,
+  authority?: PublicKey
+): AccountMeta[] {
   return banksToInclude.flatMap((bankAddress) => {
     const bank = banks.get(bankAddress.toBase58());
+    const accs: AccountMeta[] = [];
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
-    return [
+
+    accs.push(
       {
         pubkey: bankAddress,
         isSigner: false,
@@ -1179,8 +1202,32 @@ export function makeHealthAccountMetas(banks: Map<string, Bank>, banksToInclude:
         pubkey: bank.oracleKey,
         isSigner: false,
         isWritable: false,
-      },
-    ];
+      }
+    );
+
+    if (bank.config.assetTag === 2) {
+      if (!authority) throw Error("Authority is required for staked accounts");
+
+      const solBank = Array.from(banks.values()).find((b) => b.mint.equals(WSOL_MINT));
+
+      if (!solBank) throw Error(`SOL bank not found`);
+
+      const bankMetadata = bankMetadataMap?.[bankAddress.toBase58()];
+
+      if (!bankMetadata || !bankMetadata.validatorVoteAccount) {
+        throw Error(`Bank metadata for ${bankAddress.toBase58()} not found`);
+      }
+
+      const pool = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
+      const lstMint = findPoolMintAddress(pool);
+
+      accs.push(
+        { pubkey: lstMint, isSigner: false, isWritable: false },
+        { pubkey: pool, isSigner: false, isWritable: false }
+      );
+    }
+
+    return accs;
   });
 }
 

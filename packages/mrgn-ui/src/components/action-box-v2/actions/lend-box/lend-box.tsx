@@ -500,6 +500,11 @@ export const LendBox = ({
     ]
   );
 
+  const isDepositingStakedAccount = React.useMemo(() => {
+    if (selectedBank && lendMode === ActionType.Deposit && selectedBank.info.rawBank.config.assetTag === 2) return true;
+    else return false;
+  }, [selectedBank, lendMode]);
+
   const hasErrorsWarnings = React.useMemo(() => {
     console.log(additionalActionMessages.concat(actionMessages));
     return (
@@ -510,18 +515,11 @@ export const LendBox = ({
   }, [additionalActionMessages, actionMessages]);
 
   React.useEffect(() => {
-    if (selectedBank && selectedBank.info.rawBank.config.assetTag === 2) {
-      // TODO: figure out fees / rent and remove hardcoded value
-      setAmountRaw((lendMode === ActionType.Deposit ? maxAmount - 0.05 : maxAmount).toString());
-      setAdditionalActionMessages([
-        {
-          description: "Staked accounts must be deposited and withdrawn in full",
-          isEnabled: true,
-          actionMethod: "INFO",
-        },
-      ]);
+    if (isDepositingStakedAccount) {
+      // TODO: figure out deposit maxAmount calculation
+      setAmountRaw((maxAmount - 0.05).toString());
     }
-  }, [selectedBank, maxAmount, setAmountRaw, lendMode]);
+  }, [isDepositingStakedAccount, maxAmount, setAmountRaw]);
 
   React.useEffect(() => {
     if (marginfiClient) {
@@ -549,6 +547,18 @@ export const LendBox = ({
           setSelectedBank={setSelectedBank}
         />
       </div>
+
+      {isDepositingStakedAccount && (
+        <div className="pb-6">
+          <ActionMessage
+            _actionMessage={{
+              description: "Staked accounts must be deposited in full",
+              isEnabled: true,
+              actionMethod: "INFO",
+            }}
+          />
+        </div>
+      )}
 
       {additionalActionMessages.concat(actionMessages).map(
         (actionMessage, idx) =>
