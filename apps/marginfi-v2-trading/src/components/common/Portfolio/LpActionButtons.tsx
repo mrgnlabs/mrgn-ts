@@ -6,7 +6,7 @@ import { cn, capture } from "@mrgnlabs/mrgn-utils";
 
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2";
-import { useTradeStoreV2 } from "~/store";
+import { useTradeStoreV2, useUiStore } from "~/store";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
@@ -22,7 +22,9 @@ type LpActionButtonsProps = {
 export const LpActionButtons = ({ size = "sm", activePool }: LpActionButtonsProps) => {
   const { connection } = useConnection();
   const { connected, wallet } = useWallet();
-
+  const { setDisplaySettings } = useUiStore((state) => ({
+    setDisplaySettings: state.setDisplaySettings,
+  }));
   const [refreshGroup, nativeSolBalance] = useTradeStoreV2((state) => [state.refreshGroup, state.nativeSolBalance]);
   const client = useMarginfiClient({ groupPk: activePool.groupPk });
   const { accountSummary, wrappedAccount } = useWrappedAccount({
@@ -52,6 +54,7 @@ export const LpActionButtons = ({ size = "sm", activePool }: LpActionButtonsProp
       accountSummaryArg={accountSummary ?? undefined}
       showActionComplete={false}
       hidePoolStats={["type"]}
+      setDisplaySettings={setDisplaySettings}
     >
       <div className={cn("flex gap-3 w-full justify-between", size === "sm" && "justify-end")}>
         <ActionBox.Lend

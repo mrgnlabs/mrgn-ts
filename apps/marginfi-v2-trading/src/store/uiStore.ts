@@ -41,6 +41,7 @@ interface UiState {
   maxCapType: MaxCapType;
   maxCap: number;
   priorityFees: PriorityFees;
+  displaySettings: boolean;
 
   // Actions
   setIsWalletAuthDialogOpen: (isOpen: boolean) => void;
@@ -54,6 +55,7 @@ interface UiState {
   setIsOnrampActive: (isOnrampActive: boolean) => void;
   setTransactionSettings: (settings: TransactionSettings, connection: Connection) => void;
   fetchPriorityFee: (connection: Connection, settings?: TransactionSettings) => void;
+  setDisplaySettings: (displaySettings: boolean) => void;
 }
 
 function createUiStore() {
@@ -90,7 +92,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   maxCapType: DEFAULT_PRIORITY_SETTINGS.maxCapType,
   maxCap: DEFAULT_PRIORITY_SETTINGS.maxCap,
   priorityFees: {},
-
+  displaySettings: false,
   // Actions
   setIsWalletAuthDialogOpen: (isOpen: boolean) => set({ isWalletAuthDialogOpen: isOpen }),
   setIsWalletOpen: (isOpen: boolean) => set({ isWalletOpen: isOpen }),
@@ -114,6 +116,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
       console.error(error);
     }
   },
+  setDisplaySettings: (displaySettings: boolean) => set({ displaySettings: displaySettings }),
 });
 
 export { createUiStore };

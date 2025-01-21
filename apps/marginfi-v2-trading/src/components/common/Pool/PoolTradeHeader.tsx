@@ -16,7 +16,7 @@ import { Desktop, Mobile, cn, capture } from "@mrgnlabs/mrgn-utils";
 import { IconChevronDown, IconExternalLink } from "@tabler/icons-react";
 
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { useTradeStoreV2 } from "~/store";
+import { useTradeStoreV2, useUiStore } from "~/store";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { TokenCombobox } from "~/components/common/TokenCombobox";
@@ -47,7 +47,9 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
   });
 
   const [refreshGroup, nativeSolBalance] = useTradeStoreV2((state) => [state.refreshGroup, state.nativeSolBalance]);
-
+  const { setDisplaySettings } = useUiStore((state) => ({
+    setDisplaySettings: state.setDisplaySettings,
+  }));
   const fundingRate = React.useMemo(() => {
     const fundingRateShort =
       extendedPool.tokenBank.info.state.borrowingRate - extendedPool.quoteBank.info.state.lendingRate;
@@ -71,6 +73,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
       accountSummaryArg={accountSummary ?? undefined}
       showActionComplete={false}
       hidePoolStats={["type"]}
+      setDisplaySettings={setDisplaySettings}
     >
       <div className="px-4 pb-10 lg:px-8 lg:py-10 lg:bg-background lg:border lg:rounded-xl">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">

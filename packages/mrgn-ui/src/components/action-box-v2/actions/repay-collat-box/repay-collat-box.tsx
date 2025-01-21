@@ -20,7 +20,7 @@ import {
   cn,
   IndividualFlowError,
 } from "@mrgnlabs/mrgn-utils";
-import { IconCheck } from "@tabler/icons-react";
+import { IconCheck, IconSettings } from "@tabler/icons-react";
 
 import { CircularProgress } from "~/components/ui/circular-progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
@@ -55,6 +55,7 @@ export type RepayCollatBoxProps = {
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
+  setDisplaySettings?: (displaySettings: boolean) => void;
 };
 
 export const RepayCollatBox = ({
@@ -70,6 +71,7 @@ export const RepayCollatBox = ({
   showAvailableCollateral,
   onComplete,
   captureEvent,
+  setDisplaySettings,
 }: RepayCollatBoxProps) => {
   const [
     maxAmountCollateral,
@@ -462,7 +464,16 @@ export const RepayCollatBox = ({
           hasErrorMessages={additionalActionMessages.length > 0}
           isActive={selectedBank && amount > 0 ? true : false}
         />
-        <ActionSettingsButton setIsSettingsActive={setIsSettingsDialogOpen} />
+        {setDisplaySettings && (
+          <div className="flex justify-end gap-2 ml-auto">
+            <button
+              onClick={() => setDisplaySettings(true)}
+              className="text-xs gap-1 h-6 px-2 flex items-center rounded-full bg-mfi-action-box-accent hover:bg-mfi-action-box-accent/80 "
+            >
+              Settings <IconSettings size={20} />
+            </button>
+          </div>
+        )}{" "}
       </div>
 
       <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />

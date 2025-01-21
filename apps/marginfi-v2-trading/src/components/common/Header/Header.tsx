@@ -48,6 +48,8 @@ export const Header = () => {
     setTransactionSettings,
     slippageBps,
     setSlippageBps,
+    displaySettings,
+    setDisplaySettings,
   } = useUiStore((state) => ({
     priorityType: state.priorityType,
     broadcastType: state.broadcastType,
@@ -57,6 +59,8 @@ export const Header = () => {
     setTransactionSettings: state.setTransactionSettings,
     slippageBps: state.slippageBps,
     setSlippageBps: state.setSlippageBps,
+    displaySettings: state.displaySettings,
+    setDisplaySettings: state.setDisplaySettings,
   }));
   const { wallet, connected } = useWallet();
   const { asPath } = useRouter();
@@ -64,7 +68,6 @@ export const Header = () => {
   const [scope, animate] = useAnimate();
 
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
-  const [settingsDialogOpen, setSettingsDialogOpen] = React.useState(false);
   const extendedBankInfos = React.useMemo(() => {
     const banks = Object.values(banksByBankPk);
     const uniqueBanksMap = new Map(banks.map((bank) => [bank.info.state.mint.toBase58(), bank]));
@@ -158,8 +161,8 @@ export const Header = () => {
                 slippageBps: slippageBps / 100,
                 setSlippageBps: (value) => setSlippageBps(value * 100),
               }}
-              settingsDialogOpen={settingsDialogOpen}
-              setSettingsDialogOpen={setSettingsDialogOpen}
+              settingsDialogOpen={displaySettings}
+              setSettingsDialogOpen={setDisplaySettings}
             >
               <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
                 <IconSettings size={20} />
