@@ -2,6 +2,7 @@ import { AccountMeta, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY } from "@solana/web3
 import BN from "bn.js";
 import { MarginfiProgram } from "./types";
 import { BankConfigCompactRaw, BankConfigOptRaw } from "./models/bank";
+import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
 async function makeInitMarginfiAccountIx(
   mfProgram: MarginfiProgram,
@@ -334,6 +335,41 @@ async function makeGroupInitIx(
       marginfiGroup: accounts.marginfiGroup,
       admin: accounts.admin,
     })
+    .instruction();
+}
+
+async function makePoolAddPermissionlessStakedBankIx(
+  mfProgram: MarginfiProgram,
+  accounts: {
+    stakedSettings: PublicKey;
+    feePayer: PublicKey;
+    bankMint: PublicKey;
+    solPool: PublicKey;
+    stakePool: PublicKey;
+  },
+  remainingAccounts: {
+    pythOracle: PublicKey;
+  },
+  args: {
+    seed: BN;
+  }
+) {
+  const defaultAccountMeta = {
+    isSigner: false,
+    isWritable: false,
+  };
+
+  return mfProgram.methods
+    .lendingPoolAddBankPermissionless(args.seed)
+    .accounts({
+      ...accounts,
+      tokenProgram: TOKEN_PROGRAM_ID,
+    })
+    .remainingAccounts([
+      { ...defaultAccountMeta, pubkey: remainingAccounts.pythOracle },
+      { ...defaultAccountMeta, pubkey: accounts.bankMint },
+      { ...defaultAccountMeta, pubkey: accounts.solPool },
+    ])
     .instruction();
 }
 

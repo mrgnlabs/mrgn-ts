@@ -9,6 +9,7 @@ type LendingActionProps = {
   showLendingHeader?: boolean;
   lendMode: ActionType;
   selectedBank: ExtendedBankInfo | null;
+  disabled?: boolean;
 
   onSetAmountRaw: (amount: string) => void;
 };
@@ -19,6 +20,7 @@ export const LendingAction = ({
   onSetAmountRaw,
   selectedBank,
   lendMode,
+  disabled = false,
 }: LendingActionProps) => {
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -88,7 +90,7 @@ export const LendingAction = ({
 
               <button
                 className="cursor-pointer border-b border-transparent transition text-mfi-action-box-highlight hover:border-mfi-action-box-highlight"
-                disabled={maxAmount === 0}
+                disabled={maxAmount === 0 || disabled}
                 onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
               >
                 MAX

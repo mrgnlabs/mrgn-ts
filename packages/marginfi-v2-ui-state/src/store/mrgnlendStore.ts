@@ -213,12 +213,21 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         bankMetadataMap = results[0];
         tokenMetadataMap = results[1];
       } else if (marginfiConfig.environment === "staging") {
-        const bankMetadataJson = (await import("./staging-metadata.json")) as {
-          bankMetadata: BankMetadataMap;
-          tokenMetadata: TokenMetadataMap;
-        };
-        bankMetadataMap = bankMetadataJson.bankMetadata;
-        tokenMetadataMap = bankMetadataJson.tokenMetadata;
+        if (process.env.NEXT_PUBLIC_BANKS_MAP && process.env.NEXT_PUBLIC_TOKENS_MAP) {
+          let results = await Promise.all([
+            loadBankMetadatas(process.env.NEXT_PUBLIC_BANKS_MAP),
+            loadTokenMetadatas(process.env.NEXT_PUBLIC_TOKENS_MAP),
+          ]);
+          bankMetadataMap = results[0];
+          tokenMetadataMap = results[1];
+        } else {
+          const bankMetadataJson = (await import("./staging-metadata.json")) as {
+            bankMetadata: BankMetadataMap;
+            tokenMetadata: TokenMetadataMap;
+          };
+          bankMetadataMap = bankMetadataJson.bankMetadata;
+          tokenMetadataMap = bankMetadataJson.tokenMetadata;
+        }
       } else if (marginfiConfig.environment === "mainnet-test-1") {
         const bankMetadataJson = (await import("./mainnet-test-1-metadata.json")) as {
           bankMetadata: BankMetadataMap;
@@ -229,6 +238,24 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       } else {
         throw new Error("Unknown environment");
       }
+
+      // fetch staked asset metadata
+      const stakedAssetBankMetadataMap = await loadBankMetadatas(
+        "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json"
+      );
+      const stakedAssetTokenMetadataMap = await loadTokenMetadatas(
+        "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json"
+      );
+
+      // merge staked asset metadata with main group metadata
+      bankMetadataMap = {
+        ...bankMetadataMap,
+        ...stakedAssetBankMetadataMap,
+      };
+      tokenMetadataMap = {
+        ...tokenMetadataMap,
+        ...stakedAssetTokenMetadataMap,
+      };
 
       const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));
 

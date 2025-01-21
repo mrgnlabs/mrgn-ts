@@ -1152,6 +1152,7 @@ export interface MakeWithdrawIxOpts {
   observationBanksOverride?: PublicKey[];
   wrapAndUnwrapSol?: boolean;
   createAtas?: boolean;
+  remainingAccounts?: AccountMeta[];
 }
 
 export interface MakeBorrowIxOpts {

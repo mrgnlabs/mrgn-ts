@@ -113,7 +113,12 @@ interface InterestRateConfigRaw {
   protocolOriginationFee: WrappedI80F48;
 }
 
-type OracleSetupRaw = { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} };
+type OracleSetupRaw =
+  | { none: {} }
+  | { pythLegacy: {} }
+  | { switchboardV2: {} }
+  | { pythPushOracle: {} }
+  | { stakedWithPythPush: {} };
 
 export type { BankRaw, BankConfigRaw, BankConfigCompactRaw, RiskTierRaw, InterestRateConfigRaw, OracleSetupRaw };
 
@@ -716,6 +721,7 @@ enum OracleSetup {
   SwitchboardV2 = "SwitchboardV2",
   PythPushOracle = "PythPushOracle",
   SwitchboardPull = "SwitchboardPull",
+  StakedWithPythPush = "StakedWithPythPush",
 }
 
 enum AssetTag {
@@ -768,7 +774,13 @@ interface BankConfigOptRaw {
   operationalState: { paused: {} } | { operational: {} } | { reduceOnly: {} } | null;
 
   oracle: {
-    setup: { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} } | { switchboardPull: {} };
+    setup:
+      | { none: {} }
+      | { pythLegacy: {} }
+      | { switchboardV2: {} }
+      | { pythPushOracle: {} }
+      | { switchboardPull: {} }
+      | { stakedWithPythPush: {} };
     keys: PublicKey[];
   } | null;
 
@@ -876,6 +888,8 @@ function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
       return OracleSetup.PythPushOracle;
     case "switchboardpull":
       return OracleSetup.SwitchboardPull;
+    case "stakedwithpythpush":
+      return OracleSetup.StakedWithPythPush;
     default:
       throw new Error(`Invalid oracle setup "${oracleKey}"`);
   }
@@ -883,7 +897,13 @@ function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
 
 function serializeOracleSetup(
   oracleSetup: OracleSetup
-): { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} } | { switchboardPull: {} } {
+):
+  | { none: {} }
+  | { pythLegacy: {} }
+  | { switchboardV2: {} }
+  | { pythPushOracle: {} }
+  | { switchboardPull: {} }
+  | { stakedWithPythPush: {} } {
   switch (oracleSetup) {
     case OracleSetup.None:
       return { none: {} };
@@ -895,6 +915,8 @@ function serializeOracleSetup(
       return { pythPushOracle: {} };
     case OracleSetup.SwitchboardPull:
       return { switchboardPull: {} };
+    case OracleSetup.StakedWithPythPush:
+      return { stakedWithPythPush: {} };
     default:
       throw new Error(`Invalid oracle setup "${oracleSetup}"`);
   }

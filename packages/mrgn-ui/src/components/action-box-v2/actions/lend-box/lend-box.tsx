@@ -36,7 +36,7 @@ import { ActionMessage } from "~/components";
 import { useLendBoxStore } from "./store";
 import { HandleCloseBalanceParamsProps, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { ActionSimulationStatus } from "../../components";
-import { ActionInput, Preview } from "./components";
+import { Collateral, ActionInput, Preview } from "./components";
 import { SimulationStatus } from "../../utils";
 import { useLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
@@ -165,6 +165,7 @@ export const LendBox = ({
     lendMode,
     actionTxns,
     simulationResult,
+    connection: marginfiClient?.provider.connection,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
@@ -482,6 +483,29 @@ export const LendBox = ({
     ]
   );
 
+  const hasErrorsWarnings = React.useMemo(() => {
+    console.log(additionalActionMessages.concat(actionMessages));
+    return (
+      additionalActionMessages
+        .concat(actionMessages)
+        .filter((value) => value.actionMethod !== "INFO" && value.description).length > 0
+    );
+  }, [additionalActionMessages, actionMessages]);
+
+  React.useEffect(() => {
+    if (selectedBank && selectedBank.info.rawBank.config.assetTag === 2) {
+      // TODO: figure out fees / rent and remove hardcoded value
+      setAmountRaw((lendMode === ActionType.Deposit ? maxAmount - 0.05 : maxAmount).toString());
+      setAdditionalActionMessages([
+        {
+          description: "Staked accounts must be deposited and withdrawn in full",
+          isEnabled: true,
+          actionMethod: "INFO",
+        },
+      ]);
+    }
+  }, [selectedBank, maxAmount, setAmountRaw, lendMode]);
+
   React.useEffect(() => {
     if (marginfiClient) {
       refreshSelectedBanks(banks);
@@ -524,7 +548,7 @@ export const LendBox = ({
 
       {showAvailableCollateral && (
         <div className="mb-6">
-          <ActionCollateralProgressBar selectedAccount={selectedAccount} actionSummary={actionSummary} />
+          <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
         </div>
       )}
 
@@ -560,6 +584,11 @@ export const LendBox = ({
           </div>
         )}
       </div>
+      <ActionSimulationStatus
+        simulationStatus={isSimulating.status}
+        hasErrorMessages={hasErrorsWarnings}
+        isActive={selectedBank && amount > 0 ? true : false}
+      />
 
       <Preview
         actionSummary={actionSummary}

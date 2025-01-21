@@ -1,11 +1,13 @@
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
+
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
 import { useHotkeys } from "react-hotkeys-hook";
-import { IconAlertTriangle } from "@tabler/icons-react";
+import { IconAlertTriangle, IconExternalLink } from "@tabler/icons-react";
 
 import { ExtendedBankInfo, ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes } from "@mrgnlabs/mrgn-utils";
+import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
 
@@ -24,6 +26,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow } from "./components";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { Button } from "~/components/ui/button";
 
 export const AssetsList = () => {
   const [isStoreInitialized, extendedBankInfos, nativeSolBalance, selectedAccount, fetchMrgnlendState] =
@@ -82,24 +85,35 @@ export const AssetsList = () => {
     }
   }, [isStoreInitialized, poolFilter, extendedBankInfos, sortOption, sortBanks]);
 
+  // non isolated, non staked asset banks
   const globalBanks = React.useMemo(() => {
     return (
       sortedBanks &&
-      sortedBanks.filter((b) => !b.info.state.isIsolated).filter((b) => (isFilteredUserPositions ? b.isActive : true))
+      sortedBanks
+        .filter((b) => b.info.rawBank.config.assetTag !== 2 && !b.info.state.isIsolated)
+        .filter((b) => (isFilteredUserPositions ? b.isActive : true))
     );
   }, [isFilteredUserPositions, sortedBanks]);
 
+  // isolated, non staked asset banks
   const isolatedBanks = React.useMemo(() => {
     return (
       sortedBanks &&
-      sortedBanks.filter((b) => b.info.state.isIsolated).filter((b) => (isFilteredUserPositions ? b.isActive : true))
+      sortedBanks
+        .filter((b) => b.info.rawBank.config.assetTag !== 2 && b.info.state.isIsolated)
+        .filter((b) => (isFilteredUserPositions ? b.isActive : true))
     );
   }, [sortedBanks, isFilteredUserPositions]);
 
-  const activeBankInfos = React.useMemo(
-    () => extendedBankInfos.filter((balance) => balance.isActive),
-    [extendedBankInfos]
-  ) as ActiveBankInfo[];
+  // staked asset banks
+  const stakedAssetBanks = React.useMemo(() => {
+    return (
+      sortedBanks &&
+      sortedBanks
+        .filter((b) => b.info.rawBank.config.assetTag === 2)
+        .filter((b) => (isFilteredUserPositions ? b.isActive : true))
+    );
+  }, [sortedBanks, isFilteredUserPositions]);
 
   // Enter hotkey mode
   useHotkeys(
@@ -200,6 +214,28 @@ export const AssetsList = () => {
     fetchMrgnlendState,
   ]);
 
+  const stakedPoolTableData = React.useMemo(() => {
+    return makeData(
+      stakedAssetBanks,
+      isInLendingMode,
+      denominationUSD,
+      nativeSolBalance,
+      selectedAccount,
+      connected,
+      walletContextState,
+      fetchMrgnlendState
+    );
+  }, [
+    connected,
+    walletContextState,
+    stakedAssetBanks,
+    isInLendingMode,
+    denominationUSD,
+    nativeSolBalance,
+    selectedAccount,
+    fetchMrgnlendState,
+  ]);
+
   const tableColumns = React.useMemo(() => {
     return generateColumns(isInLendingMode);
   }, [isInLendingMode]);
@@ -228,11 +264,23 @@ export const AssetsList = () => {
     onSortingChange: setSorting,
   });
 
+  const stakedTable = useReactTable<AssetListModel>({
+    data: stakedPoolTableData,
+    columns: tableColumns,
+    getRowCanExpand: () => true,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+  });
+
   return (
     <>
       <AssetListFilters />
       <div className="col-span-full">
-        {globalPoolTableData.length ? (
+        {globalPoolTableData.length > 0 && (
           <>
             <div>
               <div className="font-normal text-2xl text-white mt-4 pt-4 pb-2 gap-1 ">Global pool</div>
@@ -261,10 +309,8 @@ export const AssetsList = () => {
               </TableBody>
             </Table>
           </>
-        ) : (
-          <></>
         )}
-        {isolatedPoolTableData.length ? (
+        {isolatedPoolTableData.length > 0 && (
           <>
             <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 pb-2 gap-2">
               <span className="gap-1 flex">
@@ -317,9 +363,55 @@ export const AssetsList = () => {
               </TableBody>
             </Table>
           </>
-        ) : (
-          <></>
         )}
+        {stakedPoolTableData.length > 0 && (
+          <>
+            <div>
+              <div className="font-normal text-2xl text-white mt-4 pt-4 pb-2 gap-1 ">Staked pools</div>
+            </div>
+            <Table>
+              <TableHeader>
+                {stakedTable.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        style={{
+                          width: header.column.getSize(),
+                        }}
+                      >
+                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {stakedTable.getRowModel().rows.map((row) => {
+                  return <AssetRow key={row.id} {...row} />;
+                })}
+              </TableBody>
+            </Table>
+          </>
+        )}
+        <div className={cn("space-y-3 text-center w-full pb-4", stakedPoolTableData.length > 0 ? "pt-3" : "pt-12")}>
+          <p className="text-xs text-muted-foreground">Don&apos;t see your native stake available to deposit?</p>
+          <div className="flex flex-col gap-2 items-center justify-center">
+            <Button variant="secondary" className="mx-auto font-normal text-[11px]" size="sm">
+              <Link href="/staked-assets/create">
+                <span>Create staked asset pool</span>
+              </Link>
+            </Button>
+            <Button
+              variant="link"
+              className="mx-auto font-light text-[11px] gap-1 h-5 text-muted-foreground/75 no-underline rounded-none px-0 hover:no-underline hover:text-foreground"
+              size="sm"
+            >
+              <IconExternalLink size={12} />
+              Learn more
+            </Button>
+          </div>
+        </div>
       </div>
       <LSTDialog
         variant={lstDialogVariant}
