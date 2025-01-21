@@ -77,6 +77,7 @@ export type { TokenMetadata, TokenMetadataRaw, TokenMetadataListRaw, TokenMetada
 // ----------------------------------------------------------------------------
 
 interface BankMetadata {
+  validatorVoteAccount?: string;
   tokenAddress: string;
   tokenName: string;
   tokenSymbol: string;
@@ -84,6 +85,7 @@ interface BankMetadata {
 
 const BankMetadataRaw = object({
   groupAddress: optional(string()), // optional as only present on arena cache not mrgnlend
+  validatorVoteAccount: optional(string()), // optional as only present on staked asset banks
   bankAddress: string(),
   tokenAddress: string(),
   tokenName: string(),
@@ -99,6 +101,7 @@ function parseBankMetadata(bankMetadataRaw: BankMetadataRaw): BankMetadata {
     tokenAddress: bankMetadataRaw.tokenAddress,
     tokenName: bankMetadataRaw.tokenName,
     tokenSymbol: bankMetadataRaw.tokenSymbol,
+    validatorVoteAccount: bankMetadataRaw.validatorVoteAccount ?? undefined,
   };
 }
 
