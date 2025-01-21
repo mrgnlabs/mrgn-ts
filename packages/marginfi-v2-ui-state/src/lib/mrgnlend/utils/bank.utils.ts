@@ -128,6 +128,7 @@ async function makeExtendedBankEmission(
   const sortedExtendedBankMetadatas = extendedBankMetadatas.sort((am, bm) => {
     const a = sortedExtendedBankInfos.find((a) => a.address.equals(am.address))!;
     const b = sortedExtendedBankInfos.find((b) => b.address.equals(bm.address))!;
+    if (!a || !b) return 0;
     return b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price;
   });
 
