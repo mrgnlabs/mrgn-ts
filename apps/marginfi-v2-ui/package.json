@@ -99,6 +99,7 @@
     "react-cookie": "^6.1.1",
     "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "18.2.0",
+    "react-dropzone": "^14.3.5",
     "react-hook-form": "^7.50.1",
     "react-hotkeys-hook": "^4.4.1",
     "react-katex": "^3.0.1",

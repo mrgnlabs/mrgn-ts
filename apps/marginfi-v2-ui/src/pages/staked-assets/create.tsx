@@ -15,10 +15,7 @@ import { PageHeading } from "~/components/common/PageHeading";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import {
-  findPoolMintAddressByVoteAccount,
-  initializeStakedPoolTx,
-} from "@mrgnlabs/marginfi-client-v2/dist/vendor/spl-single-pool";
+import { vendor } from "@mrgnlabs/marginfi-client-v2";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks";
 import { PublicKey, Transaction } from "@solana/web3.js";
@@ -67,7 +64,11 @@ export default function CreateStakedAssetPage() {
     async (voteAccount: PublicKey, client: MarginfiClient, multiStepToast: MultiStepToastHandle) => {
       const solOracle = new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE");
 
-      const initSplPoolTx = await initializeStakedPoolTx(connection, wallet.publicKey, new PublicKey(voteAccount));
+      const initSplPoolTx = await vendor.initializeStakedPoolTx(
+        connection,
+        wallet.publicKey,
+        new PublicKey(voteAccount)
+      );
       const addBankIxs = await client.group.makeAddPermissionlessStakedBankIx(client.program, voteAccount, solOracle);
       const addBankTx = new Transaction().add(...addBankIxs.instructions);
 
@@ -83,15 +84,14 @@ export default function CreateStakedAssetPage() {
         broadcastType: broadcastType,
         ...priorityFees,
         callback(index, success, signature, stepsToAdvance) {
-          success &&
-            multiStepToast.setSuccessAndNext(stepsToAdvance, signature, composeExplorerUrl(signature, broadcastType));
+          success && multiStepToast.setSuccessAndNext(stepsToAdvance, signature, composeExplorerUrl(signature));
         },
       });
 
       multiStepToast.setSuccessAndNext(
         undefined,
         txSignature[txSignature.length - 1],
-        composeExplorerUrl(txSignature[txSignature.length - 1], broadcastType)
+        composeExplorerUrl(txSignature[txSignature.length - 1])
       );
     },
     [broadcastType, priorityFees]
@@ -158,7 +158,7 @@ export default function CreateStakedAssetPage() {
         multiStepToast.setSuccessAndNext();
 
         if (form.assetLogo) {
-          const mintAddress = findPoolMintAddressByVoteAccount(new PublicKey(form.voteAccountKey));
+          const mintAddress = vendor.findPoolMintAddressByVoteAccount(new PublicKey(form.voteAccountKey));
           await uploadImage(form.assetLogo, mintAddress.toBase58());
         }
 
