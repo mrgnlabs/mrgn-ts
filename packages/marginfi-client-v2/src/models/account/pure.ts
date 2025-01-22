@@ -875,7 +875,7 @@ class MarginfiAccount {
         ...makeHealthAccountMetas(banks, opt.observationBanksOverride, bankMetadataMap, this.authority)
       );
     } else {
-      // remainingAccounts.push(...this.getHealthCheckAccounts(banks, [bank], [], bankMetadataMap));
+      remainingAccounts.push(...this.getHealthCheckAccounts(banks, [bank], [], bankMetadataMap));
     }
 
     console.log("REMAINING ACCOUNTS");
@@ -898,6 +898,12 @@ class MarginfiAccount {
     );
     const borrowIxs = bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol ? this.wrapInstructionForWSol(ix) : [ix];
     ixs.push(...borrowIxs);
+
+    console.log(ix);
+
+    ix.keys.forEach((key) => {
+      console.log(key.pubkey.toBase58());
+    });
 
     return {
       instructions: ixs,
