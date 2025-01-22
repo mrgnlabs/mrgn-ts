@@ -489,7 +489,6 @@ export const LendBox = ({
   }, [selectedBank, lendMode]);
 
   const hasErrorsWarnings = React.useMemo(() => {
-    console.log(additionalActionMessages.concat(actionMessages));
     return (
       additionalActionMessages
         .concat(actionMessages)
