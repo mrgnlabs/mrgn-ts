@@ -236,8 +236,8 @@ export const RepayBox = ({
 
   return (
     <>
-      {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
-        <div className="absolute top-5 right-4 z-50">
+      {/* {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
+        <div className="absolute -top-1 -right-1 z-50">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
@@ -258,7 +258,7 @@ export const RepayBox = ({
             </Tooltip>
           </TooltipProvider>
         </div>
-      )}
+      )} */}
       <div className="mb-4">
         {/* <TooltipProvider>
           <Tooltip>
@@ -316,7 +316,7 @@ export const RepayBox = ({
           handleAction={() => {
             //   handleRepayCollatAction();
           }}
-          buttonLabel={"Repay"} // TODO: change to "title or smt"
+          buttonLabel={"Repay"}
         />
       </div>
 

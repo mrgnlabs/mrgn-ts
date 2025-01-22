@@ -31,6 +31,7 @@ export const RepayAction = ({
     console.log("selectedBank", selectedBank?.meta.tokenSymbol);
     console.log("repayAmount", repayAmount);
     const amountLeft = dynamicNumeralFormatter(selectedBank?.isActive ? selectedBank.position.amount - repayAmount : 0);
+    console.log("amountLeft", amountLeft);
     return {
       amount: `${amountLeft} ${selectedBank?.meta.tokenSymbol}`,
       label: "Borrowed: ",
@@ -59,14 +60,16 @@ export const RepayAction = ({
               {selectedBank && (
                 <button
                   className="cursor-pointer border-b border-transparent transition text-mfi-action-box-highlight hover:border-mfi-action-box-highlight"
-                  disabled={maxAmount === 0}
-                  onClick={() =>
+                  // disabled={maxAmount === 0}
+                  onClick={() => {
+                    console.log("clicked");
+                    console.log("maxAmount", maxAmount);
                     onSetAmountRaw(
                       dynamicNumeralFormatter(maxAmount, {
                         tokenPrice: selectedBank.info.oraclePrice.priceRealtime.price.toNumber(),
                       })
-                    )
-                  }
+                    );
+                  }}
                 >
                   MAX
                 </button>

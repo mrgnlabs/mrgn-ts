@@ -237,25 +237,33 @@ export function useRepaySimulation({
     ]
   );
 
+  // React.useEffect(() => {
+  //   if (
+  //     prevDebouncedAmount !== debouncedAmount ||
+  //     prevselectedBank !== selectedBank ||
+  //     prevselectedSecondaryBank !== selectedSecondaryBank
+  //   ) {
+  //     if (debouncedAmount > 0) {
+  //       handleSimulation(debouncedAmount);
+  //     }
+  //   }
+  // }, [
+  //   debouncedAmount,
+  //   selectedBank,
+  //   selectedSecondaryBank,
+  //   handleSimulation,
+  //   prevDebouncedAmount,
+  //   prevselectedBank,
+  //   prevselectedSecondaryBank,
+  // ]);
+
   React.useEffect(() => {
-    if (
-      prevDebouncedAmount !== debouncedAmount ||
-      prevselectedBank !== selectedBank ||
-      prevselectedSecondaryBank !== selectedSecondaryBank
-    ) {
+    if (prevDebouncedAmount !== debouncedAmount) {
       if (debouncedAmount > 0) {
         handleSimulation(debouncedAmount);
       }
     }
-  }, [
-    debouncedAmount,
-    selectedBank,
-    selectedSecondaryBank,
-    handleSimulation,
-    prevDebouncedAmount,
-    prevselectedBank,
-    prevselectedSecondaryBank,
-  ]);
+  }, [debouncedAmount, handleSimulation, prevDebouncedAmount]);
 
   const refreshSimulation = React.useCallback(async () => {
     await handleSimulation(debouncedAmount ?? 0);
@@ -280,12 +288,12 @@ export function useRepaySimulation({
     return handleActionSummary(accountSummary, simulationResult ?? undefined);
   }, [accountSummary, simulationResult, handleActionSummary]);
 
-  React.useEffect(() => {
-    if (isRefreshTxn) {
-      setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
-      setSimulationResult(null);
-    }
-  }, [isRefreshTxn, setActionTxns, setSimulationResult]);
+  // React.useEffect(() => {
+  //   if (isRefreshTxn) {
+  //     setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
+  //     setSimulationResult(null);
+  //   }
+  // }, [isRefreshTxn, setActionTxns, setSimulationResult]);
 
   ////////////////////////////////
   // Fetch max repayable collat //
@@ -297,7 +305,6 @@ export function useRepaySimulation({
       selectedBank.meta.tokenSymbol !== selectedSecondaryBank.meta.tokenSymbol
     ) {
       const maxAmount = await calculateMaxRepayableCollateral(selectedBank, selectedSecondaryBank, slippageBps);
-
       if (!maxAmount) {
         const errorMessage = DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(
           selectedSecondaryBank.meta.tokenSymbol
@@ -315,7 +322,7 @@ export function useRepaySimulation({
     if (!selectedSecondaryBank) {
       return;
     }
-    const hasBankChanged = !selectedSecondaryBank?.address.equals(selectedSecondaryBank.address);
+    const hasBankChanged = !prevselectedSecondaryBank?.address.equals(selectedSecondaryBank.address);
     if (hasBankChanged) {
       fetchMaxRepayableCollateral();
     }
