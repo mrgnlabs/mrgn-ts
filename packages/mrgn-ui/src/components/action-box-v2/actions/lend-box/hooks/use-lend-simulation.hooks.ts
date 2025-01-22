@@ -112,6 +112,7 @@ export function useLendSimulation({
 
         if (lendingObject && "actionTxn" in lendingObject) {
           setActionTxns({ actionTxn: lendingObject.actionTxn, additionalTxns: lendingObject.additionalTxns });
+          setErrorMessage(null);
         } else {
           const errorMessage = lendingObject ?? STATIC_SIMULATION_ERRORS.BUILDING_LENDING_TX;
           setErrorMessage(errorMessage);
