@@ -516,7 +516,7 @@ export const LendBox = ({
   React.useEffect(() => {
     if (isDepositingStakedAccount) {
       // TODO: figure out deposit maxAmount calculation
-      setAmountRaw((maxAmount - 0.05).toString());
+      setAmountRaw(maxAmount.toString());
     }
   }, [isDepositingStakedAccount, maxAmount, setAmountRaw]);
 

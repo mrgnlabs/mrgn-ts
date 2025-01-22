@@ -41,6 +41,7 @@ import {
   TransactionSignature,
   StakeAuthorizationLayout,
   StakeProgram,
+  Connection,
 } from "@solana/web3.js";
 import { Token } from "@solana/spl-token";
 import BigNumber from "bignumber.js";
@@ -926,6 +927,7 @@ class MarginfiAccountWrapper {
     const ixs: TransactionInstruction[] = [];
 
     const pool = findPoolAddress(validator);
+    const poolStakeAddress = findPoolStakeAddress(pool);
     const lstMint = findPoolMintAddress(pool);
     const auth = findPoolStakeAuthorityAddress(pool);
     const lstAta = getAssociatedTokenAddressSync(lstMint, this.authority);
@@ -955,6 +957,84 @@ class MarginfiAccountWrapper {
       this.authority
     );
 
+    // async function getStakeMinimumDelegation(connection: Connection, payerKey: PublicKey) {
+    //   const ix = new TransactionInstruction({
+    //     keys: [],
+    //     programId: StakeProgram.programId,
+    //     data: Buffer.from([13, 0, 0, 0]),
+    //   });
+
+    //   const message = new TransactionMessage({
+    //     payerKey: payerKey,
+    //     recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
+    //     instructions: [ix],
+    //   }).compileToV0Message();
+
+    //   const versionedTx = new VersionedTransaction(message);
+
+    //   const result = await connection.simulateTransaction(versionedTx, {
+    //     sigVerify: false,
+    //     replaceRecentBlockhash: false,
+    //   });
+
+    //   const data = Array.from(result.value.returnData?.data ?? []);
+
+    //   // Decode the base64 string to get the raw bytes
+    //   const rawData = Buffer.from(data[0], "base64");
+
+    //   const otherAttempt = rawData[0] + (rawData[1] << 8) + (rawData[2] << 16) + (rawData[3] << 24);
+
+    //   console.log("otherAttempt", otherAttempt);
+
+    //   // Convert to number using little-endian byte order
+    //   const minimumDelegation = rawData.readUInt32LE(0);
+
+    //   console.log("rawData", rawData);
+    //   console.log("minimumDelegation", minimumDelegation);
+    //   console.log("data", data);
+    //   console.log("result", result);
+    // }
+    // Fetch the current lamports in the pool's stake account
+    const poolStakeAccLamports = (await this._program.provider.connection.getAccountInfo(poolStakeAddress))?.lamports;
+
+    // Fetch the minimum delegation (ensure it's at least 1 lamport)
+    const minimumDelegation = Math.max(
+      (await this._program.provider.connection.getStakeMinimumDelegation()).value,
+      LAMPORTS_PER_SOL
+    );
+
+    // Get Stake Rent Exemption
+    const stakeRentExemption = await this._program.provider.connection.getMinimumBalanceForRentExemption(
+      StakeProgram.space
+    );
+
+    // Calculate the active stake in the pool before the deposit
+    const prePoolStake = poolStakeAccLamports
+      ? Math.max(poolStakeAccLamports - minimumDelegation - stakeRentExemption, 0) // saturating_sub logic
+      : 0;
+
+    // Fetch the current token supply of the pool mint
+    const tokenSupplyData = await this._program.provider.connection.getTokenSupply(lstMint);
+    const tokenSupply = parseInt(tokenSupplyData.value.amount, 10); // Convert string to number
+
+    // Calculate the stake added by the user (this would be based on your logic)
+    const stakeAddedNative = Number(amount) * 1e9; // Convert amount with 9 decimals to native lamports
+
+    // Calculate the number of new pool tokens to mint
+    const newPoolTokens =
+      prePoolStake > 0 && tokenSupply > 0
+        ? Math.floor((stakeAddedNative * tokenSupply) / prePoolStake) // Use integer division
+        : stakeAddedNative; // For empty pools, mint 1:1 to the deposit
+
+    const newPoolTokensUi = newPoolTokens / 1e9;
+
+    // Check for edge cases
+    if (newPoolTokens <= 0) {
+      throw new Error("Deposit too small or calculation error.");
+    }
+
+    console.log("New pool tokens to mint:", newPoolTokens);
+
     // overwrite SYSVAR_CLOCK_ID to non writable
     // TODO: need to investigate why this is needed
     authorizeStakerIxes[0].keys = authorizeStakerIxes[0].keys.map((key) => {
@@ -971,7 +1051,7 @@ class MarginfiAccountWrapper {
     });
 
     // deposit to marginfi staked asset bank
-    const depositIxs = await this.makeDepositIx(amount, bankAddress, depositOpts);
+    const depositIxs = await this.makeDepositIx(newPoolTokensUi, bankAddress, depositOpts);
 
     // build txn
 
