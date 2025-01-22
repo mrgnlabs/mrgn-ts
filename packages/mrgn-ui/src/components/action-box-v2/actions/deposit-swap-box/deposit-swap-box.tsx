@@ -221,7 +221,7 @@ export const DepositSwapBox = ({
   );
 
   const actionMessages = React.useMemo(() => {
-    setAdditionalActionMessages([]);
+    !errorMessage && setAdditionalActionMessages([]);
     return checkDepositSwapActionAvailable({
       amount,
       connected,
@@ -234,6 +234,7 @@ export const DepositSwapBox = ({
       lendMode,
     });
   }, [
+    errorMessage,
     amount,
     connected,
     showCloseBalance,
@@ -325,7 +326,16 @@ export const DepositSwapBox = ({
         },
       });
     },
-    [captureEvent, onComplete, selectedDepositBank, selectedSwapBank, setIsActionComplete, setPreviousTxn]
+    [
+      actionTxns.actionQuote,
+      captureEvent,
+      debouncedAmount,
+      onComplete,
+      selectedDepositBank,
+      selectedSwapBank,
+      setIsActionComplete,
+      setPreviousTxn,
+    ]
   );
 
   const handleDepositSwapAction = React.useCallback(
