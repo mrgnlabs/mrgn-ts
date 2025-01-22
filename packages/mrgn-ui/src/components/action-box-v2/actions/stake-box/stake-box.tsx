@@ -14,6 +14,7 @@ import {
   MultiStepToastHandle,
   ActionTxns,
   IndividualFlowError,
+  usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
@@ -183,7 +184,6 @@ export const StakeBox = ({
   }, [lstData, solPriceUsd]);
 
   const actionMessages = React.useMemo(() => {
-    setAdditionalActionMessages([]);
     return checkStakeActionAvailable({
       amount,
       connected,
@@ -192,6 +192,23 @@ export const StakeBox = ({
       lstData,
     });
   }, [amount, connected, selectedBank, actionTxns.actionQuote, lstData]);
+
+  /*
+  Cleaing additional action messages when the bank or amount changes. This is to prevent outdated errors from being displayed.
+  */
+  const prevSelectedBank = usePrevious(selectedBank);
+  const prevAmount = usePrevious(amount);
+
+  React.useEffect(() => {
+    if (
+      prevSelectedBank &&
+      prevAmount &&
+      (prevSelectedBank.meta.tokenSymbol !== selectedBank?.meta.tokenSymbol || prevAmount !== amount)
+    ) {
+      setAdditionalActionMessages([]);
+      setErrorMessage(null);
+    }
+  }, [prevSelectedBank, prevAmount, selectedBank, amount, setErrorMessage]);
 
   /////////////////////
   // Staking Actions //

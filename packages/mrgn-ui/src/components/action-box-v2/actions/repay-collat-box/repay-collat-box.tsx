@@ -19,6 +19,7 @@ import {
   MultiStepToastHandle,
   cn,
   IndividualFlowError,
+  usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 import { IconCheck } from "@tabler/icons-react";
 
@@ -221,6 +222,27 @@ export const RepayCollatBox = ({
       actionQuote: actionTxns.actionQuote,
     });
   }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote]);
+
+  /*
+  Cleaing additional action messages when the bank or amount changes. This is to prevent outdated errors from being displayed.
+  */
+  const prevSelectedBank = usePrevious(selectedBank);
+  const prevSecondaryBank = usePrevious(selectedSecondaryBank);
+  const prevAmount = usePrevious(amount);
+
+  React.useEffect(() => {
+    if (
+      prevSelectedBank &&
+      prevSecondaryBank &&
+      prevAmount &&
+      (prevSelectedBank.meta.tokenSymbol !== selectedBank?.meta.tokenSymbol ||
+        prevSecondaryBank.meta.tokenSymbol !== selectedSecondaryBank?.meta.tokenSymbol ||
+        prevAmount !== amount)
+    ) {
+      setAdditionalActionMessages([]);
+      setErrorMessage(null);
+    }
+  }, [prevSelectedBank, prevSecondaryBank, prevAmount, selectedBank, selectedSecondaryBank, amount, setErrorMessage]);
 
   /////////////////////////
   // Repay Collat Action //

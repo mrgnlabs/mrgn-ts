@@ -18,6 +18,7 @@ import {
   PreviousTxn,
   DepositSwapActionTxns,
   checkDepositSwapActionAvailable,
+  usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ActionButton, ActionCollateralProgressBar } from "~/components/action-box-v2/components";
@@ -212,7 +213,6 @@ export const DepositSwapBox = ({
   );
 
   const actionMessages = React.useMemo(() => {
-    !errorMessage && setAdditionalActionMessages([]);
     return checkDepositSwapActionAvailable({
       amount,
       connected,
@@ -225,7 +225,6 @@ export const DepositSwapBox = ({
       lendMode,
     });
   }, [
-    errorMessage,
     amount,
     connected,
     showCloseBalance,
@@ -238,6 +237,27 @@ export const DepositSwapBox = ({
   ]);
 
   const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : lendMode), [showCloseBalance, lendMode]);
+
+  /*
+  Cleaing additional action messages when the bank or amount changes. This is to prevent outdated errors from being displayed.
+  */
+  const prevSelectedBank = usePrevious(selectedDepositBank);
+  const prevSwapBank = usePrevious(selectedSwapBank);
+  const prevAmount = usePrevious(amount);
+
+  React.useEffect(() => {
+    if (
+      prevSelectedBank &&
+      prevSwapBank &&
+      prevAmount &&
+      (prevSelectedBank.meta.tokenSymbol !== selectedDepositBank?.meta.tokenSymbol ||
+        prevSwapBank.meta.tokenSymbol !== selectedSwapBank?.meta.tokenSymbol ||
+        prevAmount !== amount)
+    ) {
+      setAdditionalActionMessages([]);
+      setErrorMessage(null);
+    }
+  }, [prevSelectedBank, prevSwapBank, prevAmount, selectedDepositBank, selectedSwapBank, amount, setErrorMessage]);
 
   ///////////////////////
   // Deposit-Swap Actions //
