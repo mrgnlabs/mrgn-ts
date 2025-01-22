@@ -148,6 +148,7 @@ export function useRepaySimulation({
   const handleSimulation = React.useCallback(
     async (amount: number) => {
       try {
+        console.log("handleSimulation");
         if (amount === 0 || !selectedAccount || !marginfiClient || !selectedBank || !selectedSecondaryBank) {
           setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
           return;

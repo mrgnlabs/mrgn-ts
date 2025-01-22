@@ -24,7 +24,7 @@ import {
   LoopActionTxns,
   LoopingObject,
   LoopingProps,
-  RepayCollatActionTxns,
+  RepayActionTxns,
   RepayWithCollatProps,
 } from "../types";
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
@@ -59,7 +59,7 @@ export async function calculateRepayCollateralParams({
   ...repayProps
 }: CalculateRepayCollateralProps): Promise<
   | {
-      repayCollatObject: RepayCollatActionTxns;
+      repayCollatObject: RepayActionTxns;
       amount: number;
     }
   | ActionMessageType

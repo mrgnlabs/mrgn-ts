@@ -136,6 +136,17 @@ export type ClosePositionProps = {
   connection: Connection;
 };
 
+export type RepayProps = {
+  marginfiAccount: MarginfiAccountWrapper;
+  repayAmount: number;
+  withdrawAmount: number;
+  selectedBank: ExtendedBankInfo;
+  selectedSecondaryBank: ExtendedBankInfo;
+  quote: QuoteResponse | null;
+  connection: Connection;
+  multiStepToast?: MultiStepToastHandle;
+};
+
 export type RepayWithCollatProps = {
   marginfiAccount: MarginfiAccountWrapper;
   repayAmount: number;
