@@ -34,7 +34,7 @@ import {
 } from "../..";
 import BN from "bn.js";
 import { Address, BorshCoder, BorshInstructionCoder, translateAddress } from "@coral-xyz/anchor";
-import { findPoolMintAddress, findPoolAddress } from "../../vendor/single-spl-pool";
+import { findPoolMintAddress, findPoolAddress, findPoolStakeAddress } from "../../vendor/single-spl-pool";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -1225,11 +1225,12 @@ export function makeHealthAccountMetas(
       }
 
       const pool = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
+      const solPool = findPoolStakeAddress(pool);
       const lstMint = findPoolMintAddress(pool);
 
       accs.push(
         { pubkey: lstMint, isSigner: false, isWritable: false },
-        { pubkey: pool, isSigner: false, isWritable: false }
+        { pubkey: solPool, isSigner: false, isWritable: false }
       );
     }
 
