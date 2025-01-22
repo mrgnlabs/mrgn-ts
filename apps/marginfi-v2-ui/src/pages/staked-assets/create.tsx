@@ -67,15 +67,18 @@ export default function CreateStakedAssetPage() {
     async (voteAccount: PublicKey, client: MarginfiClient, multiStepToast: MultiStepToastHandle) => {
       const solOracle = new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE");
 
-      const initSplPoolTx = await vendor.initializeStakedPoolTx(
-        connection,
-        wallet.publicKey,
-        new PublicKey(voteAccount)
-      );
+      // comment this back in when we have a way to create a staked bank
+      // const initSplPoolTx = await vendor.initializeStakedPoolTx(
+      //   connection,
+      //   wallet.publicKey,
+      //   new PublicKey(voteAccount)
+      // );
+
+      // here is a problem, use phantom validator because we already have a staked spl pool
       const addBankIxs = await client.group.makeAddPermissionlessStakedBankIx(client.program, voteAccount, solOracle);
       const addBankTx = new Transaction().add(...addBankIxs.instructions);
 
-      return [initSplPoolTx, addBankTx];
+      return [addBankTx]; //initSplPoolTx
     },
     [connection, wallet.publicKey]
   );
