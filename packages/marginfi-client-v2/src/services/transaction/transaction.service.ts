@@ -13,6 +13,7 @@ import {
   microLamportsToUi,
   getComputeBudgetUnits,
   MaxCapType,
+  SKIP_SIMULATION,
 } from "@mrgnlabs/mrgn-common";
 import {
   VersionedTransaction,
@@ -277,8 +278,13 @@ export async function processTransactions({
         processOpts.callback?.(0, true);
       }
 
-      const simulateTxs = async () =>
-        await simulateTransactions(processOpts, connection, versionedTransactions, mergedOpts);
+      let simulateTxs: (() => Promise<SimulatedTransactionResponse | RpcSimulateBundleTransactionResult[]>) | null =
+        null;
+      if (!SKIP_SIMULATION) {
+        simulateTxs = async () =>
+          await simulateTransactions(processOpts, connection, versionedTransactions, mergedOpts);
+      }
+
       const sendTxBundleGrpc = async (throwError: boolean) =>
         await sendTransactionAsGrpcBundle(connection, base58Txs, throwError);
       const sendTxBundleApi = async (throwError: boolean, bundleId?: string) =>
@@ -297,7 +303,7 @@ export async function processTransactions({
 
       for (const [idx, method] of finalFallbackMethod.entries()) {
         const isLast = idx === finalFallbackMethod.length - 1;
-        if (idx === 0) {
+        if (idx === 0 && simulateTxs && !SKIP_SIMULATION) {
           await simulateTxs();
         }
 
