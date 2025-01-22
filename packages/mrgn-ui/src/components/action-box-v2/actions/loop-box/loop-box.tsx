@@ -27,7 +27,7 @@ import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 import { WalletContextStateOverride } from "~/components/wallet-v2";
 import { CircularProgress } from "~/components/ui/circular-progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
+import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 import { ActionMessage } from "~/components";
 
@@ -380,7 +380,7 @@ export const LoopBox = ({
   }, [marginfiClient, banks, refreshSelectedBanks]);
 
   return (
-    <>
+    <ActionBoxContentWrapper>
       {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
         <div className="absolute -top-7 right-4 z-50">
           <TooltipProvider>
@@ -490,6 +490,6 @@ export const LoopBox = ({
       </div>
 
       <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />
-    </>
+    </ActionBoxContentWrapper>
   );
 };
