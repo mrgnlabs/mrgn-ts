@@ -14,6 +14,8 @@ import {
   TradeActionTxns,
   ClosePositionActionTxns,
   DepositSwapActionTxns,
+  RepayProps,
+  RepayActionTxns,
 } from "./types";
 import { WalletContextStateOverride } from "../wallet";
 import {
@@ -31,6 +33,7 @@ import {
   mintLstStakeToStake,
   closePosition,
   depositSwap,
+  repayV2,
 } from "./individualFlows";
 import { STATIC_SIMULATION_ERRORS } from "../errors";
 
@@ -100,6 +103,19 @@ export async function executeLendingAction(params: MarginfiActionParams) {
     txnSig = await withdraw(params);
   }
 
+  return txnSig;
+}
+
+export interface ExecuteRepayActionProps extends RepayProps {
+  marginfiClient: MarginfiClient;
+  actionTxns: RepayActionTxns;
+  processOpts: ProcessTransactionsClientOpts;
+  txOpts: TransactionOptions;
+}
+
+export async function executeRepayAction(params: ExecuteRepayActionProps) {
+  let txnSig: string[] | undefined;
+  txnSig = await repayV2(params);
   return txnSig;
 }
 
