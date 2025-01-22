@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import {
   ActionMessageType,
   calculateRepayCollateralParams,
-  RepayActionTxns,
+  RepayCollatActionTxns,
   CalculateRepayCollateralProps,
   executeRepayWithCollatAction,
   ExecuteRepayWithCollatActionProps,
@@ -55,7 +55,7 @@ export const handleExecuteRepayCollatAction = async ({
 
 export async function calculateRepayCollateral(props: CalculateRepayCollateralProps): Promise<
   | {
-      repayCollatObject: RepayActionTxns;
+      repayCollatObject: RepayCollatActionTxns;
       amount: number;
     }
   | ActionMessageType

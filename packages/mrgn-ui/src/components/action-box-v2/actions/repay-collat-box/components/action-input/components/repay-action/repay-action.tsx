@@ -56,14 +56,16 @@ export const RepayAction = ({
               {selectedBank && (
                 <button
                   className="cursor-pointer border-b border-transparent transition text-mfi-action-box-highlight hover:border-mfi-action-box-highlight"
-                  disabled={maxAmount === 0}
-                  onClick={() =>
+                  // disabled={maxAmount === 0}
+                  onClick={() => {
+                    console.log("clicked");
+                    console.log("maxAmount", maxAmount);
                     onSetAmountRaw(
                       dynamicNumeralFormatter(maxAmount, {
                         tokenPrice: selectedBank.info.oraclePrice.priceRealtime.price.toNumber(),
                       })
-                    )
-                  }
+                    );
+                  }}
                 >
                   MAX
                 </button>
