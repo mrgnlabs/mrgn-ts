@@ -22,13 +22,13 @@ import { ActionMessage } from "~/components";
 
 import { useStakeBoxStore } from "./store";
 import { AmountPreview } from "./components/amount-preview";
-import { ActionButton, ActionSettingsButton } from "../../components";
 import { StatsPreview } from "./components/stats-preview";
 import { useStakeSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
 import { ExecuteLstActionParams, handleExecuteLstAction } from "./utils/stake-action.utils";
 import { ActionInput } from "./components/action-input";
 import { ActionSimulationStatus } from "~/components/action-box-v2/components";
+import { ActionBoxContentWrapper, ActionButton } from "~/components/action-box-v2/components";
 
 import { useActionContext, useStakeBoxContext } from "../../contexts";
 import { SimulationStatus } from "../../utils";
@@ -355,7 +355,7 @@ export const StakeBox = ({
   }, [marginfiClient, banks, refreshSelectedBanks]);
 
   return (
-    <>
+    <ActionBoxContentWrapper>
       <div className="mb-5">
         <ActionInput
           banks={banks}
@@ -435,6 +435,6 @@ export const StakeBox = ({
           selectedBank={selectedBank}
         />
       </div>
-    </>
+    </ActionBoxContentWrapper>
   );
 };

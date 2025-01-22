@@ -23,7 +23,11 @@ import {
   PreviousTxn,
 } from "@mrgnlabs/mrgn-utils";
 
-import { ActionButton, ActionCollateralProgressBar } from "~/components/action-box-v2/components";
+import {
+  ActionBoxContentWrapper,
+  ActionButton,
+  ActionCollateralProgressBar,
+} from "~/components/action-box-v2/components";
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -485,7 +489,7 @@ export const LendBox = ({
   }, [marginfiClient, banks, refreshSelectedBanks]);
 
   return (
-    <>
+    <ActionBoxContentWrapper>
       <div className="mb-4">
         <ActionInput
           banks={banks}
@@ -577,6 +581,6 @@ export const LendBox = ({
         }}
         banks={banks}
       />
-    </>
+    </ActionBoxContentWrapper>
   );
 };

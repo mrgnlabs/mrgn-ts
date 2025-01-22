@@ -132,7 +132,7 @@ export const Settings = ({
 
   const renderTransactionSettings = () => {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="space-y-4">
           <div className="space-y-0.5">
             <h3 className="font-normal ">Transaction Method</h3>
@@ -393,7 +393,7 @@ export const Settings = ({
         <form onSubmit={form.handleSubmit(onSubmit)}>
           {jupiterOptions ? (
             <>
-              <div className="flex flex-col items-center justify-center w-full gap-2 border-b border-mfi-action-box-border-dark pb-2">
+              <div className="flex flex-col items-center justify-center w-full gap-2 border-b border-mfi-action-box-border-dark pb-4 mb-4">
                 <div className="w-full flex justify-between items-center ">
                   <span className="text-xl font-medium">Settings</span>
                   <Tabs

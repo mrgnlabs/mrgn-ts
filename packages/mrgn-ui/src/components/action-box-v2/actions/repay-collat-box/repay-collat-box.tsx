@@ -24,7 +24,12 @@ import { IconCheck, IconSettings } from "@tabler/icons-react";
 
 import { CircularProgress } from "~/components/ui/circular-progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { ActionButton, ActionCollateralProgressBar, ActionSettingsButton } from "~/components/action-box-v2/components";
+import {
+  ActionBoxContentWrapper,
+  ActionButton,
+  ActionCollateralProgressBar,
+  ActionSettingsButton,
+} from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 import { ActionMessage } from "~/components";
 import { IconLoader } from "~/components/ui/icons";
@@ -383,7 +388,7 @@ export const RepayCollatBox = ({
   }, [marginfiClient, banks, refreshSelectedBanks]);
 
   return (
-    <>
+    <ActionBoxContentWrapper>
       {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
         <div className="absolute top-5 right-4 z-50">
           <TooltipProvider>
@@ -477,7 +482,7 @@ export const RepayCollatBox = ({
       </div>
 
       <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />
-    </>
+    </ActionBoxContentWrapper>
   );
 };
 function checkRepayColatActionAvailable(arg0: {
