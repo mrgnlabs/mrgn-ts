@@ -180,6 +180,7 @@ export function useDepositSwapSimulation({
         } else if (simulationResult.simulationResult) {
           setSimulationResult(simulationResult.simulationResult);
           setActionTxns(depositSwapActionTxns.actionTxns);
+          setErrorMessage(null);
         } else {
           throw new Error("Unknown error");
         }
