@@ -21,6 +21,7 @@ import {
   MarginfiActionParams,
   MultiStepToastHandle,
   PreviousTxn,
+  usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 
 import {
@@ -214,7 +215,6 @@ export const LendBox = ({
   );
 
   const actionMessages = React.useMemo(() => {
-    !errorMessage && setAdditionalActionMessages([]);
     return checkLendActionAvailable({
       amount,
       connected,
@@ -225,19 +225,26 @@ export const LendBox = ({
       nativeSolBalance,
       lendMode,
     });
-  }, [
-    errorMessage,
-    amount,
-    connected,
-    showCloseBalance,
-    selectedBank,
-    banks,
-    selectedAccount,
-    nativeSolBalance,
-    lendMode,
-  ]);
+  }, [amount, connected, showCloseBalance, selectedBank, banks, selectedAccount, nativeSolBalance, lendMode]);
 
   const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : lendMode), [showCloseBalance, lendMode]);
+
+  /*
+  Cleaing additional action messages when the bank or amount changes. This is to prevent outdated errors from being displayed.
+  */
+  const prevSelectedBank = usePrevious(selectedBank);
+  const prevAmount = usePrevious(amount);
+
+  React.useEffect(() => {
+    if (
+      prevSelectedBank &&
+      prevAmount &&
+      (prevSelectedBank.meta.tokenSymbol !== selectedBank?.meta.tokenSymbol || prevAmount !== amount)
+    ) {
+      setAdditionalActionMessages([]);
+      setErrorMessage(null);
+    }
+  }, [prevSelectedBank, prevAmount, selectedBank, amount, setErrorMessage]);
 
   //////////////////////////
   // Close Balance Action //
