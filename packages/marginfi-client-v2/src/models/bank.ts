@@ -891,7 +891,7 @@ function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
     case "stakedwithpythpush":
       return OracleSetup.StakedWithPythPush;
     default:
-      throw new Error(`Invalid oracle setup "${oracleKey}"`);
+      return OracleSetup.None;
   }
 }
 

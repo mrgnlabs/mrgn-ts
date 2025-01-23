@@ -34,9 +34,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
     ).map((bank) => bank.pubkey.toBase58());
 
-    const banksAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, bankAddresses);
+    const filteredBankAddresses = bankAddresses.filter((bankAddress) => !bankAddress.includes("3jt43us"));
+
+    const banksAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, filteredBankAddresses);
     let banksMap: { address: PublicKey; data: BankRaw }[] = banksAis.map((account, index) => ({
-      address: new PublicKey(bankAddresses[index]),
+      address: new PublicKey(filteredBankAddresses[index]),
       data: Bank.decodeBankRaw(account.data, program.idl),
     }));
 
