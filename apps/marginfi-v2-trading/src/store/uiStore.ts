@@ -5,13 +5,12 @@ import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes, PreviousTxn } from "~/types";
 import {
-  MaxCap,
   MaxCapType,
   TransactionBroadcastType,
   TransactionPriorityType,
   TransactionSettings,
 } from "@mrgnlabs/mrgn-common";
-import { DEFAULT_PRIORITY_SETTINGS, fetchMaxCap, fetchPriorityFee } from "@mrgnlabs/mrgn-utils";
+import { DEFAULT_PRIORITY_SETTINGS, fetchPriorityFee } from "@mrgnlabs/mrgn-utils";
 import { PriorityFees } from "@mrgnlabs/marginfi-client-v2";
 import { Connection } from "@solana/web3.js";
 import { defaultJupiterOptions, JupiterOptions } from "~/components";
@@ -42,7 +41,6 @@ interface UiState {
   broadcastType: TransactionBroadcastType;
   priorityType: TransactionPriorityType;
   maxCapType: MaxCapType;
-  maxCap: MaxCap;
   priorityFees: PriorityFees;
   displaySettings: boolean;
 
@@ -117,17 +115,23 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     get().fetchPriorityFee(connection, settings);
   },
   fetchPriorityFee: async (connection: Connection, settings?: TransactionSettings) => {
-    const { priorityType, broadcastType } = settings ?? get();
-    const { maxCap } = get();
+    const { priorityType, broadcastType, maxCapType } = settings ?? get();
 
-    const manualMaxCap = settings?.maxCap ?? maxCap.manualMaxCap;
+    let manualMaxCap;
+
+    if (maxCapType === "MANUAL") {
+      manualMaxCap = settings?.maxCap ?? get().priorityFees.maxCapUi;
+    } else {
+      manualMaxCap = 0;
+    }
 
     try {
-      const { bundleTipCap, priorityFeeCap } = await fetchMaxCap(connection);
-      const priorityFees = await fetchPriorityFee(broadcastType, priorityType, connection);
+      const priorityFees = await fetchPriorityFee(broadcastType, priorityType, connection, maxCapType);
       set({
-        priorityFees,
-        maxCap: { manualMaxCap, bundleTipCap, priorityFeeCap },
+        priorityFees: {
+          ...priorityFees,
+          maxCapUi: manualMaxCap,
+        },
       });
     } catch (error) {
       console.error(error);

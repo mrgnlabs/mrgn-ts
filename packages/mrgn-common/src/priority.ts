@@ -7,12 +7,6 @@ export type TransactionPriorityType = "NORMAL" | "HIGH" | "MAMAS";
 
 export type MaxCapType = "DYNAMIC" | "MANUAL";
 
-export type MaxCap = {
-  manualMaxCap: number;
-  bundleTipCap: number;
-  priorityFeeCap: number;
-};
-
 export type TransactionSettings = {
   broadcastType: TransactionBroadcastType;
   priorityType: TransactionPriorityType;
@@ -41,11 +35,18 @@ interface RpcResponse {
   error?: any;
 }
 
+type PriorityFeeCapByPercentileResponse = {
+  min: RecentPrioritizationFees;
+  max: RecentPrioritizationFees;
+  mean: number;
+  median: number;
+};
+
 export const getCalculatedPrioritizationFeeByPercentile = async (
   connection: Connection,
   config: GetRecentPrioritizationFeesByPercentileConfig,
   slotsToReturn?: number
-) => {
+): Promise<PriorityFeeCapByPercentileResponse> => {
   const fees = await getRecentPrioritizationFeesByPercentile(connection, config, slotsToReturn);
 
   // Calculate min, max, mean

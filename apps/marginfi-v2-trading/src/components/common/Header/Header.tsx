@@ -43,7 +43,6 @@ export const Header = () => {
     priorityType,
     broadcastType,
     priorityFees,
-    maxCap,
     maxCapType,
     setTransactionSettings,
     slippageBps,
@@ -56,7 +55,6 @@ export const Header = () => {
     priorityType: state.priorityType,
     broadcastType: state.broadcastType,
     priorityFees: state.priorityFees,
-    maxCap: state.maxCap,
     maxCapType: state.maxCapType,
     setTransactionSettings: state.setTransactionSettings,
     slippageBps: state.slippageBps,
@@ -159,7 +157,7 @@ export const Header = () => {
               transactionOptions={{
                 broadcastType,
                 priorityType,
-                maxCap: maxCap.manualMaxCap,
+                maxCap: priorityFees.maxCapUi ?? 0,
                 maxCapType,
               }}
               jupiterOptions={jupiterOptions}
