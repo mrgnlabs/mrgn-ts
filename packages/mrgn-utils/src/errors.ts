@@ -226,6 +226,11 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     retry: false,
     code: 136,
   },
+  STAKED_ONLY_DEPOSIT_CHECK: {
+    description: "Staked assets can not be borrowed at this time.",
+    isEnabled: false,
+    code: 137,
+  },
 };
 
 const createInsufficientStakeBalanceCheck = (tokenName?: string): ActionMessageType => ({
@@ -259,7 +264,7 @@ const createExistingIsolatedBorrowCheck = (tokenSymbol?: string): ActionMessageT
 });
 
 const createBorrowCapacityCheck = (tokenSymbol?: string): ActionMessageType => ({
-  description: `The ${tokenSymbol} bank is at borrow capacity.`,
+  description: `The ${tokenSymbol} bank is at borrow capacity!.`,
   isEnabled: false,
   code: 138,
 });

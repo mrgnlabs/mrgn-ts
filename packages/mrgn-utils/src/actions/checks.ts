@@ -187,8 +187,13 @@ function canBeBorrowed(
     checks.push(DYNAMIC_SIMULATION_ERRORS.BANK_RETIRED_CHECK(targetBankInfo.meta.tokenSymbol));
   }
 
+  const isAttemptingToDepositStakedAsset = targetBankInfo.info.rawBank.config.assetTag === 2;
+  if (isAttemptingToDepositStakedAsset) {
+    checks.push(STATIC_SIMULATION_ERRORS.STAKED_ONLY_DEPOSIT_CHECK);
+  }
+
   const isFull = targetBankInfo.info.rawBank.computeRemainingCapacity().borrowCapacity.lte(0);
-  if (isFull) {
+  if (isFull && targetBankInfo.info.rawBank.config.assetTag !== 2) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.BORROW_CAPACITY_CHECK(targetBankInfo.meta.tokenSymbol));
   }
 
@@ -258,7 +263,7 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   }
 
   const isFull = targetBankInfo.info.rawBank.computeRemainingCapacity().depositCapacity.lte(0);
-  if (isFull) {
+  if (isFull && targetBankInfo.info.rawBank.config.assetTag !== 2) {
     checks.push({
       description: `The ${targetBankInfo.meta.tokenSymbol} bank is at deposit capacity.`,
       isEnabled: false,
