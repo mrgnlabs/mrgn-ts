@@ -739,6 +739,7 @@ interface BankConfigOptRaw {
   depositLimit: BN | null;
   borrowLimit: BN | null;
   riskTier: { collateral: {} } | { isolated: {} } | null;
+  assetTag: number | null;
   totalAssetValueInitLimit: BN | null;
 
   interestRateConfig: InterestRateConfigRaw | null;
@@ -757,6 +758,7 @@ interface BankConfigOptRaw {
 
   oracleMaxAge: number | null;
   permissionlessBadDebtSettlement: boolean | null;
+  freezeSettings: boolean | null;
 }
 
 function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw {
