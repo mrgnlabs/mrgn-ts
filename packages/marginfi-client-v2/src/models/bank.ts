@@ -877,7 +877,7 @@ function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
     case "switchboardpull":
       return OracleSetup.SwitchboardPull;
     default:
-      throw new Error(`Invalid oracle setup "${oracleKey}"`);
+      return OracleSetup.None;
   }
 }
 
