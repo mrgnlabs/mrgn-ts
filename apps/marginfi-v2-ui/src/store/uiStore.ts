@@ -19,6 +19,7 @@ import {
 import { SortType, sortDirection, SortAssetOption } from "~/types";
 import { Connection } from "@solana/web3.js";
 import { MarginfiAccountWrapper, PriorityFees } from "@mrgnlabs/marginfi-client-v2";
+import { defaultJupiterOptions, JupiterOptions } from "~/components";
 
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   APY_DESC: {
@@ -67,6 +68,7 @@ interface UiState {
   priorityFees: PriorityFees;
   accountLabels: Record<string, string>;
   displaySettings: boolean;
+  jupiterOptions: JupiterOptions;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -82,6 +84,7 @@ interface UiState {
   fetchPriorityFee: (connection: Connection, settings?: TransactionSettings) => void;
   fetchAccountLabels: (accounts: MarginfiAccountWrapper[]) => Promise<void>;
   setDisplaySettings: (displaySettings: boolean) => void;
+  setJupiterOptions: (jupiterOptions: JupiterOptions) => void;
 }
 
 function createUiStore() {
@@ -108,8 +111,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   accountLabels: {},
   ...DEFAULT_PRIORITY_SETTINGS,
   displaySettings: false,
-
-  // Actions
+  jupiterOptions: defaultJupiterOptions,
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
   setIsFetchingData: (isFetchingData: boolean) => set({ isFetchingData }),
   setIsFilteredUserPositions: (isFilteredUserPositions: boolean) =>
@@ -192,6 +194,10 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     set({ accountLabels: labels });
   },
   setDisplaySettings: (displaySettings: boolean) => set({ displaySettings }),
+  setJupiterOptions: (jupiterOptions: JupiterOptions) => {
+    console.log("jupiterOptions", jupiterOptions);
+    set({ jupiterOptions: { ...jupiterOptions, slippageBps: jupiterOptions.slippageBps * 100 } });
+  },
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };

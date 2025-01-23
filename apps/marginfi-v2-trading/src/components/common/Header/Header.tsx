@@ -50,6 +50,8 @@ export const Header = () => {
     setSlippageBps,
     displaySettings,
     setDisplaySettings,
+    jupiterOptions,
+    setJupiterOptions,
   } = useUiStore((state) => ({
     priorityType: state.priorityType,
     broadcastType: state.broadcastType,
@@ -61,6 +63,8 @@ export const Header = () => {
     setSlippageBps: state.setSlippageBps,
     displaySettings: state.displaySettings,
     setDisplaySettings: state.setDisplaySettings,
+    jupiterOptions: state.jupiterOptions,
+    setJupiterOptions: state.setJupiterOptions,
   }));
   const { wallet, connected } = useWallet();
   const { asPath } = useRouter();
@@ -158,11 +162,9 @@ export const Header = () => {
                 maxCap: maxCap.manualMaxCap,
                 maxCapType,
               }}
-              jupiterOptions={{
-                slippageBps: slippageBps / 100,
-              }}
+              jupiterOptions={jupiterOptions}
               onTransactionOptionsChange={(settings) => setTransactionSettings(settings, connection)}
-              onJupiterOptionsChange={(settings) => setSlippageBps(settings.slippageBps * 100)}
+              onJupiterOptionsChange={(settings) => setJupiterOptions(settings)}
               settingsDialogOpen={displaySettings}
               setSettingsDialogOpen={setDisplaySettings}
             >

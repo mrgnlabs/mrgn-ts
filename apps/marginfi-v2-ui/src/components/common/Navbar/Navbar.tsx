@@ -59,6 +59,8 @@ export const Navbar: FC = () => {
     fetchAccountLabels,
     displaySettings,
     setDisplaySettings,
+    jupiterOptions,
+    setJupiterOptions,
   } = useUiStore((state) => ({
     priorityType: state.priorityType,
     broadcastType: state.broadcastType,
@@ -72,6 +74,8 @@ export const Navbar: FC = () => {
     fetchAccountLabels: state.fetchAccountLabels,
     displaySettings: state.displaySettings,
     setDisplaySettings: state.setDisplaySettings,
+    jupiterOptions: state.jupiterOptions,
+    setJupiterOptions: state.setJupiterOptions,
   }));
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
@@ -192,11 +196,9 @@ export const Navbar: FC = () => {
                   maxCap: maxCap.manualMaxCap,
                   maxCapType,
                 }}
-                jupiterOptions={{
-                  slippageBps: slippageBps / 100,
-                }}
+                jupiterOptions={jupiterOptions}
                 onTransactionOptionsChange={(settings) => setTransactionSettings(settings, connection)}
-                onJupiterOptionsChange={(settings) => setSlippageBps(settings.slippageBps * 100)}
+                onJupiterOptionsChange={(settings) => setJupiterOptions(settings)}
                 settingsDialogOpen={displaySettings}
                 setSettingsDialogOpen={setDisplaySettings}
               >
