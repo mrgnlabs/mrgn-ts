@@ -11,6 +11,7 @@ export enum PoolTypes {
   ISOLATED = "isolated",
   STABLE = "stable",
   LST = "lst",
+  NATIVE_STAKE = "native_stake",
 }
 
 interface PreviousTxnLending {
