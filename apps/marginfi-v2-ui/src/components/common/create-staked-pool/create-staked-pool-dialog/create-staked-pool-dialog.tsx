@@ -34,13 +34,15 @@ export const CreateStakedPoolDialog = ({ isOpen, asset, voteAccountKey, onClose 
 
   return (
     <div>
-      <Confetti
-        width={width!}
-        height={height! * 2}
-        recycle={false}
-        opacity={0.4}
-        className={cn(isMobile ? "z-[80]" : "z-[60]")}
-      />
+      {isOpen && (
+        <Confetti
+          width={width!}
+          height={height! * 2}
+          recycle={false}
+          opacity={0.4}
+          className={cn(isMobile ? "z-[80]" : "z-[60]")}
+        />
+      )}
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className=" w-full h-full flex flex-col sm:justify-center sm:items-center justify-start items-center pt-16 sm:pt-0">
           <DialogHeader className="sr-only">
