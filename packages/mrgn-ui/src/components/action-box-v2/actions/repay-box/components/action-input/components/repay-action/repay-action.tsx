@@ -21,27 +21,28 @@ export const RepayAction = ({
   selectedSecondaryBank,
   onSetAmountRaw,
 }: RepayActionProps) => {
-  const calculateAmountLeft = React.useMemo(() => {
+  const isRepayCollat = React.useMemo(() => {
+    return selectedBank?.address.toBase58() !== selectedSecondaryBank?.address.toBase58();
+  }, [selectedBank, selectedSecondaryBank]);
+
+  const calculateAmount = React.useMemo(() => {
     if (!selectedBank?.isActive) return "0";
     if (!repayAmount) return dynamicNumeralFormatter(selectedBank.position.amount);
-
-    const repayAmountInSelectedBank =
-      selectedBank.position.amount -
-      repayAmount *
-        ((selectedSecondaryBank?.info.oraclePrice.priceRealtime.price.toNumber() ??
-          selectedBank.info.oraclePrice.priceRealtime.price.toNumber()) /
-          selectedBank.info.oraclePrice.priceRealtime.price.toNumber());
+    if (!isRepayCollat) {
+      return dynamicNumeralFormatter(selectedBank.position.amount);
+    }
+    const repayAmountInSelectedBank = selectedBank.position.amount - repayAmount;
 
     return repayAmountInSelectedBank < 0 ? "0" : dynamicNumeralFormatter(repayAmountInSelectedBank);
-  }, [selectedBank, selectedSecondaryBank, repayAmount]);
+  }, [selectedBank, repayAmount, isRepayCollat]);
 
   const maxLabel = React.useMemo(() => {
-    const amountLeft = `${calculateAmountLeft} ${selectedBank?.meta.tokenSymbol}`;
+    const amountLeft = `${calculateAmount} ${selectedBank?.meta.tokenSymbol}`;
     return {
       amount: amountLeft,
       label: "Borrowed: ",
     };
-  }, [calculateAmountLeft, selectedBank]);
+  }, [calculateAmount, selectedBank]);
 
   const isUnchanged = amountRaw === "" || amountRaw === "0";
 
@@ -59,7 +60,7 @@ export const RepayAction = ({
     <li className="flex justify-between items-center gap-1.5">
       <strong className="mr-auto">{maxLabel.label}</strong>
       <div className="flex space-x-1 items-center">
-        {selectedBank?.isActive && !isUnchanged && (
+        {isRepayCollat && selectedBank?.isActive && !isUnchanged && (
           <div>
             {dynamicNumeralFormatter(selectedBank.position.amount, {
               tokenPrice: selectedBank.info.oraclePrice.priceRealtime.price.toNumber(),
@@ -67,7 +68,7 @@ export const RepayAction = ({
             })}
           </div>
         )}
-        {selectedBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
+        {isRepayCollat && selectedBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
         <div>{maxLabel.amount}</div>
         {selectedBank && (
           <button
@@ -82,11 +83,7 @@ export const RepayAction = ({
   );
 
   const renderDepositedSection = () => {
-    if (
-      !selectedSecondaryBank ||
-      !selectedBank ||
-      selectedBank.address.toBase58() === selectedSecondaryBank.address.toBase58()
-    ) {
+    if (!selectedSecondaryBank || !selectedBank || !isRepayCollat) {
       return null;
     }
 

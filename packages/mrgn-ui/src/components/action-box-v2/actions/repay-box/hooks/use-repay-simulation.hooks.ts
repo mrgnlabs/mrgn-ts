@@ -124,7 +124,7 @@ export function useRepaySimulation({
         };
       } else {
         const errorMessage =
-          repayActionTxns ?? DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(props.selectedBank?.meta.tokenSymbol); // TODO: deposit or borrow bank here?
+          repayActionTxns ?? DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(props.selectedBank?.meta.tokenSymbol);
         return {
           actionTxns: null,
           actionMessage: errorMessage,
@@ -233,12 +233,16 @@ export function useRepaySimulation({
   );
 
   React.useEffect(() => {
-    if (prevDebouncedAmount !== debouncedAmount) {
-      if (debouncedAmount > 0) {
+    if (debouncedAmount > 0) {
+      if (prevDebouncedAmount !== debouncedAmount) {
+        handleSimulation(debouncedAmount);
+      }
+
+      if (isRefreshTxn) {
         handleSimulation(debouncedAmount);
       }
     }
-  }, [debouncedAmount, handleSimulation, prevDebouncedAmount]);
+  }, [debouncedAmount, handleSimulation, prevDebouncedAmount, isRefreshTxn]);
 
   const refreshSimulation = React.useCallback(async () => {
     await handleSimulation(debouncedAmount ?? 0);

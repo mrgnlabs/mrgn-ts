@@ -112,6 +112,9 @@ export const ActionComplete = ({ isActionComplete, previousTxn, setIsActionCompl
             {previousTxn.txnType === "DEPOSIT_SWAP" && (
               <screens.DepositSwapScreen {...previousTxn.depositSwapOptions} txn={previousTxn.txn} txnLink={txnLink} />
             )}
+            {previousTxn.txnType === "REPAY" && (
+              <screens.RepayScreen {...previousTxn.repayOptions} txn={previousTxn.txn} txnLink={txnLink} />
+            )}
           </div>
           <DialogFooter className="mt-6">
             <div className="space-y-4 w-full">

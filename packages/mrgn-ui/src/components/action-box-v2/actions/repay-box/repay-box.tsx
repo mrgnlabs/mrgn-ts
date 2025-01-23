@@ -260,29 +260,35 @@ export const RepayBox = ({
         },
         setIsComplete: (txnSigs) => {
           callbacks.setIsActionComplete(true);
+
           callbacks.setPreviousTxn({
             txn: txnSigs[txnSigs.length - 1] ?? "",
-            txnType: "LEND",
-            lendingOptions: {
-              amount: props.repayAmount,
-              type: ActionType.Repay,
-              bank: props.selectedBank as ActiveBankInfo,
-              collatRepay: {
-                borrowBank: props.selectedBank as ActiveBankInfo,
-                withdrawBank: props.selectedSecondaryBank as ActiveBankInfo,
-                withdrawAmount: props.withdrawAmount,
-              },
+            txnType: "REPAY",
+            repayOptions: {
+              type:
+                props.selectedBank?.address.toBase58() === props.selectedSecondaryBank?.address.toBase58()
+                  ? ActionType.Repay
+                  : ActionType.RepayCollat,
+              selectedBank: props.selectedBank as ActiveBankInfo,
+              selectedSecondaryBank: props.selectedSecondaryBank as ActiveBankInfo,
+              repayAmount: props.repayAmount,
+              withdrawAmount: props.withdrawAmount,
             },
           });
 
           callbacks.onComplete &&
             callbacks.onComplete({
               txn: txnSigs[txnSigs.length - 1] ?? "",
-              txnType: "LEND",
-              lendingOptions: {
-                amount: props.withdrawAmount,
-                type: ActionType.Repay,
-                bank: props.selectedBank as ActiveBankInfo,
+              txnType: "REPAY",
+              repayOptions: {
+                type:
+                  props.selectedBank?.address.toBase58() === props.selectedSecondaryBank?.address.toBase58()
+                    ? ActionType.Repay
+                    : ActionType.RepayCollat,
+                selectedBank: props.selectedBank as ActiveBankInfo,
+                selectedSecondaryBank: props.selectedSecondaryBank as ActiveBankInfo,
+                repayAmount: props.repayAmount,
+                withdrawAmount: props.withdrawAmount,
               },
             });
         },
@@ -316,7 +322,7 @@ export const RepayBox = ({
         setAmountRaw,
       });
     },
-    [captureEvent, setIsActionComplete, setPreviousTxn, onComplete, setIsTransactionExecuting, setAmountRaw]
+    [captureEvent, setIsActionComplete, setPreviousTxn, onComplete, setAmountRaw]
   );
 
   const handleRepayAction = React.useCallback(async () => {

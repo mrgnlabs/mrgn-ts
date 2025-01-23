@@ -112,7 +112,7 @@ export async function calculateRepayTransactions(props: CalculateRepayTransactio
     } else if (repayCollatResult && "repayCollatObject" in repayCollatResult) {
       return {
         repayCollatObject: repayCollatResult.repayCollatObject,
-        amount: props.repayAmount,
+        amount: repayCollatResult.amount,
       };
     }
   }
@@ -124,7 +124,7 @@ export async function calculateRepayTransactions(props: CalculateRepayTransactio
       actionQuote: null,
     },
     amount: 0,
-  }; // TODO: return actionMessage
+  };
 }
 
 export const getSimulationResult = async (props: SimulateActionProps) => {
