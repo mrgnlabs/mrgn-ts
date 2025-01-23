@@ -2,7 +2,7 @@ import React from "react";
 import { IconArrowRight } from "@tabler/icons-react";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { clampedNumeralFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 type RepayActionProps = {
   amountRaw: string;
@@ -21,81 +21,105 @@ export const RepayAction = ({
   selectedSecondaryBank,
   onSetAmountRaw,
 }: RepayActionProps) => {
-  const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
+  const calculateAmountLeft = React.useMemo(() => {
+    if (!selectedBank?.isActive) return "0";
+    if (!repayAmount) return dynamicNumeralFormatter(selectedBank.position.amount);
 
-  const maxLabel = React.useMemo((): {
-    amount: string;
-    showWalletIcon?: boolean;
-    label?: string;
-  } => {
-    console.log("selectedBank", selectedBank?.meta.tokenSymbol);
-    console.log("repayAmount", repayAmount);
-    const amountLeft = dynamicNumeralFormatter(selectedBank?.isActive ? selectedBank.position.amount - repayAmount : 0);
-    console.log("amountLeft", amountLeft);
+    const repayAmountInSelectedBank =
+      selectedBank.position.amount -
+      repayAmount *
+        ((selectedSecondaryBank?.info.oraclePrice.priceRealtime.price.toNumber() ??
+          selectedBank.info.oraclePrice.priceRealtime.price.toNumber()) /
+          selectedBank.info.oraclePrice.priceRealtime.price.toNumber());
+
+    return repayAmountInSelectedBank < 0 ? "0" : dynamicNumeralFormatter(repayAmountInSelectedBank);
+  }, [selectedBank, selectedSecondaryBank, repayAmount]);
+
+  const maxLabel = React.useMemo(() => {
+    const amountLeft = `${calculateAmountLeft} ${selectedBank?.meta.tokenSymbol}`;
     return {
-      amount: `${amountLeft} ${selectedBank?.meta.tokenSymbol}`,
+      amount: amountLeft,
       label: "Borrowed: ",
     };
-  }, [selectedBank, repayAmount]);
+  }, [calculateAmountLeft, selectedBank]);
 
-  const isUnchanged = React.useMemo(() => amountRaw === "" || amountRaw === "0", [amountRaw]);
+  const isUnchanged = amountRaw === "" || amountRaw === "0";
+
+  const handleMaxClick = () => {
+    if (selectedBank) {
+      onSetAmountRaw(
+        dynamicNumeralFormatter(maxAmount, {
+          tokenPrice: selectedBank.info.oraclePrice.priceRealtime.price.toNumber(),
+        })
+      );
+    }
+  };
+
+  const renderBorrowedSection = () => (
+    <li className="flex justify-between items-center gap-1.5">
+      <strong className="mr-auto">{maxLabel.label}</strong>
+      <div className="flex space-x-1 items-center">
+        {selectedBank?.isActive && !isUnchanged && (
+          <div>
+            {dynamicNumeralFormatter(selectedBank.position.amount, {
+              tokenPrice: selectedBank.info.oraclePrice.priceRealtime.price.toNumber(),
+              ignoreMinDisplay: true,
+            })}
+          </div>
+        )}
+        {selectedBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
+        <div>{maxLabel.amount}</div>
+        {selectedBank && (
+          <button
+            className="cursor-pointer border-b border-transparent transition text-mfi-action-box-highlight hover:border-mfi-action-box-highlight"
+            onClick={handleMaxClick}
+          >
+            MAX
+          </button>
+        )}
+      </div>
+    </li>
+  );
+
+  const renderDepositedSection = () => {
+    if (
+      !selectedSecondaryBank ||
+      !selectedBank ||
+      selectedBank.address.toBase58() === selectedSecondaryBank.address.toBase58()
+    ) {
+      return null;
+    }
+
+    const depositedAmount = selectedSecondaryBank.isActive ? selectedSecondaryBank.position.amount : 0;
+    const afterAmount = depositedAmount - Number(amountRaw);
+
+    return (
+      <li className="flex justify-between items-center gap-1.5">
+        <strong>Deposited:</strong>
+        <div className="flex space-x-1.5 items-center">
+          {selectedSecondaryBank.isActive
+            ? dynamicNumeralFormatter(depositedAmount, {
+                tokenPrice: selectedSecondaryBank.info.oraclePrice.priceRealtime.price.toNumber(),
+              })
+            : 0}
+          {selectedSecondaryBank.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
+          {selectedSecondaryBank.isActive &&
+            !isUnchanged &&
+            dynamicNumeralFormatter(afterAmount, {
+              tokenPrice: selectedSecondaryBank.info.oraclePrice.priceRealtime.price.toNumber(),
+            })}
+          {selectedSecondaryBank.meta.tokenSymbol}
+        </div>
+      </li>
+    );
+  };
 
   return (
     <>
       {selectedBank && (
         <ul className="flex flex-col gap-0.5 mt-4 text-xs w-full text-muted-foreground">
-          <li className="flex justify-between items-center gap-1.5">
-            <strong className="mr-auto">{maxLabel.label}</strong>
-            <div className="flex space-x-1 items-center">
-              {selectedBank?.isActive && !isUnchanged && (
-                <div>
-                  {dynamicNumeralFormatter(selectedBank.position.amount, {
-                    tokenPrice: selectedBank.info.oraclePrice.priceRealtime.price.toNumber(),
-                    ignoreMinDisplay: true,
-                  })}
-                </div>
-              )}
-              {selectedBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
-              <div>{maxLabel.amount}</div>
-              {selectedBank && (
-                <button
-                  className="cursor-pointer border-b border-transparent transition text-mfi-action-box-highlight hover:border-mfi-action-box-highlight"
-                  // disabled={maxAmount === 0}
-                  onClick={() => {
-                    console.log("clicked");
-                    console.log("maxAmount", maxAmount);
-                    onSetAmountRaw(
-                      dynamicNumeralFormatter(maxAmount, {
-                        tokenPrice: selectedBank.info.oraclePrice.priceRealtime.price.toNumber(),
-                      })
-                    );
-                  }}
-                >
-                  MAX
-                </button>
-              )}
-            </div>
-          </li>
-          {selectedBank &&
-            selectedSecondaryBank &&
-            selectedBank.address.toBase58() !== selectedSecondaryBank.address.toBase58() && (
-              <li className="flex justify-between items-center gap-1.5">
-                <strong>Deposited:</strong>
-
-                <div className="flex space-x-1.5 items-center">
-                  {selectedSecondaryBank?.isActive
-                    ? dynamicNumeralFormatter(selectedSecondaryBank.position.amount, {
-                        tokenPrice: selectedSecondaryBank.info.oraclePrice.priceRealtime.price.toNumber(),
-                      })
-                    : 0}
-                  {selectedSecondaryBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
-                  {selectedSecondaryBank?.isActive &&
-                    !isUnchanged &&
-                    dynamicNumeralFormatter(selectedSecondaryBank.position.amount - Number(amountRaw))}{" "}
-                  {selectedSecondaryBank?.meta.tokenSymbol}
-                </div>
-              </li>
-            )}
+          {renderBorrowedSection()}
+          {renderDepositedSection()}
         </ul>
       )}
     </>

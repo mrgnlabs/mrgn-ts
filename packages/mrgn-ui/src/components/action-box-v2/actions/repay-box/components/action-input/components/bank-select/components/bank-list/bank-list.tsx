@@ -53,7 +53,7 @@ export const BankList = ({
     return banks
       .filter(searchFilter)
       .filter((bankInfo) => bankInfo.isActive && bankInfo.position.isLending)
-      .sort((a, b) => (b.isActive ? b?.position?.amount : 0) - (a.isActive ? a?.position?.amount : 0));
+      .sort((a, b) => (b.isActive ? b?.position?.usdValue : 0) - (a.isActive ? a?.position?.usdValue : 0));
   }, [banks, searchFilter]);
 
   React.useEffect(() => {

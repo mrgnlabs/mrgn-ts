@@ -8,7 +8,6 @@ import {
   LoopBox,
   LoopBoxProps,
   RepayBox,
-  RepayCollatBox,
   StakeBox,
   StakeBoxProps,
   DepositSwapBoxProps,

@@ -137,8 +137,8 @@ export const PositionActionButtons = ({
           <ActionBox.Repay
             useProvider={true}
             repayProps={{
-              requestedBorrowBank: borrowBank,
-              requestedDepositBank: depositBanks[0],
+              requestedBank: borrowBank,
+              requestedSecondaryBank: depositBanks[0],
               banks: borrowBank ? [borrowBank, depositBanks[0]] : [depositBanks[0]],
               connected: connected,
               showAvailableCollateral: false,
