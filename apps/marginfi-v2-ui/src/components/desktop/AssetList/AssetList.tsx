@@ -364,7 +364,7 @@ export const AssetsList = () => {
             </Table>
           </>
         )}
-        {stakedPoolTableData.length > 0 && (
+        {stakedPoolTableData.length > 0 && isInLendingMode && (
           <>
             <div>
               <div className="font-normal text-2xl text-white mt-4 pt-4 pb-2 gap-1 ">Staked pools</div>
@@ -394,24 +394,27 @@ export const AssetsList = () => {
             </Table>
           </>
         )}
-        <div className={cn("space-y-3 text-center w-full pb-4", stakedPoolTableData.length > 0 ? "pt-3" : "pt-12")}>
-          <p className="text-xs text-muted-foreground">Don&apos;t see your native stake available to deposit?</p>
-          <div className="flex flex-col gap-2 items-center justify-center">
-            <Button variant="secondary" className="mx-auto font-normal text-[11px]" size="sm">
-              <Link href="/staked-assets/create">
-                <span>Create staked asset pool</span>
-              </Link>
-            </Button>
-            <Button
-              variant="link"
-              className="mx-auto font-light text-[11px] gap-1 h-5 text-muted-foreground/75 no-underline rounded-none px-0 hover:no-underline hover:text-foreground"
-              size="sm"
-            >
-              <IconExternalLink size={12} />
-              Learn more
-            </Button>
+
+        {isInLendingMode && (
+          <div className={cn("space-y-3 text-center w-full pb-4", stakedPoolTableData.length > 0 ? "pt-3" : "pt-12")}>
+            <p className="text-xs text-muted-foreground">Don&apos;t see your native stake available to deposit?</p>
+            <div className="flex flex-col gap-2 items-center justify-center">
+              <Button variant="secondary" className="mx-auto font-normal text-[11px]" size="sm">
+                <Link href="/staked-assets/create">
+                  <span>Create staked asset pool</span>
+                </Link>
+              </Button>
+              <Button
+                variant="link"
+                className="mx-auto font-light text-[11px] gap-1 h-5 text-muted-foreground/75 no-underline rounded-none px-0 hover:no-underline hover:text-foreground"
+                size="sm"
+              >
+                <IconExternalLink size={12} />
+                Learn more
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <LSTDialog
         variant={lstDialogVariant}
