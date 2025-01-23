@@ -34,12 +34,12 @@ export const RewardsDialog: React.FC<RewardsDialogProps> = ({
           <DialogDescription className="text-muted-foreground text-sm" asChild>
             <div className="flex flex-col gap-6 items-center">
               <p>
-                You have rewards available for collection. Rewards are automatically collected every 24 hours and can be
-                manually claimed at any time.
+                You have rewards available for collection. Learn more
+                <br className="hidden md:block" /> about our emissions program and collect your rewards below.
               </p>
               <Link href="/emissions" className="text-primary flex items-center gap-1m">
                 <Button variant="secondary" size="sm">
-                  <IconInfoCircle size={16} /> Learn more about emissions schedules
+                  <IconInfoCircle size={16} /> Learn more about emissions program
                 </Button>
               </Link>
             </div>
@@ -47,7 +47,7 @@ export const RewardsDialog: React.FC<RewardsDialogProps> = ({
         </DialogHeader>
         <div className="flex flex-col gap-2 items-center">
           <h3 className="text-lg text-muted-foreground">Your rewards</h3>
-          <ul className="list-inside">
+          <ul className="list-inside space-y-1">
             {availableRewards?.rewards.map((reward, idx) => (
               <li key={idx} className="flex items-center space-x-2">
                 <Image
@@ -65,7 +65,7 @@ export const RewardsDialog: React.FC<RewardsDialogProps> = ({
           </ul>
         </div>
         <Button disabled={isLoading} onClick={onCollect} className="max-w-fit mx-auto px-8">
-          {isLoading ? <IconLoader size={24} /> : "Claim Rewards"}
+          {isLoading ? <IconLoader size={24} /> : "Collect Rewards"}
         </Button>
       </DialogContent>
     </Dialog>
