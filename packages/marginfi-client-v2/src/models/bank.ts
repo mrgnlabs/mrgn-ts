@@ -235,7 +235,12 @@ class Bank {
     return Bank.fromAccountParsed(address, accountParsed, feedIdMap);
   }
 
-  static fromAccountParsed(address: PublicKey, accountParsed: BankRaw, feedIdMap: PythPushFeedIdMap, bankMetadata?: BankMetadata): Bank {
+  static fromAccountParsed(
+    address: PublicKey,
+    accountParsed: BankRaw,
+    feedIdMap: PythPushFeedIdMap,
+    bankMetadata?: BankMetadata
+  ): Bank {
     const flags = accountParsed.flags.toNumber();
 
     const mint = accountParsed.mint;
@@ -883,7 +888,7 @@ function serializeOperationalState(
 }
 
 function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
-  const oracleKey = Object.keys(oracleSetupRaw)[0].toLowerCase()
+  const oracleKey = Object.keys(oracleSetupRaw)[0].toLowerCase();
   switch (oracleKey) {
     case "none":
       return OracleSetup.None;
@@ -896,11 +901,13 @@ function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
     case "switchboardpull":
       return OracleSetup.SwitchboardPull;
     default:
-      throw new Error(`Invalid oracle setup "${oracleKey}"`);
+      return OracleSetup.None;
   }
 }
 
-function serializeOracleSetup(oracleSetup: OracleSetup): { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} } | { switchboardPull: {} } {
+function serializeOracleSetup(
+  oracleSetup: OracleSetup
+): { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} } | { switchboardPull: {} } {
   switch (oracleSetup) {
     case OracleSetup.None:
       return { none: {} };
@@ -913,7 +920,7 @@ function serializeOracleSetup(oracleSetup: OracleSetup): { none: {} } | { pythLe
     case OracleSetup.SwitchboardPull:
       return { switchboardPull: {} };
     default:
-      throw new Error(`Invalid oracle setup "${oracleSetup}"`);
+      return { none: {} };
   }
 }
 
