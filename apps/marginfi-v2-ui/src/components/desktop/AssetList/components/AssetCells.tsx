@@ -254,39 +254,47 @@ export const getDepositsCell = (depositsData: DepositsData) => {
           </span>
         </TooltipTrigger>
         <TooltipContent className="text-left">
-          <div>
-            {depositsData.isReduceOnly
-              ? "Reduce Only"
-              : depositsData.isBankHigh && (depositsData.isBankFilled ? "Limit Reached" : "Approaching Limit")}
-          </div>
-
-          {depositsData.isReduceOnly ? (
-            <span>{depositsData.symbol} is being discontinued.</span>
+          {depositsData.isStakedAsset && !depositsData.isInLendingMode ? (
+            <div>
+              <span>Native stake can only be deposited at this time.</span>
+            </div>
           ) : (
             <>
-              <span>
-                {depositsData.symbol} {depositsData.isInLendingMode ? "deposits" : "borrows"} are at{" "}
-                {percentFormatterMod(depositsData.capacity, {
-                  minFractionDigits: 0,
-                  maxFractionDigits:
-                    depositsData.isBankHigh && !depositsData.isBankFilled && depositsData.capacity >= 0.99 ? 4 : 2,
-                })}{" "}
-                capacity.
-              </span>
-              {!depositsData.isBankFilled && (
+              <div>
+                {depositsData.isReduceOnly
+                  ? "Reduce Only"
+                  : depositsData.isBankHigh && (depositsData.isBankFilled ? "Limit Reached" : "Approaching Limit")}
+              </div>
+
+              {depositsData.isReduceOnly ? (
+                <span>{depositsData.symbol} is being discontinued.</span>
+              ) : (
                 <>
-                  <br />
-                  <br />
-                  <span>Available: {numeralFormatter(depositsData.available)}</span>
+                  <span>
+                    {depositsData.symbol} {depositsData.isInLendingMode ? "deposits" : "borrows"} are at{" "}
+                    {percentFormatterMod(depositsData.capacity, {
+                      minFractionDigits: 0,
+                      maxFractionDigits:
+                        depositsData.isBankHigh && !depositsData.isBankFilled && depositsData.capacity >= 0.99 ? 4 : 2,
+                    })}{" "}
+                    capacity.
+                  </span>
+                  {!depositsData.isBankFilled && (
+                    <>
+                      <br />
+                      <br />
+                      <span>Available: {numeralFormatter(depositsData.available)}</span>
+                    </>
+                  )}
                 </>
               )}
+              <br />
+              <br />
+              <a href="https://docs.marginfi.com">
+                <u>Learn more.</u>
+              </a>
             </>
           )}
-          <br />
-          <br />
-          <a href="https://docs.marginfi.com">
-            <u>Learn more.</u>
-          </a>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

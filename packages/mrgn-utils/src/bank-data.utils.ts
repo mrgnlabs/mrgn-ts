@@ -47,6 +47,7 @@ export interface DepositsData {
   symbol: string;
   denominationUSD: boolean;
   isInLendingMode: boolean;
+  isStakedAsset: boolean;
 }
 
 export interface BankCapData {
@@ -195,6 +196,8 @@ export const getDepositsData = (
 
   const available = bankCap - (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows);
 
+  const isStakedAsset = bank.info.rawBank.config.assetTag === 2;
+
   return {
     isReduceOnly,
     isBankHigh,
@@ -206,6 +209,7 @@ export const getDepositsData = (
     symbol: bank.meta.tokenSymbol,
     denominationUSD,
     isInLendingMode,
+    isStakedAsset,
   };
 };
 
