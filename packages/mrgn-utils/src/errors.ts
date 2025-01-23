@@ -228,16 +228,22 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   },
 };
 
-const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMessageType => ({
-  description: `Unable to repay using ${tokenSymbol}, please select another collateral.`,
+const createInsufficientStakeBalanceCheck = (tokenName?: string): ActionMessageType => ({
+  description: `You need active native stake with the ${tokenName} validator to deposit to this bank`,
   isEnabled: false,
-  code: 141,
+  code: 143,
 });
 
 const createTradeFailedCheck = (): ActionMessageType => ({
   description: `Unable to execute trade, please try again.`,
   isEnabled: false,
   code: 142,
+});
+
+const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMessageType => ({
+  description: `Unable to repay using ${tokenSymbol}, please select another collateral.`,
+  isEnabled: false,
+  code: 141,
 });
 
 const createInsufficientBalanceCheck = (tokenSymbol?: string): ActionMessageType => ({
@@ -401,6 +407,7 @@ export const DYNAMIC_SIMULATION_ERRORS = {
   BORROW_CAPACITY_CHECK: createBorrowCapacityCheck,
   EXISTING_ISO_BORROW_CHECK: createExistingIsolatedBorrowCheck,
   INSUFFICIENT_BALANCE_CHECK: createInsufficientBalanceCheck,
+  INSUFFICIENT_STAKE_BALANCE_CHECK: createInsufficientStakeBalanceCheck,
   REPAY_COLLAT_FAILED_CHECK: createRepayCollatFailedCheck,
   TRADE_FAILED_CHECK: createTradeFailedCheck,
 };

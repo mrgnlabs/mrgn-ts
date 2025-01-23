@@ -500,10 +500,18 @@ export const LendBox = ({
     ]
   );
 
+  // is attempting to deposit to a staked account and has active native stake with validator
+  // this is used to show a hardcoded info message to user regarding requiring stake account to be deposited in full
+  // this is temporary, soon we will allow stake splitting and depositing partial amounts
   const isDepositingStakedAccount = React.useMemo(() => {
-    if (selectedBank && lendMode === ActionType.Deposit && selectedBank.info.rawBank.config.assetTag === 2) return true;
-    else return false;
-  }, [selectedBank, lendMode]);
+    return (
+      selectedBank &&
+      lendMode === ActionType.Deposit &&
+      selectedBank.info.rawBank.config.assetTag === 2 &&
+      walletAmount !== undefined &&
+      walletAmount > 0
+    );
+  }, [selectedBank, lendMode, walletAmount]);
 
   const hasErrorsWarnings = React.useMemo(() => {
     return (
@@ -515,7 +523,6 @@ export const LendBox = ({
 
   React.useEffect(() => {
     if (isDepositingStakedAccount) {
-      // TODO: figure out deposit maxAmount calculation
       setAmountRaw(maxAmount.toString());
     }
   }, [isDepositingStakedAccount, maxAmount, setAmountRaw]);
