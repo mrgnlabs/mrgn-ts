@@ -773,6 +773,7 @@ function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw 
     depositLimit: toBN(bankConfigOpt.depositLimit),
     borrowLimit: toBN(bankConfigOpt.borrowLimit),
     riskTier: bankConfigOpt.riskTier && serializeRiskTier(bankConfigOpt.riskTier),
+    assetTag: bankConfigOpt.assetTag !== null ? Number(bankConfigOpt.assetTag) : 0,
     totalAssetValueInitLimit: toBN(bankConfigOpt.totalAssetValueInitLimit),
     interestRateConfig:
       bankConfigOpt.interestRateConfig &&
@@ -792,6 +793,7 @@ function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw 
     },
     oracleMaxAge: bankConfigOpt.oracleMaxAge,
     permissionlessBadDebtSettlement: bankConfigOpt.permissionlessBadDebtSettlement,
+    freezeSettings: bankConfigOpt.freezeSettings,
   };
 }
 
