@@ -299,7 +299,11 @@ class MarginfiClient {
       debug("Using preloaded bank addresses, skipping gpa call", bankAddresses.length, "banks");
       let bankAccountsData = await program.account.bank.fetchMultiple(bankAddresses);
       for (let i = 0; i < bankAccountsData.length; i++) {
-        if (bankAccountsData[i] !== null) {
+        if (
+          bankAccountsData[i] !== null &&
+          !bankAddresses[i].equals(new PublicKey("BuCckNm1djpp3vZVhvh1CrrniirY6sr2hwUmeP5kTcGz")) &&
+          !bankAddresses[i].equals(new PublicKey("8g5qG6PVygcVSXV1cJnjXaD1yhrDwcWAMQCY2wR9VuAf"))
+        ) {
           bankDatasKeyed.push({
             address: bankAddresses[i],
             data: bankAccountsData[i] as any as BankRaw,
@@ -310,10 +314,16 @@ class MarginfiClient {
       let bankAccountsData = await program.account.bank.all([
         { memcmp: { offset: 8 + 32 + 1, bytes: groupAddress.toBase58() } },
       ]);
-      bankDatasKeyed = bankAccountsData.map((account: any) => ({
-        address: account.publicKey,
-        data: account.account as any as BankRaw,
-      }));
+      bankDatasKeyed = bankAccountsData
+        .map((account: any) => ({
+          address: account.publicKey,
+          data: account.account as any as BankRaw,
+        }))
+        .filter(
+          (b) =>
+            !b.address.equals(new PublicKey("BuCckNm1djpp3vZVhvh1CrrniirY6sr2hwUmeP5kTcGz")) &&
+            !b.address.equals(new PublicKey("8g5qG6PVygcVSXV1cJnjXaD1yhrDwcWAMQCY2wR9VuAf"))
+        );
     }
 
     const feedIdMap = await buildFeedIdMap(
