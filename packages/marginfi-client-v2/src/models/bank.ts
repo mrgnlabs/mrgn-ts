@@ -73,12 +73,16 @@ interface BankConfigRaw {
   riskTier: RiskTierRaw;
   totalAssetValueInitLimit: BN;
   oracleMaxAge: number;
+  assetTag: number;
 
   interestRateConfig: InterestRateConfigRaw;
   operationalState: OperationalStateRaw;
 
   oracleSetup: OracleSetupRaw;
   oracleKeys: PublicKey[];
+
+  permissionlessBadDebtSettlement: boolean;
+  freezeSettings: boolean;
 }
 
 interface BankConfigCompactRaw extends Omit<BankConfigRaw, "oracleKeys"> {
@@ -107,7 +111,12 @@ interface InterestRateConfigRaw {
   protocolIrFee: WrappedI80F48;
 }
 
-type OracleSetupRaw = { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} };
+type OracleSetupRaw =
+  | { none: {} }
+  | { pythLegacy: {} }
+  | { switchboardV2: {} }
+  | { pythPushOracle: {} }
+  | { stakedWithPythPush: {} };
 
 export type { BankRaw, BankConfigRaw, BankConfigCompactRaw, RiskTierRaw, InterestRateConfigRaw, OracleSetupRaw };
 
@@ -692,6 +701,7 @@ enum OracleSetup {
   SwitchboardV2 = "SwitchboardV2",
   PythPushOracle = "PythPushOracle",
   SwitchboardPull = "SwitchboardPull",
+  StakedWithPythPush = "StakedWithPythPush",
 }
 
 // BankConfigOpt Args
@@ -735,7 +745,13 @@ interface BankConfigOptRaw {
   operationalState: { paused: {} } | { operational: {} } | { reduceOnly: {} } | null;
 
   oracle: {
-    setup: { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} } | { switchboardPull: {} };
+    setup:
+      | { none: {} }
+      | { pythLegacy: {} }
+      | { switchboardV2: {} }
+      | { pythPushOracle: {} }
+      | { switchboardPull: {} }
+      | { stakedWithPythPush: {} };
     keys: PublicKey[];
   } | null;
 
@@ -900,14 +916,22 @@ function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
       return OracleSetup.PythPushOracle;
     case "switchboardpull":
       return OracleSetup.SwitchboardPull;
+    case "stakedwithpythpush":
+      return OracleSetup.StakedWithPythPush;
     default:
-      return OracleSetup.None;
+      throw new Error(`Invalid oracle setup "${oracleKey}"`);
   }
 }
 
 function serializeOracleSetup(
   oracleSetup: OracleSetup
-): { none: {} } | { pythLegacy: {} } | { switchboardV2: {} } | { pythPushOracle: {} } | { switchboardPull: {} } {
+):
+  | { none: {} }
+  | { pythLegacy: {} }
+  | { switchboardV2: {} }
+  | { pythPushOracle: {} }
+  | { switchboardPull: {} }
+  | { stakedWithPythPush: {} } {
   switch (oracleSetup) {
     case OracleSetup.None:
       return { none: {} };
@@ -919,6 +943,8 @@ function serializeOracleSetup(
       return { pythPushOracle: {} };
     case OracleSetup.SwitchboardPull:
       return { switchboardPull: {} };
+    case OracleSetup.StakedWithPythPush:
+      return { stakedWithPythPush: {} };
     default:
       return { none: {} };
   }
