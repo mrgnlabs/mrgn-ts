@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 
 import { VersionedTransaction } from "@solana/web3.js";
 import { IconInfoCircle, IconX } from "@tabler/icons-react";
-import { toast } from "react-toastify";
+import { Id, toast } from "react-toastify";
 
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
@@ -71,6 +71,7 @@ export const LendingPortfolio = () => {
   const [actionTxn, setActionTxn] = React.useState<SolanaTransaction | null>(null);
   const [rewardsLoading, setRewardsLoading] = React.useState(false);
   const [rewardsToastOpen, setRewardsToastOpen] = React.useState(false);
+  const [rewardsToastId, setRewardsToastId] = React.useState<Id | null>(null);
   const hasMultipleAccount = React.useMemo(() => marginfiAccounts.length > 1, [marginfiAccounts]);
 
   const { handleSimulation } = useRewardSimulation({
@@ -188,31 +189,36 @@ export const LendingPortfolio = () => {
   );
 
   React.useEffect(() => {
-    if (rewardsState.state === "REWARDS_FETCHED" && rewardsState.totalRewardAmount > 0) {
-      setRewardsToastOpen(true);
-      toast(
-        () => (
-          <div className="text-sm space-y-4">
-            <p className="pr-8">You have rewards available for collection. Review your rewards and collect.</p>
-            <Button size="sm">Click to collect</Button>
-          </div>
-        ),
-        {
-          position: "bottom-right",
-          autoClose: false,
-          hideProgressBar: true,
-          closeOnClick: true,
-          draggable: false,
-          theme: "dark",
-          closeButton: <IconX size={16} className="absolute top-3 right-3 text-muted-foreground" />,
-          className: "bg-mfi-toast-background rounded-md py-2 pl-3 pr-6",
-          onClick: () => {
-            setRewardsDialogOpen(true);
-          },
-        }
-      );
+    if (rewardsState.state !== "REWARDS_FETCHED" || rewardsState.totalRewardAmount === 0 || rewardsToastOpen) return;
+
+    if (rewardsToastId) {
+      toast.dismiss(rewardsToastId);
     }
-  }, [rewardsState, rewardsToastOpen]);
+    setRewardsToastOpen(true);
+
+    const id = toast(
+      () => (
+        <div className="text-sm space-y-4">
+          <p className="md:pr-16">⭐️ You have rewards available for collection.</p>
+          <Button size="sm">Click to collect</Button>
+        </div>
+      ),
+      {
+        position: "bottom-right",
+        autoClose: false,
+        hideProgressBar: true,
+        closeOnClick: true,
+        draggable: false,
+        theme: "dark",
+        closeButton: <IconX size={16} className="absolute top-3 right-3 text-muted-foreground" />,
+        className: "bg-mfi-toast-background rounded-md py-2 pl-3 pr-6",
+        onClick: () => {
+          setRewardsDialogOpen(true);
+        },
+      }
+    );
+    setRewardsToastId(id);
+  }, [rewardsState, rewardsToastOpen, rewardsToastId]);
 
   // Introduced this useEffect to show the loader for 2 seconds after wallet connection. This is to avoid the flickering of the loader, since the isRefreshingStore isnt set immediately after the wallet connection.
   React.useEffect(() => {
