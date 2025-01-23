@@ -14,6 +14,7 @@ import {
 import { DEFAULT_PRIORITY_SETTINGS, fetchMaxCap, fetchPriorityFee } from "@mrgnlabs/mrgn-utils";
 import { PriorityFees } from "@mrgnlabs/marginfi-client-v2";
 import { Connection } from "@solana/web3.js";
+import { defaultJupiterOptions, JupiterOptions } from "~/components";
 
 export enum WalletState {
   DEFAULT = "default",
@@ -31,6 +32,7 @@ interface UiState {
   isWalletOpen: boolean;
   lendingMode: LendingModes;
   slippageBps: number;
+  jupiterOptions: JupiterOptions;
   platformFeeBps: number;
   isActionComplete: boolean;
   previousTxn: PreviousTxn | null;
@@ -50,6 +52,7 @@ interface UiState {
   setLendingMode: (lendingMode: LendingModes) => void;
   setSlippageBps: (slippageBps: number) => void;
   setIsActionComplete: (isActionSuccess: boolean) => void;
+  setJupiterOptions: (jupiterOptions: JupiterOptions) => void;
   setPreviousTxn: (previousTxn: PreviousTxn) => void;
   setWalletState: (walletState: WalletState) => void;
   setIsActionBoxInputFocussed: (isFocussed: boolean) => void;
@@ -92,6 +95,9 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   ...DEFAULT_PRIORITY_SETTINGS,
 
   displaySettings: false,
+
+  jupiterOptions: defaultJupiterOptions,
+
   // Actions
   setIsWalletAuthDialogOpen: (isOpen: boolean) => set({ isWalletAuthDialogOpen: isOpen }),
   setIsWalletOpen: (isOpen: boolean) => set({ isWalletOpen: isOpen }),
@@ -128,6 +134,8 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     }
   },
   setDisplaySettings: (displaySettings: boolean) => set({ displaySettings: displaySettings }),
+  setJupiterOptions: (jupiterOptions: JupiterOptions) =>
+    set({ jupiterOptions: { ...jupiterOptions, slippageBps: jupiterOptions.slippageBps * 100 } }),
 });
 
 export { createUiStore };
