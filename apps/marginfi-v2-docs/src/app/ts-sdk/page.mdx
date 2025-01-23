@@ -965,6 +965,559 @@ Represents the balance of a user's assets and liabilities within a specific bank
 
 Kickstart your development journey with a collection of insightful examples. Explore additional helpful examples within the <Button href="https://github.com/mrgnlabs/mrgn-ts/tree/main/packages/marginfi-client-v2/examples" variant="text"><>marginfi monorepo</></Button>. {{ className: 'lead' }}
 
+### Create A Single Pool Account For A Validator
+This allows the stake accounts to be tokenized. (Note: it will cost approximately 1.1 SOL to create the single pool account.)
+
+```javascript {{ title: 'Example' }}
+// NOTE: you will need to change package resolution or overrides to use `"@solana/web3.js":
+// "^1.91.6"`, unless Solana foundation updates this...
+import {
+  Connection,
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  sendAndConfirmTransaction,
+  SystemProgram,
+  Transaction,
+} from "@solana/web3.js";
+import { AnchorProvider } from "@coral-xyz/anchor";
+import { loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
+import { findPoolAddress, findPoolStakeAddress, SinglePoolProgram } from "@solana/spl-single-pool-classic";
+
+type Config = {
+  VALIDATOR_VOTE_ACC: PublicKey;
+};
+const config: Config = {
+  VALIDATOR_VOTE_ACC: new PublicKey("CooLbbZy5Xmdt7DiHPQ3ss2uRXawnTXXVgpMS8E8jDzr"),
+};
+
+async function main() {
+  const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+  const wallet = loadKeypairFromFile(process.env.HOME + "/keys/staging-deploy.json");
+  console.log("payer: " + wallet.publicKey);
+
+  const poolKey = await findPoolAddress(SINGLE_POOL_PROGRAM_ID, config.VALIDATOR_VOTE_ACC);
+  const poolStake = await findPoolStakeAddress(SINGLE_POOL_PROGRAM_ID, poolKey);
+
+  // @ts-ignore
+  const provider = new AnchorProvider(connection, wallet, {
+    preflightCommitment: "confirmed",
+  });
+  let tx = new Transaction();
+  tx.add(
+    SystemProgram.transfer({
+      fromPubkey: wallet.publicKey,
+      toPubkey: poolStake,
+      // TODO
+      /*
+        NO IDEA HOW MUCH IS ACTUALLY NEEDED HERE, SOLANA'S REFERENCE IMPLEMENTATION DOESN'T
+        SEND ENOUGH, BUT THIS IS LIKELY TOO MUCH
+      */
+      lamports: LAMPORTS_PER_SOL * 1.1,
+    })
+  );
+
+  tx.add(
+    ...(await SinglePoolProgram.initialize(provider.connection, config.VALIDATOR_VOTE_ACC, wallet.publicKey, true))
+      .instructions
+  );
+
+  try {
+    const signature = await sendAndConfirmTransaction(connection, tx, [wallet]);
+    console.log("Transaction signature:", signature);
+  } catch (error) {
+    console.error("Transaction failed:", error);
+  }
+
+  console.log("pool key: " + poolKey);
+}
+
+main().catch((err) => {
+  console.error(err);
+});
+```
+
+### Create A Stake Pool As A Bank On Marginfi 
+This way, you can post your native stake account(s) as collateral on marginfi.
+
+```javascript {{ title: 'Example' }}
+// Runs once per group, before any staked banks can be init.
+import { AccountMeta, Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
+import { Program, AnchorProvider, Wallet, BN } from "@coral-xyz/anchor";
+import { Marginfi } from "../marginfi-client-v2/src/idl/marginfi-types";
+import marginfiIdl from "../marginfi-client-v2/src/idl/marginfi.json";
+import { I80F48_ONE, loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
+import {
+  bigNumberToWrappedI80F48,
+  TOKEN_PROGRAM_ID,
+  WrappedI80F48,
+  wrappedI80F48toBigNumber,
+} from "@mrgnlabs/mrgn-common";
+import { RiskTierRaw } from "@mrgnlabs/marginfi-client-v2";
+import { assertBNEqual, assertI80F48Approx, assertKeysEqual } from "./softTests";
+import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
+
+/**
+ * If true, send the tx. If false, output the unsigned b58 tx to console.
+ */
+const sendTx = true;
+const verbose = true;
+
+type Config = {
+  PROGRAM_ID: string;
+  GROUP_KEY: PublicKey;
+  STAKE_POOL: PublicKey;
+  /** A pyth price feed that matches the configured Oracle */
+  SOL_ORACLE_FEED: PublicKey;
+  SEED: number;
+  MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
+};
+
+const config: Config = {
+  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+  GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
+  STAKE_POOL: new PublicKey("AvS4oXtxWdrJGCJwDbcZ7DqpSqNQtKjyXnbkDbrSk6Fq"),
+  SOL_ORACLE_FEED: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
+  SEED: 0,
+  MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
+};
+
+async function main() {
+  marginfiIdl.address = config.PROGRAM_ID;
+  const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+  const wallet = loadKeypairFromFile(process.env.HOME + "/keys/staging-deploy.json");
+
+  // @ts-ignore
+  const provider = new AnchorProvider(connection, wallet, {
+    preflightCommitment: "confirmed",
+  });
+
+  const program = new Program<Marginfi>(marginfiIdl as Marginfi, provider);
+
+  let [stakedSettingsKey] = deriveStakedSettings(program.programId, config.GROUP_KEY);
+
+  const [lstMint] = PublicKey.findProgramAddressSync(
+    [Buffer.from("mint"), config.STAKE_POOL.toBuffer()],
+    SINGLE_POOL_PROGRAM_ID
+  );
+  const [solPool] = PublicKey.findProgramAddressSync(
+    [Buffer.from("stake"), config.STAKE_POOL.toBuffer()],
+    SINGLE_POOL_PROGRAM_ID
+  );
+
+  // Note: oracle and lst mint/pool are also passed in meta for validation
+  const oracleMeta: AccountMeta = {
+    pubkey: config.SOL_ORACLE_FEED,
+    isSigner: false,
+    isWritable: false,
+  };
+  const lstMeta: AccountMeta = {
+    pubkey: lstMint,
+    isSigner: false,
+    isWritable: false,
+  };
+  const solPoolMeta: AccountMeta = {
+    pubkey: solPool,
+    isSigner: false,
+    isWritable: false,
+  };
+
+  const [bankKey] = deriveBankWithSeed(program.programId, config.GROUP_KEY, lstMint, new BN(config.SEED));
+
+  const transaction = new Transaction();
+
+  transaction.add(
+    await program.methods
+      .lendingPoolAddBankPermissionless(new BN(config.SEED))
+      .accounts({
+        // marginfiGroup: args.marginfiGroup, // implied from stakedSettings
+        stakedSettings: stakedSettingsKey,
+        feePayer: wallet.publicKey,
+        bankMint: lstMint,
+        solPool: solPool,
+        stakePool: config.STAKE_POOL,
+        // bank: bankKey, // deriveBankWithSeed
+        // globalFeeState: deriveGlobalFeeState(id),
+        // globalFeeWallet: // implied from globalFeeState,
+        // liquidityVaultAuthority = deriveLiquidityVaultAuthority(id, bank);
+        // liquidityVault = deriveLiquidityVault(id, bank);
+        // insuranceVaultAuthority = deriveInsuranceVaultAuthority(id, bank);
+        // insuranceVault = deriveInsuranceVault(id, bank);
+        // feeVaultAuthority = deriveFeeVaultAuthority(id, bank);
+        // feeVault = deriveFeeVault(id, bank);
+        // rent = SYSVAR_RENT_PUBKEY
+        tokenProgram: TOKEN_PROGRAM_ID,
+        // systemProgram: SystemProgram.programId,
+      })
+      .remainingAccounts([oracleMeta, lstMeta, solPoolMeta])
+      .instruction()
+  );
+
+  if (sendTx) {
+    try {
+      const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
+      console.log("Transaction signature:", signature);
+    } catch (error) {
+      console.error("Transaction failed:", error);
+    }
+
+    if (verbose) {
+      console.log("init bank: " + bankKey);
+    }
+  } else {
+    transaction.feePayer = config.MULTISIG_PAYER; // Set the fee payer to Squads wallet
+    const { blockhash } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+    const serializedTransaction = transaction.serialize({
+      requireAllSignatures: false,
+      verifySignatures: false,
+    });
+    const base58Transaction = bs58.encode(serializedTransaction);
+    console.log("Base58-encoded transaction:", base58Transaction);
+  }
+}
+
+// TODO remove when package updates
+const deriveBankWithSeed = (programId: PublicKey, group: PublicKey, bankMint: PublicKey, seed: BN) => {
+  return PublicKey.findProgramAddressSync(
+    [group.toBuffer(), bankMint.toBuffer(), seed.toArrayLike(Buffer, "le", 8)],
+    programId
+  );
+};
+
+// TODO remove when package updates
+const deriveStakedSettings = (programId: PublicKey, group: PublicKey) => {
+  return PublicKey.findProgramAddressSync([Buffer.from("staked_settings", "utf-8"), group.toBuffer()], programId);
+};
+
+main().catch((err) => {
+  console.error(err);
+});
+```
+
+### Deposit Into A Single Pool And Receive A Receipt Token
+
+```javascript {{ title: 'Example' }}
+import {
+  Connection,
+  PublicKey,
+  StakeAuthorizationLayout,
+  StakeProgram,
+  Transaction,
+  TransactionInstruction,
+  sendAndConfirmTransaction,
+} from "@solana/web3.js";
+import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
+import { loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
+import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { SinglePoolInstruction } from "@solana/spl-single-pool-classic";
+/** Set to true the first time you run this script for a given wallet/pool */
+const createAta = false;
+
+type Config = {
+  PROGRAM_ID: string;
+  /** There's probably a way to derive this... 
+   *
+   * Note that this must be INACTIVE if the stake pool is currently activating (like it was created
+   * recently), otherwise it must ACTIVE (the vast majority of the time, this is the case)
+  */
+  NATIVE_STAKE_ACCOUNT: PublicKey;
+  STAKE_POOL: PublicKey;
+  /** In native decimals */
+  AMOUNT: BN;
+};
+
+const config: Config = {
+  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+  NATIVE_STAKE_ACCOUNT: new PublicKey("CBkEBnagcbmZrmbg9yV1d1gWxi6tmuR26616XXwVwus"),
+  STAKE_POOL: new PublicKey("AvS4oXtxWdrJGCJwDbcZ7DqpSqNQtKjyXnbkDbrSk6Fq"),
+  AMOUNT: new BN(0.002 * 10 ** 9), // sol has 9 decimals
+};
+
+async function main() {
+  const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+  const wallet = loadKeypairFromFile(process.env.HOME + "/keys/phantom-wallet.json");
+  console.log("wallet: " + wallet.publicKey);
+
+  // @ts-ignore
+  const provider = new AnchorProvider(connection, wallet, {
+    preflightCommitment: "confirmed",
+  });
+
+  // Equivalent to findPoolMintAddress
+  const [lstMint] = PublicKey.findProgramAddressSync(
+    [Buffer.from("mint"), config.STAKE_POOL.toBuffer()],
+    SINGLE_POOL_PROGRAM_ID
+  );
+  // Equivalent to findPoolStakeAuthorityAddress
+  const [auth] = PublicKey.findProgramAddressSync(
+    [Buffer.from("stake_authority"), config.STAKE_POOL.toBuffer()],
+    SINGLE_POOL_PROGRAM_ID
+  );
+  const lstAta = getAssociatedTokenAddressSync(lstMint, wallet.publicKey);
+
+  const ixes: TransactionInstruction[] = [];
+  if (createAta) {
+    ixes.push(createAssociatedTokenAccountInstruction(wallet.publicKey, lstAta, wallet.publicKey, lstMint));
+  }
+
+  const authorizeStakerIxes = StakeProgram.authorize({
+    stakePubkey: config.NATIVE_STAKE_ACCOUNT,
+    authorizedPubkey: wallet.publicKey,
+    newAuthorizedPubkey: auth,
+    stakeAuthorizationType: StakeAuthorizationLayout.Staker,
+  }).instructions;
+
+  ixes.push(...authorizeStakerIxes);
+
+  const authorizeWithdrawIxes = StakeProgram.authorize({
+    stakePubkey: config.NATIVE_STAKE_ACCOUNT,
+    authorizedPubkey: wallet.publicKey,
+    newAuthorizedPubkey: auth,
+    stakeAuthorizationType: StakeAuthorizationLayout.Withdrawer,
+  }).instructions;
+
+  ixes.push(...authorizeWithdrawIxes);
+
+  const depositIx = await SinglePoolInstruction.depositStake(
+    config.STAKE_POOL,
+    config.NATIVE_STAKE_ACCOUNT,
+    lstAta,
+    wallet.publicKey
+  );
+
+  ixes.push(depositIx);
+
+  const transaction = new Transaction();
+  transaction.add(...ixes);
+
+  try {
+    const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
+    console.log("Transaction signature:", signature);
+  } catch (error) {
+    console.error("Transaction failed:", error);
+  }
+
+  //console.log("deposit: " + config.AMOUNT.toString() + " to " + config.BANK);
+}
+
+main().catch((err) => {
+  console.error(err);
+});
+```
+
+### Borrow Against Your Collateralized Stake Accounts
+
+```javascript {{ title: 'Example' }}
+// Run deposit_single_pool first to convert to LST. In production, these will likely be atomic.
+import {
+  AccountMeta,
+  ComputeBudgetProgram,
+  Connection,
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  sendAndConfirmTransaction,
+} from "@solana/web3.js";
+import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
+import { Marginfi } from "../marginfi-client-v2/src/idl/marginfi-types";
+import marginfiIdl from "../marginfi-client-v2/src/idl/marginfi.json";
+import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
+import {
+  createAssociatedTokenAccountIdempotent,
+  createAssociatedTokenAccountInstruction,
+  createSyncNativeInstruction,
+  getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
+import { createAssociatedTokenAccountIdempotentInstruction } from "@mrgnlabs/mrgn-common";
+
+type Config = {
+  PROGRAM_ID: string;
+  GROUP: PublicKey;
+  ACCOUNT: PublicKey;
+  BANK: PublicKey;
+  STAKE_POOL?: PublicKey;
+  MINT: PublicKey;
+  /** In native decimals */
+  AMOUNT: BN;
+  /** For each balance the user has, in order, pass
+   * * bank0, oracle0, bank1, oracle1, etc
+   * 
+   * if a bank is a STAKED COLLATERAL bank, also pass the LST mint and SOL pool, like:
+   * * bank0, oracle0, lstMint0, solPool0, bank1, oracle1
+   * 
+   * You can derive these with:
+    ```
+    const [lstMint] = PublicKey.findProgramAddressSync(
+        [Buffer.from("mint"), config.STAKE_POOL.toBuffer()],
+        SINGLE_POOL_PROGRAM_ID
+    );
+    ```
+     and
+    ```
+    const [pool] = PublicKey.findProgramAddressSync(
+        [Buffer.from("stake"), config.STAKE_POOL.toBuffer()],
+        SINGLE_POOL_PROGRAM_ID
+    );
+    ```
+   * or read them from the bank directly (oracles[1] and oracles[2])
+   * */
+  REMAINING: PublicKey[];
+};
+
+const examples = {
+  borrowJupSOLAgainstUSDC: {
+    PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+    GROUP: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
+    ACCOUNT: new PublicKey("2GMbwepeyW5xzgm3cQLivdPWLydrFevLy2iBbZab3pd6"),
+    BANK: new PublicKey("EJuhmswifV6wumS28Sfr5W8B18CJ29m1ZNKkhbhbYDCA"),
+    MINT: new PublicKey("jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v"),
+    AMOUNT: new BN(0.0005 * 10 ** 9), // jupsol has 9 decimals
+    REMAINING: [
+      new PublicKey("Ek5JSFJFD8QgXM6rPDCzf31XhDp1q3xezaWYSkJWqbqc"), // usdc bank
+      new PublicKey("Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX"), // usdc oracle
+      new PublicKey("EJuhmswifV6wumS28Sfr5W8B18CJ29m1ZNKkhbhbYDCA"), // jupsol bank
+      new PublicKey("HX5WM3qzogAfRCjBUWwnniLByMfFrjm1b5yo4KoWGR27"), // jupsol oracle
+    ],
+  },
+  borrowSOLAgainstUSDC: {
+    PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+    GROUP: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
+    ACCOUNT: new PublicKey("2GMbwepeyW5xzgm3cQLivdPWLydrFevLy2iBbZab3pd6"),
+    BANK: new PublicKey("3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp"),
+    MINT: new PublicKey("So11111111111111111111111111111111111111112"),
+    AMOUNT: new BN(0.0005 * 10 ** 9), // sol has 9 decimals
+    REMAINING: [
+      new PublicKey("Ek5JSFJFD8QgXM6rPDCzf31XhDp1q3xezaWYSkJWqbqc"), // usdc bank
+      new PublicKey("Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX"), // usdc oracle
+      // new PublicKey("EJuhmswifV6wumS28Sfr5W8B18CJ29m1ZNKkhbhbYDCA"), // jupsol bank
+      // new PublicKey("HX5WM3qzogAfRCjBUWwnniLByMfFrjm1b5yo4KoWGR27"), // jupsol oracle
+      new PublicKey("3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp"), // sol bank
+      new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"), // sol oracle
+    ],
+  },
+  borrowSOLAgainstStakedSOL: {
+    PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+    GROUP: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
+    ACCOUNT: new PublicKey("7SBEjeEjhzRvWsrTq7UiNWBLjcYwE1hdbmMK5wUaeVhU"),
+    BANK: new PublicKey("3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp"),
+    STAKE_POOL: new PublicKey("AvS4oXtxWdrJGCJwDbcZ7DqpSqNQtKjyXnbkDbrSk6Fq"),
+    MINT: new PublicKey("So11111111111111111111111111111111111111112"),
+    AMOUNT: new BN(0.00002 * 10 ** 6), // usdc has 6 decimals
+    REMAINING: [
+      new PublicKey("3jt43usVm7qL1N5qPvbzYHWQRxamPCRhri4CxwDrf6aL"), // staked sol bank
+      new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"), // staked sol oracle
+      new PublicKey("BADo3D6nMtGnsAaTv3iEes8mMcq92TuFoBWebFe8kzeA"), // lst mint
+      new PublicKey("3e8RuaQMCPASZSMJAskHX6ZfuTtQ3JvoNPFoEvaVRn78"), // lst pool
+      new PublicKey("3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp"), // usdc bank
+      new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"), // usdc oracle
+    ],
+  },
+};
+
+const config: Config = examples.borrowJupSOLAgainstUSDC;
+
+// const config: Config = {
+//   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+//   GROUP: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
+//   ACCOUNT: new PublicKey("E3uJyxW232EQAVZ9P9V6CFkxzjqqVdbh8XvUmxtZdGUt"),
+//   BANK: new PublicKey("3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp"),
+//   STAKE_POOL: new PublicKey("AvS4oXtxWdrJGCJwDbcZ7DqpSqNQtKjyXnbkDbrSk6Fq"),
+//   MINT: new PublicKey("So11111111111111111111111111111111111111112"),
+//   AMOUNT: new BN(0.0002 * 10 ** 9), // sol has 9 decimals
+//   REMAINING: [
+//     new PublicKey("3jt43usVm7qL1N5qPvbzYHWQRxamPCRhri4CxwDrf6aL"),
+//     new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
+//     new PublicKey("BADo3D6nMtGnsAaTv3iEes8mMcq92TuFoBWebFe8kzeA"), // lst mint
+//     new PublicKey("3e8RuaQMCPASZSMJAskHX6ZfuTtQ3JvoNPFoEvaVRn78"), // lst pool
+//     new PublicKey("3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp"),
+//     new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
+//   ],
+// };
+
+async function main() {
+  marginfiIdl.address = config.PROGRAM_ID;
+  loadEnvFile(".env.api");
+  const apiUrl = process.env.API_URL || DEFAULT_API_URL;
+  console.log("api: " + apiUrl);
+  const connection = new Connection(apiUrl, "confirmed");
+  const wallet = loadKeypairFromFile(process.env.HOME + "/keys/phantom-wallet.json");
+  console.log("wallet: " + wallet.publicKey);
+
+  // @ts-ignore
+  const provider = new AnchorProvider(connection, wallet, {
+    preflightCommitment: "confirmed",
+  });
+
+  const program = new Program<Marginfi>(
+    // @ts-ignore
+    marginfiIdl as Marginfi,
+    provider
+  );
+
+  if (config.STAKE_POOL) {
+    // Equivalent to findPoolMintAddress
+    const [lstMint] = PublicKey.findProgramAddressSync(
+      [Buffer.from("mint"), config.STAKE_POOL.toBuffer()],
+      SINGLE_POOL_PROGRAM_ID
+    );
+    // Equivalent to findPoolStakeAuthorityAddress
+    const [pool] = PublicKey.findProgramAddressSync(
+      [Buffer.from("stake"), config.STAKE_POOL.toBuffer()],
+      SINGLE_POOL_PROGRAM_ID
+    );
+    console.log("mint: " + lstMint + " pool " + pool);
+  }
+
+  const oracleMeta: AccountMeta[] = config.REMAINING.map((pubkey) => ({
+    pubkey,
+    isSigner: false,
+    isWritable: false,
+  }));
+
+  const ata = getAssociatedTokenAddressSync(config.MINT, wallet.publicKey);
+  const transaction = new Transaction();
+  transaction.add(
+    createAssociatedTokenAccountIdempotentInstruction(wallet.publicKey, ata, wallet.publicKey, config.MINT)
+  );
+
+  transaction.add(
+    await program.methods
+      .lendingAccountBorrow(config.AMOUNT)
+      .accounts({
+        marginfiGroup: config.GROUP,
+        marginfiAccount: config.ACCOUNT,
+        signer: wallet.publicKey,
+        bank: config.BANK,
+        destinationTokenAccount: ata,
+        // bankLiquidityVaultAuthority = deriveLiquidityVaultAuthority(id, bank);
+        // bankLiquidityVault = deriveLiquidityVault(id, bank)
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .remainingAccounts(oracleMeta)
+      .instruction()
+  );
+
+  const priorityFee = 100000; // 0.0001 SOL (100,000 lamports)
+  transaction.instructions.unshift(ComputeBudgetProgram.setComputeUnitPrice({ microLamports: priorityFee }));
+
+  try {
+    const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
+    console.log("Transaction signature:", signature);
+  } catch (error) {
+    console.error("Transaction failed:", error);
+  }
+
+  console.log("borrow: " + config.AMOUNT.toString() + " from " + config.BANK);
+}
+
+main().catch((err) => {
+  console.error(err);
+});
+```
+
 ### Create a Permissionless Isolated Bank
 
 ```javascript {{ title: 'Example' }}
