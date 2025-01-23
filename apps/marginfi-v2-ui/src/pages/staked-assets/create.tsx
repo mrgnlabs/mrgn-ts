@@ -23,7 +23,6 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import BN from "bn.js";
 import { findPoolAddress } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
-import { ActionCompleteMrgnUi } from "~/components/common/ActionComplete";
 
 type CreateStakedAssetForm = {
   voteAccountKey: string;
@@ -35,14 +34,8 @@ type CreateStakedAssetForm = {
 export default function CreateStakedAssetPage() {
   const { connection } = useConnection();
   const { wallet } = useWallet();
-  const [client, initialized] = useMrgnlendStore((state) => [state.marginfiClient, state.initialized]);
-  const [broadcastType, priorityFees, setPreviousTxn, setIsActionComplete, previousTxn] = useUiStore((state) => [
-    state.broadcastType,
-    state.priorityFees,
-    state.setPreviousTxn,
-    state.setIsActionComplete,
-    state.previousTxn,
-  ]);
+  const [client] = useMrgnlendStore((state) => [state.marginfiClient]);
+  const [broadcastType, priorityFees] = useUiStore((state) => [state.broadcastType, state.priorityFees]);
 
   const [form, setForm] = React.useState<CreateStakedAssetForm>({
     voteAccountKey: "",
@@ -69,16 +62,6 @@ export default function CreateStakedAssetPage() {
     },
     maxFiles: 1,
   });
-
-  React.useEffect(() => {
-    console.log("setting previous txn");
-    setPreviousTxn({
-      txn: "",
-      txnType: "CREATE_STAKED",
-      createStakedOptions: {},
-    });
-    setIsActionComplete(true);
-  }, []);
 
   const createStakedAssetSplPoolTxn = React.useCallback(
     async (voteAccount: PublicKey, client: MarginfiClient, multiStepToast: MultiStepToastHandle) => {
@@ -307,8 +290,6 @@ export default function CreateStakedAssetPage() {
           )}
         </Button>
       </form>
-
-      {initialized && previousTxn && <ActionCompleteMrgnUi />}
     </div>
   );
 }
