@@ -368,6 +368,7 @@ async function makePoolAddBankIx(
       pad0: [0, 0, 0, 0, 0, 0, 0, 0],
       totalAssetValueInitLimit: args.bankConfig.totalAssetValueInitLimit,
       oracleMaxAge: 0,
+      assetTag: args.bankConfig.assetTag,
     })
     .accounts({
       marginfiGroup: accounts.marginfiGroup,

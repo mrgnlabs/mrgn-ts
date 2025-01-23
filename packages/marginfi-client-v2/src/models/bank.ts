@@ -730,6 +730,7 @@ interface BankConfigOpt {
   oracleMaxAge: number | null;
   permissionlessBadDebtSettlement: boolean | null;
   freezeSettings: boolean | null;
+  assetTag: number | null;
 }
 
 interface BankConfigOptRaw {
