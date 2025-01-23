@@ -1,28 +1,15 @@
 import React from "react";
+import { PublicKey, Transaction } from "@solana/web3.js";
 
-import { useDropzone } from "react-dropzone";
-import { IconPhoto, IconLoader2 } from "@tabler/icons-react";
-import {
-  cn,
-  composeExplorerUrl,
-  handleIndividualFlowError,
-  MultiStepToastHandle,
-  useIsMobile,
-} from "@mrgnlabs/mrgn-utils";
+import { composeExplorerUrl, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+import { MarginfiClient, vendor } from "@mrgnlabs/marginfi-client-v2";
 
 import { PageHeading } from "~/components/common/PageHeading";
-
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { vendor } from "@mrgnlabs/marginfi-client-v2";
-import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks";
-import { PublicKey, Transaction } from "@solana/web3.js";
+import { useConnection } from "~/hooks/use-connection";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { CreateStakedPoolDialog, CreateStakedPoolForm } from "~/components/common/create-staked-pool";
 import BN from "bn.js";
-import { findPoolAddress } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 
 type CreateStakedAssetForm = {
   voteAccountKey: string;
@@ -36,37 +23,19 @@ export default function CreateStakedAssetPage() {
   const { wallet } = useWallet();
   const [client] = useMrgnlendStore((state) => [state.marginfiClient]);
   const [broadcastType, priorityFees] = useUiStore((state) => [state.broadcastType, state.priorityFees]);
-
-  const [form, setForm] = React.useState<CreateStakedAssetForm>({
+  const [completedForm, setCompletedForm] = React.useState({
     voteAccountKey: "",
     assetName: "",
-    assetSymbol: "",
-    assetLogo: null,
   });
+
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+
   const [isLoading, setIsLoading] = React.useState(false);
-  const isMobile = useIsMobile();
-
-  const onDrop = React.useCallback(
-    (acceptedFiles: File[]) => {
-      if (acceptedFiles.length > 0) {
-        setForm({ ...form, assetLogo: acceptedFiles[0] });
-      }
-    },
-    [form]
-  );
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "image/png": [".png"],
-    },
-    maxFiles: 1,
-  });
 
   const createStakedAssetSplPoolTxn = React.useCallback(
     async (voteAccount: PublicKey, client: MarginfiClient, multiStepToast: MultiStepToastHandle) => {
       const solOracle = new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE");
-      const poolAddress = findPoolAddress(voteAccount);
+      const poolAddress = vendor.findPoolAddress(voteAccount);
       const poolAdderssInfo = await connection.getAccountInfo(poolAddress);
       let txns: Transaction[] = [];
 
@@ -90,7 +59,7 @@ export default function CreateStakedAssetPage() {
   const executeCreatedStakedAssetSplPoolTxn = React.useCallback(
     async (txns: Transaction[], client: MarginfiClient, multiStepToast: MultiStepToastHandle) => {
       const txSignature = await client.processTransactions(txns, {
-        broadcastType: broadcastType,
+        broadcastType: "RPC",
         ...priorityFees,
         callback(index, success, signature, stepsToAdvance) {
           success && multiStepToast.setSuccessAndNext(stepsToAdvance, signature, composeExplorerUrl(signature));
@@ -106,7 +75,7 @@ export default function CreateStakedAssetPage() {
     [broadcastType, priorityFees]
   );
 
-  const uploadImage = React.useCallback(async (file: File, mint: string) => {
+  const uploadImage = async (file: File, mint: string) => {
     const fileParts = file.name.split(".");
     const extension = fileParts.length > 1 ? fileParts.pop() : "";
     const filename = `${mint}.${extension}`;
@@ -125,7 +94,7 @@ export default function CreateStakedAssetPage() {
     });
 
     return upload.ok;
-  }, []);
+  };
 
   const addMetadata = async (
     voteAccount: PublicKey,
@@ -149,8 +118,12 @@ export default function CreateStakedAssetPage() {
     await new Promise((resolve) => setTimeout(resolve, 4000));
   };
 
-  const handleSubmitForm = React.useCallback(
-    async (txns?: Transaction[], multiStepToast?: MultiStepToastHandle) => {
+  const handleSumbitForm = (form: CreateStakedAssetForm) => {
+    createStakedAsset(form);
+  };
+
+  const createStakedAsset = React.useCallback(
+    async (form: CreateStakedAssetForm, txns?: Transaction[], multiStepToast?: MultiStepToastHandle) => {
       if (!client) return;
 
       setIsLoading(true);
@@ -167,6 +140,14 @@ export default function CreateStakedAssetPage() {
         multiStepToast.start();
       } else {
         multiStepToast.resetAndStart();
+      }
+
+      try {
+        new PublicKey(form.voteAccountKey);
+      } catch (e) {
+        multiStepToast.setFailed("Invalid vote account key");
+        setIsLoading(false);
+        return;
       }
 
       if (!txns || txns.length === 0) {
@@ -191,19 +172,21 @@ export default function CreateStakedAssetPage() {
         }
 
         multiStepToast.setSuccess();
+        setCompletedForm(form);
+        setIsDialogOpen(true);
       } catch (e: any) {
         console.error(e);
         setIsLoading(false);
         let retry = undefined;
         if (e.retry) {
-          retry = () => handleSubmitForm(txns, multiStepToast);
+          retry = () => createStakedAsset(form, txns, multiStepToast);
         }
         multiStepToast.setFailed(e.message ?? "Failed to create staked asset bank", retry);
       } finally {
         setIsLoading(false);
       }
     },
-    [client, createStakedAssetSplPoolTxn, executeCreatedStakedAssetSplPoolTxn, form, uploadImage]
+    [client, createStakedAssetSplPoolTxn, executeCreatedStakedAssetSplPoolTxn]
   );
 
   return (
@@ -212,84 +195,13 @@ export default function CreateStakedAssetPage() {
         heading="Staked Asset Banks"
         body={<p>Create a new staked asset bank and let stakers use their native stake as collateral.</p>}
       />
-      <form
-        className="flex flex-col gap-8 px-4 md:px-0"
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmitForm();
-        }}
-      >
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="name">Vote Account Key</Label>
-          <Input
-            required
-            id="name"
-            placeholder="Enter validator vote account public key"
-            value={form.voteAccountKey}
-            onChange={(e) => setForm({ ...form, voteAccountKey: e.target.value })}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="name">Asset Name</Label>
-          <Input
-            required
-            id="name"
-            placeholder="Enter asset name"
-            value={form.assetName}
-            onChange={(e) => setForm({ ...form, assetName: e.target.value })}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="name">Asset Symbol</Label>
-          <Input
-            required
-            id="name"
-            placeholder="Enter asset ticker"
-            value={form.assetSymbol}
-            onChange={(e) => setForm({ ...form, assetSymbol: e.target.value })}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="logo">
-            Asset Logo <span className="text-xs text-muted-foreground">(optional)</span>
-          </Label>
-          <div
-            className={cn(
-              "flex gap-4 items-center cursor-pointer p-4 group rounded-lg transition-colors hover:bg-background-gray",
-              isDragActive && "bg-background-gray-light"
-            )}
-            {...getRootProps()}
-          >
-            <div
-              className={cn(
-                "border flex items-center justify-center rounded-full w-16 h-16 bg-background-gray-light border-background-gray-light transition-colors text-center text-input",
-                "group-hover:border-input group-hover:bg-input group-hover:text-primary",
-                isDragActive && "border-input bg-input text-primary"
-              )}
-            >
-              <input {...getInputProps()} />
-              <IconPhoto size={24} />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {form.assetLogo
-                ? `File: ${form.assetLogo.name}`
-                : isMobile
-                ? "Tap to select an image"
-                : "Drop an image here or click to select"}
-            </p>
-          </div>
-        </div>
-        <Button disabled={!form.voteAccountKey || !form.assetName || isLoading} type="submit" size="lg">
-          {isLoading ? (
-            <>
-              <IconLoader2 size={16} className="animate-spin" />
-              Creating Staked Asset Bank...
-            </>
-          ) : (
-            "Create Staked Asset Bank"
-          )}
-        </Button>
-      </form>
+      <CreateStakedPoolForm isLoading={isLoading} onSubmit={handleSumbitForm} />
+      <CreateStakedPoolDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        asset={completedForm.assetName}
+        voteAccountKey={completedForm.voteAccountKey}
+      />
     </div>
   );
 }
