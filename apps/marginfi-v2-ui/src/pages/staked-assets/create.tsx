@@ -19,10 +19,10 @@ import { vendor } from "@mrgnlabs/marginfi-client-v2";
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2/hooks";
 import { PublicKey, Transaction } from "@solana/web3.js";
-import { SINGLE_POOL_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import BN from "bn.js";
+import { findPoolAddress } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 
 type CreateStakedAssetForm = {
   voteAccountKey: string;
@@ -58,7 +58,7 @@ export default function CreateStakedAssetPage() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      "image/*": [".jpeg", ".jpg", ".png", ".gif"],
+      "image/png": [".png"],
     },
     maxFiles: 1,
   });
@@ -66,19 +66,23 @@ export default function CreateStakedAssetPage() {
   const createStakedAssetSplPoolTxn = React.useCallback(
     async (voteAccount: PublicKey, client: MarginfiClient, multiStepToast: MultiStepToastHandle) => {
       const solOracle = new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE");
+      const poolAddress = findPoolAddress(voteAccount);
+      const poolAdderssInfo = await connection.getAccountInfo(poolAddress);
+      let txns: Transaction[] = [];
 
-      // comment this back in when we have a way to create a staked bank
-      // const initSplPoolTx = await vendor.initializeStakedPoolTx(
-      //   connection,
-      //   wallet.publicKey,
-      //   new PublicKey(voteAccount)
-      // );
+      if (!poolAdderssInfo) {
+        txns.push(await vendor.initializeStakedPoolTx(connection, wallet.publicKey, new PublicKey(voteAccount)));
+      }
 
-      // here is a problem, use phantom validator because we already have a staked spl pool
-      const addBankIxs = await client.group.makeAddPermissionlessStakedBankIx(client.program, voteAccount, solOracle);
-      const addBankTx = new Transaction().add(...addBankIxs.instructions);
+      const addBankIxs = await client.group.makeAddPermissionlessStakedBankIx(
+        client.program,
+        voteAccount,
+        client.provider.publicKey,
+        solOracle
+      );
+      txns.push(new Transaction().add(...addBankIxs.instructions));
 
-      return [addBankTx]; //initSplPoolTx
+      return txns;
     },
     [connection, wallet.publicKey]
   );
@@ -133,9 +137,9 @@ export default function CreateStakedAssetPage() {
     const response = await fetch(`/api/stakedPools/addMetadata`, {
       method: "POST",
       body: JSON.stringify({
-        bankAddress,
-        validatorVoteAccount: voteAccount,
-        tokenAddress,
+        bankAddress: bankAddress.toBase58(),
+        validatorVoteAccount: voteAccount.toBase58(),
+        tokenAddress: tokenAddress.toBase58(),
         tokenName,
         tokenSymbol,
         tokenDecimals: 9,
