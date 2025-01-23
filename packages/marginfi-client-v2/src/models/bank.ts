@@ -109,6 +109,8 @@ interface InterestRateConfigRaw {
   insuranceIrFee: WrappedI80F48;
   protocolFixedFeeApr: WrappedI80F48;
   protocolIrFee: WrappedI80F48;
+
+  protocolOriginationFee: WrappedI80F48;
 }
 
 type OracleSetupRaw =
@@ -727,6 +729,7 @@ interface BankConfigOpt {
 
   oracleMaxAge: number | null;
   permissionlessBadDebtSettlement: boolean | null;
+  freezeSettings: boolean | null;
 }
 
 interface BankConfigOptRaw {
