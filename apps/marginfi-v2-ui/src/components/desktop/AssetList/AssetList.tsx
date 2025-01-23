@@ -476,7 +476,7 @@ export const AssetsList = () => {
           )}
         </div>
       )}
-      {isInLendingMode && (
+      {(isInLendingMode || poolFilter === PoolTypes.NATIVE_STAKE) && (
         <div className={cn("space-y-3 text-center w-full pb-4", stakedPoolTableData.length > 0 ? "pt-3" : "pt-12")}>
           <p className="text-xs text-muted-foreground">Don&apos;t see your native stake available to deposit?</p>
           <div className="flex flex-col gap-2 items-center justify-center">
