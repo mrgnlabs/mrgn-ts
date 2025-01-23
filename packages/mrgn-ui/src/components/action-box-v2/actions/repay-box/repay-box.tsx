@@ -13,17 +13,19 @@ import {
   PreviousTxn,
   ActionMessageType,
   showErrorToast,
-  ExecuteRepayWithCollatActionProps,
   ActionTxns,
   MultiStepToastHandle,
   IndividualFlowError,
   checkRepayActionAvailable,
   ExecuteRepayActionProps,
 } from "@mrgnlabs/mrgn-utils";
-import { IconInfoCircle } from "@tabler/icons-react";
+import { IconInfoCircle, IconSettings } from "@tabler/icons-react";
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { ActionButton, ActionCollateralProgressBar } from "~/components/action-box-v2/components";
+import {
+  ActionBoxContentWrapper,
+  ActionButton,
+  ActionCollateralProgressBar,
+} from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 import { ActionMessage } from "~/components";
 import { IconLoader } from "~/components/ui/icons";
@@ -36,6 +38,8 @@ import { CircularProgress } from "~/components/ui/circular-progress";
 import { ActionInput, Preview } from "./components";
 import { useActionContext } from "../../contexts";
 import { handleExecuteRepayAction } from "./utils/repay-action.utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
+import { TooltipProvider } from "~/components/ui/tooltip";
 
 export type RepayBoxProps = {
   nativeSolBalance: number;
@@ -52,6 +56,7 @@ export type RepayBoxProps = {
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
+  setDisplaySettings?: (displaySettings: boolean) => void;
 };
 
 export const RepayBox = ({
@@ -67,6 +72,7 @@ export const RepayBox = ({
   showAvailableCollateral,
   onComplete,
   captureEvent,
+  setDisplaySettings,
 }: RepayBoxProps) => {
   const [
     amountRaw,
@@ -144,13 +150,6 @@ export const RepayBox = ({
     state.slippageBps,
   ]);
 
-  React.useEffect(() => {
-    console.log("refreshState");
-    return () => {
-      refreshState();
-    };
-  }, [refreshState]);
-
   const accountSummary = React.useMemo(() => {
     return (
       accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount, banks) : DEFAULT_ACCOUNT_SUMMARY)
@@ -159,7 +158,7 @@ export const RepayBox = ({
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
-    selectedBank: selectedBank, // TT
+    selectedBank: selectedBank,
     nativeSolBalance,
     actionMode: ActionType.Repay,
     maxAmountCollateral,
@@ -200,18 +199,18 @@ export const RepayBox = ({
     }
   }, [simulationResult, debouncedAmount, setActionTxns, setSimulationResult]);
 
-  // TODO: Do we need all these useEffects?
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
     if (!connected) {
-      console.log("refreshState");
       refreshState();
     }
   }, [refreshState, connected]);
 
+  // Only set the action box state on mount
   React.useEffect(() => {
     fetchActionBoxState({ requestedBank: requestedBank, requestedSecondaryBank: requestedSecondaryBank });
-  }, [requestedBank, requestedSecondaryBank, fetchActionBoxState]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchActionBoxState]);
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
@@ -223,11 +222,10 @@ export const RepayBox = ({
   }, [errorMessage]);
 
   React.useEffect(() => {
-    if (marginfiClient) {
-      console.log("refreshSelectedBanks");
-      refreshSelectedBanks(banks);
-    }
-  }, [marginfiClient, banks, refreshSelectedBanks]);
+    return () => {
+      refreshState();
+    };
+  }, [refreshState]);
 
   const actionMessages = React.useMemo(() => {
     return checkRepayActionAvailable({
@@ -262,31 +260,31 @@ export const RepayBox = ({
         },
         setIsComplete: (txnSigs) => {
           callbacks.setIsActionComplete(true);
-          // callbacks.setPreviousTxn({
-          //   txn: txnSigs[txnSigs.length - 1] ?? "",
-          //   txnType: "LEND",
-          //   lendingOptions: {
-          //     amount: repayAmount,
-          //     type: ActionType.Repay,
-          //     bank: selectedBank as ActiveBankInfo,
-          //     collatRepay: {
-          //       borrowBank: selectedBank as ActiveBankInfo,
-          //       withdrawBank: selectedSecondaryBank as ActiveBankInfo,
-          //       withdrawAmount: amount,
-          //     },
-          //   },
-          //   }); // TODO: update
+          callbacks.setPreviousTxn({
+            txn: txnSigs[txnSigs.length - 1] ?? "",
+            txnType: "LEND",
+            lendingOptions: {
+              amount: props.repayAmount,
+              type: ActionType.Repay,
+              bank: props.selectedBank as ActiveBankInfo,
+              collatRepay: {
+                borrowBank: props.selectedBank as ActiveBankInfo,
+                withdrawBank: props.selectedSecondaryBank as ActiveBankInfo,
+                withdrawAmount: props.withdrawAmount,
+              },
+            },
+          });
 
-          // callbacks.onComplete &&
-          //   callbacks.onComplete({
-          //     txn: txnSigs[txnSigs.length - 1] ?? "",
-          //     txnType: "LEND",
-          //     lendingOptions: {
-          //       amount: props.withdrawAmount,
-          //       type: ActionType.RepayCollat,
-          //       bank: props.borrowBank as ActiveBankInfo,
-          //     },
-          //   }); // TODO: update
+          callbacks.onComplete &&
+            callbacks.onComplete({
+              txn: txnSigs[txnSigs.length - 1] ?? "",
+              txnType: "LEND",
+              lendingOptions: {
+                amount: props.withdrawAmount,
+                type: ActionType.Repay,
+                bank: props.selectedBank as ActiveBankInfo,
+              },
+            });
         },
         setError: (error: IndividualFlowError) => {
           const toast = error.multiStepToast as MultiStepToastHandle;
@@ -343,7 +341,7 @@ export const RepayBox = ({
       txOpts: {},
 
       marginfiAccount: selectedAccount,
-      repayAmount, // TODO: check if this is correct
+      repayAmount,
       withdrawAmount: amount,
       selectedBank,
       selectedSecondaryBank,
@@ -380,43 +378,33 @@ export const RepayBox = ({
   ]);
 
   return (
-    <>
-      {/* {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
-        <div className="absolute -top-1 -right-1 z-50">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <CircularProgress
-                  size={18}
-                  strokeWidth={3}
-                  value={blockProgress * 100}
-                  strokeColor="stroke-mfi-action-box-accent-foreground/50"
-                  backgroundColor="stroke-mfi-action-box-background-dark"
-                />
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                <div className="space-y-2">
-                  <p>Your transaction is ready for execution.</p>
-                  <p>Once the spinner reaches 100%, if not processed, it will refresh to fetch updated quotes.</p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+    <ActionBoxContentWrapper>
+      {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
+        <div className="mb-6">
+          <div className="absolute top-0 right-0 z-50">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <CircularProgress
+                    size={18}
+                    strokeWidth={3}
+                    value={blockProgress * 100}
+                    strokeColor="stroke-mfi-action-box-accent-foreground/50"
+                    backgroundColor="stroke-mfi-action-box-background-dark"
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  <div className="space-y-2">
+                    <p>Your transaction is ready for execution.</p>
+                    <p>Once the spinner reaches 100%, if not processed, it will refresh to fetch updated quotes.</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
-      )} */}
+      )}
       <div className="mb-4">
-        {/* <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
-                Repay <IconInfoCircle className="w-4 h-4" />
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Repay using your prefered token.</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider> */}
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
@@ -465,13 +453,25 @@ export const RepayBox = ({
         />
       </div>
 
-      <ActionSimulationStatus
-        simulationStatus={isSimulating.status}
-        hasErrorMessages={additionalActionMessages.length > 0}
-        isActive={selectedBank && amount > 0 ? true : false}
-      />
+      <div className="flex items-center justify-between">
+        <ActionSimulationStatus
+          simulationStatus={isSimulating.status}
+          hasErrorMessages={additionalActionMessages.length > 0}
+          isActive={selectedBank && amount > 0 ? true : false}
+        />
+        {setDisplaySettings && (
+          <div className="flex justify-end gap-2 ml-auto">
+            <button
+              onClick={() => setDisplaySettings(true)}
+              className="text-xs gap-1 h-6 px-2 flex items-center rounded-full bg-mfi-action-box-accent hover:bg-mfi-action-box-accent/80 "
+            >
+              Settings <IconSettings size={20} />
+            </button>
+          </div>
+        )}{" "}
+      </div>
 
       <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />
-    </>
+    </ActionBoxContentWrapper>
   );
 };

@@ -4,6 +4,7 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 import { ExtendedBankInfo, getCurrentAction, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActionBox, WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
+import { capture } from "@mrgnlabs/mrgn-utils";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
@@ -32,10 +33,13 @@ const ActionBoxCell = ({
         useProvider={true}
         repayProps={{
           connected: connected,
-          walletContextState,
           requestedBank: bank,
+          requestedSecondaryBank: undefined,
           onComplete: () => {
             fetchMrgnlendState();
+          },
+          captureEvent: (event, properties) => {
+            capture(event, properties);
           },
         }}
         dialogProps={{
