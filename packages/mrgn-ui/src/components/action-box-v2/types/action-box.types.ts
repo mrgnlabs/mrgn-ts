@@ -1,7 +1,6 @@
 import {
   LendBoxProps,
   LoopBoxProps,
-  RepayCollatBoxProps,
   StakeBoxProps,
   DepositSwapBoxProps,
   RepayBoxProps as _RepayBoxProps,

@@ -21,7 +21,7 @@ export interface CalculatePreviewProps {
   actionQuote?: QuoteResponse | null;
 }
 
-export interface SimulateActionProps {
+export interface SimulateRepayActionProps {
   txns: (VersionedTransaction | Transaction)[];
   account: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
@@ -48,7 +48,7 @@ export function calculateSummary({
   } as ActionSummary;
 }
 
-export const getSimulationResult = async (props: SimulateActionProps) => {
+export const getRepaySimulationResult = async (props: SimulateRepayActionProps) => {
   let actionMethod: ActionMessageType | undefined = undefined;
   let simulationResult: SimulationResult | null = null;
 
@@ -93,7 +93,7 @@ function calculateActionPreview(
   } as ActionPreview;
 }
 
-async function simulateFlashLoan({ account, bank, txns }: SimulateActionProps) {
+async function simulateFlashLoan({ account, bank, txns }: SimulateRepayActionProps) {
   let simulationResult: SimulationResult;
 
   if (txns.length > 0) {

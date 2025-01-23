@@ -105,7 +105,7 @@ export async function calculateRepayTransactions(props: CalculateRepayTransactio
       platformFeeBps: props.platformFeeBps,
       slippageBps: props.slippageBps,
       withdrawAmount: props.repayAmount,
-    }); // TODO: confirm SWAP type is added to additionalTxn
+    });
 
     if (repayCollatResult && "actionMessage" in repayCollatResult) {
       return repayCollatResult.actionMessage as ActionMessageType;
