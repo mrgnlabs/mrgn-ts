@@ -56,6 +56,7 @@ export interface ProcessTransactionOpts extends ProcessTransactionsClientOpts {
 export type PriorityFees = {
   bundleTipUi?: number;
   priorityFeeMicro?: number;
+  maxCapUi?: number;
 };
 
 export type BroadcastMethodType = Extract<TransactionBroadcastType, "BUNDLE" | "RPC">;
@@ -214,15 +215,23 @@ export async function processTransactions({
     // only to estimate compute units, final simulation is done just before sending
   }
 
+  const maxCapUi = processOpts.maxCapUi;
+
   console.log("------ Transaction Details 👇 ------");
   console.log(`📝 Executing ${transactions.length} transaction${transactions.length > 1 ? "s" : ""}`);
   console.log(`📡 Broadcast type: ${broadcastType}`);
   if (broadcastType === "BUNDLE") {
-    console.log(`💸 Bundle tip: ${processOpts.bundleTipUi} SOL`);
+    console.log(
+      `💸 Bundle tip: ${maxCapUi ? Math.min(processOpts.bundleTipUi ?? 0, maxCapUi) : processOpts.bundleTipUi} SOL`
+    );
   } else {
     updatedTransactions.forEach((tx, idx) => {
       const cu = tx.unitsConsumed ? Math.min(tx.unitsConsumed + 50_000, 1_400_000) : getComputeBudgetUnits(tx);
-      const priorityFeeUi = processOpts.priorityFeeMicro ? microLamportsToUi(processOpts.priorityFeeMicro, cu) : 0;
+      const priorityFeeUi = maxCapUi
+        ? Math.min(processOpts.priorityFeeMicro ? microLamportsToUi(processOpts.priorityFeeMicro, cu) : 0, maxCapUi)
+        : processOpts.priorityFeeMicro
+        ? microLamportsToUi(processOpts.priorityFeeMicro, cu)
+        : 0;
       console.log(`💸 Priority fee for tx ${idx}: ${priorityFeeUi} SOL`);
     });
   }
@@ -234,7 +243,8 @@ export async function processTransactions({
     processOpts.priorityFeeMicro ?? 0,
     processOpts.bundleTipUi ?? 0,
     wallet.publicKey,
-    blockhash
+    blockhash,
+    maxCapUi
   );
 
   let signatures: TransactionSignature[] = [];

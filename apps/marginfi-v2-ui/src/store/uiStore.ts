@@ -2,19 +2,12 @@ import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
 import {
-  MaxCap,
   MaxCapType,
   TransactionBroadcastType,
   TransactionPriorityType,
   TransactionSettings,
 } from "@mrgnlabs/mrgn-common";
-import {
-  LendingModes,
-  PoolTypes,
-  DEFAULT_PRIORITY_SETTINGS,
-  fetchPriorityFee,
-  fetchMaxCap,
-} from "@mrgnlabs/mrgn-utils";
+import { LendingModes, PoolTypes, DEFAULT_PRIORITY_SETTINGS, fetchPriorityFee } from "@mrgnlabs/mrgn-utils";
 
 import { SortType, sortDirection, SortAssetOption } from "~/types";
 import { Connection } from "@solana/web3.js";
@@ -64,7 +57,6 @@ interface UiState {
   broadcastType: TransactionBroadcastType;
   priorityType: TransactionPriorityType;
   maxCapType: MaxCapType;
-  maxCap: MaxCap;
   priorityFees: PriorityFees;
   accountLabels: Record<string, string>;
   displaySettings: boolean;
@@ -131,17 +123,23 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     get().fetchPriorityFee(connection, settings);
   },
   fetchPriorityFee: async (connection: Connection, settings?: TransactionSettings) => {
-    const { priorityType, broadcastType } = settings ?? get();
-    const { maxCap } = get();
+    const { priorityType, broadcastType, maxCapType } = settings ?? get();
 
-    const manualMaxCap = settings?.maxCap ?? maxCap.manualMaxCap;
+    let manualMaxCap;
+
+    if (maxCapType === "MANUAL") {
+      manualMaxCap = settings?.maxCap ?? get().priorityFees.maxCapUi;
+    } else {
+      manualMaxCap = 0;
+    }
 
     try {
-      const { bundleTipCap, priorityFeeCap } = await fetchMaxCap(connection);
-      const priorityFees = await fetchPriorityFee(broadcastType, priorityType, connection);
+      const priorityFees = await fetchPriorityFee(broadcastType, priorityType, connection, maxCapType);
       set({
-        priorityFees,
-        maxCap: { manualMaxCap, bundleTipCap, priorityFeeCap },
+        priorityFees: {
+          ...priorityFees,
+          maxCapUi: manualMaxCap,
+        },
       });
     } catch (error) {
       console.error(error);

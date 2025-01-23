@@ -115,21 +115,11 @@ export async function makeVersionedTransaction(
  * The priority fee is specified in micro-lamports per compute unit.
  *
  * @param priorityFeeMicro - Priority fee in micro-lamports per compute unit. If not provided, defaults to 1.
- * @param computeUnitsLimit - Maximum compute units allowed for the transaction. Defaults to 1.4M units.
  * @returns A compute budget instruction with the specified priority fee
  */
-export function makePriorityFeeMicroIx(priorityFeeMicro?: number, computeUnitsLimit?: number): TransactionInstruction {
-  const limit = computeUnitsLimit ?? 1_400_000;
-
-  let microLamports = 1;
-
-  if (priorityFeeMicro) {
-    // if priority fee is above 0.2 SOL discard it for safety reasons
-    microLamports = Math.round(priorityFeeMicro / limit);
-  }
-
+export function makePriorityFeeMicroIx(priorityFeeMicro?: number): TransactionInstruction {
   return ComputeBudgetProgram.setComputeUnitPrice({
-    microLamports: priorityFeeMicro ?? 1,
+    microLamports: Math.floor(priorityFeeMicro ?? 1),
   });
 }
 

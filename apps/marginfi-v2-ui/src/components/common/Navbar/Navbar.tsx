@@ -50,7 +50,6 @@ export const Navbar: FC = () => {
     priorityType,
     broadcastType,
     priorityFees,
-    maxCap,
     maxCapType,
     slippageBps,
     setSlippageBps,
@@ -65,7 +64,6 @@ export const Navbar: FC = () => {
     priorityType: state.priorityType,
     broadcastType: state.broadcastType,
     priorityFees: state.priorityFees,
-    maxCap: state.maxCap,
     maxCapType: state.maxCapType,
     slippageBps: state.slippageBps,
     setSlippageBps: state.setSlippageBps,
@@ -193,7 +191,7 @@ export const Navbar: FC = () => {
                 transactionOptions={{
                   broadcastType,
                   priorityType,
-                  maxCap: maxCap.manualMaxCap,
+                  maxCap: priorityFees.maxCapUi ?? 0,
                   maxCapType,
                 }}
                 jupiterOptions={jupiterOptions}
