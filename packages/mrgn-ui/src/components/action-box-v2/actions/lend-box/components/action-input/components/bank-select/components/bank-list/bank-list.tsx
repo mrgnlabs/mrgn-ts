@@ -184,15 +184,14 @@ export const BankList = ({
                   </CommandItem>
                 );
               })}
-            {/* <div className="flex flex-col w-full gap-2 items-center justify-between py-2">
             <div className="space-y-2 text-center w-full pt-3">
               <p className="text-xs text-muted-foreground">Don&apos;t hold supported tokens?</p>
               <Button variant="outline" className="mx-auto font-normal text-[11px]" size="sm">
                 <Link href="/deposit-swap">
-                  <span>try deposit swap</span>
+                  <span>Try deposit swap</span>
                 </Link>
               </Button>
-            </div> */}
+            </div>
           </CommandGroup>
         )}
         {lendingMode === LendingModes.LEND &&
