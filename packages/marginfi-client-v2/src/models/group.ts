@@ -9,7 +9,7 @@ import { FLASHLOAN_ENABLED_FLAG, TRANSFER_ACCOUNT_AUTHORITY_FLAG } from "../cons
 import { BankConfigCompactRaw, BankConfigOpt, BankConfigOptRaw, serializeBankConfigOpt } from "./bank";
 import { BigNumber } from "bignumber.js";
 import { sha256 } from "crypto-hash";
-import { findPoolAddress } from "../vendor";
+import { findPoolAddress, findPoolMintAddress, findPoolStakeAddress } from "../vendor";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -170,35 +170,27 @@ class MarginfiGroup {
   public async makeAddPermissionlessStakedBankIx(
     program: MarginfiProgram,
     voteAccountAddress: PublicKey,
+    feePayer: PublicKey,
     pythOracle: PublicKey // wSOL oracle
   ): Promise<InstructionsWrapper> {
     const [settingsKey] = PublicKey.findProgramAddressSync(
       [Buffer.from("staked_settings", "utf-8"), this.address.toBuffer()],
       program.programId
     );
-    const stakePool = findPoolAddress(voteAccountAddress);
-    // const [lstMint] = PublicKey.findProgramAddressSync(
-    //   [Buffer.from("mint"), stakePool.toBuffer()],
-    //   SINGLE_POOL_PROGRAM_ID
-    // );
-    const [solPool] = PublicKey.findProgramAddressSync(
-      [Buffer.from("stake"), stakePool.toBuffer()],
-      SINGLE_POOL_PROGRAM_ID
-    );
+    const poolAddress = findPoolAddress(voteAccountAddress);
+    const solPool = findPoolStakeAddress(poolAddress);
+    const lstMint = findPoolMintAddress(poolAddress);
 
-    const [lstMint] = PublicKey.findProgramAddressSync(
-      [Buffer.from("mint"), stakePool.toBuffer()],
-      SINGLE_POOL_PROGRAM_ID
-    );
+    console.log("settingsKey", settingsKey.toBase58());
 
     const ix = await instructions.makePoolAddPermissionlessStakedBankIx(
       program,
       {
         stakedSettings: settingsKey,
-        feePayer: this.admin,
+        feePayer: feePayer,
         bankMint: lstMint,
         solPool,
-        stakePool,
+        stakePool: poolAddress,
       },
       {
         pythOracle: pythOracle,

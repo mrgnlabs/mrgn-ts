@@ -22,7 +22,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const { bankAddress, validatorVoteAccount, tokenAddress, tokenName, tokenSymbol, tokenDecimals } = req.body;
+  const { bankAddress, validatorVoteAccount, tokenAddress, tokenName, tokenSymbol, tokenDecimals } = JSON.parse(
+    req.body
+  );
 
   if (!bankAddress || !validatorVoteAccount || !tokenAddress || !tokenName || !tokenSymbol || !tokenDecimals) {
     res.status(400).json({
