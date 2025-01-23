@@ -31,7 +31,7 @@ export const BankListCommand = ({ selectedBank, onSetSearchQuery, onClose, child
       <button onClick={() => onClose()} className={cn("fixed z-50 top-8 ", isMobile ? "right-10" : "right-6")}>
         <IconX size={18} className="opacity-50" />
       </button>
-      <CommandList className="overflow-auto my-[60px]">{children}</CommandList>
+      <CommandList className="overflow-auto mt-[60px] mb-[60px] sm:mb-0">{children}</CommandList>
     </Command>
   );
 };
