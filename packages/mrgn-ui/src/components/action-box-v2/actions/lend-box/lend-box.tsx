@@ -602,7 +602,7 @@ export const LendBox = ({
       <div className="flex items-center justify-between">
         <ActionSimulationStatus
           simulationStatus={isSimulating.status}
-          hasErrorMessages={additionalActionMessages.length > 0}
+          hasErrorMessages={hasErrorsWarnings}
           isActive={selectedBank && amount > 0 ? true : false}
         />
 
@@ -617,11 +617,6 @@ export const LendBox = ({
           </div>
         )}
       </div>
-      <ActionSimulationStatus
-        simulationStatus={isSimulating.status}
-        hasErrorMessages={hasErrorsWarnings}
-        isActive={selectedBank && amount > 0 ? true : false}
-      />
 
       <Preview
         actionSummary={actionSummary}
