@@ -47,10 +47,10 @@ export const CreateStakedPoolDialog = ({ isOpen, asset, voteAccountKey, onClose 
         <DialogContent className=" w-full h-full flex flex-col sm:justify-center sm:items-center justify-start items-center pt-16 sm:pt-0">
           <DialogHeader className="sr-only">
             <DialogTitle className="space-y-4 text-center flex flex-col items-center justify-center">
-              <h2 className="font-medium text-xl">Created Staked Pool!</h2>
+              <h2 className="font-medium text-xl">Created Stake Asset Bank!</h2>
             </DialogTitle>
             <DialogDescription className="sr-only">
-              You&apos;ve successfully created a staked pool for {asset}!
+              You&apos;ve created a stake pool and bank for {asset}!
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-12 w-full">
@@ -59,7 +59,7 @@ export const CreateStakedPoolDialog = ({ isOpen, asset, voteAccountKey, onClose 
                 <IconMrgn size={48} />
 
                 <div className="flex items-center justify-center gap-2">
-                  <h3 className="text-2xl font-medium text-center">You created a staked pool for {asset}!</h3>
+                  <h3 className="text-2xl font-medium text-center">You created a stake pool and bank for {asset}!</h3>
                 </div>
               </div>
               <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
