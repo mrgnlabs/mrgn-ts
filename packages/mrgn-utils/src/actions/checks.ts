@@ -273,8 +273,10 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
     targetBankInfo.info.state.mintDecimals
   );
 
-  if (walletBalance === 0) {
+  if (walletBalance === 0 && targetBankInfo.info.rawBank.config.assetTag !== 2) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.INSUFFICIENT_BALANCE_CHECK(targetBankInfo.meta.tokenSymbol));
+  } else if (walletBalance === 0 && targetBankInfo.info.rawBank.config.assetTag === 2) {
+    checks.push(DYNAMIC_SIMULATION_ERRORS.INSUFFICIENT_STAKE_BALANCE_CHECK(targetBankInfo.meta.tokenName));
   }
 
   return checks;
