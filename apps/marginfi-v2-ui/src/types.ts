@@ -276,17 +276,10 @@ export enum SortType {
   TVL_DESC = "TVL_DESC",
 }
 
-export type PreviousTxn = {
-  type: ActionType;
-  bank: ActiveBankInfo;
-  amount: number;
+interface PreviousTxnCreateStaked {
   txn: string;
-  lstQuote?: QuoteResponseMeta;
-  loopingOptions?: {
-    depositAmount: number;
-    depositBank: ActiveBankInfo;
-    borrowAmount: number;
-    borrowBank: ActiveBankInfo;
-    leverage: number;
-  };
-};
+  txnType: "CREATE_STAKED";
+  createStakedOptions: {}; // TODO: add options
+}
+
+export type PreviousTxnMrgnUi = PreviousTxnCreateStaked;
