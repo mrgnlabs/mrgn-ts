@@ -1,10 +1,8 @@
 import React from "react";
-import { Connection, Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
-  ActionTxns,
   calculateMaxRepayableCollateral,
   DYNAMIC_SIMULATION_ERRORS,
   extractErrorString,
@@ -12,19 +10,16 @@ import {
   STATIC_SIMULATION_ERRORS,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
-import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useActionBoxStore } from "../../../store";
 import { SimulationStatus } from "../../../utils/simulation.utils";
 import {
   calculateRepayTransactions,
   CalculateRepayTransactionsProps,
   calculateSummary,
-  getSimulationResult,
-  SimulateActionProps,
+  getRepaySimulationResult,
+  SimulateRepayActionProps,
 } from "../utils";
-import { QuoteResponse } from "@jup-ag/api";
 
 type RepaySimulationProps = {
   debouncedAmount: number;
@@ -58,7 +53,7 @@ export function useRepaySimulation({
   actionTxns,
 
   simulationResult,
-  isRefreshTxn,
+  isRefreshTxn, // TODO: implement
 
   platformFeeBps,
   slippageBps,
@@ -71,7 +66,6 @@ export function useRepaySimulation({
   setMaxAmountCollateral,
 }: RepaySimulationProps) {
   const prevDebouncedAmount = usePrevious(debouncedAmount);
-  const prevselectedBank = usePrevious(selectedBank);
   const prevselectedSecondaryBank = usePrevious(selectedSecondaryBank);
 
   const handleError = (
@@ -102,9 +96,9 @@ export function useRepaySimulation({
     callbacks.setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
   };
 
-  const simulationAction = async (props: SimulateActionProps) => {
+  const simulationAction = async (props: SimulateRepayActionProps) => {
     if (props.txns.length > 0) {
-      const simulationResult = await getSimulationResult(props);
+      const simulationResult = await getRepaySimulationResult(props);
       console.log("simulationResult", simulationResult);
 
       if (simulationResult.actionMethod) {
@@ -237,26 +231,6 @@ export function useRepaySimulation({
       slippageBps,
     ]
   );
-
-  // React.useEffect(() => {
-  //   if (
-  //     prevDebouncedAmount !== debouncedAmount ||
-  //     prevselectedBank !== selectedBank ||
-  //     prevselectedSecondaryBank !== selectedSecondaryBank
-  //   ) {
-  //     if (debouncedAmount > 0) {
-  //       handleSimulation(debouncedAmount);
-  //     }
-  //   }
-  // }, [
-  //   debouncedAmount,
-  //   selectedBank,
-  //   selectedSecondaryBank,
-  //   handleSimulation,
-  //   prevDebouncedAmount,
-  //   prevselectedBank,
-  //   prevselectedSecondaryBank,
-  // ]);
 
   React.useEffect(() => {
     if (prevDebouncedAmount !== debouncedAmount) {
