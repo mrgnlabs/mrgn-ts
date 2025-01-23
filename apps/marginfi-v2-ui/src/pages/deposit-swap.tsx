@@ -9,7 +9,10 @@ import { Loader } from "~/components/ui/loader";
 import { useWallet } from "~/components/wallet-v2";
 
 export default function DepositSwapPage() {
-  const [initialized] = useMrgnlendStore((state) => [state.initialized, state.extendedBankInfos]);
+  const [initialized, extendedBankInfosWithoutStakedAssets] = useMrgnlendStore((state) => [
+    state.initialized,
+    state.extendedBankInfosWithoutStakedAssets,
+  ]);
   const { connected } = useWallet();
 
   return (
@@ -22,6 +25,7 @@ export default function DepositSwapPage() {
           <ActionBoxV2.DepositSwap
             useProvider={true}
             depositSwapProps={{
+              banks: extendedBankInfosWithoutStakedAssets,
               connected: connected,
               requestedDepositBank: undefined,
               requestedSwapBank: undefined,
