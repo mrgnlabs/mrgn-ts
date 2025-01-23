@@ -44,6 +44,7 @@ interface MrgnlendState {
   extendedBankMetadatas: ExtendedBankMetadata[];
   extendedBankInfos: ExtendedBankInfo[];
   stakedAssetBankInfos: ExtendedBankInfo[];
+  extendedBankInfosWithoutStakedAssets: ExtendedBankInfo[];
   protocolStats: ProtocolStats;
   selectedAccount: MarginfiAccountWrapper | null;
   nativeSolBalance: number;
@@ -158,6 +159,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   extendedBankInfos: [],
   stakeAccounts: [],
   stakedAssetBankInfos: [],
+  extendedBankInfosWithoutStakedAssets: [],
   protocolStats: {
     deposits: 0,
     borrows: 0,
@@ -426,6 +428,9 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         extendedBankInfos: sortedExtendedBankInfos,
         extendedBankMetadatas: sortedExtendedBankMetadatas,
         stakedAssetBankInfos,
+        extendedBankInfosWithoutStakedAssets: sortedExtendedBankInfos.filter(
+          (bank) => bank.info.rawBank.config.assetTag !== 2
+        ),
         protocolStats: {
           deposits,
           borrows,

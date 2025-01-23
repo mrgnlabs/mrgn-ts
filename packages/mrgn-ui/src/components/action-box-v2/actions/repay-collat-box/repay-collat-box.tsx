@@ -68,7 +68,7 @@ export const RepayCollatBox = ({
   nativeSolBalance,
   connected,
   // tokenAccountMap,
-  banks,
+  banks: banksRaw,
   marginfiClient,
   selectedAccount,
   accountSummaryArg,
@@ -120,6 +120,11 @@ export const RepayCollatBox = ({
     state.setMaxAmountCollateral,
     state.refreshSelectedBanks,
   ]);
+
+  // filter out staked asset banks
+  const banks = React.useMemo(() => {
+    return banksRaw.filter((bank) => bank.info.rawBank.config.assetTag !== 2);
+  }, [banksRaw]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
