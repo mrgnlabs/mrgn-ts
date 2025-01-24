@@ -72,7 +72,10 @@ export const BankItem = ({
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger className="text-xs text-muted-foreground font-normal flex items-center gap-1">
-                      <IconInfoCircle size={14} />
+                      <IconInfoCircle
+                        size={14}
+                        className={cn(!isStakedActivating && !showStakedAssetLabel && "hidden")}
+                      />
                       {isStakedActivating ? "Activating..." : showStakedAssetLabel ? "Native stake" : ""}
                     </TooltipTrigger>
                     <TooltipPortal>
