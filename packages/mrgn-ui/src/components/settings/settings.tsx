@@ -155,7 +155,11 @@ export const Settings = ({
                 render={({ field }) => (
                   <FormItem className="space-y-2 ">
                     <FormControl>
-                      <RadioGroup defaultValue={field.value.toString()} className="flex justify-between">
+                      <RadioGroup
+                        id="broadcastType"
+                        defaultValue={field.value.toString()}
+                        className="flex justify-between"
+                      >
                         {broadcastTypes.map((option) => (
                           <div
                             key={option.type}
@@ -164,7 +168,11 @@ export const Settings = ({
                               field.value === option.type && "border-mfi-action-box-highlight"
                             )}
                           >
-                            <RadioGroupItem value={option.type} id={option.type} className="hidden" />
+                            <RadioGroupItem
+                              value={option.type}
+                              id={`broadcastType_ ${option.type}`}
+                              className="hidden"
+                            />
                             <Label
                               onClick={(e) => {
                                 e.preventDefault();
@@ -175,7 +183,7 @@ export const Settings = ({
                                 "flex flex-col p-3 gap-2 h-auto w-full text-center cursor-pointer",
                                 option.isDisabled && "cursor-not-allowed opacity-50"
                               )}
-                              htmlFor={option.type}
+                              htmlFor={`broadcastType_${option.type}`}
                             >
                               {option.label}
                             </Label>
@@ -338,6 +346,7 @@ export const Settings = ({
                         onValueChange={(value) => {
                           field.onChange(value);
                         }}
+                        id="slippageMode"
                         defaultValue={field.value}
                         className="flex gap-4 justify-between"
                       >
@@ -349,10 +358,10 @@ export const Settings = ({
                               field.value === option.type && "border-mfi-action-box-highlight"
                             )}
                           >
-                            <RadioGroupItem value={option.type} id={option.type} className="hidden" />
+                            <RadioGroupItem value={option.type} id={`slippageMode_${option.type}`} className="hidden" />
                             <Label
                               className="flex p-2 flex-col h-auto w-full text-xs gap-0.5 text-center cursor-pointer"
-                              htmlFor={option.type}
+                              htmlFor={`slippageMode_${option.type}`}
                             >
                               {option.label}
                             </Label>
@@ -457,6 +466,15 @@ export const Settings = ({
     );
   };
 
+  const renderForms = () => {
+    return (
+      <div className="w-full mt-2">
+        <div style={{ display: activeTab === "transaction" ? "block" : "none" }}>{renderTransactionSettings()}</div>
+        <div style={{ display: activeTab === "swap" ? "block" : "none" }}>{renderSwapSettings()}</div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4 w-full">
       {jupiterOptions ? (
@@ -488,9 +506,7 @@ export const Settings = ({
             </span>
           </div>
 
-          <div className="w-full mt-2">
-            {activeTab === "transaction" ? renderTransactionSettings() : renderSwapSettings()}
-          </div>
+          {renderForms()}
         </>
       ) : (
         renderTransactionSettings()
