@@ -3,6 +3,7 @@ import { Connection, LAMPORTS_PER_SOL, ParsedAccountData, PublicKey, StakeProgra
 import { MAX_U64 } from "@mrgnlabs/mrgn-common";
 import { vendor } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, ValidatorStakeGroup } from "../types";
+import { findPoolAddress, findPoolMintAddress, findPoolStakeAddress } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 
 /**
  * Fetches stake accounts for a given public key from API
@@ -46,38 +47,6 @@ const getStakeAccountsCached = async (
       amount: account.amount,
     })),
   }));
-};
-
-/**
- * Filters and processes staked asset banks based on user's stake accounts
- *
- * @param connection - Solana RPC connection
- * @param publicKey - User's public key
- * @param extendedBankInfos - Array of all bank infos
- * @returns Promise<[ExtendedBankInfo[], ExtendedBankInfo[]]> - [filtered bank infos, staked asset bank infos]
- */
-const filterStakedAssetBanks = async (
-  publicKey: PublicKey | null,
-  extendedBankInfos: ExtendedBankInfo[]
-): Promise<[ExtendedBankInfo[], ExtendedBankInfo[]]> => {
-  const stakedAssetBankInfos = extendedBankInfos.filter((bank) => bank.info.rawBank.config.assetTag === 2);
-
-  // remove staked asset banks from main array where user does not have an open position
-  let filteredBankInfos = extendedBankInfos.filter((bank) => bank.info.rawBank.config.assetTag !== 2 || bank.isActive);
-
-  // if connected check for matching stake accounts
-  if (publicKey) {
-    const stakeAccounts = await getStakeAccountsCached(publicKey);
-
-    // add back staked asset banks for validators uaer has native stake
-    filteredBankInfos = filteredBankInfos.concat(
-      stakedAssetBankInfos.filter((bank) =>
-        stakeAccounts.find((stakeAccount) => stakeAccount.poolMintKey.equals(bank.info.rawBank.mint) && !bank.isActive)
-      )
-    );
-  }
-
-  return [filteredBankInfos, stakedAssetBankInfos];
 };
 
 /**
@@ -166,4 +135,77 @@ const getStakeAccounts = async (
   }
 };
 
-export { getStakeAccountsCached, filterStakedAssetBanks, getStakeAccounts };
+/**
+ * Filters and processes staked asset banks based on user's stake accounts
+ *
+ * @param connection - Solana RPC connection
+ * @param publicKey - User's public key
+ * @param extendedBankInfos - Array of all bank infos
+ * @returns Promise<[ExtendedBankInfo[], ExtendedBankInfo[]]> - [filtered bank infos, staked asset bank infos]
+ */
+const filterStakedAssetBanks = async (
+  publicKey: PublicKey | null,
+  extendedBankInfos: ExtendedBankInfo[]
+): Promise<[ExtendedBankInfo[], ExtendedBankInfo[]]> => {
+  const stakedAssetBankInfos = extendedBankInfos.filter((bank) => bank.info.rawBank.config.assetTag === 2);
+
+  // remove staked asset banks from main array where user does not have an open position
+  let filteredBankInfos = extendedBankInfos.filter((bank) => bank.info.rawBank.config.assetTag !== 2 || bank.isActive);
+
+  // if connected check for matching stake accounts
+  if (publicKey) {
+    const stakeAccounts = await getStakeAccountsCached(publicKey);
+
+    // add back staked asset banks for validators uaer has native stake
+    filteredBankInfos = filteredBankInfos.concat(
+      stakedAssetBankInfos.filter((bank) =>
+        stakeAccounts.find((stakeAccount) => stakeAccount.poolMintKey.equals(bank.info.rawBank.mint) && !bank.isActive)
+      )
+    );
+  }
+
+  return [filteredBankInfos, stakedAssetBankInfos];
+};
+
+/**
+ * Gets active states for stake pools associated with staked asset banks
+ *
+ * @param connection - Solana RPC connection
+ * @param bankInfos - Array of ExtendedBankInfo objects
+ * @returns Promise<Map<string, boolean>> - Map of bank addresses to active states
+ */
+const getStakePoolActiveStates = async (
+  connection: Connection,
+  validatorVoteAccounts: PublicKey[]
+): Promise<Map<string, boolean>> => {
+  const currentEpoch = await connection.getEpochInfo();
+  const activeStates = new Map<string, boolean>();
+
+  await Promise.all(
+    validatorVoteAccounts.map(async (validatorVoteAccount) => {
+      const poolAddress = findPoolAddress(validatorVoteAccount);
+      const poolStakeAddress = findPoolStakeAddress(poolAddress);
+      const poolMintAddress = findPoolMintAddress(poolAddress);
+
+      const stakePoolAccount = await connection.getParsedAccountInfo(poolStakeAddress);
+      if (!stakePoolAccount.value) {
+        activeStates.set(poolMintAddress.toBase58(), false);
+        return;
+      }
+
+      const parsedData = (stakePoolAccount.value.data as any).parsed;
+      if (!parsedData?.info?.stake?.delegation) {
+        activeStates.set(poolMintAddress.toBase58(), false);
+        return;
+      }
+
+      const activationEpoch = parsedData.info.stake.delegation.activationEpoch;
+      const isActive = currentEpoch.epoch > Number(activationEpoch);
+      activeStates.set(poolMintAddress.toBase58(), isActive);
+    })
+  );
+
+  return activeStates;
+};
+
+export { getStakeAccountsCached, filterStakedAssetBanks, getStakeAccounts, getStakePoolActiveStates };

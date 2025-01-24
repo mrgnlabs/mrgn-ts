@@ -55,7 +55,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: E
 async function fetchTokenAccounts(
   connection: Connection,
   walletAddress: PublicKey,
-  bankInfos: { mint: PublicKey; mintDecimals: number; bankAddress: PublicKey }[],
+  bankInfos: { mint: PublicKey; mintDecimals: number; bankAddress: PublicKey; assetTag: number }[],
   mintDatas: Map<string, MintData>
 ): Promise<{
   nativeSolBalance: number;
@@ -66,6 +66,7 @@ async function fetchTokenAccounts(
     address: bank.mint,
     decimals: bank.mintDecimals,
     bankAddress: bank.bankAddress,
+    assetTag: bank.assetTag,
   }));
 
   if (walletAddress === null) {
@@ -115,6 +116,15 @@ async function fetchTokenAccounts(
         created: true,
         mint: mint.address,
         balance: stakeAccount.largestAccount.amount,
+      };
+    }
+
+    // if user has no stake account for this validator, return 0
+    if (mint.assetTag === 2 && !stakeAccount) {
+      return {
+        created: false,
+        mint: mint.address,
+        balance: 0,
       };
     }
 
