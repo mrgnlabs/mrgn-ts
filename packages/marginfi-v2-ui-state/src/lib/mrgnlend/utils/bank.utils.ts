@@ -7,9 +7,7 @@ import {
   PriceBias,
   RiskTier,
   MarginfiAccountWrapper,
-  Balance,
   MarginRequirementType,
-  MarginfiAccount,
 } from "@mrgnlabs/marginfi-client-v2";
 import { nativeToUi, MintLayout, TokenMetadata, WSOL_MINT, floor, ceil, uiToNative } from "@mrgnlabs/mrgn-common";
 
@@ -19,7 +17,6 @@ import {
   Emissions,
   ExtendedBankInfo,
   TokenPriceMap,
-  TokenAccount,
   BankInfo,
   LendingPosition,
   ExtendedBankMetadata,
@@ -29,6 +26,7 @@ import {
   MakeLendingPositionProps,
   MakeLendingPositionRawProps,
   MakeLendingPositionWrappedProps,
+  StakedAssetMetadata,
 } from "../types";
 import { fetchBirdeyePrices } from "./account.utils";
 import { VOLATILITY_FACTOR } from "../consts";
@@ -165,8 +163,17 @@ async function makeEmissionsPriceMap(
 function makeExtendedBankMetadata(
   bank: Bank,
   tokenMetadata: TokenMetadata,
-  overrideIcon?: boolean
+  overrideIcon?: boolean,
+  stakePoolMetadata?: StakedAssetMetadata
 ): ExtendedBankMetadata {
+  let stakedAsset: StakedAssetMetadata | undefined;
+  const isStakedAsset = bank.config.assetTag === 2;
+
+  // add staked asset metadata
+  if (isStakedAsset && stakePoolMetadata) {
+    stakedAsset = stakePoolMetadata;
+  }
+
   return {
     address: bank.address,
     tokenSymbol: tokenMetadata.symbol,
@@ -174,6 +181,7 @@ function makeExtendedBankMetadata(
     tokenLogoUri: overrideIcon
       ? tokenMetadata.icon ?? "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png"
       : `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png`,
+    stakedAsset,
   };
 }
 
@@ -183,7 +191,8 @@ function makeExtendedBankInfo(
   oraclePrice: OraclePrice,
   emissionTokenPrice?: TokenPrice,
   userData?: UserDataProps,
-  overrideIcon?: boolean
+  overrideIcon?: boolean,
+  stakePoolMetadata?: StakedAssetMetadata
 ): ExtendedBankInfo {
   function isUserDataRawProps(userData: UserDataWrappedProps | UserDataRawProps): userData is UserDataRawProps {
     return (
@@ -192,7 +201,7 @@ function makeExtendedBankInfo(
   }
 
   // Aggregate user-agnostic bank info
-  const meta = makeExtendedBankMetadata(bank, tokenMetadata, overrideIcon);
+  const meta = makeExtendedBankMetadata(bank, tokenMetadata, overrideIcon, stakePoolMetadata);
   const bankInfo = makeBankInfo(bank, oraclePrice, emissionTokenPrice);
   let state: BankInfo = {
     rawBank: bank,

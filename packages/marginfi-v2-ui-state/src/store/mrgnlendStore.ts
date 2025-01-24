@@ -15,6 +15,8 @@ import {
   TokenPriceMap,
   fetchGroupData,
   filterStakedAssetBanks,
+  getStakePoolActiveStates,
+  StakedAssetMetadata,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -294,7 +296,12 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           fetchTokenAccounts(
             connection,
             wallet.publicKey,
-            banks.map((bank) => ({ mint: bank.mint, mintDecimals: bank.mintDecimals, bankAddress: bank.address })),
+            banks.map((bank) => ({
+              mint: bank.mint,
+              mintDecimals: bank.mintDecimals,
+              bankAddress: bank.address,
+              assetTag: bank.config.assetTag,
+            })),
             marginfiClient.mintDatas
           ),
           getCachedMarginfiAccountsForAuthority(wallet.publicKey, marginfiClient),
@@ -356,6 +363,16 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         }
       });
 
+      // get stake pool active states for all staked asset banks
+      // will be disabled in the ui until active
+      const validatorVoteAccounts = banksWithPriceAndToken
+        .filter((bank) => bank.bank.config.assetTag === 2)
+        .map((bank) => {
+          const bankMetadata = bankMetadataMap[bank.bank.address.toBase58()];
+          return new PublicKey(bankMetadata.validatorVoteAccount || "");
+        });
+      const stakePoolActiveStates = await getStakePoolActiveStates(connection, validatorVoteAccounts);
+
       let [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
         (acc, { bank, oraclePrice, tokenMetadata }) => {
           const emissionTokenPriceData = priceMap[bank.emissionsMint.toBase58()];
@@ -373,8 +390,28 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
             };
           }
 
-          acc[0].push(makeExtendedBankInfo(tokenMetadata, bank, oraclePrice, emissionTokenPriceData, userData));
-          acc[1].push(makeExtendedBankMetadata(bank, tokenMetadata));
+          // build staked asset metadata
+          let stakedAssetMetadata: StakedAssetMetadata | undefined;
+          if (bank.config.assetTag === 2) {
+            const isActive = stakePoolActiveStates.get(bank.mint.toBase58()) || false;
+            stakedAssetMetadata = {
+              validatorVoteAccount: new PublicKey(bankMetadataMap[bank.address.toBase58()].validatorVoteAccount || ""),
+              isActive,
+            };
+          }
+
+          acc[0].push(
+            makeExtendedBankInfo(
+              tokenMetadata,
+              bank,
+              oraclePrice,
+              emissionTokenPriceData,
+              userData,
+              false,
+              stakedAssetMetadata
+            )
+          );
+          acc[1].push(makeExtendedBankMetadata(bank, tokenMetadata, false, stakedAssetMetadata));
 
           return acc;
         },
