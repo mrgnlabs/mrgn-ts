@@ -8,9 +8,10 @@ import {
   numeralFormatter,
   percentFormatter,
   percentFormatterMod,
+  shortenAddress,
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
-import { IconAlertTriangle, IconExternalLink } from "@tabler/icons-react";
+import { IconAlertTriangle, IconExternalLink, IconInfoCircle } from "@tabler/icons-react";
 
 import {
   AssetData,
@@ -26,15 +27,44 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 
 import { IMAGE_CDN_URL } from "~/config/constants";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, TooltipPortal } from "~/components/ui/tooltip";
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 
-export const getAssetCell = (asset: AssetData) => (
-  <div className="flex gap-4 justify-start items-center">
-    <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
-    <div>{asset.symbol}</div>
-  </div>
-);
+export const getAssetCell = (asset: AssetData) => {
+  return (
+    <div className="flex gap-2 justify-start items-center">
+      <div className="flex items-center gap-4">
+        <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
+        <div>{asset.symbol}</div>
+      </div>
+
+      {asset.stakedAsset && (
+        <>
+          <div className="text-xs text-muted-foreground font-normal space-x-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger className="text-xs text-muted-foreground font-normal flex items-center gap-1 cursor-default">
+                  <IconInfoCircle size={14} />
+                  {!asset.stakedAsset.isActive && "Activating..."}
+                </TooltipTrigger>
+                <TooltipPortal>
+                  <TooltipContent>
+                    <ul className="space-y-1 font-normal text-muted-foreground">
+                      <li className="text-xs">
+                        <strong className="text-foreground">Validator:</strong>{" "}
+                        {shortenAddress(asset.stakedAsset.validatorVoteAccount?.toBase58() ?? "")}
+                      </li>
+                    </ul>
+                  </TooltipContent>
+                </TooltipPortal>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 const formatPrice = (price: number) => {
   if (price >= 1) return usdFormatter.format(price);

@@ -2,10 +2,12 @@ import React from "react";
 
 import Image from "next/image";
 
-import { numeralFormatter, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, shortenAddress, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { Tooltip, TooltipContent, TooltipPortal, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { IconInfoCircle } from "@tabler/icons-react";
 
 type BankItemProps = {
   bank: ExtendedBankInfo;
@@ -15,6 +17,7 @@ type BankItemProps = {
   lendingMode?: LendingModes;
   isRepay?: boolean;
   available?: boolean;
+  showStakedAssetLabel?: boolean;
 };
 
 export const BankItem = ({
@@ -25,6 +28,7 @@ export const BankItem = ({
   lendingMode,
   isRepay,
   available = true,
+  showStakedAssetLabel = false,
 }: BankItemProps) => {
   const balance = React.useMemo(() => {
     const isWSOL = bank.info.state.mint?.equals ? bank.info.state.mint.equals(WSOL_MINT) : false;
@@ -52,15 +56,40 @@ export const BankItem = ({
     [bank, openPosition]
   );
 
+  const isStakedActivating = bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakedAsset?.isActive;
+
   return (
     <>
-      <div className="flex items-center gap-3">
+      <div className={cn("flex items-center gap-3", isStakedActivating && "opacity-30")}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={bank.meta.tokenLogoUri} alt={bank.meta.tokenName} width={28} height={28} className="rounded-full" />
         <div>
-          <p className="flex items-center">
-            {bank.meta.tokenSymbol}
+          <div className="flex items-center">
+            <p className="font-medium">{bank.meta.tokenSymbol}</p>
             {!available && <span className="text-[11px] ml-1 font-light">(currently unavailable)</span>}
-          </p>
+            {bank.info.rawBank.config.assetTag === 2 && (
+              <div className="text-xs text-muted-foreground font-normal space-x-1 ml-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="text-xs text-muted-foreground font-normal flex items-center gap-1">
+                      <IconInfoCircle size={14} />
+                      {isStakedActivating ? "Activating..." : showStakedAssetLabel ? "Native stake" : ""}
+                    </TooltipTrigger>
+                    <TooltipPortal>
+                      <TooltipContent>
+                        <ul className="space-y-1 font-normal text-muted-foreground">
+                          <li className="text-xs">
+                            <strong className="text-foreground">Validator:</strong>{" "}
+                            {shortenAddress(bank.meta.stakedAsset?.validatorVoteAccount?.toBase58() ?? "")}
+                          </li>
+                        </ul>
+                      </TooltipContent>
+                    </TooltipPortal>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
+          </div>
           {lendingMode && (
             <p
               className={cn(

@@ -17,6 +17,8 @@ export const AssetRow = (row: Row<AssetListModel>) => {
   );
   const [assetListSearch] = useUiStore((state) => [state.assetListSearch]);
 
+  const isStakedActivating = row.original.asset.stakedAsset && !row.original.asset.stakedAsset?.isActive;
+
   if (
     assetListSearch.length > 1 &&
     !row.original.asset.name.toLowerCase().includes(assetListSearch.toLowerCase()) &&
@@ -27,7 +29,12 @@ export const AssetRow = (row: Row<AssetListModel>) => {
 
   return (
     <React.Fragment key={row.id}>
-      <TableRow key={row.id} onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
+      <TableRow
+        key={row.id}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        className={cn(isStakedActivating && "opacity-50")}
+      >
         {row.getVisibleCells().map((cell, idx) => (
           <TableCell
             className={cn(isHovering && "bg-background-gray", !isPosition ? "pb-2 rounded-md" : "rounded-t-md")}
