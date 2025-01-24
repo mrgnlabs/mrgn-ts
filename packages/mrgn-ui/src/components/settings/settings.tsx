@@ -8,20 +8,18 @@ import {
   MAX_SLIPPAGE_PERCENTAGE,
   STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
-import { MaxCapType, TransactionBroadcastType, TransactionPriorityType } from "@mrgnlabs/mrgn-common";
+import {
+  MaxCapType,
+  TransactionBroadcastType,
+  TransactionPriorityType,
+  TransactionSettings,
+} from "@mrgnlabs/mrgn-common";
 
 import { Form, FormControl, FormField, FormItem, FormMessage } from "~/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
-
-type TransactionOptions = {
-  broadcastType: TransactionBroadcastType;
-  priorityType: TransactionPriorityType;
-  maxCapType: MaxCapType;
-  maxCap: number;
-};
 
 type slippageModes = "DYNAMIC" | "FIXED";
 
@@ -59,13 +57,13 @@ const slippageModes: { type: slippageModes; label: string }[] = [
   { type: "FIXED", label: "Fixed" },
 ];
 
-interface TransactionSettingsForm extends TransactionOptions {}
+interface TransactionSettingsForm extends TransactionSettings {}
 
 export interface SettingsProps {
-  transactionOptions: TransactionOptions;
+  transactionOptions: TransactionSettings;
   jupiterOptions: JupiterOptions;
 
-  onTransactionOptionsChange: (options: TransactionOptions) => void;
+  onTransactionOptionsChange: (options: TransactionSettings) => void;
   onJupiterOptionsChange: (options: JupiterOptions) => void;
 
   recommendedBroadcastType?: TransactionBroadcastType;
@@ -78,13 +76,11 @@ export const Settings = ({
   onJupiterOptionsChange,
   recommendedBroadcastType = "BUNDLE",
 }: SettingsProps) => {
-  const [activeTab, setActiveTab] = React.useState<"transaction" | "swap">("swap");
+  const [activeTab, setActiveTab] = React.useState<"transaction" | "swap">("transaction");
 
   const form = useForm<TransactionSettingsForm>({
     defaultValues: transactionOptions,
   });
-
-  console.log("transactionOptions", jupiterOptions);
 
   const prevIsDirty = usePrevious(form.formState.isDirty);
 
@@ -121,7 +117,6 @@ export const Settings = ({
 
   const onSlippageSubmit = React.useCallback(
     (data: JupiterOptions) => {
-      console.log("onSlippageSubmit", data);
       onJupiterOptionsChange(data);
       slippageForm.reset(data);
     },
