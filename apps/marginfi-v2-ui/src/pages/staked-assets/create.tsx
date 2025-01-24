@@ -1,7 +1,7 @@
 import React from "react";
 import { PublicKey, Transaction } from "@solana/web3.js";
 
-import { composeExplorerUrl, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+import { captureSentryException, composeExplorerUrl, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 import { MarginfiClient, vendor } from "@mrgnlabs/marginfi-client-v2";
 
 import { PageHeading } from "~/components/common/PageHeading";
@@ -103,19 +103,36 @@ export default function CreateStakedAssetPage() {
     tokenName: string,
     tokenSymbol: string
   ) => {
-    const response = await fetch(`/api/stakedPools/addMetadata`, {
-      method: "POST",
-      body: JSON.stringify({
+    try {
+      const response = await fetch(`/api/stakedPools/addMetadata`, {
+        method: "POST",
+        body: JSON.stringify({
+          bankAddress: bankAddress.toBase58(),
+          validatorVoteAccount: voteAccount.toBase58(),
+          tokenAddress: tokenAddress.toBase58(),
+          tokenName,
+          tokenSymbol,
+          tokenDecimals: 9,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add metadata: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Error adding metadata:", error);
+
+      captureSentryException(error, "Error adding metadata", {
+        action: "createStakedAssetBank",
         bankAddress: bankAddress.toBase58(),
         validatorVoteAccount: voteAccount.toBase58(),
         tokenAddress: tokenAddress.toBase58(),
         tokenName,
         tokenSymbol,
-        tokenDecimals: 9,
-      }),
-    });
-
-    await new Promise((resolve) => setTimeout(resolve, 4000));
+        tokenDecimals: "9",
+      });
+      // do your work retry master
+    }
   };
 
   const handleSumbitForm = (form: CreateStakedAssetForm) => {
