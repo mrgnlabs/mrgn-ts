@@ -384,7 +384,11 @@ const createPriceImpactWarningCheck = (priceImpactPct: number): ActionMessageTyp
   };
 };
 
-const checkErrorCodeMatch = (errorMessage: string, errorCode: number): boolean => {
+const checkErrorCodeMatch = (errorMessage: any, errorCode: number): boolean => {
+  if (typeof errorMessage === "object") {
+    const errorMessageString = JSON.stringify(errorMessage);
+    return errorMessageString.includes(`${errorCode}`);
+  }
   const hex = "0x" + errorCode.toString(16).padStart(4, "0");
   return errorMessage.includes(hex) || errorMessage.includes(errorCode.toString());
 };
@@ -498,6 +502,7 @@ export const handleError = (
 
       if (
         checkErrorCodeMatch(error.message, 6047) ||
+        checkErrorCodeMatch(error.message, 6049) ||
         error.message?.toLowerCase().includes("can only deposit staked assets")
       ) {
         return STATIC_SIMULATION_ERRORS.STAKED_ONLY_SOL_CHECK;
