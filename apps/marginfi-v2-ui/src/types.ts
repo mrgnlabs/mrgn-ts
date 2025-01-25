@@ -290,3 +290,14 @@ export type PreviousTxn = {
     leverage: number;
   };
 };
+
+export type WalletToken = {
+  address: string;
+  name: string;
+  symbol: string;
+  price: number;
+  value: number;
+  logoUri: string;
+  balance: number;
+  ata: string;
+};

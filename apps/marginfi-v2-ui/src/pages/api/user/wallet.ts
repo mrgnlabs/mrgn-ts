@@ -1,22 +1,16 @@
 import { NextApiResponse } from "next";
 import { STATUS_BAD_REQUEST, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
+import { WalletToken } from "~/types";
 import { NextApiRequest } from "../utils";
+import { PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
 
 type WalletRequest = {
   wallet: string;
-  tokenList?: string;
-};
-
-type Token = {
-  name: string;
-  symbol: string;
-  price: number;
-  total: number;
 };
 
 export default async function handler(req: NextApiRequest<WalletRequest>, res: NextApiResponse) {
   const ownerAddress = req.query.wallet as string;
-  const tokenList = req.query.tokenList ? Boolean(req.query.tokenList) : false;
 
   if (!ownerAddress) {
     return res.status(STATUS_BAD_REQUEST).json({ error: true, message: "Missing wallet address" });
@@ -49,30 +43,30 @@ export default async function handler(req: NextApiRequest<WalletRequest>, res: N
       throw new Error("Invalid response from Birdeye API");
     }
 
-    const tokens: Token[] = data.items
-      .slice(0, 20)
-      .map((item: any) => ({
-        name: item.name,
-        symbol: item.symbol,
-        price: item.priceUsd,
-        total: item.valueUsd,
-      }))
-      .sort((a: Token, b: Token) => b.total - a.total);
+    const tokens: WalletToken[] = (
+      await Promise.all(
+        data.items.slice(0, 20).map(async (item: any) => {
+          const mint = new PublicKey(item.address);
+          const owner = new PublicKey(ownerAddress);
+          const ata = getAssociatedTokenAddressSync(mint, owner);
 
-    const responseData: {
-      totalValue: number;
-      tokens?: Token[];
-    } = {
-      totalValue: data.totalUsd,
-    };
-
-    if (tokenList) {
-      responseData.tokens = tokens;
-    }
+          return {
+            address: item.address,
+            name: item.name,
+            symbol: item.symbol,
+            price: item.priceUsd,
+            value: item.valueUsd,
+            logoUri: item.logoURI,
+            balance: item.uiAmount,
+            ata: ata.toString(),
+          };
+        })
+      )
+    ).sort((a, b) => b.value - a.value);
 
     // cache for 1 hour
-    res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=59");
-    return res.status(STATUS_OK).json(responseData);
+    // res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=59");
+    return res.status(STATUS_OK).json(tokens);
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Error fetching data" });
