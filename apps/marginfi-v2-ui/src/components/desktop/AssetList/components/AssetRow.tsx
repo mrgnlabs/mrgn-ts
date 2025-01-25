@@ -17,7 +17,7 @@ export const AssetRow = (row: Row<AssetListModel>) => {
   );
   const [assetListSearch] = useUiStore((state) => [state.assetListSearch]);
 
-  const isStakedActivating = row.original.asset.stakedAsset && !row.original.asset.stakedAsset?.isActive;
+  const isStakedActivating = row.original.asset.stakePool && !row.original.asset.stakePool?.isActive;
 
   if (
     assetListSearch.length > 1 &&

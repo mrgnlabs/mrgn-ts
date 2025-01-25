@@ -3,7 +3,7 @@ import { PublicKey } from "@solana/web3.js";
 
 import { LendingPosition, UserInfo } from "./token.types";
 
-interface StakedAssetMetadata {
+interface StakePoolMetadata {
   validatorVoteAccount: PublicKey;
   isActive: boolean;
 }
@@ -13,7 +13,7 @@ interface ExtendedBankMetadata {
   tokenSymbol: string;
   tokenName: string;
   tokenLogoUri: string;
-  stakedAsset?: StakedAssetMetadata;
+  stakePool?: StakePoolMetadata;
 }
 
 interface BankState {
@@ -65,4 +65,4 @@ enum Emissions {
 }
 
 export { Emissions };
-export type { ActiveBankInfo, ExtendedBankInfo, BankInfo, BankState, ExtendedBankMetadata, StakedAssetMetadata };
+export type { ActiveBankInfo, ExtendedBankInfo, BankInfo, BankState, ExtendedBankMetadata, StakePoolMetadata };

@@ -72,7 +72,7 @@ const ActionBoxCell = ({
             <Button
               variant="secondary"
               className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground"
-              disabled={bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakedAsset?.isActive}
+              disabled={bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakePool?.isActive}
             >
               {showCloseBalance ? "Close" : currentAction}
             </Button>

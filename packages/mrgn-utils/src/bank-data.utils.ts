@@ -1,5 +1,5 @@
 import { getPriceWithConfidence, OracleSetup, PriceBias, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, ExtendedBankMetadata, Emissions, StakedAssetMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ExtendedBankMetadata, Emissions, StakePoolMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
 import { aprToApy, nativeToUi, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { isBankOracleStale } from "./mrgnUtils";
@@ -11,7 +11,7 @@ export interface AssetData {
   symbol: string;
   name: string;
   image: string;
-  stakedAsset?: StakedAssetMetadata;
+  stakePool?: StakePoolMetadata;
 }
 
 export interface RateData {
@@ -77,7 +77,7 @@ export const getAssetData = (asset: ExtendedBankMetadata): AssetData => ({
   symbol: asset.tokenSymbol,
   name: asset.tokenName,
   image: asset.tokenLogoUri,
-  stakedAsset: asset.stakedAsset,
+  stakePool: asset.stakePool,
 });
 
 export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): RateData => {

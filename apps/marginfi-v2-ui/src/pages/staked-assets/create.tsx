@@ -55,7 +55,7 @@ export default function CreateStakedAssetPage() {
   const [isLoading, setIsLoading] = React.useState(false);
 
   const validatorPubKeys = stakedAssetBankInfos
-    .map((bank) => bank.meta.stakedAsset?.validatorVoteAccount)
+    .map((bank) => bank.meta.stakePool?.validatorVoteAccount)
     .filter((key) => key !== undefined) as PublicKey[];
 
   const createStakedAssetSplPoolTxn = React.useCallback(

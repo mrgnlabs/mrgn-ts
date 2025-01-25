@@ -38,21 +38,21 @@ export const getAssetCell = (asset: AssetData) => {
         <div>{asset.symbol}</div>
       </div>
 
-      {asset.stakedAsset && (
+      {asset.stakePool && (
         <>
           <div className="text-xs text-muted-foreground font-normal space-x-2">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger className="text-xs text-muted-foreground font-normal flex items-center gap-1 cursor-default">
                   <IconInfoCircle size={14} />
-                  {!asset.stakedAsset.isActive && "Activating..."}
+                  {!asset.stakePool.isActive && "Activating..."}
                 </TooltipTrigger>
                 <TooltipPortal>
                   <TooltipContent>
                     <ul className="space-y-1 font-normal text-muted-foreground">
                       <li className="text-xs">
                         <strong className="text-foreground">Validator:</strong>{" "}
-                        {shortenAddress(asset.stakedAsset.validatorVoteAccount?.toBase58() ?? "")}
+                        {shortenAddress(asset.stakePool.validatorVoteAccount?.toBase58() ?? "")}
                       </li>
                     </ul>
                   </TooltipContent>

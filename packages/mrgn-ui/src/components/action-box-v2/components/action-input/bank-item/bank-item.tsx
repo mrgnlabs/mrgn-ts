@@ -56,7 +56,7 @@ export const BankItem = ({
     [bank, openPosition]
   );
 
-  const isStakedActivating = bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakedAsset?.isActive;
+  const isStakedActivating = bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakePool?.isActive;
 
   return (
     <>
@@ -80,7 +80,7 @@ export const BankItem = ({
                         <ul className="space-y-1 font-normal text-muted-foreground">
                           <li className="text-xs">
                             <strong className="text-foreground">Validator:</strong>{" "}
-                            {shortenAddress(bank.meta.stakedAsset?.validatorVoteAccount?.toBase58() ?? "")}
+                            {shortenAddress(bank.meta.stakePool?.validatorVoteAccount?.toBase58() ?? "")}
                           </li>
                         </ul>
                       </TooltipContent>
