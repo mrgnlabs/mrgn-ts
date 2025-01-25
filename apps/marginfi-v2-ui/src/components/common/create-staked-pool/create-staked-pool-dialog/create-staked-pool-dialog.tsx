@@ -52,9 +52,16 @@ export const CreateStakedPoolDialog = ({
           <>
             <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              {assetMint && <img src={getTokenImageURL(assetMint)} alt={assetName} className="w-16 h-16 rounded-full" />}
-              <div className="flex items-center justify-center gap-2">
+              {assetMint && (
+                <img src={getTokenImageURL(assetMint)} alt={assetName} className="w-16 h-16 rounded-full" />
+              )}
+              <div className="flex flex-col gap-4 text-center">
                 <h3 className="text-2xl font-medium text-center">Staked Asset Bank Created</h3>
+
+                <p className="text-sm text-muted-foreground md:px-12">
+                  Your staked asset bank will be available for deposits once the stake pool activates at the end of the
+                  epoch.
+                </p>
               </div>
             </div>
             <dl className="grid grid-cols-2 w-full text-muted-foreground gap-x-8 gap-y-2">
