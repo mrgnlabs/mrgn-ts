@@ -16,7 +16,7 @@ import {
   fetchGroupData,
   filterStakedAssetBanks,
   getStakePoolActiveStates,
-  StakedAssetMetadata,
+  StakePoolMetadata,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -249,10 +249,10 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
       // fetch staked asset metadata
       const stakedAssetBankMetadataMap = await loadBankMetadatas(
-        "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json?v=2"
+        `https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json?time=${new Date().getTime()}`
       );
       const stakedAssetTokenMetadataMap = await loadTokenMetadatas(
-        "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json?v=2"
+        `https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json?time=${new Date().getTime()}`
       );
 
       // merge staked asset metadata with main group metadata
@@ -391,7 +391,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           }
 
           // build staked asset metadata
-          let stakedAssetMetadata: StakedAssetMetadata | undefined;
+          let stakedAssetMetadata: StakePoolMetadata | undefined;
           if (bank.config.assetTag === 2) {
             const isActive = stakePoolActiveStates.get(bank.mint.toBase58()) || false;
             stakedAssetMetadata = {
