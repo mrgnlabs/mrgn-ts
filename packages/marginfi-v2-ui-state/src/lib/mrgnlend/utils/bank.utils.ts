@@ -26,7 +26,7 @@ import {
   MakeLendingPositionProps,
   MakeLendingPositionRawProps,
   MakeLendingPositionWrappedProps,
-  StakedAssetMetadata,
+  StakePoolMetadata,
 } from "../types";
 import { fetchBirdeyePrices } from "./account.utils";
 import { VOLATILITY_FACTOR } from "../consts";
@@ -164,9 +164,9 @@ function makeExtendedBankMetadata(
   bank: Bank,
   tokenMetadata: TokenMetadata,
   overrideIcon?: boolean,
-  stakePoolMetadata?: StakedAssetMetadata
+  stakePoolMetadata?: StakePoolMetadata
 ): ExtendedBankMetadata {
-  let stakedAsset: StakedAssetMetadata | undefined;
+  let stakedAsset: StakePoolMetadata | undefined;
   const isStakedAsset = bank.config.assetTag === 2;
 
   // add staked asset metadata
@@ -181,7 +181,7 @@ function makeExtendedBankMetadata(
     tokenLogoUri: overrideIcon
       ? tokenMetadata.icon ?? "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png"
       : `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png`,
-    stakedAsset,
+    stakePool: stakedAsset,
   };
 }
 
@@ -192,7 +192,7 @@ function makeExtendedBankInfo(
   emissionTokenPrice?: TokenPrice,
   userData?: UserDataProps,
   overrideIcon?: boolean,
-  stakePoolMetadata?: StakedAssetMetadata
+  stakePoolMetadata?: StakePoolMetadata
 ): ExtendedBankInfo {
   function isUserDataRawProps(userData: UserDataWrappedProps | UserDataRawProps): userData is UserDataRawProps {
     return (

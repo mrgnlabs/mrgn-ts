@@ -92,7 +92,7 @@ export const BankList = ({
   const filteredBanksUserOwns = React.useMemo(() => {
     return (
       banks
-        .filter((bank) => bank.info.rawBank.config.assetTag !== 2 || bank.meta.stakedAsset?.isActive)
+        .filter((bank) => bank.info.rawBank.config.assetTag !== 2 || bank.meta.stakePool?.isActive)
         .filter(balanceFilter)
         .filter(searchFilter)
         // .filter((bank) => positionFilter(bank, true))
@@ -335,7 +335,7 @@ export const BankList = ({
                       key={index}
                       value={bank.address?.toString().toLowerCase()}
                       onSelect={(currentValue) => {
-                        if (bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakedAsset?.isActive) {
+                        if (bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakePool?.isActive) {
                           return;
                         }
                         onSetSelectedBank(
