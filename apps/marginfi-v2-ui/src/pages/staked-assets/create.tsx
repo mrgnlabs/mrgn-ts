@@ -1,5 +1,7 @@
 import React from "react";
 
+import { useRouter } from "next/router";
+
 import { PublicKey, Transaction } from "@solana/web3.js";
 import BN from "bn.js";
 
@@ -29,6 +31,7 @@ type CreateStakedAssetForm = {
 };
 
 export default function CreateStakedAssetPage() {
+  const router = useRouter();
   const { connection } = useConnection();
   const { wallet } = useWallet();
   const [client, stakedAssetBankInfos] = useMrgnlendStore((state) => [
@@ -238,7 +241,10 @@ export default function CreateStakedAssetPage() {
       <CreateStakedPoolForm isLoading={isLoading} onSubmit={handleSumbitForm} validatorPubKeys={validatorPubKeys} />
       <CreateStakedPoolDialog
         isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
+        onClose={() => {
+          router.push("/");
+          setIsDialogOpen(false);
+        }}
         assetName={completedForm.assetName}
         assetSymbol={completedForm.assetSymbol}
         assetMint={completedForm.assetMint}
