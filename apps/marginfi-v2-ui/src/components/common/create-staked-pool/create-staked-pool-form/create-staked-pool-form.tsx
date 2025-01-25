@@ -2,6 +2,7 @@ import React from "react";
 
 import { useDropzone } from "react-dropzone";
 import { IconPhoto, IconLoader2 } from "@tabler/icons-react";
+import { PublicKey } from "@solana/web3.js";
 
 import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
 
@@ -18,16 +19,18 @@ type CreateStakedAssetForm = {
 
 type CreateStakedPoolFormProps = {
   isLoading: boolean;
+  validatorPubKeys: PublicKey[];
   onSubmit: (form: CreateStakedAssetForm) => void;
 };
 
-export const CreateStakedPoolForm = ({ isLoading, onSubmit }: CreateStakedPoolFormProps) => {
+export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: CreateStakedPoolFormProps) => {
   const [form, setForm] = React.useState<CreateStakedAssetForm>({
     voteAccountKey: "",
     assetName: "",
     assetSymbol: "",
     assetLogo: null,
   });
+  const [error, setError] = React.useState<string | null>(null);
 
   const isMobile = useIsMobile();
 
@@ -39,6 +42,18 @@ export const CreateStakedPoolForm = ({ isLoading, onSubmit }: CreateStakedPoolFo
     },
     [form]
   );
+
+  const handleValidatorPubkeyChange = (value: string) => {
+    try {
+      new PublicKey(value);
+      const found = validatorPubKeys.find((key) => key.toBase58().toLowerCase() === value.toLowerCase());
+      setError(found ? "Bank already exists" : null);
+    } catch (e) {
+      setError("Invalid vote account key");
+    }
+
+    setForm({ ...form, voteAccountKey: value });
+  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -63,8 +78,10 @@ export const CreateStakedPoolForm = ({ isLoading, onSubmit }: CreateStakedPoolFo
           id="name"
           placeholder="Enter validator vote account public key"
           value={form.voteAccountKey}
-          onChange={(e) => setForm({ ...form, voteAccountKey: e.target.value })}
+          onChange={(e) => handleValidatorPubkeyChange(e.target.value)}
+          className={cn(error && "border-red-500")}
         />
+        {error && <p className="text-xs text-red-500">{error}</p>}
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="name">Asset Name</Label>
@@ -116,7 +133,7 @@ export const CreateStakedPoolForm = ({ isLoading, onSubmit }: CreateStakedPoolFo
           </p>
         </div>
       </div>
-      <Button disabled={!form.voteAccountKey || !form.assetName || isLoading} type="submit" size="lg">
+      <Button disabled={!form.voteAccountKey || !form.assetName || error !== null || isLoading} type="submit" size="lg">
         {isLoading ? (
           <>
             <IconLoader2 size={16} className="animate-spin" />
