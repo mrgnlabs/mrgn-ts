@@ -109,7 +109,7 @@ export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: 
         </Label>
         <div
           className={cn(
-            "flex gap-4 items-center cursor-pointer p-4 group rounded-lg transition-colors hover:bg-background-gray",
+            "flex gap-4 items-center cursor-pointer p-4 group rounded-lg transition-colors bg-background-gray hover:bg-background-gray-light",
             isDragActive && "bg-background-gray-light"
           )}
           {...getRootProps()}
@@ -133,16 +133,27 @@ export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: 
           </p>
         </div>
       </div>
-      <Button disabled={!form.voteAccountKey || !form.assetName || error !== null || isLoading} type="submit" size="lg">
-        {isLoading ? (
-          <>
-            <IconLoader2 size={16} className="animate-spin" />
-            Creating Staked Asset Bank...
-          </>
-        ) : (
-          "Create Staked Asset Bank"
-        )}
-      </Button>
+
+      <div className="flex flex-col gap-4 items-center text-sm text-muted-foreground pt-2">
+        <div className="space-y-1 text-center">
+          <p>Bank will be enabled once the stake pool activates at the end of the epoch.</p>
+          <p>Stake pool creation fee 1.1 SOL</p>
+        </div>
+        <Button
+          disabled={!form.voteAccountKey || !form.assetName || error !== null || isLoading}
+          type="submit"
+          size="lg"
+        >
+          {isLoading ? (
+            <>
+              <IconLoader2 size={16} className="animate-spin" />
+              Creating Staked Asset Bank...
+            </>
+          ) : (
+            "Create Staked Asset Bank"
+          )}
+        </Button>
+      </div>
     </form>
   );
 };
