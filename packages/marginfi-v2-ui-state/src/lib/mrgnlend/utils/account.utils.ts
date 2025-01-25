@@ -55,7 +55,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: E
 async function fetchTokenAccounts(
   connection: Connection,
   walletAddress: PublicKey,
-  bankInfos: { mint: PublicKey; mintDecimals: number; bankAddress: PublicKey; assetTag: number }[],
+  bankInfos: { mint: PublicKey; mintDecimals: number; bankAddress: PublicKey; assetTag?: number }[],
   mintDatas: Map<string, MintData>
 ): Promise<{
   nativeSolBalance: number;
