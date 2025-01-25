@@ -21,7 +21,10 @@ type CreateStakedAssetForm = {
 export default function CreateStakedAssetPage() {
   const { connection } = useConnection();
   const { wallet } = useWallet();
-  const [client] = useMrgnlendStore((state) => [state.marginfiClient]);
+  const [client, stakedAssetBankInfos] = useMrgnlendStore((state) => [
+    state.marginfiClient,
+    state.stakedAssetBankInfos,
+  ]);
   const [broadcastType, priorityFees] = useUiStore((state) => [state.broadcastType, state.priorityFees]);
   const [completedForm, setCompletedForm] = React.useState({
     voteAccountKey: "",
@@ -31,6 +34,10 @@ export default function CreateStakedAssetPage() {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   const [isLoading, setIsLoading] = React.useState(false);
+
+  const validatorPubKeys = stakedAssetBankInfos
+    .map((bank) => bank.meta.stakedAsset?.validatorVoteAccount)
+    .filter((key) => key !== undefined) as PublicKey[];
 
   const createStakedAssetSplPoolTxn = React.useCallback(
     async (voteAccount: PublicKey, client: MarginfiClient, multiStepToast: MultiStepToastHandle) => {
@@ -212,7 +219,7 @@ export default function CreateStakedAssetPage() {
         heading="Staked Asset Banks"
         body={<p>Create a new staked asset bank and let stakers use their native stake as collateral.</p>}
       />
-      <CreateStakedPoolForm isLoading={isLoading} onSubmit={handleSumbitForm} />
+      <CreateStakedPoolForm isLoading={isLoading} onSubmit={handleSumbitForm} validatorPubKeys={validatorPubKeys} />
       <CreateStakedPoolDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
