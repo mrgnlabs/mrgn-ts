@@ -1,21 +1,31 @@
 import React from "react";
-import { PublicKey, Transaction } from "@solana/web3.js";
 
-import { captureSentryException, composeExplorerUrl, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+import { PublicKey, Transaction } from "@solana/web3.js";
+import BN from "bn.js";
+
+import {
+  captureSentryException,
+  cn,
+  composeExplorerUrl,
+  MultiStepToastHandle,
+  useIsMobile,
+} from "@mrgnlabs/mrgn-utils";
 import { MarginfiClient, vendor } from "@mrgnlabs/marginfi-client-v2";
+import { useWindowSize } from "@uidotdev/usehooks";
+import Confetti from "react-confetti";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { useWallet } from "~/components/wallet-v2/hooks";
 import { useConnection } from "~/hooks/use-connection";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { CreateStakedPoolDialog, CreateStakedPoolForm } from "~/components/common/create-staked-pool";
-import BN from "bn.js";
 
 type CreateStakedAssetForm = {
   voteAccountKey: string;
   assetName: string;
   assetSymbol: string;
   assetLogo: File | null;
+  assetMint?: PublicKey;
 };
 
 export default function CreateStakedAssetPage() {
@@ -26,12 +36,18 @@ export default function CreateStakedAssetPage() {
     state.stakedAssetBankInfos,
   ]);
   const [broadcastType, priorityFees] = useUiStore((state) => [state.broadcastType, state.priorityFees]);
-  const [completedForm, setCompletedForm] = React.useState({
+  const [completedForm, setCompletedForm] = React.useState<CreateStakedAssetForm>({
     voteAccountKey: "",
     assetName: "",
+    assetSymbol: "",
+    assetLogo: null,
+    assetMint: PublicKey.default,
   });
 
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const { width, height } = useWindowSize();
+  const isMobile = useIsMobile();
+
+  const [isDialogOpen, setIsDialogOpen] = React.useState(true);
 
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -196,7 +212,7 @@ export default function CreateStakedAssetPage() {
         }
 
         multiStepToast.setSuccess();
-        setCompletedForm(form);
+        setCompletedForm({ ...form, assetMint: mintAddress });
         setIsDialogOpen(true);
       } catch (e: any) {
         console.error(e);
@@ -214,7 +230,7 @@ export default function CreateStakedAssetPage() {
   );
 
   return (
-    <div>
+    <div className="h-screen">
       <PageHeading
         heading="Staked Asset Banks"
         body={<p>Create a new staked asset bank and let stakers use their native stake as collateral.</p>}
@@ -223,9 +239,20 @@ export default function CreateStakedAssetPage() {
       <CreateStakedPoolDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
-        asset={completedForm.assetName}
+        assetName={completedForm.assetName}
+        assetSymbol={completedForm.assetSymbol}
+        assetMint={completedForm.assetMint}
         voteAccountKey={completedForm.voteAccountKey}
       />
+      {isDialogOpen && (
+        <Confetti
+          width={width!}
+          height={height! * 2}
+          recycle={false}
+          opacity={0.4}
+          className={cn(isMobile ? "z-[80]" : "z-[80]")}
+        />
+      )}
     </div>
   );
 }
