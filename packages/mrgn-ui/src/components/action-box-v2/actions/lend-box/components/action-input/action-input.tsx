@@ -1,11 +1,10 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo, ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-state";
 import { formatAmount } from "@mrgnlabs/mrgn-utils";
-import { usdFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
+import { tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 
 import { Input } from "~/components/ui/input";
-
 import { LendingAction, BankSelect } from "./components";
 
 type ActionInputProps = {
@@ -17,7 +16,6 @@ type ActionInputProps = {
   banks: ExtendedBankInfo[];
   selectedBank: ExtendedBankInfo | null;
   lendMode: ActionType;
-
   connected: boolean;
   showCloseBalance?: boolean;
   isDialog?: boolean;

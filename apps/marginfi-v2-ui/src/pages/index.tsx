@@ -40,6 +40,7 @@ export default function HomePage() {
     extendedBankInfos,
     fetchMrgnlendState,
     marginfiClient,
+    stakeAccounts,
   ] = useMrgnlendStore((state) => [
     state.initialized,
     state.isRefreshingStore,
@@ -47,6 +48,7 @@ export default function HomePage() {
     state.extendedBankInfos,
     state.fetchMrgnlendState,
     state.marginfiClient,
+    state.stakeAccounts,
   ]);
 
   const annoucements = React.useMemo(() => {
@@ -79,6 +81,8 @@ export default function HomePage() {
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
   }, [extendedBankInfos, router, marginfiClient]);
 
+  console.log("stakeAccounts", stakeAccounts);
+
   return (
     <>
       <Desktop>
@@ -103,6 +107,7 @@ export default function HomePage() {
                     requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
                     connected: connected,
                     walletContextState: walletContextState,
+                    userStakeAccounts: stakeAccounts,
                     captureEvent: (event, properties) => {
                       capture(event, properties);
                     },
