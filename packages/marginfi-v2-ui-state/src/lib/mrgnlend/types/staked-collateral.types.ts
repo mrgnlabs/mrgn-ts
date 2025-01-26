@@ -6,7 +6,7 @@ type ValidatorStakeGroup = {
   poolKey: PublicKey;
   poolMintKey: PublicKey;
   totalStake: number;
-  largestAccount: {
+  selectedAccount: {
     pubkey: PublicKey;
     amount: number;
   };

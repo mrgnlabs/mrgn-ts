@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const stakeAccounts = await getStakeAccounts(connection, addressPk);
 
     // cache for 4 minutes
-    res.setHeader("Cache-Control", "s-maxage=240, stale-while-revalidate=59");
+    // res.setHeader("Cache-Control", "s-maxage=240, stale-while-revalidate=59");
     res.status(200).json(stakeAccounts);
   } catch (error) {
     console.error("Error:", error);

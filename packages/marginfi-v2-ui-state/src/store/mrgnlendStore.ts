@@ -17,6 +17,8 @@ import {
   filterStakedAssetBanks,
   getStakePoolActiveStates,
   StakePoolMetadata,
+  getStakeAccountsCached,
+  ValidatorStakeGroup,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -47,6 +49,7 @@ interface MrgnlendState {
   extendedBankInfos: ExtendedBankInfo[];
   stakedAssetBankInfos: ExtendedBankInfo[];
   extendedBankInfosWithoutStakedAssets: ExtendedBankInfo[];
+  stakeAccounts: ValidatorStakeGroup[];
   protocolStats: ProtocolStats;
   selectedAccount: MarginfiAccountWrapper | null;
   nativeSolBalance: number;
@@ -291,6 +294,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       let tokenAccountMap: TokenAccountMap;
       let marginfiAccounts: MarginfiAccountWrapper[] = [];
       let selectedAccount: MarginfiAccountWrapper | null = null;
+      let stakeAccounts: ValidatorStakeGroup[] = [];
       if (wallet?.publicKey) {
         const [tokenData, marginfiAccountWrappers] = await Promise.all([
           fetchTokenAccounts(
@@ -306,6 +310,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           ),
           getCachedMarginfiAccountsForAuthority(wallet.publicKey, marginfiClient),
         ]);
+
+        stakeAccounts = await getStakeAccountsCached(wallet.publicKey);
 
         nativeSolBalance = tokenData.nativeSolBalance;
         tokenAccountMap = tokenData.tokenAccountMap;
@@ -394,8 +400,11 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           let stakedAssetMetadata: StakePoolMetadata | undefined;
           if (bank.config.assetTag === 2) {
             const isActive = stakePoolActiveStates.get(bank.mint.toBase58()) || false;
+            const validatorVoteAccount = new PublicKey(
+              bankMetadataMap[bank.address.toBase58()].validatorVoteAccount || ""
+            );
             stakedAssetMetadata = {
-              validatorVoteAccount: new PublicKey(bankMetadataMap[bank.address.toBase58()].validatorVoteAccount || ""),
+              validatorVoteAccount,
               isActive,
             };
           }
@@ -468,6 +477,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         extendedBankInfosWithoutStakedAssets: sortedExtendedBankInfos.filter(
           (bank) => bank.info.rawBank.config.assetTag !== 2
         ),
+        stakeAccounts,
         protocolStats: {
           deposits,
           borrows,

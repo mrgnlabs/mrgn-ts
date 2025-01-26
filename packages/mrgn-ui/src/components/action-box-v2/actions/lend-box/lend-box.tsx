@@ -1,6 +1,7 @@
 import React from "react";
 
 import { WalletContextState } from "@solana/wallet-adapter-react";
+import { IconSettings } from "@tabler/icons-react";
 
 import {
   ActiveBankInfo,
@@ -13,6 +14,7 @@ import {
 } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMessageType,
   ActionTxns,
@@ -37,13 +39,12 @@ import { ActionMessage } from "~/components";
 import { useLendBoxStore } from "./store";
 import { HandleCloseBalanceParamsProps, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { ActionSimulationStatus } from "../../components";
-import { Collateral, ActionInput, Preview } from "./components";
+import { Collateral, ActionInput, Preview, UserStakeAccounts } from "./components";
 import { SimulationStatus } from "../../utils";
 import { useLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
-import { IconSettings } from "@tabler/icons-react";
 
 // error handling
 export type LendBoxProps = {
@@ -63,6 +64,7 @@ export type LendBoxProps = {
   showTokenSelection?: boolean;
   showTokenSelectionGroups?: boolean;
   hidePoolStats?: HidePoolStats;
+  userStakeAccounts?: ValidatorStakeGroup[];
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -87,6 +89,7 @@ export const LendBox = ({
   onComplete,
   captureEvent,
   hidePoolStats,
+  userStakeAccounts,
   setDisplaySettings,
 }: LendBoxProps) => {
   const [
@@ -534,6 +537,10 @@ export const LendBox = ({
           setSelectedBank={setSelectedBank}
         />
       </div>
+
+      {selectedBank && userStakeAccounts && userStakeAccounts.length > 0 && (
+        <UserStakeAccounts selectedBank={selectedBank} userStakeAccounts={userStakeAccounts} />
+      )}
 
       {additionalActionMessages.concat(actionMessages).map(
         (actionMessage, idx) =>

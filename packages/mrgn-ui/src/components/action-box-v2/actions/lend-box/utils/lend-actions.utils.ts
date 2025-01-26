@@ -147,7 +147,7 @@ export async function calculateLendingTransaction(
         depositTx = await marginfiAccount.makeDepositStakedTx(
           amount,
           bank.address,
-          stakeAccount.largestAccount.pubkey,
+          stakeAccount.selectedAccount.pubkey,
           stakeAccount.validator
         );
       } else {
