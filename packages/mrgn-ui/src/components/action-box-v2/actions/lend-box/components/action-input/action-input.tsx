@@ -50,15 +50,7 @@ export const ActionInput = ({
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
-  const isDepositingStakedAccount = React.useMemo(() => {
-    if (selectedBank && lendMode === ActionType.Deposit && selectedBank.info.rawBank.config.assetTag === 2) return true;
-    else return false;
-  }, [selectedBank, lendMode]);
-
-  const isInputDisabled = React.useMemo(
-    () => isDepositingStakedAccount || (maxAmount === 0 && !showCloseBalance),
-    [maxAmount, showCloseBalance, isDepositingStakedAccount]
-  );
+  const isInputDisabled = React.useMemo(() => maxAmount === 0 && !showCloseBalance, [maxAmount, showCloseBalance]);
 
   const formatAmountCb = React.useCallback(
     (newAmount: string, bank: ExtendedBankInfo | null) => {
@@ -120,7 +112,6 @@ export const ActionInput = ({
         onSetAmountRaw={(amount) => handleInputChange(amount)}
         selectedBank={selectedBank}
         lendMode={lendMode}
-        disabled={isDepositingStakedAccount}
       />
     </div>
   );

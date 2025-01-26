@@ -500,19 +500,6 @@ export const LendBox = ({
     ]
   );
 
-  // is attempting to deposit to a staked account and has active native stake with validator
-  // this is used to show a hardcoded info message to user regarding requiring stake account to be deposited in full
-  // this is temporary, soon we will allow stake splitting and depositing partial amounts
-  const isDepositingStakedAccount = React.useMemo(() => {
-    return (
-      selectedBank &&
-      lendMode === ActionType.Deposit &&
-      selectedBank.info.rawBank.config.assetTag === 2 &&
-      walletAmount !== undefined &&
-      walletAmount > 0
-    );
-  }, [selectedBank, lendMode, walletAmount]);
-
   const hasErrorsWarnings = React.useMemo(() => {
     return (
       additionalActionMessages
@@ -520,12 +507,6 @@ export const LendBox = ({
         .filter((value) => value.actionMethod !== "INFO" && value.description).length > 0
     );
   }, [additionalActionMessages, actionMessages]);
-
-  React.useEffect(() => {
-    if (isDepositingStakedAccount) {
-      setAmountRaw(maxAmount.toString());
-    }
-  }, [isDepositingStakedAccount, maxAmount, setAmountRaw]);
 
   React.useEffect(() => {
     if (marginfiClient) {
@@ -553,18 +534,6 @@ export const LendBox = ({
           setSelectedBank={setSelectedBank}
         />
       </div>
-
-      {isDepositingStakedAccount && (
-        <div className="pb-6">
-          <ActionMessage
-            _actionMessage={{
-              description: "Staked accounts must be deposited in full",
-              isEnabled: true,
-              actionMethod: "INFO",
-            }}
-          />
-        </div>
-      )}
 
       {additionalActionMessages.concat(actionMessages).map(
         (actionMessage, idx) =>
