@@ -30,6 +30,17 @@ type CreateStakedAssetForm = {
   assetMint?: PublicKey;
 };
 
+class AddMetadataError extends Error {
+  type: string;
+  retry: boolean;
+
+  constructor(message: string, retry: boolean = true) {
+    super(message);
+    this.type = "add_metadata";
+    this.retry = retry;
+  }
+}
+
 export default function CreateStakedAssetPage() {
   const router = useRouter();
   const { connection } = useConnection();
@@ -60,7 +71,7 @@ export default function CreateStakedAssetPage() {
     .filter((key) => key !== undefined) as PublicKey[];
 
   const createStakedAssetSplPoolTxn = React.useCallback(
-    async (voteAccount: PublicKey, client: MarginfiClient, multiStepToast: MultiStepToastHandle) => {
+    async (voteAccount: PublicKey, client: MarginfiClient) => {
       const solOracle = new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE");
       const poolAddress = vendor.findPoolAddress(voteAccount);
       const poolAdderssInfo = await connection.getAccountInfo(poolAddress);
@@ -86,7 +97,7 @@ export default function CreateStakedAssetPage() {
   const executeCreatedStakedAssetSplPoolTxn = React.useCallback(
     async (txns: Transaction[], client: MarginfiClient, multiStepToast: MultiStepToastHandle) => {
       const txSignature = await client.processTransactions(txns, {
-        broadcastType: "RPC",
+        broadcastType: "RPC", // TODO: update?
         ...priorityFees,
         callback(index, success, signature, stepsToAdvance) {
           success && multiStepToast.setSuccessAndNext(stepsToAdvance, signature, composeExplorerUrl(signature));
@@ -144,7 +155,7 @@ export default function CreateStakedAssetPage() {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to add metadata: ${response.statusText}`);
+        throw new AddMetadataError(`Failed to add metadata: ${response.statusText}`, true);
       }
     } catch (error) {
       console.error("Error adding metadata:", error);
@@ -158,7 +169,12 @@ export default function CreateStakedAssetPage() {
         tokenSymbol,
         tokenDecimals: "9",
       });
-      // do your work retry master
+
+      if (error instanceof AddMetadataError) {
+        throw error;
+      } else {
+        throw new Error("An unexpected error occurred while adding metadata");
+      }
     }
   };
 
@@ -167,13 +183,27 @@ export default function CreateStakedAssetPage() {
   };
 
   const createStakedAsset = React.useCallback(
-    async (form: CreateStakedAssetForm, txns?: Transaction[], multiStepToast?: MultiStepToastHandle) => {
+    async (
+      form: CreateStakedAssetForm,
+      retryOptions: {
+        hasExecutedCreateStakedAssetSplPoolTxn: boolean;
+        bankKey?: PublicKey;
+        mintAddress?: PublicKey;
+        txns?: Transaction[];
+        multiStepToast?: MultiStepToastHandle;
+      } = {
+        hasExecutedCreateStakedAssetSplPoolTxn: false,
+        bankKey: undefined,
+        mintAddress: undefined,
+        txns: undefined,
+        multiStepToast: undefined,
+      }
+    ) => {
       if (!client) return;
-
       setIsLoading(true);
 
-      if (!multiStepToast) {
-        multiStepToast = new MultiStepToastHandle("Creating Staked Asset Bank", [
+      if (!retryOptions.multiStepToast) {
+        retryOptions.multiStepToast = new MultiStepToastHandle("Creating Staked Asset Bank", [
           { label: "Signing transaction" },
           { label: "Creating SPL stake pool" },
           { label: "Adding permissionless bank" },
@@ -181,41 +211,50 @@ export default function CreateStakedAssetPage() {
           ...(form.assetLogo ? [{ label: "Uploading logo" }] : []),
         ]);
 
-        multiStepToast.start();
+        retryOptions.multiStepToast.start();
       } else {
-        multiStepToast.resetAndStart();
+        retryOptions.multiStepToast.resetAndStart();
       }
 
       try {
         new PublicKey(form.voteAccountKey);
       } catch (e) {
-        multiStepToast.setFailed("Invalid vote account key");
+        retryOptions.multiStepToast.setFailed("Invalid vote account key");
         setIsLoading(false);
         return;
       }
 
-      if (!txns || txns.length === 0) {
-        txns = await createStakedAssetSplPoolTxn(new PublicKey(form.voteAccountKey), client, multiStepToast);
+      if (!retryOptions.txns || retryOptions.txns.length === 0) {
+        retryOptions.txns = await createStakedAssetSplPoolTxn(new PublicKey(form.voteAccountKey), client);
       }
 
-      try {
-        const mintAddress = vendor.findPoolMintAddressByVoteAccount(new PublicKey(form.voteAccountKey));
-        const [bankKey] = PublicKey.findProgramAddressSync(
-          [client.group.address.toBuffer(), mintAddress.toBuffer(), new BN(0).toArrayLike(Buffer, "le", 8)],
-          client.program.programId
-        );
+      let bankKey = retryOptions.bankKey;
+      let mintAddress = retryOptions.mintAddress;
 
-        await executeCreatedStakedAssetSplPoolTxn(txns, client, multiStepToast);
+      try {
+        if (!retryOptions.hasExecutedCreateStakedAssetSplPoolTxn || !bankKey || !mintAddress) {
+          mintAddress = vendor.findPoolMintAddressByVoteAccount(new PublicKey(form.voteAccountKey));
+          [bankKey] = PublicKey.findProgramAddressSync(
+            [client.group.address.toBuffer(), mintAddress.toBuffer(), new BN(0).toArrayLike(Buffer, "le", 8)],
+            client.program.programId
+          );
+
+          await executeCreatedStakedAssetSplPoolTxn(retryOptions.txns, client, retryOptions.multiStepToast);
+
+          retryOptions.hasExecutedCreateStakedAssetSplPoolTxn = true;
+          retryOptions.bankKey = bankKey;
+          retryOptions.mintAddress = mintAddress;
+        }
 
         await addMetadata(new PublicKey(form.voteAccountKey), bankKey, mintAddress, form.assetName, form.assetSymbol);
 
-        multiStepToast.setSuccessAndNext();
+        retryOptions.multiStepToast.setSuccessAndNext();
 
         if (form.assetLogo) {
           await uploadImage(form.assetLogo, mintAddress.toBase58());
         }
 
-        multiStepToast.setSuccess();
+        retryOptions.multiStepToast.setSuccess();
         setCompletedForm({ ...form, assetMint: mintAddress });
         setIsDialogOpen(true);
         fetchMrgnlendState();
@@ -224,9 +263,20 @@ export default function CreateStakedAssetPage() {
         setIsLoading(false);
         let retry = undefined;
         if (e.retry) {
-          retry = () => createStakedAsset(form, txns, multiStepToast);
+          if (e instanceof AddMetadataError && bankKey && mintAddress) {
+            retry = () =>
+              createStakedAsset(form, {
+                hasExecutedCreateStakedAssetSplPoolTxn: true,
+                bankKey: bankKey,
+                mintAddress: mintAddress,
+                txns: retryOptions.txns,
+                multiStepToast: retryOptions.multiStepToast,
+              });
+          } else {
+            retry = () => createStakedAsset(form, retryOptions);
+          }
         }
-        multiStepToast.setFailed(e.message ?? "Failed to create staked asset bank", retry);
+        retryOptions.multiStepToast.setFailed(e.message ?? "Failed to create staked asset bank", retry);
       } finally {
         setIsLoading(false);
       }
@@ -244,7 +294,7 @@ export default function CreateStakedAssetPage() {
       <CreateStakedPoolDialog
         isOpen={isDialogOpen}
         onClose={() => {
-          router.push("/");
+          // router.push("/");
           setIsDialogOpen(false);
         }}
         assetName={completedForm.assetName}
