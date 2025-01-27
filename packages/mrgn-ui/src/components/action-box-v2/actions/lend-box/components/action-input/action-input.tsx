@@ -112,7 +112,9 @@ export const ActionInput = ({
               placeholder="0"
               className="bg-transparent shadow-none min-w-[130px] text-right h-auto py-0 pr-0 outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
             />
-            {isDepositingStakedCollat && <span className="text-base text-muted-foreground font-light">SOL</span>}
+            {isDepositingStakedCollat && (
+              <span className="text-xs text-muted-foreground font-light translate-y-[1px]">SOL</span>
+            )}
           </div>
           {amount !== null && amount > 0 && selectedBank && (
             <span className="text-xs text-muted-foreground font-light">{tokenPriceFormatter(amount * tokenPrice)}</span>
