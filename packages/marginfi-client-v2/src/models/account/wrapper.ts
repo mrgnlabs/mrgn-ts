@@ -963,7 +963,7 @@ class MarginfiAccountWrapper {
     const amountLamports = Number(amount) * LAMPORTS_PER_SOL;
     const stakeAccLamports = stakeAccInfo?.lamports ?? 0;
     const availableStake = stakeAccLamports ? stakeAccLamports - rentExemptReserve : 0;
-    const isFullStake = amountLamports >= availableStake - rentExemptReserve;
+    const isFullStake = amountLamports >= availableStake;
 
     // calculate pool tokens
     const poolStakeAccLamports =
