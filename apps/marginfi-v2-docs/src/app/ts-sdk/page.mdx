@@ -91,7 +91,7 @@ The `deposit` method on the marginfi account object allows you to  make a deposi
 
 ### Step 5: Borrow From a Bank
 
-After lending liquidity on marginfi, you’re account is eligible to act as a Borrower. You can borrow liquidity from marginfi banks using one line of code:
+After lending liquidity on marginfi, your account is eligible to act as a Borrower. You can borrow liquidity from marginfi banks using one line of code:
 
 ```javascript {{ title: 'Example' }}
 await marginfiAccount.borrow(1, bank.address);
@@ -99,7 +99,7 @@ await marginfiAccount.borrow(1, bank.address);
 
 The structure of the `borrow` method is identical to the `deposit` method. You specify the amount you want to borrow using the first parameter, and you specify which bank you want to interact with using the second parameter.
 
-if you followed along with these steps, you just want through the full lending-and-borrowing lifecycle on marginfi. To execute your node, simply tun `ts-node <file-path>` in your terminal. You’re code should look like this:
+if you followed along with these steps, you just went through the full lending-and-borrowing lifecycle on marginfi. To execute your node, simply run `ts-node <file-path>` in your terminal. Your code should look like this:
 
 ```javascript {{ title: 'Example' }}
 import { Connection } from "@solana/web3.js";
