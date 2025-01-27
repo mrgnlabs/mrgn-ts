@@ -195,7 +195,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   },
   setDisplaySettings: (displaySettings: boolean) => set({ displaySettings }),
   setJupiterOptions: (jupiterOptions: JupiterOptions) => {
-    console.log("jupiterOptions", jupiterOptions);
     set({ jupiterOptions: { ...jupiterOptions, slippageBps: jupiterOptions.slippageBps * 100 } });
   },
 });
