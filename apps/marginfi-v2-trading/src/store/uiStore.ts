@@ -30,7 +30,6 @@ interface UiState {
   isWalletAuthDialogOpen: boolean;
   isWalletOpen: boolean;
   lendingMode: LendingModes;
-  slippageBps: number;
   jupiterOptions: JupiterOptions;
   platformFeeBps: number;
   isActionComplete: boolean;
@@ -48,7 +47,6 @@ interface UiState {
   setIsWalletAuthDialogOpen: (isOpen: boolean) => void;
   setIsWalletOpen: (isOpen: boolean) => void;
   setLendingMode: (lendingMode: LendingModes) => void;
-  setSlippageBps: (slippageBps: number) => void;
   setIsActionComplete: (isActionSuccess: boolean) => void;
   setJupiterOptions: (jupiterOptions: JupiterOptions) => void;
   setPreviousTxn: (previousTxn: PreviousTxn) => void;
@@ -70,6 +68,12 @@ function createUiStore() {
         if (window.innerWidth < 768) {
           state?.setIsWalletOpen(false);
         }
+        if (
+          state?.jupiterOptions.slippageBps &&
+          (state.jupiterOptions.slippageBps < 0 || state.jupiterOptions.slippageBps > 500)
+        ) {
+          state.jupiterOptions.slippageBps = 100;
+        }
       },
     })
   );
@@ -77,7 +81,6 @@ function createUiStore() {
 
 const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   // State
-  slippageBps: 100,
   isWalletAuthDialogOpen: false,
   isWalletOpen: false,
   lendingMode: LendingModes.LEND,
@@ -103,7 +106,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     set({
       lendingMode: lendingMode,
     }),
-  setSlippageBps: (slippageBps: number) => set({ slippageBps: slippageBps }),
   setIsActionComplete: (isActionComplete: boolean) => set({ isActionComplete: isActionComplete }),
   setPreviousTxn: (previousTxn: PreviousTxn) => set({ previousTxn: previousTxn }),
   setWalletState: (walletState: WalletState) => set({ walletState: walletState }),
