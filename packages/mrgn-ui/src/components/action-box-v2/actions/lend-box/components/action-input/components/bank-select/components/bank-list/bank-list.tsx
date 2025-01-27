@@ -86,6 +86,11 @@ export const BankList = ({
     [lendingMode]
   );
 
+  const solPrice = React.useMemo(() => {
+    const solBank = banks.find((bank) => bank.info.state.mint.equals(WSOL_MINT));
+    return solBank?.info.oraclePrice.priceRealtime.price.toNumber() ?? 0;
+  }, [banks]);
+
   /////// BANKS
 
   // wallet banks
@@ -182,6 +187,7 @@ export const BankList = ({
                       showBalanceOverride={true}
                       nativeSolBalance={nativeSolBalance}
                       showStakedAssetLabel={true}
+                      solPrice={solPrice}
                     />
                   </CommandItem>
                 );
@@ -223,6 +229,7 @@ export const BankList = ({
                     showBalanceOverride={false}
                     nativeSolBalance={nativeSolBalance}
                     showStakedAssetLabel={true}
+                    solPrice={solPrice}
                   />
                 </CommandItem>
               ))}
@@ -255,6 +262,7 @@ export const BankList = ({
                     bank={bank}
                     showBalanceOverride={false}
                     nativeSolBalance={nativeSolBalance}
+                    solPrice={solPrice}
                   />
                 </CommandItem>
               ))}
@@ -287,6 +295,7 @@ export const BankList = ({
                     bank={bank}
                     showBalanceOverride={false}
                     nativeSolBalance={nativeSolBalance}
+                    solPrice={solPrice}
                   />
                 </CommandItem>
               );
@@ -318,6 +327,7 @@ export const BankList = ({
                     bank={bank}
                     showBalanceOverride={false}
                     nativeSolBalance={nativeSolBalance}
+                    solPrice={solPrice}
                   />
                 </CommandItem>
               );
@@ -351,6 +361,7 @@ export const BankList = ({
                         bank={bank}
                         showBalanceOverride={false}
                         nativeSolBalance={nativeSolBalance}
+                        solPrice={solPrice}
                       />
                     </CommandItem>
                   );
