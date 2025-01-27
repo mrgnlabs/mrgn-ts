@@ -572,17 +572,21 @@ export const LendBox = ({
           setSelectedBank={setSelectedBank}
         />
       </div>
-      {selectedBank && selectedBank.info.rawBank.config.assetTag === 2 && stakeAccounts && stakeAccounts.length > 1 && (
-        <StakeAccountSwitcher
-          selectedBank={selectedBank}
-          selectedStakeAccount={selectedStakeAccount?.address}
-          stakeAccounts={stakeAccounts}
-          onStakeAccountChange={(account) => {
-            setSelectedStakeAccount(account);
-            setAmountRaw("0");
-          }}
-        />
-      )}
+      {lendMode === ActionType.Deposit &&
+        selectedBank &&
+        selectedBank.info.rawBank.config.assetTag === 2 &&
+        stakeAccounts &&
+        stakeAccounts.length > 1 && (
+          <StakeAccountSwitcher
+            selectedBank={selectedBank}
+            selectedStakeAccount={selectedStakeAccount?.address}
+            stakeAccounts={stakeAccounts}
+            onStakeAccountChange={(account) => {
+              setSelectedStakeAccount(account);
+              setAmountRaw("0");
+            }}
+          />
+        )}
       {additionalActionMessages.concat(actionMessages).map(
         (actionMessage, idx) =>
           actionMessage.description && (
