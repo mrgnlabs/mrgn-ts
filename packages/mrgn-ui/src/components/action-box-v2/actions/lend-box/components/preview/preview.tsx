@@ -15,6 +15,7 @@ import {
   getOracleStat,
   ActionSummary,
 } from "~/components/action-box-v2/utils";
+import { IconInfoCircle } from "@tabler/icons-react";
 
 interface PreviewProps {
   selectedBank: ExtendedBankInfo | null;
@@ -22,9 +23,10 @@ interface PreviewProps {
   lendMode: ActionType;
   actionSummary?: ActionSummary;
   hidePoolStats?: HidePoolStats;
+  isMax?: boolean;
 }
 
-export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode, hidePoolStats }: PreviewProps) => {
+export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode, hidePoolStats, isMax }: PreviewProps) => {
   const isLending = React.useMemo(
     () => lendMode === ActionType.Deposit || lendMode === ActionType.Withdraw,
     [lendMode]
@@ -59,6 +61,13 @@ export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode, hide
             </ActionStatItem>
           ))}
         </dl>
+      )}
+
+      {isMax && (
+        <small className="flex items-start gap-1 mt-4 text-xs text-muted-foreground font-light max-w-[75%]">
+          <IconInfoCircle size={13} className="shrink-0 translate-y-[2px]" />
+          Staking rewards accumulated this epoch will be withdrawn to your wallet on deposit.
+        </small>
       )}
     </>
   );
