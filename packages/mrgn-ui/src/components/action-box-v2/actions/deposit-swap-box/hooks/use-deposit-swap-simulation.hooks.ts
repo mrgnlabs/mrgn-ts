@@ -22,6 +22,7 @@ import {
   SimulateActionProps,
 } from "../utils";
 import { JupiterOptions } from "~/components/settings/settings";
+import { WalletToken } from "@mrgnlabs/mrgn-common";
 
 type DepositSwapSimulationProps = {
   debouncedAmount: number;
@@ -29,7 +30,7 @@ type DepositSwapSimulationProps = {
   marginfiClient: MarginfiClient | null;
   accountSummary?: AccountSummary;
   depositBank: ExtendedBankInfo | null;
-  swapBank: ExtendedBankInfo | null;
+  swapBank: ExtendedBankInfo | WalletToken | null;
   actionTxns: DepositSwapActionTxns;
   simulationResult: SimulationResult | null;
   jupiterOptions: JupiterOptions | null;
@@ -221,7 +222,6 @@ export function useDepositSwapSimulation({
   const handleActionSummary = React.useCallback(
     (summary?: AccountSummary, result?: SimulationResult) => {
       if (summary && depositBank) {
-        console.log("summary", summary);
         return calculateSummary({
           simulationResult: result ?? undefined,
           bank: depositBank,

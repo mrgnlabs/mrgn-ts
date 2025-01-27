@@ -28,3 +28,16 @@ export interface InstructionsWrapper {
 export interface WrappedI80F48 {
   value: number[];
 }
+
+export type WalletToken = {
+  address: PublicKey;
+  name: string;
+  symbol: string;
+  price: number;
+  value: number;
+  logoUri: string;
+  balance: number;
+  ata: PublicKey;
+
+  mintDecimals: number;
+};

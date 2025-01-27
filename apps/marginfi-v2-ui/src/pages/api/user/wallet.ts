@@ -1,6 +1,6 @@
 import { NextApiResponse } from "next";
 import { STATUS_BAD_REQUEST, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
-import { WalletToken } from "~/types";
+import { WalletToken } from "@mrgnlabs/mrgn-common";
 import { NextApiRequest } from "../utils";
 import { PublicKey } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
@@ -46,6 +46,7 @@ export default async function handler(req: NextApiRequest<WalletRequest>, res: N
     const tokens: WalletToken[] = (
       await Promise.all(
         data.items.slice(0, 20).map(async (item: any) => {
+          console.log("item", item);
           const mint = new PublicKey(item.address);
           const owner = new PublicKey(ownerAddress);
           const ata = getAssociatedTokenAddressSync(mint, owner);
@@ -58,7 +59,8 @@ export default async function handler(req: NextApiRequest<WalletRequest>, res: N
             value: item.valueUsd,
             logoUri: item.logoURI,
             balance: item.uiAmount,
-            ata: ata.toString(),
+            ata: ata.toBase58(),
+            mintDecimals: item.decimals,
           };
         })
       )

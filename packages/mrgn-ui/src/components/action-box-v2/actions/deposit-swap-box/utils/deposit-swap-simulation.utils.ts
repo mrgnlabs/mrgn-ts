@@ -20,9 +20,15 @@ export const handleExecuteDepositSwapAction = async ({
     captureEvent(`user_deposit_swap_initiate`, {
       uuid: attemptUuid,
       depositToken: params.bank.meta.tokenSymbol,
-      swapToken: params.swapBank ? params.swapBank.meta.tokenSymbol : "NO_SWAP",
+      swapToken: params.swapBank
+        ? "info" in params.swapBank
+          ? params.swapBank.meta.tokenSymbol
+          : "NO_SWAP"
+        : "NO_SWAP",
       amount: params.amount,
     });
+
+    console.log(params);
     const txnSig = await executeDepositSwapAction({ ...params, swapBank: params.swapBank });
 
     setIsLoading(false);
@@ -32,7 +38,11 @@ export const handleExecuteDepositSwapAction = async ({
         uuid: attemptUuid,
         txn: txnSig,
         depositToken: params.bank.meta.tokenSymbol,
-        swapToken: params.swapBank ? params.swapBank.meta.tokenSymbol : "NO_SWAP",
+        swapToken: params.swapBank
+          ? "info" in params.swapBank
+            ? params.swapBank.meta.tokenSymbol
+            : "NO_SWAP"
+          : "NO_SWAP",
         amount: params.amount,
       });
     }

@@ -2,7 +2,7 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
 import { FEE_MARGIN, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { TransactionOptions, WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { TransactionOptions, WalletToken, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { MultiStepToastHandle, showErrorToast } from "../toasts";
 import {
@@ -171,7 +171,7 @@ export async function executeTradeAction(params: ExecuteTradeActionProps) {
 }
 
 export interface ExecuteDepositSwapActionProps extends MarginfiActionParams {
-  swapBank: ExtendedBankInfo | null;
+  swapBank: ExtendedBankInfo | WalletToken | null;
   actionTxns: DepositSwapActionTxns;
 }
 
