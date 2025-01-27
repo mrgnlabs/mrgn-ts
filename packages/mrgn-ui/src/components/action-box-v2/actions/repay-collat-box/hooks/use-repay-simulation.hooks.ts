@@ -136,6 +136,7 @@ export function useRepayCollatSimulation({
           connection: marginfiClient.provider.connection,
           platformFeeBps,
           slippageBps: jupiterOptions?.slippageBps,
+          slippageMode: jupiterOptions?.slippageMode,
         });
 
         if (repayResult && "repayCollatObject" in repayResult) {
@@ -172,7 +173,8 @@ export function useRepayCollatSimulation({
       const maxAmount = await calculateMaxRepayableCollateral(
         selectedBank,
         selectedSecondaryBank,
-        jupiterOptions?.slippageBps
+        jupiterOptions?.slippageBps,
+        jupiterOptions?.slippageMode
       );
 
       if (!maxAmount) {

@@ -55,6 +55,7 @@ import {
 export async function calculateRepayCollateralParams({
   slippageBps,
   platformFeeBps,
+  slippageMode,
   ...repayProps
 }: CalculateRepayCollateralProps): Promise<
   | {
@@ -79,7 +80,8 @@ export async function calculateRepayCollateralParams({
       slippageBps: slippageBps,
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",
-      platformFeeBps: platformFeeBps,
+      platformFeeBps: slippageMode === "FIXED" ? platformFeeBps : undefined,
+      dynamicSlippage: slippageMode === "DYNAMIC" ? true : false,
     } as QuoteGetRequest;
     try {
       const swapQuote = await getSwapQuoteWithRetry(quoteParams, 2, 1000);
@@ -132,6 +134,7 @@ export async function calculateRepayCollateralParams({
  */
 export async function calculateBorrowLendPositionParams({
   slippageBps,
+  slippageMode,
   platformFeeBps,
   ...closePostionProps
 }: CalculateClosePositionProps): Promise<ClosePositionActionTxns | ActionMessageType> {
@@ -143,7 +146,8 @@ export async function calculateBorrowLendPositionParams({
   const maxAmount = await calculateMaxRepayableCollateral(
     closePostionProps.borrowBank,
     closePostionProps.depositBank,
-    slippageBps
+    slippageBps,
+    slippageMode
   );
 
   console.log("DEBUG: maxAmount", maxAmount);
@@ -155,7 +159,8 @@ export async function calculateBorrowLendPositionParams({
       amount: uiToNative(maxAmount, closePostionProps.depositBank.info.state.mintDecimals).toNumber(),
       inputMint: closePostionProps.depositBank.info.state.mint.toBase58(),
       outputMint: closePostionProps.borrowBank.info.state.mint.toBase58(),
-      slippageBps: slippageBps,
+      slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
+      dynamicSlippage: slippageMode === "DYNAMIC" ? true : false,
       platformFeeBps: platformFeeBps,
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",
@@ -200,6 +205,7 @@ export async function calculateLoopingParams({
   marginfiClient,
   targetLeverage,
   slippageBps,
+  slippageMode,
   platformFeeBps,
   setupBankAddresses,
   ...loopingProps
@@ -243,12 +249,15 @@ export async function calculateLoopingParams({
 
   for (const maxAccounts of maxAccountsArr) {
     console.log(`%cDEBUG: calculating flashloan swap quote`, "color: blue; font-weight: bold; font-size: 14px;");
-    console.log(`slippageBps: ${slippageBps}, platformFeeBps: ${platformFeeBps}, maxAccounts: ${maxAccounts}`);
+    console.log(
+      `slippageBps: ${slippageBps}, platformFeeBps: ${platformFeeBps}, maxAccounts: ${maxAccounts}, slippageMode: ${slippageMode}`
+    );
     const quoteParams: QuoteGetRequest = {
       amount: borrowAmountNative,
       inputMint: loopingProps.borrowBank.info.state.mint.toBase58(), // borrow
       outputMint: loopingProps.depositBank.info.state.mint.toBase58(), // deposit
-      slippageBps: slippageBps,
+      dynamicSlippage: slippageMode === "DYNAMIC" ? true : false,
+      slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
       platformFeeBps: platformFeeBps, // platform fee
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",

@@ -32,13 +32,22 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 
 import { Keypair, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
-import { ActionSummary, CalculatePreviewProps, SimulatedActionPreview } from "../../lend-box/utils";
+import { ActionSummary, SimulatedActionPreview } from "../../lend-box/utils";
 import {
   ActionPreview,
   simulatedCollateral,
   simulatedHealthFactor,
   simulatedPositionSize,
 } from "~/components/action-box-v2/utils";
+import { JupiterOptions } from "~/components/settings";
+
+export interface CalculatePreviewProps {
+  actionMode: ActionType;
+  simulationResult?: SimulationResult;
+  bank: ExtendedBankInfo;
+  accountSummary: AccountSummary;
+  actionTxns: DepositSwapActionTxns;
+}
 
 export interface GenerateDepositSwapTxnsProps {
   marginfiAccount: MarginfiAccountWrapper;
@@ -46,7 +55,7 @@ export interface GenerateDepositSwapTxnsProps {
   swapBank?: ExtendedBankInfo | null;
   amount: number;
   marginfiClient: MarginfiClient;
-  slippageBps: number;
+  jupiterOptions: JupiterOptions | null;
 }
 
 export async function generateDepositSwapTxns(
@@ -128,7 +137,8 @@ export async function createSwapTx(props: GenerateDepositSwapTxnsProps) {
       amount: uiToNative(props.amount, props.swapBank.info.state.mintDecimals).toNumber(),
       inputMint: props.swapBank.info.state.mint.toBase58(),
       outputMint: props.depositBank.info.state.mint.toBase58(),
-      slippageBps: props.slippageBps,
+      slippageBps: props.jupiterOptions?.slippageMode === "FIXED" ? props.jupiterOptions?.slippageBps : undefined,
+      dynamicSlippage: props.jupiterOptions?.slippageMode === "DYNAMIC" ? true : false,
     });
 
     if (!swapQuote) {
@@ -253,6 +263,7 @@ export function calculateSummary({
   bank,
   actionMode,
   accountSummary,
+  actionTxns,
 }: CalculatePreviewProps): ActionSummary {
   let simulationPreview: SimulatedActionPreview | null = null;
 
@@ -260,7 +271,7 @@ export function calculateSummary({
     simulationPreview = calculateSimulatedActionPreview(simulationResult, bank);
   }
 
-  const actionPreview = calculateActionPreview(bank, actionMode, accountSummary);
+  const actionPreview = calculateActionPreview(bank, actionMode, accountSummary, actionTxns);
 
   return {
     actionPreview,
@@ -271,7 +282,8 @@ export function calculateSummary({
 function calculateActionPreview(
   bank: ExtendedBankInfo,
   actionMode: ActionType,
-  accountSummary: AccountSummary
+  accountSummary: AccountSummary,
+  actionTxns: DepositSwapActionTxns
 ): ActionPreview {
   const isLending = [ActionType.Deposit, ActionType.Withdraw].includes(actionMode);
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
@@ -293,12 +305,17 @@ function calculateActionPreview(
     bank.info.state.mintDecimals
   );
 
+  const slippageBps = actionTxns.actionQuote?.slippageBps;
+  const priceImpactPct = actionTxns.actionQuote?.priceImpactPct;
+
   return {
     positionAmount,
     health,
     liquidationPrice,
     poolSize,
     bankCap,
+    slippageBps,
+    priceImpactPct,
   } as ActionPreview;
 }
 

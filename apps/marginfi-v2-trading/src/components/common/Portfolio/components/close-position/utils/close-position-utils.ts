@@ -26,6 +26,7 @@ import {
 import { calculateClosePositions } from "~/utils";
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
 import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
+import { JupiterOptions } from "~/components";
 
 /**
  * Simulates closing a position by fetching and validating the required transactions
@@ -34,7 +35,7 @@ export const simulateClosePosition = async ({
   marginfiAccount,
   depositBanks,
   borrowBank,
-  slippageBps,
+  jupiterOptions,
   connection,
   platformFeeBps,
   setIsLoading,
@@ -43,7 +44,7 @@ export const simulateClosePosition = async ({
   marginfiAccount: MarginfiAccountWrapper;
   depositBanks: ActiveBankInfo[];
   borrowBank: ActiveBankInfo | null;
-  slippageBps: number;
+  jupiterOptions: JupiterOptions | null;
   connection: Connection;
   platformFeeBps: number;
   setIsLoading: (loading: boolean) => void;
@@ -56,6 +57,9 @@ export const simulateClosePosition = async ({
     if (depositBanks.length === 0 || !borrowBank) {
       return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.BANK_NOT_INITIALIZED };
     }
+    if (!jupiterOptions) {
+      return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.JUPITER_OPTIONS_NOT_INITIALIZED };
+    }
 
     setIsLoading(true);
 
@@ -63,7 +67,7 @@ export const simulateClosePosition = async ({
       marginfiAccount,
       depositBank: depositBanks[0],
       borrowBank: borrowBank,
-      slippageBps,
+      jupiterOptions,
       connection: connection,
       platformFeeBps,
       tradeState,
@@ -97,7 +101,7 @@ const fetchClosePositionTxns = async (props: {
   marginfiAccount: MarginfiAccountWrapper;
   depositBank: ActiveBankInfo;
   borrowBank: ActiveBankInfo;
-  slippageBps: number;
+  jupiterOptions: JupiterOptions;
   connection: Connection;
   platformFeeBps: number;
   tradeState: GroupStatus;
@@ -109,7 +113,7 @@ const fetchClosePositionTxns = async (props: {
       marginfiAccount: props.marginfiAccount,
       depositBanks: [props.depositBank],
       borrowBank: props.borrowBank,
-      slippageBps: props.slippageBps,
+      jupiterOptions: props.jupiterOptions,
       connection: props.connection,
       platformFeeBps: props.platformFeeBps,
     });
@@ -124,10 +128,7 @@ const fetchClosePositionTxns = async (props: {
       const swapTx = await getSwapTx({
         ...props,
         authority: props.marginfiAccount.authority,
-        jupOpts: {
-          slippageBps: props.slippageBps,
-          platformFeeBps: props.platformFeeBps,
-        },
+        jupiterOptions: props.jupiterOptions,
       });
 
       if ("tx" in swapTx) {
@@ -231,7 +232,8 @@ type SwapTxProps = {
   borrowBank: ActiveBankInfo;
   authority: PublicKey;
   connection: Connection;
-  jupOpts: { slippageBps: number; platformFeeBps?: number };
+  jupiterOptions: JupiterOptions;
+  platformFeeBps: number;
 };
 interface CreateSwapTxProps extends SwapTxProps {
   swapAmount: number;
@@ -250,7 +252,8 @@ async function getSwapTx({ ...props }: SwapTxProps): Promise<CreateSwapTxRespons
   const maxAmount = await calculateMaxRepayableCollateral(
     props.borrowBank,
     props.depositBank,
-    props.jupOpts.slippageBps
+    props.jupiterOptions?.slippageBps,
+    props.jupiterOptions?.slippageMode
   );
   if (!maxAmount) {
     return STATIC_SIMULATION_ERRORS.MAX_AMOUNT_CALCULATION_FAILED;
@@ -268,7 +271,8 @@ async function createSwapTx({
   swapAmount,
   authority,
   connection,
-  jupOpts,
+  jupiterOptions,
+  platformFeeBps,
 }: CreateSwapTxProps): Promise<CreateSwapTxResponse> {
   const jupiterQuoteApi = createJupiterApiClient();
 
@@ -277,8 +281,9 @@ async function createSwapTx({
     amount: uiToNative(swapAmount, depositBank.info?.rawBank.mintDecimals).toNumber(),
     outputMint: borrowBank.info.state.mint.toBase58(),
     inputMint: depositBank.info.state.mint.toBase58(),
-    slippageBps: jupOpts.slippageBps,
-    platformFeeBps: jupOpts.platformFeeBps,
+    slippageBps: jupiterOptions?.slippageMode === "FIXED" ? jupiterOptions?.slippageBps : undefined,
+    platformFeeBps: platformFeeBps,
+    dynamicSlippage: jupiterOptions?.slippageMode === "DYNAMIC" ? true : false,
   });
 
   if (!swapQuote) {

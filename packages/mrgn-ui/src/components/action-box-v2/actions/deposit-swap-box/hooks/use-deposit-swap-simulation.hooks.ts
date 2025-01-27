@@ -148,7 +148,7 @@ export function useDepositSwapSimulation({
           swapBank: swapBank,
           amount: amount,
           marginfiClient: marginfiClient,
-          slippageBps: jupiterOptions?.slippageBps,
+          jupiterOptions,
         };
 
         const depositSwapActionTxns = await fetchDepositSwapActionTxns(props);
@@ -221,11 +221,13 @@ export function useDepositSwapSimulation({
   const handleActionSummary = React.useCallback(
     (summary?: AccountSummary, result?: SimulationResult) => {
       if (summary && depositBank) {
+        console.log("summary", summary);
         return calculateSummary({
           simulationResult: result ?? undefined,
           bank: depositBank,
           actionMode: ActionType.Deposit,
           accountSummary: summary,
+          actionTxns: actionTxns ?? undefined,
         });
       }
     },

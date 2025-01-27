@@ -21,6 +21,7 @@ import {
 import { SimulationStatus } from "~/components/action-box-v2/utils";
 import { ArenaBank } from "~/types/trade-store.types";
 import { generateTradeTx, getSimulationResult } from "../utils";
+import { JupiterOptions } from "~/components";
 
 export type TradeSimulationProps = {
   debouncedAmount: number;
@@ -31,7 +32,7 @@ export type TradeSimulationProps = {
   wrappedAccount: MarginfiAccountWrapper | null;
   isEnabled: boolean;
 
-  slippageBps: number;
+  jupiterOptions: JupiterOptions | null;
   platformFeeBps: number;
 
   tradeState: "long" | "short";
@@ -50,7 +51,7 @@ export function useTradeSimulation({
   borrowBank,
   marginfiClient,
   wrappedAccount,
-  slippageBps,
+  jupiterOptions,
   platformFeeBps,
   isEnabled,
   setActionTxns,
@@ -150,7 +151,7 @@ export function useTradeSimulation({
   const handleSimulation = React.useCallback(
     async (amount: number, leverage: number) => {
       try {
-        if (amount === 0 || leverage === 0 || !depositBank || !borrowBank || !marginfiClient) {
+        if (amount === 0 || leverage === 0 || !depositBank || !borrowBank || !marginfiClient || !jupiterOptions) {
           setActionTxns({
             actionTxn: null,
             additionalTxns: [],
@@ -171,7 +172,8 @@ export function useTradeSimulation({
           borrowBank: borrowBank,
           targetLeverage: leverage,
           depositAmount: amount,
-          slippageBps: slippageBps,
+          slippageBps: jupiterOptions?.slippageBps,
+          slippageMode: jupiterOptions?.slippageMode,
           connection: marginfiClient?.provider.connection,
           platformFeeBps: platformFeeBps,
           tradeState,
@@ -235,10 +237,11 @@ export function useTradeSimulation({
       depositBank,
       borrowBank,
       marginfiClient,
+      jupiterOptions,
       setIsLoading,
       wrappedAccount,
-      slippageBps,
       platformFeeBps,
+      tradeState,
       setActionTxns,
       setSimulationResult,
       setErrorMessage,

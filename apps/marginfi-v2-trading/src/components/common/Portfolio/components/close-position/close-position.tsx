@@ -46,14 +46,14 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
   });
   const { connection } = useConnection();
   const { wallet } = useWallet();
-  const [slippageBps, platformFeeBps, broadcastType, priorityFees, setIsActionComplete, setPreviousTxn] = useUiStore(
+  const [platformFeeBps, broadcastType, priorityFees, setIsActionComplete, setPreviousTxn, jupiterOptions] = useUiStore(
     (state) => [
-      state.slippageBps,
       state.platformFeeBps,
       state.broadcastType,
       state.priorityFees,
       state.setIsActionComplete,
       state.setPreviousTxn,
+      state.jupiterOptions,
     ]
   );
   const [refreshGroup] = useTradeStoreV2((state) => [state.refreshGroup]);
@@ -81,7 +81,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
         marginfiAccount: wrappedAccount,
         depositBanks: depositBanks as ActiveBankInfo[],
         borrowBank: borrowBank as ActiveBankInfo | null,
-        slippageBps: slippageBps,
+        jupiterOptions: jupiterOptions,
         connection: connection,
         platformFeeBps: platformFeeBps,
         tradeState: arenaPool.status,
@@ -107,7 +107,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
       setMultiStepToast(multiStepToast);
       setIsLoading(false);
     }
-  }, [wrappedAccount, connection, depositBanks, borrowBank, slippageBps, platformFeeBps]);
+  }, [wrappedAccount, connection, depositBanks, borrowBank, jupiterOptions, platformFeeBps, arenaPool]);
 
   const handleChangeDialogState = (open: boolean) => {
     setIsOpen(open);

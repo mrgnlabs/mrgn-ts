@@ -516,12 +516,3 @@ export const RepayCollatBox = ({
     </ActionBoxContentWrapper>
   );
 };
-function checkRepayColatActionAvailable(arg0: {
-  amount: number;
-  connected: boolean;
-  selectedBank: ExtendedBankInfo | null;
-  selectedSecondaryBank: ExtendedBankInfo | null;
-  actionQuote: import("@jup-ag/api").QuoteResponse | null;
-}): any {
-  throw new Error("Function not implemented.");
-}

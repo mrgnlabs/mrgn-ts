@@ -33,18 +33,15 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { slippageModes } from "~/components/settings";
+import { JupiterOptions, slippageModes } from "~/components/settings";
 
 type CreateUnstakeLstTxProps = {
   amount: number;
   feepayer: PublicKey;
   connection: Connection;
   blockhash?: string;
-  jupOpts: {
-    slippageMode: slippageModes;
-    platformFeeBps: number;
-    slippageBps: number;
-  };
+  jupiterOptions: JupiterOptions | null;
+  platformFeeBps: number;
 };
 
 // unstaking LST (essentially a swap)
@@ -53,7 +50,8 @@ export async function createUnstakeLstTx({
   feepayer,
   connection,
   blockhash,
-  jupOpts,
+  jupiterOptions,
+  platformFeeBps,
 }: CreateUnstakeLstTxProps): Promise<StakeActionTxns | ActionMessageType> {
   const swapResponse = await createSwapToSolTx({
     feepayer,
@@ -64,7 +62,8 @@ export async function createUnstakeLstTx({
       amount,
       mintDecimals: 9,
     },
-    jupOpts,
+    jupiterOptions,
+    platformFeeBps,
   });
 
   if (swapResponse.error || !swapResponse.tx || !swapResponse.quote) {
@@ -85,10 +84,8 @@ type CreateStakeLstTxProps = {
   connection: Connection;
   lstData: LstData;
   blockhash?: string;
-  jupOpts: {
-    platformFeeBps: number;
-    slippageBps: number;
-  };
+  jupiterOptions: JupiterOptions | null;
+  platformFeeBps: number;
 };
 
 export async function createStakeLstTx({
@@ -98,7 +95,8 @@ export async function createStakeLstTx({
   connection,
   blockhash,
   lstData,
-  jupOpts,
+  jupiterOptions,
+  platformFeeBps,
 }: CreateStakeLstTxProps): Promise<StakeActionTxns | ActionMessageType> {
   let swapQuote: QuoteResponse | null = null;
   let swapTx: SolanaTransaction | null = null;
@@ -115,7 +113,8 @@ export async function createStakeLstTx({
         amount,
         mintDecimals: selectedBank.info.state.mintDecimals,
       },
-      jupOpts,
+      jupiterOptions,
+      platformFeeBps,
     });
 
     if (swapResponse.error || !swapResponse.tx || !swapResponse.quote) {
@@ -201,10 +200,8 @@ type CreateSwapToSolTxProps = {
     amount: number;
     mintDecimals: number;
   };
-  jupOpts: {
-    platformFeeBps: number;
-    slippageBps: number;
-  };
+  jupiterOptions: JupiterOptions | null;
+  platformFeeBps: number;
 };
 
 export const createSwapToSolTx = async ({
@@ -212,7 +209,8 @@ export const createSwapToSolTx = async ({
   connection,
   blockhash,
   inputMintOpts,
-  jupOpts,
+  jupiterOptions,
+  platformFeeBps,
 }: CreateSwapToSolTxProps): Promise<{ quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType }> => {
   const jupiterQuoteApi = createJupiterApiClient();
 
@@ -220,8 +218,9 @@ export const createSwapToSolTx = async ({
     amount: uiToNative(inputMintOpts.amount, inputMintOpts.mintDecimals).toNumber(),
     inputMint: inputMintOpts.mint.toBase58(),
     outputMint: NATIVE_MINT.toBase58(),
-    platformFeeBps: jupOpts.platformFeeBps,
-    slippageBps: jupOpts.slippageBps,
+    platformFeeBps: platformFeeBps,
+    slippageBps: jupiterOptions?.slippageMode === "FIXED" ? jupiterOptions?.slippageBps : undefined,
+    dynamicSlippage: jupiterOptions?.slippageMode === "DYNAMIC" ? true : false,
     swapMode: "ExactIn",
   });
 

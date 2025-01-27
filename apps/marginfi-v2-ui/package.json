@@ -19,7 +19,7 @@
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@grpc/grpc-js": "^1.12.2",
-    "@jup-ag/api": "^6.0.23",
+    "@jup-ag/api": "^6.0.38",
     "@jup-ag/react-hook": "^6.0.0",
     "@meso-network/meso-js": "^0.1.2",
     "@moongate/moongate-adapter": "^0.4.2",
