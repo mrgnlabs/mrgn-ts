@@ -1277,8 +1277,20 @@ class MarginfiAccountWrapper {
     );
   }
 
+  /**
+   * Creates a transaction for withdrawing tokens from a marginfi bank account and staking them.
+   * - Withdraw from marginfi bank
+   * - Create stake account
+   * - Approve mint authority to burn tokens
+   * - Delegate stake account
+   *
+   * @param amount - The amount of tokens to withdraw, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to withdraw from
+   * @param isWholePosition - Whether to withdraw the entire position, defaults to false
+   * @returns A transaction object ready to be signed and sent
+   */
   async makeWithdrawStakedTx(amount: Amount, bankAddress: PublicKey, isWholePosition: boolean) {
-    // Get bank and metadata
+    // get bank and metadata
     const bank = this.client.getBankByPk(bankAddress);
     const solBank = this.client.getBankByMint(WSOL_MINT);
     const bankMetadata = this.client.bankMetadataMap![bankAddress.toBase58()];
@@ -1291,38 +1303,26 @@ class MarginfiAccountWrapper {
       throw new Error("Validator vote account not found");
     }
 
+    // derive addresses
     const pool = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
     const lstMint = findPoolMintAddress(pool);
     const mintAuthority = findPoolMintAuthorityAddress(pool);
-    const auth = findPoolStakeAuthorityAddress(pool);
     const lstAta = getAssociatedTokenAddressSync(lstMint, this.authority);
 
-    // const tokenAccountInfo = await this._program.provider.connection.getAccountInfo(lstAta);
-    // if (!tokenAccountInfo) {
-    //   throw new Error("Token account not found");
-    // }
-
-    // 1: withdraw from marginfi bank
-    const withdrawIxs = await this.makeWithdrawIx(amount, bankAddress, isWholePosition, {
-      createAtas: true,
-      wrapAndUnwrapSol: true,
-    });
-
-    // 2: create stake account
+    // calculate amounts and thresholds
     const rentExemption = await this._program.provider.connection.getMinimumBalanceForRentExemption(200);
     console.log("rentExemption", rentExemption);
 
     const stakeAmount = new BigNumber(new BigNumber(amount).toString());
 
+    // withdraw from marginfi bank
+    const withdrawIxs = await this.makeWithdrawIx(amount, bankAddress, isWholePosition, {
+      createAtas: true,
+      wrapAndUnwrapSol: true,
+    });
+
+    // create stake account
     const stakeAccount = Keypair.generate();
-
-    // const createStakeAccountIx = StakeProgram.createAccount({
-    //   fromPubkey: this.authority,
-    //   stakePubkey: stakeAccount.publicKey,
-    //   authorized: new Authorized(this.authority, this.authority),
-    //   lamports: rentExemption,
-    // });
-
     const createStakeAccountIx = SystemProgram.createAccount({
       fromPubkey: this.authority,
       newAccountPubkey: stakeAccount.publicKey,
@@ -1331,7 +1331,7 @@ class MarginfiAccountWrapper {
       programId: STAKE_PROGRAM_ID,
     });
 
-    // 3: approve mint authority to burn tokens
+    // approve mint authority to burn tokens
     const approveAccountAuthorityIx = Token.createApproveInstruction(
       TOKEN_PROGRAM_ID,
       lstAta,
@@ -1341,7 +1341,7 @@ class MarginfiAccountWrapper {
       stakeAmount.multipliedBy(1e9).toNumber()
     );
 
-    // 4: delegate stake account
+    // delegate stake account
     const withdrawStakeIx: TransactionInstruction = await SinglePoolInstruction.withdrawStake(
       pool,
       stakeAccount.publicKey,
@@ -1350,6 +1350,7 @@ class MarginfiAccountWrapper {
       stakeAmount
     );
 
+    // build transaction
     const txn = new Transaction().add(
       ...withdrawIxs.instructions,
       createStakeAccountIx,
