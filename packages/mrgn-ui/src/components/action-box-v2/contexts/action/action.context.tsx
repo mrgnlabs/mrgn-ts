@@ -1,11 +1,13 @@
 import React from "react";
 
-import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
+import { TransactionSettings } from "@mrgnlabs/mrgn-common";
 import { PriorityFees } from "@mrgnlabs/marginfi-client-v2";
+import { JupiterOptions } from "~/components/settings/settings";
 
 type ActionContextType = {
-  broadcastType: TransactionBroadcastType;
   priorityFees: PriorityFees;
+  jupiterOptions: JupiterOptions;
+  transactionSettings: TransactionSettings;
 };
 
 const ActionContext = React.createContext<ActionContextType | null>(null);

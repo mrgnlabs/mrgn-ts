@@ -33,6 +33,7 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
+import { slippageModes } from "~/components/settings";
 
 type CreateUnstakeLstTxProps = {
   amount: number;
@@ -40,6 +41,7 @@ type CreateUnstakeLstTxProps = {
   connection: Connection;
   blockhash?: string;
   jupOpts: {
+    slippageMode: slippageModes;
     platformFeeBps: number;
     slippageBps: number;
   };

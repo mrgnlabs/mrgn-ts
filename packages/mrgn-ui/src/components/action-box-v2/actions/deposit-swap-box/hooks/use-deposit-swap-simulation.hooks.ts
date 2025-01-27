@@ -21,6 +21,7 @@ import {
   getSimulationResult,
   SimulateActionProps,
 } from "../utils";
+import { JupiterOptions } from "~/components/settings/settings";
 
 type DepositSwapSimulationProps = {
   debouncedAmount: number;
@@ -31,6 +32,7 @@ type DepositSwapSimulationProps = {
   swapBank: ExtendedBankInfo | null;
   actionTxns: DepositSwapActionTxns;
   simulationResult: SimulationResult | null;
+  jupiterOptions: JupiterOptions | null;
   setSimulationResult: (result: SimulationResult | null) => void;
   setActionTxns: (actionTxns: DepositSwapActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
@@ -46,6 +48,7 @@ export function useDepositSwapSimulation({
   swapBank,
   actionTxns,
   simulationResult,
+  jupiterOptions,
   setSimulationResult,
   setActionTxns,
   setErrorMessage,
@@ -131,7 +134,7 @@ export function useDepositSwapSimulation({
   const handleSimulation = React.useCallback(
     async (amount: number) => {
       try {
-        if (amount === 0 || !depositBank || !selectedAccount || !marginfiClient) {
+        if (amount === 0 || !depositBank || !selectedAccount || !marginfiClient || !jupiterOptions) {
           // TODO: will there be cases where the account isnt defined? In arena esp?
           setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
           return;
@@ -145,7 +148,7 @@ export function useDepositSwapSimulation({
           swapBank: swapBank,
           amount: amount,
           marginfiClient: marginfiClient,
-          slippageBps: 50,
+          slippageBps: jupiterOptions?.slippageBps,
         };
 
         const depositSwapActionTxns = await fetchDepositSwapActionTxns(props);

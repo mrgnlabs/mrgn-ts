@@ -16,6 +16,7 @@ import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state
 import { useActionBoxStore } from "../../../store";
 import { SimulationStatus } from "../../../utils/simulation.utils";
 import { calculateRepayCollateral, calculateSummary, getSimulationResult } from "../utils";
+import { JupiterOptions } from "~/components/settings";
 
 type RepayCollatSimulationProps = {
   debouncedAmount: number;
@@ -27,7 +28,7 @@ type RepayCollatSimulationProps = {
   actionTxns: RepayCollatActionTxns;
   simulationResult: SimulationResult | null;
   isRefreshTxn: boolean;
-
+  jupiterOptions: JupiterOptions | null;
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: RepayCollatActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
@@ -46,7 +47,7 @@ export function useRepayCollatSimulation({
   actionTxns,
   simulationResult,
   isRefreshTxn,
-
+  jupiterOptions,
   setSimulationResult,
   setActionTxns,
   setErrorMessage,
@@ -54,7 +55,7 @@ export function useRepayCollatSimulation({
   setIsLoading,
   setMaxAmountCollateral,
 }: RepayCollatSimulationProps) {
-  const [slippageBps, platformFeeBps] = useActionBoxStore((state) => [state.slippageBps, state.platformFeeBps]);
+  const [platformFeeBps] = useActionBoxStore((state) => [state.platformFeeBps]);
 
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const prevSelectedSecondaryBank = usePrevious(selectedSecondaryBank);
@@ -106,7 +107,14 @@ export function useRepayCollatSimulation({
 
   const fetchRepayTxn = React.useCallback(
     async (amount: number) => {
-      if (!selectedAccount || !marginfiClient || !selectedBank || !selectedSecondaryBank || amount === 0) {
+      if (
+        !selectedAccount ||
+        !marginfiClient ||
+        !selectedBank ||
+        !selectedSecondaryBank ||
+        amount === 0 ||
+        !jupiterOptions
+      ) {
         const missingParams = [];
         if (!selectedAccount) missingParams.push("account is null");
         if (amount === 0) missingParams.push("amount is 0");
@@ -127,7 +135,7 @@ export function useRepayCollatSimulation({
           withdrawAmount: amount,
           connection: marginfiClient.provider.connection,
           platformFeeBps,
-          slippageBps,
+          slippageBps: jupiterOptions?.slippageBps,
         });
 
         if (repayResult && "repayCollatObject" in repayResult) {
@@ -152,7 +160,7 @@ export function useRepayCollatSimulation({
       setIsLoading,
       setActionTxns,
       setSimulationResult,
-      slippageBps,
+      jupiterOptions,
       platformFeeBps,
       setRepayAmount,
       setErrorMessage,
@@ -160,8 +168,12 @@ export function useRepayCollatSimulation({
   );
 
   const fetchMaxRepayableCollateral = React.useCallback(async () => {
-    if (selectedBank && selectedSecondaryBank) {
-      const maxAmount = await calculateMaxRepayableCollateral(selectedBank, selectedSecondaryBank, slippageBps);
+    if (selectedBank && selectedSecondaryBank && jupiterOptions) {
+      const maxAmount = await calculateMaxRepayableCollateral(
+        selectedBank,
+        selectedSecondaryBank,
+        jupiterOptions?.slippageBps
+      );
 
       if (!maxAmount) {
         const errorMessage = DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(
@@ -172,7 +184,7 @@ export function useRepayCollatSimulation({
         setMaxAmountCollateral(maxAmount);
       }
     }
-  }, [selectedBank, selectedSecondaryBank, slippageBps, setErrorMessage, setMaxAmountCollateral]);
+  }, [selectedBank, selectedSecondaryBank, jupiterOptions, setErrorMessage, setMaxAmountCollateral]);
 
   const refreshSimulation = React.useCallback(async () => {
     await fetchRepayTxn(debouncedAmount ?? 0);

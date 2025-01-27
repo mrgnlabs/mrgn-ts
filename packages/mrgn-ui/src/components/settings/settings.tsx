@@ -21,7 +21,7 @@ import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
-type slippageModes = "DYNAMIC" | "FIXED";
+export type slippageModes = "DYNAMIC" | "FIXED";
 
 export type JupiterOptions = {
   slippageMode: slippageModes;

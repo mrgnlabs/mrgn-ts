@@ -16,6 +16,7 @@ import {
 import { createStakeLstTx, createUnstakeLstTx, getSimulationResult } from "../utils";
 import { SimulationStatus } from "../../../utils/simulation.utils";
 import { useActionBoxStore } from "../../../store";
+import { JupiterOptions } from "~/components/settings";
 
 type StakeSimulationProps = {
   debouncedAmount: number;
@@ -26,6 +27,7 @@ type StakeSimulationProps = {
   actionTxns: StakeActionTxns;
   simulationResult: any | null;
   marginfiClient: MarginfiClient | null;
+  jupiterOptions: JupiterOptions | null;
   setSimulationResult: (result: any | null) => void;
   setActionTxns: (actionTxns: StakeActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
@@ -40,12 +42,13 @@ export function useStakeSimulation({
   actionTxns,
   simulationResult,
   marginfiClient,
+  jupiterOptions,
   setSimulationResult,
   setActionTxns,
   setErrorMessage,
   setIsLoading,
 }: StakeSimulationProps) {
-  const [slippageBps, platformFeeBps] = useActionBoxStore((state) => [state.slippageBps, state.platformFeeBps]);
+  const [platformFeeBps] = useActionBoxStore((state) => [state.platformFeeBps]);
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const [hasUserInteracted, setHasUserInteracted] = React.useState(false);
 
@@ -94,7 +97,7 @@ export function useStakeSimulation({
       setHasUserInteracted(true);
       const connection = marginfiClient?.provider.connection;
 
-      if (amount === 0 || !selectedBank || !connection || !lstData) {
+      if (amount === 0 || !selectedBank || !connection || !lstData || !jupiterOptions) {
         const missingParams = [];
         if (amount === 0) missingParams.push("amount");
         if (!selectedBank) missingParams.push("selectedBank");
@@ -111,6 +114,8 @@ export function useStakeSimulation({
 
       setIsLoading({ isLoading: true, status: SimulationStatus.PREPARING });
 
+      console.log("jupiterOptions", jupiterOptions);
+
       try {
         if (actionType === ActionType.UnstakeLST) {
           const _actionTxns = await createUnstakeLstTx({
@@ -118,7 +123,8 @@ export function useStakeSimulation({
             feepayer: marginfiClient.wallet.publicKey,
             connection,
             jupOpts: {
-              slippageBps,
+              slippageMode: jupiterOptions?.slippageMode,
+              slippageBps: jupiterOptions?.slippageBps,
               platformFeeBps,
             },
           });
@@ -136,7 +142,7 @@ export function useStakeSimulation({
             connection,
             lstData,
             jupOpts: {
-              slippageBps,
+              slippageBps: jupiterOptions?.slippageBps,
               platformFeeBps,
             },
           });
@@ -155,7 +161,7 @@ export function useStakeSimulation({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [marginfiClient, selectedBank, slippageBps, setActionTxns, setIsLoading, platformFeeBps]
+    [marginfiClient, selectedBank, jupiterOptions, setActionTxns, setIsLoading, platformFeeBps]
   );
 
   const refreshSimulation = React.useCallback(async () => {
