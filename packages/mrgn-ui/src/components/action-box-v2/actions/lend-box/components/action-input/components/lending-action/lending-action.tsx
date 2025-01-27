@@ -41,6 +41,13 @@ export const LendingAction = ({
 
     switch (lendMode) {
       case ActionType.Deposit:
+        if (selectedBank.info.rawBank.config.assetTag === 2) {
+          return {
+            label: "Stake Account: ",
+            amount: formatAmount(walletAmount, "SOL"),
+          };
+        }
+
         return {
           label: "Wallet: ",
           amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),

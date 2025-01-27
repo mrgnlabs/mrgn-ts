@@ -30,51 +30,46 @@ const StakeAccountSwitcher = ({
 
   const selectedStakeAccountFallback = selectedStakeAccount || PublicKey.default;
 
-  if (!currentValidator) return null;
-
-  if (currentValidator.accounts.length <= 1)
-    return (
-      <p className="text-xs text-muted-foreground">
-        Stake acc: <span className="text-foreground">{shortenAddress(selectedStakeAccountFallback)}</span>
-      </p>
-    );
+  if (!currentValidator || currentValidator.accounts.length <= 1) return null;
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button className="text-xs text-muted-foreground flex items-center gap-1 max-w-fit">
-          <IconSwitch size={14} />
-          Switch stake account
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuGroup>
-          {currentValidator.accounts.map((account) => (
-            <DropdownMenuItem
-              key={account.pubkey.toBase58()}
-              className={cn(
-                "flex justify-between gap-12 text-xs text-muted-foreground focus:text-foreground focus:bg-transparent",
-                account.pubkey.equals(selectedStakeAccountFallback) && "text-foreground"
-              )}
-              onClick={() => {
-                onStakeAccountChange({ address: account.pubkey, balance: account.amount });
-              }}
-            >
-              <div
+    <div className="flex justify-end -translate-y-1 mb-3">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="text-xs text-muted-foreground flex items-center gap-1 max-w-fit">
+            <IconSwitch size={14} />
+            Switch stake account
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuGroup>
+            {currentValidator.accounts.map((account) => (
+              <DropdownMenuItem
+                key={account.pubkey.toBase58()}
                 className={cn(
-                  "flex items-center gap-1.5",
-                  !account.pubkey.equals(selectedStakeAccountFallback) && "pl-5"
+                  "flex justify-between gap-12 text-xs text-muted-foreground focus:text-foreground focus:bg-transparent",
+                  account.pubkey.equals(selectedStakeAccountFallback) && "text-foreground"
                 )}
+                onClick={() => {
+                  onStakeAccountChange({ address: account.pubkey, balance: account.amount });
+                }}
               >
-                {account.pubkey.equals(selectedStakeAccountFallback) && <IconCheck size={15} />}
-                {shortenAddress(account.pubkey)}
-              </div>
-              <span>{dynamicNumeralFormatter(account.amount)} SOL</span>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+                <div
+                  className={cn(
+                    "flex items-center gap-1.5",
+                    !account.pubkey.equals(selectedStakeAccountFallback) && "pl-5"
+                  )}
+                >
+                  {account.pubkey.equals(selectedStakeAccountFallback) && <IconCheck size={15} />}
+                  {shortenAddress(account.pubkey)}
+                </div>
+                <span>{dynamicNumeralFormatter(account.amount)} SOL</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 };
 

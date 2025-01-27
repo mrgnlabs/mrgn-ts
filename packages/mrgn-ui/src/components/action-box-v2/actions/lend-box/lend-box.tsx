@@ -39,7 +39,7 @@ import { ActionMessage } from "~/components";
 import { useLendBoxStore } from "./store";
 import { HandleCloseBalanceParamsProps, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { ActionSimulationStatus } from "../../components";
-import { Collateral, ActionInput, Preview, StakeAccountSwitcher, StakeAccounts } from "./components";
+import { Collateral, ActionInput, Preview, StakeAccountSwitcher } from "./components";
 import { SimulationStatus } from "../../utils";
 import { useLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
@@ -570,8 +570,8 @@ export const LendBox = ({
           setSelectedBank={setSelectedBank}
         />
       </div>
-      {selectedBank && selectedBank.info.rawBank.config.assetTag === 2 && stakeAccounts && stakeAccounts.length > 0 && (
-        <StakeAccounts
+      {selectedBank && selectedBank.info.rawBank.config.assetTag === 2 && stakeAccounts && stakeAccounts.length > 1 && (
+        <StakeAccountSwitcher
           selectedBank={selectedBank}
           selectedStakeAccount={selectedStakeAccount?.address}
           stakeAccounts={stakeAccounts}
