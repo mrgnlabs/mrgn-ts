@@ -5,8 +5,6 @@ import { ExtendedBankInfo, ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-
 import { dynamicNumeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { useLendBoxStore } from "../../store";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,24 +15,20 @@ import {
 
 const StakeAccountSwitcher = ({
   selectedBank,
+  selectedStakeAccount,
   stakeAccounts,
   onStakeAccountChange,
 }: {
   selectedBank: ExtendedBankInfo;
+  selectedStakeAccount?: PublicKey;
   stakeAccounts: ValidatorStakeGroup[];
   onStakeAccountChange: (stakeAccount: { address: PublicKey; balance: number }) => void;
 }) => {
-  const [selectedStakeAccount, setSelectedStakeAccount, setAmountRaw] = useLendBoxStore(false)((state) => [
-    state.selectedStakeAccount,
-    state.setSelectedStakeAccount,
-    state.setAmountRaw,
-  ]);
-
   const currentValidator = stakeAccounts.find((stakeAccount) =>
     stakeAccount.validator.equals(selectedBank.meta.stakePool?.validatorVoteAccount || PublicKey.default)
   );
 
-  const selectedStakeAccountFallback = selectedStakeAccount?.address || PublicKey.default;
+  const selectedStakeAccountFallback = selectedStakeAccount || PublicKey.default;
 
   if (!currentValidator || currentValidator.accounts.length <= 1) return null;
 
@@ -58,7 +52,6 @@ const StakeAccountSwitcher = ({
                 )}
                 onClick={() => {
                   onStakeAccountChange({ address: account.pubkey, balance: account.amount });
-                  setAmountRaw("0");
                 }}
               >
                 <div

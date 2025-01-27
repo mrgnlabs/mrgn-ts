@@ -136,7 +136,16 @@ export function useLendSimulation({
         setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
     },
-    [selectedAccount, selectedBank, lendMode, setIsLoading, setActionTxns, setErrorMessage, connection]
+    [
+      selectedAccount,
+      selectedBank,
+      lendMode,
+      setIsLoading,
+      setActionTxns,
+      setErrorMessage,
+      connection,
+      selectedStakeAccount,
+    ]
   );
 
   const refreshSimulation = React.useCallback(async () => {

@@ -45,6 +45,7 @@ import { useLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
+import { PublicKey } from "@solana/web3.js";
 
 // error handling
 export type LendBoxProps = {
@@ -519,6 +520,8 @@ export const LendBox = ({
     );
   }, [additionalActionMessages, actionMessages]);
 
+  // store users stake accounts in state on load
+  // selected stake account will be handled in lend store
   React.useEffect(() => {
     if (stakeAccounts) {
       setStakeAccounts(stakeAccounts);
@@ -554,8 +557,12 @@ export const LendBox = ({
       {selectedBank && stakeAccounts && stakeAccounts.length > 0 && (
         <StakeAccountSwitcher
           selectedBank={selectedBank}
+          selectedStakeAccount={selectedStakeAccount?.address}
           stakeAccounts={stakeAccounts}
-          onStakeAccountChange={setSelectedStakeAccount}
+          onStakeAccountChange={(account) => {
+            setSelectedStakeAccount(account);
+            setAmountRaw("0");
+          }}
         />
       )}
       {additionalActionMessages.concat(actionMessages).map(
