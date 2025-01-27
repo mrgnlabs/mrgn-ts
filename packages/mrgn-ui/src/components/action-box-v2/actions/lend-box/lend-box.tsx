@@ -1,7 +1,7 @@
 import React from "react";
 
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { IconSettings } from "@tabler/icons-react";
+import { IconInfoCircle, IconSettings } from "@tabler/icons-react";
 
 import {
   ActiveBankInfo,
@@ -636,8 +636,18 @@ export const LendBox = ({
         isLoading={isLoading}
         lendMode={lendMode}
         hidePoolStats={hidePoolStats}
-        isMax={amount === maxAmount}
       />
+      {/* Add note regarding this epochs rewards for staked asset banks */}
+      {lendMode === ActionType.Deposit &&
+        selectedBank &&
+        selectedBank.info.rawBank.config.assetTag === 2 &&
+        amount > 0 &&
+        amount === maxAmount && (
+          <small className="flex items-start gap-1 mt-4 text-xs text-muted-foreground font-light max-w-[75%]">
+            <IconInfoCircle size={13} className="shrink-0 translate-y-[2px]" />
+            Staking rewards accumulated this epoch will be withdrawn to your wallet on deposit.
+          </small>
+        )}
       <LSTDialog
         variant={selectedBank?.meta.tokenSymbol as LSTDialogVariants}
         open={!!lstDialogCallback}
