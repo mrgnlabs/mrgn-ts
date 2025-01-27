@@ -1,14 +1,14 @@
 import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter, WalletToken } from "@mrgnlabs/mrgn-common";
 
 type DepositSwapActionProps = {
   walletAmount: number | undefined;
   maxAmount: number;
   showLendingHeader?: boolean;
   lendMode: ActionType;
-  selectedBank: ExtendedBankInfo | null;
+  selectedBank: ExtendedBankInfo | WalletToken | null;
 
   onSetAmountRaw: (amount: string) => void;
 };
@@ -37,38 +37,45 @@ export const DepositSwapAction = ({
     const formatAmount = (amount?: number, symbol?: string) =>
       amount !== undefined ? `${dynamicNumeralFormatter(amount)} ${symbol}` : "-";
 
-    switch (lendMode) {
-      case ActionType.Deposit:
-        return {
-          label: "Wallet: ",
-          amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
-        };
-      case ActionType.Borrow:
-        return {
-          label: "Max Borrow: ",
-          amount: formatAmount(selectedBank.userInfo.maxBorrow, selectedBank?.meta.tokenSymbol),
-        };
+    if ("info" in selectedBank) {
+      switch (lendMode) {
+        case ActionType.Deposit:
+          return {
+            label: "Wallet: ",
+            amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),
+          };
+        case ActionType.Borrow:
+          return {
+            label: "Max Borrow: ",
+            amount: formatAmount(selectedBank.userInfo.maxBorrow, selectedBank?.meta.tokenSymbol),
+          };
 
-      case ActionType.Withdraw:
-        return {
-          amount: formatAmount(
-            selectedBank?.isActive ? selectedBank.position.amount : undefined,
-            selectedBank?.meta.tokenSymbol
-          ),
-          label: "Supplied: ",
-        };
+        case ActionType.Withdraw:
+          return {
+            amount: formatAmount(
+              selectedBank?.isActive ? selectedBank.position.amount : undefined,
+              selectedBank?.meta.tokenSymbol
+            ),
+            label: "Supplied: ",
+          };
 
-      case ActionType.Repay:
-        return {
-          amount: formatAmount(
-            selectedBank?.isActive ? selectedBank.position.amount : undefined,
-            selectedBank?.meta.tokenSymbol
-          ),
-          label: "Borrowed: ",
-        };
+        case ActionType.Repay:
+          return {
+            amount: formatAmount(
+              selectedBank?.isActive ? selectedBank.position.amount : undefined,
+              selectedBank?.meta.tokenSymbol
+            ),
+            label: "Borrowed: ",
+          };
 
-      default:
-        return { amount: "-" };
+        default:
+          return { amount: "-" };
+      }
+    } else {
+      return {
+        label: "Wallet: ",
+        amount: formatAmount(walletAmount, selectedBank?.symbol),
+      };
     }
   }, [selectedBank, lendMode, walletAmount]);
 

@@ -32,20 +32,23 @@ import { ActionMessage, Settings } from "~/components";
 
 import { ActionSimulationStatus } from "../../components";
 import { SimulationStatus } from "../../utils";
-import { useDepositSwapSimulation } from "./hooks";
+import { useDepositSwapActionAmounts, useDepositSwapSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
 import { useActionContext, HidePoolStats } from "../../contexts";
 
 import { handleExecuteDepositSwapAction } from "./utils";
 import { useDepositSwapBoxStore } from "./store";
 import { ActionInput, Preview } from "./components";
-import { nativeToUi } from "@mrgnlabs/mrgn-common";
+import { nativeToUi, WalletToken } from "@mrgnlabs/mrgn-common";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { TooltipProvider } from "~/components/ui/tooltip";
 import { IconInfoCircle } from "~/components/ui/icons";
 import { IconSettings } from "@tabler/icons-react";
 import { Button } from "~/components/ui/button";
+import { PublicKey } from "@solana/web3.js";
+
+// TODO: move to mrgn-common
 
 export type DepositSwapBoxProps = {
   nativeSolBalance: number;
@@ -63,6 +66,7 @@ export type DepositSwapBoxProps = {
   showTokenSelectionGroups?: boolean;
   hidePoolStats?: HidePoolStats;
   displaySettings?: boolean;
+
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
   setDisplaySettings?: (displaySettings: boolean) => void;
@@ -125,6 +129,8 @@ export const DepositSwapBox = ({
     state.setErrorMessage,
   ]);
 
+  const [walletTokens, setWalletTokens] = React.useState<WalletToken[] | null>(null);
+
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
     isLoading: boolean;
@@ -155,7 +161,7 @@ export const DepositSwapBox = ({
     state.setIsActionComplete,
   ]);
 
-  const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
+  const { amount, debouncedAmount, walletAmount, maxAmount } = useDepositSwapActionAmounts({
     amountRaw,
     selectedBank: selectedSwapBank ?? selectedDepositBank,
     nativeSolBalance,
@@ -217,6 +223,42 @@ export const DepositSwapBox = ({
     }
   }, [errorMessage]);
 
+  /////////////////////////////////
+  // fetch wallet tokens actions //
+  /////////////////////////////////
+  const fetchWalletTokens = React.useCallback(async (wallet: PublicKey) => {
+    try {
+      const response = await fetch(`/api/user/wallet?wallet=${wallet.toBase58()}`);
+
+      const data = await response.json();
+
+      const mappedData = data.map((token: WalletToken) => {
+        return {
+          ...token,
+          address: new PublicKey(token.address),
+          ata: new PublicKey(token.ata),
+        };
+      });
+
+      setWalletTokens(mappedData);
+    } catch (error) {
+      console.error("Failed to fetch wallet tokens:", error);
+    }
+  }, []);
+
+  // Fetch on initial load
+  React.useEffect(() => {
+    if (!connected || !selectedAccount || walletTokens !== null) return;
+
+    const walletPublicKey = selectedAccount.authority;
+    fetchWalletTokens(walletPublicKey);
+  }, [connected, selectedAccount, walletTokens, fetchWalletTokens]);
+
+  // Fetch on refresh
+  const handleRefreshWalletTokens = (walletPublicKey: PublicKey) => {
+    fetchWalletTokens(walletPublicKey);
+  };
+
   const isDust = React.useMemo(
     () => selectedDepositBank?.isActive && selectedDepositBank?.position.isDust,
     [selectedDepositBank]
@@ -265,7 +307,7 @@ export const DepositSwapBox = ({
       prevSwapBank &&
       prevAmount &&
       (prevSelectedBank.meta.tokenSymbol !== selectedDepositBank?.meta.tokenSymbol ||
-        prevSwapBank.meta.tokenSymbol !== selectedSwapBank?.meta.tokenSymbol ||
+        ("info" in prevSwapBank && prevSwapBank.info.state.mint.toBase58() !== selectedSwapBank?.address.toBase58()) ||
         prevAmount !== amount)
     ) {
       setAdditionalActionMessages([]);
@@ -286,6 +328,7 @@ export const DepositSwapBox = ({
     }
   ) => {
     const action = async (params: ExecuteDepositSwapActionProps) => {
+      console.log("params22, ", params);
       handleExecuteDepositSwapAction({
         params,
         captureEvent: (event, properties) => {
@@ -310,7 +353,7 @@ export const DepositSwapBox = ({
   };
 
   const retryDepositSwapAction = React.useCallback(
-    async (params: ExecuteDepositSwapActionProps, swapBank: ExtendedBankInfo | null) => {
+    async (params: ExecuteDepositSwapActionProps, swapBank: ExtendedBankInfo | WalletToken | null) => {
       executeAction(params, {
         captureEvent: captureEvent,
         setIsLoading: setIsTransactionExecuting,
@@ -365,6 +408,12 @@ export const DepositSwapBox = ({
 
   const handleDepositSwapAction = React.useCallback(
     async (_actionTxns?: DepositSwapActionTxns, multiStepToast?: MultiStepToastHandle) => {
+      console.log({
+        actionTxns,
+        marginfiClient,
+        debouncedAmount,
+        transactionSettings,
+      });
       if (!actionTxns || !marginfiClient || !debouncedAmount || debouncedAmount === 0 || !transactionSettings) {
         console.log({ actionTxns, marginfiClient, selectedSwapBank });
         return;
@@ -386,6 +435,8 @@ export const DepositSwapBox = ({
         actionType: lendMode,
         swapBank: selectedSwapBank,
       } as ExecuteDepositSwapActionProps;
+
+      console.log(params);
 
       await executeAction(params, {
         captureEvent: captureEvent,
@@ -459,7 +510,8 @@ export const DepositSwapBox = ({
           {!requestedDepositBank ||
           (selectedDepositBank &&
             selectedSwapBank &&
-            selectedDepositBank.meta.tokenSymbol === selectedSwapBank.meta.tokenSymbol)
+            selectedDepositBank.meta.tokenSymbol ===
+              ("info" in selectedSwapBank ? selectedSwapBank.info.state.mint.toBase58() : selectedSwapBank.symbol))
             ? "Deposit"
             : "Swap & Deposit"}
         </span>
@@ -478,6 +530,7 @@ export const DepositSwapBox = ({
           showTokenSelectionGroups={showTokenSelectionGroups}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedSwapBank}
+          walletTokens={walletTokens}
         />
       </div>
 
@@ -497,7 +550,7 @@ export const DepositSwapBox = ({
           </TooltipProvider>
           <ActionInput
             banks={banks.filter(
-              (bank) => bank.info.rawBank.mint.toBase58() !== selectedSwapBank?.info.rawBank.mint.toBase58()
+              (bank) => "info" in bank && bank.info.rawBank.mint.toBase58() !== selectedSwapBank?.address.toBase58()
             )}
             nativeSolBalance={nativeSolBalance}
             walletAmount={walletAmount}
@@ -525,7 +578,11 @@ export const DepositSwapBox = ({
             showTokenSelection={showTokenSelection}
             showTokenSelectionGroups={showTokenSelectionGroups}
             setAmountRaw={setAmountRaw}
-            setSelectedBank={setSelectedDepositBank}
+            setSelectedBank={(bank) => {
+              if (bank && "info" in bank) {
+                setSelectedDepositBank(bank);
+              }
+            }}
             isInputDisabled={true}
           />
         </div>

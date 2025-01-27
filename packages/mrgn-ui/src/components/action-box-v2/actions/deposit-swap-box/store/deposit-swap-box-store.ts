@@ -3,6 +3,7 @@ import { create, StateCreator } from "zustand";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionMessageType, DepositSwapActionTxns } from "@mrgnlabs/mrgn-utils";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { WalletToken } from "@mrgnlabs/mrgn-common";
 
 interface DepositSwapBoxState {
   // State
@@ -10,7 +11,7 @@ interface DepositSwapBoxState {
 
   lendMode: ActionType;
   selectedDepositBank: ExtendedBankInfo | null;
-  selectedSwapBank: ExtendedBankInfo | null;
+  selectedSwapBank: ExtendedBankInfo | WalletToken | null;
 
   simulationResult: SimulationResult | null;
   actionTxns: DepositSwapActionTxns;
@@ -29,7 +30,7 @@ interface DepositSwapBoxState {
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: DepositSwapActionTxns) => void;
   setSelectedDepositBank: (bank: ExtendedBankInfo | null) => void;
-  setSelectedSwapBank: (bank: ExtendedBankInfo | null) => void;
+  setSelectedSwapBank: (bank: ExtendedBankInfo | WalletToken | null) => void;
   setErrorMessage: (errorMessage: ActionMessageType | null) => void;
 }
 

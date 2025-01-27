@@ -5,6 +5,7 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "../wallet";
 import { REFERRAL_ACCOUNT_PUBKEY, REFERRAL_PROGRAM_ID } from "../jup-referral.utils";
+import { WalletToken } from "@mrgnlabs/mrgn-common";
 
 // ------------------------------------------------------------------//
 // Helpers //
@@ -62,14 +63,14 @@ export async function getAdressLookupTableAccounts(
 export const formatAmount = (
   newAmount: string,
   maxAmount: number | null,
-  bank: ExtendedBankInfo | null,
+  bank: ExtendedBankInfo | WalletToken | null,
   numberFormater: Intl.NumberFormat
 ) => {
   let formattedAmount: string, amount: number;
   // Remove commas from the formatted string
   const newAmountWithoutCommas = newAmount.replace(/,/g, "");
   let decimalPart = newAmountWithoutCommas.split(".")[1];
-  const mintDecimals = bank?.info.state.mintDecimals ?? 9;
+  const mintDecimals = bank ? ("info" in bank ? bank.info.state.mintDecimals : bank.mintDecimals) : 9;
 
   if (
     (newAmount.endsWith(",") || newAmount.endsWith(".")) &&
