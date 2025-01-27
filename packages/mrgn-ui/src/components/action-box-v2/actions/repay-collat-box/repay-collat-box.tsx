@@ -140,7 +140,11 @@ export const RepayCollatBox = ({
     [isTransactionExecuting, isSimulating.isLoading]
   );
 
-  const { broadcastType, priorityFees } = useActionContext() || { broadcastType: null, priorityFees: null };
+  const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
+    transactionSettings: null,
+    priorityFees: null,
+    jupiterOptions: null,
+  };
 
   const { isRefreshTxn, blockProgress } = usePollBlockHeight(
     marginfiClient?.provider.connection,
@@ -183,6 +187,7 @@ export const RepayCollatBox = ({
     actionTxns,
     simulationResult,
     isRefreshTxn,
+    jupiterOptions,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
@@ -347,8 +352,7 @@ export const RepayCollatBox = ({
       !selectedAccount ||
       !selectedSecondaryBank ||
       !actionTxns.actionQuote ||
-      !broadcastType ||
-      !priorityFees
+      !transactionSettings
     ) {
       return;
     }
@@ -358,7 +362,7 @@ export const RepayCollatBox = ({
       actionTxns,
       processOpts: {
         ...priorityFees,
-        broadcastType,
+        broadcastType: transactionSettings.broadcastType,
       },
       txOpts: {},
 
@@ -384,7 +388,7 @@ export const RepayCollatBox = ({
   }, [
     actionTxns,
     amount,
-    broadcastType,
+    transactionSettings,
     captureEvent,
     marginfiClient,
     onComplete,

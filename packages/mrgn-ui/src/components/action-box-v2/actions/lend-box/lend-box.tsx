@@ -139,7 +139,7 @@ export const LendBox = ({
     [isTransactionExecuting, isSimulating.isLoading]
   );
 
-  const { broadcastType, priorityFees } = useActionContext() || { broadcastType: null, priorityFees: null };
+  const { transactionSettings, priorityFees } = useActionContext() || { transactionSettings: null, priorityFees: null };
 
   const accountSummary = React.useMemo(() => {
     return (
@@ -324,14 +324,14 @@ export const LendBox = ({
   );
 
   const handleCloseBalance = React.useCallback(async () => {
-    if (!selectedBank || !selectedAccount || !broadcastType || !priorityFees) {
+    if (!selectedBank || !selectedAccount || !transactionSettings) {
       return;
     }
 
     const params = {
       bank: selectedBank,
       marginfiAccount: selectedAccount,
-      processOpts: { ...priorityFees, broadcastType },
+      processOpts: { ...priorityFees, broadcastType: transactionSettings.broadcastType },
     };
 
     closeBalanceAction(params, selectedBank, {
@@ -345,7 +345,7 @@ export const LendBox = ({
       setAmountRaw: setAmountRaw,
     });
   }, [
-    broadcastType,
+    transactionSettings,
     captureEvent,
     onComplete,
     priorityFees,
@@ -449,7 +449,7 @@ export const LendBox = ({
 
   const handleLendingAction = React.useCallback(
     async (_actionTxns?: ActionTxns, multiStepToast?: MultiStepToastHandle) => {
-      if (!selectedBank || !amount || !broadcastType || !priorityFees) {
+      if (!selectedBank || !amount || !transactionSettings) {
         return;
       }
 
@@ -462,7 +462,7 @@ export const LendBox = ({
         marginfiAccount: selectedAccount,
         walletContextState,
         actionTxns: _actionTxns ?? actionTxns,
-        processOpts: { ...priorityFees, broadcastType },
+        processOpts: { ...priorityFees, broadcastType: transactionSettings.broadcastType },
         multiStepToast,
       };
 
@@ -482,7 +482,6 @@ export const LendBox = ({
     [
       actionTxns,
       amount,
-      broadcastType,
       captureEvent,
       lendMode,
       marginfiClient,
@@ -497,6 +496,7 @@ export const LendBox = ({
       setIsTransactionExecuting,
       setPreviousTxn,
       walletContextState,
+      transactionSettings,
     ]
   );
 

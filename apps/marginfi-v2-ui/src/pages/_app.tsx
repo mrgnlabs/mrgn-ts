@@ -46,12 +46,24 @@ const Footer = dynamic(async () => (await import("~/components/desktop/Footer"))
 type MrgnAppProps = { path: string };
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
-  const [broadcastType, priorityFees, setIsFetchingData, displaySettings, setDisplaySettings] = useUiStore((state) => [
+  const [
+    broadcastType,
+    priorityFees,
+    setIsFetchingData,
+    displaySettings,
+    setDisplaySettings,
+    jupiterOptions,
+    priorityType,
+    maxCapType,
+  ] = useUiStore((state) => [
     state.broadcastType,
     state.priorityFees,
     state.setIsFetchingData,
     state.displaySettings,
     state.setDisplaySettings,
+    state.jupiterOptions,
+    state.priorityType,
+    state.maxCapType,
   ]);
   const [
     isMrgnlendStoreInitialized,
@@ -101,7 +113,16 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
               <MrgnWalletProvider>
                 <MrgnlendProvider>
                   <LipClientProvider>
-                    <ActionProvider broadcastType={broadcastType} priorityFees={priorityFees}>
+                    <ActionProvider
+                      transactionSettings={{
+                        broadcastType,
+                        priorityType,
+                        maxCap: priorityFees.maxCapUi ?? 0,
+                        maxCapType,
+                      }}
+                      jupiterOptions={{ ...jupiterOptions, slippageBps: jupiterOptions.slippageBps }}
+                      priorityFees={priorityFees}
+                    >
                       <ActionBoxProvider
                         banks={extendedBankInfos}
                         nativeSolBalance={nativeSolBalance}

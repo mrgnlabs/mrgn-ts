@@ -14,11 +14,9 @@ interface ActionBoxWrapperProps {
 }
 
 export const ActionBoxWrapper = ({ children, isDialog, actionMode, showSettings = true }: ActionBoxWrapperProps) => {
-  const [slippage, isSettingsDialogOpen, setIsSettingsDialogOpen, setSlippageBps] = useActionBoxStore((state) => [
-    state.slippageBps,
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useActionBoxStore((state) => [
     state.isSettingsDialogOpen,
     state.setIsSettingsDialogOpen,
-    state.setSlippageBps,
   ]);
 
   const isActionDisabled = React.useMemo(() => {
@@ -26,16 +24,6 @@ export const ActionBoxWrapper = ({ children, isDialog, actionMode, showSettings 
     if (blockedActions?.find((value) => value === actionMode)) return true;
     return false;
   }, [actionMode]);
-
-  const isSlippageEnabled = React.useMemo(
-    () =>
-      actionMode === ActionType.Repay ||
-      actionMode === ActionType.RepayCollat ||
-      actionMode === ActionType.MintLST ||
-      actionMode === ActionType.UnstakeLST ||
-      actionMode === ActionType.Loop,
-    [actionMode]
-  );
 
   React.useEffect(() => {
     setIsSettingsDialogOpen(false);
@@ -65,14 +53,6 @@ export const ActionBoxWrapper = ({ children, isDialog, actionMode, showSettings 
             isDialog && "py-5"
           )}
         >
-          {isSettingsDialogOpen && showSettings && (
-            <ActionSettings
-              slippage={isSlippageEnabled ? slippage : undefined}
-              changeSlippage={setSlippageBps}
-              toggleSettings={(value) => setIsSettingsDialogOpen(value)}
-            />
-          )}
-
           <div className={cn(isSettingsDialogOpen && showSettings && "hidden")}>{children}</div>
         </div>
       </div>

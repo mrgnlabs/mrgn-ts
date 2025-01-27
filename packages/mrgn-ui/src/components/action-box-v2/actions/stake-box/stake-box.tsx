@@ -123,7 +123,11 @@ export const StakeBox = ({
     actionMode,
   });
 
-  const { broadcastType, priorityFees } = useActionContext() || { broadcastType: null, priorityFees: null };
+  const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
+    transactionSettings: null,
+    priorityFees: null,
+    jupiterOptions: null,
+  };
 
   const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.setIsSettingsDialogOpen,
@@ -168,6 +172,7 @@ export const StakeBox = ({
     actionMode,
     actionTxns,
     simulationResult,
+    jupiterOptions,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
@@ -299,7 +304,7 @@ export const StakeBox = ({
   );
 
   const handleLstAction = React.useCallback(async () => {
-    if (!selectedBank || !amount || !marginfiClient || !broadcastType || !priorityFees) {
+    if (!selectedBank || !amount || !marginfiClient || !transactionSettings) {
       return;
     }
     const params = {
@@ -307,13 +312,13 @@ export const StakeBox = ({
       marginfiClient,
       actionType: requestedActionType,
       nativeSolBalance,
-      broadcastType,
+      broadcastType: transactionSettings.broadcastType,
       originDetails: {
         amount,
         tokenSymbol: selectedBank.meta.tokenSymbol,
       },
       processOpts: {
-        broadcastType,
+        broadcastType: transactionSettings.broadcastType,
         ...priorityFees,
       },
       bank: selectedBank,
@@ -332,7 +337,6 @@ export const StakeBox = ({
   }, [
     actionTxns,
     amount,
-    broadcastType,
     captureEvent,
     marginfiClient,
     nativeSolBalance,
@@ -345,6 +349,7 @@ export const StakeBox = ({
     setAmountRaw,
     setIsActionComplete,
     setPreviousTxn,
+    transactionSettings,
   ]);
 
   React.useEffect(() => {

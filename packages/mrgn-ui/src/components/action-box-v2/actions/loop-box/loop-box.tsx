@@ -124,10 +124,13 @@ export const LoopBox = ({
     state.refreshSelectedBanks,
   ]);
 
-  const { broadcastType, priorityFees } = useActionContext() || { broadcastType: null, priorityFees: null };
+  const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
+    transactionSettings: null,
+    priorityFees: null,
+    jupiterOptions: null,
+  };
 
-  const [slippage, setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.slippageBps,
+  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
     state.setIsSettingsDialogOpen,
     state.setPreviousTxn,
     state.setIsActionComplete,
@@ -184,6 +187,7 @@ export const LoopBox = ({
     actionTxns,
     simulationResult,
     isRefreshTxn,
+    jupiterOptions,
     setMaxLeverage,
     setSimulationResult,
     setActionTxns,
@@ -342,7 +346,7 @@ export const LoopBox = ({
   );
 
   const handleLoopAction = React.useCallback(async () => {
-    if (!selectedBank || !amount || !marginfiClient || !selectedSecondaryBank || !broadcastType || !priorityFees) {
+    if (!selectedBank || !amount || !marginfiClient || !selectedSecondaryBank || !transactionSettings) {
       return;
     }
 
@@ -351,7 +355,7 @@ export const LoopBox = ({
       actionTxns,
       processOpts: {
         ...priorityFees,
-        broadcastType,
+        broadcastType: transactionSettings.broadcastType,
       },
       txOpts: {},
 
@@ -379,7 +383,7 @@ export const LoopBox = ({
   }, [
     actionTxns,
     amount,
-    broadcastType,
+    transactionSettings,
     captureEvent,
     leverage,
     marginfiClient,

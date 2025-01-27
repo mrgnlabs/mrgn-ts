@@ -56,7 +56,7 @@ function calculateActionPreview(
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
 
   const priceImpactPct = 0;
-  const slippageBps = 0;
+  const slippageBps = 0; // TODO: update this
 
   return {
     positionAmount,

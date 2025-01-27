@@ -138,7 +138,11 @@ export const DepositSwapBox = ({
     [isTransactionExecuting, isSimulating.isLoading]
   );
 
-  const { broadcastType, priorityFees } = useActionContext() || { broadcastType: null, priorityFees: null };
+  const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
+    transactionSettings: null,
+    priorityFees: null,
+    jupiterOptions: null,
+  };
 
   const accountSummary = React.useMemo(() => {
     return (
@@ -165,6 +169,7 @@ export const DepositSwapBox = ({
     swapBank: selectedSwapBank ?? null,
     actionTxns,
     simulationResult,
+    jupiterOptions,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
@@ -360,7 +365,7 @@ export const DepositSwapBox = ({
 
   const handleDepositSwapAction = React.useCallback(
     async (_actionTxns?: DepositSwapActionTxns, multiStepToast?: MultiStepToastHandle) => {
-      if (!actionTxns || !marginfiClient || !debouncedAmount || debouncedAmount === 0) {
+      if (!actionTxns || !marginfiClient || !debouncedAmount || debouncedAmount === 0 || !transactionSettings) {
         console.log({ actionTxns, marginfiClient, selectedSwapBank });
         return;
       }
@@ -374,7 +379,7 @@ export const DepositSwapBox = ({
         marginfiAccount: selectedAccount,
         processOpts: {
           ...priorityFees,
-          broadcastType,
+          broadcastType: transactionSettings.broadcastType,
         },
         txOpts: {},
         multiStepToast,
@@ -430,7 +435,7 @@ export const DepositSwapBox = ({
       nativeSolBalance,
       selectedAccount,
       priorityFees,
-      broadcastType,
+      transactionSettings,
       lendMode,
       selectedSwapBank,
       captureEvent,

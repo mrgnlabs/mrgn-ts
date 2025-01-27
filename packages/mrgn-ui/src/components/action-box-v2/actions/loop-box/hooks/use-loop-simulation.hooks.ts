@@ -21,6 +21,7 @@ import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state
 import { useActionBoxStore } from "../../../store";
 import { SimulationStatus } from "../../../utils/simulation.utils";
 import { calculateLooping, calculateSummary, getSimulationResult } from "../utils";
+import { JupiterOptions } from "~/components/settings/settings";
 
 type LoopSimulationProps = {
   debouncedAmount: number;
@@ -33,6 +34,7 @@ type LoopSimulationProps = {
   actionTxns: LoopActionTxns;
   simulationResult: SimulationResult | null;
   isRefreshTxn: boolean;
+  jupiterOptions: JupiterOptions | null;
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: LoopActionTxns) => void;
@@ -52,6 +54,7 @@ export function useLoopSimulation({
   actionTxns,
   simulationResult,
   isRefreshTxn,
+  jupiterOptions,
 
   setSimulationResult,
   setActionTxns,
@@ -59,7 +62,7 @@ export function useLoopSimulation({
   setIsLoading,
   setMaxLeverage,
 }: LoopSimulationProps) {
-  const [slippageBps, platformFeeBps] = useActionBoxStore((state) => [state.slippageBps, state.platformFeeBps]);
+  const [platformFeeBps] = useActionBoxStore((state) => [state.platformFeeBps]);
 
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const prevDebouncedLeverage = usePrevious(debouncedLeverage);
@@ -118,7 +121,8 @@ export function useLoopSimulation({
         !selectedBank ||
         !selectedSecondaryBank ||
         amount === 0 ||
-        leverage === 0
+        leverage === 0 ||
+        !jupiterOptions
       ) {
         const missingParams = [];
         if (!selectedAccount) missingParams.push("account is null");
@@ -149,7 +153,7 @@ export function useLoopSimulation({
           borrowBank: selectedSecondaryBank,
           targetLeverage: leverage,
           depositAmount: amount,
-          slippageBps,
+          slippageBps: jupiterOptions?.slippageBps,
           connection: marginfiClient.provider.connection,
           platformFeeBps,
         });
@@ -179,7 +183,7 @@ export function useLoopSimulation({
       setIsLoading,
       setActionTxns,
       setSimulationResult,
-      slippageBps,
+      jupiterOptions,
       platformFeeBps,
       setErrorMessage,
     ]
