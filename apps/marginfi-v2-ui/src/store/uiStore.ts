@@ -50,7 +50,6 @@ interface UiState {
   isFilteredUserPositions: boolean;
   isOraclesStale: boolean;
   lendingMode: LendingModes;
-  slippageBps: number;
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
   assetListSearch: string;
@@ -68,7 +67,6 @@ interface UiState {
   setIsFilteredUserPositions: (isFilteredUserPositions: boolean) => void;
   setIsOraclesStale: (isOraclesStale: boolean) => void;
   setLendingMode: (lendingMode: LendingModes) => void;
-  setSlippageBps: (slippageBps: number) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
   setAssetListSearch: (search: string) => void;
@@ -83,14 +81,20 @@ function createUiStore() {
   return create<UiState>()(
     persist(stateCreator, {
       name: "uiStore",
-      onRehydrateStorage: () => (state) => {},
+      onRehydrateStorage: () => (state) => {
+        if (
+          state?.jupiterOptions.slippageBps &&
+          (state.jupiterOptions.slippageBps < 0 || state.jupiterOptions.slippageBps > 500)
+        ) {
+          state.jupiterOptions.slippageBps = 100;
+        }
+      },
     })
   );
 }
 
 const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   // State
-  slippageBps: 100,
   isMenuDrawerOpen: false,
   isFetchingData: false,
   isFilteredUserPositions: false,
@@ -114,7 +118,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     set({
       lendingMode: lendingMode,
     }),
-  setSlippageBps: (slippageBps: number) => set({ slippageBps: slippageBps }),
   setIsOraclesStale: (isOraclesStale: boolean) => set({ isOraclesStale: isOraclesStale }),
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
