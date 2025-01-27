@@ -636,6 +636,7 @@ export const LendBox = ({
         isLoading={isLoading}
         lendMode={lendMode}
         hidePoolStats={hidePoolStats}
+        isMax={amount === maxAmount}
       />
       <LSTDialog
         variant={selectedBank?.meta.tokenSymbol as LSTDialogVariants}
