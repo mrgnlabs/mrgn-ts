@@ -14,6 +14,8 @@ import {
   getBankTypeStat,
   getOracleStat,
   ActionSummary,
+  getSlippageStat,
+  getPriceImpactStat,
 } from "~/components/action-box-v2/utils";
 
 interface PreviewProps {
@@ -72,6 +74,9 @@ function generateLendingStats(
   hidePoolStats?: HidePoolStats
 ) {
   const stats = [];
+
+  if (summary.actionPreview.priceImpactPct) stats.push(getPriceImpactStat(summary.actionPreview.priceImpactPct));
+  if (summary.actionPreview.slippageBps) stats.push(getSlippageStat(summary.actionPreview.slippageBps));
 
   if (!hidePoolStats?.includes("amount")) {
     stats.push(
