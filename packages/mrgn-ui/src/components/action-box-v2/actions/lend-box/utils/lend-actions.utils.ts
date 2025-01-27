@@ -138,10 +138,6 @@ export async function calculateLendingTransaction(
           throw new Error("Stake account or validator not found for this staked asset bank");
         }
 
-        console.log("Depositing into staked asset bank");
-        console.log("Stake account", stakeAccount.toBase58());
-        console.log("Validator", bank.meta.stakePool?.validatorVoteAccount.toBase58());
-
         depositTx = await marginfiAccount.makeDepositStakedTx(
           amount,
           bank.address,
