@@ -50,7 +50,7 @@ export default function CreateStakedAssetPage() {
   const { width, height } = useWindowSize();
   const isMobile = useIsMobile();
 
-  const [isDialogOpen, setIsDialogOpen] = React.useState(true);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   const [isLoading, setIsLoading] = React.useState(false);
 
