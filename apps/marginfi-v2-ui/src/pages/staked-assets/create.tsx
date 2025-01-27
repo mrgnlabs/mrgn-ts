@@ -97,7 +97,7 @@ export default function CreateStakedAssetPage() {
   const executeCreatedStakedAssetSplPoolTxn = React.useCallback(
     async (txns: Transaction[], client: MarginfiClient, multiStepToast: MultiStepToastHandle) => {
       const txSignature = await client.processTransactions(txns, {
-        broadcastType: "RPC", // TODO: update?
+        broadcastType: "RPC",
         ...priorityFees,
         callback(index, success, signature, stepsToAdvance) {
           success && multiStepToast.setSuccessAndNext(stepsToAdvance, signature, composeExplorerUrl(signature));
@@ -294,7 +294,7 @@ export default function CreateStakedAssetPage() {
       <CreateStakedPoolDialog
         isOpen={isDialogOpen}
         onClose={() => {
-          // router.push("/");
+          router.push("/");
           setIsDialogOpen(false);
         }}
         assetName={completedForm.assetName}
