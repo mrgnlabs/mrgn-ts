@@ -4597,12 +4597,12 @@
   resolved "https://registry.npmjs.org/@jup-ag/api/-/api-6.0.20.tgz"
   integrity sha512-HaPWYpbcQiCkoq1fTKspFIismFI8Rw9ZzgC47PMNY+ZLN0IEDtSYcm3rVEyxO+E3StRxj9uKrNbok32SRCXWvQ==
 
-"@jup-ag/api@^6.0.23":
-  version "6.0.23"
-  resolved "https://registry.npmjs.org/@jup-ag/api/-/api-6.0.23.tgz"
-  integrity sha512-GjLXWHKNOhe9MtO0FuTqSg9xl2uXOYfY7BXRGSPZUjDmqLrisgRuxfb661u16caOF0FHJkQ1ZUQPATKjwh3AOQ==
+"@jup-ag/api@^6.0.38":
+  version "6.0.38"
+  resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-6.0.38.tgz#6a69c4e533cfe99a64c1ff9efb9c37f53d3caab5"
+  integrity sha512-HSTYVzWtxs3Krd0nfRnTf0ahtbZRW7h1H7F/pDvDLFWZguCyQhAYyK7X5TW74zQQLhpdiL0zNtWLSGxGtqy8Hg==
 
-"@jup-ag/api@^6.0.24", "@jup-ag/api@~6.0.5":
+"@jup-ag/api@~6.0.5":
   version "6.0.24"
   resolved "https://registry.yarnpkg.com/@jup-ag/api/-/api-6.0.24.tgz#c311ea05c7b18a6372471c48e6508b68ad79271c"
   integrity sha512-zIX4WIPb0Kb2UnK2wNIOQBWqPJyMJq/D9dQTf/2qvPb0hfa8XdgbrQAzomHMHnAzw9StMQoybBk+JK/A76xP3w==

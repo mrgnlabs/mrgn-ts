@@ -39,6 +39,7 @@ import {
   simulatedHealthFactor,
   simulatedPositionSize,
 } from "~/components/action-box-v2/utils";
+import { JupiterOptions } from "~/components/settings";
 
 export interface GenerateDepositSwapTxnsProps {
   marginfiAccount: MarginfiAccountWrapper;
@@ -46,7 +47,7 @@ export interface GenerateDepositSwapTxnsProps {
   swapBank?: ExtendedBankInfo | null;
   amount: number;
   marginfiClient: MarginfiClient;
-  slippageBps: number;
+  jupiterOptions: JupiterOptions | null;
 }
 
 export async function generateDepositSwapTxns(
@@ -128,7 +129,8 @@ export async function createSwapTx(props: GenerateDepositSwapTxnsProps) {
       amount: uiToNative(props.amount, props.swapBank.info.state.mintDecimals).toNumber(),
       inputMint: props.swapBank.info.state.mint.toBase58(),
       outputMint: props.depositBank.info.state.mint.toBase58(),
-      slippageBps: props.slippageBps,
+      slippageBps: props.jupiterOptions?.slippageMode === "FIXED" ? props.jupiterOptions?.slippageBps : undefined,
+      dynamicSlippage: props.jupiterOptions?.slippageMode === "DYNAMIC" ? true : false,
     });
 
     if (!swapQuote) {

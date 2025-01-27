@@ -89,8 +89,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     state.setMaxLeverage,
   ]);
   const [
-    slippageBps,
-    setSlippageBps,
+    jupiterOptions,
     platformFeeBps,
     broadcastType,
     priorityFees,
@@ -98,8 +97,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     setPreviousTxn,
     setDisplaySettings,
   ] = useUiStore((state) => [
-    state.slippageBps,
-    state.setSlippageBps,
+    state.jupiterOptions,
     state.platformFeeBps,
     state.broadcastType,
     state.priorityFees,
@@ -238,7 +236,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     borrowBank: borrowBank,
     marginfiClient: client,
     wrappedAccount: wrappedAccount,
-    slippageBps: slippageBps,
+    jupiterOptions: jupiterOptions,
     platformFeeBps: platformFeeBps,
     isEnabled: !actionMethods.filter((value) => value.isEnabled === false).length,
     setActionTxns: setActionTxns,

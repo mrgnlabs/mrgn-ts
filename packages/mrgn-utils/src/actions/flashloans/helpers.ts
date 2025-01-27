@@ -187,7 +187,8 @@ export const verifyFlashloanTxSize = (builder: {
 export async function calculateMaxRepayableCollateral(
   bank: ExtendedBankInfo,
   repayBank: ExtendedBankInfo,
-  slippageBps: number
+  slippageBps: number,
+  slippageMode: "DYNAMIC" | "FIXED"
 ) {
   const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
   let maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
@@ -202,7 +203,8 @@ export async function calculateMaxRepayableCollateral(
       amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
       inputMint: repayBank.info.state.mint.toBase58(),
       outputMint: bank.info.state.mint.toBase58(),
-      slippageBps: slippageBps,
+      slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
+      dynamicSlippage: slippageMode === "DYNAMIC" ? true : false,
       maxAccounts: 40,
       swapMode: "ExactIn",
     } as QuoteGetRequest;
@@ -219,7 +221,8 @@ export async function calculateMaxRepayableCollateral(
           amount: uiToNative(maxRepayAmount, bank.info.state.mintDecimals).toNumber(),
           inputMint: repayBank.info.state.mint.toBase58(), // USDC
           outputMint: bank.info.state.mint.toBase58(), // JITO
-          slippageBps: slippageBps,
+          slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
+          dynamicSlippage: slippageMode === "DYNAMIC" ? true : false,
           swapMode: "ExactOut",
         } as QuoteGetRequest;
 

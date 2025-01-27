@@ -31,7 +31,7 @@
     "@solana/web3.js": "^1.93.2"
   },
   "devDependencies": {
-    "@jup-ag/api": "^6.0.23",
+    "@jup-ag/api": "^6.0.38",
     "@mrgnlabs/eslint-config-custom": "*",
     "@mrgnlabs/tsconfig": "*",
     "@types/big.js": "^6.2.2",

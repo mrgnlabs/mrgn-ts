@@ -1,8 +1,5 @@
 import { create, StateCreator } from "zustand";
 
-import { QuoteResponse } from "@jup-ag/api";
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
-
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ActionMessageType, RepayCollatActionTxns } from "@mrgnlabs/mrgn-utils";

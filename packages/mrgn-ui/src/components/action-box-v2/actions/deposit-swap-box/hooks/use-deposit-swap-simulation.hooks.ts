@@ -148,7 +148,7 @@ export function useDepositSwapSimulation({
           swapBank: swapBank,
           amount: amount,
           marginfiClient: marginfiClient,
-          slippageBps: jupiterOptions?.slippageBps,
+          jupiterOptions,
         };
 
         const depositSwapActionTxns = await fetchDepositSwapActionTxns(props);
