@@ -138,8 +138,10 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     }
   },
   setDisplaySettings: (displaySettings: boolean) => set({ displaySettings: displaySettings }),
-  setJupiterOptions: (jupiterOptions: JupiterOptions) =>
-    set({ jupiterOptions: { ...jupiterOptions, slippageBps: jupiterOptions.slippageBps * 100 } }),
+  setJupiterOptions: (jupiterOptions: JupiterOptions) => {
+    console.log("jupiterOptions", jupiterOptions);
+    set({ jupiterOptions: { ...jupiterOptions, slippageBps: jupiterOptions.slippageBps } });
+  },
 });
 
 export { createUiStore };
