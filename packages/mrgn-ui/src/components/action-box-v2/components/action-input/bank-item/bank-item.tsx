@@ -8,10 +8,12 @@ import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { Tooltip, TooltipContent, TooltipPortal, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { IconInfoCircle } from "@tabler/icons-react";
+import { OracleSetup } from "@mrgnlabs/marginfi-client-v2";
 
 type BankItemProps = {
   bank: ExtendedBankInfo;
   showBalanceOverride: boolean;
+  solPrice?: number;
   nativeSolBalance?: number;
   rate?: string;
   lendingMode?: LendingModes;
@@ -23,6 +25,7 @@ type BankItemProps = {
 export const BankItem = ({
   bank,
   nativeSolBalance = 0,
+  solPrice,
   showBalanceOverride,
   rate,
   lendingMode,
@@ -40,13 +43,14 @@ export const BankItem = ({
     return isRepay ? (bank.isActive ? bank.position.amount : 0) : bank.userInfo.maxWithdraw;
   }, [bank, isRepay]);
 
-  const balancePrice = React.useMemo(
-    () =>
-      balance * bank.info.state.price > 0.000001
-        ? usdFormatter.format(balance * bank.info.state.price)
-        : `$${(balance * bank.info.state.price).toExponential(2)}`,
-    [bank, balance]
-  );
+  const balancePrice = React.useMemo(() => {
+    const isStakedWithPythPush = bank.info.rawBank.config.oracleSetup === OracleSetup.StakedWithPythPush;
+
+    const price = isStakedWithPythPush ? solPrice ?? 0 : bank.info.state.price;
+    return price * balance > 0.000001
+      ? usdFormatter.format(price * balance)
+      : `$${(balance * bank.info.state.price).toExponential(2)}`;
+  }, [bank, balance, solPrice]);
 
   const openPositionPrice = React.useMemo(
     () =>

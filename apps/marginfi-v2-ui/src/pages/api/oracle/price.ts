@@ -80,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
   const program = new Program(idl, provider) as any as MarginfiProgram;
 
-  let updatedOraclePrices = new Map<string, OraclePrice>();
+  let updatedOraclePriceByBank = new Map<string, OraclePrice>();
 
   try {
     // Fetch on-chain data for all banks
@@ -121,7 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const oracleAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, [
       ...requestedOraclesData.map((oracleData) => oracleData.oracleKey),
     ]);
-    let swbPullOraclesStale: { data: OracleDataWithTimestamp; feedHash: string }[] = [];
+    let swbPullOraclesStale: { data: OracleDataWithTimestamp; feedHash: string; bankAddress: PublicKey }[] = [];
     let pythStakedCollateralOracles: { data: OraclePrice; mint: PublicKey; key: string }[] = [];
     for (const index in requestedOraclesData) {
       const oracleData = requestedOraclesData[index];
@@ -154,7 +154,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (oracleData.oracleSetup === OracleSetup.StakedWithPythPush) {
         pythStakedCollateralOracles.push({
           data: oraclePrice,
-          key: oracleData.oracleKey,
+          key: oracleData.bankAddress.toBase58(),
           mint: oracleData.mint,
         });
         continue;
@@ -167,11 +167,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         swbPullOraclesStale.push({
           data: { ...oracleData, timestamp: oraclePrice.timestamp },
           feedHash: feedHash,
+          bankAddress: oracleData.bankAddress,
         });
         continue;
       }
 
-      updatedOraclePrices.set(oracleData.oracleKey, oraclePrice);
+      updatedOraclePriceByBank.set(oracleData.bankAddress.toBase58(), oraclePrice);
     }
 
     if (pythStakedCollateralOracles.length > 0) {
@@ -239,7 +240,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             },
           };
 
-          updatedOraclePrices.set(oracle.key, oraclePrice);
+          updatedOraclePriceByBank.set(oracle.key, oraclePrice);
         }
       }
     }
@@ -250,7 +251,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       let crossbarPrices = await handleFetchCrossbarPrices(feedHashes, feedHashMintMap);
 
       for (const {
-        data: { oracleKey, timestamp },
+        data: { timestamp },
+        bankAddress,
         feedHash,
       } of swbPullOraclesStale) {
         let crossbarPrice = crossbarPrices.get(feedHash);
@@ -274,11 +276,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         let updatedOraclePrice = { ...crossbarPrice, timestamp } as OraclePrice;
 
-        updatedOraclePrices.set(oracleKey, updatedOraclePrice);
+        updatedOraclePriceByBank.set(bankAddress.toBase58(), updatedOraclePrice);
       }
     }
 
-    const updatedOraclePricesSorted = requestedOraclesData.map((value) => updatedOraclePrices.get(value.oracleKey)!);
+    const updatedOraclePricesSorted = requestedOraclesData.map(
+      (value) => updatedOraclePriceByBank.get(value.bankAddress.toBase58())!
+    );
 
     res.setHeader("Cache-Control", `s-maxage=${S_MAXAGE_TIME}, stale-while-revalidate=${STALE_WHILE_REVALIDATE_TIME}`);
     return res.status(200).json(updatedOraclePricesSorted.map(stringifyOraclePrice));
