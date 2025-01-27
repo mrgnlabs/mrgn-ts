@@ -17,9 +17,10 @@ type StakeCardProps = {
   lstBank?: ExtendedBankInfo;
   lstOverview?: LSTOverview;
   connected: boolean;
+  extendedBankInfosWithoutStakedAssets: ExtendedBankInfo[];
 };
 
-const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
+const StakeCard = ({ lstBank, lstOverview, connected, extendedBankInfosWithoutStakedAssets }: StakeCardProps) => {
   const isMobile = useIsMobile();
 
   const scrollPageDown = () => {
@@ -76,6 +77,7 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
             isDialog={true}
             useProvider={true}
             stakeProps={{
+              banks: extendedBankInfosWithoutStakedAssets,
               connected: connected,
               requestedActionType: ActionType.MintLST,
               captureEvent: (event, properties) => {
@@ -96,6 +98,7 @@ const StakeCard = ({ lstBank, lstOverview, connected }: StakeCardProps) => {
             useProvider={true}
             stakeProps={{
               connected: connected,
+              banks: extendedBankInfosWithoutStakedAssets,
               requestedActionType: ActionType.UnstakeLST,
               requestedBank: lstBank,
               captureEvent: (event, properties) => {
