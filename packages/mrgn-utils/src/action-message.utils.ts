@@ -13,6 +13,7 @@ import {
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { QuoteResponse } from "@jup-ag/api";
+import { WalletToken } from "@mrgnlabs/mrgn-common";
 
 export function getColorForActionMessageUIType(type?: ActionMessageUIType) {
   if (type === "INFO") {
@@ -269,7 +270,7 @@ interface CheckDepositSwapActionAvailableProps {
   nativeSolBalance: number;
   showCloseBalance?: boolean;
   depositBank: ExtendedBankInfo | null;
-  swapBank: ExtendedBankInfo | null;
+  swapBank: ExtendedBankInfo | WalletToken | null;
   banks: ExtendedBankInfo[];
   marginfiAccount: MarginfiAccountWrapper | null;
   lendMode: ActionType;

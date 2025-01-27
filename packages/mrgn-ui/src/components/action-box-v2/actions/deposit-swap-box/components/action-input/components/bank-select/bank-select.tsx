@@ -6,16 +6,19 @@ import { computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { SelectedBankItem, BankListWrapper } from "~/components/action-box-v2/components";
 
 import { BankTrigger, BankList } from "./components";
+import { WalletToken } from "@mrgnlabs/mrgn-common";
 
 type BankSelectProps = {
-  selectedBank: ExtendedBankInfo | null;
+  selectedBank: ExtendedBankInfo | WalletToken | null;
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   lendMode: ActionType;
   connected: boolean;
   isSelectable?: boolean;
   showTokenSelectionGroups?: boolean;
-  setSelectedBank: (selectedBank: ExtendedBankInfo | null) => void;
+  setSelectedBank: (selectedBank: ExtendedBankInfo | WalletToken | null) => void;
+
+  walletTokens?: WalletToken[] | null;
 };
 
 export const BankSelect = ({
@@ -27,6 +30,7 @@ export const BankSelect = ({
   isSelectable = true,
   showTokenSelectionGroups,
   setSelectedBank,
+  walletTokens,
 }: BankSelectProps) => {
   // idea check list if banks[] == 1 make it unselectable
   const [isOpen, setIsOpen] = React.useState(false);
@@ -53,6 +57,7 @@ export const BankSelect = ({
             nativeSolBalance={nativeSolBalance}
             connected={connected}
             showTokenSelectionGroups={showTokenSelectionGroups}
+            walletTokens={walletTokens}
           />
         }
       />

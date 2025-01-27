@@ -2,7 +2,7 @@ import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { formatAmount } from "@mrgnlabs/mrgn-utils";
-import { usdFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
+import { usdFormatter, tokenPriceFormatter, WalletToken } from "@mrgnlabs/mrgn-common";
 
 import { Input } from "~/components/ui/input";
 
@@ -15,7 +15,7 @@ type ActionInputProps = {
   walletAmount: number | undefined;
   maxAmount: number;
   banks: ExtendedBankInfo[];
-  selectedBank: ExtendedBankInfo | null;
+  selectedBank: ExtendedBankInfo | WalletToken | null;
   lendMode: ActionType;
 
   connected: boolean;
@@ -27,8 +27,10 @@ type ActionInputProps = {
 
   isInputDisabled?: boolean;
 
+  walletTokens?: WalletToken[] | null;
+
   setAmountRaw: (amount: string) => void;
-  setSelectedBank: (bank: ExtendedBankInfo | null) => void;
+  setSelectedBank: (bank: ExtendedBankInfo | WalletToken | null) => void;
 };
 
 export const ActionInput = ({
@@ -48,6 +50,7 @@ export const ActionInput = ({
   isInputDisabled: _isInputDisabled,
   setAmountRaw,
   setSelectedBank,
+  walletTokens,
 }: ActionInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -59,7 +62,7 @@ export const ActionInput = ({
   );
 
   const formatAmountCb = React.useCallback(
-    (newAmount: string, bank: ExtendedBankInfo | null) => {
+    (newAmount: string, bank: ExtendedBankInfo | WalletToken | null) => {
       return formatAmount(newAmount, maxAmount, bank, numberFormater);
     },
     [maxAmount, numberFormater]
@@ -84,6 +87,7 @@ export const ActionInput = ({
           <BankSelect
             selectedBank={selectedBank}
             setSelectedBank={(bank) => {
+              console.log("bank", bank);
               setSelectedBank(bank);
             }}
             isSelectable={isTokenSelectionAvailable}
@@ -92,6 +96,7 @@ export const ActionInput = ({
             nativeSolBalance={nativeSolBalance}
             lendMode={lendMode}
             connected={connected}
+            walletTokens={walletTokens}
           />
         </div>
         <div className="flex-auto flex flex-col gap-0 items-end">
@@ -107,7 +112,12 @@ export const ActionInput = ({
           />
           {amount !== null && amount > 0 && selectedBank && (
             <span className="text-xs text-muted-foreground font-light">
-              {tokenPriceFormatter(amount * selectedBank.info.oraclePrice.priceRealtime.price.toNumber())}
+              {tokenPriceFormatter(
+                amount *
+                  ("info" in selectedBank
+                    ? selectedBank.info.oraclePrice.priceRealtime.price.toNumber()
+                    : selectedBank.price)
+              )}
             </span>
           )}
         </div>

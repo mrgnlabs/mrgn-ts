@@ -1,22 +1,26 @@
 import React from "react";
 
-import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { WalletToken, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes, cn, computeBankRate } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 import { BankItem, BankListCommand } from "~/components/action-box-v2/components";
+import { PublicKey } from "@solana/web3.js";
+import { WalletTokenItem } from "./components";
 
 type BankListProps = {
-  selectedBank: ExtendedBankInfo | null;
+  selectedBank: ExtendedBankInfo | WalletToken | null;
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   isOpen: boolean;
   lendMode: ActionType;
   connected: boolean;
   showTokenSelectionGroups?: boolean;
-  onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
+  onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | WalletToken | null) => void;
   onClose: () => void;
+
+  walletTokens?: WalletToken[] | null;
 };
 
 export const BankList = ({
@@ -29,6 +33,7 @@ export const BankList = ({
   onSetSelectedBank,
   isOpen,
   onClose,
+  walletTokens,
 }: BankListProps) => {
   const lendingMode = React.useMemo(
     () =>
@@ -105,6 +110,18 @@ export const BankList = ({
     );
   }, [banks, balanceFilter, searchFilter, nativeSolBalance]);
 
+  // wallet tokens
+  const filteredWalletTokens = React.useMemo(() => {
+    console.log("walletTokens", walletTokens);
+    if (!walletTokens) return [];
+    if (searchQuery.length === 0) return walletTokens;
+    return walletTokens.filter((token) => token.symbol.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [walletTokens, searchQuery]);
+
+  React.useEffect(() => {
+    console.log("filteredWalletTokens", filteredWalletTokens);
+  }, [filteredWalletTokens]);
+
   // other banks without positions
   const filteredBanks = React.useMemo(() => {
     return banks.filter(searchFilter);
@@ -131,6 +148,40 @@ export const BankList = ({
           </div>
         )}
         <CommandEmpty>No tokens found.</CommandEmpty>
+
+        {/* WALLET TOKENS */}
+        {filteredWalletTokens.length > 0 && onSetSelectedBank && (
+          <CommandGroup heading="Available in your wallet">
+            {filteredWalletTokens
+              .slice(0, searchQuery.length === 0 ? filteredWalletTokens.length : 3)
+              .map((token, index) => {
+                return (
+                  <CommandItem
+                    key={index}
+                    value={token?.address?.toString().toLowerCase()}
+                    onSelect={(currentValue) => {
+                      onSetSelectedBank(
+                        walletTokens?.find((token) => token.address.toString().toLowerCase() === currentValue) ?? null
+                      );
+                      onClose();
+                    }}
+                    className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground"
+                  >
+                    <WalletTokenItem
+                      lendingMode={lendingMode}
+                      token={token}
+                      showBalanceOverride={true}
+                      nativeSolBalance={nativeSolBalance}
+                    />
+                  </CommandItem>
+                );
+              })}
+          </CommandGroup>
+        )}
+
+        {/* 
+        TODO: combine lending and wallet tokens into one list 
+        */}
 
         {/* LENDING */}
         {lendingMode === LendingModes.LEND && connected && filteredBanksUserOwns.length > 0 && onSetSelectedBank && (

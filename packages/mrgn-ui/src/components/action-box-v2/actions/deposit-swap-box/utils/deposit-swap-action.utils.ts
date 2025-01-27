@@ -17,6 +17,7 @@ import {
   nativeToUi,
   SolanaTransaction,
   uiToNative,
+  WalletToken,
 } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
@@ -52,7 +53,7 @@ export interface CalculatePreviewProps {
 export interface GenerateDepositSwapTxnsProps {
   marginfiAccount: MarginfiAccountWrapper;
   depositBank: ExtendedBankInfo;
-  swapBank?: ExtendedBankInfo | null;
+  swapBank?: ExtendedBankInfo | WalletToken | null;
   amount: number;
   marginfiClient: MarginfiClient;
   jupiterOptions: JupiterOptions | null;
@@ -63,7 +64,10 @@ export async function generateDepositSwapTxns(
 ): Promise<DepositSwapActionTxns | ActionMessageType> {
   let swapTx: { quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType } | undefined;
 
-  if (props.swapBank && props.swapBank.meta.tokenSymbol !== props.depositBank.meta.tokenSymbol) {
+  if (
+    props.swapBank &&
+    ("info" in props.swapBank ? props.swapBank.info.state.mint.toBase58() : props.swapBank.symbol)
+  ) {
     console.log("Creating Quote swap transaction...");
     try {
       swapTx = await createSwapTx(props);
@@ -131,11 +135,15 @@ export async function createSwapTx(props: GenerateDepositSwapTxnsProps) {
 
   try {
     const jupiterQuoteApi = createJupiterApiClient();
+    const mintDecimals =
+      "info" in props.swapBank ? props.swapBank.info.state.mintDecimals : props.swapBank.mintDecimals;
+    const inputMint =
+      "info" in props.swapBank ? props.swapBank.info.state.mint.toBase58() : props.swapBank.address.toBase58();
 
     const swapQuote = await getSwapQuoteWithRetry({
       swapMode: "ExactIn",
-      amount: uiToNative(props.amount, props.swapBank.info.state.mintDecimals).toNumber(),
-      inputMint: props.swapBank.info.state.mint.toBase58(),
+      amount: uiToNative(props.amount, mintDecimals).toNumber(),
+      inputMint: inputMint,
       outputMint: props.depositBank.info.state.mint.toBase58(),
       slippageBps: props.jupiterOptions?.slippageMode === "FIXED" ? props.jupiterOptions?.slippageBps : undefined,
       dynamicSlippage: props.jupiterOptions?.slippageMode === "DYNAMIC" ? true : false,

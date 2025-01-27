@@ -348,9 +348,24 @@ export async function depositSwap({
   if (!multiStepToast) {
     const steps = getSteps(actionTxns);
 
+    let genericLabel;
+    if (
+      bank &&
+      swapBank &&
+      ("info" in swapBank ? swapBank.meta.address.toBase58() : swapBank.address.toBase58()) !== bank.address.toBase58()
+    ) {
+      genericLabel = `Depositing ${amount} ${"info" in swapBank ? swapBank.meta.tokenSymbol : swapBank.symbol} as ${
+        bank.meta.tokenSymbol
+      }`;
+    } else {
+      genericLabel = `Depositing ${amount} ${bank.meta.tokenSymbol}`;
+    }
+
     multiStepToast = new MultiStepToastHandle("Deposit", [
       ...steps,
-      { label: `Depositing ${amount} ${swapBank ? swapBank.meta.tokenSymbol : bank.meta.tokenSymbol}` },
+      {
+        label: genericLabel,
+      },
     ]);
     multiStepToast.start();
   } else {

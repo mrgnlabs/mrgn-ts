@@ -4,9 +4,10 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Command, CommandInput, CommandList } from "~/components/ui/command";
 import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
+import { WalletToken } from "@mrgnlabs/mrgn-common";
 
 type BankListCommandProps = {
-  selectedBank: ExtendedBankInfo | null;
+  selectedBank: ExtendedBankInfo | WalletToken | null;
   onSetSearchQuery: (search: string) => void;
   onClose: () => void;
   children: React.ReactNode;
@@ -19,7 +20,13 @@ export const BankListCommand = ({ selectedBank, onSetSearchQuery, onClose, child
     <Command
       className="bg-mfi-action-box-background relative"
       shouldFilter={false}
-      value={selectedBank?.address?.toString().toLowerCase() ?? ""}
+      value={
+        selectedBank
+          ? "info" in selectedBank
+            ? selectedBank.info.state.mint.toBase58()
+            : selectedBank.address.toString().toLowerCase()
+          : ""
+      }
     >
       <CommandInput
         placeholder="Search token..."

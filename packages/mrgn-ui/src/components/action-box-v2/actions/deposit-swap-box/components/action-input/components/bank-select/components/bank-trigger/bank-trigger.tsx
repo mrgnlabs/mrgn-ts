@@ -7,9 +7,10 @@ import { computeBankRate, cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { SelectedBankItem } from "~/components/action-box-v2/components";
+import { WalletToken } from "@mrgnlabs/mrgn-common";
 
 type BankTriggerProps = {
-  selectedBank: ExtendedBankInfo | null;
+  selectedBank: ExtendedBankInfo | WalletToken | null;
   lendingMode: LendingModes;
   isOpen?: boolean;
 };
@@ -17,7 +18,13 @@ type BankTriggerProps = {
 export const BankTrigger = React.forwardRef<HTMLButtonElement, BankTriggerProps>(
   ({ selectedBank, lendingMode, isOpen }, ref) => {
     const calculateRate = React.useCallback(
-      (bank: ExtendedBankInfo) => computeBankRate(bank, lendingMode),
+      (bank: ExtendedBankInfo | WalletToken) => {
+        if ("info" in bank) {
+          return computeBankRate(bank, lendingMode);
+        } else {
+          return undefined;
+        }
+      },
       [lendingMode]
     );
 
