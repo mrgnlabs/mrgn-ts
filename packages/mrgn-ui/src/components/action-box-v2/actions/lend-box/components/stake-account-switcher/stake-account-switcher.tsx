@@ -5,6 +5,8 @@ import { ExtendedBankInfo, ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-
 import { dynamicNumeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
+import { useLendBoxStore } from "../../store";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,16 +15,29 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 
-const UserStakeAccounts = ({
+const StakeAccountSwitcher = ({
   selectedBank,
-  userStakeAccounts,
+  stakeAccounts,
+  onStakeAccountChange,
 }: {
   selectedBank: ExtendedBankInfo;
-  userStakeAccounts: ValidatorStakeGroup[];
+  stakeAccounts: ValidatorStakeGroup[];
+  onStakeAccountChange: (stakeAccount: { address: PublicKey; balance: number }) => void;
 }) => {
-  const stakeAccounts = userStakeAccounts.find((stakeAccount) =>
+  const [selectedStakeAccount, setSelectedStakeAccount, setAmountRaw] = useLendBoxStore(false)((state) => [
+    state.selectedStakeAccount,
+    state.setSelectedStakeAccount,
+    state.setAmountRaw,
+  ]);
+
+  const currentValidator = stakeAccounts.find((stakeAccount) =>
     stakeAccount.validator.equals(selectedBank.meta.stakePool?.validatorVoteAccount || PublicKey.default)
   );
+
+  const selectedStakeAccountFallback = selectedStakeAccount?.address || PublicKey.default;
+
+  if (!currentValidator || currentValidator.accounts.length <= 1) return null;
+
   return (
     <div className="-translate-y-1 mb-3 flex justify-end">
       <DropdownMenu>
@@ -34,21 +49,25 @@ const UserStakeAccounts = ({
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuGroup>
-            {stakeAccounts?.accounts.map((account) => (
+            {currentValidator.accounts.map((account) => (
               <DropdownMenuItem
                 key={account.pubkey.toBase58()}
                 className={cn(
                   "flex justify-between gap-12 text-xs text-muted-foreground focus:text-foreground focus:bg-transparent",
-                  account.pubkey.equals(stakeAccounts.selectedAccount?.pubkey) && "text-foreground"
+                  account.pubkey.equals(selectedStakeAccountFallback) && "text-foreground"
                 )}
+                onClick={() => {
+                  onStakeAccountChange({ address: account.pubkey, balance: account.amount });
+                  setAmountRaw("0");
+                }}
               >
                 <div
                   className={cn(
                     "flex items-center gap-1.5",
-                    !account.pubkey.equals(stakeAccounts.selectedAccount?.pubkey) && "pl-5"
+                    !account.pubkey.equals(selectedStakeAccountFallback) && "pl-5"
                   )}
                 >
-                  {account.pubkey.equals(stakeAccounts.selectedAccount?.pubkey) && <IconCheck size={15} />}
+                  {account.pubkey.equals(selectedStakeAccountFallback) && <IconCheck size={15} />}
                   {shortenAddress(account.pubkey)}
                 </div>
                 <span>{dynamicNumeralFormatter(account.amount)} SOL</span>
@@ -61,4 +80,4 @@ const UserStakeAccounts = ({
   );
 };
 
-export { UserStakeAccounts };
+export { StakeAccountSwitcher };

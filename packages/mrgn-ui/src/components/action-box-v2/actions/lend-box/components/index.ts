@@ -1,4 +1,4 @@
 export * from "./action-input";
 export * from "./collateral";
 export * from "./preview";
-export * from "./user-stake-accounts";
+export * from "./stake-account-switcher";

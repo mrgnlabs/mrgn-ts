@@ -81,8 +81,6 @@ export default function HomePage() {
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
   }, [extendedBankInfos, router, marginfiClient]);
 
-  console.log("stakeAccounts", stakeAccounts);
-
   return (
     <>
       <Desktop>
@@ -105,9 +103,9 @@ export default function HomePage() {
                   useProvider={true}
                   lendProps={{
                     requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
-                    connected: connected,
-                    walletContextState: walletContextState,
-                    userStakeAccounts: stakeAccounts,
+                    connected,
+                    walletContextState,
+                    stakeAccounts,
                     captureEvent: (event, properties) => {
                       capture(event, properties);
                     },
