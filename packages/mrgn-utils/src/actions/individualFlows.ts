@@ -82,8 +82,6 @@ export function getSteps(
       steps.push({ label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"] });
     });
 
-  console.log("steps", steps);
-
   return steps;
 }
 
