@@ -39,7 +39,7 @@ import { ActionMessage } from "~/components";
 import { useLendBoxStore } from "./store";
 import { HandleCloseBalanceParamsProps, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { ActionSimulationStatus } from "../../components";
-import { Collateral, ActionInput, Preview, UserStakeAccounts } from "./components";
+import { Collateral, ActionInput, Preview, StakeAccountSwitcher } from "./components";
 import { SimulationStatus } from "../../utils";
 import { useLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
@@ -64,7 +64,7 @@ export type LendBoxProps = {
   showTokenSelection?: boolean;
   showTokenSelectionGroups?: boolean;
   hidePoolStats?: HidePoolStats;
-  userStakeAccounts?: ValidatorStakeGroup[];
+  stakeAccounts?: ValidatorStakeGroup[];
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -89,7 +89,7 @@ export const LendBox = ({
   onComplete,
   captureEvent,
   hidePoolStats,
-  userStakeAccounts,
+  stakeAccounts,
   setDisplaySettings,
 }: LendBoxProps) => {
   const [
@@ -99,6 +99,7 @@ export const LendBox = ({
     selectedBank,
     simulationResult,
     errorMessage,
+    selectedStakeAccount,
 
     refreshState,
     fetchActionBoxState,
@@ -109,6 +110,8 @@ export const LendBox = ({
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
+    setStakeAccounts,
+    setSelectedStakeAccount,
   ] = useLendBoxStore(isDialog)((state) => [
     state.amountRaw,
     state.lendMode,
@@ -116,6 +119,7 @@ export const LendBox = ({
     state.selectedBank,
     state.simulationResult,
     state.errorMessage,
+    state.selectedStakeAccount,
 
     state.refreshState,
     state.fetchActionBoxState,
@@ -126,6 +130,8 @@ export const LendBox = ({
     state.setSimulationResult,
     state.setActionTxns,
     state.setErrorMessage,
+    state.setStakeAccounts,
+    state.setSelectedStakeAccount,
   ]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
@@ -160,6 +166,7 @@ export const LendBox = ({
     selectedBank,
     nativeSolBalance,
     actionMode: lendMode,
+    selectedStakeAccount: selectedStakeAccount || undefined,
   });
   const { actionSummary, refreshSimulation } = useLendSimulation({
     debouncedAmount: debouncedAmount ?? 0,
@@ -170,6 +177,7 @@ export const LendBox = ({
     actionTxns,
     simulationResult,
     connection: marginfiClient?.provider.connection,
+    selectedStakeAccount: selectedStakeAccount?.address || undefined,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
@@ -512,6 +520,12 @@ export const LendBox = ({
   }, [additionalActionMessages, actionMessages]);
 
   React.useEffect(() => {
+    if (stakeAccounts) {
+      setStakeAccounts(stakeAccounts);
+    }
+  }, [stakeAccounts, setStakeAccounts]);
+
+  React.useEffect(() => {
     if (marginfiClient) {
       refreshSelectedBanks(banks);
     }
@@ -537,11 +551,13 @@ export const LendBox = ({
           setSelectedBank={setSelectedBank}
         />
       </div>
-
-      {selectedBank && userStakeAccounts && userStakeAccounts.length > 0 && (
-        <UserStakeAccounts selectedBank={selectedBank} userStakeAccounts={userStakeAccounts} />
+      {selectedBank && stakeAccounts && stakeAccounts.length > 0 && (
+        <StakeAccountSwitcher
+          selectedBank={selectedBank}
+          stakeAccounts={stakeAccounts}
+          onStakeAccountChange={setSelectedStakeAccount}
+        />
       )}
-
       {additionalActionMessages.concat(actionMessages).map(
         (actionMessage, idx) =>
           actionMessage.description && (
@@ -554,13 +570,11 @@ export const LendBox = ({
             </div>
           )
       )}
-
       {showAvailableCollateral && (
         <div className="mb-6">
           <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
         </div>
       )}
-
       <div className="mb-3">
         <ActionButton
           isLoading={isLoading}
@@ -593,7 +607,6 @@ export const LendBox = ({
           </div>
         )}
       </div>
-
       <Preview
         actionSummary={actionSummary}
         selectedBank={selectedBank}
@@ -601,7 +614,6 @@ export const LendBox = ({
         lendMode={lendMode}
         hidePoolStats={hidePoolStats}
       />
-
       <LSTDialog
         variant={selectedBank?.meta.tokenSymbol as LSTDialogVariants}
         open={!!lstDialogCallback}

@@ -1,9 +1,9 @@
-import { Connection, Transaction, VersionedTransaction } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { v4 as uuidv4 } from "uuid";
 
 import { MarginfiAccountWrapper, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { ActionType, ExtendedBankInfo, getStakeAccountsCached } from "@mrgnlabs/marginfi-v2-ui-state";
-import { SolanaTransaction, TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
   closeBalance,
@@ -120,6 +120,7 @@ export async function calculateLendingTransaction(
   bank: ExtendedBankInfo,
   actionMode: ActionType,
   amount: number,
+  stakeAccount?: PublicKey,
   connection?: Connection
 ): Promise<
   | {
@@ -133,22 +134,19 @@ export async function calculateLendingTransaction(
       let depositTx: SolanaTransaction;
 
       if (marginfiAccount && connection && bank.info.rawBank.config.assetTag === 2) {
-        console.log("Depositing into staked asset bank");
-
-        const stakeAccounts = await getStakeAccountsCached(marginfiAccount.authority);
-        const stakeAccount = stakeAccounts.find((stakeAccount) =>
-          stakeAccount.poolMintKey.equals(bank.info.state.mint)
-        );
-
-        if (!stakeAccount) {
-          throw new Error("No stake account found for this staked asset bank");
+        if (!stakeAccount || !bank.meta.stakePool?.validatorVoteAccount) {
+          throw new Error("Stake account or validator not found for this staked asset bank");
         }
+
+        console.log("Depositing into staked asset bank");
+        console.log("Stake account", stakeAccount.toBase58());
+        console.log("Validator", bank.meta.stakePool?.validatorVoteAccount.toBase58());
 
         depositTx = await marginfiAccount.makeDepositStakedTx(
           amount,
           bank.address,
-          stakeAccount.selectedAccount.pubkey,
-          stakeAccount.validator
+          stakeAccount,
+          bank.meta.stakePool?.validatorVoteAccount
         );
       } else {
         depositTx = await marginfiAccount.makeDepositTx(amount, bank.address);
