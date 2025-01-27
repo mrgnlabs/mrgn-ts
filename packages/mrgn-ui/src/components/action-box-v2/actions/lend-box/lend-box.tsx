@@ -1,5 +1,7 @@
 import React from "react";
 
+import Link from "next/link";
+
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { IconInfoCircle, IconSettings } from "@tabler/icons-react";
 
@@ -643,10 +645,14 @@ export const LendBox = ({
         selectedBank.info.rawBank.config.assetTag === 2 &&
         amount > 0 &&
         amount === maxAmount && (
-          <small className="flex items-start gap-1 mt-4 text-xs text-muted-foreground font-light max-w-[75%]">
-            <IconInfoCircle size={13} className="shrink-0 translate-y-[2px]" />
-            Staking rewards accumulated this epoch will be withdrawn to your wallet on deposit.
-          </small>
+          <div className="mt-6 text-[11px] text-muted-foreground font-light">
+            <p>*Jito mev rewards will be withdrawn to your wallet on deposit</p>
+            <p>
+              <Link href="https://docs.mrgn.xyz/docs/jito-mev-rewards" className="block max-w-fit underline">
+                Learn more
+              </Link>
+            </p>
+          </div>
         )}
       <LSTDialog
         variant={selectedBank?.meta.tokenSymbol as LSTDialogVariants}
