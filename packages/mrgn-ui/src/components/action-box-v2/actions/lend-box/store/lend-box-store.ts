@@ -134,7 +134,6 @@ const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
         const stakeAccount = stakeAccounts.find((stakeAccount) =>
           stakeAccount.validator.equals(tokenBank.meta.stakePool?.validatorVoteAccount || PublicKey.default)
         );
-        console.log("found stakeAccount", stakeAccount, stakeAccounts);
         if (stakeAccount) {
           data.selectedStakeAccount = {
             address: stakeAccount.accounts[0].pubkey,

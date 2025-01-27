@@ -238,7 +238,10 @@ const PortfolioAction = ({
   buttonVariant?: "default" | "outline" | "outline-dark";
 }) => {
   const { walletContextState, connected } = useWallet();
-  const [fetchMrgnlendState] = useMrgnlendStore((state) => [state.fetchMrgnlendState]);
+  const [fetchMrgnlendState, stakeAccounts] = useMrgnlendStore((state) => [
+    state.fetchMrgnlendState,
+    state.stakeAccounts,
+  ]);
   const isDust = React.useMemo(() => requestedBank?.isActive && requestedBank?.position.isDust, [requestedBank]);
 
   const buttonText = React.useMemo(() => {
@@ -265,6 +268,7 @@ const PortfolioAction = ({
           requestedBank: requestedBank ?? undefined,
           walletContextState: walletContextState,
           connected: connected,
+          stakeAccounts: stakeAccounts,
           captureEvent: (event, properties) => {
             capture(event, properties);
           },
