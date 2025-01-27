@@ -112,15 +112,10 @@ export const BankList = ({
 
   // wallet tokens
   const filteredWalletTokens = React.useMemo(() => {
-    console.log("walletTokens", walletTokens);
     if (!walletTokens) return [];
     if (searchQuery.length === 0) return walletTokens;
     return walletTokens.filter((token) => token.symbol.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [walletTokens, searchQuery]);
-
-  React.useEffect(() => {
-    console.log("filteredWalletTokens", filteredWalletTokens);
-  }, [filteredWalletTokens]);
 
   // other banks without positions
   const filteredBanks = React.useMemo(() => {
@@ -139,6 +134,49 @@ export const BankList = ({
     }
   }, [isOpen]);
 
+  const combinedWalletTokensAndBanks = React.useMemo(() => {
+    const combined = [...filteredWalletTokens, ...filteredBanksUserOwns];
+
+    const seen = new Map<string, boolean>(); // Map to track seen addresses or symbols
+    const unique = combined.filter((item) => {
+      const address = "info" in item ? item.info.state.mint.toBase58() : item.address.toBase58();
+      const symbol = "info" in item ? item.meta.tokenSymbol : item.symbol;
+
+      if (seen.has(address) || seen.has(symbol)) {
+        return false; // Skip duplicates
+      }
+
+      // Mark both address and symbol as seen
+      seen.set(address, true);
+      seen.set(symbol, true);
+      return true;
+    });
+
+    const sorted = unique.sort((a, b) => {
+      const firstTokenAddress = "info" in a ? a.info.state.mint : a.address;
+      const secondTokenAddress = "info" in b ? b.info.state.mint : b.address;
+
+      const isFirstWSOL = firstTokenAddress.equals(WSOL_MINT);
+      const isSecondWSOL = secondTokenAddress.equals(WSOL_MINT);
+
+      const firstBalance =
+        "info" in a
+          ? (isFirstWSOL ? a.userInfo.tokenAccount.balance + nativeSolBalance : a.userInfo.tokenAccount.balance) *
+            a.info.state.price
+          : (isFirstWSOL ? a.balance + nativeSolBalance : a.balance) * a.price;
+
+      const secondBalance =
+        "info" in b
+          ? (isSecondWSOL ? b.userInfo.tokenAccount.balance + nativeSolBalance : b.userInfo.tokenAccount.balance) *
+            b.info.state.price
+          : (isSecondWSOL ? b.balance + nativeSolBalance : b.balance) * b.price;
+
+      return secondBalance - firstBalance;
+    });
+
+    return sorted as (ExtendedBankInfo | WalletToken)[];
+  }, [filteredWalletTokens, filteredBanks, nativeSolBalance]);
+
   return (
     <>
       <BankListCommand selectedBank={selectedBank} onClose={onClose} onSetSearchQuery={setSearchQuery}>
@@ -149,67 +187,55 @@ export const BankList = ({
         )}
         <CommandEmpty>No tokens found.</CommandEmpty>
 
-        {/* WALLET TOKENS */}
-        {filteredWalletTokens.length > 0 && onSetSelectedBank && (
+        {combinedWalletTokensAndBanks.length > 0 && onSetSelectedBank && (
           <CommandGroup heading="Available in your wallet">
-            {filteredWalletTokens
-              .slice(0, searchQuery.length === 0 ? filteredWalletTokens.length : 3)
+            {combinedWalletTokensAndBanks
+              .slice(0, searchQuery.length === 0 ? combinedWalletTokensAndBanks.length : 3)
               .map((token, index) => {
-                return (
-                  <CommandItem
-                    key={index}
-                    value={token?.address?.toString().toLowerCase()}
-                    onSelect={(currentValue) => {
-                      onSetSelectedBank(
-                        walletTokens?.find((token) => token.address.toString().toLowerCase() === currentValue) ?? null
-                      );
-                      onClose();
-                    }}
-                    className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground"
-                  >
-                    <WalletTokenItem
-                      lendingMode={lendingMode}
-                      token={token}
-                      showBalanceOverride={true}
-                      nativeSolBalance={nativeSolBalance}
-                    />
-                  </CommandItem>
-                );
-              })}
-          </CommandGroup>
-        )}
-
-        {/* 
-        TODO: combine lending and wallet tokens into one list 
-        */}
-
-        {/* LENDING */}
-        {lendingMode === LendingModes.LEND && connected && filteredBanksUserOwns.length > 0 && onSetSelectedBank && (
-          <CommandGroup heading="Available in your wallet">
-            {filteredBanksUserOwns
-              .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
-              .map((bank, index) => {
-                return (
-                  <CommandItem
-                    key={index}
-                    value={bank?.address?.toString().toLowerCase()}
-                    onSelect={(currentValue) => {
-                      onSetSelectedBank(
-                        banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
-                      );
-                      onClose();
-                    }}
-                    className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground"
-                  >
-                    <BankItem
-                      rate={calculateRate(bank)}
-                      lendingMode={lendingMode}
-                      bank={bank}
-                      showBalanceOverride={true}
-                      nativeSolBalance={nativeSolBalance}
-                    />
-                  </CommandItem>
-                );
+                if ("info" in token) {
+                  return (
+                    <CommandItem
+                      key={index}
+                      value={token?.address?.toString().toLowerCase()}
+                      onSelect={(currentValue) => {
+                        onSetSelectedBank(
+                          banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
+                        );
+                        onClose();
+                      }}
+                      className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground"
+                    >
+                      <BankItem
+                        rate={calculateRate(token)}
+                        lendingMode={lendingMode}
+                        bank={token}
+                        showBalanceOverride={true}
+                        nativeSolBalance={nativeSolBalance}
+                      />
+                    </CommandItem>
+                  );
+                } else {
+                  return (
+                    <CommandItem
+                      key={index}
+                      value={token?.address?.toString().toLowerCase()}
+                      onSelect={(currentValue) => {
+                        onSetSelectedBank(
+                          walletTokens?.find((token) => token.address.toString().toLowerCase() === currentValue) ?? null
+                        );
+                        onClose();
+                      }}
+                      className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground"
+                    >
+                      <WalletTokenItem
+                        lendingMode={lendingMode}
+                        token={token}
+                        showBalanceOverride={true}
+                        nativeSolBalance={nativeSolBalance}
+                      />
+                    </CommandItem>
+                  );
+                }
               })}
           </CommandGroup>
         )}

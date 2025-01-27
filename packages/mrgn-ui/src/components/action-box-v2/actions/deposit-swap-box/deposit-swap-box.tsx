@@ -328,7 +328,6 @@ export const DepositSwapBox = ({
     }
   ) => {
     const action = async (params: ExecuteDepositSwapActionProps) => {
-      console.log("params22, ", params);
       handleExecuteDepositSwapAction({
         params,
         captureEvent: (event, properties) => {
@@ -408,14 +407,7 @@ export const DepositSwapBox = ({
 
   const handleDepositSwapAction = React.useCallback(
     async (_actionTxns?: DepositSwapActionTxns, multiStepToast?: MultiStepToastHandle) => {
-      console.log({
-        actionTxns,
-        marginfiClient,
-        debouncedAmount,
-        transactionSettings,
-      });
       if (!actionTxns || !marginfiClient || !debouncedAmount || debouncedAmount === 0 || !transactionSettings) {
-        console.log({ actionTxns, marginfiClient, selectedSwapBank });
         return;
       }
 

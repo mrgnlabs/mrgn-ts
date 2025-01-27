@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { IconExternalLink } from "@tabler/icons-react";
-import { shortenAddress, dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { shortenAddress, dynamicNumeralFormatter, percentFormatter, WalletToken } from "@mrgnlabs/mrgn-common";
 import { cn, getRateData } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -11,7 +11,7 @@ interface Props {
   swapAmount: number;
   depositAmount: number;
   depositBank: ActiveBankInfo;
-  swapBank: ActiveBankInfo;
+  swapBank: ActiveBankInfo | WalletToken;
   txn: string;
   txnLink?: string;
 }
@@ -25,14 +25,14 @@ export const DepositSwapScreen = ({ swapAmount, depositAmount, depositBank, swap
     <>
       <div className="flex flex-col items-center gap-4 border-b border-border pb-10">
         <div className="flex items-center">
-          <Image
+          <img
             className="rounded-full"
-            src={swapBank.meta.tokenLogoUri}
-            alt={(swapBank.meta.tokenSymbol || "Token") + " logo"}
+            src={"info" in swapBank ? swapBank.meta.tokenLogoUri : swapBank.logoUri}
+            alt={("info" in swapBank ? swapBank.meta.tokenSymbol : swapBank.symbol || "Token") + " logo"}
             width={48}
             height={48}
           />
-          <Image
+          <img
             className="rounded-full -ml-5 relative z-10"
             src={depositBank.meta.tokenLogoUri}
             alt={(depositBank.meta.tokenSymbol || "Token") + " logo"}
@@ -45,9 +45,9 @@ export const DepositSwapScreen = ({ swapAmount, depositAmount, depositBank, swap
           <h3 className="text-2xl font-medium text-center">
             You deposited{" "}
             {dynamicNumeralFormatter(swapAmount, {
-              tokenPrice: swapBank.info.state.price,
+              tokenPrice: "info" in swapBank ? swapBank.info.state.price : swapBank.price,
             })}{" "}
-            {swapBank.meta.tokenSymbol.toUpperCase()} as{" "}
+            {("info" in swapBank ? swapBank.meta.tokenSymbol : swapBank.symbol || "Token").toUpperCase()} as{" "}
             {dynamicNumeralFormatter(depositAmount, {
               tokenPrice: depositBank.info.state.price,
             })}{" "}
@@ -60,9 +60,10 @@ export const DepositSwapScreen = ({ swapAmount, depositAmount, depositBank, swap
         <dd className="text-right">
           {dynamicNumeralFormatter(depositAmount, { minDisplay: 0.01 })} {depositBank.meta.tokenSymbol}
         </dd>
-        <dt>Total {swapBank.meta.tokenSymbol} Swapped</dt>
+        <dt>Total {"info" in swapBank ? swapBank.meta.tokenSymbol : swapBank.symbol || "Token"} Swapped</dt>
         <dd className="text-right">
-          {dynamicNumeralFormatter(swapAmount, { minDisplay: 0.01 })} {swapBank.meta.tokenSymbol}
+          {dynamicNumeralFormatter(swapAmount, { minDisplay: 0.01 })}{" "}
+          {"info" in swapBank ? swapBank.meta.tokenSymbol : swapBank.symbol || "Token"}
         </dd>
         <dt>APY</dt>
         <dd className={cn("text-right text-success")}>{percentFormatter.format(rate.rateAPY)}</dd>
