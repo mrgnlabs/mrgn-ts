@@ -144,7 +144,7 @@ export const Settings = ({
             <div className="space-y-4">
               <div className="space-y-0.5">
                 <h3 className="font-normal ">Transaction Method</h3>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   Set the method you want to use to send your transaction.
                 </p>
               </div>
@@ -163,7 +163,7 @@ export const Settings = ({
                           <div
                             key={option.type}
                             className={cn(
-                              "relative w-full font-light border border-transparent rounded bg-mfi-action-box-background-dark transition-colors hover:bg-mfi-action-box-background-dark/80",
+                              "relative w-full font-light border border-transparent rounded bg-mfi-action-box-accent transition-colors hover:bg-mfi-action-box-background-dark/80",
                               field.value === option.type && "border-mfi-action-box-highlight"
                             )}
                           >
@@ -187,7 +187,7 @@ export const Settings = ({
                               {option.label}
                             </Label>
                             {/* {option.type === recommendedBroadcastType && (
-                    <span className="absolute translate-y-6 bottom-0 left-0 border border-accent rounded-full text-muted-foreground bg-mfi-action-box-background-dark px-1 text-xs flex items-center gap-1">
+                    <span className="absolute translate-y-6 bottom-0 left-0 border border-accent rounded-full text-muted-foreground bg-mfi-action-box-background-dark px-1 text-sm flex items-center gap-1">
                       <IconSparkles size={12} /> Suggested
                     </span>
                   )} */}
@@ -203,7 +203,7 @@ export const Settings = ({
             <div className="space-y-4">
               <div className="space-y-0.5">
                 <h3 className="font-normal ">Transaction Priority</h3>
-                <p className="text-xs text-muted-foreground">Set the priority of your transaction.</p>
+                <p className="text-sm text-muted-foreground leading-loose">Set the priority of your transaction.</p>
               </div>
               <FormField
                 control={form.control}
@@ -216,7 +216,7 @@ export const Settings = ({
                           <div
                             key={option.type}
                             className={cn(
-                              "relative w-full font-light border border-transparent rounded bg-mfi-action-box-background-dark transition-colors hover:bg-mfi-action-box-background-dark/80",
+                              "relative w-full font-light border border-transparent rounded bg-mfi-action-box-accent transition-colors hover:bg-mfi-action-box-background-dark/80",
                               field.value === option.type && "border-mfi-action-box-highlight"
                             )}
                           >
@@ -244,7 +244,7 @@ export const Settings = ({
             <div className="space-y-4">
               <div className="space-y-0.5">
                 <h3 className="font-normal ">Priority Fee Cap</h3>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Set the maximum fee you are willing to pay for a transaction.
                 </p>
               </div>
@@ -260,7 +260,7 @@ export const Settings = ({
                             <div
                               key={option.type}
                               className={cn(
-                                "relative w-full font-light border border-transparent rounded bg-mfi-action-box-background-dark transition-colors hover:bg-mfi-action-box-background-dark/80",
+                                "relative w-full font-light border border-transparent rounded bg-mfi-action-box-accent transition-colors hover:bg-mfi-action-box-background-dark/80",
                                 field.value === option.type && "border-mfi-action-box-highlight"
                               )}
                             >
@@ -302,14 +302,14 @@ export const Settings = ({
                               placeholder={field.value?.toString() ?? "0"}
                               onChange={(e) => field.onChange(e)}
                               className={cn(
-                                "h-auto bg-mfi-action-box-background-dark py-3 px-4 border border-transparent transition-colors focus-visible:ring-0",
+                                "h-auto bg-mfi-action-box-accent py-3 px-4 border border-transparent transition-colors focus-visible:ring-0",
                                 "focussed:border-mfi-action-box-highlight text-lg md:text-base "
                               )}
                             />
                             <span className="absolute inset-y-0 right-3 text-sm flex items-center">SOL</span>
                           </div>
                         </FormControl>
-                        <FormMessage className="text-xs text-warning" />
+                        <FormMessage className="text-sm text-warning" />
                       </FormItem>
                     )}
                   />
@@ -328,11 +328,10 @@ export const Settings = ({
         <form onSubmit={slippageForm.handleSubmit(onSlippageSubmit)}>
           <div className="space-y-6">
             <div className="space-y-4">
-              <div className="space-y-0.5">
+              <div className="space-y-1">
                 <h3 className="font-normal ">Slippage mode</h3>
-                <p className="text-xs text-muted-foreground">
-                  Fixed Slippage may help with transaction success rate, but exposes you to front-running, dynamic
-                  slippage may ... TODO finish
+                <p className="text-sm text-muted-foreground">
+                  Set a fixed slippage or let us calculate optimal slippage for you.
                 </p>
               </div>
               <FormField
@@ -353,13 +352,13 @@ export const Settings = ({
                           <div
                             key={option.type}
                             className={cn(
-                              "relative w-full font-light border border-transparent rounded bg-mfi-action-box-background-dark transition-colors hover:bg-mfi-action-box-background-dark/80",
+                              "relative w-full font-light border border-transparent rounded bg-mfi-action-box-accent transition-colors hover:bg-mfi-action-box-background-dark/80",
                               field.value === option.type && "border-mfi-action-box-highlight"
                             )}
                           >
                             <RadioGroupItem value={option.type} id={`slippageMode_${option.type}`} className="hidden" />
                             <Label
-                              className="flex p-2 flex-col h-auto w-full text-xs gap-0.5 text-center cursor-pointer"
+                              className="flex p-2 flex-col h-auto w-full text-sm gap-0.5 text-center cursor-pointer"
                               htmlFor={`slippageMode_${option.type}`}
                             >
                               {option.label}
@@ -392,7 +391,7 @@ export const Settings = ({
                               <div
                                 key={option.label}
                                 className={cn(
-                                  "relative w-full font-light border border-transparent rounded bg-mfi-action-box-background-dark transition-colors hover:bg-mfi-action-box-background-dark/80",
+                                  "relative w-full font-light border border-transparent rounded bg-mfi-action-box-accent transition-colors hover:bg-mfi-action-box-background-dark/80",
                                   field.value === option.value && "border-mfi-action-box-highlight"
                                 )}
                               >
@@ -403,7 +402,7 @@ export const Settings = ({
                                 />
                                 <Label
                                   className={
-                                    "flex p-2 flex-col h-auto w-full text-xs gap-0.5 text-center cursor-pointer"
+                                    "flex p-2 flex-col h-auto w-full text-sm gap-0.5 text-center cursor-pointer"
                                   }
                                   htmlFor={option.label.toString()}
                                 >
@@ -434,7 +433,7 @@ export const Settings = ({
                               placeholder={isCustomSlippage ? field.value.toString() : "0"}
                               onChange={(e) => field.onChange(e)}
                               className={cn(
-                                "h-auto py-3 px-4 border text-lg md:text-base",
+                                "h-auto py-1.5 px-3 border text-lg md:text-base",
                                 isCustomSlippage && "bg-accent"
                               )}
                               autoFocus={false}
@@ -443,7 +442,7 @@ export const Settings = ({
                           </div>
                         </FormControl>
                         {field.value > MAX_SLIPPAGE_PERCENTAGE && (
-                          <FormMessage className="text-xs px-1">
+                          <FormMessage className="text-sm px-1">
                             {STATIC_SIMULATION_ERRORS.SLIPPAGE_TOO_HIGH.description}
                           </FormMessage>
                         )}
@@ -490,11 +489,6 @@ export const Settings = ({
                 </TabsList>
               </Tabs>
             </div>
-            <span className="text-sm text-muted-foreground self-start">
-              {activeTab === "transaction"
-                ? "Manage your transactions and priority Fees."
-                : "Manage your swap and slippage settings."}
-            </span>
           </div>
 
           {renderForms()}
