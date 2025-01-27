@@ -31,6 +31,7 @@ import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { PreviousTxn } from "~/types";
+import { JupiterOptions } from "~/components";
 
 interface ExecuteTradeActionsProps extends ExecuteActionsCallbackProps {
   props: ExecuteTradeActionProps;
@@ -120,9 +121,7 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
     try {
       swapTx = await createSwapTx(
         props,
-        {
-          slippageBps: props.slippageBps,
-        },
+
         props.marginfiClient.wallet.publicKey,
         props.marginfiClient.provider.connection
       );
@@ -228,7 +227,6 @@ async function createMarginfiAccountTx(
 
 export async function createSwapTx(
   props: CalculateLoopingProps,
-  jupOpts: { slippageBps: number },
   authority: PublicKey,
   connection: Connection
 ): Promise<{ quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType }> {
@@ -240,7 +238,8 @@ export async function createSwapTx(
       amount: uiToNative(props.depositAmount, 6).toNumber(),
       inputMint: props.borrowBank.info.state.mint.toBase58(),
       outputMint: props.depositBank.info.state.mint.toBase58(),
-      slippageBps: jupOpts.slippageBps,
+      slippageBps: props?.slippageMode === "FIXED" ? props?.slippageBps : undefined,
+      dynamicSlippage: props?.slippageMode === "DYNAMIC" ? true : false,
     });
 
     if (!swapQuote) {

@@ -56,7 +56,13 @@ export default function MrgnApp({ Component, pageProps }: AppProps & StaticArena
   const [ready, setReady] = React.useState(false);
   const [rpcEndpoint, setRpcEndpoint] = React.useState("");
 
-  const [broadcastType, priorityFees] = useUiStore((state) => [state.broadcastType, state.priorityFees]);
+  const [broadcastType, priorityFees, jupiterOptions, priorityType, maxCapType] = useUiStore((state) => [
+    state.broadcastType,
+    state.priorityFees,
+    state.jupiterOptions,
+    state.priorityType,
+    state.maxCapType,
+  ]);
 
   React.useEffect(() => {
     const initializeApp = () => {
@@ -84,7 +90,17 @@ export default function MrgnApp({ Component, pageProps }: AppProps & StaticArena
             <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
               <MrgnWalletProvider>
                 <TradePovider>
-                  <ActionProvider broadcastType={broadcastType} priorityFees={priorityFees}>
+                  <ActionProvider
+                    transactionSettings={{
+                      broadcastType,
+                      priorityType,
+                      maxCap: priorityFees.maxCapUi ?? 0,
+                      maxCapType,
+                    }}
+                    jupiterOptions={{ ...jupiterOptions, slippageBps: jupiterOptions.slippageBps }}
+                    priorityFees={priorityFees}
+                  >
+                    {" "}
                     <div className="mrgn-bg-gradient">
                       <Header />
                       <Desktop>

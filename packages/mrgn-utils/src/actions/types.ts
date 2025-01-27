@@ -105,6 +105,7 @@ export interface CalculateLoopingProps
   targetLeverage: number;
   marginfiClient: MarginfiClient;
   slippageBps: number;
+  slippageMode: "DYNAMIC" | "FIXED";
   platformFeeBps: number;
   setupBankAddresses?: PublicKey[];
   tradeState?: "long" | "short";
@@ -116,12 +117,14 @@ export interface CalculateRepayCollateralProps
     "marginfiAccount" | "borrowBank" | "depositBank" | "withdrawAmount" | "connection"
   > {
   slippageBps: number;
+  slippageMode: "DYNAMIC" | "FIXED";
   platformFeeBps: number;
 }
 
 export interface CalculateClosePositionProps
   extends Pick<ClosePositionProps, "marginfiAccount" | "depositBank" | "borrowBank" | "connection"> {
   slippageBps: number;
+  slippageMode: "DYNAMIC" | "FIXED";
   platformFeeBps: number;
 }
 

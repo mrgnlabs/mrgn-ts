@@ -38,6 +38,7 @@ import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/m
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import { TradeSide } from "~/components/common/trade-box-v2";
+import { JupiterOptions } from "~/components";
 
 export async function createMarginfiGroup({
   marginfiClient,
@@ -302,25 +303,26 @@ export async function calculateClosePositions({
   marginfiAccount,
   borrowBank,
   depositBanks,
-  slippageBps,
+  jupiterOptions,
   connection,
   platformFeeBps,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
   borrowBank: ActiveBankInfo | null;
   depositBanks: ActiveBankInfo[];
-  slippageBps: number;
+  jupiterOptions: JupiterOptions | null;
   connection: Connection;
   platformFeeBps: number;
 }): Promise<ClosePositionActionTxns | ActionMessageType> {
   // user is borrowing and depositing
-  if (borrowBank && depositBanks.length === 1) {
+  if (borrowBank && depositBanks.length === 1 && jupiterOptions) {
     return calculateBorrowLendPositionParams({
       marginfiAccount,
       borrowBank,
       depositBank: depositBanks[0],
       connection,
-      slippageBps,
+      slippageBps: jupiterOptions?.slippageBps,
+      slippageMode: jupiterOptions?.slippageMode,
       platformFeeBps,
     });
   }

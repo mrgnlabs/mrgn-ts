@@ -154,6 +154,7 @@ export function useLoopSimulation({
           targetLeverage: leverage,
           depositAmount: amount,
           slippageBps: jupiterOptions?.slippageBps,
+          slippageMode: jupiterOptions?.slippageMode,
           connection: marginfiClient.provider.connection,
           platformFeeBps,
         });

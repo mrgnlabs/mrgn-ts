@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
-    "@jup-ag/api": "^6.0.24",
+    "@jup-ag/api": "^6.0.38",
     "@jup-ag/react-hook": "^6.0.0-beta.8",
     "@mrgnlabs/marginfi-client-v2": "*",
     "@mrgnlabs/marginfi-v2-ui-state": "*",

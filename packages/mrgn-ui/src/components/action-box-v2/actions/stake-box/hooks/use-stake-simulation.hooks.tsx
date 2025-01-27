@@ -122,11 +122,8 @@ export function useStakeSimulation({
             amount,
             feepayer: marginfiClient.wallet.publicKey,
             connection,
-            jupOpts: {
-              slippageMode: jupiterOptions?.slippageMode,
-              slippageBps: jupiterOptions?.slippageBps,
-              platformFeeBps,
-            },
+            jupiterOptions,
+            platformFeeBps,
           });
 
           if ("actionTxn" in _actionTxns) {
@@ -141,10 +138,8 @@ export function useStakeSimulation({
             feepayer: marginfiClient.wallet.publicKey,
             connection,
             lstData,
-            jupOpts: {
-              slippageBps: jupiterOptions?.slippageBps,
-              platformFeeBps,
-            },
+            jupiterOptions,
+            platformFeeBps,
           });
 
           if ("actionTxn" in _actionTxns) {
