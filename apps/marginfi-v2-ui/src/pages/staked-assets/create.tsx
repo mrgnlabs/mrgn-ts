@@ -34,9 +34,10 @@ export default function CreateStakedAssetPage() {
   const router = useRouter();
   const { connection } = useConnection();
   const { wallet } = useWallet();
-  const [client, stakedAssetBankInfos] = useMrgnlendStore((state) => [
+  const [client, stakedAssetBankInfos, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.marginfiClient,
     state.stakedAssetBankInfos,
+    state.fetchMrgnlendState,
   ]);
   const [broadcastType, priorityFees] = useUiStore((state) => [state.broadcastType, state.priorityFees]);
   const [completedForm, setCompletedForm] = React.useState<CreateStakedAssetForm>({
@@ -98,7 +99,7 @@ export default function CreateStakedAssetPage() {
         composeExplorerUrl(txSignature[txSignature.length - 1])
       );
     },
-    [broadcastType, priorityFees]
+    [priorityFees]
   );
 
   const uploadImage = async (file: File, mint: string) => {
@@ -217,6 +218,7 @@ export default function CreateStakedAssetPage() {
         multiStepToast.setSuccess();
         setCompletedForm({ ...form, assetMint: mintAddress });
         setIsDialogOpen(true);
+        fetchMrgnlendState();
       } catch (e: any) {
         console.error(e);
         setIsLoading(false);
@@ -229,7 +231,7 @@ export default function CreateStakedAssetPage() {
         setIsLoading(false);
       }
     },
-    [client, createStakedAssetSplPoolTxn, executeCreatedStakedAssetSplPoolTxn]
+    [client, createStakedAssetSplPoolTxn, executeCreatedStakedAssetSplPoolTxn, fetchMrgnlendState]
   );
 
   return (
