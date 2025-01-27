@@ -6,6 +6,7 @@ import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActionBox, WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
 import { capture } from "@mrgnlabs/mrgn-utils";
 
+import { useMrgnlendStore } from "~/store";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
 
@@ -22,6 +23,7 @@ const ActionBoxCell = ({
   walletContextState: WalletContextStateOverride | WalletContextState;
   fetchMrgnlendState: () => void;
 }) => {
+  const [stakeAccounts] = useMrgnlendStore((state) => [state.stakeAccounts]);
   const currentAction = getCurrentAction(isInLendingMode, bank);
   const isDust = bank.isActive && bank.position.isDust;
   const showCloseBalance = currentAction === ActionType.Withdraw && isDust;
@@ -62,6 +64,7 @@ const ActionBoxCell = ({
           requestedLendType: currentAction,
           connected: connected,
           walletContextState,
+          stakeAccounts,
           onComplete: () => {
             fetchMrgnlendState();
           },

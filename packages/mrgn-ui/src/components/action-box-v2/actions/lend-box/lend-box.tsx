@@ -528,6 +528,22 @@ export const LendBox = ({
     }
   }, [stakeAccounts, setStakeAccounts]);
 
+  // set selected stake account on load
+  // if requestedBank is set
+  React.useEffect(() => {
+    if (requestedBank && stakeAccounts) {
+      const stakeAccount = stakeAccounts.find((stakeAccount) =>
+        stakeAccount.validator.equals(requestedBank.meta.stakePool?.validatorVoteAccount || PublicKey.default)
+      );
+      if (stakeAccount) {
+        setSelectedStakeAccount({
+          address: stakeAccount.accounts[0].pubkey,
+          balance: stakeAccount.accounts[0].amount,
+        });
+      }
+    }
+  }, [requestedBank, stakeAccounts, setSelectedStakeAccount]);
+
   React.useEffect(() => {
     if (marginfiClient) {
       refreshSelectedBanks(banks);
@@ -554,7 +570,7 @@ export const LendBox = ({
           setSelectedBank={setSelectedBank}
         />
       </div>
-      {selectedBank && stakeAccounts && stakeAccounts.length > 0 && (
+      {lendMode === ActionType.Deposit && selectedBank && stakeAccounts && stakeAccounts.length > 0 && (
         <StakeAccountSwitcher
           selectedBank={selectedBank}
           selectedStakeAccount={selectedStakeAccount?.address}
