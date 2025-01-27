@@ -194,7 +194,7 @@ export const Navbar: FC = () => {
                   maxCap: priorityFees.maxCapUi ?? 0,
                   maxCapType,
                 }}
-                jupiterOptions={jupiterOptions}
+                jupiterOptions={{ ...jupiterOptions, slippageBps: jupiterOptions.slippageBps / 100 }}
                 onTransactionOptionsChange={(settings) => setTransactionSettings(settings, connection)}
                 onJupiterOptionsChange={(settings) => setJupiterOptions(settings)}
                 settingsDialogOpen={displaySettings}

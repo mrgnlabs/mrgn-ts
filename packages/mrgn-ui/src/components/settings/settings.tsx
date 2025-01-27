@@ -76,7 +76,7 @@ export const Settings = ({
   onJupiterOptionsChange,
   recommendedBroadcastType = "BUNDLE",
 }: SettingsProps) => {
-  const [activeTab, setActiveTab] = React.useState<"transaction" | "swap">("transaction");
+  const [activeTab, setActiveTab] = React.useState<"transaction" | "swap">("swap");
 
   const form = useForm<TransactionSettingsForm>({
     defaultValues: transactionOptions,
@@ -110,10 +110,9 @@ export const Settings = ({
   });
   const prevSlippageFormIsDirty = usePrevious(slippageForm.formState.isDirty);
 
-  const isCustomSlippage = React.useMemo(
-    () => (slippageOptions.find((value) => value.value === jupiterOptions.slippageBps) ? false : true),
-    [jupiterOptions.slippageBps]
-  );
+  const isCustomSlippage = React.useMemo(() => {
+    return slippageOptions.find((value) => value.value === jupiterOptions.slippageBps) ? false : true;
+  }, [jupiterOptions.slippageBps]);
 
   const onSlippageSubmit = React.useCallback(
     (data: JupiterOptions) => {
@@ -375,12 +374,6 @@ export const Settings = ({
             </div>
             {slippageForm.watch("slippageMode") === "FIXED" && (
               <div className="space-y-4">
-                {/* <div className="space-y-0.5">
-                  <h3 className="font-normal ">Fixed maximum slippage</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Set the maximum slippage you are willing to accept for a transaction.
-                  </p>
-                </div> */}
                 <>
                   <FormField
                     control={slippageForm.control}
@@ -495,9 +488,7 @@ export const Settings = ({
                     Swap
                   </TabsTrigger>
                 </TabsList>
-                {/* <TabsContent value="transaction">{renderTransactionSettings()}</TabsContent>
-                <TabsContent value="swap">{renderSwapSettings()}</TabsContent> */}
-              </Tabs>{" "}
+              </Tabs>
             </div>
             <span className="text-sm text-muted-foreground self-start">
               {activeTab === "transaction"
