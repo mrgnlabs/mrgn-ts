@@ -94,21 +94,9 @@ export const RepayAction = ({
       <li className="flex justify-between items-center">
         <strong>Deposited:</strong>
         <div className="flex space-x-1 items-center">
-          <span>
-            {selectedSecondaryBank.isActive
-              ? dynamicNumeralFormatter(depositedAmount, {
-                  tokenPrice: selectedSecondaryBank.info.oraclePrice.priceRealtime.price.toNumber(),
-                })
-              : 0}
-          </span>
+          <span>{selectedSecondaryBank.isActive ? dynamicNumeralFormatter(depositedAmount) : 0}</span>
           {selectedSecondaryBank.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
-          <span>
-            {selectedSecondaryBank.isActive &&
-              !isUnchanged &&
-              dynamicNumeralFormatter(afterAmount, {
-                tokenPrice: selectedSecondaryBank.info.oraclePrice.priceRealtime.price.toNumber(),
-              })}
-          </span>
+          <span>{selectedSecondaryBank.isActive && !isUnchanged && dynamicNumeralFormatter(afterAmount)}</span>
           <span>{selectedSecondaryBank.meta.tokenSymbol}</span>
         </div>
       </li>
