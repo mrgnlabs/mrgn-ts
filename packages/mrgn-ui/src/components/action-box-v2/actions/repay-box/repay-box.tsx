@@ -19,7 +19,7 @@ import {
   checkRepayActionAvailable,
   ExecuteRepayActionProps,
 } from "@mrgnlabs/mrgn-utils";
-import { IconInfoCircle, IconSettings } from "@tabler/icons-react";
+import { IconSettings } from "@tabler/icons-react";
 
 import {
   ActionBoxContentWrapper,
@@ -28,7 +28,6 @@ import {
 } from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 import { ActionMessage } from "~/components";
-import { IconLoader } from "~/components/ui/icons";
 import { ActionSimulationStatus } from "../../components";
 import { useRepayBoxStore } from "./store";
 import { SimulationStatus } from "../../utils";
@@ -158,6 +157,12 @@ export const RepayBox = ({
     );
   }, [accountSummaryArg, selectedAccount, banks]);
 
+  const buttonLabel = React.useMemo(() => {
+    return selectedBank?.address.toBase58() !== selectedSecondaryBank?.address.toBase58()
+      ? `Repay with ${selectedSecondaryBank?.meta.tokenSymbol}`
+      : "Repay";
+  }, [selectedBank, selectedSecondaryBank]);
+
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
     selectedBank: selectedBank,
@@ -176,7 +181,6 @@ export const RepayBox = ({
     actionTxns,
     simulationResult,
     isRefreshTxn,
-
     platformFeeBps,
     jupiterOptions,
 
@@ -457,7 +461,7 @@ export const RepayBox = ({
           handleAction={() => {
             handleRepayAction();
           }}
-          buttonLabel={"Repay"}
+          buttonLabel={buttonLabel}
         />
       </div>
 
