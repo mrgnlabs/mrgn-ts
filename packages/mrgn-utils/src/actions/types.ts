@@ -86,8 +86,8 @@ export interface ClosePositionActionTxns extends ActionTxns {
   closeTransactions?: SolanaTransaction[];
 }
 
-export interface RepayCollatActionTxns extends ActionTxns {
-  actionQuote: QuoteResponse | null;
+export interface RepayActionTxns extends ActionTxns {
+  actionQuote?: QuoteResponse | null;
   lastValidBlockHeight?: number;
 }
 
@@ -134,6 +134,17 @@ export type ClosePositionProps = {
   borrowBank: ActiveBankInfo;
   quote: QuoteResponse;
   connection: Connection;
+};
+
+export type RepayProps = {
+  marginfiAccount: MarginfiAccountWrapper;
+  repayAmount: number;
+  withdrawAmount: number;
+  selectedBank: ExtendedBankInfo;
+  selectedSecondaryBank: ExtendedBankInfo;
+  quote: QuoteResponse | null;
+  connection: Connection;
+  multiStepToast?: MultiStepToastHandle;
 };
 
 export type RepayWithCollatProps = {

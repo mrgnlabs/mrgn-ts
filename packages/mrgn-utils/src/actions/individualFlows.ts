@@ -46,6 +46,7 @@ import {
   IndividualFlowError,
   TradeActionTxns,
   ClosePositionActionTxns,
+  RepayProps,
 } from "./types";
 import { captureSentryException } from "../sentry.utils";
 import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
@@ -894,6 +895,78 @@ export async function repayWithCollat({
         action: "repayWithCollat",
         wallet: repayProps.marginfiAccount?.authority?.toBase58(),
         bank: repayProps.borrowBank.meta.tokenSymbol,
+        amount: repayProps.repayAmount.toString(),
+      });
+    }
+
+    handleIndividualFlowError({
+      error,
+      actionTxns,
+      multiStepToast,
+    });
+  }
+}
+
+interface RepayActionProps extends RepayProps {
+  marginfiClient: MarginfiClient;
+  actionTxns: ActionTxns;
+  processOpts: ProcessTransactionsClientOpts;
+  txOpts: TransactionOptions;
+}
+
+export async function repayV2({
+  marginfiClient,
+  actionTxns,
+  processOpts,
+  txOpts,
+  multiStepToast,
+  ...repayProps
+}: RepayActionProps) {
+  if (!multiStepToast) {
+    const steps = getSteps(actionTxns);
+    let label = "";
+    if (repayProps.selectedBank.address.toBase58() === repayProps.selectedSecondaryBank.address.toBase58()) {
+      label = `Repaying ${dynamicNumeralFormatter(repayProps.repayAmount, { minDisplay: 0.01 })} ${
+        repayProps.selectedBank.meta.tokenSymbol
+      }`;
+    } else {
+      label = `Repaying ${dynamicNumeralFormatter(repayProps.repayAmount, { minDisplay: 0.01 })} ${
+        repayProps.selectedBank.meta.tokenSymbol
+      } with ${dynamicNumeralFormatter(repayProps.withdrawAmount, { minDisplay: 0.01 })} ${
+        repayProps.selectedSecondaryBank.meta.tokenSymbol
+      }`;
+    }
+
+    multiStepToast = new MultiStepToastHandle("Collateral Repay", [...steps, { label }]);
+    multiStepToast.start();
+  } else {
+    multiStepToast.resetAndStart();
+  } // TODO: confirm this is correct
+
+  try {
+    let sigs: string[] = [];
+
+    if (actionTxns?.actionTxn) {
+      sigs = await marginfiClient.processTransactions(
+        [...actionTxns.additionalTxns, actionTxns.actionTxn],
+        {
+          ...processOpts,
+          callback: (index, success, sig, stepsToAdvance) =>
+            success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig)),
+        },
+        txOpts
+      );
+    }
+    multiStepToast.setSuccess(sigs[sigs.length - 1], composeExplorerUrl(sigs[sigs.length - 1]));
+    return sigs;
+  } catch (error: any) {
+    console.log(`Error while repaying`);
+    console.log(error);
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), {
+        action: "repayWithCollat",
+        wallet: repayProps.marginfiAccount?.authority?.toBase58(),
+        bank: repayProps.selectedBank.meta.tokenSymbol,
         amount: repayProps.repayAmount.toString(),
       });
     }

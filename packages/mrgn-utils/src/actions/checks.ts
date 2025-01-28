@@ -54,7 +54,7 @@ function canBeWithdrawn(
   return checks;
 }
 
-function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMessageType[] {
+function canBeRepaid(targetBankInfo: ExtendedBankInfo, repayCollatAction: boolean = false): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
@@ -70,7 +70,7 @@ function canBeRepaid(targetBankInfo: ExtendedBankInfo): ActionMessageType[] {
   }
 
   if (targetBankInfo.userInfo.maxRepay === 0) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.SUFFICIENT_LIQ_CHECK(targetBankInfo.meta.tokenSymbol));
+    checks.push(DYNAMIC_SIMULATION_ERRORS.SUFFICIENT_LIQ_CHECK(targetBankInfo.meta.tokenSymbol, repayCollatAction));
   }
 
   return checks;

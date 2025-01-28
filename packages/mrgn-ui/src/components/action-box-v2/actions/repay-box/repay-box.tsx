@@ -13,50 +13,44 @@ import {
   PreviousTxn,
   ActionMessageType,
   showErrorToast,
-  checkRepayCollatActionAvailable,
-  ExecuteRepayWithCollatActionProps,
   ActionTxns,
   MultiStepToastHandle,
-  cn,
   IndividualFlowError,
-  usePrevious,
+  checkRepayActionAvailable,
+  ExecuteRepayActionProps,
 } from "@mrgnlabs/mrgn-utils";
-import { IconCheck, IconSettings } from "@tabler/icons-react";
+import { IconSettings } from "@tabler/icons-react";
 
-import { CircularProgress } from "~/components/ui/circular-progress";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
   ActionBoxContentWrapper,
   ActionButton,
   ActionCollateralProgressBar,
-  ActionSettingsButton,
 } from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 import { ActionMessage } from "~/components";
-import { IconLoader } from "~/components/ui/icons";
 import { ActionSimulationStatus } from "../../components";
-
-import { SimulationStatus } from "../../utils/simulation.utils";
-import { handleExecuteRepayCollatAction } from "./utils";
-import { ActionInput, Preview } from "./components";
-import { useRepayCollatBoxStore } from "./store";
-import { useRepayCollatSimulation } from "./hooks";
-
+import { useRepayBoxStore } from "./store";
+import { SimulationStatus } from "../../utils";
 import { useActionBoxStore } from "../../store";
+import { useRepaySimulation } from "./hooks";
+import { CircularProgress } from "~/components/ui/circular-progress";
+import { ActionInput, Preview } from "./components";
 import { useActionContext } from "../../contexts";
+import { handleExecuteRepayAction } from "./utils/repay-action.utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
+import { TooltipProvider } from "~/components/ui/tooltip";
 
-// error handling
-export type RepayCollatBoxProps = {
+export type RepayBoxProps = {
   nativeSolBalance: number;
-  // tokenAccountMap: TokenAccountMap;
   connected: boolean;
-
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
   banks: ExtendedBankInfo[];
   requestedBank?: ExtendedBankInfo;
+  requestedSecondaryBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
+
   showAvailableCollateral?: boolean;
 
   onComplete?: (previousTxn: PreviousTxn) => void;
@@ -64,67 +58,68 @@ export type RepayCollatBoxProps = {
   setDisplaySettings?: (displaySettings: boolean) => void;
 };
 
-export const RepayCollatBox = ({
+export const RepayBox = ({
   nativeSolBalance,
   connected,
-  // tokenAccountMap,
-  banks: banksRaw,
   marginfiClient,
   selectedAccount,
-  accountSummaryArg,
+  banks,
   requestedBank,
+  requestedSecondaryBank,
+  accountSummaryArg,
   isDialog,
   showAvailableCollateral,
   onComplete,
   captureEvent,
   setDisplaySettings,
-}: RepayCollatBoxProps) => {
+}: RepayBoxProps) => {
   const [
-    maxAmountCollateral,
-    repayAmount,
     amountRaw,
+    repayAmount,
     selectedBank,
     selectedSecondaryBank,
-    errorMessage,
     simulationResult,
     actionTxns,
+    errorMessage,
+
+    maxAmountCollateral,
+
     refreshState,
+    refreshSelectedBanks,
+    fetchActionBoxState,
+    setAmountRaw,
+    setRepayAmount,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
-    fetchActionBoxState,
-    setAmountRaw,
     setSelectedBank,
     setSelectedSecondaryBank,
-    setRepayAmount,
+
     setMaxAmountCollateral,
-    refreshSelectedBanks,
-  ] = useRepayCollatBoxStore((state) => [
-    state.maxAmountCollateral,
-    state.repayAmount,
+  ] = useRepayBoxStore((state) => [
     state.amountRaw,
+    state.repayAmount,
     state.selectedBank,
     state.selectedSecondaryBank,
-    state.errorMessage,
     state.simulationResult,
     state.actionTxns,
+    state.errorMessage,
+
+    state.maxAmountCollateral,
+
     state.refreshState,
+    state.refreshSelectedBanks,
+    state.fetchActionBoxState,
+    state.setAmountRaw,
+    state.setRepayAmount,
     state.setSimulationResult,
     state.setActionTxns,
     state.setErrorMessage,
-    state.fetchActionBoxState,
-    state.setAmountRaw,
     state.setSelectedBank,
     state.setSelectedSecondaryBank,
-    state.setRepayAmount,
-    state.setMaxAmountCollateral,
-    state.refreshSelectedBanks,
-  ]);
 
-  // filter out staked asset banks
-  const banks = React.useMemo(() => {
-    return banksRaw.filter((bank) => bank.info.rawBank.config.assetTag !== 2);
-  }, [banksRaw]);
+    state.setMaxAmountCollateral,
+  ]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
@@ -145,23 +140,16 @@ export const RepayCollatBox = ({
     priorityFees: null,
     jupiterOptions: null,
   };
-
   const { isRefreshTxn, blockProgress } = usePollBlockHeight(
     marginfiClient?.provider.connection,
-    actionTxns.lastValidBlockHeight
+    actionTxns?.lastValidBlockHeight
   );
 
-  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.setIsSettingsDialogOpen,
+  const [setPreviousTxn, setIsActionComplete, platformFeeBps] = useActionBoxStore((state) => [
     state.setPreviousTxn,
     state.setIsActionComplete,
+    state.platformFeeBps,
   ]);
-
-  React.useEffect(() => {
-    return () => {
-      refreshState();
-    };
-  }, [refreshState]);
 
   const accountSummary = React.useMemo(() => {
     return (
@@ -169,15 +157,21 @@ export const RepayCollatBox = ({
     );
   }, [accountSummaryArg, selectedAccount, banks]);
 
+  const buttonLabel = React.useMemo(() => {
+    return selectedBank?.address.toBase58() !== selectedSecondaryBank?.address.toBase58()
+      ? `Repay with ${selectedSecondaryBank?.meta.tokenSymbol}`
+      : "Repay";
+  }, [selectedBank, selectedSecondaryBank]);
+
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
-    selectedBank,
+    selectedBank: selectedBank,
     nativeSolBalance,
-    actionMode: ActionType.RepayCollat,
+    actionMode: ActionType.Repay,
     maxAmountCollateral,
   });
 
-  const { actionSummary, refreshSimulation } = useRepayCollatSimulation({
+  const { actionSummary, refreshSimulation } = useRepaySimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
     marginfiClient,
@@ -187,7 +181,9 @@ export const RepayCollatBox = ({
     actionTxns,
     simulationResult,
     isRefreshTxn,
+    platformFeeBps,
     jupiterOptions,
+
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
@@ -197,7 +193,6 @@ export const RepayCollatBox = ({
   });
 
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
-  const [showSimSuccess, setShowSimSuccess] = React.useState(false);
 
   React.useEffect(() => {
     if (debouncedAmount === 0 && simulationResult) {
@@ -217,9 +212,11 @@ export const RepayCollatBox = ({
     }
   }, [refreshState, connected]);
 
+  // Only set the action box state on mount
   React.useEffect(() => {
-    fetchActionBoxState({ requestedBank });
-  }, [requestedBank, fetchActionBoxState]);
+    fetchActionBoxState({ requestedBank: requestedBank, requestedSecondaryBank: requestedSecondaryBank });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchActionBoxState]);
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
@@ -230,42 +227,27 @@ export const RepayCollatBox = ({
     }
   }, [errorMessage]);
 
+  React.useEffect(() => {
+    return () => {
+      refreshState();
+    };
+  }, [refreshState]);
+
   const actionMessages = React.useMemo(() => {
-    return checkRepayCollatActionAvailable({
+    return checkRepayActionAvailable({
       amount,
       connected,
       selectedBank,
       selectedSecondaryBank,
-      actionQuote: actionTxns.actionQuote,
+      actionQuote: actionTxns?.actionQuote ?? null,
     });
   }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote]);
 
-  /*
-  Cleaing additional action messages when the bank or amount changes. This is to prevent outdated errors from being displayed.
-  */
-  const prevSelectedBank = usePrevious(selectedBank);
-  const prevSecondaryBank = usePrevious(selectedSecondaryBank);
-  const prevAmount = usePrevious(amount);
-
-  React.useEffect(() => {
-    if (
-      prevSelectedBank &&
-      prevSecondaryBank &&
-      prevAmount &&
-      (prevSelectedBank.meta.tokenSymbol !== selectedBank?.meta.tokenSymbol ||
-        prevSecondaryBank.meta.tokenSymbol !== selectedSecondaryBank?.meta.tokenSymbol ||
-        prevAmount !== amount)
-    ) {
-      setAdditionalActionMessages([]);
-      setErrorMessage(null);
-    }
-  }, [prevSelectedBank, prevSecondaryBank, prevAmount, selectedBank, selectedSecondaryBank, amount, setErrorMessage]);
-
-  /////////////////////////
-  // Repay Collat Action //
-  /////////////////////////
+  //////////////////
+  // Repay Action //
+  //////////////////
   const executeAction = async (
-    props: ExecuteRepayWithCollatActionProps,
+    props: ExecuteRepayActionProps,
     callbacks: {
       captureEvent?: (event: string, properties?: Record<string, any>) => void;
       setIsActionComplete: (isComplete: boolean) => void;
@@ -276,37 +258,43 @@ export const RepayCollatBox = ({
       setAmountRaw: (amountRaw: string) => void;
     }
   ) => {
-    const action = async (props: ExecuteRepayWithCollatActionProps) => {
-      await handleExecuteRepayCollatAction({
+    const action = async (props: ExecuteRepayActionProps) => {
+      await handleExecuteRepayAction({
         props,
         captureEvent: (event, properties) => {
           callbacks.captureEvent && callbacks.captureEvent(event, properties);
         },
         setIsComplete: (txnSigs) => {
           callbacks.setIsActionComplete(true);
+
           callbacks.setPreviousTxn({
             txn: txnSigs[txnSigs.length - 1] ?? "",
-            txnType: "LEND",
-            lendingOptions: {
-              amount: repayAmount,
-              type: ActionType.RepayCollat,
-              bank: selectedBank as ActiveBankInfo,
-              collatRepay: {
-                borrowBank: selectedBank as ActiveBankInfo,
-                withdrawBank: selectedSecondaryBank as ActiveBankInfo,
-                withdrawAmount: amount,
-              },
+            txnType: "REPAY",
+            repayOptions: {
+              type:
+                props.selectedBank?.address.toBase58() === props.selectedSecondaryBank?.address.toBase58()
+                  ? ActionType.Repay
+                  : ActionType.RepayCollat,
+              selectedBank: props.selectedBank as ActiveBankInfo,
+              selectedSecondaryBank: props.selectedSecondaryBank as ActiveBankInfo,
+              repayAmount: props.repayAmount,
+              withdrawAmount: props.withdrawAmount,
             },
           });
 
           callbacks.onComplete &&
             callbacks.onComplete({
               txn: txnSigs[txnSigs.length - 1] ?? "",
-              txnType: "LEND",
-              lendingOptions: {
-                amount: props.withdrawAmount,
-                type: ActionType.RepayCollat,
-                bank: props.borrowBank as ActiveBankInfo,
+              txnType: "REPAY",
+              repayOptions: {
+                type:
+                  props.selectedBank?.address.toBase58() === props.selectedSecondaryBank?.address.toBase58()
+                    ? ActionType.Repay
+                    : ActionType.RepayCollat,
+                selectedBank: props.selectedBank as ActiveBankInfo,
+                selectedSecondaryBank: props.selectedSecondaryBank as ActiveBankInfo,
+                repayAmount: props.repayAmount,
+                withdrawAmount: props.withdrawAmount,
               },
             });
         },
@@ -325,11 +313,10 @@ export const RepayCollatBox = ({
     };
 
     await action(props);
-    callbacks.setAmountRaw("");
   };
 
-  const retryRepayColatAction = React.useCallback(
-    async (params: ExecuteRepayWithCollatActionProps) => {
+  const retryRepayAction = React.useCallback(
+    (params: ExecuteRepayActionProps) => {
       executeAction(params, {
         captureEvent,
         setIsActionComplete,
@@ -337,53 +324,52 @@ export const RepayCollatBox = ({
         onComplete,
         setIsLoading: setIsTransactionExecuting,
         retryCallback: (txns, multiStepToast) =>
-          retryRepayColatAction({ ...params, actionTxns: txns, multiStepToast: multiStepToast }),
+          retryRepayAction({ ...params, actionTxns: txns, multiStepToast: multiStepToast }),
         setAmountRaw,
       });
     },
-    [captureEvent, onComplete, setAmountRaw, setIsActionComplete, setPreviousTxn]
+    [captureEvent, setIsActionComplete, setPreviousTxn, onComplete, setAmountRaw]
   );
 
-  const handleRepayCollatAction = React.useCallback(async () => {
+  const handleRepayAction = React.useCallback(async () => {
     if (
-      !selectedBank ||
-      !amount ||
       !marginfiClient ||
       !selectedAccount ||
-      !selectedSecondaryBank ||
-      !actionTxns.actionQuote ||
-      !transactionSettings
+      !marginfiClient.provider.connection ||
+      !transactionSettings ||
+      !selectedBank ||
+      !selectedSecondaryBank
     ) {
       return;
     }
 
-    const props: ExecuteRepayWithCollatActionProps = {
+    const props: ExecuteRepayActionProps = {
       marginfiClient,
       actionTxns,
       processOpts: {
         ...priorityFees,
-        broadcastType: transactionSettings.broadcastType,
+        broadcastType: transactionSettings?.broadcastType,
       },
       txOpts: {},
 
       marginfiAccount: selectedAccount,
-      borrowBank: selectedBank,
-      withdrawAmount: amount,
       repayAmount,
-      depositBank: selectedSecondaryBank,
-      quote: actionTxns.actionQuote!,
-      connection: marginfiClient.provider.connection,
+      withdrawAmount: amount,
+      selectedBank,
+      selectedSecondaryBank,
+      quote: actionTxns.actionQuote ?? null,
+      connection: marginfiClient?.provider.connection,
     };
 
-    executeAction(props, {
-      captureEvent,
-      setIsActionComplete,
-      setPreviousTxn,
-      onComplete,
+    await executeAction(props, {
+      captureEvent: captureEvent,
+      setIsActionComplete: setIsActionComplete,
+      setPreviousTxn: setPreviousTxn,
+      onComplete: onComplete,
       setIsLoading: setIsTransactionExecuting,
-      retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) =>
-        retryRepayColatAction({ ...props, actionTxns: txns, multiStepToast }),
-      setAmountRaw,
+      retryCallback: (txns, multiStepToast) =>
+        retryRepayAction({ ...props, actionTxns: txns, multiStepToast: multiStepToast }),
+      setAmountRaw: setAmountRaw,
     });
   }, [
     actionTxns,
@@ -394,7 +380,7 @@ export const RepayCollatBox = ({
     onComplete,
     priorityFees,
     repayAmount,
-    retryRepayColatAction,
+    retryRepayAction,
     selectedAccount,
     selectedBank,
     selectedSecondaryBank,
@@ -403,47 +389,34 @@ export const RepayCollatBox = ({
     setPreviousTxn,
   ]);
 
-  React.useEffect(() => {
-    if (isSimulating.status === SimulationStatus.COMPLETE && additionalActionMessages.length === 0) {
-      setShowSimSuccess(true);
-      setTimeout(() => {
-        setShowSimSuccess(false);
-      }, 3000);
-    }
-  }, [isSimulating.status, additionalActionMessages]);
-
-  React.useEffect(() => {
-    if (marginfiClient) {
-      refreshSelectedBanks(banks);
-    }
-  }, [marginfiClient, banks, refreshSelectedBanks]);
-
   return (
     <ActionBoxContentWrapper>
       {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
-        <div className="absolute top-5 right-4 z-50">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <CircularProgress
-                  size={18}
-                  strokeWidth={3}
-                  value={blockProgress * 100}
-                  strokeColor="stroke-mfi-action-box-accent-foreground/50"
-                  backgroundColor="stroke-mfi-action-box-background-dark"
-                />
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                <div className="space-y-2">
-                  <p>Your transaction is ready for execution.</p>
-                  <p>Once the spinner reaches 100%, if not processed, it will refresh to fetch updated quotes.</p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        <div className="mb-6">
+          <div className="absolute top-0 right-0 z-50">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <CircularProgress
+                    size={18}
+                    strokeWidth={3}
+                    value={blockProgress * 100}
+                    strokeColor="stroke-mfi-action-box-accent-foreground/50"
+                    backgroundColor="stroke-mfi-action-box-background-dark"
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  <div className="space-y-2">
+                    <p>Your transaction is ready for execution.</p>
+                    <p>Once the spinner reaches 100%, if not processed, it will refresh to fetch updated quotes.</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
       )}
-      <div className="mb-6">
+      <div className="mb-4">
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
@@ -455,9 +428,7 @@ export const RepayCollatBox = ({
           selectedSecondaryBank={selectedSecondaryBank}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
-          setSelectedSecondaryBank={(bank) => {
-            setSelectedSecondaryBank(bank);
-          }}
+          setSelectedSecondaryBank={setSelectedSecondaryBank}
         />
       </div>
 
@@ -488,9 +459,9 @@ export const RepayCollatBox = ({
           }
           connected={connected}
           handleAction={() => {
-            handleRepayCollatAction();
+            handleRepayAction();
           }}
-          buttonLabel={"Repay"}
+          buttonLabel={buttonLabel}
         />
       </div>
 

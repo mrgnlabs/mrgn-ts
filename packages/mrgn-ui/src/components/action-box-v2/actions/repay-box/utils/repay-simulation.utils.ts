@@ -1,8 +1,8 @@
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, AccountSummary, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
-import { ActionMessageType, handleSimulationError } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, ActionTxns, handleSimulationError } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import {
@@ -11,17 +11,17 @@ import {
   calculateSimulatedActionPreview,
   ActionPreview,
 } from "~/components/action-box-v2/utils";
-
-import { RepayCollatActionTxns } from "../store/repay-collat-store";
+import { QuoteResponse } from "@jup-ag/api";
 
 export interface CalculatePreviewProps {
   simulationResult?: SimulationResult;
   bank: ExtendedBankInfo;
   accountSummary: AccountSummary;
-  actionTxns: RepayCollatActionTxns;
+  actionTxns: ActionTxns;
+  actionQuote?: QuoteResponse | null;
 }
 
-export interface SimulateActionProps {
+export interface SimulateRepayActionProps {
   txns: (VersionedTransaction | Transaction)[];
   account: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
@@ -32,6 +32,7 @@ export function calculateSummary({
   bank,
   accountSummary,
   actionTxns,
+  actionQuote,
 }: CalculatePreviewProps): ActionSummary {
   let simulationPreview: SimulatedActionPreview | null = null;
 
@@ -39,7 +40,7 @@ export function calculateSummary({
     simulationPreview = calculateSimulatedActionPreview(simulationResult, bank);
   }
 
-  const actionPreview = calculateActionPreview(bank, accountSummary, actionTxns);
+  const actionPreview = calculateActionPreview(bank, accountSummary, actionTxns, actionQuote);
 
   return {
     actionPreview,
@@ -47,7 +48,7 @@ export function calculateSummary({
   } as ActionSummary;
 }
 
-export const getSimulationResult = async (props: SimulateActionProps) => {
+export const getRepaySimulationResult = async (props: SimulateRepayActionProps) => {
   let actionMethod: ActionMessageType | undefined = undefined;
   let simulationResult: SimulationResult | null = null;
 
@@ -64,7 +65,8 @@ export const getSimulationResult = async (props: SimulateActionProps) => {
 function calculateActionPreview(
   bank: ExtendedBankInfo,
   accountSummary: AccountSummary,
-  actionTxns: RepayCollatActionTxns
+  actionTxns: ActionTxns,
+  actionQuote?: QuoteResponse | null
 ): ActionPreview {
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
   const health = accountSummary.balance && accountSummary.healthFactor ? accountSummary.healthFactor : 1;
@@ -78,8 +80,8 @@ function calculateActionPreview(
     bank.info.state.mintDecimals
   );
 
-  const priceImpactPct = actionTxns.actionQuote?.priceImpactPct;
-  const slippageBps = actionTxns.actionQuote?.slippageBps;
+  const priceImpactPct = actionQuote?.priceImpactPct;
+  const slippageBps = actionQuote?.slippageBps;
 
   return {
     positionAmount,
@@ -91,7 +93,7 @@ function calculateActionPreview(
   } as ActionPreview;
 }
 
-async function simulateFlashLoan({ account, bank, txns }: SimulateActionProps) {
+async function simulateFlashLoan({ account, bank, txns }: SimulateRepayActionProps) {
   let simulationResult: SimulationResult;
 
   if (txns.length > 0) {

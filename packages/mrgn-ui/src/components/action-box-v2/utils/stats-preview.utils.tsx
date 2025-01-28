@@ -66,10 +66,14 @@ export function getAmountUsdStat(
 }
 
 export function getPriceImpactStat(priceImpactPct: number): PreviewStat {
+  const priceImpactLabel = priceImpactPct < 0.0001 ? "< 0.01%" : percentFormatter.format(priceImpactPct);
+
+  const color = priceImpactPct < 0.01 ? "SUCCESS" : priceImpactPct > 0.05 ? "DESTRUCTIVE" : "ALERT";
+
   return {
     label: "Price impact",
-    color: priceImpactPct > 0.01 && priceImpactPct > 0.05 ? "DESTRUCTIVE" : "ALERT",
-    value: () => <>{percentFormatter.format(priceImpactPct)}</>,
+    color,
+    value: () => <>{priceImpactLabel}</>,
   };
 }
 

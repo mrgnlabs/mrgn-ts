@@ -24,7 +24,7 @@ import {
   LoopActionTxns,
   LoopingObject,
   LoopingProps,
-  RepayCollatActionTxns,
+  RepayActionTxns,
   RepayWithCollatProps,
 } from "../types";
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
@@ -59,7 +59,7 @@ export async function calculateRepayCollateralParams({
   ...repayProps
 }: CalculateRepayCollateralProps): Promise<
   | {
-      repayCollatObject: RepayCollatActionTxns;
+      repayCollatObject: RepayActionTxns;
       amount: number;
     }
   | ActionMessageType
@@ -77,10 +77,10 @@ export async function calculateRepayCollateralParams({
       amount: uiToNative(repayProps.withdrawAmount, repayProps.depositBank.info.state.mintDecimals).toNumber(),
       inputMint: repayProps.depositBank.info.state.mint.toBase58(),
       outputMint: repayProps.borrowBank.info.state.mint.toBase58(),
-      slippageBps: slippageBps,
+      slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",
-      platformFeeBps: slippageMode === "FIXED" ? platformFeeBps : undefined,
+      platformFeeBps,
       dynamicSlippage: slippageMode === "DYNAMIC" ? true : false,
     } as QuoteGetRequest;
     try {

@@ -7,7 +7,7 @@ import {
   LendBoxProps,
   LoopBox,
   LoopBoxProps,
-  RepayCollatBox,
+  RepayBox,
   StakeBox,
   StakeBoxProps,
   DepositSwapBoxProps,
@@ -146,7 +146,6 @@ const Repay = (
   props: ActionBoxProps & { repayProps: RequiredRepayBoxProps | RepayBoxProps; useProvider?: boolean }
 ) => {
   const contextProps = useActionBoxContext();
-  const [selectedAction, setSelectedAction] = React.useState(ActionType.Repay);
   const { repayProps, useProvider, ...actionBoxProps } = props;
 
   let combinedProps: RepayBoxProps;
@@ -163,13 +162,8 @@ const Repay = (
   return (
     <ActionBox {...actionBoxProps}>
       <ActionBoxWrapper showSettings={true} isDialog={actionBoxProps.isDialog} actionMode={ActionType.Repay}>
-        <ActionBoxNavigator
-          selectedAction={selectedAction}
-          onSelectAction={setSelectedAction}
-          actionTypes={[ActionType.Repay, ActionType.RepayCollat]}
-        >
-          <LendBox {...combinedProps} requestedLendType={ActionType.Repay} isDialog={actionBoxProps.isDialog} />
-          <RepayCollatBox {...combinedProps} />
+        <ActionBoxNavigator selectedAction={ActionType.Repay}>
+          <RepayBox {...combinedProps} />
         </ActionBoxNavigator>
       </ActionBoxWrapper>
     </ActionBox>

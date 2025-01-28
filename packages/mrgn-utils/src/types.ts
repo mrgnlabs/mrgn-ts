@@ -97,10 +97,23 @@ interface PreviousTxnTrading {
   tradingOptions: PreviousTxnTradingOptions;
 }
 
+interface PreviousTxnRepay {
+  txn: string;
+  txnType: "REPAY";
+  repayOptions: {
+    type: ActionType;
+    selectedBank: ActiveBankInfo;
+    selectedSecondaryBank: ActiveBankInfo;
+    repayAmount: number;
+    withdrawAmount: number;
+  };
+}
+
 export type PreviousTxn =
   | PreviousTxnLoop
   | PreviousTxnLending
   | PreviousTxnTrading
   | PreviousTxnPositionClosed
   | PreviousTxnStake
-  | PreviousTxnDepositSwap;
+  | PreviousTxnDepositSwap
+  | PreviousTxnRepay;

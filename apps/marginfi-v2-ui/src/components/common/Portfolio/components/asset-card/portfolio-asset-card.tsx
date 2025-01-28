@@ -289,7 +289,7 @@ const PortfolioAction = ({
         useProvider={true}
         repayProps={{
           requestedBank: requestedBank ?? undefined,
-          walletContextState: walletContextState,
+          requestedSecondaryBank: undefined,
           connected: connected,
           captureEvent: (event, properties) => {
             capture(event, properties);
