@@ -295,6 +295,16 @@ export function checkDepositSwapActionAvailable({
   const generalChecks = getGeneralChecks(amount ?? 0, showCloseBalance);
   if (generalChecks) checks.push(...generalChecks);
 
+  // alert checks
+  if (depositBank) {
+    const depositChecks = canBeLent(depositBank, nativeSolBalance);
+    if (depositChecks.length) checks.push(...depositChecks);
+  }
+
+  if (!swapBank) {
+    checks.push({ isEnabled: false });
+  }
+
   if (checks.length === 0)
     checks.push({
       isEnabled: true,

@@ -87,7 +87,6 @@ export const ActionInput = ({
           <BankSelect
             selectedBank={selectedBank}
             setSelectedBank={(bank) => {
-              console.log("bank", bank);
               setSelectedBank(bank);
             }}
             isSelectable={isTokenSelectionAvailable}
