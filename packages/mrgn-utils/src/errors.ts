@@ -231,6 +231,11 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     isEnabled: false,
     code: 137,
   },
+  REPAY_COLLAT_FAILED: {
+    description: "Unable to repay using SOL, please select another collateral.",
+    isEnabled: false,
+    code: 138,
+  },
 };
 
 const createInsufficientStakeBalanceCheck = (tokenName?: string): ActionMessageType => ({
