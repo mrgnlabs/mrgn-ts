@@ -1351,17 +1351,21 @@ class MarginfiAccountWrapper {
     );
 
     // build transaction
-    const txn = new Transaction().add(
-      ...withdrawIxs.instructions,
-      createStakeAccountIx,
-      approveAccountAuthorityIx,
-      withdrawStakeIx
-    );
+    const withdrawTxn = new Transaction().add(...withdrawIxs.instructions);
 
-    return addTransactionMetadata(txn, {
+    const stakeTxn = new Transaction().add(createStakeAccountIx, approveAccountAuthorityIx, withdrawStakeIx);
+
+    const formattedWithdrawTxn = addTransactionMetadata(withdrawTxn, {
       signers: [...withdrawIxs.keys, stakeAccount],
       addressLookupTables: this.client.addressLookupTables,
     });
+
+    const formattedStakeTxn = addTransactionMetadata(stakeTxn, {
+      signers: [stakeAccount],
+      addressLookupTables: this.client.addressLookupTables,
+    });
+
+    return { withdrawTxn: formattedWithdrawTxn, stakeTxn: formattedStakeTxn };
   }
 
   /**
