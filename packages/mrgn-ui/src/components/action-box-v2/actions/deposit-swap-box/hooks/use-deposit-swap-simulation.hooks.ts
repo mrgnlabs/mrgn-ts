@@ -197,6 +197,7 @@ export function useDepositSwapSimulation({
     },
     [
       depositBank,
+      jupiterOptions,
       marginfiClient,
       selectedAccount,
       setActionTxns,
@@ -208,12 +209,12 @@ export function useDepositSwapSimulation({
   );
 
   React.useEffect(() => {
-    if (prevDebouncedAmount !== debouncedAmount) {
+    if (prevDebouncedAmount !== debouncedAmount || prevSwapBank !== swapBank || prevDepositBank !== depositBank) {
       if (debouncedAmount > 0) {
         handleSimulation(debouncedAmount);
       }
     }
-  }, [debouncedAmount, handleSimulation, prevDebouncedAmount]);
+  }, [debouncedAmount, handleSimulation, prevDebouncedAmount, prevSwapBank, prevDepositBank, swapBank, depositBank]);
 
   const refreshSimulation = React.useCallback(async () => {
     await handleSimulation(debouncedAmount ?? 0);
@@ -231,7 +232,7 @@ export function useDepositSwapSimulation({
         });
       }
     },
-    [depositBank]
+    [actionTxns, depositBank]
   );
 
   const actionSummary = React.useMemo(() => {

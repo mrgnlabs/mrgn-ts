@@ -405,37 +405,61 @@ export const DepositSwapBox = ({
     ]
   );
 
-  const handleDepositSwapAction = React.useCallback(
-    async (_actionTxns?: DepositSwapActionTxns, multiStepToast?: MultiStepToastHandle) => {
-      if (!actionTxns || !marginfiClient || !debouncedAmount || debouncedAmount === 0 || !transactionSettings) {
-        return;
-      }
+  const handleDepositSwapAction = React.useCallback(async () => {
+    console.log("handleDepositSwapAction");
+    console.log(actionTxns);
+    if (
+      !actionTxns ||
+      !marginfiClient ||
+      !debouncedAmount ||
+      debouncedAmount === 0 ||
+      !transactionSettings ||
+      !selectedAccount
+    ) {
+      return;
+    }
 
-      const params = {
-        marginfiClient: marginfiClient,
-        actionTxns: _actionTxns ?? actionTxns,
-        bank: selectedDepositBank,
-        amount: debouncedAmount,
-        nativeSolBalance,
-        marginfiAccount: selectedAccount,
-        processOpts: {
-          ...priorityFees,
-          broadcastType: transactionSettings.broadcastType,
-        },
-        txOpts: {},
-        multiStepToast,
-        actionType: lendMode,
-        swapBank: selectedSwapBank,
-      } as ExecuteDepositSwapActionProps;
+    console.log(actionTxns);
 
-      console.log(params);
+    const params = {
+      marginfiClient: marginfiClient,
+      actionTxns: actionTxns,
+      bank: selectedDepositBank,
+      amount: debouncedAmount,
+      nativeSolBalance,
+      marginfiAccount: selectedAccount,
+      processOpts: {
+        ...priorityFees,
+        broadcastType: transactionSettings.broadcastType,
+      },
+      txOpts: {},
+      actionType: lendMode,
+      swapBank: selectedSwapBank,
+    } as ExecuteDepositSwapActionProps;
 
-      await executeAction(params, {
-        captureEvent: captureEvent,
-        setIsLoading: setIsTransactionExecuting,
-        handleOnComplete: (txnSigs: string[]) => {
-          setIsActionComplete(true);
-          setPreviousTxn({
+    console.log(params);
+
+    await executeAction(params, {
+      captureEvent: captureEvent,
+      setIsLoading: setIsTransactionExecuting,
+      handleOnComplete: (txnSigs: string[]) => {
+        setIsActionComplete(true);
+        setPreviousTxn({
+          txn: txnSigs[txnSigs.length - 1] ?? "",
+          txnType: "DEPOSIT_SWAP",
+          depositSwapOptions: {
+            depositBank: selectedDepositBank as ActiveBankInfo,
+            swapBank: selectedSwapBank as ActiveBankInfo,
+            depositAmount: actionTxns?.actionQuote
+              ? Number(
+                  nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
+                )
+              : debouncedAmount,
+            swapAmount: actionTxns?.actionQuote ? debouncedAmount : 0,
+          },
+        });
+        onComplete &&
+          onComplete({
             txn: txnSigs[txnSigs.length - 1] ?? "",
             txnType: "DEPOSIT_SWAP",
             depositSwapOptions: {
@@ -449,51 +473,28 @@ export const DepositSwapBox = ({
               swapAmount: actionTxns?.actionQuote ? debouncedAmount : 0,
             },
           });
-          onComplete &&
-            onComplete({
-              txn: txnSigs[txnSigs.length - 1] ?? "",
-              txnType: "DEPOSIT_SWAP",
-              depositSwapOptions: {
-                depositBank: selectedDepositBank as ActiveBankInfo,
-                swapBank: selectedSwapBank as ActiveBankInfo,
-                depositAmount: actionTxns?.actionQuote
-                  ? Number(
-                      nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
-                    )
-                  : debouncedAmount,
-                swapAmount: actionTxns?.actionQuote ? debouncedAmount : 0,
-              },
-            });
-        },
-        retryCallback: (txns: DepositSwapActionTxns, multiStepToast: MultiStepToastHandle) => {
-          retryDepositSwapAction({ ...params, actionTxns: txns, multiStepToast }, selectedSwapBank);
-        },
-      });
-    },
-    [
-      actionTxns,
-      marginfiClient,
-      debouncedAmount,
-      selectedDepositBank,
-      nativeSolBalance,
-      selectedAccount,
-      priorityFees,
-      transactionSettings,
-      lendMode,
-      selectedSwapBank,
-      captureEvent,
-      setIsActionComplete,
-      setPreviousTxn,
-      onComplete,
-      retryDepositSwapAction,
-    ]
-  );
-
-  React.useEffect(() => {
-    if (marginfiClient) {
-      refreshBanks(banks);
-    }
-  }, [marginfiClient, banks, refreshBanks]);
+      },
+      retryCallback: (txns: DepositSwapActionTxns, multiStepToast: MultiStepToastHandle) => {
+        retryDepositSwapAction({ ...params, actionTxns: txns, multiStepToast }, selectedSwapBank);
+      },
+    });
+  }, [
+    actionTxns,
+    marginfiClient,
+    debouncedAmount,
+    selectedDepositBank,
+    nativeSolBalance,
+    selectedAccount,
+    priorityFees,
+    transactionSettings,
+    lendMode,
+    selectedSwapBank,
+    captureEvent,
+    setIsActionComplete,
+    setPreviousTxn,
+    onComplete,
+    retryDepositSwapAction,
+  ]);
 
   return (
     <ActionBoxContentWrapper>
