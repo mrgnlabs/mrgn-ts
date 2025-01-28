@@ -14,6 +14,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { isWholePosition, RepayActionTxns } from "@mrgnlabs/mrgn-utils";
 import { Connection, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
+import { JupiterOptions } from "~/components/settings";
 
 interface HandleExecuteRepayActionProps extends ExecuteActionsCallbackProps {
   props: ExecuteRepayActionProps;
@@ -70,7 +71,7 @@ export interface CalculateRepayTransactionsProps {
   selectedSecondaryBank: ExtendedBankInfo;
   connection: Connection;
   platformFeeBps: number;
-  slippageBps: number;
+  jupiterOptions: JupiterOptions;
   repayAmount: number;
 }
 
@@ -103,7 +104,8 @@ export async function calculateRepayTransactions(props: CalculateRepayTransactio
       marginfiAccount: props.marginfiAccount,
       connection: props.connection,
       platformFeeBps: props.platformFeeBps,
-      slippageBps: props.slippageBps,
+      slippageMode: props.jupiterOptions?.slippageMode,
+      slippageBps: props.jupiterOptions?.slippageBps,
       withdrawAmount: props.repayAmount,
     });
 
