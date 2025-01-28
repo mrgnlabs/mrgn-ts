@@ -18,7 +18,7 @@ export const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemPr
   const tokenLogoUri = "info" in bank ? bank.meta.tokenLogoUri : bank.logoUri;
   return (
     <>
-      <img src={tokenLogoUri} alt={tokenName} width={30} height={30} className="rounded-full" />
+      <img src={tokenLogoUri} alt={tokenName} width={30} height={30} className="rounded-full w-6 h-6" />
       <div className="flex flex-col gap-1 mr-auto xs:mr-0 min-w-14">
         <p className="leading-none text-sm">{tokenSymbol}</p>
         {lendingMode && rate && (
