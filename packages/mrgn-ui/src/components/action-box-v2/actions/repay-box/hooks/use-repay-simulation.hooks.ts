@@ -92,7 +92,7 @@ export function useRepaySimulation({
     callbacks.setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
     console.error(
       "Error simulating transaction",
-      typeof actionMessage === "string" ? extractErrorString(actionMessage) : actionMessage.description
+      typeof actionMessage === "string" ? extractErrorString(actionMessage) : actionMessage
     );
     callbacks.setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
   };
@@ -143,7 +143,6 @@ export function useRepaySimulation({
   const handleSimulation = React.useCallback(
     async (amount: number) => {
       try {
-        console.log("handleSimulation");
         if (
           amount === 0 ||
           !selectedAccount ||
@@ -220,7 +219,12 @@ export function useRepaySimulation({
         }
       } catch (error) {
         console.error("Error fetching repay action txns", error);
-        setSimulationResult(null);
+        handleError(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
+          setErrorMessage,
+          setSimulationResult,
+          setActionTxns,
+          setIsLoading,
+        });
       } finally {
         setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
