@@ -136,18 +136,20 @@ export const RepayBox = ({
     [isTransactionExecuting, isSimulating.isLoading]
   );
 
-  const { broadcastType, priorityFees } = useActionContext() || { broadcastType: null, priorityFees: null };
-
+  const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
+    transactionSettings: null,
+    priorityFees: null,
+    jupiterOptions: null,
+  };
   const { isRefreshTxn, blockProgress } = usePollBlockHeight(
     marginfiClient?.provider.connection,
     actionTxns?.lastValidBlockHeight
   );
 
-  const [setPreviousTxn, setIsActionComplete, platformFeeBps, slippageBps] = useActionBoxStore((state) => [
+  const [setPreviousTxn, setIsActionComplete, platformFeeBps] = useActionBoxStore((state) => [
     state.setPreviousTxn,
     state.setIsActionComplete,
     state.platformFeeBps,
-    state.slippageBps,
   ]);
 
   const accountSummary = React.useMemo(() => {
@@ -176,7 +178,7 @@ export const RepayBox = ({
     isRefreshTxn,
 
     platformFeeBps,
-    slippageBps,
+    jupiterOptions,
 
     setSimulationResult,
     setActionTxns,
@@ -330,7 +332,7 @@ export const RepayBox = ({
       !marginfiClient ||
       !selectedAccount ||
       !marginfiClient.provider.connection ||
-      !broadcastType ||
+      !transactionSettings ||
       !selectedBank ||
       !selectedSecondaryBank
     ) {
@@ -342,7 +344,7 @@ export const RepayBox = ({
       actionTxns,
       processOpts: {
         ...priorityFees,
-        broadcastType,
+        broadcastType: transactionSettings?.broadcastType,
       },
       txOpts: {},
 
@@ -368,7 +370,7 @@ export const RepayBox = ({
   }, [
     actionTxns,
     amount,
-    broadcastType,
+    transactionSettings,
     captureEvent,
     marginfiClient,
     onComplete,

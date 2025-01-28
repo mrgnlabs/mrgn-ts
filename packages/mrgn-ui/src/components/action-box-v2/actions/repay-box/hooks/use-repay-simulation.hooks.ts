@@ -20,6 +20,7 @@ import {
   getRepaySimulationResult,
   SimulateRepayActionProps,
 } from "../utils";
+import { JupiterOptions } from "~/components/settings";
 
 type RepaySimulationProps = {
   debouncedAmount: number;
@@ -33,7 +34,7 @@ type RepaySimulationProps = {
   isRefreshTxn: boolean;
 
   platformFeeBps: number;
-  slippageBps: number;
+  jupiterOptions: JupiterOptions | null;
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: RepayActionTxns) => void;
@@ -56,7 +57,7 @@ export function useRepaySimulation({
   isRefreshTxn, // TODO: implement
 
   platformFeeBps,
-  slippageBps,
+  jupiterOptions,
 
   setSimulationResult,
   setActionTxns,
@@ -143,7 +144,14 @@ export function useRepaySimulation({
     async (amount: number) => {
       try {
         console.log("handleSimulation");
-        if (amount === 0 || !selectedAccount || !marginfiClient || !selectedBank || !selectedSecondaryBank) {
+        if (
+          amount === 0 ||
+          !selectedAccount ||
+          !marginfiClient ||
+          !selectedBank ||
+          !selectedSecondaryBank ||
+          !jupiterOptions
+        ) {
           setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
           return;
         }
@@ -164,7 +172,7 @@ export function useRepaySimulation({
           selectedSecondaryBank: selectedSecondaryBank,
           connection: marginfiClient.provider.connection,
           platformFeeBps,
-          slippageBps,
+          jupiterOptions,
           repayAmount: amount,
           actionType,
         };
@@ -228,7 +236,7 @@ export function useRepaySimulation({
       setIsLoading,
       setRepayAmount,
       setSimulationResult,
-      slippageBps,
+      jupiterOptions,
     ]
   );
 
@@ -279,11 +287,17 @@ export function useRepaySimulation({
   ////////////////////////////////
   const fetchMaxRepayableCollateral = React.useCallback(async () => {
     if (
+      jupiterOptions &&
       selectedBank &&
       selectedSecondaryBank &&
       selectedBank.meta.tokenSymbol !== selectedSecondaryBank.meta.tokenSymbol
     ) {
-      const maxAmount = await calculateMaxRepayableCollateral(selectedBank, selectedSecondaryBank, slippageBps);
+      const maxAmount = await calculateMaxRepayableCollateral(
+        selectedBank,
+        selectedSecondaryBank,
+        jupiterOptions.slippageBps,
+        jupiterOptions.slippageMode
+      );
       if (!maxAmount) {
         const errorMessage = DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(
           selectedSecondaryBank.meta.tokenSymbol
@@ -295,7 +309,7 @@ export function useRepaySimulation({
     } else {
       setMaxAmountCollateral(undefined);
     }
-  }, [selectedBank, selectedSecondaryBank, slippageBps, setErrorMessage, setMaxAmountCollateral]);
+  }, [selectedBank, selectedSecondaryBank, jupiterOptions, setErrorMessage, setMaxAmountCollateral]);
 
   React.useEffect(() => {
     if (!selectedSecondaryBank) {
