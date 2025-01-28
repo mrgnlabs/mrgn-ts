@@ -807,7 +807,7 @@ class MarginfiAccount {
     } else {
       remainingAccounts.push(
         ...(withdrawAll
-          ? this.getHealthCheckAccounts(banks, [], [], bankMetadataMap)
+          ? this.getHealthCheckAccounts(banks, [], [bank], bankMetadataMap)
           : this.getHealthCheckAccounts(banks, [bank], [], bankMetadataMap))
       );
     }
