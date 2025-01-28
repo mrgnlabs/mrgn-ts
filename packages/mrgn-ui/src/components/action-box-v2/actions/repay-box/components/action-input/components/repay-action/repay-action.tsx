@@ -57,19 +57,19 @@ export const RepayAction = ({
   };
 
   const renderBorrowedSection = () => (
-    <li className="flex justify-between items-center gap-1.5">
+    <li className="flex justify-between items-center">
       <strong className="mr-auto">{maxLabel.label}</strong>
       <div className="flex space-x-1 items-center">
         {isRepayCollat && selectedBank?.isActive && !isUnchanged && (
-          <div>
+          <span>
             {dynamicNumeralFormatter(selectedBank.position.amount, {
               tokenPrice: selectedBank.info.oraclePrice.priceRealtime.price.toNumber(),
               ignoreMinDisplay: true,
             })}
-          </div>
+          </span>
         )}
         {isRepayCollat && selectedBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
-        <div>{maxLabel.amount}</div>
+        <span>{maxLabel.amount}</span>
         {selectedBank && (
           <button
             className="cursor-pointer border-b border-transparent transition text-mfi-action-box-highlight hover:border-mfi-action-box-highlight"
@@ -91,21 +91,25 @@ export const RepayAction = ({
     const afterAmount = depositedAmount - Number(amountRaw);
 
     return (
-      <li className="flex justify-between items-center gap-1.5">
+      <li className="flex justify-between items-center">
         <strong>Deposited:</strong>
-        <div className="flex space-x-1.5 items-center">
-          {selectedSecondaryBank.isActive
-            ? dynamicNumeralFormatter(depositedAmount, {
-                tokenPrice: selectedSecondaryBank.info.oraclePrice.priceRealtime.price.toNumber(),
-              })
-            : 0}
+        <div className="flex space-x-1 items-center">
+          <span>
+            {selectedSecondaryBank.isActive
+              ? dynamicNumeralFormatter(depositedAmount, {
+                  tokenPrice: selectedSecondaryBank.info.oraclePrice.priceRealtime.price.toNumber(),
+                })
+              : 0}
+          </span>
           {selectedSecondaryBank.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
-          {selectedSecondaryBank.isActive &&
-            !isUnchanged &&
-            dynamicNumeralFormatter(afterAmount, {
-              tokenPrice: selectedSecondaryBank.info.oraclePrice.priceRealtime.price.toNumber(),
-            })}
-          {selectedSecondaryBank.meta.tokenSymbol}
+          <span>
+            {selectedSecondaryBank.isActive &&
+              !isUnchanged &&
+              dynamicNumeralFormatter(afterAmount, {
+                tokenPrice: selectedSecondaryBank.info.oraclePrice.priceRealtime.price.toNumber(),
+              })}
+          </span>
+          <span>{selectedSecondaryBank.meta.tokenSymbol}</span>
         </div>
       </li>
     );
