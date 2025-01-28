@@ -4,6 +4,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
+import { PublicKey } from "@solana/web3.js";
 
 export function useActionAmounts({
   amountRaw,
@@ -11,12 +12,14 @@ export function useActionAmounts({
   nativeSolBalance,
   actionMode,
   maxAmountCollateral,
+  selectedStakeAccount,
 }: {
   amountRaw: string;
   nativeSolBalance: number;
   actionMode: ActionType;
   selectedBank: ExtendedBankInfo | null;
   maxAmountCollateral?: number;
+  selectedStakeAccount?: { address: PublicKey; balance: number };
 }) {
   const amount = React.useMemo(() => {
     const strippedAmount = amountRaw.replace(/,/g, "");
@@ -25,13 +28,21 @@ export function useActionAmounts({
 
   const debouncedAmount = useAmountDebounce<number | null>(amount, 500);
 
-  const walletAmount = React.useMemo(
-    () =>
-      selectedBank?.info.state.mint?.equals && selectedBank?.info.state.mint?.equals(WSOL_MINT)
-        ? selectedBank?.userInfo.tokenAccount.balance + nativeSolBalance
-        : selectedBank?.userInfo.tokenAccount.balance,
-    [nativeSolBalance, selectedBank]
-  );
+  const walletAmount = React.useMemo(() => {
+    if (!selectedBank) {
+      return 0;
+    }
+
+    if (selectedBank.info.rawBank.config.assetTag === 2) {
+      return selectedStakeAccount?.balance ?? 0;
+    }
+
+    if (selectedBank?.info.state.mint?.equals(WSOL_MINT)) {
+      return selectedBank?.userInfo.tokenAccount.balance + nativeSolBalance;
+    }
+
+    return selectedBank?.userInfo.tokenAccount.balance;
+  }, [nativeSolBalance, selectedBank, selectedStakeAccount]);
 
   const maxAmount = React.useMemo(() => {
     if (!selectedBank) {
@@ -40,7 +51,9 @@ export function useActionAmounts({
 
     switch (actionMode) {
       case ActionType.Deposit:
-        return selectedBank?.userInfo.maxDeposit ?? 0;
+        return selectedBank.info.rawBank.config.assetTag === 2
+          ? selectedStakeAccount?.balance ?? 0
+          : selectedBank?.userInfo.maxDeposit ?? 0;
       case ActionType.Withdraw:
         return selectedBank?.userInfo.maxWithdraw ?? 0;
       case ActionType.Borrow:
@@ -60,7 +73,7 @@ export function useActionAmounts({
       default:
         return 0;
     }
-  }, [selectedBank, actionMode, maxAmountCollateral]);
+  }, [selectedBank, actionMode, maxAmountCollateral, selectedStakeAccount]);
 
   return {
     amount,

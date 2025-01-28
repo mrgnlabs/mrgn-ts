@@ -222,7 +222,8 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   STAKED_ONLY_SOL_CHECK: {
     isEnabled: false,
     actionMethod: "WARNING",
-    description: "While you have staked assets, you can only deposit staked assets and borrow SOL.",
+    description:
+      "Staked assets cannot be combined with other assets. Switch account or create a new account from your portfolio to deposit native stake.",
     retry: false,
     code: 136,
   },

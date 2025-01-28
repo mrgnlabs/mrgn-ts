@@ -917,6 +917,20 @@ class MarginfiAccountWrapper {
     );
   }
 
+  /**
+   * Creates a transaction for depositing native stake into a marginfi staked asset bank account.
+   * - Split stake account if required
+   * - Authorize stake account to single spl pool pogram
+   * - Deposit stake into pool for LST
+   * - Deposit LST into marginfi bank
+   *
+   * @param amount - The amount of tokens to deposit, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to deposit into
+   * @param stakeAccountPk - The public key of the stake account to delegate
+   * @param validator - The public key of the validator to delegate to
+   * @param depositOpts - Optional deposit configuration parameters
+   * @returns A transaction object ready to be signed and sent
+   */
   async makeDepositStakedTx(
     amount: Amount,
     bankAddress: PublicKey,
@@ -924,155 +938,121 @@ class MarginfiAccountWrapper {
     validator: PublicKey,
     depositOpts: MakeDepositIxOpts = {}
   ) {
-    const ixs: TransactionInstruction[] = [];
-
+    // derive addresses
     const pool = findPoolAddress(validator);
     const poolStakeAddress = findPoolStakeAddress(pool);
     const lstMint = findPoolMintAddress(pool);
     const auth = findPoolStakeAuthorityAddress(pool);
     const lstAta = getAssociatedTokenAddressSync(lstMint, this.authority);
 
-    const accountInfo = await this.client.provider.connection.getAccountInfo(lstAta);
+    // fetch account info
+    const [lstAccInfo, stakeAccInfo] = await Promise.all([
+      this.client.provider.connection.getAccountInfo(lstAta),
+      this._program.provider.connection.getAccountInfo(stakeAccountPk),
+    ]);
 
-    // authorize user stake account to single-spl-pool
-    const authorizeStakerIxes = StakeProgram.authorize({
-      stakePubkey: stakeAccountPk,
-      authorizedPubkey: this.authority,
-      newAuthorizedPubkey: auth,
-      stakeAuthorizationType: StakeAuthorizationLayout.Staker,
-    }).instructions;
+    // calculate amounts and thresholds
+    const [rentExemptReserve, minimumDelegation, stakeRentExemption] = await Promise.all([
+      this._program.provider.connection.getMinimumBalanceForRentExemption(StakeProgram.space),
+      this._program.provider.connection
+        .getStakeMinimumDelegation()
+        .then((res) => Math.max(res.value, LAMPORTS_PER_SOL)),
+      this._program.provider.connection.getMinimumBalanceForRentExemption(StakeProgram.space),
+    ]);
 
-    const authorizeWithdrawIxes = StakeProgram.authorize({
-      stakePubkey: stakeAccountPk,
-      authorizedPubkey: this.authority,
-      newAuthorizedPubkey: auth,
-      stakeAuthorizationType: StakeAuthorizationLayout.Withdrawer,
-    }).instructions;
+    const amountLamports = Number(amount) * LAMPORTS_PER_SOL;
+    const stakeAccLamports = stakeAccInfo?.lamports ?? 0;
+    const availableStake = stakeAccLamports ? stakeAccLamports - rentExemptReserve : 0;
+    const isFullStake = amountLamports >= availableStake;
 
-    // deposit to stake pool
-    const depositStakeIx: TransactionInstruction = await SinglePoolInstruction.depositStake(
-      pool,
-      stakeAccountPk,
-      lstAta,
-      this.authority
-    );
+    // calculate pool tokens
+    const poolStakeAccLamports =
+      (await this._program.provider.connection.getAccountInfo(poolStakeAddress))?.lamports ?? 0;
+    const prePoolStake = Math.max(poolStakeAccLamports - minimumDelegation - stakeRentExemption, 0);
 
-    // async function getStakeMinimumDelegation(connection: Connection, payerKey: PublicKey) {
-    //   const ix = new TransactionInstruction({
-    //     keys: [],
-    //     programId: StakeProgram.programId,
-    //     data: Buffer.from([13, 0, 0, 0]),
-    //   });
+    const tokenSupply = parseInt((await this._program.provider.connection.getTokenSupply(lstMint)).value.amount, 10);
+    const stakeAddedNative = Number(amount) * 1e9;
 
-    //   const message = new TransactionMessage({
-    //     payerKey: payerKey,
-    //     recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
-    //     instructions: [ix],
-    //   }).compileToV0Message();
-
-    //   const versionedTx = new VersionedTransaction(message);
-
-    //   const result = await connection.simulateTransaction(versionedTx, {
-    //     sigVerify: false,
-    //     replaceRecentBlockhash: false,
-    //   });
-
-    //   const data = Array.from(result.value.returnData?.data ?? []);
-
-    //   // Decode the base64 string to get the raw bytes
-    //   const rawData = Buffer.from(data[0], "base64");
-
-    //   const otherAttempt = rawData[0] + (rawData[1] << 8) + (rawData[2] << 16) + (rawData[3] << 24);
-
-    //   console.log("otherAttempt", otherAttempt);
-
-    //   // Convert to number using little-endian byte order
-    //   const minimumDelegation = rawData.readUInt32LE(0);
-
-    //   console.log("rawData", rawData);
-    //   console.log("minimumDelegation", minimumDelegation);
-    //   console.log("data", data);
-    //   console.log("result", result);
-    // }
-    // Fetch the current lamports in the pool's stake account
-    const poolStakeAccLamports = (await this._program.provider.connection.getAccountInfo(poolStakeAddress))?.lamports;
-
-    // Fetch the minimum delegation (ensure it's at least 1 lamport)
-    const minimumDelegation = Math.max(
-      (await this._program.provider.connection.getStakeMinimumDelegation()).value,
-      LAMPORTS_PER_SOL
-    );
-
-    // Get Stake Rent Exemption
-    const stakeRentExemption = await this._program.provider.connection.getMinimumBalanceForRentExemption(
-      StakeProgram.space
-    );
-
-    // Calculate the active stake in the pool before the deposit
-    const prePoolStake = poolStakeAccLamports
-      ? Math.max(poolStakeAccLamports - minimumDelegation - stakeRentExemption, 0) // saturating_sub logic
-      : 0;
-
-    // Fetch the current token supply of the pool mint
-    const tokenSupplyData = await this._program.provider.connection.getTokenSupply(lstMint);
-    const tokenSupply = parseInt(tokenSupplyData.value.amount, 10); // Convert string to number
-
-    // Calculate the stake added by the user (this would be based on your logic)
-    const stakeAddedNative = Number(amount) * 1e9; // Convert amount with 9 decimals to native lamports
-
-    // Calculate the number of new pool tokens to mint
     const newPoolTokens =
       prePoolStake > 0 && tokenSupply > 0
-        ? Math.floor((stakeAddedNative * tokenSupply) / prePoolStake) // Use integer division
-        : stakeAddedNative; // For empty pools, mint 1:1 to the deposit
+        ? Math.floor((stakeAddedNative * tokenSupply) / prePoolStake)
+        : stakeAddedNative;
 
-    const newPoolTokensUi = newPoolTokens / 1e9;
-
-    // Check for edge cases
     if (newPoolTokens <= 0) {
       throw new Error("Deposit too small or calculation error.");
     }
 
-    console.log("New pool tokens to mint:", newPoolTokens);
+    // build instructions
+    const instructions: TransactionInstruction[] = [];
+    const signers: Signer[] = [];
 
-    // overwrite SYSVAR_CLOCK_ID to non writable
-    // TODO: need to investigate why this is needed
-    authorizeStakerIxes[0].keys = authorizeStakerIxes[0].keys.map((key) => {
-      if (key.pubkey.equals(SYSVAR_CLOCK_ID) && key.isWritable) {
-        key.isWritable = false;
-      }
-      return key;
-    });
-    authorizeWithdrawIxes[0].keys = authorizeWithdrawIxes[0].keys.map((key) => {
-      if (key.pubkey.equals(SYSVAR_CLOCK_ID) && key.isWritable) {
-        key.isWritable = false;
-      }
-      return key;
-    });
-
-    // deposit to marginfi staked asset bank
-    const depositIxs = await this.makeDepositIx(newPoolTokensUi, bankAddress, depositOpts);
-
-    // build txn
-
-    // create associated token account if it doesn't exist
-    if (!accountInfo) {
-      ixs.push(createAssociatedTokenAccountInstruction(this.authority, lstAta, this.authority, lstMint));
+    // create ata if needed
+    if (!lstAccInfo) {
+      instructions.push(createAssociatedTokenAccountInstruction(this.authority, lstAta, this.authority, lstMint));
     }
 
-    // add instructions
-    // - authorize staker and withdrawer
-    // - deposit to stake pool
-    // - deposit to marginfi staked asset bank
-    ixs.push(...authorizeStakerIxes, ...authorizeWithdrawIxes, depositStakeIx, ...depositIxs.instructions);
+    // handle stake splitting if needed
+    let targetStakePubkey: PublicKey;
+    if (!isFullStake) {
+      const splitStakeAccount = Keypair.generate();
+      signers.push(splitStakeAccount);
+      targetStakePubkey = splitStakeAccount.publicKey;
 
-    const tx = new Transaction().add(...ixs);
-    const solanaTx = addTransactionMetadata(tx, {
-      signers: depositIxs.keys,
-      addressLookupTables: this.client.addressLookupTables,
+      instructions.push(
+        ...StakeProgram.split(
+          {
+            stakePubkey: stakeAccountPk,
+            authorizedPubkey: this.authority,
+            splitStakePubkey: splitStakeAccount.publicKey,
+            lamports: amountLamports,
+          },
+          rentExemptReserve
+        ).instructions
+      );
+    } else {
+      targetStakePubkey = stakeAccountPk;
+    }
+
+    // authorization instructions
+    const [authorizeStakerIx, authorizeWithdrawIx] = await Promise.all([
+      StakeProgram.authorize({
+        stakePubkey: targetStakePubkey,
+        authorizedPubkey: this.authority,
+        newAuthorizedPubkey: auth,
+        stakeAuthorizationType: StakeAuthorizationLayout.Staker,
+      }).instructions,
+      StakeProgram.authorize({
+        stakePubkey: targetStakePubkey,
+        authorizedPubkey: this.authority,
+        newAuthorizedPubkey: auth,
+        stakeAuthorizationType: StakeAuthorizationLayout.Withdrawer,
+      }).instructions,
+    ]);
+
+    // fix SYSVAR_CLOCK_ID writability
+    [authorizeStakerIx[0], authorizeWithdrawIx[0]].forEach((ix) => {
+      ix.keys = ix.keys.map((key) => ({
+        ...key,
+        isWritable: key.pubkey.equals(SYSVAR_CLOCK_ID) ? false : key.isWritable,
+      }));
     });
 
-    return solanaTx;
+    instructions.push(...authorizeStakerIx, ...authorizeWithdrawIx);
+
+    // deposit stake instructions
+    const depositStakeIx = await SinglePoolInstruction.depositStake(pool, targetStakePubkey, lstAta, this.authority);
+
+    // deposit bank instructions
+    const marginfiDepositIxs = await this.makeDepositIx(newPoolTokens / 1e9, bankAddress, depositOpts);
+
+    instructions.push(depositStakeIx, ...marginfiDepositIxs.instructions);
+
+    // build transaction
+    const transaction = new Transaction().add(...instructions);
+    return addTransactionMetadata(transaction, {
+      signers: [...signers, ...marginfiDepositIxs.keys],
+      addressLookupTables: this.client.addressLookupTables,
+    });
   }
 
   /**
@@ -1297,8 +1277,20 @@ class MarginfiAccountWrapper {
     );
   }
 
+  /**
+   * Creates a transaction for withdrawing tokens from a marginfi bank account and staking them.
+   * - Withdraw from marginfi bank
+   * - Create stake account
+   * - Approve mint authority to burn tokens
+   * - Delegate stake account
+   *
+   * @param amount - The amount of tokens to withdraw, can be a number or Amount object
+   * @param bankAddress - The public key of the bank to withdraw from
+   * @param isWholePosition - Whether to withdraw the entire position, defaults to false
+   * @returns A transaction object ready to be signed and sent
+   */
   async makeWithdrawStakedTx(amount: Amount, bankAddress: PublicKey, isWholePosition: boolean) {
-    // Get bank and metadata
+    // get bank and metadata
     const bank = this.client.getBankByPk(bankAddress);
     const solBank = this.client.getBankByMint(WSOL_MINT);
     const bankMetadata = this.client.bankMetadataMap![bankAddress.toBase58()];
@@ -1311,38 +1303,26 @@ class MarginfiAccountWrapper {
       throw new Error("Validator vote account not found");
     }
 
+    // derive addresses
     const pool = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
     const lstMint = findPoolMintAddress(pool);
     const mintAuthority = findPoolMintAuthorityAddress(pool);
-    const auth = findPoolStakeAuthorityAddress(pool);
     const lstAta = getAssociatedTokenAddressSync(lstMint, this.authority);
 
-    // const tokenAccountInfo = await this._program.provider.connection.getAccountInfo(lstAta);
-    // if (!tokenAccountInfo) {
-    //   throw new Error("Token account not found");
-    // }
-
-    // 1: withdraw from marginfi bank
-    const withdrawIxs = await this.makeWithdrawIx(amount, bankAddress, isWholePosition, {
-      createAtas: true,
-      wrapAndUnwrapSol: true,
-    });
-
-    // 2: create stake account
+    // calculate amounts and thresholds
     const rentExemption = await this._program.provider.connection.getMinimumBalanceForRentExemption(200);
     console.log("rentExemption", rentExemption);
 
     const stakeAmount = new BigNumber(new BigNumber(amount).toString());
 
+    // withdraw from marginfi bank
+    const withdrawIxs = await this.makeWithdrawIx(amount, bankAddress, isWholePosition, {
+      createAtas: true,
+      wrapAndUnwrapSol: true,
+    });
+
+    // create stake account
     const stakeAccount = Keypair.generate();
-
-    // const createStakeAccountIx = StakeProgram.createAccount({
-    //   fromPubkey: this.authority,
-    //   stakePubkey: stakeAccount.publicKey,
-    //   authorized: new Authorized(this.authority, this.authority),
-    //   lamports: rentExemption,
-    // });
-
     const createStakeAccountIx = SystemProgram.createAccount({
       fromPubkey: this.authority,
       newAccountPubkey: stakeAccount.publicKey,
@@ -1351,7 +1331,7 @@ class MarginfiAccountWrapper {
       programId: STAKE_PROGRAM_ID,
     });
 
-    // 3: approve mint authority to burn tokens
+    // approve mint authority to burn tokens
     const approveAccountAuthorityIx = Token.createApproveInstruction(
       TOKEN_PROGRAM_ID,
       lstAta,
@@ -1361,7 +1341,7 @@ class MarginfiAccountWrapper {
       stakeAmount.multipliedBy(1e9).toNumber()
     );
 
-    // 4: delegate stake account
+    // delegate stake account
     const withdrawStakeIx: TransactionInstruction = await SinglePoolInstruction.withdrawStake(
       pool,
       stakeAccount.publicKey,
@@ -1370,17 +1350,22 @@ class MarginfiAccountWrapper {
       stakeAmount
     );
 
-    const txn = new Transaction().add(
-      ...withdrawIxs.instructions,
-      createStakeAccountIx,
-      approveAccountAuthorityIx,
-      withdrawStakeIx
-    );
+    // build transaction
+    const withdrawTxn = new Transaction().add(...withdrawIxs.instructions);
 
-    return addTransactionMetadata(txn, {
+    const stakeTxn = new Transaction().add(createStakeAccountIx, approveAccountAuthorityIx, withdrawStakeIx);
+
+    const formattedWithdrawTxn = addTransactionMetadata(withdrawTxn, {
       signers: [...withdrawIxs.keys, stakeAccount],
       addressLookupTables: this.client.addressLookupTables,
     });
+
+    const formattedStakeTxn = addTransactionMetadata(stakeTxn, {
+      signers: [stakeAccount],
+      addressLookupTables: this.client.addressLookupTables,
+    });
+
+    return { withdrawTxn: formattedWithdrawTxn, stakeTxn: formattedStakeTxn };
   }
 
   /**

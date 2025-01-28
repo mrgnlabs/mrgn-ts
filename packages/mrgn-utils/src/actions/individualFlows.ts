@@ -82,8 +82,6 @@ export function getSteps(
       steps.push({ label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"] });
     });
 
-  console.log("steps", steps);
-
   return steps;
 }
 
@@ -286,11 +284,12 @@ export async function deposit({
 }: MarginfiActionParams) {
   if (!multiStepToast) {
     const steps = getSteps(actionTxns);
+    const label =
+      bank.info.rawBank.config.assetTag === 2
+        ? `Staking and depositng ${amount} ${bank.meta.tokenSymbol}`
+        : `Depositing ${amount} ${bank.meta.tokenSymbol}`;
 
-    multiStepToast = new MultiStepToastHandle("Deposit", [
-      ...steps,
-      { label: `Depositing ${amount} ${bank.meta.tokenSymbol}` },
-    ]);
+    multiStepToast = new MultiStepToastHandle("Deposit", [...steps, { label }]);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();
@@ -469,11 +468,12 @@ export async function withdraw({
 }: MarginfiActionParams) {
   if (!multiStepToast) {
     const steps = getSteps(actionTxns);
+    const label =
+      bank.info.rawBank.config.assetTag === 2
+        ? `Unstaking and withdrawing ${amount} ${bank.meta.tokenSymbol}`
+        : `Withdrawing ${amount} ${bank.meta.tokenSymbol}`;
 
-    multiStepToast = new MultiStepToastHandle("Withdraw", [
-      ...steps,
-      { label: `Withdrawing ${amount} ${bank.meta.tokenSymbol}` },
-    ]);
+    multiStepToast = new MultiStepToastHandle("Withdraw", [...steps, { label }]);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();

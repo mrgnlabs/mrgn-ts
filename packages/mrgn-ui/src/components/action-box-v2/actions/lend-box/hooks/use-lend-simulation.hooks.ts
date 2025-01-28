@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Connection, Transaction, VersionedTransaction } from "@solana/web3.js";
+import { Connection, PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
@@ -24,6 +24,7 @@ type LendSimulationProps = {
   lendMode: ActionType;
   actionTxns: ActionTxns;
   simulationResult: SimulationResult | null;
+  selectedStakeAccount?: PublicKey;
   connection?: Connection;
   setSimulationResult: (result: SimulationResult | null) => void;
   setActionTxns: (actionTxns: ActionTxns) => void;
@@ -39,6 +40,7 @@ export function useLendSimulation({
   lendMode,
   actionTxns,
   simulationResult,
+  selectedStakeAccount,
   connection,
   setSimulationResult,
   setActionTxns,
@@ -115,6 +117,7 @@ export function useLendSimulation({
           selectedBank,
           lendMode,
           amount,
+          selectedStakeAccount,
           connection
         );
 
@@ -133,7 +136,16 @@ export function useLendSimulation({
         setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
     },
-    [selectedAccount, selectedBank, lendMode, setIsLoading, setActionTxns, setErrorMessage, connection]
+    [
+      selectedAccount,
+      selectedBank,
+      lendMode,
+      setIsLoading,
+      setActionTxns,
+      setErrorMessage,
+      connection,
+      selectedStakeAccount,
+    ]
   );
 
   const refreshSimulation = React.useCallback(async () => {

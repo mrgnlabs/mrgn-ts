@@ -1,6 +1,9 @@
 import React from "react";
 
+import Link from "next/link";
+
 import { WalletContextState } from "@solana/wallet-adapter-react";
+import { IconInfoCircle, IconSettings } from "@tabler/icons-react";
 
 import {
   ActiveBankInfo,
@@ -13,6 +16,7 @@ import {
 } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMessageType,
   ActionTxns,
@@ -37,13 +41,13 @@ import { ActionMessage } from "~/components";
 import { useLendBoxStore } from "./store";
 import { HandleCloseBalanceParamsProps, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { ActionSimulationStatus } from "../../components";
-import { Collateral, ActionInput, Preview } from "./components";
+import { Collateral, ActionInput, Preview, StakeAccountSwitcher } from "./components";
 import { SimulationStatus } from "../../utils";
 import { useLendSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
-import { IconSettings } from "@tabler/icons-react";
+import { PublicKey } from "@solana/web3.js";
 
 // error handling
 export type LendBoxProps = {
@@ -63,6 +67,7 @@ export type LendBoxProps = {
   showTokenSelection?: boolean;
   showTokenSelectionGroups?: boolean;
   hidePoolStats?: HidePoolStats;
+  stakeAccounts?: ValidatorStakeGroup[];
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -87,6 +92,7 @@ export const LendBox = ({
   onComplete,
   captureEvent,
   hidePoolStats,
+  stakeAccounts,
   setDisplaySettings,
 }: LendBoxProps) => {
   const [
@@ -96,6 +102,7 @@ export const LendBox = ({
     selectedBank,
     simulationResult,
     errorMessage,
+    selectedStakeAccount,
 
     refreshState,
     fetchActionBoxState,
@@ -106,6 +113,8 @@ export const LendBox = ({
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
+    setStakeAccounts,
+    setSelectedStakeAccount,
   ] = useLendBoxStore(isDialog)((state) => [
     state.amountRaw,
     state.lendMode,
@@ -113,6 +122,7 @@ export const LendBox = ({
     state.selectedBank,
     state.simulationResult,
     state.errorMessage,
+    state.selectedStakeAccount,
 
     state.refreshState,
     state.fetchActionBoxState,
@@ -123,6 +133,8 @@ export const LendBox = ({
     state.setSimulationResult,
     state.setActionTxns,
     state.setErrorMessage,
+    state.setStakeAccounts,
+    state.setSelectedStakeAccount,
   ]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
@@ -157,6 +169,7 @@ export const LendBox = ({
     selectedBank,
     nativeSolBalance,
     actionMode: lendMode,
+    selectedStakeAccount: selectedStakeAccount || undefined,
   });
   const { actionSummary, refreshSimulation } = useLendSimulation({
     debouncedAmount: debouncedAmount ?? 0,
@@ -167,6 +180,7 @@ export const LendBox = ({
     actionTxns,
     simulationResult,
     connection: marginfiClient?.provider.connection,
+    selectedStakeAccount: selectedStakeAccount?.address || undefined,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
@@ -500,19 +514,6 @@ export const LendBox = ({
     ]
   );
 
-  // is attempting to deposit to a staked account and has active native stake with validator
-  // this is used to show a hardcoded info message to user regarding requiring stake account to be deposited in full
-  // this is temporary, soon we will allow stake splitting and depositing partial amounts
-  const isDepositingStakedAccount = React.useMemo(() => {
-    return (
-      selectedBank &&
-      lendMode === ActionType.Deposit &&
-      selectedBank.info.rawBank.config.assetTag === 2 &&
-      walletAmount !== undefined &&
-      walletAmount > 0
-    );
-  }, [selectedBank, lendMode, walletAmount]);
-
   const hasErrorsWarnings = React.useMemo(() => {
     return (
       additionalActionMessages
@@ -521,11 +522,29 @@ export const LendBox = ({
     );
   }, [additionalActionMessages, actionMessages]);
 
+  // store users stake accounts in state on load
+  // selected stake account will be handled in lend store
   React.useEffect(() => {
-    if (isDepositingStakedAccount) {
-      setAmountRaw(maxAmount.toString());
+    if (stakeAccounts) {
+      setStakeAccounts(stakeAccounts);
     }
-  }, [isDepositingStakedAccount, maxAmount, setAmountRaw]);
+  }, [stakeAccounts, setStakeAccounts]);
+
+  // set selected stake account on load
+  // if requestedBank is set
+  React.useEffect(() => {
+    if (requestedBank && stakeAccounts) {
+      const stakeAccount = stakeAccounts.find((stakeAccount) =>
+        stakeAccount.validator.equals(requestedBank.meta.stakePool?.validatorVoteAccount || PublicKey.default)
+      );
+      if (stakeAccount) {
+        setSelectedStakeAccount({
+          address: stakeAccount.accounts[0].pubkey,
+          balance: stakeAccount.accounts[0].amount,
+        });
+      }
+    }
+  }, [requestedBank, stakeAccounts, setSelectedStakeAccount]);
 
   React.useEffect(() => {
     if (marginfiClient) {
@@ -553,19 +572,21 @@ export const LendBox = ({
           setSelectedBank={setSelectedBank}
         />
       </div>
-
-      {isDepositingStakedAccount && (
-        <div className="pb-6">
-          <ActionMessage
-            _actionMessage={{
-              description: "Staked accounts must be deposited in full",
-              isEnabled: true,
-              actionMethod: "INFO",
+      {lendMode === ActionType.Deposit &&
+        selectedBank &&
+        selectedBank.info.rawBank.config.assetTag === 2 &&
+        stakeAccounts &&
+        stakeAccounts.length > 1 && (
+          <StakeAccountSwitcher
+            selectedBank={selectedBank}
+            selectedStakeAccount={selectedStakeAccount?.address}
+            stakeAccounts={stakeAccounts}
+            onStakeAccountChange={(account) => {
+              setSelectedStakeAccount(account);
+              setAmountRaw("0");
             }}
           />
-        </div>
-      )}
-
+        )}
       {additionalActionMessages.concat(actionMessages).map(
         (actionMessage, idx) =>
           actionMessage.description && (
@@ -578,13 +599,11 @@ export const LendBox = ({
             </div>
           )
       )}
-
       {showAvailableCollateral && (
         <div className="mb-6">
           <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
         </div>
       )}
-
       <div className="mb-3">
         <ActionButton
           isLoading={isLoading}
@@ -617,7 +636,6 @@ export const LendBox = ({
           </div>
         )}
       </div>
-
       <Preview
         actionSummary={actionSummary}
         selectedBank={selectedBank}
@@ -625,7 +643,21 @@ export const LendBox = ({
         lendMode={lendMode}
         hidePoolStats={hidePoolStats}
       />
-
+      {/* Add note regarding this epochs rewards for staked asset banks */}
+      {lendMode === ActionType.Deposit &&
+        selectedBank &&
+        selectedBank.info.rawBank.config.assetTag === 2 &&
+        amount > 0 &&
+        amount === maxAmount && (
+          <div className="mt-6 text-[11px] text-muted-foreground font-light">
+            <p>*Jito mev rewards will be withdrawn to your wallet on deposit</p>
+            <p>
+              <Link href="https://docs.mrgn.xyz/docs/jito-mev-rewards" className="block max-w-fit underline">
+                Learn more
+              </Link>
+            </p>
+          </div>
+        )}
       <LSTDialog
         variant={selectedBank?.meta.tokenSymbol as LSTDialogVariants}
         open={!!lstDialogCallback}

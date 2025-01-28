@@ -26,22 +26,22 @@ const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
 
 const Stake = () => {
   const { connected } = useWallet();
-  const [fetchMrgnlendState, extendedBankInfos] = useMrgnlendStore((state) => [
+  const [fetchMrgnlendState, extendedBankInfosWithoutStakedAssets] = useMrgnlendStore((state) => [
     state.fetchMrgnlendState,
-    state.extendedBankInfos,
+    state.extendedBankInfosWithoutStakedAssets,
   ]);
   const [integrations, setIntegrations] = React.useState<IntegrationsData[]>([]);
   const [lstOverview, setLstOverview] = React.useState<LSTOverview>();
 
   const lstBank = React.useMemo(() => {
-    const bank = extendedBankInfos.filter((bank) => bank.info.state.mint.equals(LST_MINT));
+    const bank = extendedBankInfosWithoutStakedAssets.filter((bank) => bank.info.state.mint.equals(LST_MINT));
     return bank.length > 0 ? bank[0] : undefined;
-  }, [extendedBankInfos]);
+  }, [extendedBankInfosWithoutStakedAssets]);
 
   const solPrice = React.useMemo(() => {
-    const bank = extendedBankInfos.filter((bank) => bank.info.state.mint.equals(SOL_MINT));
+    const bank = extendedBankInfosWithoutStakedAssets.filter((bank) => bank.info.state.mint.equals(SOL_MINT));
     return bank.length > 0 ? Math.round(bank[0].info.state.price) : 0;
-  }, [extendedBankInfos]);
+  }, [extendedBankInfosWithoutStakedAssets]);
 
   React.useEffect(() => {
     const fetchIntegrations = async () => {
@@ -97,7 +97,12 @@ const Stake = () => {
           />
 
           <div className="px-4 md:mt-2">
-            <StakeCard lstBank={lstBank} lstOverview={lstOverview} connected={connected} />
+            <StakeCard
+              extendedBankInfosWithoutStakedAssets={extendedBankInfosWithoutStakedAssets}
+              lstBank={lstBank}
+              lstOverview={lstOverview}
+              connected={connected}
+            />
           </div>
         </div>
       </div>

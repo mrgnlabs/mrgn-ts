@@ -79,7 +79,7 @@ export const generateColumns = (isInLendingMode: boolean) => {
     columnHelper.accessor("asset", {
       id: "asset",
       enableResizing: false,
-      size: 170,
+      size: 210,
       cell: (props) => getAssetCell(props.getValue()),
       header: (header) => (
         <HeaderWrapper header={header} align="left">

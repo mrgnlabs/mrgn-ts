@@ -15,6 +15,10 @@ import {
   TokenPriceMap,
   fetchGroupData,
   filterStakedAssetBanks,
+  getStakePoolActiveStates,
+  StakePoolMetadata,
+  getStakeAccountsCached,
+  ValidatorStakeGroup,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -45,6 +49,7 @@ interface MrgnlendState {
   extendedBankInfos: ExtendedBankInfo[];
   stakedAssetBankInfos: ExtendedBankInfo[];
   extendedBankInfosWithoutStakedAssets: ExtendedBankInfo[];
+  stakeAccounts: ValidatorStakeGroup[];
   protocolStats: ProtocolStats;
   selectedAccount: MarginfiAccountWrapper | null;
   nativeSolBalance: number;
@@ -247,10 +252,10 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
       // fetch staked asset metadata
       const stakedAssetBankMetadataMap = await loadBankMetadatas(
-        "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json?v=2"
+        `https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json?time=${new Date().getTime()}`
       );
       const stakedAssetTokenMetadataMap = await loadTokenMetadatas(
-        "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json?v=2"
+        `https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json?time=${new Date().getTime()}`
       );
 
       // merge staked asset metadata with main group metadata
@@ -289,16 +294,24 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       let tokenAccountMap: TokenAccountMap;
       let marginfiAccounts: MarginfiAccountWrapper[] = [];
       let selectedAccount: MarginfiAccountWrapper | null = null;
+      let stakeAccounts: ValidatorStakeGroup[] = [];
       if (wallet?.publicKey) {
         const [tokenData, marginfiAccountWrappers] = await Promise.all([
           fetchTokenAccounts(
             connection,
             wallet.publicKey,
-            banks.map((bank) => ({ mint: bank.mint, mintDecimals: bank.mintDecimals, bankAddress: bank.address })),
+            banks.map((bank) => ({
+              mint: bank.mint,
+              mintDecimals: bank.mintDecimals,
+              bankAddress: bank.address,
+              assetTag: bank.config.assetTag,
+            })),
             marginfiClient.mintDatas
           ),
           getCachedMarginfiAccountsForAuthority(wallet.publicKey, marginfiClient),
         ]);
+
+        stakeAccounts = await getStakeAccountsCached(wallet.publicKey);
 
         nativeSolBalance = tokenData.nativeSolBalance;
         tokenAccountMap = tokenData.tokenAccountMap;
@@ -356,6 +369,16 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         }
       });
 
+      // get stake pool active states for all staked asset banks
+      // will be disabled in the ui until active
+      const validatorVoteAccounts = banksWithPriceAndToken
+        .filter((bank) => bank.bank.config.assetTag === 2)
+        .map((bank) => {
+          const bankMetadata = bankMetadataMap[bank.bank.address.toBase58()];
+          return new PublicKey(bankMetadata.validatorVoteAccount || "");
+        });
+      const stakePoolActiveStates = await getStakePoolActiveStates(connection, validatorVoteAccounts);
+
       let [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
         (acc, { bank, oraclePrice, tokenMetadata }) => {
           const emissionTokenPriceData = priceMap[bank.emissionsMint.toBase58()];
@@ -373,8 +396,31 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
             };
           }
 
-          acc[0].push(makeExtendedBankInfo(tokenMetadata, bank, oraclePrice, emissionTokenPriceData, userData));
-          acc[1].push(makeExtendedBankMetadata(bank, tokenMetadata));
+          // build staked asset metadata
+          let stakedAssetMetadata: StakePoolMetadata | undefined;
+          if (bank.config.assetTag === 2) {
+            const isActive = stakePoolActiveStates.get(bank.mint.toBase58()) || false;
+            const validatorVoteAccount = new PublicKey(
+              bankMetadataMap[bank.address.toBase58()].validatorVoteAccount || ""
+            );
+            stakedAssetMetadata = {
+              validatorVoteAccount,
+              isActive,
+            };
+          }
+
+          acc[0].push(
+            makeExtendedBankInfo(
+              tokenMetadata,
+              bank,
+              oraclePrice,
+              emissionTokenPriceData,
+              userData,
+              false,
+              stakedAssetMetadata
+            )
+          );
+          acc[1].push(makeExtendedBankMetadata(bank, tokenMetadata, false, stakedAssetMetadata));
 
           return acc;
         },
@@ -431,6 +477,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         extendedBankInfosWithoutStakedAssets: sortedExtendedBankInfos.filter(
           (bank) => bank.info.rawBank.config.assetTag !== 2
         ),
+        stakeAccounts,
         protocolStats: {
           deposits,
           borrows,

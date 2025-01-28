@@ -1,12 +1,12 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo, ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-state";
 import { formatAmount } from "@mrgnlabs/mrgn-utils";
-import { usdFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
+import { tokenPriceFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { Input } from "~/components/ui/input";
-
 import { LendingAction, BankSelect } from "./components";
+import { OracleSetup } from "@mrgnlabs/marginfi-client-v2";
 
 type ActionInputProps = {
   amountRaw: string;
@@ -17,7 +17,6 @@ type ActionInputProps = {
   banks: ExtendedBankInfo[];
   selectedBank: ExtendedBankInfo | null;
   lendMode: ActionType;
-
   connected: boolean;
   showCloseBalance?: boolean;
   isDialog?: boolean;
@@ -50,15 +49,7 @@ export const ActionInput = ({
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
-  const isDepositingStakedAccount = React.useMemo(() => {
-    if (selectedBank && lendMode === ActionType.Deposit && selectedBank.info.rawBank.config.assetTag === 2) return true;
-    else return false;
-  }, [selectedBank, lendMode]);
-
-  const isInputDisabled = React.useMemo(
-    () => isDepositingStakedAccount || (maxAmount === 0 && !showCloseBalance),
-    [maxAmount, showCloseBalance, isDepositingStakedAccount]
-  );
+  const isInputDisabled = React.useMemo(() => maxAmount === 0 && !showCloseBalance, [maxAmount, showCloseBalance]);
 
   const formatAmountCb = React.useCallback(
     (newAmount: string, bank: ExtendedBankInfo | null) => {
@@ -79,6 +70,19 @@ export const ActionInput = ({
     else return showTokenSelection;
   }, [showTokenSelection, isDialog]);
 
+  const isDepositingStakedCollat = React.useMemo(() => {
+    return selectedBank?.info.rawBank.config.assetTag === 2 && lendMode === ActionType.Deposit;
+  }, [selectedBank, lendMode]);
+
+  const tokenPrice = React.useMemo(() => {
+    if (isDepositingStakedCollat) {
+      const solBank = banks.find((bank) => bank.info.state.mint.equals(WSOL_MINT));
+      return solBank?.info.oraclePrice.priceRealtime.price.toNumber() ?? 0;
+    } else {
+      return selectedBank?.info.oraclePrice.priceRealtime.price.toNumber() ?? 0;
+    }
+  }, [banks, selectedBank, isDepositingStakedCollat]);
+
   return (
     <div className="rounded-lg p-2.5 bg-mfi-action-box-background-dark">
       <div className="flex justify-center gap-1 items-center font-medium text-3xl">
@@ -97,20 +101,20 @@ export const ActionInput = ({
           />
         </div>
         <div className="flex-auto flex flex-col gap-0 items-end">
-          <Input
-            type="text"
-            ref={amountInputRef}
-            inputMode="decimal"
-            value={amountRaw}
-            disabled={isInputDisabled}
-            onChange={(e) => handleInputChange(e.target.value)}
-            placeholder="0"
-            className="bg-transparent shadow-none min-w-[130px] text-right h-auto py-0 pr-0 outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
-          />
+          <div className="flex gap-1 items-center">
+            <Input
+              type="text"
+              ref={amountInputRef}
+              inputMode="decimal"
+              value={amountRaw}
+              disabled={isInputDisabled}
+              onChange={(e) => handleInputChange(e.target.value)}
+              placeholder="0"
+              className="bg-transparent shadow-none min-w-[130px] text-right h-auto py-0 pr-0 outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium"
+            />
+          </div>
           {amount !== null && amount > 0 && selectedBank && (
-            <span className="text-xs text-muted-foreground font-light">
-              {tokenPriceFormatter(amount * selectedBank.info.oraclePrice.priceRealtime.price.toNumber())}
-            </span>
+            <span className="text-xs text-muted-foreground font-light">{tokenPriceFormatter(amount * tokenPrice)}</span>
           )}
         </div>
       </div>
@@ -120,7 +124,6 @@ export const ActionInput = ({
         onSetAmountRaw={(amount) => handleInputChange(amount)}
         selectedBank={selectedBank}
         lendMode={lendMode}
-        disabled={isDepositingStakedAccount}
       />
     </div>
   );

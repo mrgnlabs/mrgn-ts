@@ -86,12 +86,18 @@ export const BankList = ({
     [lendingMode]
   );
 
+  const solPrice = React.useMemo(() => {
+    const solBank = banks.find((bank) => bank.info.state.mint.equals(WSOL_MINT));
+    return solBank?.info.oraclePrice.priceRealtime.price.toNumber() ?? 0;
+  }, [banks]);
+
   /////// BANKS
 
   // wallet banks
   const filteredBanksUserOwns = React.useMemo(() => {
     return (
       banks
+        .filter((bank) => bank.info.rawBank.config.assetTag !== 2 || bank.meta.stakePool?.isActive)
         .filter(balanceFilter)
         .filter(searchFilter)
         // .filter((bank) => positionFilter(bank, true))
@@ -180,6 +186,8 @@ export const BankList = ({
                       bank={bank}
                       showBalanceOverride={true}
                       nativeSolBalance={nativeSolBalance}
+                      showStakedAssetLabel={true}
+                      solPrice={solPrice}
                     />
                   </CommandItem>
                 );
@@ -220,6 +228,8 @@ export const BankList = ({
                     bank={bank}
                     showBalanceOverride={false}
                     nativeSolBalance={nativeSolBalance}
+                    showStakedAssetLabel={true}
+                    solPrice={solPrice}
                   />
                 </CommandItem>
               ))}
@@ -252,6 +262,7 @@ export const BankList = ({
                     bank={bank}
                     showBalanceOverride={false}
                     nativeSolBalance={nativeSolBalance}
+                    solPrice={solPrice}
                   />
                 </CommandItem>
               ))}
@@ -284,6 +295,7 @@ export const BankList = ({
                     bank={bank}
                     showBalanceOverride={false}
                     nativeSolBalance={nativeSolBalance}
+                    solPrice={solPrice}
                   />
                 </CommandItem>
               );
@@ -315,6 +327,7 @@ export const BankList = ({
                     bank={bank}
                     showBalanceOverride={false}
                     nativeSolBalance={nativeSolBalance}
+                    solPrice={solPrice}
                   />
                 </CommandItem>
               );
@@ -332,6 +345,9 @@ export const BankList = ({
                       key={index}
                       value={bank.address?.toString().toLowerCase()}
                       onSelect={(currentValue) => {
+                        if (bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakePool?.isActive) {
+                          return;
+                        }
                         onSetSelectedBank(
                           banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
                         );
@@ -345,6 +361,7 @@ export const BankList = ({
                         bank={bank}
                         showBalanceOverride={false}
                         nativeSolBalance={nativeSolBalance}
+                        solPrice={solPrice}
                       />
                     </CommandItem>
                   );

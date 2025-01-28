@@ -2,29 +2,36 @@ import React from "react";
 
 import Image from "next/image";
 
-import { numeralFormatter, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, shortenAddress, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { Tooltip, TooltipContent, TooltipPortal, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { IconInfoCircle } from "@tabler/icons-react";
+import { OracleSetup } from "@mrgnlabs/marginfi-client-v2";
 
 type BankItemProps = {
   bank: ExtendedBankInfo;
   showBalanceOverride: boolean;
+  solPrice?: number;
   nativeSolBalance?: number;
   rate?: string;
   lendingMode?: LendingModes;
   isRepay?: boolean;
   available?: boolean;
+  showStakedAssetLabel?: boolean;
 };
 
 export const BankItem = ({
   bank,
   nativeSolBalance = 0,
+  solPrice,
   showBalanceOverride,
   rate,
   lendingMode,
   isRepay,
   available = true,
+  showStakedAssetLabel = false,
 }: BankItemProps) => {
   const balance = React.useMemo(() => {
     const isWSOL = bank.info.state.mint?.equals ? bank.info.state.mint.equals(WSOL_MINT) : false;
@@ -36,13 +43,14 @@ export const BankItem = ({
     return isRepay ? (bank.isActive ? bank.position.amount : 0) : bank.userInfo.maxWithdraw;
   }, [bank, isRepay]);
 
-  const balancePrice = React.useMemo(
-    () =>
-      balance * bank.info.state.price > 0.000001
-        ? usdFormatter.format(balance * bank.info.state.price)
-        : `$${(balance * bank.info.state.price).toExponential(2)}`,
-    [bank, balance]
-  );
+  const balancePrice = React.useMemo(() => {
+    const isStakedWithPythPush = bank.info.rawBank.config.oracleSetup === OracleSetup.StakedWithPythPush;
+
+    const price = isStakedWithPythPush ? solPrice ?? 0 : bank.info.state.price;
+    return price * balance > 0.000001
+      ? usdFormatter.format(price * balance)
+      : `$${(balance * bank.info.state.price).toExponential(2)}`;
+  }, [bank, balance, solPrice]);
 
   const openPositionPrice = React.useMemo(
     () =>
@@ -52,15 +60,40 @@ export const BankItem = ({
     [bank, openPosition]
   );
 
+  const isStakedActivating = bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakePool?.isActive;
+
   return (
     <>
-      <div className="flex items-center gap-3">
+      <div className={cn("flex items-center gap-3", isStakedActivating && "opacity-30")}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={bank.meta.tokenLogoUri} alt={bank.meta.tokenName} width={28} height={28} className="rounded-full" />
         <div>
-          <p className="flex items-center">
-            {bank.meta.tokenSymbol}
+          <div className="flex items-center">
+            <p className="font-medium">{bank.meta.tokenSymbol}</p>
             {!available && <span className="text-[11px] ml-1 font-light">(currently unavailable)</span>}
-          </p>
+            {bank.info.rawBank.config.assetTag === 2 && (
+              <div className="text-xs text-muted-foreground font-normal space-x-1 ml-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="text-xs text-muted-foreground font-normal flex items-center gap-1">
+                      <IconInfoCircle size={14} />
+                      {isStakedActivating ? "Activating..." : showStakedAssetLabel ? "Native stake" : ""}
+                    </TooltipTrigger>
+                    <TooltipPortal>
+                      <TooltipContent>
+                        <ul className="space-y-1 font-normal text-muted-foreground">
+                          <li className="text-xs">
+                            <strong className="text-foreground">Validator:</strong>{" "}
+                            {shortenAddress(bank.meta.stakePool?.validatorVoteAccount?.toBase58() ?? "")}
+                          </li>
+                        </ul>
+                      </TooltipContent>
+                    </TooltipPortal>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
+          </div>
           {lendingMode && (
             <p
               className={cn(

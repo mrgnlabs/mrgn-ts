@@ -16,11 +16,21 @@ import {
   CrossbarSimulatePayload,
   decodeSwitchboardPullFeedData,
   FeedResponse,
+  findPoolAddress,
+  findPoolStakeAddress,
 } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
-import { chunkedGetRawMultipleAccountInfoOrdered, median, Wallet } from "@mrgnlabs/mrgn-common";
+import {
+  BankMetadata,
+  chunkedGetRawMultipleAccountInfoOrdered,
+  median,
+  MintLayout,
+  RawMint,
+  Wallet,
+} from "@mrgnlabs/mrgn-common";
 import { push } from "@socialgouv/matomo-next";
-import { Connection, PublicKey } from "@solana/web3.js";
+import { Connection, LAMPORTS_PER_SOL, PublicKey, StakeProgram } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
+import { cp } from "fs";
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
 
@@ -70,7 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
   const program = new Program(idl, provider) as any as MarginfiProgram;
 
-  let updatedOraclePrices = new Map<string, OraclePrice>();
+  let updatedOraclePriceByBank = new Map<string, OraclePrice>();
 
   try {
     // Fetch on-chain data for all banks
@@ -93,14 +103,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)])
     );
 
-    const oracleMintMap = new Map<string, PublicKey>();
     const feedHashMintMap = new Map<string, PublicKey>();
 
     const requestedOraclesData = banksMap.map((b) => {
       const oracleKey = findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap).toBase58();
-      oracleMintMap.set(oracleKey, b.data.mint);
 
       return {
+        bankAddress: b.address,
+        mint: b.data.mint,
         oracleKey,
         oracleSetup: parseOracleSetup(b.data.config.oracleSetup),
         maxAge: b.data.config.oracleMaxAge,
@@ -111,11 +121,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const oracleAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, [
       ...requestedOraclesData.map((oracleData) => oracleData.oracleKey),
     ]);
-    let swbPullOraclesStale: { data: OracleDataWithTimestamp; feedHash: string }[] = [];
+    let swbPullOraclesStale: { data: OracleDataWithTimestamp; feedHash: string; bankAddress: PublicKey }[] = [];
+    let pythStakedCollateralOracles: { data: OraclePrice; mint: PublicKey; key: string }[] = [];
     for (const index in requestedOraclesData) {
       const oracleData = requestedOraclesData[index];
       const priceDataRaw = oracleAis[index];
-      const mintData = oracleMintMap.get(oracleData.oracleKey)!;
       let oraclePrice = parsePriceInfo(oracleData.oracleSetup, priceDataRaw.data);
 
       if (oraclePrice.priceRealtime.price.isNaN()) {
@@ -141,18 +151,98 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const maxAge = oracleData.maxAge + S_MAXAGE_TIME; // add some buffer to maxAge to account for api route cache
       const isStale = currentTime - oracleTime > maxAge;
 
-      // If on-chain data is recent enough, use it even for SwitchboardPull oracles
-      if (oracleData.oracleSetup === OracleSetup.SwitchboardPull && isStale) {
-        const feedHash = Buffer.from(decodeSwitchboardPullFeedData(priceDataRaw.data).feed_hash).toString("hex");
-        feedHashMintMap.set(feedHash, mintData);
-        swbPullOraclesStale.push({
-          data: { ...oracleData, timestamp: oraclePrice.timestamp },
-          feedHash: feedHash,
+      if (oracleData.oracleSetup === OracleSetup.StakedWithPythPush) {
+        pythStakedCollateralOracles.push({
+          data: oraclePrice,
+          key: oracleData.bankAddress.toBase58(),
+          mint: oracleData.mint,
         });
         continue;
       }
 
-      updatedOraclePrices.set(oracleData.oracleKey, oraclePrice);
+      // If on-chain data is recent enough, use it even for SwitchboardPull oracles
+      if (oracleData.oracleSetup === OracleSetup.SwitchboardPull && isStale) {
+        const feedHash = Buffer.from(decodeSwitchboardPullFeedData(priceDataRaw.data).feed_hash).toString("hex");
+        feedHashMintMap.set(feedHash, oracleData.mint);
+        swbPullOraclesStale.push({
+          data: { ...oracleData, timestamp: oraclePrice.timestamp },
+          feedHash: feedHash,
+          bankAddress: oracleData.bankAddress,
+        });
+        continue;
+      }
+
+      updatedOraclePriceByBank.set(oracleData.bankAddress.toBase58(), oraclePrice);
+    }
+
+    if (pythStakedCollateralOracles.length > 0) {
+      const mints = pythStakedCollateralOracles.map((value) => value.mint.toBase58());
+      const bankData: BankMetadata[] = await fetch(
+        `https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json?time=${new Date().getTime()}`
+      ).then((res) => res.json());
+      const stakePoolRecord: Record<string, string | undefined> = Object.fromEntries(
+        mints.map((mint) => {
+          const validatorVote = bankData.find((b) => b.tokenAddress === mint)?.validatorVoteAccount;
+          return [
+            mint,
+            validatorVote ? findPoolStakeAddress(findPoolAddress(new PublicKey(validatorVote))).toBase58() : undefined,
+          ];
+        })
+      );
+
+      const stakePoolsKeys = Object.values(stakePoolRecord).filter((value): value is string => value !== undefined);
+      const dataAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, [...mints, ...stakePoolsKeys]);
+
+      const mintAis = dataAis.slice(0, mints.length).map((mintAi) => MintLayout.decode(mintAi.data));
+      const stakePoolAis = dataAis.slice(mints.length).map((stakePoolAi) => stakePoolAi.lamports);
+      const mintRecord: Record<string, RawMint> = Object.fromEntries(mints.map((mint, i) => [mint, mintAis[i]]));
+
+      const stakePoolsRecord: Record<string, number> = Object.fromEntries(
+        stakePoolsKeys.map((poolKey, i) => [poolKey, stakePoolAis[i]])
+      );
+
+      const [minimumDelegation, stakeRentExemption] = await Promise.all([
+        connection.getStakeMinimumDelegation().then((res) => Math.max(res.value, LAMPORTS_PER_SOL)),
+        connection.getMinimumBalanceForRentExemption(StakeProgram.space),
+      ]);
+
+      for (const oracle of pythStakedCollateralOracles) {
+        const tokenSupply = Number(mintRecord[oracle.mint.toBase58()].supply);
+        const stakeAccount = stakePoolRecord[oracle.mint.toBase58()];
+
+        if (!stakeAccount) {
+          console.error("Error:", `Vote account not found for mint ${oracle.mint.toBase58()}`);
+        } else {
+          const poolStakeAccLamports = stakePoolsRecord[stakeAccount];
+          const prePoolStake = Math.max(poolStakeAccLamports - minimumDelegation - stakeRentExemption, 0);
+
+          // 1 SOL
+          const stakeAddedNative = 1 * 1e9;
+
+          const newPoolTokens =
+            (prePoolStake > 0 && tokenSupply > 0
+              ? Math.floor((stakeAddedNative * tokenSupply) / prePoolStake)
+              : stakeAddedNative) / 1e9;
+
+          const oraclePrice = {
+            timestamp: oracle.data.timestamp,
+            priceRealtime: {
+              price: oracle.data.priceRealtime.price.dividedBy(newPoolTokens),
+              confidence: oracle.data.priceRealtime.confidence,
+              lowestPrice: oracle.data.priceRealtime.lowestPrice.dividedBy(newPoolTokens),
+              highestPrice: oracle.data.priceRealtime.highestPrice.dividedBy(newPoolTokens),
+            },
+            priceWeighted: {
+              price: oracle.data.priceWeighted.price.dividedBy(newPoolTokens),
+              confidence: oracle.data.priceWeighted.confidence,
+              lowestPrice: oracle.data.priceWeighted.lowestPrice.dividedBy(newPoolTokens),
+              highestPrice: oracle.data.priceWeighted.highestPrice.dividedBy(newPoolTokens),
+            },
+          };
+
+          updatedOraclePriceByBank.set(oracle.key, oraclePrice);
+        }
+      }
     }
 
     if (swbPullOraclesStale.length > 0) {
@@ -161,7 +251,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       let crossbarPrices = await handleFetchCrossbarPrices(feedHashes, feedHashMintMap);
 
       for (const {
-        data: { oracleKey, timestamp },
+        data: { timestamp },
+        bankAddress,
         feedHash,
       } of swbPullOraclesStale) {
         let crossbarPrice = crossbarPrices.get(feedHash);
@@ -185,11 +276,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         let updatedOraclePrice = { ...crossbarPrice, timestamp } as OraclePrice;
 
-        updatedOraclePrices.set(oracleKey, updatedOraclePrice);
+        updatedOraclePriceByBank.set(bankAddress.toBase58(), updatedOraclePrice);
       }
     }
 
-    const updatedOraclePricesSorted = requestedOraclesData.map((value) => updatedOraclePrices.get(value.oracleKey)!);
+    const updatedOraclePricesSorted = requestedOraclesData.map(
+      (value) => updatedOraclePriceByBank.get(value.bankAddress.toBase58())!
+    );
 
     res.setHeader("Cache-Control", `s-maxage=${S_MAXAGE_TIME}, stale-while-revalidate=${STALE_WHILE_REVALIDATE_TIME}`);
     return res.status(200).json(updatedOraclePricesSorted.map(stringifyOraclePrice));
