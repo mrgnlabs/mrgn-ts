@@ -76,7 +76,7 @@ export const Settings = ({
   onJupiterOptionsChange,
   recommendedBroadcastType = "BUNDLE",
 }: SettingsProps) => {
-  const [activeTab, setActiveTab] = React.useState<"transaction" | "swap">("swap");
+  const [activeTab, setActiveTab] = React.useState<"transaction" | "swap">("transaction");
 
   const form = useForm<TransactionSettingsForm>({
     defaultValues: transactionOptions,
