@@ -80,7 +80,7 @@ export function getPriceImpactStat(priceImpactPct: number): PreviewStat {
 export function getSlippageStat(slippageBps: number): PreviewStat {
   return {
     label: "Slippage",
-    color: slippageBps > 500 ? "ALERT" : undefined,
+    color: slippageBps > 500 ? "DESTRUCTIVE" : slippageBps > 250 ? "ALERT" : "SUCCESS",
     value: () => <> {percentFormatter.format(slippageBps / 10000)}</>,
   };
 }
