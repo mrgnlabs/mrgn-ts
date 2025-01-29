@@ -42,6 +42,7 @@ import {
   StakeAuthorizationLayout,
   StakeProgram,
   Connection,
+  ParsedAccountData,
 } from "@solana/web3.js";
 import { Token } from "@solana/spl-token";
 import BigNumber from "bignumber.js";
@@ -946,29 +947,38 @@ class MarginfiAccountWrapper {
     const lstAta = getAssociatedTokenAddressSync(lstMint, this.authority);
 
     // fetch account info
-    const [lstAccInfo, stakeAccInfo] = await Promise.all([
+    const [lstAccInfo, stakeAccountInfo, stakeAccInfoParsed] = await Promise.all([
       this.client.provider.connection.getAccountInfo(lstAta),
       this._program.provider.connection.getAccountInfo(stakeAccountPk),
+      this._program.provider.connection.getParsedAccountInfo(stakeAccountPk),
     ]);
+    const stakeAccParsed = stakeAccInfoParsed?.value?.data as ParsedAccountData;
 
     // calculate amounts and thresholds
-    const [rentExemptReserve, minimumDelegation, stakeRentExemption] = await Promise.all([
+    const [rentExemptReserve, minimumDelegation] = await Promise.all([
       this._program.provider.connection.getMinimumBalanceForRentExemption(StakeProgram.space),
       this._program.provider.connection
         .getStakeMinimumDelegation()
-        .then((res) => Math.max(res.value, LAMPORTS_PER_SOL)),
-      this._program.provider.connection.getMinimumBalanceForRentExemption(StakeProgram.space),
+        .then((res) => {
+          console.log("minimumDelegation:", res.value);
+          return Math.max(res.value, LAMPORTS_PER_SOL);
+        }),
     ]);
 
+    // calculate if full stake or requires splitting
     const amountLamports = Number(amount) * LAMPORTS_PER_SOL;
-    const stakeAccLamports = stakeAccInfo?.lamports ?? 0;
-    const availableStake = stakeAccLamports ? stakeAccLamports - rentExemptReserve : 0;
-    const isFullStake = amountLamports >= availableStake;
+    const stakeAccLamports = Number(stakeAccParsed.parsed.info.stake?.delegation?.stake ?? 0);
+    const isFullStake = amountLamports >= stakeAccLamports;
+
+    console.log("Depositing Native Stake");
+    console.log("deposit amount:", amountLamports);
+    console.log("stake account amount:", stakeAccLamports);
+    console.log("is full stake:", isFullStake);
 
     // calculate pool tokens
     const poolStakeAccLamports =
       (await this._program.provider.connection.getAccountInfo(poolStakeAddress))?.lamports ?? 0;
-    const prePoolStake = Math.max(poolStakeAccLamports - minimumDelegation - stakeRentExemption, 0);
+    const prePoolStake = Math.max(poolStakeAccLamports - minimumDelegation - rentExemptReserve, 0);
 
     const tokenSupply = parseInt((await this._program.provider.connection.getTokenSupply(lstMint)).value.amount, 10);
     const stakeAddedNative = Number(amount) * 1e9;
