@@ -68,7 +68,7 @@ Per usual, if a given position falls below the liquidation threshold, the positi
     To learn more about marginfi-v2 flashloans, reference the flashloan endpoints in the <Button href="http://docs.marginfi.com/mfi-v2#instructions" variant="text"><>marginfi-v2 instructions</></Button> documentation.
 </Note>
 
-For the time being, all token banks on The Arena are paired with $USDC. Deposit a given bank's token to go long and leverage against $USDC. Depsoit $USDC to go short and leverage against the bank's token. **Soon you will be able to create token pairs of any kind**.
+For the time being, all token banks on The Arena are paired with $USDC. Deposit a given bank's token to go long and leverage against $USDC. Deposit $USDC to go short and leverage against the bank's token. **Soon you will be able to create token pairs of any kind**.
 
 **Taking a long or short position involves borrowing and lending different assets depending on the desired trade direction**. For example, if you want to open a long position for $BODEN, your goal is to profit from an increase in $BODEN's price relative to $USDC. To do this, you would borrow $USDC and use it to purchase more of $BODEN. As the price of $BODEN goes up, you can close your position and repay your loan in $USDC, keeping the remains as profit.
 
@@ -120,7 +120,7 @@ Remember, each bank you lend into is completely isolated, meaning you have a sep
 
 ## Integrate with Our Infrastructure {{ tag: '', label: '' }}
 
-We built The Arena on top of our flashloan and isolated bank infrastructure to showcase the innovative use cases made possible by marginfi's Liquidity Layer. The infrastructure for accessing leverage and creating permissionless banks is double-audited and ready-for-production. **Anyone can access and build on marginfi's leveraging and permissionless bank infrastructure**, and many teams already are. 
+We built The Arena on top of our flashloan and isolated bank infrastructure to showcase the innovative use cases made possible by marginfi's Liquidity Layer. The infrastructure for accessing leverage and creating permissionless banks is double-audited and ready-for-production. **Anyone can access and build on marginfi's leveraging and permissionless bank infrastructure**, and many teams already do. 
 
 The Arena application is <Button href="https://github.com/mrgnlabs/mrgn-ts/tree/feature/arrakeen/apps/marginfi-v2-trading" variant="text"><>fully open-sourced</></Button>. If you're a developer, feel free to review <Button href="https://github.com/mrgnlabs/mrgn-ts/blob/91834b3210e2748a4a036386a8d0afb3096cad66/apps/marginfi-v2-trading/src/components/common/TradingBox/tradingBox.utils.tsx" variant="text"><>the code for making leveraged trades</></Button> and implement marginfi's leveraging infrastructure in your own apps today!
 
