@@ -2,7 +2,7 @@ import { ImageComponent } from '~/components/ImageComponent'
 
 export const metadata = {
   title: 'Staked Collateral User Guide',
-  description: 'Staked Collateral is a new feature on marginfi that — for the firs time on $SOLana — allows users to borrow $$SOL against their native stake for any validator. 
+  description: 'Staked Collateral is a new feature on marginfi that — for the first time on $SOLana — allows users to borrow $$SOL against their native stake for any validator.' 
 }
 
 # Staked Collateral: A User Guide to Borrowing Against Native Stake
@@ -63,7 +63,7 @@ In the event of liquidation, liquidators pay $SOL to claim the staked position. 
 
 Banks can be created permissionlessly for any validator. Once established, bank settings are immutable and charge no fees. marginfi maintains control only over essential security parameters such as deposit limits.
 
-The Staked Collateral system uses Solana's <Button href="https://spl.solana.com/single-pool" variant="text"><>SPL Single Pool program<></Button> to enable native stake as collateral on marginfi. The process begins with creating a validator-specific stake pool through the SPL Single Pool program, after which marginfi establishes a corresponding bank configured to accept the pool's tokens as collateral.
+The Staked Collateral system uses Solana's <Button href="https://spl.solana.com/single-pool" variant="text">SPL Single Pool program</Button> to enable native stake as collateral on marginfi. The process begins with creating a validator-specific stake pool through the SPL Single Pool program, after which marginfi establishes a corresponding bank configured to accept the pool's tokens as collateral.
 
 <Note>
 When staking directly with Jito validator, MEV rewards accumulate as excess lamports in the stake account but aren't auto-compounded; these rewards are withdrawn when the stake account is deposited into the single-validator stake pool.
