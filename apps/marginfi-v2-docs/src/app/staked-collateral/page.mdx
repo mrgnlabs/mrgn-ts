@@ -1,0 +1,82 @@
+import { ImageComponent } from '~/components/ImageComponent'
+
+export const metadata = {
+  title: 'Staked Collateral User Guide',
+  description: 'Staked Collateral is a new feature on marginfi that — for the firs time on $SOLana — allows users to borrow $$SOL against their native stake for any validator. 
+}
+
+# Staked Collateral: A User Guide to Borrowing Against Native Stake
+
+For the first time on $SOLana, borrow against your native stake account for any validator — only on marginfi. {{ className: 'lead' }}
+
+---
+
+## Capital Efficient Native Staking {{ tag: '', label: '' }}
+
+Staking $$SOL plays a vital role in securing the $SOLana network. When users stake their $$SOL with validators, they help maintain the network's security and earn rewards on their $$SOL in return.
+
+Traditionally, this came with a catch: once you stake your $$SOL, it's locked up. You can't use it for anything else until you unstake, which takes multiple days (until the end of the epoch). This created a difficult choice – either lock up your $$SOL for rewards or stay liquid for other opportunities in the market.
+
+Liquid staking tokens (LSTs) emerged as a $SOLution, letting users maintain access to their capital while staking. But LSTs come with drawbacks: lower yields, added smart contract risks, and unpredictable vote rewards, etc.
+
+Until now, users had to choose between optimal staking rewards or capital efficiency. You either accepted lower returns with LSTs or locked up your capital with native staking.
+
+Today, marginfi changes this.
+
+Introducing Staked Collateral: a new feature that lets you borrow against your staked $$SOL while keeping all the benefits of native staking. No LSTs needed, no unstaking required. Simply use your active native stake account as collateral and access $$SOL liquidity, exclusively on marginfi.
+
+## How Does Staked Collateral Work? {{ tag: '', label: '' }}
+
+marginfi's Staked Collateral feature allows users to borrow $SOL using their staked $SOL as collateral while continuing to earn validator rewards. This functionality is available for any Solana validator with an established marginfi pool. Validators simply need to set up a pool to enable this feature for their stakers. (More on this later.)
+
+<Note>
+At launch, Staked Collateral will support the following validators:
+* mrgn2
+* mrgn3
+* mrgn4
+* Temporal Emerald
+* Helius
+* BONK
+* Binance
+* Sec3
+* MonkeDAO
+* Solayer
+
+Meaning, if you natively staked $SOL to any of these validators, you can borrow against your stake account on marginfi. Note that the app will only display stake pools for validators your wallet has have active stake accounts for.
+</Note>
+
+Currently, users can only borrow $SOL against their stake position, ensuring straightforward risk management since staked $SOL maintains a 1:1 minimum value relationship with $SOL. Users retain full ownership of their stake and can withdraw to a native stake account at any time. For accounts with multiple stake positions, users can select which position to use as collateral.
+
+Upon deposit, the stake account will no longer appear in the user's wallet. Users can deposit their entire stake or a portion, with partial deposits automatically splitting the stake account. The stake account becomes visible in the wallet again upon withdrawal.
+
+<Note>
+Note: Added functionality to borrow other assets besides $$SOL is in development.
+</Note>
+
+## Risk Management and Liquidations {{ tag: '', label: '' }}
+
+Liquidation risk is minimal for staked collateral positions. The only scenario for liquidation is when a validator's APY drops below the $SOL borrow rate for an extended period. Since stake positions continuously earn rewards and validators compete to maintain competitive yields, this is unlikely with established validators.
+
+In the event of liquidation, liquidators pay $SOL to claim the staked position. The liquidator receives slightly more in staked $SOL than they pay in liquid $SOL, ensuring there's incentive to maintain system health. The entire model is inherently stable because staked $SOL maintains a fundamental value relationship with $SOL - one staked $SOL will always be worth at least one $SOL, plus accumulated rewards.
+
+## Creating a Validator Bank {{ tag: '', label: '' }}
+
+Banks can be created permissionlessly for any validator. Once established, bank settings are immutable and charge no fees. marginfi maintains control only over essential security parameters such as deposit limits.
+
+The Staked Collateral system uses Solana's <Button href="https://spl.solana.com/single-pool" variant="text"><>SPL Single Pool program<></Button> to enable native stake as collateral on marginfi. The process begins with creating a validator-specific stake pool through the SPL Single Pool program, after which marginfi establishes a corresponding bank configured to accept the pool's tokens as collateral.
+
+<Note>
+When staking directly with Jito validator, MEV rewards accumulate as excess lamports in the stake account but aren't auto-compounded; these rewards are withdrawn when the stake account is deposited into the single-validator stake pool.
+</Note>
+
+The technical implementation operates seamlessly in the background. Users' native stake is transferred to the SPL Single Pool program, which issues receipt tokens representing their staked position. These tokens serve as collateral within marginfi. The entire system relies on Pyth's $SOL oracle for accurate price feeds, though this introduces a minimal depeg risk within epochs.
+
+Security is paramount in the design. Once created, pool settings become immutable, ensuring no single entity can control the pool. The banks operate without fees, with marginfi maintaining only essential security parameters like deposit limits. This architecture particularly benefits institutional users who prefer native staking over liquid staking tokens for tax considerations.
+
+The operational flow requires some patience during initial setup. New pools need one epoch (2-3 days) before lending can begin, and stake pools transition through three states: activating, active, and deactivating. While the initial pool creation requires approximately 1.1 $SOL, this one-time cost enables ongoing functionality. Currently, the system allows users to borrow only $SOL against their staked collateral, maintaining straightforward risk management.
+
+## The Future of Staked Capital {{ tag: '', label: '' }}
+
+Staked Collateral marks a fundamental shift in Solana's staking landscape by combining native staking benefits with the capital efficiency of liquid staking. Users can now access enhanced utility for their locked SOL without compromising security or superior staking rewards.
+
+Validators can contact @masterzorgon on Telegram or review the technical documentation to enable this feature for their stakers.

@@ -3,6 +3,11 @@ import { Heading } from '~/components/Heading'
 
 const guides = [
   {
+    href: '/staked-collateral',
+    name: 'Staked Collateral User Guide',
+    description: 'Learn how to borrow against your native stake on marginfi.',
+  },
+  {
     href: '/mrgnloop',
     name: 'mrgnloop User Guide',
     description: 'Learn how arbitrage interest rates across a diverse range of assets.',
