@@ -170,8 +170,8 @@ export async function calculateLendingTransaction(
           bank.isActive && isWholePosition(bank, amount)
         );
         return {
-          actionTxn: withdrawTx.withdrawTxn,
-          additionalTxns: [withdrawTx.stakeTxn],
+          actionTxn: withdrawTx.stakeTxn,
+          additionalTxns: [withdrawTx.withdrawTxn],
         };
       } else {
         const withdrawTxObject = await marginfiAccount.makeWithdrawTx(

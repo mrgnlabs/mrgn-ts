@@ -11,12 +11,12 @@ import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { registerMoonGateWallet } from "@moongate/moongate-adapter";
 
-import { cn, DEFAULT_MAX_CAP, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
+import { cn, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 import { ActionBoxProvider, ActionProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
 import { generateEndpoint } from "~/rpc.utils";
 
 import config from "~/config";
-import { MrgnlendProvider, LipClientProvider } from "~/context";
+import { MrgnlendProvider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { WalletProvider as MrgnWalletProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -112,53 +112,51 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
             <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
               <MrgnWalletProvider>
                 <MrgnlendProvider>
-                  <LipClientProvider>
-                    <ActionProvider
-                      transactionSettings={{
-                        broadcastType,
-                        priorityType,
-                        maxCap: priorityFees.maxCapUi ?? 0,
-                        maxCapType,
-                      }}
-                      jupiterOptions={{ ...jupiterOptions, slippageBps: jupiterOptions.slippageBps }}
-                      priorityFees={priorityFees}
+                  <ActionProvider
+                    transactionSettings={{
+                      broadcastType,
+                      priorityType,
+                      maxCap: priorityFees.maxCapUi ?? 0,
+                      maxCapType,
+                    }}
+                    jupiterOptions={{ ...jupiterOptions, slippageBps: jupiterOptions.slippageBps }}
+                    priorityFees={priorityFees}
+                  >
+                    <ActionBoxProvider
+                      banks={extendedBankInfos}
+                      nativeSolBalance={nativeSolBalance}
+                      marginfiClient={marginfiClient}
+                      selectedAccount={selectedAccount}
+                      connected={false}
+                      accountSummaryArg={accountSummary}
+                      setDisplaySettings={setDisplaySettings}
                     >
-                      <ActionBoxProvider
-                        banks={extendedBankInfos}
-                        nativeSolBalance={nativeSolBalance}
-                        marginfiClient={marginfiClient}
-                        selectedAccount={selectedAccount}
-                        connected={false}
-                        accountSummaryArg={accountSummary}
-                        setDisplaySettings={setDisplaySettings}
-                      >
-                        <Navbar />
+                      <Navbar />
 
-                        <Desktop>
-                          <WalletModalProvider>
-                            <div className={cn("w-full flex flex-col justify-center items-center")}>
-                              <Component {...pageProps} />
-                            </div>
-                            <Footer />
-                          </WalletModalProvider>
-                        </Desktop>
-
-                        <Mobile>
+                      <Desktop>
+                        <WalletModalProvider>
                           <div className={cn("w-full flex flex-col justify-center items-center")}>
                             <Component {...pageProps} />
                           </div>
-                          <MobileNavbar />
-                        </Mobile>
+                          <Footer />
+                        </WalletModalProvider>
+                      </Desktop>
 
-                        <Analytics />
-                        <Tutorial />
-                        <AuthDialog
-                          mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
-                        />
-                        <ToastContainer position="bottom-left" theme="dark" />
-                      </ActionBoxProvider>
-                    </ActionProvider>
-                  </LipClientProvider>
+                      <Mobile>
+                        <div className={cn("w-full flex flex-col justify-center items-center")}>
+                          <Component {...pageProps} />
+                        </div>
+                        <MobileNavbar />
+                      </Mobile>
+
+                      <Analytics />
+                      <Tutorial />
+                      <AuthDialog
+                        mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
+                      />
+                      <ToastContainer position="bottom-left" theme="dark" />
+                    </ActionBoxProvider>
+                  </ActionProvider>
                 </MrgnlendProvider>
               </MrgnWalletProvider>
             </WalletProvider>
