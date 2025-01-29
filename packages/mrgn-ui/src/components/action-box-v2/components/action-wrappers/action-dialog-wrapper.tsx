@@ -54,7 +54,7 @@ export const ActionDialogWrapper = ({ trigger, children, title, isTriggered = fa
           <DialogTrigger asChild>{trigger}</DialogTrigger>
           <DialogContent
             className={
-              "shadow-none overflow-visible md:flex md:max-w-[520px] py-3 px-5 sm:rounded-2xl bg-transparent border-none"
+              "shadow-none overflow-visible md:flex md:max-w-[520px] md:py-3 md:px-5 p-0 sm:rounded-2xl bg-transparent border-none"
             }
             closeClassName={"-top-1 -right-1"}
           >
