@@ -498,14 +498,14 @@ export const DepositSwapBox = ({
 
   return (
     <ActionBoxContentWrapper>
-      <div className="mb-4">
+      <div className="space-y-1 mb-4">
         <span className="text-sm text-muted-foreground">
           {!requestedDepositBank ||
           (selectedDepositBank &&
             selectedSwapBank &&
             selectedDepositBank.meta.tokenSymbol ===
               ("info" in selectedSwapBank ? selectedSwapBank.info.state.mint.toBase58() : selectedSwapBank.symbol))
-            ? "Deposit"
+            ? "Swap"
             : "Swap & Deposit"}
         </span>
         <ActionInput
@@ -528,19 +528,8 @@ export const DepositSwapBox = ({
       </div>
 
       {!requestedDepositBank && (
-        <div className="mb-4">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
-                  ✨ Collateral <IconInfoCircle className="w-4 h-4" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>This is the collateral you will be depositing into.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+        <div className="space-y-1 mb-4">
+          <p className="text-sm text-muted-foreground">Deposit</p>
           <ActionInput
             banks={banks.filter(
               (bank) => "info" in bank && bank.info.rawBank.mint.toBase58() !== selectedSwapBank?.address.toBase58()
