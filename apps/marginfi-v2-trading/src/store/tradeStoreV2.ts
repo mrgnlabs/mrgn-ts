@@ -13,7 +13,15 @@ import {
   MarginfiAccount,
   MintDataMap,
 } from "@mrgnlabs/marginfi-client-v2";
-import { Wallet, chunkedGetRawMultipleAccountInfoOrdered } from "@mrgnlabs/mrgn-common";
+import {
+  TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+  Wallet,
+  WalletToken,
+  chunkedGetRawMultipleAccountInfoOrdered,
+  nativeToUi,
+  unpackAccount,
+} from "@mrgnlabs/mrgn-common";
 
 import { POOLS_PER_PAGE } from "~/config/trade";
 import { TokenData } from "~/types";
@@ -100,6 +108,9 @@ type TradeStoreV2State = {
   // portfolio: Portfolio | null;
   referralCode: string | null;
 
+  // wallet tokens
+  walletTokens: WalletToken[] | null;
+
   /* Actions */
   // fetch arena group summary
   fetchArenaGroups: (initialArenaState?: InitialArenaState) => Promise<void>;
@@ -134,6 +145,9 @@ type TradeStoreV2State = {
   setSortBy: (sortBy: TradePoolFilterStates) => void;
   resetUserData: () => void;
   setHydrationComplete: () => void;
+  fetchWalletTokens: (wallet: Wallet, banks: ArenaBank[]) => Promise<void>;
+  updateWalletTokens: (connection: Connection) => Promise<void>;
+  updateWalletToken: (tokenAddress: string, ata: string, connection: Connection) => Promise<void>;
 };
 
 const { programId } = getConfig();
@@ -181,6 +195,9 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   pythFeedIdMap: new Map(),
   oraclePrices: {},
   positionsByGroupPk: {},
+
+  walletTokens: null,
+
   setIsRefreshingStore: (isRefreshing) => {
     set((state) => {
       return {
@@ -734,6 +751,136 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       wallet: undefined,
       userDataFetched: false,
     });
+  },
+
+  fetchWalletTokens: async (wallet: Wallet, extendedBankInfos: ArenaBank[]) => {
+    try {
+      const response = await fetch(`/api/user/wallet?wallet=${wallet.publicKey.toBase58()}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch wallet tokens");
+      }
+      const data = await response.json();
+
+      const mappedData: WalletToken[] = data.map((token: WalletToken) => {
+        return {
+          ...token,
+          address: new PublicKey(token.address),
+          ata: new PublicKey(token.ata),
+        };
+      });
+
+      const bankTokenSymbols = new Set(extendedBankInfos.map((bank) => bank.meta.tokenSymbol));
+      const bankTokenAddresses = new Set(extendedBankInfos.map((bank) => bank.address.toBase58()));
+
+      const filteredTokens = mappedData
+        .filter((token) => !bankTokenSymbols.has(token.symbol))
+        .filter((token) => !bankTokenAddresses.has(token.address.toBase58()));
+
+      set({ walletTokens: filteredTokens });
+    } catch (error) {
+      console.error("Failed to fetch wallet tokens:", error);
+    }
+  },
+  updateWalletTokens: async (connection: Connection) => {
+    try {
+      const walletTokens = get().walletTokens;
+
+      console.log("walletTokens", walletTokens);
+      if (!walletTokens) {
+        return;
+      }
+
+      // Updated prices
+      const response = await fetch(
+        `/api/birdeye/price-multiple?tokenAddress=${encodeURIComponent(
+          walletTokens.map((token) => token.address.toBase58()).join(",")
+        )}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch wallet tokens");
+      }
+
+      const updatedPrices = await response.json();
+
+      // Updated balances
+      const accountsAiList = await connection.getMultipleAccountsInfo([...walletTokens.map((token) => token.ata)]);
+
+      const decodedAccountInfos = accountsAiList.map((ai, idx) => {
+        let accountOwner;
+        if (ai?.owner.equals(TOKEN_2022_PROGRAM_ID)) {
+          accountOwner = TOKEN_2022_PROGRAM_ID;
+        } else {
+          accountOwner = TOKEN_PROGRAM_ID;
+        }
+        const decoded = unpackAccount(walletTokens[idx].ata, ai, accountOwner);
+        return decoded;
+      });
+
+      const updatedWalletTokens = walletTokens.map((token) => {
+        const tokenPriceData = updatedPrices[token.address.toBase58()];
+        const tokenBalance = decodedAccountInfos.find(
+          (decoded) => decoded.mint.toBase58() === token.address.toBase58()
+        );
+        return {
+          ...token,
+          price: tokenPriceData ? tokenPriceData.value : token.price,
+          balance: tokenBalance
+            ? Number(nativeToUi(tokenBalance.amount.toString(), token.mintDecimals))
+            : token.balance,
+        };
+      });
+
+      // Update the state with the new token prices
+      set({ walletTokens: updatedWalletTokens });
+    } catch (error) {
+      console.error("Failed to update wallet tokens:", error);
+    }
+  },
+
+  updateWalletToken: async (tokenAddress: string, ata: string, connection: Connection) => {
+    try {
+      const walletTokens = get().walletTokens;
+
+      if (!walletTokens) {
+        return;
+      }
+
+      // Updated price
+      const response = await fetch(`/api/birdeye/price?tokenAddress=${tokenAddress}`);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch wallet token");
+      }
+
+      const updatedPriceObject = await response.json();
+
+      // Updated balance
+      const accountInfo = await connection.getAccountInfo(new PublicKey(ata));
+      let accountOwner;
+      if (accountInfo?.owner.equals(TOKEN_2022_PROGRAM_ID)) {
+        accountOwner = TOKEN_2022_PROGRAM_ID;
+      } else {
+        accountOwner = TOKEN_PROGRAM_ID;
+      }
+      const decoded = unpackAccount(new PublicKey(ata), accountInfo, accountOwner);
+
+      // Updated wallet tokens
+      const updatedWalletTokens = walletTokens.map((token) => {
+        if (token.address.toBase58() === tokenAddress) {
+          return {
+            ...token,
+            price: updatedPriceObject.value,
+            balance: nativeToUi(decoded.amount.toString(), token.mintDecimals),
+          };
+        }
+        return token;
+      });
+
+      set({ walletTokens: updatedWalletTokens });
+    } catch (error) {
+      console.error("Failed to update wallet token:", error);
+    }
   },
 });
 

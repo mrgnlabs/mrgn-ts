@@ -1,5 +1,6 @@
 import { QuoteResponse } from "@jup-ag/api";
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { WalletToken } from "@mrgnlabs/mrgn-common";
 
 export enum LendingModes {
   LEND = "lend",
@@ -76,6 +77,7 @@ interface PreviousTxnDepositSwap {
     swapBank: ActiveBankInfo;
     depositAmount: number;
     swapAmount: number;
+    walletToken?: WalletToken | null;
   };
 }
 

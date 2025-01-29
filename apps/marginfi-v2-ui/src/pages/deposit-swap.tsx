@@ -11,11 +11,35 @@ import { Loader } from "~/components/ui/loader";
 import { useWallet } from "~/components/wallet-v2";
 
 export default function DepositSwapPage() {
-  const [initialized, extendedBankInfosWithoutStakedAssets] = useMrgnlendStore((state) => [
+  const [
+    walletTokens,
+    initialized,
+    extendedBankInfosWithoutStakedAssets,
+    fetchWalletTokens,
+    extendedbankInfos,
+    updateWalletToken,
+    marginfiClient,
+  ] = useMrgnlendStore((state) => [
+    state.walletTokens,
     state.initialized,
     state.extendedBankInfosWithoutStakedAssets,
+    state.fetchWalletTokens,
+    state.extendedBankInfos,
+    state.updateWalletToken,
+    state.marginfiClient,
   ]);
   const { connected, wallet } = useWallet();
+
+  React.useEffect(() => {
+    if (
+      wallet &&
+      extendedbankInfos &&
+      extendedbankInfos.length > 0 &&
+      (walletTokens === null || walletTokens.length === 0)
+    ) {
+      fetchWalletTokens(wallet, extendedbankInfos);
+    }
+  }, [fetchWalletTokens, wallet, walletTokens, extendedbankInfos]);
 
   return (
     <>
@@ -31,8 +55,25 @@ export default function DepositSwapPage() {
               connected: connected,
               requestedDepositBank: undefined,
               requestedSwapBank: undefined,
+              walletTokens: walletTokens,
               captureEvent: (event, properties) => {
                 capture(event, properties);
+              },
+              onComplete(previousTxn) {
+                const connection = marginfiClient?.provider.connection;
+                console.log("previousTxn", previousTxn);
+                if (
+                  previousTxn.txnType === "DEPOSIT_SWAP" &&
+                  previousTxn.depositSwapOptions.walletToken &&
+                  connection
+                ) {
+                  console.log("updating wallet token");
+                  updateWalletToken(
+                    previousTxn.depositSwapOptions.walletToken.address.toBase58(),
+                    previousTxn.depositSwapOptions.walletToken.ata.toBase58(),
+                    marginfiClient?.provider.connection
+                  );
+                }
               },
             }}
           />
