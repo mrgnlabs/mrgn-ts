@@ -65,8 +65,8 @@ export default async function handler(req: NextApiRequest<WalletRequest>, res: N
       )
     ).sort((a, b) => b.value - a.value);
 
-    // cache for 1 hour
-    // res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=59");
+    // cache for 30 secs
+    res.setHeader("Cache-Control", "s-maxage=30, stale-while-revalidate=59");
     return res.status(STATUS_OK).json(tokens);
   } catch (error) {
     console.error("Error:", error);

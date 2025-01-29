@@ -41,12 +41,15 @@ export const PositionActionButtons = ({
     setDisplaySettings: state.setDisplaySettings,
   }));
 
-  const [refreshGroup, nativeSolBalance, positionsByGroupPk, banksByBankPk] = useTradeStoreV2((state) => [
-    state.refreshGroup,
-    state.nativeSolBalance,
-    state.positionsByGroupPk,
-    state.banksByBankPk,
-  ]);
+  const [refreshGroup, nativeSolBalance, positionsByGroupPk, banksByBankPk, fetchWalletTokens, walletTokens] =
+    useTradeStoreV2((state) => [
+      state.refreshGroup,
+      state.nativeSolBalance,
+      state.positionsByGroupPk,
+      state.banksByBankPk,
+      state.fetchWalletTokens,
+      state.walletTokens,
+    ]);
 
   const depositBanks = React.useMemo(() => {
     const tokenBank = arenaPool.tokenBank.isActive ? arenaPool.tokenBank : null;
@@ -76,6 +79,18 @@ export const PositionActionButtons = ({
     return uniqueBanks;
   }, [banksByBankPk]);
 
+  React.useEffect(() => {
+    if (
+      wallet &&
+      extendedBankInfos &&
+      extendedBankInfos.length > 0 &&
+      (walletTokens === null || walletTokens.length === 0)
+    ) {
+      fetchWalletTokens(wallet, extendedBankInfos);
+    }
+  }, [fetchWalletTokens, wallet, walletTokens, extendedBankInfos]);
+  // TODO: confirm this isnt fetching too often
+
   return (
     <ActionBoxProvider
       nativeSolBalance={nativeSolBalance}
@@ -98,6 +113,7 @@ export const PositionActionButtons = ({
             banks: extendedBankInfos,
             requestedSwapBank: arenaPool.status === GroupStatus.LONG ? borrowBank ?? undefined : undefined,
             showAvailableCollateral: false,
+            walletTokens: walletTokens,
             captureEvent: () => {
               capture("position_add_btn_click", {
                 group: arenaPool.groupPk?.toBase58(),

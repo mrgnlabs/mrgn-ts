@@ -11,12 +11,14 @@ export function useDepositSwapActionAmounts({
   nativeSolBalance,
   actionMode,
   maxAmountCollateral,
+  walletTokens,
 }: {
   amountRaw: string;
   nativeSolBalance: number;
   actionMode: ActionType;
   selectedBank: ExtendedBankInfo | WalletToken | null;
   maxAmountCollateral?: number;
+  walletTokens: WalletToken[] | null;
 }) {
   const amount = React.useMemo(() => {
     const strippedAmount = amountRaw.replace(/,/g, "");

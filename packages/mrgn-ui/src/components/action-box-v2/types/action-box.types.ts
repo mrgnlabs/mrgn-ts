@@ -69,7 +69,7 @@ interface RequiredStakeBoxProps
 interface RequiredDepositSwapBoxProps
   extends Pick<
     DepositSwapBoxProps,
-    "onComplete" | "captureEvent" | "connected" | "showTokenSelection" | "requestedDepositBank"
+    "onComplete" | "captureEvent" | "connected" | "showTokenSelection" | "requestedDepositBank" | "walletTokens"
   > {}
 
 interface ActionBoxComponent extends React.FC<ActionBoxProps & ActionBoxComponentProps> {
