@@ -16,7 +16,7 @@ interface AmountPreviewProps {
 export const AmountPreview = ({ tradeSide, amount, isLoading, depositBank }: AmountPreviewProps) => {
   return (
     <div className="flex flex-col gap-6">
-      <dl className="grid grid-cols-2 gap-y-2 text-sm">
+      <dl className="grid grid-cols-2 gap-y-3 text-sm">
         <Stat label={`Size of ${tradeSide}`}>
           {isLoading ? <IconLoader size={16} /> : dynamicNumeralFormatter(amount)}{" "}
           {depositBank?.meta.tokenSymbol.toUpperCase()}
