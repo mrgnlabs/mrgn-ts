@@ -878,11 +878,6 @@ class MarginfiAccount {
       remainingAccounts.push(...this.getHealthCheckAccounts(banks, [bank], [], bankMetadataMap));
     }
 
-    console.log("REMAINING ACCOUNTS");
-    remainingAccounts.forEach((acc) => {
-      console.log("ACCOUNT", acc.pubkey.toBase58());
-    });
-
     const ix = await instructions.makeBorrowIx(
       program,
       {
@@ -898,12 +893,6 @@ class MarginfiAccount {
     );
     const borrowIxs = bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol ? this.wrapInstructionForWSol(ix) : [ix];
     ixs.push(...borrowIxs);
-
-    console.log(ix);
-
-    ix.keys.forEach((key) => {
-      console.log(key.pubkey.toBase58());
-    });
 
     return {
       instructions: ixs,
