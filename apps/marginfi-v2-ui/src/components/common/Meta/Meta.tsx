@@ -5,21 +5,17 @@ type MrgnProps = {
 };
 
 export const Meta = ({ path }: MrgnProps) => {
-  const customPages: Record<string, { title: string; description: string }> = {
+  const customPages: Record<string, { description: string }> = {
     "/": {
-      title: "High-Yield DeFi Borrowing & Lending | Earn More with marginfi",
       description:
         "Earn high yields with marginfi's DeFi lending and borrowing protocol using SOL, USDC, USDT, and more. Borrow assets, compound returns, and access instant liquidity in just a few clicks.",
     },
     "/stake": {
-      title: "Self-Custody Solana Staking | Hedge Against Inflation with marginfi",
       description:
         "Unlock high-yield Solana staking on marginfi. Stake your assets, hedge against inflation, and earn yield safely and securely.",
     },
   };
-  const title = customPages[path]
-    ? customPages[path].title
-    : `marginfi ${path !== "/" ? ` - ${path.substring(1)}` : ""}`;
+  const title = `marginfi ${path !== "/" ? ` - ${path.substring(1)}` : "- lend"}`;
   const description = customPages[path] ? customPages[path].description : null;
   return (
     <Head>
