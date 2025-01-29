@@ -48,8 +48,6 @@ import { IconSettings } from "@tabler/icons-react";
 import { Button } from "~/components/ui/button";
 import { PublicKey } from "@solana/web3.js";
 
-// TODO: move to mrgn-common
-
 export type DepositSwapBoxProps = {
   nativeSolBalance: number;
   connected: boolean;
@@ -66,6 +64,8 @@ export type DepositSwapBoxProps = {
   showTokenSelectionGroups?: boolean;
   hidePoolStats?: HidePoolStats;
   displaySettings?: boolean;
+
+  walletTokens: WalletToken[] | null;
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -88,6 +88,7 @@ export const DepositSwapBox = ({
   onComplete,
   captureEvent,
   hidePoolStats,
+  walletTokens,
   displaySettings,
   setDisplaySettings,
 }: DepositSwapBoxProps) => {
@@ -129,8 +130,6 @@ export const DepositSwapBox = ({
     state.setErrorMessage,
   ]);
 
-  const [walletTokens, setWalletTokens] = React.useState<WalletToken[] | null>(null);
-
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
     isLoading: boolean;
@@ -166,6 +165,7 @@ export const DepositSwapBox = ({
     selectedBank: selectedSwapBank ?? selectedDepositBank,
     nativeSolBalance,
     actionMode: lendMode,
+    walletTokens,
   });
   const { actionSummary, refreshSimulation } = useDepositSwapSimulation({
     debouncedAmount: debouncedAmount ?? 0,
@@ -226,38 +226,38 @@ export const DepositSwapBox = ({
   /////////////////////////////////
   // fetch wallet tokens actions //
   /////////////////////////////////
-  const fetchWalletTokens = React.useCallback(async (wallet: PublicKey) => {
-    try {
-      const response = await fetch(`/api/user/wallet?wallet=${wallet.toBase58()}`);
+  // const fetchWalletTokens = React.useCallback(async (wallet: PublicKey) => {
+  //   try {
+  //     const response = await fetch(`/api/user/wallet?wallet=${wallet.toBase58()}`);
 
-      const data = await response.json();
+  //     const data = await response.json();
 
-      const mappedData = data.map((token: WalletToken) => {
-        return {
-          ...token,
-          address: new PublicKey(token.address),
-          ata: new PublicKey(token.ata),
-        };
-      });
+  //     const mappedData = data.map((token: WalletToken) => {
+  //       return {
+  //         ...token,
+  //         address: new PublicKey(token.address),
+  //         ata: new PublicKey(token.ata),
+  //       };
+  //     });
 
-      setWalletTokens(mappedData);
-    } catch (error) {
-      console.error("Failed to fetch wallet tokens:", error);
-    }
-  }, []);
+  //     setWalletTokens(mappedData);
+  //   } catch (error) {
+  //     console.error("Failed to fetch wallet tokens:", error);
+  //   }
+  // }, []);
 
-  // Fetch on initial load
-  React.useEffect(() => {
-    if (!connected || !selectedAccount || walletTokens !== null) return;
+  // // Fetch on initial load
+  // React.useEffect(() => {
+  //   if (!connected || !selectedAccount || walletTokens !== null) return;
 
-    const walletPublicKey = selectedAccount.authority;
-    fetchWalletTokens(walletPublicKey);
-  }, [connected, selectedAccount, walletTokens, fetchWalletTokens]);
+  //   const walletPublicKey = selectedAccount.authority;
+  //   fetchWalletTokens(walletPublicKey);
+  // }, [connected, selectedAccount, walletTokens, fetchWalletTokens]);
 
-  // Fetch on refresh
-  const handleRefreshWalletTokens = (walletPublicKey: PublicKey) => {
-    fetchWalletTokens(walletPublicKey);
-  };
+  // // Fetch on refresh
+  // const handleRefreshWalletTokens = (walletPublicKey: PublicKey) => {
+  //   fetchWalletTokens(walletPublicKey);
+  // };
 
   const isDust = React.useMemo(
     () => selectedDepositBank?.isActive && selectedDepositBank?.position.isDust,
@@ -385,6 +385,9 @@ export const DepositSwapBox = ({
                     )
                   : debouncedAmount ?? 0,
                 swapAmount: actionTxns?.actionQuote ? debouncedAmount ?? 0 : 0,
+                walletToken: walletTokens?.find(
+                  (token) => token.address.toBase58() === selectedSwapBank?.address.toBase58()
+                ),
               },
             });
         },
@@ -402,6 +405,7 @@ export const DepositSwapBox = ({
       selectedSwapBank,
       setIsActionComplete,
       setPreviousTxn,
+      walletTokens,
     ]
   );
 
@@ -471,6 +475,9 @@ export const DepositSwapBox = ({
                   )
                 : debouncedAmount,
               swapAmount: actionTxns?.actionQuote ? debouncedAmount : 0,
+              walletToken: walletTokens?.find(
+                (token) => token.address.toBase58() === selectedSwapBank?.address.toBase58()
+              ),
             },
           });
       },
@@ -482,17 +489,18 @@ export const DepositSwapBox = ({
     actionTxns,
     marginfiClient,
     debouncedAmount,
+    transactionSettings,
+    selectedAccount,
     selectedDepositBank,
     nativeSolBalance,
-    selectedAccount,
     priorityFees,
-    transactionSettings,
     lendMode,
     selectedSwapBank,
     captureEvent,
     setIsActionComplete,
     setPreviousTxn,
     onComplete,
+    walletTokens,
     retryDepositSwapAction,
   ]);
 
