@@ -4,8 +4,10 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, TooltipPortal } from "~/components/ui/tooltip";
 
 import { BankItem, BankListCommand } from "~/components/action-box-v2/components";
+import { IconInfoCircle } from "@tabler/icons-react";
 
 type BankListProps = {
   selectedBank: ExtendedBankInfo | null;
@@ -101,7 +103,25 @@ export const BankList = ({
 
         {/* REPAYING */}
         {filteredBanksActive.length > 0 && (
-          <CommandGroup heading="Currently supplying">
+          <CommandGroup
+            heading={
+              <div className="flex items-center gap-1.5 cursor-default">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <IconInfoCircle size={14} className="hidden md:block" />
+                    </TooltipTrigger>
+                    <TooltipPortal>
+                      <TooltipContent>
+                        <p>Use your supplied assets to repay your borrow</p>
+                      </TooltipContent>
+                    </TooltipPortal>
+                  </Tooltip>
+                </TooltipProvider>
+                <p>Collateral Repay</p>
+              </div>
+            }
+          >
             {filteredBanksActive.map((bank, index) => {
               return (
                 <CommandItem
