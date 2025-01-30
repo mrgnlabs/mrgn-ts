@@ -934,7 +934,7 @@ class MarginfiAccountWrapper {
     ]);
 
     // calculate if full stake or requires splitting
-    const amountLamports = Number(amount) * LAMPORTS_PER_SOL;
+    const amountLamports = Math.round(Number(amount) * LAMPORTS_PER_SOL);
     const stakeAccLamports = Number(stakeAccParsed.parsed.info.stake?.delegation?.stake ?? 0);
     const isFullStake = amountLamports >= stakeAccLamports;
 
