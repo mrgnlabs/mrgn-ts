@@ -37,7 +37,12 @@ export const RewardsDialog: React.FC<RewardsDialogProps> = ({
                 You have rewards available for collection. Learn more
                 <br className="hidden md:block" /> about our emissions program and collect your rewards below.
               </p>
-              <Link href="/emissions" className="text-primary flex items-center gap-1m">
+              <Link
+                href="https://docs.marginfi.com/faqs#how-does-emissions-work"
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary flex items-center gap-1m"
+              >
                 <Button variant="secondary" size="sm">
                   <IconInfoCircle size={16} /> Learn more about emissions program
                 </Button>

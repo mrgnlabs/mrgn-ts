@@ -485,14 +485,16 @@ export const AssetsList = () => {
                 <span>Create staked asset pool</span>
               </Link>
             </Button>
-            <Button
-              variant="link"
-              className="mx-auto font-light text-[11px] gap-1 h-5 text-muted-foreground/75 no-underline rounded-none px-0 hover:no-underline hover:text-foreground"
-              size="sm"
-            >
-              <IconExternalLink size={12} />
-              Learn more
-            </Button>
+            <Link href="https://docs.marginfi.com/staked-collateral" target="_blank" rel="noreferrer">
+              <Button
+                variant="link"
+                className="mx-auto font-light text-[11px] gap-1 h-5 text-muted-foreground/75 no-underline rounded-none px-0 hover:no-underline hover:text-foreground"
+                size="sm"
+              >
+                <IconExternalLink size={12} />
+                Learn more
+              </Button>
+            </Link>
           </div>
         </div>
       )}

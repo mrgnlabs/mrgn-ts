@@ -199,7 +199,7 @@ export const LendingPortfolio = () => {
     const id = toast(
       () => (
         <div className="text-sm space-y-4">
-          <p className="md:pr-16">⭐️ You have rewards available for collection.</p>
+          <p className="md:pr-16">You have rewards available for collection.</p>
           <Button size="sm">Click to collect</Button>
         </div>
       ),

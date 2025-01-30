@@ -22,24 +22,38 @@ export default function StakedAssetsPage() {
   ]);
 
   return (
-    <div className="flex flex-col justify-center items-center px-4">
-      <PageHeading heading="Staked Asset Banks" body={<p>Deposit your native stake and use it as collateral.</p>} />
-
-      <ActionBox.Lend
-        useProvider={true}
-        lendProps={{
-          banks: stakedAssetBankInfos,
-          requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
-          connected: connected,
-          walletContextState: walletContextState,
-          captureEvent: (event, properties) => {
-            // capture(event, properties);
-          },
-          onComplete: () => {
-            fetchMrgnlendState();
-          },
-        }}
+    <div className="flex flex-col justify-center items-center px-4 max-w-7xl mx-auto w-full">
+      <PageHeading
+        heading="Staked Asset Banks"
+        body={
+          <p>
+            Deposit your native stake and use it as collateral.{" "}
+            <Link
+              href="https://docs.marginfi.com/staked-collateral"
+              className="border-b border-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Learn more.
+            </Link>
+          </p>
+        }
       />
+
+      <div className="w-full">
+        <ActionBox.Lend
+          useProvider={true}
+          lendProps={{
+            banks: stakedAssetBankInfos,
+            requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
+            connected: connected,
+            walletContextState: walletContextState,
+            onComplete: () => {
+              fetchMrgnlendState();
+            },
+          }}
+        />
+      </div>
 
       <div className="flex flex-col justify-center items-center mt-16 gap-4">
         <p className="text-sm text-center text-muted-foreground leading-relaxed">
