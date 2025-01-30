@@ -126,7 +126,6 @@ const stateCreator: StateCreator<LoopBoxState, [], []> = (set, get) => ({
   },
 
   setErrorMessage(errorMessage) {
-    console.log("errorMessage", errorMessage);
     set({ errorMessage });
   },
 

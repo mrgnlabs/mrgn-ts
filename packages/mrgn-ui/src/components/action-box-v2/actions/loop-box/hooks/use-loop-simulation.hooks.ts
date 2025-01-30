@@ -198,8 +198,6 @@ export function useLoopSimulation({
         const errorMessage = DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(
           selectedSecondaryBank.meta.tokenSymbol
         );
-
-        console.log("fetchMaxLeverage", errorMessage);
         setErrorMessage(errorMessage);
       } else {
         setMaxLeverage(maxLeverage);

@@ -31,7 +31,6 @@ export async function sendTransactionAsGrpcBundle(
     });
 
     const sendBundleResult = await sendBundleResponse.json();
-    console.log("sendBundleResult", sendBundleResult);
     if (sendBundleResult.error) throw new SendBundleError(sendBundleResult.error, sendBundleResult?.bundleId);
     const bundleId = sendBundleResult.bundleId;
 
@@ -73,8 +72,6 @@ export async function sendTransactionAsBundle(
 
     const sendBundleResult = await sendBundleResponse.json();
     if (sendBundleResult.error) {
-      console.log("bundleError:", sendBundleResult.error);
-      console.log("tempBundleId:", tempBundleId);
       if (sendBundleResult.error.message.includes("already processed")) {
         return tempBundleId ?? "0x0"; // todo add proper bundle id
       }

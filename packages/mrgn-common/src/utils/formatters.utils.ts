@@ -44,7 +44,7 @@ export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFo
     tokenPrice,
     logging = false,
     ignoreMinDisplay = false, // New flag to control ignoring minDisplay
-    forceDecimals
+    forceDecimals,
   } = options;
 
   if (value === 0 || isNaN(value)) return "0";
@@ -91,13 +91,11 @@ export const dynamicNumeralFormatter = (value: number, options: dynamicNumeralFo
       return value.toFixed(significantDecimals).replace(/\.?0+$/, "");
     }
   }
-  
+
   if (Math.abs(value) >= minDisplay) {
     const decimalPlaces = Math.max(0, Math.ceil(-Math.log10(minDisplay)));
     return numeral(value).format(`0,0.[${"0".repeat(decimalPlaces)}]`);
   }
-
-  
 
   // Case: Token price takes priority when defined
   if (tokenPrice) {

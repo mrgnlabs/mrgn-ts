@@ -27,8 +27,6 @@ export const handleExecuteDepositSwapAction = async ({
         : "NO_SWAP",
       amount: params.amount,
     });
-
-    console.log(params);
     const txnSig = await executeDepositSwapAction({ ...params, swapBank: params.swapBank });
 
     setIsLoading(false);

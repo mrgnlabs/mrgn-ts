@@ -150,8 +150,6 @@ export async function calculateBorrowLendPositionParams({
     slippageMode
   );
 
-  console.log("DEBUG: maxAmount", maxAmount);
-
   if (!maxAmount) return STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED;
 
   for (const maxAccounts of maxAccountsArr) {
@@ -228,7 +226,7 @@ export async function calculateLoopingParams({
     depositAmount = params.depositAmount;
     borrowAmountNative = params.borrowAmountNative;
   } else {
-    console.log("DEBUG: this code should not be accesed in the arena");
+    // this code should not be accesed in the arena
     const params = getLoopingParamsForClient(
       marginfiClient,
       loopingProps.depositBank,
@@ -248,10 +246,6 @@ export async function calculateLoopingParams({
   let firstQuote;
 
   for (const maxAccounts of maxAccountsArr) {
-    console.log(`%cDEBUG: calculating flashloan swap quote`, "color: blue; font-weight: bold; font-size: 14px;");
-    console.log(
-      `slippageBps: ${slippageBps}, platformFeeBps: ${platformFeeBps}, maxAccounts: ${maxAccounts}, slippageMode: ${slippageMode}`
-    );
     const quoteParams: QuoteGetRequest = {
       amount: borrowAmountNative,
       inputMint: loopingProps.borrowBank.info.state.mint.toBase58(), // borrow
@@ -368,7 +362,7 @@ export async function loopingBuilder({
   }
 
   if (!feeAccountInfo) {
-    console.log("DEBUG: feeAccountInfo is undefined");
+    console.warn("Warning: feeAccountInfo is undefined");
   }
 
   const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({

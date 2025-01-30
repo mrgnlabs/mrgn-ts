@@ -211,7 +211,7 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
         timestamp: new BigNumber(pullFeedDAta.last_update_timestamp.toString()),
       };
     default:
-      console.log("Invalid oracle setup", oracleSetup);
+      console.error("Invalid oracle setup", oracleSetup);
       throw new Error(`Invalid oracle setup "${oracleSetup}"`);
   }
 }
