@@ -1379,8 +1379,8 @@ class MarginfiAccountWrapper {
       });
 
       return {
-        withdrawTxn: withdrawTxn,
-        additionalTxs: [stakeTxn],
+        withdrawTxn: stakeTxn,
+        additionalTxs: [withdrawTxn],
       };
     } else {
       return {
