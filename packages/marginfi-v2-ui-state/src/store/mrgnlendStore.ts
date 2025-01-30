@@ -607,7 +607,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
       // Updated prices
       const response = await fetch(
-        `/api/birdeye/price-multiple?tokenAddress=${encodeURIComponent(
+        `/api/tokens/price-multiple?tokenAddress=${encodeURIComponent(
           walletTokens.map((token) => token.address.toBase58()).join(",")
         )}`
       );
@@ -662,7 +662,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       }
 
       // Updated price
-      const response = await fetch(`/api/birdeye/price?tokenAddress=${tokenAddress}`);
+      const response = await fetch(`/api/tokens/price?tokenAddress=${tokenAddress}`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch wallet token");
