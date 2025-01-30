@@ -447,13 +447,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         [[], []] as [ExtendedBankInfo[], ExtendedBankMetadata[]]
       );
 
-      const [filteredBankInfos, stakedAssetBankInfos] = await filterStakedAssetBanks(
-        wallet?.publicKey || null,
-        extendedBankInfos
-      );
-
-      extendedBankInfos = filteredBankInfos;
-
       const sortedExtendedBankInfos = extendedBankInfos.sort(
         (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
       );
@@ -465,6 +458,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         if (!a || !b) return 0;
         return b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price;
       });
+
+      const stakedAssetBankInfos = extendedBankInfos.filter((bank) => bank.info.rawBank.config.assetTag === 2);
 
       const { deposits, borrows } = extendedBankInfos.reduce(
         (acc, bank) => {
