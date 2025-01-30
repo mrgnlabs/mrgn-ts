@@ -209,7 +209,11 @@ export function useDepositSwapSimulation({
   );
 
   React.useEffect(() => {
-    if (prevDebouncedAmount !== debouncedAmount || prevSwapBank !== swapBank || prevDepositBank !== depositBank) {
+    if (
+      prevDebouncedAmount !== debouncedAmount ||
+      prevSwapBank?.address.toBase58() !== swapBank?.address.toBase58() ||
+      prevDepositBank?.address.toBase58() !== depositBank?.address.toBase58()
+    ) {
       if (debouncedAmount > 0) {
         handleSimulation(debouncedAmount);
       }
