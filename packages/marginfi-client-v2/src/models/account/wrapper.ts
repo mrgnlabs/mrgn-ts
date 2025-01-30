@@ -713,27 +713,6 @@ class MarginfiAccountWrapper {
     const blockhash =
       blockhashArg ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
 
-    console.log("DEBUG: TRANSACTION DEBUG");
-
-    console.log("Setup Bank Addresses:", setupBankAddresses ?? [borrowBankAddress, depositBankAddress]);
-
-    console.log("Borrow Arguments:", {
-      borrowAmount: borrowAmount.toString(),
-      borrowBankAddress: borrowBankAddress,
-      borrowOpts: {
-        createAtas: borrowOpts?.createAtas ?? false,
-        wrapAndUnwrapSol: borrowOpts?.wrapAndUnwrapSol ?? false,
-      },
-    });
-
-    console.log("Deposit Arguments:", {
-      depositAmount: depositAmount,
-      depositBankAddress: depositBankAddress,
-      depositOpts: {
-        wrapAndUnwrapSol: depositOpts?.wrapAndUnwrapSol ?? false,
-      },
-    });
-
     // creates atas if needed
     const setupIxs = await this.makeSetupIx(setupBankAddresses ?? [borrowBankAddress, depositBankAddress]);
     const cuRequestIxs =
@@ -805,14 +784,6 @@ class MarginfiAccountWrapper {
     // if cuRequestIxs are not present, priority fee ix is needed
     // wallets add a priority fee ix by default breaking the flashloan tx so we need to add a placeholder priority fee ix
     // docs: https://docs.phantom.app/developer-powertools/solana-priority-fees
-    console.log("DEBUG: building flashloan tx");
-    console.log("instructions:", [
-      ...cuRequestIxs,
-      priorityFeeIx,
-      ...borrowIxs.instructions,
-      ...swapIxs,
-      ...depositIxs.instructions,
-    ]);
     flashloanTx = await this.buildFlashLoanTx({
       ixs: [...cuRequestIxs, priorityFeeIx, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
       addressLookupTableAccounts,
@@ -957,12 +928,10 @@ class MarginfiAccountWrapper {
     // calculate amounts and thresholds
     const [rentExemptReserve, minimumDelegation] = await Promise.all([
       this._program.provider.connection.getMinimumBalanceForRentExemption(StakeProgram.space),
-      this._program.provider.connection
-        .getStakeMinimumDelegation()
-        .then((res) => {
-          console.log("minimumDelegation:", res.value);
-          return Math.max(res.value, LAMPORTS_PER_SOL);
-        }),
+      this._program.provider.connection.getStakeMinimumDelegation().then((res) => {
+        console.log("minimumDelegation:", res.value);
+        return Math.max(res.value, LAMPORTS_PER_SOL);
+      }),
     ]);
 
     // calculate if full stake or requires splitting
@@ -1299,7 +1268,14 @@ class MarginfiAccountWrapper {
    * @param isWholePosition - Whether to withdraw the entire position, defaults to false
    * @returns A transaction object ready to be signed and sent
    */
-  async makeWithdrawStakedTx(amount: Amount, bankAddress: PublicKey, isWholePosition: boolean) {
+  async makeWithdrawStakedTx(
+    amount: Amount,
+    bankAddress: PublicKey,
+    isWholePosition: boolean
+  ): Promise<{
+    withdrawTxn: VersionedTransaction;
+    additionalTxs: VersionedTransaction[];
+  }> {
     // get bank and metadata
     const bank = this.client.getBankByPk(bankAddress);
     const solBank = this.client.getBankByMint(WSOL_MINT);
@@ -1321,7 +1297,6 @@ class MarginfiAccountWrapper {
 
     // calculate amounts and thresholds
     const rentExemption = await this._program.provider.connection.getMinimumBalanceForRentExemption(200);
-    console.log("rentExemption", rentExemption);
 
     const stakeAmount = new BigNumber(new BigNumber(amount).toString());
 
@@ -1361,21 +1336,58 @@ class MarginfiAccountWrapper {
     );
 
     // build transaction
-    const withdrawTxn = new Transaction().add(...withdrawIxs.instructions);
+    const {
+      value: { blockhash },
+    } = await this._program.provider.connection.getLatestBlockhashAndContext("confirmed");
 
-    const stakeTxn = new Transaction().add(createStakeAccountIx, approveAccountAuthorityIx, withdrawStakeIx);
+    const mfiWithdrawIxs = [...withdrawIxs.instructions];
+    const stakeIxs = [createStakeAccountIx, approveAccountAuthorityIx, withdrawStakeIx];
 
-    const formattedWithdrawTxn = addTransactionMetadata(withdrawTxn, {
-      signers: [...withdrawIxs.keys, stakeAccount],
-      addressLookupTables: this.client.addressLookupTables,
-    });
+    const fullTxnMessage = new TransactionMessage({
+      payerKey: this.client.wallet.publicKey,
+      recentBlockhash: blockhash,
+      instructions: [...mfiWithdrawIxs, ...stakeIxs],
+    }).compileToV0Message(this.client.addressLookupTables);
+    const fullTxn = new VersionedTransaction(fullTxnMessage);
 
-    const formattedStakeTxn = addTransactionMetadata(stakeTxn, {
-      signers: [stakeAccount],
-      addressLookupTables: this.client.addressLookupTables,
-    });
+    const txSize = getTxSize(fullTxn);
+    const accountKeys = getAccountKeys(fullTxn, this.client.addressLookupTables);
+    const txToManyKeys = accountKeys > MAX_ACCOUNT_KEYS;
+    const txToBig = txSize > MAX_TX_SIZE;
 
-    return { withdrawTxn: formattedWithdrawTxn, stakeTxn: formattedStakeTxn };
+    const txOverflown = txToManyKeys || txToBig;
+
+    if (txOverflown) {
+      const withdrawMessage = new TransactionMessage({
+        payerKey: this.client.wallet.publicKey,
+        recentBlockhash: blockhash,
+        instructions: [...mfiWithdrawIxs],
+      }).compileToV0Message(this.client.addressLookupTables);
+      const withdrawTxn = addTransactionMetadata(new VersionedTransaction(withdrawMessage), {
+        signers: withdrawIxs.keys,
+        addressLookupTables: this.client.addressLookupTables,
+      });
+
+      const stakeMessage = new TransactionMessage({
+        payerKey: this.client.wallet.publicKey,
+        recentBlockhash: blockhash,
+        instructions: [createStakeAccountIx, approveAccountAuthorityIx, withdrawStakeIx],
+      }).compileToV0Message(this.client.addressLookupTables);
+      const stakeTxn = addTransactionMetadata(new VersionedTransaction(stakeMessage), {
+        signers: [stakeAccount],
+        addressLookupTables: this.client.addressLookupTables,
+      });
+
+      return {
+        withdrawTxn: withdrawTxn,
+        additionalTxs: [stakeTxn],
+      };
+    } else {
+      return {
+        withdrawTxn: fullTxn,
+        additionalTxs: [],
+      };
+    }
   }
 
   /**
