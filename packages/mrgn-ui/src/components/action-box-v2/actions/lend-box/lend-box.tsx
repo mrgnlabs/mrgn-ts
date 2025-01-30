@@ -650,12 +650,7 @@ export const LendBox = ({
         amount > 0 &&
         amount === maxAmount && (
           <div className="mt-6 text-[11px] text-muted-foreground font-light">
-            <p>*Jito mev rewards will be withdrawn to your wallet on deposit</p>
-            <p>
-              <Link href="https://docs.mrgn.xyz/docs/jito-mev-rewards" className="block max-w-fit underline">
-                Learn more
-              </Link>
-            </p>
+            <p>*Accumulated Jito mev rewards may be withdrawn to your wallet on deposit</p>
           </div>
         )}
       <LSTDialog
