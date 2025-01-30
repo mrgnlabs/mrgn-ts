@@ -16,9 +16,10 @@ import { Button } from "~/components/ui/button";
 export default function StakedAssetsPage() {
   const { walletContextState, connected } = useWallet();
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
-  const [fetchMrgnlendState, stakedAssetBankInfos] = useMrgnlendStore((state) => [
+  const [fetchMrgnlendState, stakedAssetBankInfos, stakeAccounts] = useMrgnlendStore((state) => [
     state.fetchMrgnlendState,
     state.stakedAssetBankInfos,
+    state.stakeAccounts
   ]);
 
   return (
@@ -48,6 +49,7 @@ export default function StakedAssetsPage() {
             requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
             connected: connected,
             walletContextState: walletContextState,
+            stakeAccounts,
             onComplete: () => {
               fetchMrgnlendState();
             },
