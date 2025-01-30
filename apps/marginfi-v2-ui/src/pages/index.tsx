@@ -10,7 +10,7 @@ import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { IconBook } from "@tabler/icons-react";
+import { IconSparkles } from "@tabler/icons-react";
 
 import { Banner } from "~/components/desktop/Banner";
 import {
@@ -65,21 +65,16 @@ export default function HomePage() {
 
     banks = banks.filter((bank): bank is ExtendedBankInfo => bank !== undefined);
     return [
+      {
+        image: <IconSparkles size={22} className="text-chartreuse" />,
+        text: "Native stake as collateral is now live!",
+        onClick: () => window.open("https://app.marginfi.com/staked-assets"),
+      },
       ...banks.map((bank) => ({
         bank: bank,
       })),
-      {
-        image: <IconBook size={22} />,
-        text: "New documentation now available!",
-        onClick: () => window.open("https://docs.marginfi.com/"),
-      },
-      {
-        image: <IconBackpackWallet size={22} />,
-        text: "5% points boost for Backpack users!",
-        onClick: () => router.push("/points"),
-      },
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
-  }, [extendedBankInfos, router, marginfiClient]);
+  }, [extendedBankInfos, marginfiClient]);
 
   return (
     <>
