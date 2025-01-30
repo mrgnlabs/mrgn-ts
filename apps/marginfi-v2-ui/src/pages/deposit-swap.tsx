@@ -1,8 +1,9 @@
 import React from "react";
 
-import { ActionBox as ActionBoxV2 } from "@mrgnlabs/mrgn-ui";
+import { ActionBox } from "@mrgnlabs/mrgn-ui";
 import { PublicKey } from "@solana/web3.js";
 import { capture } from "@mrgnlabs/mrgn-utils";
+import { useConnection } from "~/hooks/use-connection";
 
 import { useMrgnlendStore } from "~/store";
 
@@ -17,18 +18,22 @@ export default function DepositSwapPage() {
     extendedBankInfosWithoutStakedAssets,
     fetchWalletTokens,
     extendedbankInfos,
-    updateWalletToken,
     marginfiClient,
+    updateWalletTokens,
+    updateWalletToken,
   ] = useMrgnlendStore((state) => [
     state.walletTokens,
     state.initialized,
     state.extendedBankInfosWithoutStakedAssets,
     state.fetchWalletTokens,
     state.extendedBankInfos,
-    state.updateWalletToken,
     state.marginfiClient,
+    state.updateWalletTokens,
+    state.updateWalletToken,
   ]);
   const { connected, wallet } = useWallet();
+  const { connection } = useConnection();
+  const intervalId = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
   React.useEffect(() => {
     if (
@@ -41,6 +46,33 @@ export default function DepositSwapPage() {
     }
   }, [fetchWalletTokens, wallet, walletTokens, extendedbankInfos]);
 
+  // const fetchAndUpdateTokens = React.useCallback(() => {
+  //   if (!wallet || !extendedbankInfos || extendedbankInfos.length === 0 || !connection || !walletTokens) {
+  //     console.log("not fetching wallet tokens");
+  //     console.log("wallet", wallet);
+  //     console.log("extendedbankInfos", extendedbankInfos);
+  //     console.log("connection", connection);
+  //     console.log("walletTokens", walletTokens);
+  //     return;
+  //   }
+
+  //   if (connection) {
+  //     console.log("🔄 Periodically fetching wallet tokens");
+  //     updateWalletTokens(connection);
+  //   }
+  // }, [wallet, extendedbankInfos, connection, walletTokens, updateWalletTokens]);
+
+  // // Effect for periodic updates
+  // React.useEffect(() => {
+  //   intervalId.current = setInterval(fetchAndUpdateTokens, 10_000); // Periodic refresh
+
+  //   return () => {
+  //     if (intervalId.current) {
+  //       clearInterval(intervalId.current);
+  //     }
+  //   };
+  // }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <>
       {!initialized && <Loader label="Loading marginfi..." className="mt-16" />}
@@ -48,7 +80,7 @@ export default function DepositSwapPage() {
       {initialized && (
         <div className="w-full max-w-7xl mx-auto mb-20 px-5">
           <PageHeading heading="✨ Deposit Swap" body={<p>Swap any token and deposit in your chosen collateral.</p>} />
-          <ActionBoxV2.DepositSwap
+          <ActionBox.DepositSwap
             useProvider={true}
             depositSwapProps={{
               banks: extendedBankInfosWithoutStakedAssets,

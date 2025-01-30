@@ -26,7 +26,6 @@ import {
   ActionButton,
   ActionCollateralProgressBar,
 } from "~/components/action-box-v2/components";
-import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
 import { ActionMessage, Settings } from "~/components";
 
@@ -36,16 +35,12 @@ import { useDepositSwapActionAmounts, useDepositSwapSimulation } from "./hooks";
 import { useActionBoxStore } from "../../store";
 import { useActionContext, HidePoolStats } from "../../contexts";
 
-import { handleExecuteDepositSwapAction } from "./utils";
+import { getBankByPk, getBankOrWalletTokenByPk, handleExecuteDepositSwapAction } from "./utils";
 import { useDepositSwapBoxStore } from "./store";
 import { ActionInput, Preview } from "./components";
 import { nativeToUi, WalletToken } from "@mrgnlabs/mrgn-common";
 
-import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
-import { TooltipProvider } from "~/components/ui/tooltip";
-import { IconInfoCircle } from "~/components/ui/icons";
 import { IconSettings } from "@tabler/icons-react";
-import { Button } from "~/components/ui/button";
 import { PublicKey } from "@solana/web3.js";
 
 export type DepositSwapBoxProps = {
@@ -96,39 +91,49 @@ export const DepositSwapBox = ({
     amountRaw,
     lendMode,
     actionTxns,
-    selectedDepositBank,
-    selectedSwapBank,
     simulationResult,
     errorMessage,
 
     refreshState,
     fetchActionBoxState,
     setAmountRaw,
-    setSelectedDepositBank,
-    setSelectedSwapBank,
-    refreshBanks,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
+
+    setSelectedDepositBankPk,
+    setSelectedSwapBankPk,
+
+    selectedDepositBankPk,
+    selectedSwapBankPk,
   ] = useDepositSwapBoxStore(isDialog)((state) => [
     state.amountRaw,
     state.lendMode,
     state.actionTxns,
-    state.selectedDepositBank,
-    state.selectedSwapBank,
     state.simulationResult,
     state.errorMessage,
 
     state.refreshState,
     state.fetchActionBoxState,
     state.setAmountRaw,
-    state.setSelectedDepositBank,
-    state.setSelectedSwapBank,
-    state.refreshBanks,
     state.setSimulationResult,
     state.setActionTxns,
     state.setErrorMessage,
+
+    state.setSelectedDepositBankPk,
+    state.setSelectedSwapBankPk,
+
+    state.selectedDepositBankPk,
+    state.selectedSwapBankPk,
   ]);
+
+  const selectedDepositBank = React.useMemo(() => {
+    return getBankByPk(banks, selectedDepositBankPk);
+  }, [banks, selectedDepositBankPk]);
+
+  const selectedSwapBank = React.useMemo(() => {
+    return getBankOrWalletTokenByPk(banks, walletTokens, selectedSwapBankPk);
+  }, [banks, walletTokens, selectedSwapBankPk]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
@@ -530,7 +535,9 @@ export const DepositSwapBox = ({
           showTokenSelection={showTokenSelection}
           showTokenSelectionGroups={showTokenSelectionGroups}
           setAmountRaw={setAmountRaw}
-          setSelectedBank={setSelectedSwapBank}
+          setSelectedBank={(bank) => {
+            bank && setSelectedSwapBankPk(bank.address);
+          }}
           walletTokens={walletTokens}
         />
       </div>
@@ -569,9 +576,7 @@ export const DepositSwapBox = ({
             showTokenSelectionGroups={showTokenSelectionGroups}
             setAmountRaw={setAmountRaw}
             setSelectedBank={(bank) => {
-              if (bank && "info" in bank) {
-                setSelectedDepositBank(bank);
-              }
+              bank && setSelectedDepositBankPk(bank.address);
             }}
             isInputDisabled={true}
           />
