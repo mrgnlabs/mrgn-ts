@@ -54,9 +54,13 @@ export const BankList = ({
   const filteredBanksActive = React.useMemo(() => {
     return banks
       .filter(searchFilter)
-      .filter((bankInfo) => bankInfo.isActive && bankInfo.position.isLending)
+      .filter((bankInfo) => bankInfo.isActive)
+      .filter(
+        (bankInfo) => bankInfo.position.isLending || bankInfo.address.toBase58() === selectedBank?.address.toBase58()
+      )
+      .filter((bankInfo) => bankInfo.info.rawBank.config.assetTag !== 2)
       .sort((a, b) => (b.isActive ? b?.position?.usdValue : 0) - (a.isActive ? a?.position?.usdValue : 0));
-  }, [banks, searchFilter]);
+  }, [banks, searchFilter, selectedBank]);
 
   React.useEffect(() => {
     if (!isOpen) {
