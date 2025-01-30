@@ -13,9 +13,9 @@ For the first time on $SOLana, borrow against your native stake account for any 
 
 ## Capital Efficient Native Staking {{ tag: '', label: '' }}
 
-Staking $$SOL plays a vital role in securing the $SOLana network. When users stake their $$SOL with validators, they help maintain the network's security and earn rewards on their $$SOL in return.
+Staking $SOL plays a vital role in securing the $SOLana network. When users stake their $SOL with validators, they help maintain the network's security and earn rewards on their $SOL in return.
 
-Traditionally, this came with a catch: once you stake your $$SOL, it's locked up. You can't use it for anything else until you unstake, which takes multiple days (until the end of the epoch). This created a difficult choice – either lock up your $$SOL for rewards or stay liquid for other opportunities in the market.
+Traditionally, this came with a catch: once you stake your $SOL, it's locked up. You can't use it for anything else until you unstake, which takes multiple days (until the end of the epoch). This created a difficult choice – either lock up your $SOL for rewards or stay liquid for other opportunities in the market.
 
 Liquid staking tokens (LSTs) emerged as a $SOLution, letting users maintain access to their capital while staking. But LSTs come with drawbacks: lower yields, added smart contract risks, and unpredictable vote rewards, etc.
 
@@ -23,7 +23,7 @@ Until now, users had to choose between optimal staking rewards or capital effici
 
 Today, marginfi changes this.
 
-Introducing Staked Collateral: a new feature that lets you borrow against your staked $$SOL while keeping all the benefits of native staking. No LSTs needed, no unstaking required. Simply use your active native stake account as collateral and access $$SOL liquidity, exclusively on marginfi.
+Introducing Staked Collateral: a new feature that lets you borrow against your staked $SOL while keeping all the benefits of native staking. No LSTs needed, no unstaking required. Simply use your active native stake account as collateral and access $SOL liquidity, exclusively on marginfi.
 
 ## How Does Staked Collateral Work? {{ tag: '', label: '' }}
 
@@ -31,9 +31,7 @@ marginfi's Staked Collateral feature allows users to borrow $SOL using their sta
 
 <Note>
 At launch, Staked Collateral will support the following validators:
-* mrgn2
-* mrgn3
-* mrgn4
+* mrgn2, mrgn3, mrgn4
 * Temporal Emerald
 * Helius
 * BONK
@@ -42,7 +40,7 @@ At launch, Staked Collateral will support the following validators:
 * MonkeDAO
 * Solayer
 
-Meaning, if you natively staked $SOL to any of these validators, you can borrow against your stake account on marginfi. Note that the app will only display stake pools for validators your wallet has have active stake accounts for.
+Meaning, if you natively staked $SOL to any of these validators, you can borrow against your stake account on marginfi as of 30/1/2025. Note that the app will only display stake pools for validators your wallet has have active stake accounts for.
 </Note>
 
 Currently, users can only borrow $SOL against their stake position, ensuring straightforward risk management since staked $SOL maintains a 1:1 minimum value relationship with $SOL. Users retain full ownership of their stake and can withdraw to a native stake account at any time. For accounts with multiple stake positions, users can select which position to use as collateral.
@@ -50,7 +48,7 @@ Currently, users can only borrow $SOL against their stake position, ensuring str
 Upon deposit, the stake account will no longer appear in the user's wallet. Users can deposit their entire stake or a portion, with partial deposits automatically splitting the stake account. The stake account becomes visible in the wallet again upon withdrawal.
 
 <Note>
-Note: Added functionality to borrow other assets besides $$SOL is in development.
+Note: Added functionality to borrow other assets besides $SOL is in development.
 </Note>
 
 ## Risk Management and Liquidations {{ tag: '', label: '' }}
@@ -75,8 +73,12 @@ Security is paramount in the design. Once created, pool settings become immutabl
 
 The operational flow requires some patience during initial setup. New pools need one epoch (2-3 days) before lending can begin, and stake pools transition through three states: activating, active, and deactivating. While the initial pool creation requires approximately 1.1 $SOL, this one-time cost enables ongoing functionality. Currently, the system allows users to borrow only $SOL against their staked collateral, maintaining straightforward risk management.
 
+## Posting Native Stake as Collateral {{ tag: '', label: '' }}
+
+To post your native stake as collateral on marginfi, simply navigate to app.marginfi.com and click "Select token" on the dropdown menu. Make sure the "Lend" tab is selected in the action box.
+
 ## The Future of Staked Capital {{ tag: '', label: '' }}
 
 Staked Collateral marks a fundamental shift in Solana's staking landscape by combining native staking benefits with the capital efficiency of liquid staking. Users can now access enhanced utility for their locked SOL without compromising security or superior staking rewards.
 
-Validators can contact @masterzorgon on Telegram or review the technical documentation to enable this feature for their stakers.
+Validators can contact @masterzorgon on Telegram with any questions, or simply visit <Button href="https://app.marginfi.com" variant="text"><>app.marginfi.com</></Button> to enable Staked Collateral for your stakers.
