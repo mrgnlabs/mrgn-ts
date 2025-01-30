@@ -46,32 +46,27 @@ export default function DepositSwapPage() {
     }
   }, [fetchWalletTokens, wallet, walletTokens, extendedbankInfos]);
 
-  // const fetchAndUpdateTokens = React.useCallback(() => {
-  //   if (!wallet || !extendedbankInfos || extendedbankInfos.length === 0 || !connection || !walletTokens) {
-  //     console.log("not fetching wallet tokens");
-  //     console.log("wallet", wallet);
-  //     console.log("extendedbankInfos", extendedbankInfos);
-  //     console.log("connection", connection);
-  //     console.log("walletTokens", walletTokens);
-  //     return;
-  //   }
+  const fetchAndUpdateTokens = React.useCallback(() => {
+    if (!wallet || !connection) {
+      return;
+    }
 
-  //   if (connection) {
-  //     console.log("🔄 Periodically fetching wallet tokens");
-  //     updateWalletTokens(connection);
-  //   }
-  // }, [wallet, extendedbankInfos, connection, walletTokens, updateWalletTokens]);
+    if (connection) {
+      console.log("🔄 Periodically fetching wallet tokens");
+      updateWalletTokens(connection);
+    }
+  }, [wallet, connection, updateWalletTokens]);
 
-  // // Effect for periodic updates
-  // React.useEffect(() => {
-  //   intervalId.current = setInterval(fetchAndUpdateTokens, 10_000); // Periodic refresh
+  // Effect for periodic updates
+  React.useEffect(() => {
+    intervalId.current = setInterval(fetchAndUpdateTokens, 60_000); // Periodic refresh
 
-  //   return () => {
-  //     if (intervalId.current) {
-  //       clearInterval(intervalId.current);
-  //     }
-  //   };
-  // }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      if (intervalId.current) {
+        clearInterval(intervalId.current);
+      }
+    };
+  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -93,13 +88,11 @@ export default function DepositSwapPage() {
               },
               onComplete(previousTxn) {
                 const connection = marginfiClient?.provider.connection;
-                console.log("previousTxn", previousTxn);
                 if (
                   previousTxn.txnType === "DEPOSIT_SWAP" &&
                   previousTxn.depositSwapOptions.walletToken &&
                   connection
                 ) {
-                  console.log("updating wallet token");
                   updateWalletToken(
                     previousTxn.depositSwapOptions.walletToken.address.toBase58(),
                     previousTxn.depositSwapOptions.walletToken.ata.toBase58(),

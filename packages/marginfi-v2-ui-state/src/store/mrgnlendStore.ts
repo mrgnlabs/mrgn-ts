@@ -601,7 +601,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
     try {
       const walletTokens = get().walletTokens;
 
-      console.log("walletTokens", walletTokens);
       if (!walletTokens) {
         return;
       }
