@@ -26,13 +26,6 @@ export const RepayScreen = ({
   repayAmount,
   withdrawAmount,
 }: Props) => {
-  console.log({
-    selectedBank,
-    selectedSecondaryBank,
-    type,
-    repayAmount,
-    withdrawAmount,
-  });
   const actionTextColor = React.useMemo(() => {
     const successTypes = [ActionType.Deposit, ActionType.Withdraw, ActionType.MintLST];
     const warningTypes = [ActionType.Borrow, ActionType.Repay];

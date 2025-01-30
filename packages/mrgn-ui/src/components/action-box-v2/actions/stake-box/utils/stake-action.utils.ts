@@ -174,8 +174,8 @@ const executeLstAction = async ({
 
     return txnSig;
   } catch (error: any) {
-    console.log(`Error while actiontype: `);
-    console.log(error);
+    console.error(`Error while actiontype: `);
+    console.error(error);
 
     const walletAddress = marginfiClient.wallet.publicKey.toBase58();
 

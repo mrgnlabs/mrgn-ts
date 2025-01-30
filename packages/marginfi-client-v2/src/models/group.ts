@@ -181,8 +181,6 @@ class MarginfiGroup {
     const solPool = findPoolStakeAddress(poolAddress);
     const lstMint = findPoolMintAddress(poolAddress);
 
-    console.log("settingsKey", settingsKey.toBase58());
-
     const ix = await instructions.makePoolAddPermissionlessStakedBankIx(
       program,
       {

@@ -160,7 +160,6 @@ async function executeBundleSimulation(
   }
 
   const jsonResponse = (await response.json()) as JsonRpcResponse<RpcSimulateBundleResult>;
-  console.log("response", jsonResponse);
 
   if ("error" in jsonResponse) {
     throw jsonResponse.error;

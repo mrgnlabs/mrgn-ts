@@ -193,7 +193,6 @@ export async function buildFeedIdMap(bankConfigs: BankConfigRaw[], connection: C
     const feedId = feedIdsWithAddresses[i].feedId.toString("hex");
 
     if (mfiSponsoredOracle && pythSponsoredOracle) {
-      console.log();
       let pythPriceAccount = parsePriceInfo(pythSponsoredOracle.data.slice(8));
       let pythPublishTime = pythPriceAccount.priceMessage.publishTime;
 

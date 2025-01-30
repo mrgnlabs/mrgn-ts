@@ -929,7 +929,6 @@ class MarginfiAccountWrapper {
     const [rentExemptReserve, minimumDelegation] = await Promise.all([
       this._program.provider.connection.getMinimumBalanceForRentExemption(StakeProgram.space),
       this._program.provider.connection.getStakeMinimumDelegation().then((res) => {
-        console.log("minimumDelegation:", res.value);
         return Math.max(res.value, LAMPORTS_PER_SOL);
       }),
     ]);
@@ -938,11 +937,6 @@ class MarginfiAccountWrapper {
     const amountLamports = Number(amount) * LAMPORTS_PER_SOL;
     const stakeAccLamports = Number(stakeAccParsed.parsed.info.stake?.delegation?.stake ?? 0);
     const isFullStake = amountLamports >= stakeAccLamports;
-
-    console.log("Depositing Native Stake");
-    console.log("deposit amount:", amountLamports);
-    console.log("stake account amount:", stakeAccLamports);
-    console.log("is full stake:", isFullStake);
 
     // calculate pool tokens
     const poolStakeAccLamports =

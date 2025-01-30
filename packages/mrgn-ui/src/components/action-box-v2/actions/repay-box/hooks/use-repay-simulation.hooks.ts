@@ -100,7 +100,6 @@ export function useRepaySimulation({
   const simulationAction = async (props: SimulateRepayActionProps) => {
     if (props.txns.length > 0) {
       const simulationResult = await getRepaySimulationResult(props);
-      console.log("simulationResult", simulationResult);
 
       if (simulationResult.actionMethod) {
         return { simulationResult: null, actionMessage: simulationResult.actionMethod };

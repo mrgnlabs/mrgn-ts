@@ -90,9 +90,6 @@ export function useDepositSwapSimulation({
   const simulationAction = async (props: SimulateActionProps) => {
     if (props.txns.length > 0) {
       const simulationResult = await getSimulationResult(props);
-
-      console.log("simulationResult", simulationResult);
-
       if (simulationResult.actionMethod) {
         return { simulationResult: null, actionMessage: simulationResult.actionMethod };
       } else if (simulationResult.simulationResult) {

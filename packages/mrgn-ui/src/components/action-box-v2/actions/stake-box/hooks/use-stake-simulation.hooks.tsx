@@ -114,8 +114,6 @@ export function useStakeSimulation({
 
       setIsLoading({ isLoading: true, status: SimulationStatus.PREPARING });
 
-      console.log("jupiterOptions", jupiterOptions);
-
       try {
         if (actionType === ActionType.UnstakeLST) {
           const _actionTxns = await createUnstakeLstTx({

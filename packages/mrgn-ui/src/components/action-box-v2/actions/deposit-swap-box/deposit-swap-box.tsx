@@ -415,8 +415,6 @@ export const DepositSwapBox = ({
   );
 
   const handleDepositSwapAction = React.useCallback(async () => {
-    console.log("handleDepositSwapAction");
-    console.log(actionTxns);
     if (
       !actionTxns ||
       !marginfiClient ||
@@ -427,8 +425,6 @@ export const DepositSwapBox = ({
     ) {
       return;
     }
-
-    console.log(actionTxns);
 
     const params = {
       marginfiClient: marginfiClient,
@@ -445,8 +441,6 @@ export const DepositSwapBox = ({
       actionType: lendMode,
       swapBank: selectedSwapBank,
     } as ExecuteDepositSwapActionProps;
-
-    console.log(params);
 
     await executeAction(params, {
       captureEvent: captureEvent,

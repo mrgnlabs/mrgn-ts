@@ -33,7 +33,7 @@ export async function verifyTxSizeLooping(props: LoopingProps): Promise<VerifyTx
     const builder = await loopingBuilder(props);
 
     if (builder.txOverflown) {
-      console.log("DEBUG: transaction size is too large");
+      // transaction size is too large
       return {
         flashloanTx: null,
         additionalTxs: [],
