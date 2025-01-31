@@ -47,11 +47,15 @@ export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: 
 
   const onDrop = React.useCallback(
     (acceptedFiles: File[]) => {
-      if (acceptedFiles.length > 0) {
-        setForm({ ...form, assetLogo: acceptedFiles[0] });
+      const file = acceptedFiles[0];
+      if (file && file.size > 1 * 1024 * 1024) {
+        setErrors({ ...errors, assetLogo: "File size must be less than 1MB" });
+        return;
       }
+      setForm({ ...form, assetLogo: file });
+      setErrors({ ...errors, assetLogo: null });
     },
-    [form]
+    [form, errors]
   );
 
   const validateName = (value: string) => {
@@ -79,8 +83,10 @@ export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: 
     onDrop,
     accept: {
       "image/png": [".png"],
+      "image/jpeg": [".jpg", ".jpeg"],
     },
     maxFiles: 1,
+    maxSize: 1 * 1024 * 1024, // 1MB
   });
 
   return (
@@ -168,11 +174,16 @@ export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: 
             <IconPhoto size={24} />
           </div>
           <p className="text-sm text-muted-foreground">
-            {form.assetLogo
-              ? `File: ${form.assetLogo.name}`
-              : isMobile
-              ? "Tap to select an image"
-              : "Drop an image here or click to select"}
+            {form.assetLogo ? (
+              `File: ${form.assetLogo.name}`
+            ) : isMobile ? (
+              "Tap to select an image"
+            ) : (
+              <div>
+                <p>Drop an image here or click to select</p>
+                <p className="text-xs">Max file size: 1MB</p>
+              </div>
+            )}
           </p>
         </div>
       </div>
