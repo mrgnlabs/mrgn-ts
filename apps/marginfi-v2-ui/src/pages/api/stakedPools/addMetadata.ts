@@ -22,9 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const { bankAddress, validatorVoteAccount, tokenAddress, tokenName, tokenSymbol, tokenDecimals } = JSON.parse(
-    req.body
-  );
+  const { bankAddress, validatorVoteAccount, tokenAddress, tokenName, tokenSymbol, tokenDecimals } = req.body;
 
   if (!bankAddress || !validatorVoteAccount || !tokenAddress || !tokenName || !tokenSymbol || !tokenDecimals) {
     res.status(400).json({
@@ -92,18 +90,11 @@ const addStakedBankMetadata = async (updatedData: StakedBankMetadata) => {
 
   stakedBankMetadata.push(updatedData);
 
-  // Upload the updated JSON file back to GCP
-  const tempFilePath = path.join(process.cwd(), STAKED_BANK_METADATA_FILE_NAME);
-  fs.writeFileSync(tempFilePath, JSON.stringify(stakedBankMetadata, null, 2));
-  await bucket.upload(tempFilePath, {
-    destination: STAKED_BANK_METADATA_FILE_NAME,
-    metadata: {
-      contentType: "application/json",
-    },
+  // Create a buffer from the JSON string and upload directly
+  const jsonBuffer = Buffer.from(JSON.stringify(stakedBankMetadata, null, 2));
+  await bankFile.save(jsonBuffer, {
+    contentType: "application/json",
   });
-
-  // Clean up the temporary file
-  fs.unlinkSync(tempFilePath);
 };
 
 const addStakedTokenMetadata = async (updatedData: StakedTokenMetadata) => {
@@ -127,18 +118,11 @@ const addStakedTokenMetadata = async (updatedData: StakedTokenMetadata) => {
 
   stakedTokenMetadata.push(updatedData);
 
-  // Upload the updated JSON file back to GCP
-  const tempFilePath = path.join(process.cwd(), STAKED_TOKEN_METADATA_FILE_NAME);
-  fs.writeFileSync(tempFilePath, JSON.stringify(stakedTokenMetadata, null, 2));
-  await bucket.upload(tempFilePath, {
-    destination: STAKED_TOKEN_METADATA_FILE_NAME,
-    metadata: {
-      contentType: "application/json",
-    },
+  // Create a buffer from the JSON string and upload directly
+  const jsonBuffer = Buffer.from(JSON.stringify(stakedTokenMetadata, null, 2));
+  await bankFile.save(jsonBuffer, {
+    contentType: "application/json",
   });
-
-  // Clean up the temporary file
-  fs.unlinkSync(tempFilePath);
 };
 
 type StakedTokenMetadata = {
