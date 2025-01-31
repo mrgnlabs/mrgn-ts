@@ -111,7 +111,7 @@ const addStakedTokenMetadata = async (updatedData: StakedTokenMetadata) => {
   );
 
   if (!isUnique) {
-    throw new MetadataExistsError("The updated data already exists in the metadata array.");
+    throw new MetadataExistsError("The metadata already exists.");
   }
 
   stakedTokenMetadata.push(updatedData);

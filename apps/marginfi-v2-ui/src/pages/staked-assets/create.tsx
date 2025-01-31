@@ -158,7 +158,8 @@ export default function CreateStakedAssetPage() {
       });
 
       if (!response.ok) {
-        throw new AddMetadataError(`Failed to add metadata: ${response.statusText}`, true);
+        const error = await response.json();
+        throw new AddMetadataError(`Failed to add metadata: ${error.message}`, true);
       }
     } catch (error) {
       console.error("Error adding metadata:", error);
@@ -241,8 +242,11 @@ export default function CreateStakedAssetPage() {
             [client.group.address.toBuffer(), mintAddress.toBuffer(), new BN(0).toArrayLike(Buffer, "le", 8)],
             client.program.programId
           );
+          const bankInfo = await connection.getAccountInfo(bankKey);
 
-          await executeCreatedStakedAssetSplPoolTxn(retryOptions.txns, client, retryOptions.multiStepToast);
+          if (!bankInfo) {
+            await executeCreatedStakedAssetSplPoolTxn(retryOptions.txns, client, retryOptions.multiStepToast);
+          }
 
           retryOptions.hasExecutedCreateStakedAssetSplPoolTxn = true;
           retryOptions.bankKey = bankKey;
@@ -284,7 +288,7 @@ export default function CreateStakedAssetPage() {
         setIsLoading(false);
       }
     },
-    [client, createStakedAssetSplPoolTxn, executeCreatedStakedAssetSplPoolTxn, fetchMrgnlendState]
+    [client, connection, createStakedAssetSplPoolTxn, executeCreatedStakedAssetSplPoolTxn, fetchMrgnlendState]
   );
 
   return (
