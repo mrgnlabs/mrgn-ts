@@ -53,6 +53,7 @@ export interface ProcessTransactionOpts extends ProcessTransactionsClientOpts {
   isReadOnly?: boolean;
   programId?: PublicKey;
   bundleSimRpcEndpoint?: string;
+  isArenaTxTag?: boolean;
 }
 
 export type PriorityFees = {
