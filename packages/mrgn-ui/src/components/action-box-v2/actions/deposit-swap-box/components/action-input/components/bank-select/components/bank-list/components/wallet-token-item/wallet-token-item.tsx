@@ -23,6 +23,7 @@ export const WalletTokenItem = ({
   isRepay,
   available = true,
 }: WalletTokenItemProps) => {
+  const [imageLoaded, setImageLoaded] = React.useState(false);
   const balance = React.useMemo(() => {
     return token.balance;
   }, [token]);
@@ -38,7 +39,19 @@ export const WalletTokenItem = ({
   return (
     <>
       <div className="flex items-center gap-3">
-        <img src={token.logoUri} alt={token.name} width={28} height={28} className="rounded-full" />
+        <div
+          className={cn("w-[28px] h-[28px] rounded-full bg-mfi-action-box-accent", !imageLoaded && "animate-pulsate")}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={token.logoUri}
+            alt={token.name}
+            width={28}
+            height={28}
+            className={cn("rounded-full w-[28px] h-[28px] object-cover opacity-0", imageLoaded && "opacity-100")}
+            onLoad={() => setImageLoaded(true)}
+          />
+        </div>
         <div>
           <p className="flex items-center">
             {token.symbol}
