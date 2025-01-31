@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/marginfi.json`.
  */
 export type Marginfi = {
-  "address": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  "address": "",
   "metadata": {
     "name": "marginfi",
     "version": "0.1.0",
@@ -2245,6 +2245,48 @@ export type Marginfi = {
       ]
     },
     {
+      "name": "lendingPoolConfigureBankOracle",
+      "discriminator": [
+        209,
+        82,
+        255,
+        171,
+        124,
+        21,
+        71,
+        81
+      ],
+      "accounts": [
+        {
+          "name": "group",
+          "relations": [
+            "bank"
+          ]
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "group"
+          ]
+        },
+        {
+          "name": "bank",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "setup",
+          "type": "u8"
+        },
+        {
+          "name": "oracle",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "lendingPoolHandleBankruptcy",
       "docs": [
         "Handle bad debt of a bankrupt marginfi account for a given bank."
@@ -4176,16 +4218,6 @@ export type Marginfi = {
             }
           },
           {
-            "name": "oracle",
-            "type": {
-              "option": {
-                "defined": {
-                  "name": "oracleConfig"
-                }
-              }
-            }
-          },
-          {
             "name": "interestRateConfig",
             "type": {
               "option": {
@@ -5065,6 +5097,34 @@ export type Marginfi = {
       }
     },
     {
+      "name": "lendingPoolBankConfigureOracleEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "header",
+            "type": {
+              "defined": {
+                "name": "groupEventHeader"
+              }
+            }
+          },
+          {
+            "name": "bank",
+            "type": "pubkey"
+          },
+          {
+            "name": "oracleSetup",
+            "type": "u8"
+          },
+          {
+            "name": "oracle",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
       "name": "lendingPoolBankCreateEvent",
       "type": {
         "kind": "struct",
@@ -5343,31 +5403,6 @@ export type Marginfi = {
               "defined": {
                 "name": "groupEventHeader"
               }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "oracleConfig",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "setup",
-            "type": {
-              "defined": {
-                "name": "oracleSetup"
-              }
-            }
-          },
-          {
-            "name": "keys",
-            "type": {
-              "array": [
-                "pubkey",
-                5
-              ]
             }
           }
         ]

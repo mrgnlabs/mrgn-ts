@@ -24,6 +24,8 @@ type Config = {
   PROGRAM_ID: string;
   GROUP_KEY: PublicKey;
   BANK: PublicKey;
+  SOL_ORACLE: PublicKey;
+  SOL_ORACLE_FEED: PublicKey;
   ADMIN: PublicKey;
 
   // Keep default values to use the defaults...
@@ -33,7 +35,9 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
   GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
-  BANK: new PublicKey("Fe5QkKPVAh629UPP5aJ8sDZu8HTfe6M26jDQkKyXVhoA"),
+  BANK: new PublicKey("3jt43usVm7qL1N5qPvbzYHWQRxamPCRhri4CxwDrf6aL"),
+  SOL_ORACLE: new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"),
+  SOL_ORACLE_FEED: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
   ADMIN: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
 
   MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
@@ -53,13 +57,11 @@ async function main() {
 
   const transaction = new Transaction();
 
-  let bankConfig = defaultBankConfigOptRaw();
-
   transaction.add(
     await program.methods
-      .lendingPoolConfigureBank(bankConfig)
-      .accounts({
-        marginfiGroup: config.GROUP_KEY,
+      .lendingPoolConfigureBankOracle(3, config.SOL_ORACLE)
+      .accountsPartial({
+        // group: config.GROUP_KEY,
         admin: config.ADMIN,
         bank: config.BANK,
       })
@@ -85,60 +87,6 @@ async function main() {
     console.log("Base58-encoded transaction:", base58Transaction);
   }
 }
-
-const ASSET_TAG_DEFAULT = 0;
-const ASSET_TAG_SOL = 1;
-const ASSET_TAG_STAKED = 2;
-
-const defaultBankConfigOptRaw = () => {
-  let bankConfigOpt: BankConfigOptRaw = {
-    assetWeightInit: null,
-    assetWeightMaint: null,
-    liabilityWeightInit: null,
-    liabilityWeightMaint: null,
-    depositLimit: new BN(10_000_000),
-    borrowLimit: new BN(0),
-    riskTier: {
-      collateral: undefined,
-    },
-    assetTag: ASSET_TAG_DEFAULT,
-    totalAssetValueInitLimit: new BN(1),
-    interestRateConfig: null,
-    operationalState: {
-      operational: undefined,
-    },
-    oracleMaxAge: 240,
-    permissionlessBadDebtSettlement: null,
-    freezeSettings: null,
-  };
-
-  return bankConfigOpt;
-};
-
-type InterestRateConfigRawWithOrigination = InterestRateConfigRaw & {
-  protocolOriginationFee: WrappedI80F48;
-};
-
-type BankConfigOptRaw = {
-  assetWeightInit: WrappedI80F48 | null;
-  assetWeightMaint: WrappedI80F48 | null;
-
-  liabilityWeightInit: WrappedI80F48 | null;
-  liabilityWeightMaint: WrappedI80F48 | null;
-
-  depositLimit: BN | null;
-  borrowLimit: BN | null;
-  riskTier: { collateral: {} } | { isolated: {} } | null;
-  assetTag: number;
-  totalAssetValueInitLimit: BN | null;
-
-  interestRateConfig: InterestRateConfigRawWithOrigination | null;
-  operationalState: { paused: {} } | { operational: {} } | { reduceOnly: {} } | null;
-
-  oracleMaxAge: number | null;
-  permissionlessBadDebtSettlement: boolean | null;
-  freezeSettings: boolean | null;
-};
 
 main().catch((err) => {
   console.error(err);

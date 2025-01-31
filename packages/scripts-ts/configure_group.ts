@@ -14,21 +14,23 @@ const verbose = true;
 
 type Config = {
   PROGRAM_ID: string;
-  ADMIN_KEY: PublicKey;
+  GROUP: PublicKey;
+  ADMIN_KEY_CURRENT: PublicKey;
+  ADMIN_KEY_NEW: PublicKey;
+  MULTISIG?: PublicKey;
 };
 
 const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  ADMIN_KEY: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
-};
+  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  GROUP: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
+  ADMIN_KEY_CURRENT: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
+  ADMIN_KEY_NEW: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
-const deriveGlobalFeeState = (programId: PublicKey) => {
-  return PublicKey.findProgramAddressSync([Buffer.from("feestate", "utf-8")], programId);
+  MULTISIG: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
 };
 
 async function main() {
   marginfiIdl.address = config.PROGRAM_ID;
-  const marginfiGroup = Keypair.generate();
   const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
   const wallet = loadKeypairFromFile(process.env.HOME + "/keys/staging-deploy.json");
   console.log("wallet: " + wallet.publicKey);
@@ -46,12 +48,10 @@ async function main() {
   const transaction = new Transaction();
   transaction.add(
     await program.methods
-      .marginfiGroupInitialize()
+      .marginfiGroupConfigure({ admin: config.ADMIN_KEY_NEW })
       .accountsPartial({
-        marginfiGroup: marginfiGroup.publicKey,
-        feeState: deriveGlobalFeeState(new PublicKey(config.PROGRAM_ID))[0],
-        admin: config.ADMIN_KEY,
-        // systemProgram: SystemProgram.programId,
+        marginfiGroup: config.GROUP,
+        admin: config.ADMIN_KEY_CURRENT,
       })
       .instruction()
   );
@@ -64,7 +64,7 @@ async function main() {
       console.error("Transaction failed:", error);
     }
   } else {
-    transaction.feePayer = config.ADMIN_KEY; // Set the fee payer to Squads wallet
+    transaction.feePayer = config.MULTISIG; // Set the fee payer to Squads wallet
     const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
     const serializedTransaction = transaction.serialize({
@@ -75,7 +75,9 @@ async function main() {
     console.log("Base58-encoded transaction:", base58Transaction);
   }
 
-  console.log("Group init: " + marginfiGroup.publicKey);
+  console.log(
+    "Group " + config.GROUP + " set new admin: " + config.ADMIN_KEY_NEW + " was (" + config.ADMIN_KEY_CURRENT + ")"
+  );
 }
 
 main().catch((err) => {
