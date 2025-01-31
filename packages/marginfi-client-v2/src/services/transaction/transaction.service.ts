@@ -53,7 +53,7 @@ export interface ProcessTransactionOpts extends ProcessTransactionsClientOpts {
   isReadOnly?: boolean;
   programId?: PublicKey;
   bundleSimRpcEndpoint?: string;
-  isArenaTxTag?: boolean;
+  addArenaTxTag?: boolean;
 }
 
 export type PriorityFees = {
@@ -247,7 +247,8 @@ export async function processTransactions({
     processOpts.bundleTipUi ?? 0,
     wallet.publicKey,
     blockhash,
-    maxCapUi
+    maxCapUi,
+    processOpts.addArenaTxTag
   );
 
   let signatures: TransactionSignature[] = [];
