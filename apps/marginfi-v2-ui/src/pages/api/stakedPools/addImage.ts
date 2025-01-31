@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Storage } from "@google-cloud/storage";
-import fs from "fs/promises";
 
 const BUCKET_NAME = process.env.GCP_BUCKET_NAME || "mrgn-public";
 const storage = new Storage({

@@ -1,12 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import path from "path";
-import fs from "fs";
 import { Storage } from "@google-cloud/storage";
 import { PublicKey } from "@solana/web3.js";
 
 const BUCKET_NAME = process.env.GCP_BUCKET_NAME || "mrgn-public";
-const STAKED_BANK_METADATA_FILE_NAME = "mrgn-staked-bank-metadata-cache.json";
-const STAKED_TOKEN_METADATA_FILE_NAME = "mrgn-staked-token-metadata-cache.json";
+const STAKED_BANK_METADATA_FILE_NAME = "mrgn-staked-bank-metadata-cache-test.json";
+const STAKED_TOKEN_METADATA_FILE_NAME = "mrgn-staked-token-metadata-cache-test.json";
 
 const storage = new Storage({
   projectId: process.env.GCP_PROJECT_ID,

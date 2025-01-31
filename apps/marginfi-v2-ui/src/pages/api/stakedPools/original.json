@@ -1,0 +1,100 @@
+[
+  {
+    "bankAddress": "8g5qG6PVygcVSXV1cJnjXaD1yhrDwcWAMQCY2wR9VuAf",
+    "validatorVoteAccount": "CooLbbZy5Xmdt7DiHPQ3ss2uRXawnTXXVgpMS8E8jDzr",
+    "tokenAddress": "BADo3D6nMtGnsAaTv3iEes8mMcq92TuFoBWebFe8kzeA",
+    "tokenName": "Cavey Cool",
+    "tokenSymbol": "COOL"
+  },
+  {
+    "bankAddress": "BuCckNm1djpp3vZVhvh1CrrniirY6sr2hwUmeP5kTcGz",
+    "validatorVoteAccount": "mrgn4t2JabSgvGnrCaHXMvz8ocr4F52scsxJnkQMQsQ",
+    "tokenAddress": "FUyAyVbYrMfiaN1QEQYFZTuBNzW5EJf3jWzjjymGqKLv",
+    "tokenName": "MRGN 4",
+    "tokenSymbol": "MRGN4"
+  },
+  {
+    "bankAddress": "Hco1P3dGRXz3ZGFvMkbDgghZQy47Tp7vp7koSYRvP6nm",
+    "validatorVoteAccount": "mrgn6ETrBDM8mjjYN8rbVwFqVwF8z6rtmvGLbdGuVUU",
+    "tokenAddress": "A4B5MGQvcZCUqeiUEAB4ckZ2tvH2UmEg31vF7TiERDkH",
+    "tokenName": "MRGN 3",
+    "tokenSymbol": "MRGN3"
+  },
+  {
+    "bankAddress": "EPh2abWP8DusPH8myWnECAAeQUZgAz927aMbmwXt3eRY",
+    "validatorVoteAccount": "mrgn2vsZ5EJ8YEfAMNPXmRux7th9cNfBasQ1JJvVwPn",
+    "tokenAddress": "6Mt7tBWLUJfDxqCFTsjoRXF9wD55g4Lhs5nAyYp244pX",
+    "tokenName": "MRGN 2",
+    "tokenSymbol": "MRGN2"
+  },
+  {
+    "bankAddress": "6wjAwhnxTMEzHk8NNHVXgkx1jSrb6TX1bC17j3S56FfB",
+    "validatorVoteAccount": "3N7s9zXMZ4QqvHQR15t5GNHyqc89KduzMP7423eWiD5g",
+    "tokenAddress": "DKPvRV4dxUejjGpr2XwFmzZbbbTD7vx9Jmt1kk43n4d5",
+    "tokenName": "Binance",
+    "tokenSymbol": "BINANCE"
+  },
+  {
+    "bankAddress": "J9tksvZEDSwtNtZ6yxYjWDDkzhPbwDMnihU61NkFG9FE",
+    "validatorVoteAccount": "he1iusunGwqrNtafDtLdhsUQDFvo13z9sUa36PauBtk",
+    "tokenAddress": "2k79y8CApbU9jAvWhLS2j6uRbaVjpLJTUzstBTho9vGq",
+    "tokenName": "Helius",
+    "tokenSymbol": "HELIUS"
+  },
+  {
+    "bankAddress": "Dfr6Sf44ftecaJaoJMzFQABdkt3CEHfBwut1WyacRzaE",
+    "validatorVoteAccount": "SLaYv7tCwetrFGbPCRnqpHswG5qqKino78EYpbGF7xY",
+    "tokenAddress": "Vsw4JT33S7bLbhjySMMyrP3JKvTAcNi9WG5Doekrmgg",
+    "tokenName": "Solayer",
+    "tokenSymbol": "SOLAYER"
+  },
+  {
+    "bankAddress": "BZAm4qGscR8gg5bmWrEq6BTofgaZPbg7Fwfa7rFghEXL",
+    "validatorVoteAccount": "J1to3PQfXidUUhprQWgdKkQAMWPJAEqSJ7amkBDE9qhF",
+    "tokenAddress": "6B8hZSupE5mcACmjzozP6C1DR2uaCCtmrGqcYWC6SBCc",
+    "tokenName": "Bonk",
+    "tokenSymbol": "BONK"
+  },
+  {
+    "bankAddress": "3UrMZ26NRKu2y6c2dPE7gZVHwEmhpwKLcWACg3tjCVEt",
+    "validatorVoteAccount": "J2nUHEAgZFRyuJbFjdqPrAa9gyWDuc7hErtDQHPhsYRp",
+    "tokenAddress": "9M7oMo4oL6RDPG7WbAX3Zz4dPzbMgpiCzwrQPMwG4Wgq",
+    "tokenName": "Phantom",
+    "tokenSymbol": "PHANTOM"
+  },
+  {
+    "bankAddress": "8c269gkonvATm93nviuYiriCQ829f7ypx3aScYDR1YoQ",
+    "validatorVoteAccount": "D3QPJm7BDzzPeRG51YZSEz3LfV7GvFNu9NkcibzURxuj",
+    "tokenAddress": "8hXCCQmYFcDhU5Mkuvyixp2Q11sbyQComkceSSh3GY4a",
+    "tokenName": "Starke Finance",
+    "tokenSymbol": "STARKE"
+  },
+  {
+    "bankAddress": "37tiA2NTF6YCt85XzCidPo9ZVpuqkkmfVJCYQ5Yx5Uhs",
+    "validatorVoteAccount": "SBLZib4npE7svxFA7AsD3ytdQAfYNb39c8zsU82AA2E",
+    "tokenAddress": "96rXgCFy1Er49169XoKHkeLiKC2k4bTy1641q1TVrMm2",
+    "tokenName": "SolBlaze Validator",
+    "tokenSymbol": "SOLBLAZE"
+  },
+  {
+    "bankAddress": "J9trpcrVdFjVNg6VFrdF1XPGgjftQKZhbbWsxertdv9V",
+    "validatorVoteAccount": "FACqsS19VScz8oo2YhdMg35EsAy6xsCZ9Y58eJXGv8QJ",
+    "tokenAddress": "AH6fxpHS2gtMtJgBy8y8pEAPkqyop2pSugF6REs9NaTp",
+    "tokenName": "Lantern",
+    "tokenSymbol": "LNTRN"
+  },
+  {
+    "bankAddress": "EGTfrYiuWpPPZ4yfY9tCxnK6QMkY7pzVie9DxK772iGe",
+    "validatorVoteAccount": "EfnywDKqArxK6N6FS9ctsuzNdxfx3pzfXEQE5EevQ1SV",
+    "tokenAddress": "FcXEwHku68ZquqtSj1eSWS1SVWkhAZSyb4usfpiuEJAL",
+    "tokenName": "PROJECT SUPER",
+    "tokenSymbol": "SUPER"
+  },
+  {
+    "bankAddress": "A5e7UTE3g11ZfKgftqRCvxAgcDuFGyeDjMka96zJWSWe",
+    "validatorVoteAccount": "3ZUQekqiZoybB57y49eqtvSaoonqDwuNbeqEGwN88JkQ",
+    "tokenAddress": "F1XPjtpsEy23Q7po4JkWjp1jkDZcvFYSrqD8TR1YL3EF",
+    "tokenName": "Paws",
+    "tokenSymbol": "PAWS"
+  }
+]

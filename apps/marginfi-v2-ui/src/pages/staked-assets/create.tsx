@@ -144,6 +144,9 @@ export default function CreateStakedAssetPage() {
     try {
       const response = await fetch(`/api/stakedPools/addMetadata`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           bankAddress: bankAddress.toBase58(),
           validatorVoteAccount: voteAccount.toBase58(),
