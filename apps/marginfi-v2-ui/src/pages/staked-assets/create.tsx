@@ -183,6 +183,21 @@ export default function CreateStakedAssetPage() {
   };
 
   const handleSumbitForm = (form: CreateStakedAssetForm) => {
+    const nameRegex = /^[a-zA-Z0-9\s]{1,24}$/;
+    const symbolRegex = /^[a-zA-Z0-9]{1,10}$/;
+
+    if (!nameRegex.test(form.assetName)) {
+      throw new Error("Asset name must be 1-24 characters long and contain only letters, numbers, and spaces");
+    }
+
+    if (!symbolRegex.test(form.assetSymbol)) {
+      throw new Error("Asset symbol must be 1-10 characters long and contain only letters and numbers");
+    }
+
+    if (!form.assetLogo) {
+      throw new Error("Asset logo is required");
+    }
+
     createStakedAsset(form);
   };
 

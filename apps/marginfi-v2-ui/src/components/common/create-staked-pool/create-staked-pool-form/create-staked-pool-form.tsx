@@ -30,7 +30,18 @@ export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: 
     assetSymbol: "",
     assetLogo: null,
   });
-  const [error, setError] = React.useState<string | null>(null);
+  const [errors, setErrors] = React.useState<{ [key: string]: string | null }>({
+    voteAccountKey: null,
+    assetName: null,
+    assetSymbol: null,
+    assetLogo: null,
+  });
+  const [touched, setTouched] = React.useState<{ [key: string]: boolean }>({
+    voteAccountKey: false,
+    assetName: false,
+    assetSymbol: false,
+    assetLogo: false,
+  });
 
   const isMobile = useIsMobile();
 
@@ -43,16 +54,25 @@ export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: 
     [form]
   );
 
+  const validateName = (value: string) => {
+    const nameRegex = /^[a-zA-Z0-9\s]{3,24}$/;
+    return nameRegex.test(value) ? null : "Name must be 3-24 characters and contain only letters, numbers, and spaces";
+  };
+
+  const validateSymbol = (value: string) => {
+    const symbolRegex = /^[a-zA-Z0-9]{3,10}$/;
+    return symbolRegex.test(value) ? null : "Symbol must be 3-10 characters and contain only letters and numbers";
+  };
+
   const handleValidatorPubkeyChange = (value: string) => {
+    setForm({ ...form, voteAccountKey: value });
     try {
       new PublicKey(value);
       const found = validatorPubKeys.find((key) => key.toBase58().toLowerCase() === value.toLowerCase());
-      setError(found ? "Bank already exists" : null);
+      setErrors({ ...errors, voteAccountKey: found ? "Bank already exists" : null });
     } catch (e) {
-      setError("Invalid vote account key");
+      setErrors({ ...errors, voteAccountKey: "Invalid vote account key" });
     }
-
-    setForm({ ...form, voteAccountKey: value });
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -68,40 +88,63 @@ export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: 
       className="flex flex-col gap-8 px-4 md:px-0"
       onSubmit={(e) => {
         e.preventDefault();
+        if (!form.assetLogo) {
+          setErrors({ ...errors, assetLogo: "Asset logo is required" });
+          return;
+        }
         onSubmit(form);
       }}
     >
       <div className="flex flex-col gap-2">
-        <Label htmlFor="name">Vote Account Key</Label>
+        <Label htmlFor="voteAccountKey">Vote Account Key</Label>
         <Input
           required
-          id="name"
+          id="voteAccountKey"
           placeholder="Enter validator vote account public key"
           value={form.voteAccountKey}
           onChange={(e) => handleValidatorPubkeyChange(e.target.value)}
-          className={cn(error && "border-red-500")}
+          onBlur={() => setTouched({ ...touched, voteAccountKey: true })}
+          className={cn(touched.voteAccountKey && errors.voteAccountKey && "border-red-500")}
         />
-        {error && <p className="text-xs text-red-500">{error}</p>}
+        {touched.voteAccountKey && errors.voteAccountKey && (
+          <p className="text-xs text-red-500">{errors.voteAccountKey}</p>
+        )}
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="name">Asset Name</Label>
+        <Label htmlFor="assetName">Asset Name</Label>
         <Input
           required
-          id="name"
+          id="assetName"
+          maxLength={24}
           placeholder="Enter asset name"
           value={form.assetName}
-          onChange={(e) => setForm({ ...form, assetName: e.target.value })}
+          onChange={(e) => {
+            const value = e.target.value;
+            setForm({ ...form, assetName: value });
+            setErrors({ ...errors, assetName: validateName(value) });
+          }}
+          onBlur={() => setTouched({ ...touched, assetName: true })}
+          className={cn(touched.assetName && errors.assetName && "border-red-500")}
         />
+        {touched.assetName && errors.assetName && <p className="text-xs text-red-500">{errors.assetName}</p>}
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="name">Asset Symbol</Label>
+        <Label htmlFor="assetSymbol">Asset Symbol</Label>
         <Input
           required
-          id="name"
+          id="assetSymbol"
+          maxLength={10}
           placeholder="Enter asset ticker"
           value={form.assetSymbol}
-          onChange={(e) => setForm({ ...form, assetSymbol: e.target.value })}
+          onChange={(e) => {
+            const value = e.target.value;
+            setForm({ ...form, assetSymbol: value });
+            setErrors({ ...errors, assetSymbol: validateSymbol(value) });
+          }}
+          onBlur={() => setTouched({ ...touched, assetSymbol: true })}
+          className={cn(touched.assetSymbol && errors.assetSymbol && "border-red-500")}
         />
+        {touched.assetSymbol && errors.assetSymbol && <p className="text-xs text-red-500">{errors.assetSymbol}</p>}
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="logo">
@@ -140,7 +183,14 @@ export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: 
           <p>Stake pool creation fee 1.1 SOL</p>
         </div>
         <Button
-          disabled={!form.voteAccountKey || !form.assetName || error !== null || isLoading}
+          disabled={
+            !form.voteAccountKey ||
+            !form.assetName ||
+            !form.assetSymbol ||
+            !form.assetLogo ||
+            Object.values(errors).some((error) => error !== null) ||
+            isLoading
+          }
           type="submit"
           size="lg"
         >
