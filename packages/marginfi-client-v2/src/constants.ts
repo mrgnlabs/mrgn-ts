@@ -19,6 +19,7 @@ export const ADDRESS_LOOKUP_TABLE_FOR_GROUP: { [key: string]: PublicKey[] } = {
     // new PublicKey("2FyGQ8UZ6PegCSN2Lu7QD1U2UY28GpJdDfdwEfbwxN7p"),
     new PublicKey("HGmknUTUmeovMc9ryERNWG6UFZDFDVr9xrum3ZhyL4fC"),
     new PublicKey("5FuKF7C1tJji2mXZuJ14U9oDb37is5mmvYLf4KwojoF1"),
+    new PublicKey("FEFhAFKz48P3w82Ds5VhvyEDwhRqu2FejmnuxEPZ8wNR"),
   ], // Main pool
   FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo: [new PublicKey("HxPy7b58KLKSU7w4LUW9xwYQ1NPyRNQkYYk2f7SmYAip")], // staging
   EnQoeGVqbgZ78Hj8XghiYu5L29L1zYwZp2YEQ63RmUD8: [new PublicKey("86kn22MeV1bCqE9tT9ATcHYR1hYrQHUGigLgSvvDSGRL")], // MOTHER

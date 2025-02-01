@@ -1344,44 +1344,44 @@ class MarginfiAccountWrapper {
     }).compileToV0Message(this.client.addressLookupTables);
     const fullTxn = new VersionedTransaction(fullTxnMessage);
 
-    const txSize = getTxSize(fullTxn);
-    const accountKeys = getAccountKeys(fullTxn, this.client.addressLookupTables);
-    const txToManyKeys = accountKeys > MAX_ACCOUNT_KEYS;
-    const txToBig = txSize > MAX_TX_SIZE;
+    // const txSize = getTxSize(fullTxn);
+    // const accountKeys = getAccountKeys(fullTxn, this.client.addressLookupTables);
+    // const txToManyKeys = accountKeys > MAX_ACCOUNT_KEYS;
+    // const txToBig = txSize > MAX_TX_SIZE;
 
-    const txOverflown = txToManyKeys || txToBig;
+    // const txOverflown = txToManyKeys || txToBig;
 
-    if (txOverflown) {
-      const withdrawMessage = new TransactionMessage({
-        payerKey: this.client.wallet.publicKey,
-        recentBlockhash: blockhash,
-        instructions: [...mfiWithdrawIxs],
-      }).compileToV0Message(this.client.addressLookupTables);
-      const withdrawTxn = addTransactionMetadata(new VersionedTransaction(withdrawMessage), {
-        signers: withdrawIxs.keys,
-        addressLookupTables: this.client.addressLookupTables,
-      });
+    // if (txOverflown) {
+    const withdrawMessage = new TransactionMessage({
+      payerKey: this.client.wallet.publicKey,
+      recentBlockhash: blockhash,
+      instructions: [...mfiWithdrawIxs],
+    }).compileToV0Message(this.client.addressLookupTables);
+    const withdrawTxn = addTransactionMetadata(new VersionedTransaction(withdrawMessage), {
+      signers: withdrawIxs.keys,
+      addressLookupTables: this.client.addressLookupTables,
+    });
 
-      const stakeMessage = new TransactionMessage({
-        payerKey: this.client.wallet.publicKey,
-        recentBlockhash: blockhash,
-        instructions: [createStakeAccountIx, approveAccountAuthorityIx, withdrawStakeIx],
-      }).compileToV0Message(this.client.addressLookupTables);
-      const stakeTxn = addTransactionMetadata(new VersionedTransaction(stakeMessage), {
-        signers: [stakeAccount],
-        addressLookupTables: this.client.addressLookupTables,
-      });
+    const stakeMessage = new TransactionMessage({
+      payerKey: this.client.wallet.publicKey,
+      recentBlockhash: blockhash,
+      instructions: [createStakeAccountIx, approveAccountAuthorityIx, withdrawStakeIx],
+    }).compileToV0Message(this.client.addressLookupTables);
+    const stakeTxn = addTransactionMetadata(new VersionedTransaction(stakeMessage), {
+      signers: [stakeAccount],
+      addressLookupTables: this.client.addressLookupTables,
+    });
 
-      return {
-        withdrawTxn: stakeTxn,
-        additionalTxs: [withdrawTxn],
-      };
-    } else {
-      return {
-        withdrawTxn: fullTxn,
-        additionalTxs: [],
-      };
-    }
+    return {
+      withdrawTxn: stakeTxn,
+      additionalTxs: [withdrawTxn],
+    };
+    // } else {
+    //   return {
+    //     withdrawTxn: fullTxn,
+    //     additionalTxs: [],
+    //   };
+    // }
   }
 
   /**
