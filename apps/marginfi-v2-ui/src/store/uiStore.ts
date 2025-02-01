@@ -115,7 +115,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   isFilteredUserPositions: false,
   isOraclesStale: false,
   lendingMode: LendingModes.LEND,
-  poolFilter: PoolTypes.ALL,
+  poolFilter: PoolTypes.GLOBAL,
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
   assetListSearch: "",
   priorityFees: {},
