@@ -424,7 +424,7 @@ export const LendBox = ({
           if (error.retry && toast && txs) {
             retry = () => callbacks.retryCallback(txs, toast);
           }
-          toast.setFailed(errorMessage, retry);
+          toast && toast.setFailed(errorMessage, retry);
           callbacks.setIsLoading(false);
         },
         setIsLoading: callbacks.setIsLoading,
