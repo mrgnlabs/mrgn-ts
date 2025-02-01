@@ -144,10 +144,10 @@ export function handleIndividualFlowError({
       retry: true, // TODO: decide which errors we want to allow retries
     });
   } else if (error instanceof SolanaJSONRPCError) {
-    throw new IndividualFlowError(error.message);
+    throw new IndividualFlowError(error.message, { multiStepToast });
   } else {
     const message = extractErrorString(error);
-    throw new IndividualFlowError(message ?? JSON.stringify(error));
+    throw new IndividualFlowError(message ?? JSON.stringify(error), { multiStepToast });
   }
 }
 
