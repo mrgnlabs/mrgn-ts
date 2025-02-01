@@ -24,7 +24,7 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
-import { AssetRow } from "./components";
+import { AssetRow, AssetListNav } from "./components";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Button } from "~/components/ui/button";
 
@@ -77,7 +77,9 @@ export const AssetsList = () => {
   const sortedBanks = React.useMemo(() => {
     let filteredBanks = extendedBankInfos;
 
-    if (poolFilter === "isolated") {
+    if (poolFilter === "global") {
+      filteredBanks = filteredBanks.filter((b) => b.info.rawBank.config.assetTag !== 2 && !b.info.state.isIsolated);
+    } else if (poolFilter === "isolated") {
       filteredBanks = filteredBanks.filter((b) => b.info.state.isIsolated);
     } else if (poolFilter === "stable") {
       filteredBanks = filteredBanks.filter((b) => STABLECOINS.includes(b.meta.tokenSymbol));
@@ -318,185 +320,105 @@ export const AssetsList = () => {
   });
 
   return (
-    <>
-      <AssetListFilters />
-      <div className="col-span-full"></div>
-      {poolFilter === PoolTypes.NATIVE_STAKE ? (
-        stakedAssetBankInfos.length > 0 && (
-          <>
-            <div>
-              <div className="font-normal text-2xl text-white mt-4 pt-4 pb-2 gap-1 ">Staked pools</div>
-            </div>
-            <Table>
-              <TableHeader>
-                {allStakedassetsTable.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead
-                        key={header.id}
-                        style={{
-                          width: header.column.getSize(),
-                        }}
-                      >
-                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableHead>
-                    ))}
-                  </TableRow>
+    <div className="space-y-6">
+      {/* <AssetListFilters /> */}
+      <AssetListNav />
+      {poolFilter === PoolTypes.GLOBAL && globalPoolTableData.length > 0 && (
+        <Table>
+          <TableHeader>
+            {globalTable.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    style={{
+                      width: header.column.getSize(),
+                    }}
+                  >
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
                 ))}
-              </TableHeader>
-              <TableBody>
-                {allStakedassetsTable.getRowModel().rows.map((row) => {
-                  return <AssetRow key={row.id} {...row} />;
-                })}
-              </TableBody>
-            </Table>
-          </>
-        )
-      ) : (
-        <div className="col-span-full">
-          {globalPoolTableData.length > 0 && (
-            <>
-              <div>
-                <div className="font-normal text-2xl text-white mt-4 pt-4 pb-2 gap-1 ">Global pool</div>
-              </div>
-              <Table>
-                <TableHeader>
-                  {globalTable.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
-                          style={{
-                            width: header.column.getSize(),
-                          }}
-                        >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(header.column.columnDef.header, header.getContext())}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {globalTable.getRowModel().rows.map((row) => {
-                    return <AssetRow key={row.id} {...row} />;
-                  })}
-                </TableBody>
-              </Table>
-            </>
-          )}
-          {isolatedPoolTableData.length > 0 && (
-            <>
-              <div className="font-aeonik font-normal h-full w-full flex items-center text-2xl text-white pt-4 pb-2 gap-2">
-                <span className="gap-1 flex">
-                  Isolated <span className="hidden lg:block">pools</span>
-                </span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Image src="/info_icon.png" alt="info" height={16} width={16} />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <div className="space-y-4 text-left leading-relaxed">
-                        <h4 className="flex items-center gap-1.5 text-base">
-                          <IconAlertTriangle size={18} /> Isolated pools are risky
-                        </h4>
-                        <p>
-                          Assets in isolated pools cannot be used as collateral. When you borrow an isolated asset, you
-                          cannot borrow other assets. Isolated pools should be considered particularly risky.
-                        </p>
-                        <p>
-                          As always, remember that marginfi is a decentralized protocol and all deposited funds are at
-                          risk.
-                        </p>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <Table>
-                <TableHeader>
-                  {isolatedTable.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
-                          style={{
-                            width: header.column.getSize(),
-                          }}
-                        >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(header.column.columnDef.header, header.getContext())}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {isolatedTable.getRowModel().rows.map((row) => (
-                    <AssetRow key={row.id} {...row} />
-                  ))}
-                </TableBody>
-              </Table>
-            </>
-          )}
-          {stakedPoolTableData.length > 0 && isInLendingMode && (
-            <>
-              <div>
-                <div className="font-normal text-2xl text-white mt-4 pt-4 pb-2 gap-1 ">Staked pools</div>
-              </div>
-              <Table>
-                <TableHeader>
-                  {stakedTable.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
-                          style={{
-                            width: header.column.getSize(),
-                          }}
-                        >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(header.column.columnDef.header, header.getContext())}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {stakedTable.getRowModel().rows.map((row) => {
-                    return <AssetRow key={row.id} {...row} />;
-                  })}
-                </TableBody>
-              </Table>
-            </>
-          )}
-        </div>
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {globalTable.getRowModel().rows.map((row) => {
+              return <AssetRow key={row.id} {...row} />;
+            })}
+          </TableBody>
+        </Table>
       )}
-      {(isInLendingMode || poolFilter === PoolTypes.NATIVE_STAKE) && (
-        <div className={cn("space-y-3 text-center w-full pb-4", stakedPoolTableData.length > 0 ? "pt-3" : "pt-12")}>
-          <p className="text-xs text-muted-foreground">Don&apos;t see your native stake available to deposit?</p>
-          <div className="flex flex-col gap-2 items-center justify-center">
-            <Button variant="secondary" className="mx-auto font-normal text-[11px]" size="sm">
-              <Link href="/staked-assets/create">
-                <span>Create staked asset pool</span>
-              </Link>
-            </Button>
-            <Link href="https://docs.marginfi.com/staked-collateral" target="_blank" rel="noreferrer">
-              <Button
-                variant="link"
-                className="mx-auto font-light text-[11px] gap-1 h-5 text-muted-foreground/75 no-underline rounded-none px-0 hover:no-underline hover:text-foreground"
-                size="sm"
-              >
-                <IconExternalLink size={12} />
-                Learn more
+      {poolFilter === PoolTypes.ISOLATED && isolatedPoolTableData.length > 0 && (
+        <Table>
+          <TableHeader>
+            {isolatedTable.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    style={{
+                      width: header.column.getSize(),
+                    }}
+                  >
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {isolatedTable.getRowModel().rows.map((row) => (
+              <AssetRow key={row.id} {...row} />
+            ))}
+          </TableBody>
+        </Table>
+      )}
+      {poolFilter === PoolTypes.NATIVE_STAKE && stakedPoolTableData.length > 0 && isInLendingMode && (
+        <>
+          <Table>
+            <TableHeader>
+              {stakedTable.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      style={{
+                        width: header.column.getSize(),
+                      }}
+                    >
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {stakedTable.getRowModel().rows.map((row) => {
+                return <AssetRow key={row.id} {...row} />;
+              })}
+            </TableBody>
+          </Table>
+          <div className={cn("space-y-3 text-center w-full pb-4", stakedPoolTableData.length > 0 ? "pt-3" : "pt-12")}>
+            <p className="text-xs text-muted-foreground">Don&apos;t see your native stake available to deposit?</p>
+            <div className="flex flex-col gap-2 items-center justify-center">
+              <Button variant="secondary" className="mx-auto font-normal text-[11px]" size="sm">
+                <Link href="/staked-assets/create">
+                  <span>Create staked asset pool</span>
+                </Link>
               </Button>
-            </Link>
+              <Link href="https://docs.marginfi.com/staked-collateral" target="_blank" rel="noreferrer">
+                <Button
+                  variant="link"
+                  className="mx-auto font-light text-[11px] gap-1 h-5 text-muted-foreground/75 no-underline rounded-none px-0 hover:no-underline hover:text-foreground"
+                  size="sm"
+                >
+                  <IconExternalLink size={12} />
+                  Learn more
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
+        </>
       )}
       <LSTDialog
         variant={lstDialogVariant}
@@ -510,6 +432,6 @@ export const AssetsList = () => {
           }
         }}
       />
-    </>
+    </div>
   );
 };
