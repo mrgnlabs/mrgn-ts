@@ -56,12 +56,15 @@ export function getAccountKeys(
 ): number {
   const isVersioned = isV0Tx(tx);
 
-  if (isVersioned) {
-    const message = TransactionMessage.decompile(tx.message, { addressLookupTableAccounts: lookupTableAccounts });
-    return message.compileToLegacyMessage().getAccountKeys().length;
-    // return tx.message.getAccountKeys().length;
-  } else {
-    return tx.compileMessage().getAccountKeys().length;
+  try {
+    if (isVersioned) {
+      const message = TransactionMessage.decompile(tx.message, { addressLookupTableAccounts: lookupTableAccounts });
+      return message.compileToLegacyMessage().getAccountKeys().length;
+    } else {
+      return tx.compileMessage().getAccountKeys().length;
+    }
+  } catch (error) {
+    return 9999;
   }
 }
 
