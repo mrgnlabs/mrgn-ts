@@ -83,7 +83,6 @@ export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: 
     onDrop,
     accept: {
       "image/png": [".png"],
-      "image/jpeg": [".jpg", ".jpeg"],
     },
     maxFiles: 1,
     maxSize: 1 * 1024 * 1024, // 1MB
@@ -173,15 +172,18 @@ export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: 
             <input {...getInputProps()} />
             <IconPhoto size={24} />
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm">
             {form.assetLogo ? (
               `File: ${form.assetLogo.name}`
             ) : isMobile ? (
               "Tap to select an image"
             ) : (
               <div>
-                <p>Drop an image here or click to select</p>
-                <p className="text-xs">Max file size: 1MB</p>
+                <p>Drop a PNG image here or click to select</p>
+                <ul className="text-xs text-muted-foreground">
+                  <li>Supported file types: PNG</li>
+                  <li>Max file size: 1MB</li>
+                </ul>
               </div>
             )}
           </p>

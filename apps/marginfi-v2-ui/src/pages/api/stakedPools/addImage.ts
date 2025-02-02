@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       action: "write",
       expires: Date.now() + 5 * 60 * 1000, //  5 minutes,
       fields: { "x-goog-meta-source": "nextjs-project" },
-      contentType: "image/(png|jpeg)", // Allow both PNG and JPEG
+      contentType: "image/png",
     };
     const [response] = await file.generateSignedPostPolicyV4(options);
     res.status(200).json(response);
