@@ -18,10 +18,13 @@ import {
   FeedResponse,
   findPoolAddress,
   findPoolStakeAddress,
+  getStakeAccount,
+  StakeAccount,
 } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 import {
   BankMetadata,
   chunkedGetRawMultipleAccountInfoOrdered,
+  loadBankMetadatas,
   median,
   MintLayout,
   RawMint,
@@ -176,71 +179,81 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (pythStakedCollateralOracles.length > 0) {
-      const mints = pythStakedCollateralOracles.map((value) => value.mint.toBase58());
-      const bankData: BankMetadata[] = await fetch(
+      const stakedCollatMap: Record<
+        string,
+        {
+          bankAddress: PublicKey;
+          mint: PublicKey;
+          stakePoolAddress: PublicKey;
+          poolAddress: PublicKey;
+          oracle: OraclePrice;
+        }
+      > = {};
+      const solPools: string[] = [];
+      const mints: string[] = [];
+
+      const bankMetadataMap = await loadBankMetadatas(
         `https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json?time=${new Date().getTime()}`
-      ).then((res) => res.json());
-      const stakePoolRecord: Record<string, string | undefined> = Object.fromEntries(
-        mints.map((mint) => {
-          const validatorVote = bankData.find((b) => b.tokenAddress === mint)?.validatorVoteAccount;
-          return [
-            mint,
-            validatorVote ? findPoolStakeAddress(findPoolAddress(new PublicKey(validatorVote))).toBase58() : undefined,
-          ];
-        })
       );
 
-      const stakePoolsKeys = Object.values(stakePoolRecord).filter((value): value is string => value !== undefined);
-      const dataAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, [...mints, ...stakePoolsKeys]);
+      pythStakedCollateralOracles.forEach((bankObj) => {
+        const { key: bankAddress } = bankObj;
+        const bankMetadata = bankMetadataMap[bankAddress];
+        if (bankMetadata && bankMetadata.validatorVoteAccount) {
+          const poolAddress = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
+          const stakePoolAddress = findPoolStakeAddress(poolAddress);
 
-      const mintAis = dataAis.slice(0, mints.length).map((mintAi) => MintLayout.decode(mintAi.data));
-      const stakePoolAis = dataAis.slice(mints.length).map((stakePoolAi) => stakePoolAi.lamports);
-      const mintRecord: Record<string, RawMint> = Object.fromEntries(mints.map((mint, i) => [mint, mintAis[i]]));
-
-      const stakePoolsRecord: Record<string, number> = Object.fromEntries(
-        stakePoolsKeys.map((poolKey, i) => [poolKey, stakePoolAis[i]])
-      );
-
-      const [minimumDelegation, stakeRentExemption] = await Promise.all([
-        connection.getStakeMinimumDelegation().then((res) => Math.max(res.value, LAMPORTS_PER_SOL)),
-        connection.getMinimumBalanceForRentExemption(StakeProgram.space),
+          stakedCollatMap[bankAddress] = {
+            bankAddress: new PublicKey(bankAddress),
+            mint: new PublicKey(bankMetadata.tokenAddress),
+            stakePoolAddress,
+            poolAddress,
+            oracle: bankObj.data,
+          };
+          solPools.push(stakePoolAddress.toBase58());
+          mints.push(bankMetadata.tokenAddress);
+        }
+      });
+      const dataAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection, [
+        ...mints,
+        ...solPools,
       ]);
+      const stakePoolsAis: StakeAccount[] = dataAis.slice(mints.length).map((ai) => getStakeAccount(ai.data));
+      const lstMintsAis: RawMint[] = dataAis.slice(0, mints.length).map((mintAi) => MintLayout.decode(mintAi.data));
 
-      for (const oracle of pythStakedCollateralOracles) {
-        const tokenSupply = Number(mintRecord[oracle.mint.toBase58()].supply);
-        const stakeAccount = stakePoolRecord[oracle.mint.toBase58()];
+      const lstMintRecord: Record<string, RawMint> = Object.fromEntries(mints.map((mint, i) => [mint, lstMintsAis[i]]));
+      const solPoolsRecord: Record<string, StakeAccount> = Object.fromEntries(
+        solPools.map((poolKey, i) => [poolKey, stakePoolsAis[i]])
+      );
 
-        if (!stakeAccount) {
-          console.error("Error:", `Vote account not found for mint ${oracle.mint.toBase58()}`);
-        } else {
-          const poolStakeAccLamports = stakePoolsRecord[stakeAccount];
-          const prePoolStake = Math.max(poolStakeAccLamports - minimumDelegation - stakeRentExemption, 0);
+      for (const index in stakedCollatMap) {
+        const { bankAddress, mint, stakePoolAddress, poolAddress, oracle } = stakedCollatMap[index];
+        const stakeAccount = solPoolsRecord[stakePoolAddress.toBase58()];
+        const tokenSupply = lstMintRecord[mint.toBase58()].supply;
 
-          // 1 SOL
-          const stakeAddedNative = 1 * 1e9;
+        const stakeActual = Number(stakeAccount.stake.delegation.stake);
 
-          const newPoolTokens =
-            (prePoolStake > 0 && tokenSupply > 0
-              ? Math.floor((stakeAddedNative * tokenSupply) / prePoolStake)
-              : stakeAddedNative) / 1e9;
-
-          const oraclePrice = {
-            timestamp: oracle.data.timestamp,
-            priceRealtime: {
-              price: oracle.data.priceRealtime.price.dividedBy(newPoolTokens),
-              confidence: oracle.data.priceRealtime.confidence,
-              lowestPrice: oracle.data.priceRealtime.lowestPrice.dividedBy(newPoolTokens),
-              highestPrice: oracle.data.priceRealtime.highestPrice.dividedBy(newPoolTokens),
-            },
-            priceWeighted: {
-              price: oracle.data.priceWeighted.price.dividedBy(newPoolTokens),
-              confidence: oracle.data.priceWeighted.confidence,
-              lowestPrice: oracle.data.priceWeighted.lowestPrice.dividedBy(newPoolTokens),
-              highestPrice: oracle.data.priceWeighted.highestPrice.dividedBy(newPoolTokens),
-            },
+        if (oracle) {
+          const adjustPrice = (price: BigNumber, stakeActual: number, tokenSupply: bigint) => {
+            return Number(tokenSupply) === 0
+              ? price
+              : new BigNumber((price.toNumber() * (stakeActual - LAMPORTS_PER_SOL)) / Number(tokenSupply));
           };
 
-          updatedOraclePriceByBank.set(oracle.key, oraclePrice);
+          const adjustPriceComponent = (priceComponent: any, stakeActual: number, tokenSupply: bigint) => ({
+            price: adjustPrice(priceComponent.price, stakeActual, tokenSupply),
+            confidence: priceComponent.confidence,
+            lowestPrice: adjustPrice(priceComponent.lowestPrice, stakeActual, tokenSupply),
+            highestPrice: adjustPrice(priceComponent.highestPrice, stakeActual, tokenSupply),
+          });
+
+          const oraclePrice = {
+            timestamp: oracle.timestamp,
+            priceRealtime: adjustPriceComponent(oracle.priceRealtime, stakeActual, tokenSupply),
+            priceWeighted: adjustPriceComponent(oracle.priceWeighted, stakeActual, tokenSupply),
+          };
+
+          updatedOraclePriceByBank.set(bankAddress.toBase58(), oraclePrice);
         }
       }
     }
