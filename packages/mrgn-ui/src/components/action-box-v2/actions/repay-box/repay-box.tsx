@@ -167,7 +167,10 @@ export const RepayBox = ({
     amountRaw,
     selectedBank: selectedBank,
     nativeSolBalance,
-    actionMode: ActionType.Repay,
+    actionMode:
+      selectedBank?.address.toBase58() !== selectedSecondaryBank?.address.toBase58()
+        ? ActionType.RepayCollat
+        : ActionType.Repay,
     maxAmountCollateral,
   });
 
