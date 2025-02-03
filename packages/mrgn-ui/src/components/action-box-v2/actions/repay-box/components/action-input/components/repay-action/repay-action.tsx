@@ -66,7 +66,7 @@ export const RepayAction = ({
         )}
         {isRepayCollat && selectedBank?.isActive && !isUnchanged && <IconArrowRight width={12} height={12} />}
         <span>{maxLabel.amount}</span>
-        {selectedBank && (
+        {selectedBank && maxAmount > 0 && (
           <button
             className="cursor-pointer border-b border-transparent transition text-mfi-action-box-highlight hover:border-mfi-action-box-highlight"
             onClick={handleMaxClick}

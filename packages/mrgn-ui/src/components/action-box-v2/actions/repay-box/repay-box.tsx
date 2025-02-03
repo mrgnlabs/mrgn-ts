@@ -440,6 +440,8 @@ export const RepayBox = ({
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
           setSelectedSecondaryBank={setSelectedSecondaryBank}
+          maxAmountCollateral={maxAmountCollateral}
+          actionMethod={actionMode}
         />
       </div>
 
