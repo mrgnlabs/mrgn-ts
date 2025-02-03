@@ -6,6 +6,7 @@ import {
   ConfirmOptions,
   Connection,
   Keypair,
+  LAMPORTS_PER_SOL,
   PublicKey,
   SendTransactionError,
   Signer,
@@ -21,6 +22,7 @@ import instructions from "../instructions";
 import { MarginRequirementType } from "../models/account";
 import {
   addTransactionMetadata,
+  BankMetadata,
   BankMetadataMap,
   chunkedGetRawMultipleAccountInfoOrdered,
   DEFAULT_COMMITMENT,
@@ -28,7 +30,10 @@ import {
   isV0Tx,
   loadBankMetadatas,
   loadKeypair,
+  MintLayout,
   NodeWallet,
+  RawMint,
+  SINGLE_POOL_PROGRAM_ID,
   SolanaTransaction,
   TransactionOptions,
   Wallet,
@@ -46,6 +51,7 @@ import {
   MarginfiIdlType,
   BankConfigOpt,
   BankConfig,
+  OracleSetup,
 } from "..";
 import { MarginfiAccountWrapper } from "../models/account/wrapper";
 import {
@@ -62,6 +68,8 @@ import {
   processTransactions,
 } from "../services";
 import { BundleSimulationError, simulateBundle } from "../services/transaction/helpers";
+import { getStakeAccount, StakeAccount } from "../vendor";
+import BigNumber from "bignumber.js";
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
@@ -389,14 +397,100 @@ class MarginfiClient {
       })
     );
 
+    const pythStakedCollateralBanks: PublicKey[] = [];
+
     const priceInfos = new Map(
       bankDatasKeyed.map(({ address: bankAddress, data: bankData }, index) => {
         const priceDataRaw = oracleAis[index];
         if (!priceDataRaw) throw new Error(`Failed to fetch price oracle account for bank ${bankAddress.toBase58()}`);
         const oracleSetup = parseOracleSetup(bankData.config.oracleSetup);
+        if (oracleSetup === OracleSetup.StakedWithPythPush) {
+          pythStakedCollateralBanks.push(bankAddress);
+        }
         return [bankAddress.toBase58(), parsePriceInfo(oracleSetup, priceDataRaw.data)];
       })
     );
+
+    if (pythStakedCollateralBanks.length > 0 && bankMetadataMap) {
+      const stakedCollatMap: Record<
+        string,
+        {
+          bankAddress: PublicKey;
+          mint: PublicKey;
+          stakePoolAddress: PublicKey;
+          poolAddress: PublicKey;
+        }
+      > = {};
+      const solPools: string[] = [];
+      const mints: string[] = [];
+
+      pythStakedCollateralBanks.forEach((bankAddress) => {
+        const bankMetadata = bankMetadataMap[bankAddress.toBase58()];
+        if (bankMetadata && bankMetadata.validatorVoteAccount) {
+          const [poolAddress] = PublicKey.findProgramAddressSync(
+            [Buffer.from("pool"), new PublicKey(bankMetadata.validatorVoteAccount).toBuffer()],
+            SINGLE_POOL_PROGRAM_ID
+          );
+          const [stakePoolAddress] = PublicKey.findProgramAddressSync(
+            [Buffer.from("stake"), poolAddress.toBuffer()],
+            SINGLE_POOL_PROGRAM_ID
+          );
+
+          stakedCollatMap[bankAddress.toBase58()] = {
+            bankAddress,
+            mint: new PublicKey(bankMetadata.tokenAddress),
+            stakePoolAddress,
+            poolAddress,
+          };
+          solPools.push(stakePoolAddress.toBase58());
+          mints.push(bankMetadata.tokenAddress);
+        }
+      });
+
+      const dataAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection, [
+        ...mints,
+        ...solPools,
+      ]);
+      const stakePoolsAis: StakeAccount[] = dataAis.slice(mints.length).map((ai) => getStakeAccount(ai.data));
+      const lstMintsAis: RawMint[] = dataAis.slice(0, mints.length).map((mintAi) => MintLayout.decode(mintAi.data));
+
+      const lstMintRecord: Record<string, RawMint> = Object.fromEntries(mints.map((mint, i) => [mint, lstMintsAis[i]]));
+      const solPoolsRecord: Record<string, StakeAccount> = Object.fromEntries(
+        solPools.map((poolKey, i) => [poolKey, stakePoolsAis[i]])
+      );
+
+      for (const index in stakedCollatMap) {
+        const { bankAddress, mint, stakePoolAddress, poolAddress } = stakedCollatMap[index];
+        const stakeAccount = solPoolsRecord[stakePoolAddress.toBase58()];
+        const tokenSupply = lstMintRecord[mint.toBase58()].supply;
+
+        const stakeActual = Number(stakeAccount.stake.delegation.stake);
+
+        const oracle = priceInfos.get(bankAddress.toBase58());
+        if (oracle) {
+          const adjustPrice = (price: BigNumber, stakeActual: number, tokenSupply: bigint) => {
+            return Number(tokenSupply) === 0
+              ? price
+              : new BigNumber((price.toNumber() * (stakeActual - LAMPORTS_PER_SOL)) / Number(tokenSupply));
+          };
+
+          const adjustPriceComponent = (priceComponent: any, stakeActual: number, tokenSupply: bigint) => ({
+            price: adjustPrice(priceComponent.price, stakeActual, tokenSupply),
+            confidence: priceComponent.confidence,
+            lowestPrice: adjustPrice(priceComponent.lowestPrice, stakeActual, tokenSupply),
+            highestPrice: adjustPrice(priceComponent.highestPrice, stakeActual, tokenSupply),
+          });
+
+          const oraclePrice = {
+            timestamp: oracle.timestamp,
+            priceRealtime: adjustPriceComponent(oracle.priceRealtime, stakeActual, tokenSupply),
+            priceWeighted: adjustPriceComponent(oracle.priceWeighted, stakeActual, tokenSupply),
+          };
+
+          priceInfos.set(bankAddress.toBase58(), oraclePrice);
+        }
+      }
+    }
 
     debug("Fetched %s banks and %s price feeds", banks.size, priceInfos.size);
 
