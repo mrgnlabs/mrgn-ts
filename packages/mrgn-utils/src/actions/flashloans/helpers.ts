@@ -200,7 +200,7 @@ export async function calculateMaxRepayableCollateral(
 
   if (amount !== 0) {
     const quoteParams = {
-      amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
+      amount: uiToNative(maxRepayAmount, repayBank.info.state.mintDecimals).toNumber(),
       inputMint: repayBank.info.state.mint.toBase58(),
       outputMint: bank.info.state.mint.toBase58(),
       slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
