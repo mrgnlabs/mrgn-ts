@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { formatAmount } from "@mrgnlabs/mrgn-utils";
 import { tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 
@@ -18,6 +18,8 @@ type ActionInputProps = {
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
 
+  maxAmountCollateral?: number;
+  actionMethod: ActionType;
   isDialog?: boolean;
   isMini?: boolean;
 
@@ -35,6 +37,8 @@ export const ActionInput = ({
   maxAmount,
   selectedBank,
   selectedSecondaryBank,
+  maxAmountCollateral,
+  actionMethod,
   setAmountRaw,
   setSelectedBank,
   setSelectedSecondaryBank,
@@ -43,7 +47,10 @@ export const ActionInput = ({
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
-  const isInputDisabled = React.useMemo(() => maxAmount === 0, [maxAmount]);
+  const isInputDisabled = React.useMemo(
+    () => (actionMethod === ActionType.RepayCollat ? maxAmountCollateral === undefined : maxAmount === 0),
+    [actionMethod, maxAmountCollateral, maxAmount]
+  );
 
   const formatAmountCb = React.useCallback(
     (newAmount: string, bank: ExtendedBankInfo | null) => {

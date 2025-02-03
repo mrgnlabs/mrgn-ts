@@ -304,21 +304,17 @@ export function useRepaySimulation({
         jupiterOptions.slippageMode
       );
       if (!maxAmount.amount) {
-        const errorMessage = DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(
-          selectedSecondaryBank.meta.tokenSymbol
-        );
-        setErrorMessage(errorMessage);
-        setMaxAmountCollateral(undefined);
+        setMaxAmountCollateral(0);
         setMaxOverflowHit(false);
       } else {
         setMaxAmountCollateral(maxAmount.amount);
         setMaxOverflowHit(maxAmount.maxOverflowHit);
       }
     } else {
-      setMaxAmountCollateral(undefined);
+      setMaxAmountCollateral(0);
       setMaxOverflowHit(false);
     }
-  }, [jupiterOptions, selectedBank, selectedSecondaryBank, setErrorMessage, setMaxAmountCollateral, setMaxOverflowHit]);
+  }, [jupiterOptions, selectedBank, selectedSecondaryBank, setMaxAmountCollateral, setMaxOverflowHit]);
 
   React.useEffect(() => {
     if (!selectedSecondaryBank) {
