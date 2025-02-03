@@ -190,57 +190,73 @@ export async function calculateMaxRepayableCollateral(
   slippageBps: number,
   slippageMode: "DYNAMIC" | "FIXED"
 ) {
-  const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
-  let maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
+  if (!bank.isActive || !repayBank.isActive) return 0;
+
   const maxUsdValue = 700_000;
 
-  if (maxRepayAmount * bank.info.oraclePrice.priceRealtime.price.toNumber() > maxUsdValue) {
-    maxRepayAmount = maxUsdValue / bank.info.oraclePrice.priceRealtime.price.toNumber();
+  // Fetch prices safely
+  const bankPrice = bank.info.oraclePrice?.priceRealtime?.price?.toNumber();
+  const repayPrice = repayBank.info.oraclePrice?.priceRealtime?.price?.toNumber();
+
+  // Initial max repayable amount in token Y
+  let maxRepayAmount = bank.position?.amount;
+
+  // Cap max repayable amount in USD
+  if (maxRepayAmount * bankPrice > maxUsdValue) {
+    maxRepayAmount = maxUsdValue / bankPrice;
   }
 
-  if (amount !== 0) {
-    const quoteParams = {
-      amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-      inputMint: repayBank.info.state.mint.toBase58(),
-      outputMint: bank.info.state.mint.toBase58(),
-      slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
-      dynamicSlippage: slippageMode === "DYNAMIC" ? true : false,
-      maxAccounts: 40,
-      swapMode: "ExactIn",
-    } as QuoteGetRequest;
+  // If there’s no position to repay, return 0
+  const repayAmountAvailable = repayBank.position?.isLending ? repayBank.position.amount : 0;
+  if (repayAmountAvailable === 0) return 0;
 
-    try {
-      const swapQuoteInput = await getSwapQuoteWithRetry(quoteParams);
+  // First swap quote: ExactIn mode
+  const initialQuoteParams = {
+    amount: uiToNative(maxRepayAmount, repayBank.info.state.mintDecimals).toNumber(),
+    inputMint: repayBank.info.state.mint.toBase58(),
+    outputMint: bank.info.state.mint.toBase58(),
+    slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
+    dynamicSlippage: slippageMode === "DYNAMIC",
+    maxAccounts: 40,
+    swapMode: "ExactIn",
+  } as QuoteGetRequest;
 
-      if (!swapQuoteInput) throw new Error();
+  try {
+    const swapQuoteInput = await getSwapQuoteWithRetry(initialQuoteParams);
+    if (!swapQuoteInput) throw new Error("Swap quote failed");
 
-      const inputInOtherAmount = nativeToUi(swapQuoteInput.otherAmountThreshold, bank.info.state.mintDecimals);
+    // Get the expected output amount
+    const inputInOtherAmount = nativeToUi(swapQuoteInput.otherAmountThreshold, bank.info.state.mintDecimals);
 
-      if (inputInOtherAmount > maxRepayAmount) {
-        const quoteParams = {
-          amount: uiToNative(maxRepayAmount, bank.info.state.mintDecimals).toNumber(),
-          inputMint: repayBank.info.state.mint.toBase58(), // USDC
-          outputMint: bank.info.state.mint.toBase58(), // JITO
-          slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
-          dynamicSlippage: slippageMode === "DYNAMIC" ? true : false,
-          swapMode: "ExactOut",
-        } as QuoteGetRequest;
+    // If the swap quote suggests a different amount, get an ExactOut quote
+    if (inputInOtherAmount > maxRepayAmount) {
+      const secondQuoteParams = {
+        amount: uiToNative(maxRepayAmount, bank.info.state.mintDecimals).toNumber(),
+        inputMint: repayBank.info.state.mint.toBase58(),
+        outputMint: bank.info.state.mint.toBase58(),
+        slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
+        dynamicSlippage: slippageMode === "DYNAMIC",
+        swapMode: "ExactOut",
+      } as QuoteGetRequest;
 
-        try {
-          const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams, 2);
-          if (!swapQuoteOutput) throw new Error();
-          return nativeToUi(swapQuoteOutput.otherAmountThreshold, repayBank.info.state.mintDecimals) * 1.01;
-        } catch (error) {
-          const bankAmountUsd = maxRepayAmount * bank.info.oraclePrice.priceRealtime.price.toNumber() * 0.9998;
-          const repayAmount = bankAmountUsd / repayBank.info.oraclePrice.priceRealtime.price.toNumber();
-          return repayAmount;
-        }
-      } else {
-        return amount;
+      try {
+        const swapQuoteOutput = await getSwapQuoteWithRetry(secondQuoteParams, 2);
+        if (!swapQuoteOutput) throw new Error("Second swap quote failed");
+
+        return nativeToUi(swapQuoteOutput.otherAmountThreshold, repayBank.info.state.mintDecimals) * 1.01;
+      } catch (error) {
+        console.error("Error in second swap attempt:", error);
+
+        // Fallback calculation using USD value
+        const bankAmountUsd = maxRepayAmount * bankPrice * 0.9998;
+        return bankAmountUsd / repayPrice;
       }
-    } catch {
-      return 0;
+    } else {
+      return repayAmountAvailable;
     }
+  } catch (error) {
+    console.error("Error in first swap attempt:", error);
+    return 0;
   }
 }
 
