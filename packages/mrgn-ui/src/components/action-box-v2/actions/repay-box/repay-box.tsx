@@ -157,6 +157,12 @@ export const RepayBox = ({
     );
   }, [accountSummaryArg, selectedAccount, banks]);
 
+  const actionMode = React.useMemo(() => {
+    return selectedBank?.address.toBase58() !== selectedSecondaryBank?.address.toBase58()
+      ? ActionType.RepayCollat
+      : ActionType.Repay;
+  }, [selectedBank, selectedSecondaryBank]);
+
   const buttonLabel = React.useMemo(() => {
     return selectedBank?.address.toBase58() !== selectedSecondaryBank?.address.toBase58()
       ? `Repay with ${selectedSecondaryBank?.meta.tokenSymbol}`
@@ -167,10 +173,7 @@ export const RepayBox = ({
     amountRaw,
     selectedBank: selectedBank,
     nativeSolBalance,
-    actionMode:
-      selectedBank?.address.toBase58() !== selectedSecondaryBank?.address.toBase58()
-        ? ActionType.RepayCollat
-        : ActionType.Repay,
+    actionMode,
     maxAmountCollateral,
   });
 

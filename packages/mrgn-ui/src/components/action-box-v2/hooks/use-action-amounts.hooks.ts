@@ -6,6 +6,15 @@ import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 import { PublicKey } from "@solana/web3.js";
 
+type UseActionAmountsProps = {
+  amountRaw: string;
+  nativeSolBalance: number;
+  actionMode: ActionType;
+  selectedBank: ExtendedBankInfo | null;
+  maxAmountCollateral?: number;
+  selectedStakeAccount?: { address: PublicKey; balance: number };
+};
+
 export function useActionAmounts({
   amountRaw,
   selectedBank,
@@ -13,14 +22,7 @@ export function useActionAmounts({
   actionMode,
   maxAmountCollateral,
   selectedStakeAccount,
-}: {
-  amountRaw: string;
-  nativeSolBalance: number;
-  actionMode: ActionType;
-  selectedBank: ExtendedBankInfo | null;
-  maxAmountCollateral?: number;
-  selectedStakeAccount?: { address: PublicKey; balance: number };
-}) {
+}: UseActionAmountsProps) {
   const amount = React.useMemo(() => {
     const strippedAmount = amountRaw.replace(/,/g, "");
     return isNaN(Number.parseFloat(strippedAmount)) ? 0 : Number.parseFloat(strippedAmount);
