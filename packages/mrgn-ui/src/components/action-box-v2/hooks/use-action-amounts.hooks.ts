@@ -59,11 +59,9 @@ export function useActionAmounts({
       case ActionType.Borrow:
         return selectedBank?.userInfo.maxBorrow ?? 0;
       case ActionType.Repay:
-        if (maxAmountCollateral) {
-          return maxAmountCollateral;
-        } else {
-          return selectedBank?.userInfo.maxRepay ?? 0;
-        }
+        return selectedBank?.userInfo.maxRepay ?? 0;
+      case ActionType.RepayCollat:
+        return maxAmountCollateral ?? 0;
       case ActionType.Loop:
         return selectedBank?.userInfo.maxDeposit ?? 0;
       case ActionType.MintLST:

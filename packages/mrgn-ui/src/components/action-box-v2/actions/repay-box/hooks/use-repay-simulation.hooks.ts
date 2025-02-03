@@ -306,6 +306,7 @@ export function useRepaySimulation({
           selectedSecondaryBank.meta.tokenSymbol
         );
         setErrorMessage(errorMessage);
+        setMaxAmountCollateral(undefined);
       } else {
         setMaxAmountCollateral(maxAmount);
       }

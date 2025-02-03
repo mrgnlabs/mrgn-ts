@@ -189,77 +189,59 @@ export async function calculateMaxRepayableCollateral(
   repayBank: ExtendedBankInfo,
   slippageBps: number,
   slippageMode: "DYNAMIC" | "FIXED"
-) {
+): Promise<number> {
   if (!bank.isActive || !repayBank.isActive) return 0;
 
-  const maxUsdValue = 700_000;
-
-  // Fetch prices safely
   const bankPrice = bank.info.oraclePrice?.priceRealtime?.price?.toNumber();
   const repayPrice = repayBank.info.oraclePrice?.priceRealtime?.price?.toNumber();
 
-  // Initial max repayable amount in token Y
-  let maxRepayAmount = bank.position?.amount;
+  let maxCollateralAvailable = bank.position?.amount;
+  let repayAmount = repayBank.position.amount;
 
-  // Cap max repayable amount in USD
-  if (maxRepayAmount * bankPrice > maxUsdValue) {
-    maxRepayAmount = maxUsdValue / bankPrice;
+  let maxCollateralUsd = maxCollateralAvailable * bankPrice;
+  let repayAmountUsd = repayAmount * repayPrice;
+
+  if (repayAmountUsd > maxCollateralUsd) {
+    repayAmount = maxCollateralUsd / repayPrice;
   }
 
-  // If there’s no position to repay, return 0
-  const repayAmountAvailable = repayBank.position?.isLending ? repayBank.position.amount : 0;
-  if (repayAmountAvailable === 0) return 0;
+  let attempts = 0;
+  const maxAttempts = 3;
+  const repayReducePercent = 0.75;
+  let swapMode: "ExactIn" | "ExactOut" = "ExactIn";
 
-  // First swap quote: ExactIn mode
-  const initialQuoteParams = {
-    amount: uiToNative(maxRepayAmount, repayBank.info.state.mintDecimals).toNumber(),
-    inputMint: repayBank.info.state.mint.toBase58(),
-    outputMint: bank.info.state.mint.toBase58(),
-    slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
-    dynamicSlippage: slippageMode === "DYNAMIC",
-    maxAccounts: 40,
-    swapMode: "ExactIn",
-  } as QuoteGetRequest;
+  while (attempts < maxAttempts) {
+    const quoteParams: QuoteGetRequest = {
+      amount: uiToNative(repayAmount, repayBank.info.state.mintDecimals).toNumber(),
+      inputMint: repayBank.info.state.mint.toBase58(),
+      outputMint: bank.info.state.mint.toBase58(),
+      slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
+      dynamicSlippage: slippageMode === "DYNAMIC",
+      maxAccounts: swapMode === "ExactIn" ? 40 : undefined,
+      swapMode,
+    };
 
-  try {
-    const swapQuoteInput = await getSwapQuoteWithRetry(initialQuoteParams);
-    if (!swapQuoteInput) throw new Error("Swap quote failed");
+    try {
+      const swapQuote = await getSwapQuoteWithRetry(quoteParams, 2);
+      if (!swapQuote) throw new Error("Swap quote failed");
 
-    // Get the expected output amount
-    const inputInOtherAmount = nativeToUi(swapQuoteInput.otherAmountThreshold, bank.info.state.mintDecimals);
+      const receivedCollateral = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
 
-    // If the swap quote suggests a different amount, get an ExactOut quote
-    if (inputInOtherAmount > maxRepayAmount) {
-      const secondQuoteParams = {
-        amount: uiToNative(maxRepayAmount, bank.info.state.mintDecimals).toNumber(),
-        inputMint: repayBank.info.state.mint.toBase58(),
-        outputMint: bank.info.state.mint.toBase58(),
-        slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
-        dynamicSlippage: slippageMode === "DYNAMIC",
-        swapMode: "ExactOut",
-      } as QuoteGetRequest;
-
-      try {
-        const swapQuoteOutput = await getSwapQuoteWithRetry(secondQuoteParams, 2);
-        if (!swapQuoteOutput) throw new Error("Second swap quote failed");
-
-        return nativeToUi(swapQuoteOutput.otherAmountThreshold, repayBank.info.state.mintDecimals) * 1.01;
-      } catch (error) {
-        console.error("Error in second swap attempt:", error);
-
-        // Fallback calculation using USD value
-        const bankAmountUsd = maxRepayAmount * bankPrice * 0.9998;
-        return bankAmountUsd / repayPrice;
+      if (receivedCollateral > 0) {
+        const repayBankEquivalent = (receivedCollateral * bankPrice) / repayPrice;
+        return repayBankEquivalent * 0.999;
       }
-    } else {
-      return repayAmountAvailable;
+    } catch (error) {
+      console.error(`Swap attempt #${attempts + 1} failed:`, error);
+      repayAmount *= repayReducePercent;
+      attempts += 1;
+      swapMode = "ExactOut";
     }
-  } catch (error) {
-    console.error("Error in first swap attempt:", error);
-    return 0;
   }
-}
 
+  console.error("Max retries reached. Returning 0.");
+  return 0;
+}
 export function getLoopingParamsForClient(
   marginfiClient: MarginfiClient,
   depositBank: ExtendedBankInfo,

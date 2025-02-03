@@ -48,11 +48,7 @@ export const RepayAction = ({
 
   const handleMaxClick = () => {
     if (selectedBank) {
-      onSetAmountRaw(
-        dynamicNumeralFormatter(maxAmount, {
-          tokenPrice: selectedBank.info.oraclePrice.priceRealtime.price.toNumber(),
-        })
-      );
+      onSetAmountRaw(maxAmount.toString());
     }
   };
 
