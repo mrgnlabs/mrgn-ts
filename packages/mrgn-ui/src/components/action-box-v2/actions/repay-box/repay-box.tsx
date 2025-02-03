@@ -83,6 +83,7 @@ export const RepayBox = ({
     errorMessage,
 
     maxAmountCollateral,
+    maxOverflowHit,
 
     refreshState,
     refreshSelectedBanks,
@@ -96,6 +97,7 @@ export const RepayBox = ({
     setSelectedSecondaryBank,
 
     setMaxAmountCollateral,
+    setMaxOverflowHit,
   ] = useRepayBoxStore((state) => [
     state.amountRaw,
     state.repayAmount,
@@ -106,7 +108,7 @@ export const RepayBox = ({
     state.errorMessage,
 
     state.maxAmountCollateral,
-
+    state.maxOverflowHit,
     state.refreshState,
     state.refreshSelectedBanks,
     state.fetchActionBoxState,
@@ -119,6 +121,7 @@ export const RepayBox = ({
     state.setSelectedSecondaryBank,
 
     state.setMaxAmountCollateral,
+    state.setMaxOverflowHit,
   ]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
@@ -196,6 +199,7 @@ export const RepayBox = ({
     setRepayAmount,
     setIsLoading: setIsSimulating,
     setMaxAmountCollateral,
+    setMaxOverflowHit,
   });
 
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
@@ -246,8 +250,9 @@ export const RepayBox = ({
       selectedBank,
       selectedSecondaryBank,
       actionQuote: actionTxns?.actionQuote ?? null,
+      maxOverflowHit,
     });
-  }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote]);
+  }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote, maxOverflowHit]);
 
   //////////////////
   // Repay Action //

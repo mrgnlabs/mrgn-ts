@@ -187,7 +187,8 @@ export const verifyFlashloanTxSize = (builder: {
 export async function calculateMaxRepayableCollateralLegacy(
   bank: ExtendedBankInfo,
   repayBank: ExtendedBankInfo,
-  slippageBps: number
+  slippageBps: number,
+  slippageMode: "DYNAMIC" | "FIXED"
 ) {
   const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
   let maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
@@ -202,7 +203,8 @@ export async function calculateMaxRepayableCollateralLegacy(
       amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
       inputMint: repayBank.info.state.mint.toBase58(),
       outputMint: bank.info.state.mint.toBase58(),
-      slippageBps: slippageBps,
+      slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
+      dynamicSlippage: slippageMode === "DYNAMIC",
       maxAccounts: 40,
       swapMode: "ExactIn",
     } as QuoteGetRequest;
@@ -246,8 +248,10 @@ export async function calculateMaxRepayableCollateral(
   depositBank: ExtendedBankInfo, // JITOSOL
   slippageBps: number,
   slippageMode: "DYNAMIC" | "FIXED"
-): Promise<number> {
-  if (!depositBank.isActive || !borrowBank.isActive) return 0;
+): Promise<{ amount: number; maxOverflowHit: boolean }> {
+  if (!depositBank.isActive || !borrowBank.isActive) return { amount: 0, maxOverflowHit: false };
+
+  let maxOverflowHit = false;
 
   const depositPrice = depositBank.info.oraclePrice?.priceRealtime?.price?.toNumber();
   const borrowPrice = borrowBank.info.oraclePrice?.priceRealtime?.price?.toNumber();
@@ -265,11 +269,12 @@ export async function calculateMaxRepayableCollateral(
   if (borrowedAmountUsd > 250_000) {
     borrowedAmount = 250_000 / borrowPrice;
     borrowedAmountUsd = 250_000;
+    maxOverflowHit = true;
   }
 
   // not enough collateral to repay entire borrow
   if (depositedAmountUsd < borrowedAmountUsd) {
-    return depositedAmount;
+    return { amount: depositedAmount, maxOverflowHit };
   }
 
   // Get slippage for max repay
@@ -283,51 +288,34 @@ export async function calculateMaxRepayableCollateral(
     swapMode: "ExactIn",
   };
 
-  const swapQuote = await getSwapQuoteWithRetry(quoteParams, 2);
+  try {
+    const swapQuote = await getSwapQuoteWithRetry(quoteParams, 2);
 
-  if (!swapQuote) throw new Error("Swap quote failed");
+    if (!swapQuote) throw new Error("Swap quote failed");
 
-  // swap amount with 0.5% buffer
-  const receivedCollateral = nativeToUi(swapQuote.outAmount, depositBank.info.state.mintDecimals) * 1.005;
+    // swap amount with 0.5% buffer
+    const receivedCollateral = nativeToUi(swapQuote.outAmount, depositBank.info.state.mintDecimals) * 1.005;
 
-  return receivedCollateral;
-  // let attempts = 0;
-  // const maxAttempts = 3;
-  // const repayReducePercent = 0.75;
-  // let swapMode: "ExactIn" | "ExactOut" = "ExactIn";
+    // Ensure we never return more than what is available
+    return {
+      amount: Math.min(receivedCollateral, depositedAmount),
+      maxOverflowHit: maxOverflowHit,
+    };
+  } catch (error) {
+    console.error("Failed to fetch maximum repayable collateral:", error);
 
-  // while (attempts < maxAttempts) {
-  //   const quoteParams: QuoteGetRequest = {
-  //     amount: uiToNative(repayAmount, repayBank.info.state.mintDecimals).toNumber(),
-  //     inputMint: repayBank.info.state.mint.toBase58(),
-  //     outputMint: bank.info.state.mint.toBase58(),
-  //     slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
-  //     dynamicSlippage: slippageMode === "DYNAMIC",
-  //     maxAccounts: swapMode === "ExactIn" ? 40 : undefined,
-  //     swapMode,
-  //   };
+    // Check for specific overflow error
+    if (typeof error === "object" && error !== null && "errorCode" in error) {
+      if (error.errorCode === "ROUTE_PLAN_DOES_NOT_CONSUME_ALL_THE_AMOUNT") {
+        return { amount: 250_000, maxOverflowHit: true };
+      }
+    }
 
-  //   try {
-  //     const swapQuote = await getSwapQuoteWithRetry(quoteParams, 2);
-  //     if (!swapQuote) throw new Error("Swap quote failed");
-
-  //     const receivedCollateral = nativeToUi(swapQuote.otherAmountThreshold, bank.info.state.mintDecimals);
-
-  //     if (receivedCollateral > 0) {
-  //       const repayBankEquivalent = (receivedCollateral * bankPrice) / repayPrice;
-  //       return repayBankEquivalent * 0.999;
-  //     }
-  //   } catch (error) {
-  //     console.error(`Swap attempt #${attempts + 1} failed:`, error);
-  //     repayAmount *= repayReducePercent;
-  //     attempts += 1;
-  //     swapMode = "ExactOut";
-  //   }
-  // }
-
-  console.error("Max retries reached. Returning 0.");
-  return 0;
+    // Default fallback value for other errors
+    return { amount: 0, maxOverflowHit: false };
+  }
 }
+
 export function getLoopingParamsForClient(
   marginfiClient: MarginfiClient,
   depositBank: ExtendedBankInfo,

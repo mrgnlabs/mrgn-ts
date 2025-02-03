@@ -233,7 +233,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     code: 137,
   },
   REPAY_COLLAT_FAILED: {
-    description: "Unable to repay using SOL, please select another collateral.",
+    description: "Unable to repay using collateral, please select another collateral.",
     isEnabled: false,
     code: 138,
   },

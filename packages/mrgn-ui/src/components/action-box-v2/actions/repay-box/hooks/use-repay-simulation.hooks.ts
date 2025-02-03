@@ -42,6 +42,7 @@ type RepaySimulationProps = {
   setRepayAmount: (repayAmount: number) => void;
   setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
   setMaxAmountCollateral: (maxAmountCollateral?: number) => void;
+  setMaxOverflowHit: (maxOverflowHit: boolean) => void;
 };
 
 export function useRepaySimulation({
@@ -65,6 +66,7 @@ export function useRepaySimulation({
   setRepayAmount,
   setIsLoading,
   setMaxAmountCollateral,
+  setMaxOverflowHit,
 }: RepaySimulationProps) {
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const prevselectedSecondaryBank = usePrevious(selectedSecondaryBank);
@@ -301,19 +303,22 @@ export function useRepaySimulation({
         jupiterOptions.slippageBps,
         jupiterOptions.slippageMode
       );
-      if (!maxAmount) {
+      if (!maxAmount.amount) {
         const errorMessage = DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(
           selectedSecondaryBank.meta.tokenSymbol
         );
         setErrorMessage(errorMessage);
         setMaxAmountCollateral(undefined);
+        setMaxOverflowHit(false);
       } else {
-        setMaxAmountCollateral(maxAmount);
+        setMaxAmountCollateral(maxAmount.amount);
+        setMaxOverflowHit(maxAmount.maxOverflowHit);
       }
     } else {
       setMaxAmountCollateral(undefined);
+      setMaxOverflowHit(false);
     }
-  }, [selectedBank, selectedSecondaryBank, jupiterOptions, setErrorMessage, setMaxAmountCollateral]);
+  }, [jupiterOptions, selectedBank, selectedSecondaryBank, setErrorMessage, setMaxAmountCollateral, setMaxOverflowHit]);
 
   React.useEffect(() => {
     if (!selectedSecondaryBank) {

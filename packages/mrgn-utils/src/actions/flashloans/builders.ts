@@ -31,7 +31,7 @@ import { STATIC_SIMULATION_ERRORS } from "../../errors";
 import { TOKEN_2022_MINTS, getFeeAccount } from "../../jup-referral.utils";
 
 import {
-  calculateMaxRepayableCollateral,
+  calculateMaxRepayableCollateralLegacy,
   getLoopingParamsForAccount,
   getLoopingParamsForClient,
   verifyTxSizeCloseBorrowLendPosition,
@@ -143,12 +143,12 @@ export async function calculateBorrowLendPositionParams({
 
   if (!closePostionProps.borrowBank.isActive) throw new Error("not active");
 
-  const maxAmount = await calculateMaxRepayableCollateral(
+  const maxAmount = await calculateMaxRepayableCollateralLegacy(
     closePostionProps.borrowBank,
     closePostionProps.depositBank,
     slippageBps,
     slippageMode
-  );
+  ); // TODO: confirm this is still working
 
   if (!maxAmount) return STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED;
 

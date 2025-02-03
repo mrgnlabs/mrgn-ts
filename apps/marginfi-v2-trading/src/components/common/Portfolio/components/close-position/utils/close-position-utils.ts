@@ -12,7 +12,7 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
-  calculateMaxRepayableCollateral,
+  calculateMaxRepayableCollateralLegacy,
   ClosePositionActionTxns,
   deserializeInstruction,
   executeClosePositionAction,
@@ -249,12 +249,12 @@ type CreateSwapTxResponse = { tx: SolanaTransaction; quote: QuoteResponse };
  * Gets a Jupiter swap transaction for swapping the maximum repayable collateral amount to the Quote token
  */
 async function getSwapTx({ ...props }: SwapTxProps): Promise<CreateSwapTxResponse | ActionMessageType> {
-  const maxAmount = await calculateMaxRepayableCollateral(
+  const maxAmount = await calculateMaxRepayableCollateralLegacy(
     props.borrowBank,
     props.depositBank,
     props.jupiterOptions?.slippageBps,
     props.jupiterOptions?.slippageMode
-  );
+  ); // TODO: confirm this is still working
   if (!maxAmount) {
     return STATIC_SIMULATION_ERRORS.MAX_AMOUNT_CALCULATION_FAILED;
   }
