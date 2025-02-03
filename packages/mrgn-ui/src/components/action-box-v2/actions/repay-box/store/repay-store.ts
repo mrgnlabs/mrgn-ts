@@ -15,6 +15,7 @@ interface RepayBoxState {
 
   // Repay-collat specific
   maxAmountCollateral?: number | undefined;
+  maxOverflowHit: boolean;
 
   // Actions
   refreshState: (actionMode?: ActionType) => void;
@@ -31,6 +32,7 @@ interface RepayBoxState {
 
   // Repay-collat specific Actions
   setMaxAmountCollateral: (maxAmountCollateral?: number) => void;
+  setMaxOverflowHit: (maxOverflowHit: boolean) => void;
 }
 
 function createRepayBoxStore() {
@@ -47,6 +49,7 @@ const initialState = {
   errorMessage: null,
 
   maxAmountCollateral: undefined,
+  maxOverflowHit: false,
 };
 
 const stateCreator: StateCreator<RepayBoxState, [], []> = (set, get) => ({
@@ -190,6 +193,10 @@ const stateCreator: StateCreator<RepayBoxState, [], []> = (set, get) => ({
     } else {
       set({ selectedSecondaryBank: secondaryBank });
     }
+  },
+
+  setMaxOverflowHit(maxOverflowHit) {
+    set({ maxOverflowHit });
   },
 });
 

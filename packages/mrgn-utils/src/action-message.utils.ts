@@ -31,6 +31,7 @@ interface CheckActionAvailableProps {
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
   actionQuote: QuoteResponse | null;
+  maxOverflowHit?: boolean;
 }
 
 interface CheckLendActionAvailableProps {
@@ -164,6 +165,7 @@ export function checkRepayActionAvailable({
   selectedBank,
   selectedSecondaryBank,
   actionQuote,
+  maxOverflowHit,
 }: CheckActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
@@ -181,7 +183,7 @@ export function checkRepayActionAvailable({
   ) {
     repayChecks = canBeRepaid(selectedBank, true);
   } else if (selectedBank && selectedSecondaryBank) {
-    repayChecks = canBeRepaidCollat(selectedBank, selectedSecondaryBank, [], actionQuote);
+    repayChecks = canBeRepaidCollat(selectedBank, selectedSecondaryBank, [], actionQuote, maxOverflowHit);
   }
   if (repayChecks) checks.push(...repayChecks);
 

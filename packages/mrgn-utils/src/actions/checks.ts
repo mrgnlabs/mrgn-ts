@@ -80,7 +80,8 @@ function canBeRepaidCollat(
   targetBankInfo: ExtendedBankInfo,
   repayBankInfo: ExtendedBankInfo | null,
   blacklistRoutes: PublicKey[] | null,
-  swapQuote: QuoteResponse | null
+  swapQuote: QuoteResponse | null,
+  maxOverflowHit?: boolean
 ): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
@@ -118,6 +119,13 @@ function canBeRepaidCollat(
     checks.push(DYNAMIC_SIMULATION_ERRORS.WALLET_REPAY_CHECK(targetBankInfo.meta.tokenSymbol));
   }
 
+  if (maxOverflowHit) {
+    checks.push({
+      isEnabled: true,
+      description: `The maximum amount for repaying with collateral is set to 250K USD per transaction.`,
+      actionMethod: "INFO",
+    });
+  }
   return checks;
 }
 
