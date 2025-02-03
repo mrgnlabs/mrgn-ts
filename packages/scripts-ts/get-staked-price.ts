@@ -1,4 +1,4 @@
-import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
+import { Connection, LAMPORTS_PER_SOL, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
 
 import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
@@ -46,7 +46,7 @@ async function main() {
   const [mintAcc, solPoolAcc] = await Promise.all([getMint(connection, lstMint), connection.getAccountInfo(solPool)]);
 
   let supply = Number(mintAcc.supply);
-  let lamps = solPoolAcc.lamports;
+  let lamps = solPoolAcc.lamports - LAMPORTS_PER_SOL;
 
   console.log("supply: " + supply.toLocaleString());
   console.log("sol pool lamps: " + lamps.toLocaleString());
