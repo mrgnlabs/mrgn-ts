@@ -19,7 +19,7 @@ type Config = {
 
 const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  ADMIN_KEY: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
+  ADMIN_KEY: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 };
 
 const deriveGlobalFeeState = (programId: PublicKey) => {
@@ -58,7 +58,7 @@ async function main() {
 
   if (sendTx) {
     try {
-      const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
+      const signature = await sendAndConfirmTransaction(connection, transaction, [wallet, marginfiGroup]);
       console.log("Transaction signature:", signature);
     } catch (error) {
       console.error("Transaction failed:", error);
@@ -67,6 +67,7 @@ async function main() {
     transaction.feePayer = config.ADMIN_KEY; // Set the fee payer to Squads wallet
     const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
+    transaction.partialSign(marginfiGroup);
     const serializedTransaction = transaction.serialize({
       requireAllSignatures: false,
       verifySignatures: false,

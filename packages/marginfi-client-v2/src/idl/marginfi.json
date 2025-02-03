@@ -223,10 +223,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  115, 116, 97, 107, 101, 100, 95, 115, 101, 116, 116, 105, 110,
-                  103, 115
-                ]
+                "value": [115, 116, 97, 107, 101, 100, 95, 115, 101, 116, 116, 105, 110, 103, 115]
               },
               {
                 "kind": "account",
@@ -286,8 +283,7 @@
               {
                 "kind": "const",
                 "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
+                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104
                 ]
               },
               {
@@ -304,10 +300,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -379,10 +372,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -419,9 +409,7 @@
     },
     {
       "name": "lending_account_liquidate",
-      "docs": [
-        "Liquidate a lending account balance of an unhealthy marginfi account"
-      ],
+      "docs": ["Liquidate a lending account balance of an unhealthy marginfi account"],
       "discriminator": [214, 169, 151, 213, 251, 167, 86, 219],
       "accounts": [
         {
@@ -455,8 +443,7 @@
               {
                 "kind": "const",
                 "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
+                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104
                 ]
               },
               {
@@ -473,10 +460,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -492,10 +476,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -545,10 +526,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -644,8 +622,7 @@
               {
                 "kind": "const",
                 "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
+                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104
                 ]
               },
               {
@@ -662,10 +639,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -719,10 +693,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 97, 117, 116,
-                  104, 95, 115, 101, 101, 100
-                ]
+                "value": [101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 97, 117, 116, 104, 95, 115, 101, 101, 100]
               },
               {
                 "kind": "account",
@@ -743,9 +714,8 @@
               {
                 "kind": "const",
                 "value": [
-                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 116, 111,
-                  107, 101, 110, 95, 97, 99, 99, 111, 117, 110, 116, 95, 115,
-                  101, 101, 100
+                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 116, 111, 107, 101, 110, 95, 97, 99, 99, 111, 117,
+                  110, 116, 95, 115, 101, 101, 100
                 ]
               },
               {
@@ -797,9 +767,7 @@
         },
         {
           "name": "fee_payer",
-          "docs": [
-            "Pays to init accounts and pays `fee_state.bank_init_flat_sol_fee` lamports to the protocol"
-          ],
+          "docs": ["Pays to init accounts and pays `fee_state.bank_init_flat_sol_fee` lamports to the protocol"],
           "writable": true,
           "signer": true
         },
@@ -834,8 +802,7 @@
               {
                 "kind": "const",
                 "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
+                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104
                 ]
               },
               {
@@ -852,10 +819,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -870,10 +834,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -889,10 +850,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -907,10 +865,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116,
-                  104
-                ]
+                "value": [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1022,8 +977,7 @@
               {
                 "kind": "const",
                 "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
+                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104
                 ]
               },
               {
@@ -1040,10 +994,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1058,10 +1009,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1077,10 +1025,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1095,10 +1040,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116,
-                  104
-                ]
+                "value": [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1161,9 +1103,7 @@
         },
         {
           "name": "fee_payer",
-          "docs": [
-            "Pays to init accounts and pays `fee_state.bank_init_flat_sol_fee` lamports to the protocol"
-          ],
+          "docs": ["Pays to init accounts and pays `fee_state.bank_init_flat_sol_fee` lamports to the protocol"],
           "writable": true,
           "signer": true
         },
@@ -1213,8 +1153,7 @@
               {
                 "kind": "const",
                 "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
+                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104
                 ]
               },
               {
@@ -1231,10 +1170,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1249,10 +1185,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1268,10 +1201,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1286,10 +1216,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116,
-                  104
-                ]
+                "value": [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1359,8 +1286,7 @@
               {
                 "kind": "const",
                 "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
+                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104
                 ]
               },
               {
@@ -1377,10 +1303,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1396,10 +1319,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1507,9 +1427,7 @@
     },
     {
       "name": "lending_pool_handle_bankruptcy",
-      "docs": [
-        "Handle bad debt of a bankrupt marginfi account for a given bank."
-      ],
+      "docs": ["Handle bad debt of a bankrupt marginfi account for a given bank."],
       "discriminator": [162, 11, 56, 139, 90, 128, 70, 173],
       "accounts": [
         {
@@ -1534,10 +1452,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1553,10 +1468,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1571,10 +1483,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1614,10 +1523,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 97, 117, 116,
-                  104, 95, 115, 101, 101, 100
-                ]
+                "value": [101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 97, 117, 116, 104, 95, 115, 101, 101, 100]
               },
               {
                 "kind": "account",
@@ -1638,9 +1544,8 @@
               {
                 "kind": "const",
                 "value": [
-                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 116, 111,
-                  107, 101, 110, 95, 97, 99, 99, 111, 117, 110, 116, 95, 115,
-                  101, 101, 100
+                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 116, 111, 107, 101, 110, 95, 97, 99, 99, 111, 117,
+                  110, 116, 95, 115, 101, 101, 100
                 ]
               },
               {
@@ -1656,10 +1561,7 @@
         },
         {
           "name": "emissions_funding_account",
-          "docs": [
-            "NOTE: This is a TokenAccount, spl transfer will validate it.",
-            ""
-          ],
+          "docs": ["NOTE: This is a TokenAccount, spl transfer will validate it.", ""],
           "writable": true
         },
         {
@@ -1712,9 +1614,8 @@
               {
                 "kind": "const",
                 "value": [
-                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 116, 111,
-                  107, 101, 110, 95, 97, 99, 99, 111, 117, 110, 116, 95, 115,
-                  101, 101, 100
+                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 116, 111, 107, 101, 110, 95, 97, 99, 99, 111, 117,
+                  110, 116, 95, 115, 101, 101, 100
                 ]
               },
               {
@@ -1793,10 +1694,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116,
-                  104
-                ]
+                "value": [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1841,10 +1739,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1859,10 +1754,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1993,9 +1885,7 @@
     },
     {
       "name": "propagate_fee_state",
-      "docs": [
-        "(Permissionless) Force any group to adopt the current FeeState settings"
-      ],
+      "docs": ["(Permissionless) Force any group to adopt the current FeeState settings"],
       "discriminator": [64, 3, 166, 194, 129, 21, 101, 155],
       "accounts": [
         {
@@ -2011,9 +1901,7 @@
         },
         {
           "name": "marginfi_group",
-          "docs": [
-            "Any group, this ix is permisionless and can propogate the fee to any group"
-          ],
+          "docs": ["Any group, this ix is permisionless and can propogate the fee to any group"],
           "writable": true
         }
       ],
@@ -2561,9 +2449,7 @@
           },
           {
             "name": "collected_insurance_fees_outstanding",
-            "docs": [
-              "Fees collected and pending withdraw for the `insurance_vault`"
-            ],
+            "docs": ["Fees collected and pending withdraw for the `insurance_vault`"],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -2695,9 +2581,7 @@
     },
     {
       "name": "BankConfig",
-      "docs": [
-        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
-      ],
+      "docs": ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
       "serialization": "bytemuckunsafe",
       "repr": {
         "kind": "c"
@@ -2825,9 +2709,7 @@
           },
           {
             "name": "oracle_max_age",
-            "docs": [
-              "Time window in seconds for the oracle price feed to be considered live."
-            ],
+            "docs": ["Time window in seconds for the oracle price feed to be considered live."],
             "type": "u16"
           },
           {
@@ -2841,9 +2723,7 @@
     },
     {
       "name": "BankConfigCompact",
-      "docs": [
-        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
-      ],
+      "docs": ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
       "repr": {
         "kind": "c"
       },
@@ -2962,9 +2842,7 @@
           },
           {
             "name": "oracle_max_age",
-            "docs": [
-              "Time window in seconds for the oracle price feed to be considered live."
-            ],
+            "docs": ["Time window in seconds for the oracle price feed to be considered live."],
             "type": "u16"
           }
         ]
@@ -3124,9 +3002,7 @@
         "fields": [
           {
             "name": "key",
-            "docs": [
-              "The fee state's own key. A PDA derived from just `b\"feestate\"`"
-            ],
+            "docs": ["The fee state's own key. A PDA derived from just `b\"feestate\"`"],
             "type": "pubkey"
           },
           {
@@ -3148,10 +3024,7 @@
           },
           {
             "name": "bank_init_flat_sol_fee",
-            "docs": [
-              "Flat fee assessed when a new bank is initialized, in lamports.",
-              "* In SOL, in native decimals."
-            ],
+            "docs": ["Flat fee assessed when a new bank is initialized, in lamports.", "* In SOL, in native decimals."],
             "type": "u32"
           },
           {
@@ -3301,9 +3174,7 @@
           },
           {
             "name": "insurance_fee_fixed_apr",
-            "docs": [
-              "Goes to insurance, funds `collected_insurance_fees_outstanding`"
-            ],
+            "docs": ["Goes to insurance, funds `collected_insurance_fees_outstanding`"],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -3312,9 +3183,7 @@
           },
           {
             "name": "insurance_ir_fee",
-            "docs": [
-              "Goes to insurance, funds `collected_insurance_fees_outstanding`"
-            ],
+            "docs": ["Goes to insurance, funds `collected_insurance_fees_outstanding`"],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -3323,9 +3192,7 @@
           },
           {
             "name": "protocol_fixed_fee_apr",
-            "docs": [
-              "Earned by the group, goes to `collected_group_fees_outstanding`"
-            ],
+            "docs": ["Earned by the group, goes to `collected_group_fees_outstanding`"],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -3334,9 +3201,7 @@
           },
           {
             "name": "protocol_ir_fee",
-            "docs": [
-              "Earned by the group, goes to `collected_group_fees_outstanding`"
-            ],
+            "docs": ["Earned by the group, goes to `collected_group_fees_outstanding`"],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -4114,9 +3979,7 @@
           },
           {
             "name": "fee_state_cache",
-            "docs": [
-              "Caches information from the global `FeeState` so the FeeState can be omitted on certain ixes"
-            ],
+            "docs": ["Caches information from the global `FeeState` so the FeeState can be omitted on certain ixes"],
             "type": {
               "defined": {
                 "name": "FeeStateCache"
@@ -4256,9 +4119,7 @@
         "fields": [
           {
             "name": "key",
-            "docs": [
-              "This account's own key. A PDA derived from `marginfi_group` and `STAKED_SETTINGS_SEED`"
-            ],
+            "docs": ["This account's own key. A PDA derived from `marginfi_group` and `STAKED_SETTINGS_SEED`"],
             "type": "pubkey"
           },
           {
