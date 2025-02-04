@@ -2022,6 +2022,64 @@
       "discriminator": [157, 140, 6, 77, 89, 173, 173, 125]
     }
   ],
+  "events": [
+    {
+      "name": "LendingAccountBorrowEvent",
+      "discriminator": [223, 96, 81, 10, 156, 99, 26, 59]
+    },
+    {
+      "name": "LendingAccountDepositEvent",
+      "discriminator": [161, 54, 237, 217, 105, 248, 122, 151]
+    },
+    {
+      "name": "LendingAccountLiquidateEvent",
+      "discriminator": [166, 160, 249, 154, 183, 39, 23, 242]
+    },
+    {
+      "name": "LendingAccountRepayEvent",
+      "discriminator": [16, 220, 55, 111, 7, 80, 16, 25]
+    },
+    {
+      "name": "LendingAccountWithdrawEvent",
+      "discriminator": [3, 220, 148, 243, 33, 249, 54, 88]
+    },
+    {
+      "name": "LendingPoolBankAccrueInterestEvent",
+      "discriminator": [104, 117, 187, 156, 111, 154, 106, 186]
+    },
+    {
+      "name": "LendingPoolBankCollectFeesEvent",
+      "discriminator": [101, 119, 97, 250, 169, 175, 156, 253]
+    },
+    {
+      "name": "LendingPoolBankConfigureEvent",
+      "discriminator": [246, 35, 233, 110, 93, 152, 235, 40]
+    },
+    {
+      "name": "LendingPoolBankCreateEvent",
+      "discriminator": [236, 220, 201, 63, 239, 126, 136, 249]
+    },
+    {
+      "name": "LendingPoolBankHandleBankruptcyEvent",
+      "discriminator": [166, 77, 41, 140, 36, 94, 10, 57]
+    },
+    {
+      "name": "MarginfiAccountCreateEvent",
+      "discriminator": [183, 5, 117, 104, 122, 199, 68, 51]
+    },
+    {
+      "name": "MarginfiAccountTransferAccountAuthorityEvent",
+      "discriminator": [112, 61, 140, 132, 251, 92, 90, 202]
+    },
+    {
+      "name": "MarginfiGroupConfigureEvent",
+      "discriminator": [241, 104, 172, 167, 41, 195, 199, 170]
+    },
+    {
+      "name": "MarginfiGroupCreateEvent",
+      "discriminator": [233, 125, 61, 14, 98, 240, 136, 253]
+    }
+  ],
   "errors": [
     {
       "code": 6000,
