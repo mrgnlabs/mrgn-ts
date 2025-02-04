@@ -192,7 +192,7 @@ export const BankList = ({
                   </CommandItem>
                 );
               })}
-            <div className="space-y-2 text-center w-full pt-3">
+            <div className="space-y-2 text-center w-full pt-5 pb-4">
               <p className="text-xs text-muted-foreground">Don&apos;t hold supported tokens?</p>
               <Button variant="outline" className="mx-auto font-normal text-[11px]" size="sm">
                 <Link href="/deposit-swap">
