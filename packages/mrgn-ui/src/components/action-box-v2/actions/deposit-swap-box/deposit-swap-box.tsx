@@ -165,6 +165,15 @@ export const DepositSwapBox = ({
     state.setIsActionComplete,
   ]);
 
+  const isDust = React.useMemo(
+    () => selectedDepositBank?.isActive && selectedDepositBank?.position.isDust,
+    [selectedDepositBank]
+  );
+  const showCloseBalance = React.useMemo(
+    () => (lendMode === ActionType.Withdraw && isDust) || false,
+    [lendMode, isDust]
+  );
+
   const { amount, debouncedAmount, walletAmount, maxAmount } = useDepositSwapActionAmounts({
     amountRaw,
     selectedBank: selectedSwapBank ?? selectedDepositBank,
@@ -172,6 +181,32 @@ export const DepositSwapBox = ({
     actionMode: lendMode,
     walletTokens,
   });
+  const actionMessages = React.useMemo(() => {
+    return checkDepositSwapActionAvailable({
+      amount,
+      connected,
+      showCloseBalance,
+      depositBank: selectedDepositBank,
+      swapBank: selectedSwapBank,
+      banks,
+      marginfiAccount: selectedAccount,
+      nativeSolBalance,
+      lendMode,
+    });
+  }, [
+    amount,
+    connected,
+    showCloseBalance,
+    selectedDepositBank,
+    selectedSwapBank,
+    banks,
+    selectedAccount,
+    nativeSolBalance,
+    lendMode,
+  ]);
+
+  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
+
   const { actionSummary, refreshSimulation } = useDepositSwapSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
@@ -186,10 +221,10 @@ export const DepositSwapBox = ({
     setErrorMessage,
     setIsLoading: setIsSimulating,
     marginfiClient,
+    actionMessages: actionMessages.concat(additionalActionMessages),
   });
 
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
-  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -227,75 +262,6 @@ export const DepositSwapBox = ({
       setAdditionalActionMessages([]);
     }
   }, [errorMessage]);
-
-  /////////////////////////////////
-  // fetch wallet tokens actions //
-  /////////////////////////////////
-  // const fetchWalletTokens = React.useCallback(async (wallet: PublicKey) => {
-  //   try {
-  //     const response = await fetch(`/api/user/wallet?wallet=${wallet.toBase58()}`);
-
-  //     const data = await response.json();
-
-  //     const mappedData = data.map((token: WalletToken) => {
-  //       return {
-  //         ...token,
-  //         address: new PublicKey(token.address),
-  //         ata: new PublicKey(token.ata),
-  //       };
-  //     });
-
-  //     setWalletTokens(mappedData);
-  //   } catch (error) {
-  //     console.error("Failed to fetch wallet tokens:", error);
-  //   }
-  // }, []);
-
-  // // Fetch on initial load
-  // React.useEffect(() => {
-  //   if (!connected || !selectedAccount || walletTokens !== null) return;
-
-  //   const walletPublicKey = selectedAccount.authority;
-  //   fetchWalletTokens(walletPublicKey);
-  // }, [connected, selectedAccount, walletTokens, fetchWalletTokens]);
-
-  // // Fetch on refresh
-  // const handleRefreshWalletTokens = (walletPublicKey: PublicKey) => {
-  //   fetchWalletTokens(walletPublicKey);
-  // };
-
-  const isDust = React.useMemo(
-    () => selectedDepositBank?.isActive && selectedDepositBank?.position.isDust,
-    [selectedDepositBank]
-  );
-  const showCloseBalance = React.useMemo(
-    () => (lendMode === ActionType.Withdraw && isDust) || false,
-    [lendMode, isDust]
-  );
-
-  const actionMessages = React.useMemo(() => {
-    return checkDepositSwapActionAvailable({
-      amount,
-      connected,
-      showCloseBalance,
-      depositBank: selectedDepositBank,
-      swapBank: selectedSwapBank,
-      banks,
-      marginfiAccount: selectedAccount,
-      nativeSolBalance,
-      lendMode,
-    });
-  }, [
-    amount,
-    connected,
-    showCloseBalance,
-    selectedDepositBank,
-    selectedSwapBank,
-    banks,
-    selectedAccount,
-    nativeSolBalance,
-    lendMode,
-  ]);
 
   const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : lendMode), [showCloseBalance, lendMode]);
 
@@ -541,7 +507,11 @@ export const DepositSwapBox = ({
           <p className="text-sm text-muted-foreground">Deposit</p>
           <ActionInput
             banks={banks.filter(
-              (bank) => "info" in bank && bank.info.rawBank.mint.toBase58() !== selectedSwapBank?.address.toBase58()
+              (bank) =>
+                bank.info.rawBank.mint.toBase58() !==
+                (selectedSwapBank && "info" in selectedSwapBank
+                  ? selectedSwapBank?.info.rawBank.mint.toBase58()
+                  : selectedSwapBank?.address.toBase58())
             )}
             nativeSolBalance={nativeSolBalance}
             walletAmount={walletAmount}
