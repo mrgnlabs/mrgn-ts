@@ -11,7 +11,7 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { MRGN_TX_TYPES, SolanaTransaction } from "./transaction.types";
+import { MRGN_TX_TYPES, SolanaTransaction, TransactionType } from "./transaction.types";
 
 /**
  * Determines if a given transaction is a VersionedTransaction.
@@ -253,13 +253,13 @@ export function addTransactionMetadata<T extends Transaction | VersionedTransact
   options: {
     signers?: Array<Signer>;
     addressLookupTables?: AddressLookupTableAccount[];
-    type?: MRGN_TX_TYPES;
+    type: TransactionType;
     unitsConsumed?: number;
   }
 ): T & {
   signers?: Array<Signer>;
   addressLookupTables?: AddressLookupTableAccount[];
-  type?: MRGN_TX_TYPES;
+  type: TransactionType;
   unitsConsumed?: number;
 } {
   return Object.assign(transaction, options);
