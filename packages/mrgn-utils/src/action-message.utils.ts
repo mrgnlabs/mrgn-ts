@@ -9,6 +9,7 @@ import {
   canBeLooped,
   DYNAMIC_SIMULATION_ERRORS,
   LstData,
+  canBeDepositSwapped,
 } from ".";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
@@ -289,22 +290,19 @@ export function checkDepositSwapActionAvailable({
 }: CheckDepositSwapActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
-  const requiredCheck = getRequiredCheck(connected, depositBank);
-  if (requiredCheck) return [requiredCheck];
+  if (!connected || !depositBank || !swapBank) {
+    checks.push({ isEnabled: false });
+    return checks;
+  }
 
   const generalChecks = getGeneralChecks(amount ?? 0, showCloseBalance);
   if (generalChecks) checks.push(...generalChecks);
 
   // alert checks
   if (depositBank) {
-    const depositChecks = canBeLent(depositBank, nativeSolBalance);
+    const depositChecks = canBeDepositSwapped(depositBank, swapBank, nativeSolBalance);
     if (depositChecks.length) checks.push(...depositChecks);
   }
-
-  if (!swapBank) {
-    checks.push({ isEnabled: false });
-  }
-
   if (checks.length === 0)
     checks.push({
       isEnabled: true,

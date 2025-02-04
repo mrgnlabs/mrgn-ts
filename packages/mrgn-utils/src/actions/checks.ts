@@ -1,4 +1,4 @@
-import { floor, percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { floor, percentFormatter, WalletToken, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ActionMessageType } from "./types";
 import { QuoteResponse } from "@jup-ag/api";
 import {
@@ -22,7 +22,16 @@ function isBankOracleStale(bank: ExtendedBankInfo) {
   return false;
 }
 
-export { canBeWithdrawn, canBeRepaid, canBeRepaidCollat, canBeLooped, canBeBorrowed, canBeLent, canBeLstStaked };
+export {
+  canBeWithdrawn,
+  canBeRepaid,
+  canBeRepaidCollat,
+  canBeLooped,
+  canBeBorrowed,
+  canBeLent,
+  canBeLstStaked,
+  canBeDepositSwapped,
+};
 
 function canBeWithdrawn(
   targetBankInfo: ExtendedBankInfo,
@@ -304,6 +313,77 @@ function canBeLstStaked(lstQuoteMeta: QuoteResponseMeta | null): ActionMessageTy
 
   if (!lstQuoteMeta?.quoteResponse) {
     checks.push({ isEnabled: false });
+  }
+
+  return checks;
+}
+
+function canBeDepositSwapped(
+  depositBank: ExtendedBankInfo,
+  swapBank: WalletToken | ExtendedBankInfo,
+  nativeSolBalance: number
+): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
+  const isPaused = depositBank.info.rawBank.config.operationalState === OperationalState.Paused;
+
+  if (isPaused) {
+    checks.push(DYNAMIC_SIMULATION_ERRORS.BANK_PAUSED_CHECK(depositBank.meta.tokenSymbol));
+  }
+
+  const isReduceOnly = depositBank.info.rawBank.config.operationalState === OperationalState.ReduceOnly;
+  if (isReduceOnly) {
+    checks.push(DYNAMIC_SIMULATION_ERRORS.REDUCE_ONLY_CHECK(depositBank.meta.tokenSymbol));
+  }
+
+  const isBeingRetired =
+    depositBank.info.rawBank.getAssetWeight(MarginRequirementType.Initial, depositBank.info.oraclePrice, true).eq(0) &&
+    depositBank.info.rawBank.getAssetWeight(MarginRequirementType.Maintenance, depositBank.info.oraclePrice).gt(0);
+  if (isBeingRetired) {
+    checks.push(DYNAMIC_SIMULATION_ERRORS.BANK_RETIRED_CHECK(depositBank.meta.tokenSymbol));
+  }
+
+  const alreadyBorrowing = depositBank.isActive && !depositBank.position.isLending;
+  if (alreadyBorrowing) {
+    checks.push(STATIC_SIMULATION_ERRORS.ALREADY_BORROWING);
+  }
+
+  const isFull = depositBank.info.rawBank.computeRemainingCapacity().depositCapacity.lte(0);
+  if (isFull && depositBank.info.rawBank.config.assetTag !== 2) {
+    checks.push({
+      description: `The ${depositBank.meta.tokenSymbol} bank is at deposit capacity.`,
+      isEnabled: false,
+    });
+  }
+
+  const swapBankInfo =
+    "info" in swapBank
+      ? {
+          address: swapBank.info.state.mint,
+          balance: swapBank.userInfo.tokenAccount.balance,
+          decimals: swapBank.info.state.mintDecimals,
+          assetTag: swapBank.info.rawBank.config.assetTag,
+          symbol: swapBank.meta.tokenSymbol,
+          name: swapBank.meta.tokenName,
+        }
+      : {
+          address: swapBank.address,
+          balance: swapBank.balance,
+          decimals: swapBank.mintDecimals,
+          assetTag: 1, // TODO: this ok to assume 1?
+          symbol: swapBank.symbol,
+          name: swapBank.name,
+        };
+
+  const isWrappedSol = swapBankInfo.address.equals(WSOL_MINT);
+  const walletBalance = floor(
+    isWrappedSol ? Math.max(swapBankInfo.balance + nativeSolBalance - FEE_MARGIN, 0) : swapBankInfo.balance,
+    swapBankInfo.decimals
+  );
+
+  if (walletBalance === 0 && swapBankInfo.assetTag !== 2) {
+    checks.push(DYNAMIC_SIMULATION_ERRORS.INSUFFICIENT_BALANCE_CHECK(swapBankInfo.symbol));
+  } else if (walletBalance === 0 && swapBankInfo.assetTag === 2) {
+    checks.push(DYNAMIC_SIMULATION_ERRORS.INSUFFICIENT_STAKE_BALANCE_CHECK(swapBankInfo.name));
   }
 
   return checks;
