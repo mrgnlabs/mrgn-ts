@@ -1,4 +1,10 @@
-import { Amount, ExtendedV0Transaction, TransactionOptions } from "@mrgnlabs/mrgn-common";
+import {
+  Amount,
+  ExtendedV0Transaction,
+  SolanaTransaction,
+  TransactionOptions,
+  TransactionType,
+} from "@mrgnlabs/mrgn-common";
 import { PublicKey, TransactionInstruction, AddressLookupTableAccount } from "@solana/web3.js";
 import { MakeWithdrawIxOpts, MakeRepayIxOpts, MakeDepositIxOpts, MakeBorrowIxOpts } from "./pure";
 import { ProcessTransactionsClientOpts } from "../../services";
@@ -63,6 +69,11 @@ export type RepayWithCollateralTxProps = {
   withdrawOpts?: MakeWithdrawIxOpts;
   /** Optional repay configuration */
   repayOpts?: MakeRepayIxOpts;
+};
+
+export type TransactionBuilderResult = {
+  transactions: SolanaTransaction[];
+  actionTxIndex: number;
 };
 
 export type FlashloanActionResult = {
