@@ -131,7 +131,7 @@ function canBeRepaidCollat(
   if (maxOverflowHit) {
     checks.push({
       isEnabled: true,
-      description: `The maximum amount for repaying with collateral is set to 250K USD per transaction.`,
+      description: "Collateral repay is limited to $250K per transaction.",
       actionMethod: "INFO",
     });
   }
