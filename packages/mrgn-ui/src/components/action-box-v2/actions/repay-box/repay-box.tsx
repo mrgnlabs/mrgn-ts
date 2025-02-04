@@ -427,7 +427,7 @@ export const RepayBox = ({
           </div>
         </div>
       )}
-      <div className="mb-4">
+      <div>
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
