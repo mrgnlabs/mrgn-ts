@@ -41,6 +41,7 @@ type LoopSimulationProps = {
   setErrorMessage: (error: ActionMessageType | null) => void;
   setMaxLeverage: (maxLeverage: number) => void;
   setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
+  actionMessages: ActionMessageType[];
 };
 
 export function useLoopSimulation({
@@ -55,7 +56,7 @@ export function useLoopSimulation({
   simulationResult,
   isRefreshTxn,
   jupiterOptions,
-
+  actionMessages,
   setSimulationResult,
   setActionTxns,
   setErrorMessage,
@@ -219,7 +220,9 @@ export function useLoopSimulation({
 
   React.useEffect(() => {
     // only simulate when amount or leverage changes
-    if (prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) {
+    const isDisabled = actionMessages.some((message) => !message.isEnabled);
+
+    if ((prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) && !isDisabled) {
       fetchLoopingTxn(debouncedAmount, debouncedLeverage);
     }
 
@@ -227,7 +230,15 @@ export function useLoopSimulation({
     if (isRefreshTxn) {
       fetchLoopingTxn(debouncedAmount, debouncedLeverage);
     }
-  }, [prevDebouncedAmount, isRefreshTxn, debouncedAmount, debouncedLeverage, fetchLoopingTxn, prevDebouncedLeverage]);
+  }, [
+    prevDebouncedAmount,
+    isRefreshTxn,
+    debouncedAmount,
+    debouncedLeverage,
+    fetchLoopingTxn,
+    prevDebouncedLeverage,
+    actionMessages,
+  ]);
 
   React.useEffect(() => {
     // Only run simulation if we have transactions to simulate

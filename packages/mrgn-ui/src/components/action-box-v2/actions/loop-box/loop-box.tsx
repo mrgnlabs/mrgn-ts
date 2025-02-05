@@ -57,6 +57,7 @@ export type LoopBoxProps = {
   banks: ExtendedBankInfo[];
   requestedBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
+  allBanks: ExtendedBankInfo[];
 
   isDialog?: boolean;
 
@@ -73,6 +74,7 @@ export const LoopBox = ({
   selectedAccount,
   accountSummaryArg,
   requestedBank,
+  allBanks,
   isDialog,
   onComplete,
   captureEvent,
@@ -176,6 +178,19 @@ export const LoopBox = ({
 
   const debouncedLeverage = useAmountDebounce<number | null>(leverage, 1000);
 
+  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
+  const [quoteActionMessage, setQuoteActionMessage] = React.useState<ActionMessageType[]>([]);
+
+  const actionMessages = React.useMemo(() => {
+    return checkLoopActionAvailable({
+      amount,
+      connected,
+      selectedBank,
+      selectedSecondaryBank,
+      banks: allBanks,
+    });
+  }, [amount, connected, selectedBank, selectedSecondaryBank, allBanks]);
+
   const { actionSummary, refreshSimulation } = useLoopSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     debouncedLeverage: debouncedLeverage ?? 0,
@@ -193,9 +208,8 @@ export const LoopBox = ({
     setActionTxns,
     setErrorMessage,
     setIsLoading: setIsSimulating,
+    actionMessages: actionMessages,
   });
-
-  const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
 
   const [showSimSuccess, setShowSimSuccess] = React.useState(false);
 
@@ -223,24 +237,21 @@ export const LoopBox = ({
   }, [requestedBank, fetchActionBoxState]);
 
   React.useEffect(() => {
-    if (errorMessage && errorMessage.description) {
-      showErrorToast(errorMessage?.description);
-      setAdditionalActionMessages([errorMessage]);
+    if (errorMessage?.description) {
+      showErrorToast(errorMessage.description);
+      setAdditionalActionMessages((prevMessages) => [...prevMessages, errorMessage]);
     } else {
       setAdditionalActionMessages([]);
     }
   }, [errorMessage]);
 
-  const actionMessages = React.useMemo(() => {
-    return checkLoopActionAvailable({
-      amount,
-      connected,
-      selectedBank,
-      selectedSecondaryBank,
-      actionQuote: actionTxns.actionQuote,
-    });
-  }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote]);
-
+  React.useEffect(() => {
+    if (!actionTxns.actionQuote) {
+      setQuoteActionMessage([{ isEnabled: false }]);
+    } else {
+      setQuoteActionMessage([]);
+    }
+  }, [actionTxns.actionQuote]);
   /*
   Cleaing additional action messages when the bank or amount changes. This is to prevent outdated errors from being displayed.
   */
@@ -467,24 +478,30 @@ export const LoopBox = ({
           borrowLstApy={borrowLstApy}
         />
       </div>
-      {additionalActionMessages.concat(actionMessages).map(
-        (actionMessage, idx) =>
-          actionMessage.description && (
-            <div className="pb-6" key={idx}>
-              <ActionMessage
-                _actionMessage={actionMessage}
-                retry={refreshSimulation}
-                isRetrying={isSimulating.isLoading}
-              />
-            </div>
-          )
-      )}
+      {additionalActionMessages
+        .concat(actionMessages)
+        .concat(quoteActionMessage)
+        .map(
+          (actionMessage, idx) =>
+            actionMessage.description && (
+              <div className="pb-6" key={idx}>
+                <ActionMessage
+                  _actionMessage={actionMessage}
+                  retry={refreshSimulation}
+                  isRetrying={isSimulating.isLoading}
+                />
+              </div>
+            )
+        )}
 
       <div className="mb-3 space-y-2">
         <ActionButton
           isLoading={isLoading}
           isEnabled={
-            !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
+            !additionalActionMessages
+              .concat(actionMessages)
+              .concat(quoteActionMessage)
+              .filter((value) => value.isEnabled === false).length
           }
           connected={connected}
           handleAction={() => {
