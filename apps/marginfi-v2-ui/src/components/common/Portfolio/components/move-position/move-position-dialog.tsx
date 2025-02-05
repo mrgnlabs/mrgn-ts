@@ -2,7 +2,13 @@ import React from "react";
 
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import { usdFormatter, numeralFormatter, shortenAddress, percentFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  usdFormatter,
+  numeralFormatter,
+  shortenAddress,
+  percentFormatter,
+  SolanaTransaction,
+} from "@mrgnlabs/mrgn-common";
 import { AccountSummary, ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMessageType,
@@ -51,7 +57,7 @@ export const MovePositionDialog = ({
   accountLabels,
 }: MovePositionDialogProps) => {
   const [accountToMoveTo, setAccountToMoveTo] = React.useState<MarginfiAccountWrapper | null>(null);
-  const [actionTxns, setActionTxns] = React.useState<(Transaction | VersionedTransaction)[]>([]);
+  const [actionTxns, setActionTxns] = React.useState<SolanaTransaction[]>([]);
   const [isExecutionLoading, setIsExecutionLoading] = React.useState<boolean>(false);
   const [isSimulationLoading, setIsSimulationLoading] = React.useState<boolean>(false);
   const [errorMessage, setErrorMessage] = React.useState<ActionMessageType | null>(null);

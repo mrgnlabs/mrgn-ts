@@ -16,6 +16,7 @@ import {
   LUT_PROGRAM_AUTHORITY_INDEX,
   nativeToUi,
   SolanaTransaction,
+  TransactionType,
   uiToNative,
   WalletToken,
 } from "@mrgnlabs/mrgn-common";
@@ -117,8 +118,7 @@ export async function generateDepositSwapTxns(
   const depositTx = await props.marginfiAccount.makeDepositTx(finalDepositAmount, props.depositBank.address);
 
   return {
-    actionTxn: depositTx,
-    additionalTxns: [...(swapTx?.tx ? [swapTx.tx] : [])],
+    transactions: [...(swapTx?.tx ? [swapTx.tx] : []), depositTx],
     actionQuote: swapTx?.quote ?? null,
   };
 }
@@ -182,7 +182,7 @@ export async function createSwapTx(props: GenerateDepositSwapTxnsProps) {
       new VersionedTransaction(swapMessage.compileToV0Message(addressLookupAccounts)),
       {
         addressLookupTables: addressLookupAccounts,
-        type: "SWAP",
+        type: TransactionType.JUPITER_SWAP,
       }
     );
 

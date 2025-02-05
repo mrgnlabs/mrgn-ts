@@ -192,7 +192,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   }, [staticActionMethods, dynamicActionMessages]);
 
   const isDisabled = React.useMemo(() => {
-    if (!actionTxns?.actionQuote || !actionTxns?.actionTxn) return true;
+    if (!actionTxns?.transactions.length || !actionTxns?.actionQuote) return true;
     if (actionMethods.filter((value) => value.isEnabled === false).length) return true;
     return false;
   }, [actionMethods, actionTxns]);

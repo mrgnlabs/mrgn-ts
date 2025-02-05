@@ -56,8 +56,7 @@ const initialState = {
   simulationResult: null,
 
   actionTxns: {
-    actionTxn: null,
-    additionalTxns: [],
+    transactions: [],
     actionQuote: null,
     lastValidBlockHeight: undefined,
     actualDepositAmount: 0,

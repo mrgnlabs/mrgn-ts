@@ -45,7 +45,7 @@ const initialState = {
   simulationResult: null,
   lendMode: ActionType.Deposit,
   selectedBank: null,
-  actionTxns: { actionTxn: null, additionalTxns: [] },
+  actionTxns: { transactions: [] },
   errorMessage: null,
   selectedStakeAccount: null,
   stakeAccounts: [],

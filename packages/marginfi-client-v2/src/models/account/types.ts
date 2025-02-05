@@ -71,16 +71,12 @@ export type RepayWithCollateralTxProps = {
   repayOpts?: MakeRepayIxOpts;
 };
 
-export type TransactionBuilderResult = {
+export interface TransactionBuilderResult {
   transactions: SolanaTransaction[];
   actionTxIndex: number;
-};
+}
 
-export type FlashloanActionResult = {
-  /** Additional transactions if needed */
-  additionalTxs: ExtendedV0Transaction[];
-  /** Main repay transaction */
-  flashloanTx: ExtendedV0Transaction;
+export interface FlashloanActionResult extends TransactionBuilderResult {
   /** Whether transaction size exceeds limits */
   txOverflown: boolean;
-};
+}

@@ -33,12 +33,25 @@ export enum TransactionType {
   // NATIVE STAKE ACTIONS
   DEPOSIT_STAKE = "DEPOSIT_STAKE",
   WITHDRAW_STAKE = "WITHDRAW_STAKE",
+  INITIALIZE_STAKED_POOL = "INITIALIZE_STAKED_POOL",
+  ADD_STAKED_BANK = "ADD_STAKED_BANK",
+
+  // LST
+  STAKE_TO_STAKE = "STAKE_TO_STAKE",
+  MINT_LST_NATIVE = "MINT_LST_NATIVE",
+  SWAP_TO_SOL = "SWAP_TO_SOL",
+  SOL_TO_LST = "SOL_TO_LST",
 
   // EMISSIONS
   WITHDRAW_EMISSIONS = "WITHDRAW_EMISSIONS",
 
   // LIQUIDATE
   LIQUIDATE_ACCOUNT = "LIQUIDATE_ACCOUNT",
+
+  // BANK and GROUPS
+  CREATE_PERM_BANK = "CREATE_PERM_BANK",
+  CREATE_GROUP = "CREATE_GROUP",
+  JUPITER_SWAP = "JUPITER_SWAP",
 }
 
 interface TransactionConfig {
@@ -85,6 +98,15 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
   [TransactionType.WITHDRAW_STAKE]: { label: "Withdraw Stake" },
   [TransactionType.WITHDRAW_EMISSIONS]: { label: "Withdraw Emissions" },
   [TransactionType.LIQUIDATE_ACCOUNT]: { label: "Liquidate Account" },
+  [TransactionType.STAKE_TO_STAKE]: { label: "Stake to Stake" },
+  [TransactionType.MINT_LST_NATIVE]: { label: "Mint LST Native" },
+  [TransactionType.CREATE_PERM_BANK]: { label: "Create Perm Bank" },
+  [TransactionType.CREATE_GROUP]: { label: "Create Group" },
+  [TransactionType.SWAP_TO_SOL]: { label: "Swap to SOL" },
+  [TransactionType.SOL_TO_LST]: { label: "SOL to LST" },
+  [TransactionType.JUPITER_SWAP]: { label: "Swapping tokens" },
+  [TransactionType.INITIALIZE_STAKED_POOL]: { label: "Initializing Staked Pool" },
+  [TransactionType.ADD_STAKED_BANK]: { label: "Adding Staked Bank" },
 };
 
 export enum TRANSACTIONS_TYPES {

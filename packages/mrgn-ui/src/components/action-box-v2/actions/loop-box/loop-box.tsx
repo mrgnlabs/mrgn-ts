@@ -203,8 +203,7 @@ export const LoopBox = ({
   React.useEffect(() => {
     if (debouncedAmount === 0 && simulationResult) {
       setActionTxns({
-        actionTxn: null,
-        additionalTxns: [],
+        transactions: [],
         actionQuote: null,
         actualDepositAmount: 0,
         borrowAmount: new BigNumber(0),

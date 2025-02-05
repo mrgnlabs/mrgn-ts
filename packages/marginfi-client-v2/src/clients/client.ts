@@ -36,6 +36,7 @@ import {
   SINGLE_POOL_PROGRAM_ID,
   SolanaTransaction,
   TransactionOptions,
+  TransactionType,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
 import { MarginfiGroup } from "../models/group";
@@ -757,7 +758,7 @@ class MarginfiClient {
     const solanaTx = addTransactionMetadata(tx, {
       signers,
       addressLookupTables: this.addressLookupTables,
-      type: "MRGN_ACCOUNT_CREATION",
+      type: TransactionType.CREATE_ACCOUNT,
     });
 
     return solanaTx;
@@ -828,7 +829,11 @@ class MarginfiClient {
 
     const tx = new Transaction().add(...bankIxs.instructions);
 
-    const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
+    const solanaTx = addTransactionMetadata(tx, {
+      signers,
+      addressLookupTables: this.addressLookupTables,
+      type: TransactionType.CREATE_PERM_BANK,
+    });
     const sig = await this.processTransaction(solanaTx, processOpts, txOpts);
     dbg("Created Marginfi group %s", sig);
 
@@ -857,7 +862,11 @@ class MarginfiClient {
     const ixs = await this.makeCreateMarginfiGroupIx(accountKeypair.publicKey);
     const signers = [...ixs.keys, accountKeypair];
     const tx = new Transaction().add(...ixs.instructions, ...(additionalIxs ?? []));
-    const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
+    const solanaTx = addTransactionMetadata(tx, {
+      signers,
+      addressLookupTables: this.addressLookupTables,
+      type: TransactionType.CREATE_GROUP,
+    });
     const sig = await this.processTransaction(solanaTx, processOpts, txOpts);
     dbg("Created Marginfi group %s", sig);
 
@@ -889,7 +898,11 @@ class MarginfiClient {
     const signers = [...ixs.keys, bankKeypair];
     const tx = new Transaction().add(...ixs.instructions);
 
-    const solanaTx = addTransactionMetadata(tx, { signers, addressLookupTables: this.addressLookupTables });
+    const solanaTx = addTransactionMetadata(tx, {
+      signers,
+      addressLookupTables: this.addressLookupTables,
+      type: TransactionType.CREATE_PERM_BANK,
+    });
     const sig = await this.processTransaction(solanaTx, processOpts, txOpts);
     dbg("Created new lending pool %s", sig);
 

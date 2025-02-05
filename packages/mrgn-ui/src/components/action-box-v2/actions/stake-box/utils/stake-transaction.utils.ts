@@ -13,6 +13,7 @@ import {
   SolanaTransaction,
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
+  TransactionType,
 } from "@mrgnlabs/mrgn-common";
 import {
   getSwapQuoteWithRetry,
@@ -71,8 +72,7 @@ export async function createUnstakeLstTx({
   }
 
   return {
-    actionTxn: swapResponse.tx,
-    additionalTxns: [],
+    transactions: [swapResponse.tx],
     actionQuote: swapResponse.quote,
   } as StakeActionTxns;
 }
@@ -182,11 +182,11 @@ export async function createStakeLstTx({
 
   const stakeTx = addTransactionMetadata(new VersionedTransaction(stakeMessage.compileToV0Message([])), {
     signers: signers,
+    type: TransactionType.SOL_TO_LST,
   });
 
   return {
-    actionTxn: stakeTx,
-    additionalTxns: swapTx ? [swapTx] : [],
+    transactions: [swapTx, stakeTx],
     actionQuote: swapQuote,
   } as StakeActionTxns;
 }
@@ -261,6 +261,7 @@ export const createSwapToSolTx = async ({
     new VersionedTransaction(swapMessage.compileToV0Message(addressLookupAccounts)),
     {
       addressLookupTables: addressLookupAccounts,
+      type: TransactionType.SWAP_TO_SOL,
     }
   );
 

@@ -11,7 +11,7 @@ import {
 
 import { BankConfigOpt, MarginfiClient, OracleSetup, getConfig } from "@mrgnlabs/marginfi-client-v2";
 import { cn, getBearerToken, getFeeAccount, createReferalTokenAccount } from "@mrgnlabs/mrgn-utils";
-import { addTransactionMetadata, SolanaTransaction } from "@mrgnlabs/mrgn-common";
+import { addTransactionMetadata, SolanaTransaction, TransactionType } from "@mrgnlabs/mrgn-common";
 
 import { Button } from "~/components/ui/button";
 import { useConnection } from "~/hooks/use-connection";
@@ -358,7 +358,8 @@ const createTransaction = (
 
   const transaction = new VersionedTransaction(message.compileToV0Message([]));
   transaction.sign(signers);
-  const solanaTransaction = addTransactionMetadata(transaction, { signers });
+  // TODO add proper steps
+  const solanaTransaction = addTransactionMetadata(transaction, { signers, type: TransactionType.ADD_STAKED_BANK });
 
   return solanaTransaction;
 };

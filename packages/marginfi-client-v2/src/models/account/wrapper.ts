@@ -562,7 +562,7 @@ class MarginfiAccountWrapper {
     blockhash: blockhashArg,
     withdrawOpts,
     repayOpts,
-  }: RepayWithCollateralProps): Promise<TransactionBuilderResult> {
+  }: RepayWithCollateralProps): Promise<FlashloanActionResult> {
     const blockhash =
       blockhashArg ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
 
@@ -679,7 +679,8 @@ class MarginfiAccountWrapper {
 
     const transactions = [...additionalTxs, flashloanTx];
 
-    return { transactions, actionTxIndex: transactions.length - 1 };
+    // TODO throw tx overflown error and cath
+    return { transactions, actionTxIndex: transactions.length - 1, txOverflown };
   }
 
   async loopV2(props: LoopProps): Promise<TransactionSignature[]> {
@@ -715,7 +716,7 @@ class MarginfiAccountWrapper {
     depositOpts,
     borrowOpts,
     setupBankAddresses,
-  }: LoopTxProps): Promise<TransactionBuilderResult> {
+  }: LoopTxProps): Promise<FlashloanActionResult> {
     const depositBank = this.client.banks.get(depositBankAddress.toBase58());
     if (!depositBank) throw Error("Deposit bank not found");
     const borrowBank = this.client.banks.get(borrowBankAddress.toBase58());
@@ -832,7 +833,7 @@ class MarginfiAccountWrapper {
     });
 
     const transactions = [...additionalTxs, flashloanTx];
-    return { transactions, actionTxIndex: transactions.length - 1 };
+    return { transactions, actionTxIndex: transactions.length - 1, txOverflown };
   }
 
   /**

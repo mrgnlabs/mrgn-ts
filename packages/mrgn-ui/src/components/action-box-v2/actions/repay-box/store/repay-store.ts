@@ -45,7 +45,7 @@ const initialState = {
   selectedBank: null,
   selectedSecondaryBank: null,
   simulationResult: null,
-  actionTxns: { actionTxn: null, additionalTxns: [], actionQuote: null, lastValidBlockHeight: undefined },
+  actionTxns: { transactions: [], actionQuote: null, lastValidBlockHeight: undefined },
   errorMessage: null,
 
   maxAmountCollateral: undefined,

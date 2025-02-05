@@ -8,6 +8,7 @@ import {
   ExtendedV0Transaction,
   LUT_PROGRAM_AUTHORITY_INDEX,
   nativeToUi,
+  SolanaTransaction,
   TransactionBroadcastType,
   uiToNative,
 } from "@mrgnlabs/mrgn-common";
@@ -105,11 +106,10 @@ export async function calculateRepayCollateralParams({
           repayAmount: amountToRepay,
         });
 
-        if (txn.flashloanTx) {
+        if (txn.transactions.length) {
           return {
             repayCollatObject: {
-              actionTxn: txn.flashloanTx,
-              additionalTxns: txn.additionalTxs,
+              transactions: txn.transactions,
               actionQuote: swapQuote,
               lastValidBlockHeight: txn.lastValidBlockHeight,
             },
@@ -176,10 +176,9 @@ export async function calculateBorrowLendPositionParams({
           quote: swapQuote,
         });
 
-        if (txn.flashloanTx) {
+        if (txn.transactions.length) {
           return {
-            actionTxn: txn.flashloanTx,
-            additionalTxns: txn.additionalTxs,
+            transactions: txn.transactions,
             actionQuote: swapQuote,
           };
         } else if (txn.error && maxAccounts === maxAccountsArr[maxAccountsArr.length - 1]) {
@@ -270,13 +269,11 @@ export async function calculateLoopingParams({
         );
         const actualDepositAmountUi = minSwapAmountOutUi + loopingProps.depositAmount;
         let txn: {
-          flashloanTx: ExtendedV0Transaction | null;
-          additionalTxs: ExtendedV0Transaction[];
+          transactions: SolanaTransaction[];
           error?: ActionMessageType;
           lastValidBlockHeight?: number;
         } = {
-          flashloanTx: null,
-          additionalTxs: [],
+          transactions: [],
         };
 
         if (loopingProps.marginfiAccount) {
@@ -288,10 +285,9 @@ export async function calculateLoopingParams({
             setupBankAddresses,
           });
         }
-        if (txn.flashloanTx || !loopingProps.marginfiAccount) {
+        if (txn.transactions.length || !loopingProps.marginfiAccount) {
           return {
-            actionTxn: txn.flashloanTx ?? null,
-            additionalTxns: txn.additionalTxs,
+            transactions: txn.transactions,
             actionQuote: swapQuote,
             lastValidBlockHeight: txn.lastValidBlockHeight,
             actualDepositAmount: actualDepositAmountUi,
@@ -322,8 +318,7 @@ export async function calculateLoopingTransaction(props: LoopingProps): Promise<
       return txn.error;
     } else {
       return {
-        actionTxn: txn.flashloanTx,
-        additionalTxns: txn.additionalTxs,
+        transactions: txn.transactions,
         actionQuote: props.quote,
         lastValidBlockHeight: txn.lastValidBlockHeight,
         actualDepositAmount: props.actualDepositAmount,
@@ -387,7 +382,7 @@ export async function loopingBuilder({
   swapLUTs.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
 
-  const { flashloanTx, additionalTxs, txOverflown } = await marginfiAccount.makeLoopTxV2({
+  const { transactions, txOverflown } = await marginfiAccount.makeLoopTxV2({
     depositAmount: actualDepositAmount,
     borrowAmount,
     depositBankAddress: depositBank.address,
@@ -400,12 +395,11 @@ export async function loopingBuilder({
     setupBankAddresses,
   });
 
-  return { flashloanTx, additionalTxs, txOverflown, lastValidBlockHeight };
+  return { transactions, txOverflown, lastValidBlockHeight };
 }
 
 type FlashloanBuilderResponse = {
-  flashloanTx: ExtendedV0Transaction;
-  additionalTxs: ExtendedV0Transaction[];
+  transactions: SolanaTransaction[];
   lastValidBlockHeight?: number;
   txOverflown: boolean;
 };
@@ -447,7 +441,7 @@ export async function repayWithCollatBuilder({
   swapLUTs.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
 
-  const { flashloanTx, additionalTxs, txOverflown } = await marginfiAccount.makeRepayWithCollatTxV2({
+  const { transactions, txOverflown } = await marginfiAccount.makeRepayWithCollatTxV2({
     repayAmount,
     withdrawAmount,
     borrowBankAddress: borrowBank.address,
@@ -461,7 +455,7 @@ export async function repayWithCollatBuilder({
     blockhash,
   });
 
-  return { flashloanTx, additionalTxs, txOverflown, lastValidBlockHeight };
+  return { transactions, txOverflown, lastValidBlockHeight };
 }
 
 /*
@@ -496,7 +490,7 @@ export async function closePositionBuilder({
   const swapLUTs: AddressLookupTableAccount[] = [];
   swapLUTs.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
 
-  const { flashloanTx, additionalTxs, txOverflown } = await marginfiAccount.makeRepayWithCollatTxV2({
+  const { transactions, txOverflown } = await marginfiAccount.makeRepayWithCollatTxV2({
     repayAmount: borrowBank.position.amount,
     withdrawAmount: depositBank.position.amount,
     borrowBankAddress: borrowBank.address,
@@ -509,5 +503,5 @@ export async function closePositionBuilder({
     },
   });
 
-  return { flashloanTx, additionalTxs, txOverflown };
+  return { transactions, txOverflown };
 }

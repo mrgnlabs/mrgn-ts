@@ -24,6 +24,7 @@ import {
   LUT_PROGRAM_AUTHORITY_INDEX,
   nativeToUi,
   SolanaTransaction,
+  TransactionType,
   uiToNative,
 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
@@ -172,15 +173,9 @@ export async function generateTradeTx(props: CalculateLoopingProps): Promise<Tra
   });
 
   if (result && "actionQuote" in result) {
-    console.log("DEBUG: result", {
-      hasSwapTx: !!swapTx?.tx,
-      hasAccountCreationTx: accountCreationTx.length > 0,
-      hasAdditionalTxns: result.additionalTxns?.length > 0,
-      result,
-    });
     return {
       ...result,
-      additionalTxns: [...(swapTx?.tx ? [swapTx.tx] : []), ...accountCreationTx, ...(result.additionalTxns ?? [])],
+      transactions: [...(swapTx?.tx ? [swapTx.tx] : []), ...accountCreationTx, ...(result.transactions ?? [])],
       marginfiAccount: finalAccount ?? undefined,
     };
   }
@@ -276,7 +271,7 @@ export async function createSwapTx(
       new VersionedTransaction(swapMessage.compileToV0Message(addressLookupAccounts)),
       {
         addressLookupTables: addressLookupAccounts,
-        type: "SWAP",
+        type: TransactionType.JUPITER_SWAP,
       }
     );
 

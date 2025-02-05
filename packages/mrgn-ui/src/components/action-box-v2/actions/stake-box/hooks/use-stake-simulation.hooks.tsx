@@ -105,8 +105,7 @@ export function useStakeSimulation({
         if (!lstData) missingParams.push("lstData");
 
         setActionTxns({
-          actionTxn: null,
-          additionalTxns: [],
+          transactions: [],
           actionQuote: null,
         });
         return;
@@ -124,7 +123,7 @@ export function useStakeSimulation({
             platformFeeBps,
           });
 
-          if ("actionTxn" in _actionTxns) {
+          if ("transactions" in _actionTxns) {
             setActionTxns(_actionTxns);
           } else {
             setErrorMessage(_actionTxns);
@@ -140,7 +139,7 @@ export function useStakeSimulation({
             platformFeeBps,
           });
 
-          if ("actionTxn" in _actionTxns) {
+          if ("transactions" in _actionTxns) {
             setActionTxns(_actionTxns);
           } else {
             setErrorMessage(_actionTxns);
@@ -174,11 +173,8 @@ export function useStakeSimulation({
   // Add transaction check effect
   React.useEffect(() => {
     // Only run simulation if user has interacted and we have transactions
-    if (actionTxns?.actionTxn || (actionTxns?.additionalTxns?.length ?? 0) > 0) {
-      handleSimulation([
-        ...(actionTxns?.additionalTxns ?? []),
-        ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
-      ]);
+    if (actionTxns?.transactions?.length ?? 0 > 0) {
+      handleSimulation([...(actionTxns?.transactions ?? [])]);
     } else {
       // If no transactions or no user interaction, stay in idle state
       setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });

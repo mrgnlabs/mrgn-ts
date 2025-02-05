@@ -9,7 +9,13 @@ import {
   PriorityFees,
 } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ExtendedV0Transaction, nativeToUi, TransactionBroadcastType, uiToNative } from "@mrgnlabs/mrgn-common";
+import {
+  ExtendedV0Transaction,
+  nativeToUi,
+  SolanaTransaction,
+  TransactionBroadcastType,
+  uiToNative,
+} from "@mrgnlabs/mrgn-common";
 
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
 import { ActionMessageType, ClosePositionProps, LoopingProps, RepayWithCollatProps } from "../types";
@@ -35,8 +41,7 @@ export async function verifyTxSizeLooping(props: LoopingProps): Promise<VerifyTx
     if (builder.txOverflown) {
       // transaction size is too large
       return {
-        flashloanTx: null,
-        additionalTxs: [],
+        transactions: [],
         error: STATIC_SIMULATION_ERRORS.TX_SIZE,
       };
     } else {
@@ -47,8 +52,7 @@ export async function verifyTxSizeLooping(props: LoopingProps): Promise<VerifyTx
   } catch (error) {
     console.error(error);
     return {
-      flashloanTx: null,
-      additionalTxs: [],
+      transactions: [],
       error: STATIC_SIMULATION_ERRORS.TX_SIZE,
     };
   }
@@ -69,8 +73,7 @@ export async function verifyTxSizeCloseBorrowLendPosition(
 
     if (builder.txOverflown) {
       return {
-        flashloanTx: null,
-        additionalTxs: [],
+        transactions: [],
         error: STATIC_SIMULATION_ERRORS.TX_SIZE,
       };
     } else {
@@ -81,16 +84,14 @@ export async function verifyTxSizeCloseBorrowLendPosition(
   } catch (error) {
     console.error(error);
     return {
-      flashloanTx: null,
-      additionalTxs: [],
+      transactions: [],
       error: STATIC_SIMULATION_ERRORS.TX_SIZE,
     };
   }
 }
 
 type VerifyTxSizeFlashloanResponse = {
-  flashloanTx: ExtendedV0Transaction | null;
-  additionalTxs: ExtendedV0Transaction[];
+  transactions: SolanaTransaction[];
   error?: ActionMessageType;
   lastValidBlockHeight?: number;
 };
@@ -104,8 +105,7 @@ export async function verifyTxSizeCollat(props: RepayWithCollatProps): Promise<V
 
     if (builder.txOverflown) {
       return {
-        flashloanTx: null,
-        additionalTxs: [],
+        transactions: [],
         error: STATIC_SIMULATION_ERRORS.TX_SIZE,
       };
     } else {
@@ -116,8 +116,7 @@ export async function verifyTxSizeCollat(props: RepayWithCollatProps): Promise<V
   } catch (error) {
     console.error(error);
     return {
-      flashloanTx: null,
-      additionalTxs: [],
+      transactions: [],
       error: STATIC_SIMULATION_ERRORS.TX_SIZE,
     };
   }

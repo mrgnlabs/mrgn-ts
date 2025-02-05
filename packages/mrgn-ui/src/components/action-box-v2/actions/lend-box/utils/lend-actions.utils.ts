@@ -124,8 +124,7 @@ export async function calculateLendingTransaction(
   connection?: Connection
 ): Promise<
   | {
-      actionTxn: SolanaTransaction;
-      additionalTxns: SolanaTransaction[];
+      transactions: SolanaTransaction[];
     }
   | ActionMessageType
 > {
@@ -149,8 +148,7 @@ export async function calculateLendingTransaction(
       }
 
       return {
-        actionTxn: depositTx,
-        additionalTxns: [],
+        transactions: [depositTx],
       };
     case ActionType.Borrow:
       const borrowTxObject = await marginfiAccount.makeBorrowTx(amount, bank.address, {
@@ -158,8 +156,7 @@ export async function calculateLendingTransaction(
         wrapAndUnwrapSol: false,
       });
       return {
-        actionTxn: borrowTxObject.borrowTx,
-        additionalTxns: borrowTxObject.feedCrankTxs,
+        transactions: borrowTxObject.transactions,
       };
     case ActionType.Withdraw:
       if (bank.info.rawBank.config.assetTag === 2) {
@@ -169,8 +166,7 @@ export async function calculateLendingTransaction(
           bank.isActive && isWholePosition(bank, amount)
         );
         return {
-          actionTxn: withdrawTx.withdrawTxn,
-          additionalTxns: withdrawTx.additionalTxs,
+          transactions: withdrawTx.transactions,
         };
       } else {
         const withdrawTxObject = await marginfiAccount.makeWithdrawTx(
@@ -180,8 +176,7 @@ export async function calculateLendingTransaction(
         );
 
         return {
-          actionTxn: withdrawTxObject.withdrawTx,
-          additionalTxns: withdrawTxObject.feedCrankTxs,
+          transactions: withdrawTxObject.transactions,
         };
       }
     case ActionType.Repay:
@@ -191,8 +186,7 @@ export async function calculateLendingTransaction(
         bank.isActive && isWholePosition(bank, amount)
       );
       return {
-        actionTxn: repayTx,
-        additionalTxns: [], // bundle tip ix is in repayTx
+        transactions: [repayTx],
       };
     default:
       throw new Error("Unknown action mode");
