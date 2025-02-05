@@ -16,6 +16,7 @@ type BankSelectProps = {
   isSelectable?: boolean;
   showTokenSelectionGroups?: boolean;
   setSelectedBank: (selectedBank: ExtendedBankInfo | null) => void;
+  isInitialOpen?: boolean;
 };
 
 export const BankSelect = ({
@@ -27,9 +28,10 @@ export const BankSelect = ({
   isSelectable = true,
   showTokenSelectionGroups,
   setSelectedBank,
+  isInitialOpen = false,
 }: BankSelectProps) => {
   // idea check list if banks[] == 1 make it unselectable
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(isInitialOpen);
 
   const lendingMode = React.useMemo(
     () =>
