@@ -413,7 +413,8 @@
       "discriminator": [214, 169, 151, 213, 251, 167, 86, 219],
       "accounts": [
         {
-          "name": "marginfi_group"
+          "name": "group",
+          "relations": ["asset_bank", "liab_bank", "liquidator_marginfi_account", "liquidatee_marginfi_account"]
         },
         {
           "name": "asset_bank",
@@ -1397,6 +1398,35 @@
       ]
     },
     {
+      "name": "lending_pool_configure_bank_oracle",
+      "discriminator": [209, 82, 255, 171, 124, 21, 71, 81],
+      "accounts": [
+        {
+          "name": "group",
+          "relations": ["bank"]
+        },
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": ["group"]
+        },
+        {
+          "name": "bank",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "setup",
+          "type": "u8"
+        },
+        {
+          "name": "oracle",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "lending_pool_handle_bankruptcy",
       "docs": ["Handle bad debt of a bankrupt marginfi account for a given bank."],
       "discriminator": [162, 11, 56, 139, 90, 128, 70, 173],
@@ -2022,7 +2052,7 @@
     {
       "code": 6005,
       "name": "MissingPythOrBankAccount",
-      "msg": "Missing Oracle, Bank, LST mint, or Sol Pool"
+      "msg": "Missing Pyth or Bank account"
     },
     {
       "code": 6006,
@@ -2231,31 +2261,25 @@
     },
     {
       "code": 6047,
-      "name": "AssetTagMismatch",
-      "msg": "Staked SOL accounts can only deposit staked assets and borrow SOL"
-    },
-    {
-      "code": 6048,
-      "name": "StakePoolValidationFailed",
-      "msg": "Stake pool validation failed: check the stake pool, mint, or sol pool"
-    },
-    {
-      "code": 6049,
       "name": "InvalidFeeAta",
       "msg": "Invalid ATA for global fee account"
     },
     {
-      "code": 6050,
+      "code": 6048,
       "name": "AddedStakedPoolManually",
       "msg": "Use add pool permissionless instead"
     },
     {
-      "code": 6051,
-      "name": "BankSettingsFrozen",
-      "msg": "Bank settings are frozen and cannot be updated"
+      "code": 6049,
+      "name": "AssetTagMismatch",
+      "msg": "Staked SOL accounts can only deposit staked assets and borrow SOL"
+    },
+    {
+      "code": 6050,
+      "name": "StakePoolValidationFailed",
+      "msg": "Stake pool validation failed: check the stake pool, mint, or sol pool"
     }
   ],
-
   "types": [
     {
       "name": "AccountEventHeader",
@@ -2760,18 +2784,6 @@
             }
           },
           {
-            "name": "oracle_setup",
-            "type": {
-              "defined": {
-                "name": "OracleSetup"
-              }
-            }
-          },
-          {
-            "name": "oracle_key",
-            "type": "pubkey"
-          },
-          {
             "name": "borrow_limit",
             "type": "u64"
           },
@@ -2893,16 +2905,6 @@
             }
           },
           {
-            "name": "oracle",
-            "type": {
-              "option": {
-                "defined": {
-                  "name": "OracleConfig"
-                }
-              }
-            }
-          },
-          {
             "name": "interest_rate_config",
             "type": {
               "option": {
@@ -2971,6 +2973,26 @@
           },
           {
             "name": "ReduceOnly"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EditStakedSettingsEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "group",
+            "type": "pubkey"
+          },
+          {
+            "name": "settings",
+            "type": {
+              "defined": {
+                "name": "StakedSettingsEditConfig"
+              }
+            }
           }
         ]
       }
@@ -3710,6 +3732,66 @@
       }
     },
     {
+      "name": "LendingPoolBankConfigureFrozenEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "header",
+            "type": {
+              "defined": {
+                "name": "GroupEventHeader"
+              }
+            }
+          },
+          {
+            "name": "bank",
+            "type": "pubkey"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "deposit_limit",
+            "type": "u64"
+          },
+          {
+            "name": "borrow_limit",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LendingPoolBankConfigureOracleEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "header",
+            "type": {
+              "defined": {
+                "name": "GroupEventHeader"
+              }
+            }
+          },
+          {
+            "name": "bank",
+            "type": "pubkey"
+          },
+          {
+            "name": "oracle_setup",
+            "type": "u8"
+          },
+          {
+            "name": "oracle",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
       "name": "LendingPoolBankCreateEvent",
       "type": {
         "kind": "struct",
@@ -3977,28 +4059,6 @@
               "defined": {
                 "name": "GroupEventHeader"
               }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "OracleConfig",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "setup",
-            "type": {
-              "defined": {
-                "name": "OracleSetup"
-              }
-            }
-          },
-          {
-            "name": "keys",
-            "type": {
-              "array": ["pubkey", 5]
             }
           }
         ]
