@@ -43,7 +43,7 @@ const initialState = {
   amountRaw: "",
   simulationResult: null,
   lendMode: ActionType.Deposit,
-  actionTxns: { actionTxn: null, additionalTxns: [], actionQuote: null },
+  actionTxns: { transactions: [], actionQuote: null },
   errorMessage: null,
 
   selectedDepositBankPk: null,

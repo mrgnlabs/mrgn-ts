@@ -105,7 +105,7 @@ export function useLendSimulation({
         if (!selectedBank) missingParams.push("bank is null");
 
         // console.error(`Can't simulate transaction: ${missingParams.join(", ")}`);
-        setActionTxns({ actionTxn: null, additionalTxns: [] });
+        setActionTxns({ transactions: [] });
         return;
       }
 
@@ -121,8 +121,8 @@ export function useLendSimulation({
           connection
         );
 
-        if (lendingObject && "actionTxn" in lendingObject) {
-          setActionTxns({ actionTxn: lendingObject.actionTxn, additionalTxns: lendingObject.additionalTxns });
+        if (lendingObject && "transactions" in lendingObject) {
+          setActionTxns({ transactions: lendingObject.transactions });
           setErrorMessage(null);
         } else {
           const errorMessage = lendingObject ?? STATIC_SIMULATION_ERRORS.BUILDING_LENDING_TX;
@@ -161,11 +161,8 @@ export function useLendSimulation({
 
   React.useEffect(() => {
     // Only run simulation if we have transactions to simulate
-    if (actionTxns?.actionTxn || (actionTxns?.additionalTxns?.length ?? 0) > 0) {
-      handleSimulation([
-        ...(actionTxns?.additionalTxns ?? []),
-        ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
-      ]);
+    if (actionTxns?.transactions?.length ?? 0 > 0) {
+      handleSimulation([...(actionTxns?.transactions ?? [])]);
     } else {
       // If no transactions, move back to idle state
       setSimulationResult(null);

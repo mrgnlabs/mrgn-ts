@@ -203,7 +203,7 @@ export async function executeLeverageAction({
     toastSteps.push(...[{ label: "Creating account" }]);
   }
 
-  if (!loopActionTxns.actionTxn) {
+  if (!loopActionTxns.transactions.length) {
     toastSteps.push(...[{ label: `Generating transaction` }]);
   }
 
@@ -241,7 +241,7 @@ export async function executeLeverageAction({
 
   let loopingObject = loopActionTxns;
 
-  if (!loopActionTxns.actionTxn && loopActionTxns.actionQuote) {
+  if (!loopActionTxns.transactions.length && loopActionTxns.actionQuote) {
     try {
       const result = await calculateLoopingTransaction({
         marginfiAccount,
@@ -254,7 +254,7 @@ export async function executeLeverageAction({
         actualDepositAmount: loopActionTxns.actualDepositAmount,
       });
 
-      if ("actionTxn" in result) {
+      if ("transactions" in result) {
         loopingObject = result;
       } else {
         multiStepToast.setFailed(result.description ?? "Something went wrong, please try again.");
@@ -272,11 +272,11 @@ export async function executeLeverageAction({
   }
 
   try {
-    if (loopingObject.actionTxn) {
+    if (loopingObject.transactions.length) {
       let txnSig: string[] = [];
 
-      if (loopingObject.actionTxn) {
-        txnSig = await marginfiClient.processTransactions([...loopingObject.additionalTxns, loopingObject.actionTxn], {
+      if (loopingObject.transactions.length) {
+        txnSig = await marginfiClient.processTransactions([...loopingObject.transactions], {
           ...priorityFees,
           broadcastType,
         });
@@ -336,8 +336,7 @@ export async function calculateClosePositions({
       }))
     );
     return {
-      actionTxn: txn,
-      additionalTxns: [],
+      transactions: [txn],
       actionQuote: null,
     };
   }

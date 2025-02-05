@@ -81,7 +81,7 @@ export function useDepositSwapSimulation({
       callbacks.setErrorMessage(actionMessage);
     }
     callbacks.setSimulationResult(null);
-    callbacks.setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
+    callbacks.setActionTxns({ transactions: [], actionQuote: null });
     console.error(
       "Error simulating transaction",
       typeof actionMessage === "string" ? extractErrorString(actionMessage) : actionMessage.description
@@ -110,7 +110,7 @@ export function useDepositSwapSimulation({
   ): Promise<{ actionTxns: DepositSwapActionTxns | null; actionMessage: ActionMessageType | null }> => {
     try {
       const depositSwapActionTxns = await generateDepositSwapTxns(props);
-      if (depositSwapActionTxns && "actionTxn" in depositSwapActionTxns) {
+      if (depositSwapActionTxns && "transactions" in depositSwapActionTxns) {
         return {
           actionTxns: { ...depositSwapActionTxns, actionQuote: depositSwapActionTxns.actionQuote },
           actionMessage: null,
@@ -138,7 +138,7 @@ export function useDepositSwapSimulation({
 
         if (amount === 0 || !depositBank || !selectedAccount || !marginfiClient || !jupiterOptions || isDisabled) {
           // TODO: will there be cases where the account isnt defined? In arena esp?
-          setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
+          setActionTxns({ transactions: [], actionQuote: null });
           return;
         }
 
@@ -166,10 +166,7 @@ export function useDepositSwapSimulation({
         }
 
         const simulationResult = await simulationAction({
-          txns: [
-            ...(depositSwapActionTxns?.actionTxns?.additionalTxns ?? []),
-            ...(depositSwapActionTxns?.actionTxns?.actionTxn ? [depositSwapActionTxns?.actionTxns?.actionTxn] : []),
-          ],
+          txns: [...(depositSwapActionTxns?.actionTxns?.transactions ?? [])],
           account: selectedAccount,
           bank: depositBank,
         });

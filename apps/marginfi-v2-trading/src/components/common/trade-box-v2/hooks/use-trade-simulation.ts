@@ -86,8 +86,7 @@ export function useTradeSimulation({
     }
     callbacks.setSimulationResult(null);
     callbacks.setActionTxns({
-      actionTxn: null,
-      additionalTxns: [],
+      transactions: [],
       actionQuote: null,
       lastValidBlockHeight: undefined,
       actualDepositAmount: 0,
@@ -153,8 +152,7 @@ export function useTradeSimulation({
       try {
         if (amount === 0 || leverage === 0 || !depositBank || !borrowBank || !marginfiClient || !jupiterOptions) {
           setActionTxns({
-            actionTxn: null,
-            additionalTxns: [],
+            transactions: [],
             actionQuote: null,
             lastValidBlockHeight: undefined,
             actualDepositAmount: 0,
@@ -198,10 +196,7 @@ export function useTradeSimulation({
         const simulationResult = await simulationAction({
           account: finalAccount,
           bank: depositBank,
-          txns: [
-            ...(tradeActionTxns?.actionTxns?.additionalTxns ?? []),
-            ...(tradeActionTxns?.actionTxns?.actionTxn ? [tradeActionTxns?.actionTxns?.actionTxn] : []),
-          ],
+          txns: [...(tradeActionTxns?.actionTxns?.transactions ?? [])],
         });
 
         if (simulationResult.actionMessage || simulationResult.simulationResult === null) {
@@ -222,8 +217,7 @@ export function useTradeSimulation({
         console.error("Error simulating transaction", error);
         setSimulationResult(null);
         setActionTxns({
-          actionTxn: null,
-          additionalTxns: [],
+          transactions: [],
           actionQuote: null,
           lastValidBlockHeight: undefined,
           actualDepositAmount: 0,

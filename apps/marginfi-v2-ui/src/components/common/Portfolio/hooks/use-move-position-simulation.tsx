@@ -1,17 +1,10 @@
 import React from "react";
 
-import { Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
-
-import { makeBundleTipIx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import {
-  AccountSummary,
-  ActionType,
-  ActiveBankInfo,
-  computeAccountSummary,
-  ExtendedBankInfo,
-} from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { AccountSummary, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { getSimulationResult, simulatedHealthFactor } from "../utils/move-position.utils";
 import { ActionMessageType } from "@mrgnlabs/mrgn-utils";
+import { SolanaTransaction } from "@mrgnlabs/mrgn-common";
 
 interface ActionSummary {
   health: number;
@@ -19,14 +12,14 @@ interface ActionSummary {
 }
 
 type MovePositionSimulationProps = {
-  actionTxns: (Transaction | VersionedTransaction)[] | null;
+  actionTxns: SolanaTransaction[] | null;
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
   accountToMoveTo: MarginfiAccountWrapper | null;
   extendedBankInfos: ExtendedBankInfo[];
   activeBank: ActiveBankInfo;
   accountSummary: AccountSummary | null;
-  setActionTxns: (actionTxn: (Transaction | VersionedTransaction)[]) => void;
+  setActionTxns: (actionTxn: SolanaTransaction[]) => void;
   setIsLoading: (state: boolean) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
 };
@@ -55,12 +48,12 @@ export const useMoveSimulation = ({
 
     try {
       setIsLoading(true);
-      const { feedCrankTxs, withdrawTx, depositTx } = await selectedAccount.makeMovePositionTx(
+      const { transactions } = await selectedAccount.makeMovePositionTx(
         activeBank.position.amount,
         activeBank.address,
         accountToMoveTo
       );
-      return [...feedCrankTxs, withdrawTx, depositTx];
+      return [...transactions];
     } catch (error) {
       console.error("Error creating transactions", error);
     }

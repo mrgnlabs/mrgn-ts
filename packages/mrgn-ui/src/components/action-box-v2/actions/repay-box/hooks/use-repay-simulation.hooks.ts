@@ -91,7 +91,7 @@ export function useRepaySimulation({
       callbacks.setErrorMessage(actionMessage);
     }
     callbacks.setSimulationResult(null);
-    callbacks.setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
+    callbacks.setActionTxns({ transactions: [], actionQuote: null });
     console.error(
       "Error simulating transaction",
       typeof actionMessage === "string" ? extractErrorString(actionMessage) : actionMessage
@@ -152,7 +152,7 @@ export function useRepaySimulation({
           !selectedSecondaryBank ||
           !jupiterOptions
         ) {
-          setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
+          setActionTxns({ transactions: [], actionQuote: null });
           return;
         }
 
@@ -194,12 +194,7 @@ export function useRepaySimulation({
         }
 
         const simulationResult = await simulationAction({
-          txns: [
-            ...(repayActionTxns?.actionTxns?.repayCollatObject?.additionalTxns ?? []),
-            ...(repayActionTxns?.actionTxns?.repayCollatObject?.actionTxn
-              ? [repayActionTxns?.actionTxns?.repayCollatObject?.actionTxn]
-              : []),
-          ],
+          txns: [...(repayActionTxns?.actionTxns?.repayCollatObject?.transactions ?? [])],
           account: selectedAccount,
           bank: selectedBank,
         });

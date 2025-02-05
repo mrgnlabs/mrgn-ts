@@ -93,7 +93,7 @@ const getStakeSteps = (
   const genericSteps = getSteps();
 
   const toastLabels =
-    actionTxns.actionQuote && actionTxns.additionalTxns.length > 0
+    actionTxns.actionQuote && actionTxns.transactions.length > 1
       ? [
           {
             label: `Swapping ${
@@ -147,7 +147,7 @@ const executeLstAction = async ({
   processOpts: ProcessTransactionsClientOpts;
   multiStepToast?: MultiStepToastHandle;
 }) => {
-  if (!actionTxns.actionTxn) return;
+  if (!actionTxns.transactions.length) return;
   if (nativeSolBalance < FEE_MARGIN) {
     showErrorToast("Not enough sol for fee.");
     return;
@@ -165,7 +165,7 @@ const executeLstAction = async ({
   }
 
   try {
-    const txnSig = await marginfiClient.processTransactions([...actionTxns.additionalTxns, actionTxns.actionTxn], {
+    const txnSig = await marginfiClient.processTransactions([...actionTxns.transactions], {
       ...processOpts,
       callback: (index, success, sig, stepsToAdvance) =>
         success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig)),

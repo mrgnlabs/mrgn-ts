@@ -242,7 +242,7 @@ export const DepositSwapBox = ({
   //clean state
   React.useEffect(() => {
     if (debouncedAmount === 0 && simulationResult) {
-      setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
+      setActionTxns({ transactions: [], actionQuote: null });
       setSimulationResult(null);
     }
   }, [simulationResult, debouncedAmount, setActionTxns, setSimulationResult]);

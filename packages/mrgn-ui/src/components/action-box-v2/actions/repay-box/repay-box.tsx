@@ -207,8 +207,7 @@ export const RepayBox = ({
   React.useEffect(() => {
     if (debouncedAmount === 0 && simulationResult) {
       setActionTxns({
-        actionTxn: null,
-        additionalTxns: [],
+        transactions: [],
         actionQuote: null,
       });
       setSimulationResult(null);

@@ -28,6 +28,8 @@ import {
   dynamicNumeralFormatter,
   uiToNative,
   MRGN_TX_TYPES,
+  TransactionType,
+  addTransactionMetadata,
 } from "@mrgnlabs/mrgn-common";
 
 import { WalletContextStateOverride } from "../wallet";
@@ -66,7 +68,11 @@ export function getSteps(
 
   steps.push({ label: MRGN_TX_TYPE_TOAST_MAP["SIGN"] });
 
-  if (actionTxns && typeof actionTxns === "object" && "accountCreationTx" in actionTxns) {
+  if (
+    actionTxns &&
+    typeof actionTxns === "object" &&
+    actionTxns.transactions.find((tx) => tx.type === TransactionType.CREATE_ACCOUNT)
+  ) {
     if (!excludedTypes.includes("MRGN_ACCOUNT_CREATION")) {
       steps.push({ label: MRGN_TX_TYPE_TOAST_MAP["MRGN_ACCOUNT_CREATION"] });
     }
@@ -76,11 +82,11 @@ export function getSteps(
     }
   }
 
-  actionTxns?.additionalTxns
-    .filter((tx) => !tx.type || !excludedTypes.includes(tx.type))
-    .forEach((tx) => {
-      steps.push({ label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"] });
-    });
+  // actionTxns?.transactions
+  //   .filter((tx) => !tx.type)
+  //   .forEach((tx) => {
+  //     steps.push({ label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"] });
+  //   });
 
   return steps;
 }
@@ -130,11 +136,9 @@ export function handleIndividualFlowError({
 
     if (error.failedTxs && actionTxns) {
       // Last transaction is always the action transaction
-      const lastIndex = error.failedTxs.length - 1;
       failedTxns = {
         ...actionTxns,
-        actionTxn: error.failedTxs[lastIndex],
-        additionalTxns: error.failedTxs.slice(0, lastIndex),
+        transactions: error.failedTxs,
       };
     }
 
@@ -286,7 +290,7 @@ export async function deposit({
     const steps = getSteps(actionTxns);
     const label =
       bank.info.rawBank.config.assetTag === 2
-        ? `Staking and depositng ${amount} ${bank.meta.tokenSymbol}`
+        ? `Staking and depositing ${amount} ${bank.meta.tokenSymbol}`
         : `Depositing ${amount} ${bank.meta.tokenSymbol}`;
 
     multiStepToast = new MultiStepToastHandle("Deposit", [...steps, { label }]);
@@ -298,9 +302,9 @@ export async function deposit({
   try {
     let txnSig: string;
 
-    if (actionTxns?.actionTxn && marginfiClient) {
+    if (actionTxns?.transactions.length === 1 && marginfiClient) {
       txnSig = await marginfiClient.processTransaction(
-        actionTxns.actionTxn,
+        actionTxns.transactions[0],
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
@@ -374,9 +378,9 @@ export async function depositSwap({
 
   try {
     let sigs: string[] = [];
-    if (actionTxns?.actionTxn && marginfiClient) {
+    if (actionTxns?.transactions?.length && marginfiClient) {
       sigs = await marginfiClient.processTransactions(
-        [...actionTxns.additionalTxns, actionTxns.actionTxn],
+        [...actionTxns.transactions],
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
@@ -434,9 +438,9 @@ export async function borrow({
   try {
     let sigs: string[] = [];
 
-    if (actionTxns?.actionTxn && marginfiClient) {
+    if (actionTxns?.transactions.length && marginfiClient) {
       sigs = await marginfiClient.processTransactions(
-        [...actionTxns.additionalTxns, actionTxns.actionTxn],
+        [...actionTxns.transactions],
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
@@ -497,9 +501,9 @@ export async function withdraw({
   try {
     let sigs: string[] = [];
 
-    if (actionTxns?.actionTxn && marginfiClient) {
+    if (actionTxns?.transactions.length && marginfiClient) {
       sigs = await marginfiClient.processTransactions(
-        [...actionTxns.additionalTxns, actionTxns.actionTxn],
+        [...actionTxns.transactions],
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
@@ -565,11 +569,11 @@ export async function repay({
 
   try {
     let txnSig: string;
-    if (actionTxns?.actionTxn && marginfiClient) {
+    if (actionTxns?.transactions.length && marginfiClient) {
       txnSig =
         (
           await marginfiClient.processTransactions(
-            [...actionTxns.additionalTxns, actionTxns.actionTxn],
+            [...actionTxns.transactions],
             {
               ...processOpts,
               callback: (index, success, sig, stepsToAdvance) =>
@@ -652,9 +656,9 @@ export async function looping({
   try {
     let sigs: string[] = [];
 
-    if (actionTxns?.actionTxn) {
+    if (actionTxns?.transactions.length) {
       sigs = await marginfiClient.processTransactions(
-        [...actionTxns.additionalTxns, actionTxns.actionTxn],
+        [...actionTxns.transactions],
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
@@ -664,10 +668,10 @@ export async function looping({
       );
     } else {
       // TODO fix flashloan builder to use processOpts
-      const { flashloanTx, additionalTxs } = await loopingBuilder({
+      const { transactions } = await loopingBuilder({
         ...loopingProps,
       });
-      sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
+      sigs = await marginfiClient.processTransactions(transactions, processOpts, txOpts);
     }
 
     multiStepToast.setSuccess(sigs[sigs.length - 1], composeExplorerUrl(sigs[sigs.length - 1]));
@@ -734,9 +738,9 @@ export async function trade({
 
   try {
     let sigs: string[] = [];
-    if (actionTxns?.actionTxn) {
+    if (actionTxns?.transactions.length) {
       sigs = await marginfiClient.processTransactions(
-        [...actionTxns.additionalTxns, actionTxns.actionTxn],
+        [...actionTxns.transactions],
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) => {
@@ -750,10 +754,10 @@ export async function trade({
       );
     } else {
       // TODO fix flashloan builder to use processOpts
-      const { flashloanTx, additionalTxs } = await loopingBuilder({
+      const { transactions } = await loopingBuilder({
         ...tradingProps,
       });
-      sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
+      sigs = await marginfiClient.processTransactions(transactions, processOpts, txOpts);
     }
 
     multiStepToast.setSuccess(sigs[sigs.length - 1], composeExplorerUrl(sigs[sigs.length - 1]));
@@ -793,7 +797,7 @@ export async function closePosition({
   txOpts,
   multiStepToast,
 }: ClosePositionFnProps) {
-  if (!marginfiClient || !actionTxns.actionTxn) {
+  if (!marginfiClient || !actionTxns.transactions.length) {
     throw new Error("Marginfi account not ready.");
   }
 
@@ -801,12 +805,9 @@ export async function closePosition({
 
   try {
     let sigs: string[] = [];
+    // todo include close transactions in array
     sigs = await marginfiClient.processTransactions(
-      [
-        ...actionTxns.additionalTxns,
-        actionTxns.actionTxn,
-        ...(actionTxns.closeTransactions ? actionTxns.closeTransactions : []),
-      ],
+      [...actionTxns.transactions, ...(actionTxns.closeTransactions ? actionTxns.closeTransactions : [])],
       {
         ...processOpts,
         callback(index, success, sig, stepsToAdvance) {
@@ -881,9 +882,9 @@ export async function repayWithCollat({
   try {
     let sigs: string[] = [];
 
-    if (actionTxns?.actionTxn) {
+    if (actionTxns?.transactions.length) {
       sigs = await marginfiClient.processTransactions(
-        [...actionTxns.additionalTxns, actionTxns.actionTxn],
+        [...actionTxns.transactions],
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
@@ -892,13 +893,13 @@ export async function repayWithCollat({
         txOpts
       );
     } else {
-      const { flashloanTx, additionalTxs } = await repayWithCollatBuilder(repayProps);
+      const { transactions } = await repayWithCollatBuilder(repayProps);
 
-      if (!flashloanTx) {
+      if (!transactions) {
         throw new Error("Repay with collateral failed.");
       }
 
-      sigs = await marginfiClient.processTransactions([...additionalTxs, flashloanTx], processOpts, txOpts);
+      sigs = await marginfiClient.processTransactions(transactions, processOpts, txOpts);
     }
     multiStepToast.setSuccess(sigs[sigs.length - 1], composeExplorerUrl(sigs[sigs.length - 1]));
     return sigs;
@@ -961,9 +962,9 @@ export async function repayV2({
   try {
     let sigs: string[] = [];
 
-    if (actionTxns?.actionTxn) {
+    if (actionTxns?.transactions.length) {
       sigs = await marginfiClient.processTransactions(
-        [...actionTxns.additionalTxns, actionTxns.actionTxn],
+        [...actionTxns.transactions],
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) =>
@@ -1133,7 +1134,11 @@ export async function mintLstStakeToStake({
     const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
     depositTransaction.sign(signers);
 
-    const txnSig = await marginfiClient.processTransaction(depositTransaction);
+    const solanaTransaction = addTransactionMetadata(depositTransaction, {
+      type: TransactionType.STAKE_TO_STAKE,
+    });
+
+    const txnSig = await marginfiClient.processTransaction(solanaTransaction);
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {
@@ -1202,7 +1207,11 @@ export async function mintLstNative({
     const depositTransaction = new VersionedTransaction(depositMessage.compileToV0Message([]));
     depositTransaction.sign(signers);
 
-    const txnSig = await marginfiClient.processTransaction(depositTransaction);
+    const solanaTransaction = addTransactionMetadata(depositTransaction, {
+      type: TransactionType.MINT_LST_NATIVE,
+    });
+
+    const txnSig = await marginfiClient.processTransaction(solanaTransaction);
     multiStepToast.setSuccessAndNext();
     return txnSig;
   } catch (error: any) {

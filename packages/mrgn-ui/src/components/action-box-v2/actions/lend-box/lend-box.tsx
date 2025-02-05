@@ -206,7 +206,7 @@ export const LendBox = ({
   //clean state
   React.useEffect(() => {
     if (debouncedAmount === 0 && simulationResult) {
-      setActionTxns({ actionTxn: null, additionalTxns: [] });
+      setActionTxns({ transactions: [] });
       setSimulationResult(null);
     }
   }, [simulationResult, debouncedAmount, setActionTxns, setSimulationResult]);

@@ -39,6 +39,7 @@ import {
   BundleSimulationError,
   SendBundleError,
 } from "./helpers";
+import { Transaction } from "@solana/web3.js";
 
 // TEMPORARY
 export const MARGINFI_PROGRAM = new PublicKey("MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA");
@@ -408,7 +409,7 @@ export async function processTransactions({
 export const simulateTransactions = async (
   processOpts: ProcessTransactionOpts,
   connection: Connection,
-  solanaTransactions: SolanaTransaction[],
+  solanaTransactions: VersionedTransaction[] | Transaction[] | SolanaTransaction[],
   confirmOpts?: ConfirmOptions,
   txOpts?: {
     feePayer: PublicKey;

@@ -49,8 +49,7 @@ const initialState = {
   maxLeverage: 0,
 
   actionTxns: {
-    actionTxn: null,
-    additionalTxns: [],
+    transactions: [],
     actionQuote: null,
     lastValidBlockHeight: undefined,
     actualDepositAmount: 0,

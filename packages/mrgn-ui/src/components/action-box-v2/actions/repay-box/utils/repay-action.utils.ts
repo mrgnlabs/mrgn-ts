@@ -91,8 +91,7 @@ export async function calculateRepayTransactions(props: CalculateRepayTransactio
 
     return {
       repayCollatObject: {
-        actionTxn: repayTx,
-        additionalTxns: [],
+        transactions: [repayTx],
         actionQuote: undefined,
       },
       amount: props.repayAmount,
@@ -121,8 +120,7 @@ export async function calculateRepayTransactions(props: CalculateRepayTransactio
 
   return {
     repayCollatObject: {
-      actionTxn: null,
-      additionalTxns: [],
+      transactions: [],
       actionQuote: null,
     },
     amount: 0,

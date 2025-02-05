@@ -363,10 +363,7 @@ export const StakeBox = ({
   }, [errorMessage]);
 
   React.useEffect(() => {
-    handleSimulation([
-      ...(actionTxns?.additionalTxns ?? []),
-      ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
-    ]);
+    handleSimulation([...(actionTxns.transactions ?? [])]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionTxns]);
 

@@ -37,7 +37,7 @@ const initialState = {
   simulationResult: null,
   actionMode: ActionType.MintLST,
   selectedBank: null,
-  actionTxns: { actionTxn: null, additionalTxns: [], actionQuote: null },
+  actionTxns: { transactions: [], actionQuote: null },
   errorMessage: null,
   lstData: null,
 };

@@ -21,6 +21,7 @@ import { useWallet } from "~/components/wallet-v2/hooks";
 import { useConnection } from "~/hooks/use-connection";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { CreateStakedPoolDialog, CreateStakedPoolForm } from "~/components/common/create-staked-pool";
+import { addTransactionMetadata, SolanaTransaction, TransactionType } from "@mrgnlabs/mrgn-common";
 
 type CreateStakedAssetForm = {
   voteAccountKey: string;
@@ -75,10 +76,17 @@ export default function CreateStakedAssetPage() {
       const solOracle = new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE");
       const poolAddress = vendor.findPoolAddress(voteAccount);
       const poolAdderssInfo = await connection.getAccountInfo(poolAddress);
-      let txns: Transaction[] = [];
+      let txns: SolanaTransaction[] = [];
 
       if (!poolAdderssInfo) {
-        txns.push(await vendor.initializeStakedPoolTx(connection, wallet.publicKey, new PublicKey(voteAccount)));
+        txns.push(
+          addTransactionMetadata(
+            await vendor.initializeStakedPoolTx(connection, wallet.publicKey, new PublicKey(voteAccount)),
+            {
+              type: TransactionType.INITIALIZE_STAKED_POOL,
+            }
+          )
+        );
       }
 
       const addBankIxs = await client.group.makeAddPermissionlessStakedBankIx(
@@ -87,7 +95,11 @@ export default function CreateStakedAssetPage() {
         client.provider.publicKey,
         solOracle
       );
-      txns.push(new Transaction().add(...addBankIxs.instructions));
+      txns.push(
+        addTransactionMetadata(new Transaction().add(...addBankIxs.instructions), {
+          type: TransactionType.ADD_STAKED_BANK,
+        })
+      );
 
       return txns;
     },
@@ -95,7 +107,7 @@ export default function CreateStakedAssetPage() {
   );
 
   const executeCreatedStakedAssetSplPoolTxn = React.useCallback(
-    async (txns: Transaction[], client: MarginfiClient, multiStepToast: MultiStepToastHandle) => {
+    async (txns: SolanaTransaction[], client: MarginfiClient, multiStepToast: MultiStepToastHandle) => {
       const txSignature = await client.processTransactions(txns, {
         broadcastType: "RPC",
         ...priorityFees,
@@ -208,7 +220,7 @@ export default function CreateStakedAssetPage() {
         hasExecutedCreateStakedAssetSplPoolTxn: boolean;
         bankKey?: PublicKey;
         mintAddress?: PublicKey;
-        txns?: Transaction[];
+        txns?: SolanaTransaction[];
         multiStepToast?: MultiStepToastHandle;
       } = {
         hasExecutedCreateStakedAssetSplPoolTxn: false,

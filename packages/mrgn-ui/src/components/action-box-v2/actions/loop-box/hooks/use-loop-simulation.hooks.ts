@@ -67,7 +67,7 @@ export function useLoopSimulation({
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const prevDebouncedLeverage = usePrevious(debouncedLeverage);
   const prevSelectedSecondaryBank = usePrevious(selectedSecondaryBank);
-  const prevActionTxn = usePrevious(actionTxns?.actionTxn);
+  const prevActionTxn = usePrevious(actionTxns?.transactions);
 
   const handleSimulation = React.useCallback(
     async (txns: (VersionedTransaction | Transaction)[]) => {
@@ -132,8 +132,7 @@ export function useLoopSimulation({
         // console.error(`Can't simulate transaction: ${missingParams.join(", ")}`);
 
         setActionTxns({
-          actionTxn: null,
-          additionalTxns: [],
+          transactions: [],
           actionQuote: null,
           lastValidBlockHeight: undefined,
           actualDepositAmount: 0,
@@ -208,8 +207,7 @@ export function useLoopSimulation({
   React.useEffect(() => {
     if (isRefreshTxn) {
       setActionTxns({
-        actionTxn: null,
-        additionalTxns: [],
+        transactions: [],
         actionQuote: null,
         lastValidBlockHeight: undefined,
         actualDepositAmount: 0,
@@ -233,11 +231,8 @@ export function useLoopSimulation({
 
   React.useEffect(() => {
     // Only run simulation if we have transactions to simulate
-    if (actionTxns?.actionTxn || (actionTxns?.additionalTxns?.length ?? 0) > 0) {
-      handleSimulation([
-        ...(actionTxns?.additionalTxns ?? []),
-        ...(actionTxns?.actionTxn ? [actionTxns?.actionTxn] : []),
-      ]);
+    if (actionTxns?.transactions?.length ?? 0 > 0) {
+      handleSimulation([...(actionTxns?.transactions ?? [])]);
     } else {
       // If no transactions, move back to idle state
       setIsLoading({ isLoading: false, status: SimulationStatus.IDLE });

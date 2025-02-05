@@ -65,8 +65,7 @@ export interface LstData {
 }
 
 export interface ActionTxns {
-  actionTxn: SolanaTransaction | null;
-  additionalTxns: SolanaTransaction[];
+  transactions: SolanaTransaction[];
 }
 
 export interface LoopActionTxns extends ActionTxns {

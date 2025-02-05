@@ -8,6 +8,7 @@ import {
   addTransactionMetadata,
   LUT_PROGRAM_AUTHORITY_INDEX,
   SolanaTransaction,
+  TransactionType,
   uiToNative,
 } from "@mrgnlabs/mrgn-common";
 import {
@@ -119,7 +120,7 @@ const fetchClosePositionTxns = async (props: {
     });
 
     // if the actionTxn is not present, we need to return an error
-    if (!("actionTxn" in txns)) {
+    if (!("transactions" in txns)) {
       return { actionTxns: null, actionMessage: txns };
     }
 
@@ -320,7 +321,7 @@ async function createSwapTx({
     new VersionedTransaction(swapMessage.compileToV0Message(addressLookupAccounts)),
     {
       addressLookupTables: addressLookupAccounts,
-      type: "SWAP",
+      type: TransactionType.JUPITER_SWAP,
     }
   );
 
