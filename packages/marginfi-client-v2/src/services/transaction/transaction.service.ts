@@ -96,7 +96,7 @@ export interface ProcessTransactionsClientOpts extends PriorityFees {
   broadcastType?: TransactionBroadcastType;
   dynamicStrategy?: ProcessTransactionStrategy;
   isSequentialTxs?: boolean;
-  callback?: (index: number, success: boolean, signature?: string, stepsToAdvance?: number) => void;
+  callback?: (index?: number, success?: boolean, signature?: string, stepsToAdvance?: number) => void;
 }
 
 type ProcessTransactionsProps = {
@@ -274,9 +274,9 @@ export async function processTransactions({
       // If the transactions are bundled, we need to advance the toast by the number of transactions.
       if (broadcastType === "BUNDLE") {
         const stepsToAdvance = versionedTransactions.length;
-        processOpts.callback?.(0, true, undefined, stepsToAdvance);
+        processOpts.callback?.(undefined, true, undefined, stepsToAdvance);
       } else {
-        processOpts.callback?.(0, true);
+        processOpts.callback?.(undefined, true);
       }
 
       let simulateTxs: (() => Promise<SimulatedTransactionResponse | RpcSimulateBundleTransactionResult[]>) | null =

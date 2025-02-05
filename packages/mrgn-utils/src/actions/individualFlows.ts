@@ -77,9 +77,10 @@ export function getSteps({
   return steps;
 }
 
-export function isStepIncluded(label: string, excludedTypes: TransactionType[]): boolean {
-  // Check if the step label corresponds to any excluded transaction type
-  return !excludedTypes.some((type) => TransactionConfigMap[type].label === label);
+export function isStepIncluded(txType?: TransactionType | undefined, excludedTypes?: TransactionType[]): boolean {
+  // check if the txType is in the excludedTypes
+  if (!txType || !excludedTypes) return true;
+  return !excludedTypes?.some((type) => type === txType);
 }
 
 function detectBroadcastType(signature: string): "RPC" | "BUNDLE" | "UNKNOWN" {
@@ -716,18 +717,16 @@ export async function trade({
     const steps = getSteps({
       actionTxns,
       excludedTypes,
-    }); // TODO: update custom labels
-
-    multiStepToast = new MultiStepToastHandle("Trading", [
-      ...steps,
-      {
-        label: `${tradingProps.tradeSide === "long" ? "Longing" : "Shorting"} ${
+      customLabels: {
+        [TransactionType.LOOP]: `${tradingProps.tradeSide === "long" ? "Longing" : "Shorting"} ${
           tradingProps.tradeSide === "long"
             ? tradingProps.depositBank.meta.tokenSymbol
             : tradingProps.borrowBank.meta.tokenSymbol
         } with ${dynamicNumeralFormatter(tradingProps.depositAmount)} USDC`,
       },
-    ]);
+    }); // TODO: update custom labels
+
+    multiStepToast = new MultiStepToastHandle("Trading", steps);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();
@@ -741,8 +740,8 @@ export async function trade({
         {
           ...processOpts,
           callback: (index, success, sig, stepsToAdvance) => {
-            const currentLabel = multiStepToast?.getCurrentLabel();
-            if (success && isStepIncluded(currentLabel, excludedTypes)) {
+            const tx = index !== undefined ? actionTxns.transactions[index] : undefined;
+            if (success && isStepIncluded(tx?.type, excludedTypes)) {
               multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig));
             }
           },
@@ -760,11 +759,11 @@ export async function trade({
     multiStepToast.setSuccess(sigs[sigs.length - 1], composeExplorerUrl(sigs[sigs.length - 1]));
     return sigs;
   } catch (error: any) {
-    console.log(`Error while looping`);
+    console.log(`Error while trading`);
     console.log(error);
     if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
       captureSentryException(error, JSON.stringify(error), {
-        action: "looping",
+        action: "trading",
         wallet: tradingProps.marginfiAccount?.authority?.toBase58(),
         bank: tradingProps.borrowBank.meta.tokenSymbol,
         amount: tradingProps.borrowAmount.toString(),
