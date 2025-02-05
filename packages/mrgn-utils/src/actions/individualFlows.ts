@@ -17,19 +17,15 @@ import {
   MarginfiClient,
   ProcessTransactionError,
   ProcessTransactionsClientOpts,
-  ProcessTransactionStrategy,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
-  MRGN_TX_TYPE_TOAST_MAP,
-  SolanaTransaction,
-  TransactionBroadcastType,
   TransactionOptions,
   Wallet,
   dynamicNumeralFormatter,
   uiToNative,
-  MRGN_TX_TYPES,
   TransactionType,
   addTransactionMetadata,
+  TransactionConfigMap,
 } from "@mrgnlabs/mrgn-common";
 
 import { WalletContextStateOverride } from "../wallet";
@@ -59,41 +55,31 @@ import { ExecuteDepositSwapActionProps } from "./actions";
 // Local utils functions //
 //-----------------------//
 
-export function getSteps(
-  actionTxns?: ActionTxns,
-  broadcastType?: TransactionBroadcastType,
-  excludedTypes: MRGN_TX_TYPES[] = []
-) {
-  const steps = [];
+export function getSteps({
+  actionTxns,
+  excludedTypes,
+  customLabels,
+}: {
+  actionTxns?: ActionTxns;
+  excludedTypes?: TransactionType[];
+  customLabels?: Partial<Record<TransactionType, string>>;
+}) {
+  const steps: { label: string }[] = [];
 
-  steps.push({ label: MRGN_TX_TYPE_TOAST_MAP["SIGN"] });
+  steps.push({ label: "Signing transaction" });
 
-  if (
-    actionTxns &&
-    typeof actionTxns === "object" &&
-    actionTxns.transactions.find((tx) => tx.type === TransactionType.CREATE_ACCOUNT)
-  ) {
-    if (!excludedTypes.includes("MRGN_ACCOUNT_CREATION")) {
-      steps.push({ label: MRGN_TX_TYPE_TOAST_MAP["MRGN_ACCOUNT_CREATION"] });
-    }
+  const filteredTransactions = actionTxns?.transactions.filter((tx) => !excludedTypes?.includes(tx.type));
 
-    if (broadcastType !== "RPC" && !excludedTypes.includes("CRANK")) {
-      steps.push({ label: MRGN_TX_TYPE_TOAST_MAP["SIGN"] });
-    }
-  }
-
-  // actionTxns?.transactions
-  //   .filter((tx) => !tx.type)
-  //   .forEach((tx) => {
-  //     steps.push({ label: MRGN_TX_TYPE_TOAST_MAP[tx.type ?? "CRANK"] });
-  //   });
+  filteredTransactions?.forEach((tx) => {
+    steps.push({ label: customLabels?.[tx.type] ?? TransactionConfigMap[tx.type].label });
+  });
 
   return steps;
 }
 
-export function isStepIncluded(label: string, excludedTypes: MRGN_TX_TYPES[]): boolean {
+export function isStepIncluded(label: string, excludedTypes: TransactionType[]): boolean {
   // Check if the step label corresponds to any excluded transaction type
-  return !excludedTypes.some((type) => MRGN_TX_TYPE_TOAST_MAP[type] === label);
+  return !excludedTypes.some((type) => TransactionConfigMap[type].label === label);
 }
 
 function detectBroadcastType(signature: string): "RPC" | "BUNDLE" | "UNKNOWN" {
@@ -216,7 +202,7 @@ export async function createAccountAndDeposit({
     return;
   }
   if (!multiStepToast) {
-    const steps = getSteps();
+    const steps = getSteps({});
 
     multiStepToast = new MultiStepToastHandle("Initial deposit", [
       ...steps,
@@ -287,13 +273,15 @@ export async function deposit({
   multiStepToast,
 }: MarginfiActionParams) {
   if (!multiStepToast) {
-    const steps = getSteps(actionTxns);
-    const label =
-      bank.info.rawBank.config.assetTag === 2
-        ? `Staking and depositing ${amount} ${bank.meta.tokenSymbol}`
-        : `Depositing ${amount} ${bank.meta.tokenSymbol}`;
+    const steps = getSteps({
+      actionTxns,
+      customLabels: {
+        [TransactionType.DEPOSIT_STAKE]: `Staking and depositing ${amount} ${bank.meta.tokenSymbol}`,
+        [TransactionType.DEPOSIT]: `Depositing ${amount} ${bank.meta.tokenSymbol}`,
+      },
+    });
 
-    multiStepToast = new MultiStepToastHandle("Deposit", [...steps, { label }]);
+    multiStepToast = new MultiStepToastHandle("Deposit", steps);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();
@@ -350,27 +338,26 @@ export async function depositSwap({
   swapBank,
 }: ExecuteDepositSwapActionProps) {
   if (!multiStepToast) {
-    const steps = getSteps(actionTxns);
-
-    let genericLabel;
+    let customLabel;
     if (
       bank &&
       swapBank &&
       ("info" in swapBank ? swapBank.meta.address.toBase58() : swapBank.address.toBase58()) !== bank.address.toBase58()
     ) {
-      genericLabel = `Depositing ${amount} ${"info" in swapBank ? swapBank.meta.tokenSymbol : swapBank.symbol} as ${
+      customLabel = `Depositing ${amount} ${"info" in swapBank ? swapBank.meta.tokenSymbol : swapBank.symbol} as ${
         bank.meta.tokenSymbol
       }`;
     } else {
-      genericLabel = `Depositing ${amount} ${bank.meta.tokenSymbol}`;
+      customLabel = `Depositing ${amount} ${bank.meta.tokenSymbol}`;
     }
-
-    multiStepToast = new MultiStepToastHandle("Deposit", [
-      ...steps,
-      {
-        label: genericLabel,
+    const steps = getSteps({
+      actionTxns,
+      customLabels: {
+        [TransactionType.DEPOSIT]: customLabel,
       },
-    ]);
+    });
+
+    multiStepToast = new MultiStepToastHandle("Deposit", steps);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();
@@ -424,12 +411,14 @@ export async function borrow({
   multiStepToast,
 }: MarginfiActionParams) {
   if (!multiStepToast) {
-    const steps = getSteps(actionTxns);
+    const steps = getSteps({
+      actionTxns,
+      customLabels: {
+        [TransactionType.BORROW]: `Borrowing ${amount} ${bank.meta.tokenSymbol}`,
+      },
+    });
 
-    multiStepToast = new MultiStepToastHandle("Borrow", [
-      ...steps,
-      { label: `Borrowing ${amount} ${bank.meta.tokenSymbol}` },
-    ]);
+    multiStepToast = new MultiStepToastHandle("Borrow", steps);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();
@@ -486,13 +475,16 @@ export async function withdraw({
   multiStepToast,
 }: MarginfiActionParams) {
   if (!multiStepToast) {
-    const steps = getSteps(actionTxns);
-    const label =
-      bank.info.rawBank.config.assetTag === 2
-        ? `Unstaking and withdrawing ${amount} ${bank.meta.tokenSymbol}`
-        : `Withdrawing ${amount} ${bank.meta.tokenSymbol}`;
+    const steps = getSteps({
+      actionTxns,
+      customLabels: {
+        [TransactionType.WITHDRAW]: `Withdrawing ${amount} ${bank.meta.tokenSymbol}`,
+        [TransactionType.WITHDRAW_ALL]: `Withdrawing ${amount} ${bank.meta.tokenSymbol}`,
+        [TransactionType.WITHDRAW_STAKE]: `Unstaking and withdrawing ${amount} ${bank.meta.tokenSymbol}`,
+      },
+    });
 
-    multiStepToast = new MultiStepToastHandle("Withdraw", [...steps, { label }]);
+    multiStepToast = new MultiStepToastHandle("Withdraw", steps);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();
@@ -556,12 +548,14 @@ export async function repay({
   multiStepToast,
 }: MarginfiActionParams) {
   if (!multiStepToast) {
-    const steps = getSteps(actionTxns);
+    const steps = getSteps({
+      actionTxns,
+      customLabels: {
+        [TransactionType.REPAY]: `Repaying ${amount} ${bank.meta.tokenSymbol}`,
+      },
+    });
 
-    multiStepToast = new MultiStepToastHandle("Repay", [
-      ...steps,
-      { label: `Repaying ${amount} ${bank.meta.tokenSymbol}` },
-    ]);
+    multiStepToast = new MultiStepToastHandle("Repay", steps);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();
@@ -636,18 +630,18 @@ export async function looping({
   }
 
   if (!multiStepToast) {
-    const steps = getSteps(actionTxns);
-
-    multiStepToast = new MultiStepToastHandle("Looping", [
-      ...steps,
-      {
-        label: `Looping ${dynamicNumeralFormatter(loopingProps.depositAmount, { minDisplay: 0.01 })} ${
+    const steps = getSteps({
+      actionTxns,
+      customLabels: {
+        [TransactionType.LOOP]: `Looping ${dynamicNumeralFormatter(loopingProps.depositAmount, { minDisplay: 0.01 })} ${
           loopingProps.depositBank.meta.tokenSymbol
         } with ${dynamicNumeralFormatter(loopingProps.borrowAmount.toNumber(), { minDisplay: 0.01 })} ${
           loopingProps.borrowBank.meta.tokenSymbol
         }`,
       },
-    ]);
+    });
+
+    multiStepToast = new MultiStepToastHandle("Looping", steps);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();
@@ -716,10 +710,13 @@ export async function trade({
     showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
     return;
   }
-  const excludedTypes: MRGN_TX_TYPES[] = ["SWAP"];
+  const excludedTypes: TransactionType[] = [TransactionType.JUPITER_SWAP];
 
   if (!multiStepToast) {
-    const steps = getSteps(actionTxns, processOpts?.broadcastType, excludedTypes);
+    const steps = getSteps({
+      actionTxns,
+      excludedTypes,
+    }); // TODO: update custom labels
 
     multiStepToast = new MultiStepToastHandle("Trading", [
       ...steps,
@@ -801,7 +798,7 @@ export async function closePosition({
     throw new Error("Marginfi account not ready.");
   }
 
-  multiStepToast.resume();
+  multiStepToast.resume(); // TODO: whats this?
 
   try {
     let sigs: string[] = [];
@@ -866,14 +863,18 @@ export async function repayWithCollat({
   }
 
   if (!multiStepToast) {
-    const steps = getSteps(actionTxns);
-    const label = `Repaying ${dynamicNumeralFormatter(repayProps.repayAmount, { minDisplay: 0.01 })} ${
-      repayProps.borrowBank.meta.tokenSymbol
-    } with ${dynamicNumeralFormatter(repayProps.withdrawAmount, { minDisplay: 0.01 })} ${
-      repayProps.depositBank.meta.tokenSymbol
-    }`;
+    const steps = getSteps({
+      actionTxns,
+      customLabels: {
+        [TransactionType.REPAY_COLLAT]: `Repaying ${dynamicNumeralFormatter(repayProps.repayAmount, {
+          minDisplay: 0.01,
+        })} ${repayProps.borrowBank.meta.tokenSymbol} with ${dynamicNumeralFormatter(repayProps.withdrawAmount, {
+          minDisplay: 0.01,
+        })} ${repayProps.depositBank.meta.tokenSymbol}`,
+      },
+    });
 
-    multiStepToast = new MultiStepToastHandle("Collateral Repay", [...steps, { label }]);
+    multiStepToast = new MultiStepToastHandle("Collateral Repay", steps);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();
@@ -939,21 +940,25 @@ export async function repayV2({
   ...repayProps
 }: RepayActionProps) {
   if (!multiStepToast) {
-    const steps = getSteps(actionTxns);
-    let label = "";
-    if (repayProps.selectedBank.address.toBase58() === repayProps.selectedSecondaryBank.address.toBase58()) {
-      label = `Repaying ${dynamicNumeralFormatter(repayProps.repayAmount, { minDisplay: 0.01 })} ${
-        repayProps.selectedBank.meta.tokenSymbol
-      }`;
-    } else {
-      label = `Repaying ${dynamicNumeralFormatter(repayProps.repayAmount, { minDisplay: 0.01 })} ${
-        repayProps.selectedBank.meta.tokenSymbol
-      } with ${dynamicNumeralFormatter(repayProps.withdrawAmount, { minDisplay: 0.01 })} ${
-        repayProps.selectedSecondaryBank.meta.tokenSymbol
-      }`;
-    }
+    const steps = getSteps({
+      actionTxns,
+      customLabels: {
+        [TransactionType.REPAY]: `Repaying ${dynamicNumeralFormatter(repayProps.repayAmount, { minDisplay: 0.01 })} ${
+          repayProps.selectedBank.meta.tokenSymbol
+        }`,
+        [TransactionType.REPAY_COLLAT]: `Repaying ${dynamicNumeralFormatter(repayProps.repayAmount, {
+          minDisplay: 0.01,
+        })} ${repayProps.selectedBank.meta.tokenSymbol} with ${dynamicNumeralFormatter(repayProps.withdrawAmount, {
+          minDisplay: 0.01,
+        })} ${repayProps.selectedSecondaryBank.meta.tokenSymbol}`,
+      },
+    });
 
-    multiStepToast = new MultiStepToastHandle("Collateral Repay", [...steps, { label }]);
+    const customTitle =
+      repayProps.selectedBank.address.toBase58() === repayProps.selectedSecondaryBank.address.toBase58()
+        ? "Repay"
+        : "Collateral Repay";
+    multiStepToast = new MultiStepToastHandle(customTitle, steps);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();
@@ -1047,12 +1052,16 @@ export const closeBalance = async ({
   }
 
   if (!multiStepToast) {
-    const steps = getSteps();
+    const steps = getSteps({
+      actionTxns: undefined,
+      customLabels: {
+        [TransactionType.CLOSE_POSITION]: `Closing ${bank.position.isLending ? "lending" : "borrow"} balance for ${
+          bank.meta.tokenSymbol
+        }`,
+      },
+    });
 
-    multiStepToast = new MultiStepToastHandle("Closing balance", [
-      ...steps,
-      { label: `Closing ${bank.position.isLending ? "lending" : "borrow"} balance for ${bank.meta.tokenSymbol}` },
-    ]);
+    multiStepToast = new MultiStepToastHandle("Closing balance", steps);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();

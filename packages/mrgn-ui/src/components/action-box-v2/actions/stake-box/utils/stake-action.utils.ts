@@ -21,7 +21,7 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
-import { numeralFormatter, nativeToUi, TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
+import { nativeToUi, TransactionType, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { SolanaJSONRPCError } from "@solana/web3.js";
 
 export interface ExecuteLstActionParams {
@@ -90,41 +90,22 @@ const getStakeSteps = (
   originDetails: { amount: number; tokenSymbol: string },
   actionType: ActionType
 ) => {
-  const genericSteps = getSteps();
+  const genericSteps = getSteps({
+    actionTxns: actionTxns,
+    customLabels: {
+      [TransactionType.SWAP_TO_SOL]: `Swapping ${dynamicNumeralFormatter(Number(originDetails.amount))} ${
+        originDetails.tokenSymbol
+      }`,
+      [TransactionType.SOL_TO_LST]:
+        actionType === ActionType.MintLST
+          ? actionTxns.actionQuote
+            ? `Staking ${dynamicNumeralFormatter(nativeToUi(Number(actionTxns?.actionQuote?.outAmount), 9))} SOL`
+            : `Staking ${dynamicNumeralFormatter(Number(originDetails.amount))} SOL`
+          : `Unstaking ${dynamicNumeralFormatter(Number(originDetails.amount))} LST`,
+    },
+  });
 
-  const toastLabels =
-    actionTxns.actionQuote && actionTxns.transactions.length > 1
-      ? [
-          {
-            label: `Swapping ${
-              Number(originDetails.amount) < 0.01 ? "<0.01" : numeralFormatter(Number(originDetails.amount))
-            } ${originDetails.tokenSymbol}`,
-          },
-          {
-            label: `Staking ${
-              nativeToUi(Number(actionTxns.actionQuote.outAmount), 9) < 0.01
-                ? "<0.01"
-                : numeralFormatter(nativeToUi(Number(actionTxns.actionQuote.outAmount), 9))
-            } SOL`,
-          },
-        ]
-      : actionType === ActionType.MintLST
-      ? [
-          {
-            label: `Staking ${
-              Number(originDetails.amount) < 0.01 ? "<0.01" : numeralFormatter(Number(originDetails.amount))
-            } SOL`,
-          },
-        ]
-      : [
-          {
-            label: `Unstaking ${
-              Number(originDetails.amount) < 0.01 ? "<0.01" : numeralFormatter(Number(originDetails.amount))
-            } LST`,
-          },
-        ];
-
-  return [...genericSteps, ...toastLabels];
+  return genericSteps;
 };
 
 const executeLstAction = async ({
@@ -184,12 +165,12 @@ const executeLstAction = async ({
         action: actionType,
         wallet: walletAddress,
       });
-
-      handleIndividualFlowError({
-        error,
-        actionTxns,
-        multiStepToast,
-      });
     }
+
+    handleIndividualFlowError({
+      error,
+      actionTxns,
+      multiStepToast,
+    });
   }
 };

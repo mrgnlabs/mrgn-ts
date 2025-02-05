@@ -11,7 +11,7 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { MRGN_TX_TYPES, SolanaTransaction, TransactionType } from "./transaction.types";
+import { SolanaTransaction, TransactionType } from "./transaction.types";
 
 /**
  * Determines if a given transaction is a VersionedTransaction.

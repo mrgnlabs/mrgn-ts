@@ -276,7 +276,7 @@ export const StakeBox = ({
           if (error.retry && txs && toast) {
             retry = () => callbacks.retryCallback(txs, toast);
           }
-          toast.setFailed(error.message, retry);
+          toast?.setFailed(error.message, retry);
           callbacks.setIsLoading(false);
         },
         setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
