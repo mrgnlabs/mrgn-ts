@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const poolList: PoolListApiResponse[] = await fetch(`${host}/api/pool/list`).then((response) => response.json());
 
   const tokenMints = poolList.map((pool) => pool.base_bank.mint.address);
-  const quoteMints = poolList.map((pool) => pool.quote_banks[0].mint.address);
+  const quoteMints = poolList.map((pool) => pool.quote_bank.mint.address);
 
   const allTokens = [...new Set([...tokenMints, ...quoteMints])];
 

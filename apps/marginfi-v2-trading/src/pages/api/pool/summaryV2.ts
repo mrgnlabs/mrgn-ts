@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const groupSummaries = poolList.reduce(
       (acc, pool) => {
-        const quoteBankAddress = pool.quote_banks[0].address;
+        const quoteBankAddress = pool.quote_bank.address;
         const tokenBankAddress = pool.base_bank.address;
 
         const tokenBankSummary: BankSummary = {
@@ -34,11 +34,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         const quoteBankSummary: BankSummary = {
           bankPk: quoteBankAddress,
-          mint: pool.quote_banks[0].mint.address,
-          totalDeposits: pool.quote_banks[0].details.total_deposits,
-          totalBorrows: pool.quote_banks[0].details.total_borrows,
-          totalDepositsUsd: pool.quote_banks[0].details.total_deposits_usd,
-          totalBorrowsUsd: pool.quote_banks[0].details.total_borrows_usd,
+          mint: pool.quote_bank.mint.address,
+          totalDeposits: pool.quote_bank.details.total_deposits,
+          totalBorrows: pool.quote_bank.details.total_borrows,
+          totalDepositsUsd: pool.quote_bank.details.total_deposits_usd,
+          totalBorrowsUsd: pool.quote_bank.details.total_borrows_usd,
         };
 
         acc[pool.group] = {

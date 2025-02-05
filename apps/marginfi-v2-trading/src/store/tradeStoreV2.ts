@@ -228,7 +228,7 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
         }, {} as Record<string, TokenData>);
 
         const groupSummaryByGroup: Record<string, ArenaPoolSummary> = arenaState.poolData.reduce((acc, pool) => {
-          const { address: quoteBankPk, mint: quoteMint, details: quoteBankData } = pool.quote_banks[0];
+          const { address: quoteBankPk, mint: quoteMint, details: quoteBankData } = pool.quote_bank;
           const { address: tokenBankPk, mint: tokenMint, details: tokenBankDetails } = pool.base_bank;
           const tokenDetailsQuote = tokenDetailsByMint[quoteMint.address];
           const tokenDetailsToken = tokenDetailsByMint[tokenMint.address];

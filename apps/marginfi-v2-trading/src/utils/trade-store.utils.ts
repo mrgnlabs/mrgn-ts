@@ -67,7 +67,7 @@ export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async (cont
         (token) => token.address === poolData?.base_bank?.mint.address.toString()
       );
       const quoteTokenDetails = initialData.tokenDetails.find(
-        (token) => token.address === poolData?.quote_banks[0]?.mint.address.toString()
+        (token) => token.address === poolData?.quote_bank?.mint.address.toString()
       );
 
       if (poolData && tokenDetails && quoteTokenDetails) {

@@ -34,7 +34,7 @@ type PoolListBank = {
 
 export type PoolListApiResponse = {
   group: string;
-  quote_banks: PoolListBank[];
+  quote_bank: PoolListBank;
   base_bank: PoolListBank;
   lookup_tables: string[];
   featured: boolean;

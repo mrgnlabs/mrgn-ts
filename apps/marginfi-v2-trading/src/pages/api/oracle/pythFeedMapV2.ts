@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
     const requestedTokenBanks = poolList.map((pool) => pool.base_bank.address);
-    const requestedQuoteBanks = poolList.map((pool) => pool.quote_banks[0].address);
+    const requestedQuoteBanks = poolList.map((pool) => pool.quote_bank.address);
 
     const requestedBanks = [...requestedTokenBanks, ...requestedQuoteBanks];
 
