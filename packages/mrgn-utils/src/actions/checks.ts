@@ -141,7 +141,8 @@ function canBeRepaidCollat(
 function canBeLooped(
   targetBankInfo: ExtendedBankInfo,
   repayBankInfo: ExtendedBankInfo | null,
-  swapQuote: QuoteResponse | null
+  swapQuote?: QuoteResponse | null,
+  extendedBankInfos?: ExtendedBankInfo[]
 ): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
   const isTargetBankPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
@@ -155,12 +156,6 @@ function canBeLooped(
     );
   }
 
-  if (!swapQuote) {
-    checks.push({
-      isEnabled: false,
-    });
-  }
-
   if (swapQuote?.priceImpactPct && Number(swapQuote.priceImpactPct) > 0.01) {
     //invert
     if (swapQuote?.priceImpactPct && Number(swapQuote.priceImpactPct) > 0.05) {
@@ -172,6 +167,10 @@ function canBeLooped(
 
   if ((repayBankInfo && isBankOracleStale(repayBankInfo)) || (targetBankInfo && isBankOracleStale(targetBankInfo))) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Looping"));
+  }
+
+  if (extendedBankInfos && extendedBankInfos.some((bank) => bank.isActive && bank.info.rawBank.config.assetTag === 2)) {
+    checks.push(STATIC_SIMULATION_ERRORS.STAKED_ONLY_SOL_CHECK);
   }
 
   return checks;

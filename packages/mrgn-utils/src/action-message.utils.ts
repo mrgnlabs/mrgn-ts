@@ -99,7 +99,7 @@ interface CheckLoopActionAvailableProps {
   connected: boolean;
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
-  actionQuote: QuoteResponse | null;
+  banks: ExtendedBankInfo[];
 }
 
 export function checkLoopActionAvailable({
@@ -107,7 +107,7 @@ export function checkLoopActionAvailable({
   connected,
   selectedBank,
   selectedSecondaryBank,
-  actionQuote,
+  banks,
 }: CheckLoopActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
@@ -119,7 +119,7 @@ export function checkLoopActionAvailable({
 
   // allert checks
   if (selectedBank) {
-    const loopChecks = canBeLooped(selectedBank, selectedSecondaryBank, actionQuote);
+    const loopChecks = canBeLooped(selectedBank, selectedSecondaryBank, undefined, banks);
     if (loopChecks.length) checks.push(...loopChecks);
   }
 
