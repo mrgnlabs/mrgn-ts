@@ -14,35 +14,48 @@ import { useIsMobile, usePrevious, cn, Mobile, Desktop } from "@mrgnlabs/mrgn-ut
 import { useActionBoxStore } from "../../store";
 
 export interface ActionDialogProps {
-  trigger: React.ReactNode;
-  title: string;
+  trigger?: React.ReactNode;
+  title?: string;
   isTriggered?: boolean;
+  onClose?: () => void;
 }
 
 interface ActionDialogWrapperProps extends ActionDialogProps {
   children: React.ReactNode;
 }
 
-export const ActionDialogWrapper = ({ trigger, children, title, isTriggered = false }: ActionDialogWrapperProps) => {
+export const ActionDialogWrapper = ({
+  trigger,
+  children,
+  title,
+  isTriggered = false,
+  onClose,
+}: ActionDialogWrapperProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isActionComplete] = useActionBoxStore((state) => [state.isActionComplete]);
   const prevIsActionComplete = usePrevious(isActionComplete);
-  const isMobile = useIsMobile();
 
   React.useEffect(() => {
     if (!prevIsActionComplete && isActionComplete) {
       setIsOpen(false);
+      onClose && onClose();
     }
-  }, [prevIsActionComplete, isActionComplete]);
+  }, [prevIsActionComplete, isActionComplete, onClose]);
 
   React.useEffect(() => {
     setIsOpen(isTriggered);
-  }, [setIsOpen, isTriggered]);
+  }, [setIsOpen, isTriggered, onClose]);
 
   return (
     <>
       <Mobile>
-        <Drawer open={isOpen} onOpenChange={(open) => setIsOpen(open)}>
+        <Drawer
+          open={isOpen}
+          onOpenChange={(open) => {
+            !open && onClose && onClose();
+            setIsOpen(open);
+          }}
+        >
           <DrawerTrigger asChild>{trigger}</DrawerTrigger>
           <DrawerContent className="rounded-lg bg-mfi-action-box-background shadow-lg justify-start flex  border-none z-50 p-4 pt-0">
             {children}
@@ -50,7 +63,14 @@ export const ActionDialogWrapper = ({ trigger, children, title, isTriggered = fa
         </Drawer>
       </Mobile>
       <Desktop>
-        <Dialog open={isOpen} modal onOpenChange={(open) => setIsOpen(open)}>
+        <Dialog
+          open={isOpen}
+          modal
+          onOpenChange={(open) => {
+            !open && onClose && onClose();
+            setIsOpen(open);
+          }}
+        >
           <DialogTrigger asChild>{trigger}</DialogTrigger>
           <DialogContent
             className={

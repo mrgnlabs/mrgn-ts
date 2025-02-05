@@ -13,6 +13,7 @@ import { SortType, sortDirection, SortAssetOption } from "~/types";
 import { Connection } from "@solana/web3.js";
 import { MarginfiAccountWrapper, PriorityFees } from "@mrgnlabs/marginfi-client-v2";
 import { defaultJupiterOptions, JupiterOptions } from "~/components";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   APY_DESC: {
@@ -43,6 +44,12 @@ const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   },
 };
 
+type GlobalActionBoxProps = {
+  isOpen: boolean;
+  isTokenSelectorOpen: boolean;
+  actionType: ActionType;
+};
+
 interface UiState {
   // State
   isMenuDrawerOpen: boolean;
@@ -60,6 +67,7 @@ interface UiState {
   accountLabels: Record<string, string>;
   displaySettings: boolean;
   jupiterOptions: JupiterOptions;
+  globalActionBoxProps: GlobalActionBoxProps;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -75,6 +83,7 @@ interface UiState {
   fetchAccountLabels: (accounts: MarginfiAccountWrapper[]) => Promise<void>;
   setDisplaySettings: (displaySettings: boolean) => void;
   setJupiterOptions: (jupiterOptions: JupiterOptions) => void;
+  setGlobalActionBoxProps: (props: GlobalActionBoxProps) => void;
 }
 
 function createUiStore() {
@@ -108,6 +117,11 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   ...DEFAULT_PRIORITY_SETTINGS,
   displaySettings: false,
   jupiterOptions: defaultJupiterOptions,
+  globalActionBoxProps: {
+    isOpen: false,
+    isTokenSelectorOpen: false,
+    actionType: ActionType.Deposit,
+  },
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -200,6 +214,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setJupiterOptions: (jupiterOptions: JupiterOptions) => {
     set({ jupiterOptions: { ...jupiterOptions, slippageBps: jupiterOptions.slippageBps * 100 } });
   },
+  setGlobalActionBoxProps: (props: GlobalActionBoxProps) => set({ globalActionBoxProps: props }),
 });
 
 export { createUiStore, SORT_OPTIONS_MAP };

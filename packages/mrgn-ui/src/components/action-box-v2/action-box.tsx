@@ -34,9 +34,10 @@ const ActionBox: ActionBoxComponent = (props) => {
     return (
       <>
         <ActionDialogWrapper
-          title={dialogProps.title}
-          trigger={dialogProps.trigger}
-          isTriggered={dialogProps.isTriggered}
+          title={dialogProps?.title}
+          trigger={dialogProps?.trigger}
+          isTriggered={dialogProps?.isTriggered}
+          onClose={dialogProps?.onClose}
         >
           {props.children}
         </ActionDialogWrapper>

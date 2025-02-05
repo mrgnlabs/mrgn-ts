@@ -22,6 +22,7 @@ import { useMrgnlendStore, useUiStore } from "~/store";
 import { WalletProvider as MrgnWalletProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ConnectionProvider } from "~/hooks/use-connection";
 
+import GlobalActionBoxPortal from "~/components/common/global-actionbox-portal/global-actionbox-portal";
 import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
 import { Tutorial } from "~/components/common/Tutorial";
@@ -55,6 +56,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     jupiterOptions,
     priorityType,
     maxCapType,
+    globalActionBoxProps,
   ] = useUiStore((state) => [
     state.broadcastType,
     state.priorityFees,
@@ -64,6 +66,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.jupiterOptions,
     state.priorityType,
     state.maxCapType,
+    state.globalActionBoxProps,
   ]);
   const [
     isMrgnlendStoreInitialized,
@@ -155,6 +158,12 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                         mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
                       />
                       <ToastContainer position="bottom-left" theme="dark" />
+                      {globalActionBoxProps.isOpen && (
+                        <GlobalActionBoxPortal
+                          openTokenSelector={globalActionBoxProps.isTokenSelectorOpen}
+                          actionType={globalActionBoxProps.actionType}
+                        />
+                      )}
                     </ActionBoxProvider>
                   </ActionProvider>
                 </MrgnlendProvider>

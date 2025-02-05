@@ -69,6 +69,8 @@ export type LendBoxProps = {
   hidePoolStats?: HidePoolStats;
   stakeAccounts?: ValidatorStakeGroup[];
 
+  isTokenSelectorOpen?: boolean;
+
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
   setDisplaySettings?: (displaySettings: boolean) => void;
@@ -94,6 +96,7 @@ export const LendBox = ({
   hidePoolStats,
   stakeAccounts,
   setDisplaySettings,
+  isTokenSelectorOpen,
 }: LendBoxProps) => {
   const [
     amountRaw,
@@ -569,6 +572,7 @@ export const LendBox = ({
           showTokenSelectionGroups={showTokenSelectionGroups}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
+          isTokenSelectorOpen={isTokenSelectorOpen}
         />
       </div>
       {lendMode === ActionType.Deposit &&
