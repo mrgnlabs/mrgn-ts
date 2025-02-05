@@ -7,9 +7,9 @@ async function main() {
   const packageJsonPath = path.resolve(__dirname, "../", "package.json");
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 
-  console.log("\nAvailable scripts:\n");
+  console.log("\nAvailable tools:\n");
 
-  const excludedScripts = ["lint", "lint:fix", "scripts"];
+  const excludedScripts = ["lint", "lint:fix", "tools"];
   const scriptCommands = Object.entries(packageJson.scripts).filter(([name]) => !excludedScripts.includes(name));
 
   for (const [name, command] of scriptCommands) {
