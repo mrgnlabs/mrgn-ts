@@ -87,7 +87,7 @@ export function checkActionAvailable({
         if (borrowChecks.length) checks.push(...borrowChecks);
         break;
       case ActionType.Loop:
-        const loopChecks = canBeLooped(selectedBank, selectedRepayBank, repayCollatQuote);
+        const loopChecks = canBeLooped(selectedBank, selectedRepayBank, repayCollatQuote, extendedBankInfos);
         if (loopChecks.length) checks.push(...loopChecks);
         break;
       case ActionType.Repay:
