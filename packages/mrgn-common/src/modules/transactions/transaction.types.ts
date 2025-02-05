@@ -1,7 +1,5 @@
 import { VersionedTransaction, Transaction, Signer, AddressLookupTableAccount } from "@solana/web3.js";
 
-export type MRGN_TX_TYPES = "CRANK" | "SETUP" | "BUNDLE_TIP" | "MRGN_ACCOUNT_CREATION" | "ATAS" | "SWAP" | "SIGN";
-
 export enum TransactionType {
   // BASE LENDING ACTIONS
   DEPOSIT = "DEPOSIT",
@@ -84,14 +82,14 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
     label: "Short Position",
   },
   [TransactionType.CRANK]: {
-    label: "Cranking",
+    label: "Updating latest prices",
   },
   [TransactionType.FLASHLOAN]: { label: "Flashloan" },
-  [TransactionType.CREATE_ACCOUNT]: { label: "Create Account" },
-  [TransactionType.CREATE_ATA]: { label: "Create ATA" },
-  [TransactionType.CLOSE_ACCOUNT]: { label: "Close Account" },
-  [TransactionType.CLOSE_POSITION]: { label: "Close Position" },
-  [TransactionType.MOVE_POSITION]: { label: "Move Position" },
+  [TransactionType.CREATE_ACCOUNT]: { label: "Creating Account" },
+  [TransactionType.CREATE_ATA]: { label: "Creating ATA" },
+  [TransactionType.CLOSE_ACCOUNT]: { label: "Closing Account" },
+  [TransactionType.CLOSE_POSITION]: { label: "Closing Position" },
+  [TransactionType.MOVE_POSITION]: { label: "Moving Position" },
   [TransactionType.WITHDRAW_ALL]: { label: "Withdraw All" },
   [TransactionType.TRANSFER_AUTH]: { label: "Transfer Auth" },
   [TransactionType.DEPOSIT_STAKE]: { label: "Deposit Stake" },
@@ -107,20 +105,6 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
   [TransactionType.JUPITER_SWAP]: { label: "Swapping tokens" },
   [TransactionType.INITIALIZE_STAKED_POOL]: { label: "Initializing Staked Pool" },
   [TransactionType.ADD_STAKED_BANK]: { label: "Adding Staked Bank" },
-};
-
-export enum TRANSACTIONS_TYPES {
-  CRANK_SWB = 0,
-}
-
-export const MRGN_TX_TYPE_TOAST_MAP: Record<MRGN_TX_TYPES, string> = {
-  CRANK: "Updating latest prices",
-  SETUP: "Setting up token accounts",
-  BUNDLE_TIP: "Sending bundle tip",
-  MRGN_ACCOUNT_CREATION: "Creating marginfi account",
-  ATAS: "Creating associated token account",
-  SWAP: "Swapping tokens",
-  SIGN: "Signing transaction",
 };
 
 export type ExtendedTransaction = Transaction & {

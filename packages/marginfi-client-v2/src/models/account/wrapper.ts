@@ -15,7 +15,6 @@ import {
   ExtendedV0Transaction,
   getTxSize,
   getAccountKeys,
-  MRGN_TX_TYPES,
   WSOL_MINT,
   STAKE_PROGRAM_ID,
   createAssociatedTokenAccountInstruction,

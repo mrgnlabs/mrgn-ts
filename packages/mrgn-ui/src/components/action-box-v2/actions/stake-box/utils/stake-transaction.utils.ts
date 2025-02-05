@@ -186,7 +186,7 @@ export async function createStakeLstTx({
   });
 
   return {
-    transactions: [swapTx, stakeTx],
+    transactions: swapTx ? [swapTx, stakeTx] : [stakeTx],
     actionQuote: swapQuote,
   } as StakeActionTxns;
 }
