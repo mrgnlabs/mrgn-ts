@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.mrgn.service: mrgn-liquidator
+  name: mrgn-liquidator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.mrgn.service: mrgn-liquidator
+  template:
+    metadata:
+      labels:
+        io.mrgn.service: mrgn-liquidator
+    spec:
+      containers:
+        - env:
+            - name: ACCOUNT_COOL_DOWN_SECONDS
+              value: '"120"'
+            - name: EXCLUDE_ISOLATED_BANKS
+              value: '"false"'
+            - name: LIQUIDATOR_PK
+              value: <your_liquidator_public_key>
+            - name: MARGINFI_ACCOUNT_BLACKLIST
+              value: <your_blacklist>
+            - name: MARGINFI_ACCOUNT_WHITELIST
+              value: <your_whitelist>
+            - name: MAX_SLIPPAGE_BPS
+              value: '"250"'
+            - name: MIN_LIQUIDATION_AMOUNT_USD_UI
+              value: '"0.1"'
+            - name: MIN_SOL_BALANCE
+              value: "0.5"
+            - name: NODE_ENV
+              value: production
+            - name: NODE_OPTIONS
+              value: '"--max-old-space-size=16384"'
+            - name: RPC_ENDPOINT
+              value: <your_rpc_endpoint>
+            - name: SENTRY
+              value: '"false"'
+            - name: SENTRY_DSN
+              value: <your_sentry_dsn>
+            - name: SLEEP_INTERVAL
+              value: '"10000"'
+            - name: SORT_ACCOUNTS_MODE
+              value: '"false"'
+            - name: WALLET_KEYPAIR
+              value: <your_wallet_keypair>
+          image: mrgn-liquidator
+          name: mrgn-liquidator
+          resources: {}
+      restartPolicy: Always
