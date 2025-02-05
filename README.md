@@ -5,7 +5,7 @@
   
   <p>
     <!-- Build -->
-    <a><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/mrgnlabs/mrgn-ts/main.yml?style=flat-square"/></a>
+    <a href="https://github.com/mrgnlabs/mrgn-ts/actions"><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/mrgnlabs/mrgn-ts/main.yml?style=flat-square"/></a>
     <!-- Discord -->
     <a href="https://discord.gg/pJ3U7gHJFe"><img alt="Discord Chat" src="https://img.shields.io/discord/882369954916212737?color=blueviolet&style=flat-square"/></a>
     <!-- License -->
