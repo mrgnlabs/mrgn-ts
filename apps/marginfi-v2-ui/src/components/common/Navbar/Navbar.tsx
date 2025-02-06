@@ -92,7 +92,7 @@ export const Navbar: FC = () => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [setGlobalActionBoxProps, globalActionBoxProps]);
+  }, []);
 
   return (
     <header className="h-[64px] mb-4 md:mb-8 lg:mb-14">
@@ -167,9 +167,9 @@ export const Navbar: FC = () => {
           {initialized && (
             <div className="h-full w-1/2 flex justify-end items-center z-10 gap-2 sm:gap-4 text-[#868E95]">
               <Button
-                onClick={() =>
-                  setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: !globalActionBoxProps.isOpen })
-                }
+                onClick={() => {
+                  setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: !globalActionBoxProps.isOpen });
+                }}
                 variant="ghost"
                 size="icon"
                 className="h-10 w-10 shrink-0"

@@ -44,18 +44,6 @@ const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   },
 };
 
-type GlobalActionBoxProps = {
-  isOpen: boolean;
-  isTokenSelectorOpen: boolean;
-  actionType: ActionType;
-}; // TODO: move
-
-const defaultGlobalActionBoxProps: GlobalActionBoxProps = {
-  isOpen: false,
-  isTokenSelectorOpen: true,
-  actionType: ActionType.Deposit,
-};
-
 interface UiState {
   // State
   isMenuDrawerOpen: boolean;
@@ -73,7 +61,11 @@ interface UiState {
   accountLabels: Record<string, string>;
   displaySettings: boolean;
   jupiterOptions: JupiterOptions;
-  globalActionBoxProps: GlobalActionBoxProps;
+  globalActionBoxProps: {
+    isOpen: boolean;
+    isTokenSelectorOpen: boolean;
+    actionType: ActionType;
+  };
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -89,7 +81,7 @@ interface UiState {
   fetchAccountLabels: (accounts: MarginfiAccountWrapper[]) => Promise<void>;
   setDisplaySettings: (displaySettings: boolean) => void;
   setJupiterOptions: (jupiterOptions: JupiterOptions) => void;
-  setGlobalActionBoxProps: (props: GlobalActionBoxProps) => void;
+  setGlobalActionBoxProps: (props: { isOpen: boolean; isTokenSelectorOpen: boolean; actionType: ActionType }) => void;
 }
 
 function createUiStore() {
@@ -123,7 +115,11 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   ...DEFAULT_PRIORITY_SETTINGS,
   displaySettings: false,
   jupiterOptions: defaultJupiterOptions,
-  globalActionBoxProps: defaultGlobalActionBoxProps,
+  globalActionBoxProps: {
+    isOpen: false,
+    isTokenSelectorOpen: true,
+    actionType: ActionType.Deposit,
+  },
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -216,7 +212,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setJupiterOptions: (jupiterOptions: JupiterOptions) => {
     set({ jupiterOptions: { ...jupiterOptions, slippageBps: jupiterOptions.slippageBps * 100 } });
   },
-  setGlobalActionBoxProps: (props: GlobalActionBoxProps) => {
+  setGlobalActionBoxProps: (props) => {
     console.log("props", props);
     set({ globalActionBoxProps: props });
   },
