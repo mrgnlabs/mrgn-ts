@@ -164,12 +164,12 @@ class Liquidator {
     }
 
     const swapMode = swapModeExactOut ? "ExactOut" : "ExactIn";
-    const swapUrl = `https://quote-api.jup.ag/v6/quote?inputMint=${mintIn.toBase58()}&outputMint=${mintOut.toBase58()}&amount=${amount.toString()}&slippageBps=${SLIPPAGE_BPS}&swapMode=${swapMode}`;
+    const swapUrl = `${env_config.JUP_SWAP_BASE_URL}/quote?inputMint=${mintIn.toBase58()}&outputMint=${mintOut.toBase58()}&amount=${amount.toString()}&slippageBps=${SLIPPAGE_BPS}&swapMode=${swapMode}`;
     const quoteApiResponse = await fetch(swapUrl);
     const data = await quoteApiResponse.json();
 
     const transactionResponse = await (
-      await fetch("https://quote-api.jup.ag/v6/swap", {
+      await fetch(`${env_config.JUP_SWAP_BASE_URL}/swap`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

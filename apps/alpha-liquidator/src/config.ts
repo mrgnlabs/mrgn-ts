@@ -105,6 +105,11 @@ let envSchema = z.object({
     }
   }),
   WS_ENDPOINT: z.string().url().optional(),
+  JUP_SWAP_BASE_URL: z
+    .string()
+    .url()
+    .default("https://quote-api.jup.ag/v6")
+    .optional(),
   WS_RESET_INTERVAL_SECONDS: z
     .string()
     .optional()
