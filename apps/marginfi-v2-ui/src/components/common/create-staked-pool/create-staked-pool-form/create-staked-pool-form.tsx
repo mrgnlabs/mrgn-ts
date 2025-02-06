@@ -4,8 +4,8 @@ import { useDropzone } from "react-dropzone";
 import { IconPhoto, IconLoader2 } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
-import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { cn, useIsMobile, validateName, validateSymbol } from "@mrgnlabs/mrgn-utils";
+import { BankMetadata } from "@mrgnlabs/mrgn-common";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -20,7 +20,7 @@ type CreateStakedAssetForm = {
 
 type CreateStakedPoolFormProps = {
   isLoading: boolean;
-  banks: ExtendedBankInfo[];
+  banks: BankMetadata[];
   validatorPubKeys: PublicKey[];
   onSubmit: (form: CreateStakedAssetForm) => void;
 };
@@ -47,9 +47,6 @@ export const CreateStakedPoolForm = ({ isLoading, banks, validatorPubKeys, onSub
 
   const isMobile = useIsMobile();
 
-  const bankSymbols = banks.map((bank) => bank.meta.tokenSymbol);
-  const bankNames = banks.map((bank) => bank.meta.tokenName);
-
   const onDrop = React.useCallback(
     (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
@@ -63,33 +60,14 @@ export const CreateStakedPoolForm = ({ isLoading, banks, validatorPubKeys, onSub
     [form, errors]
   );
 
-  const validateName = React.useCallback(
-    (value: string) => {
-      const nameRegex = /^[a-zA-Z0-9\s]{3,24}$/;
-      if (!nameRegex.test(value)) {
-        return "Name must be 3-24 characters and contain only letters, numbers, and spaces";
-      }
-      if (bankNames.some((name) => name.toLowerCase() === value.toLowerCase())) {
-        return "Asset name already exists";
-      }
-      return null;
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "image/png": [".png"],
     },
-    [bankNames]
-  );
-
-  const validateSymbol = React.useCallback(
-    (value: string) => {
-      const symbolRegex = /^[a-zA-Z0-9]{3,10}$/;
-      if (!symbolRegex.test(value)) {
-        return "Symbol must be 3-10 characters and contain only letters and numbers";
-      }
-      if (bankSymbols.some((symbol) => symbol.toLowerCase() === value.toLowerCase())) {
-        return "Asset symbol already exists";
-      }
-      return null;
-    },
-    [bankSymbols]
-  );
+    maxFiles: 1,
+    maxSize: 1 * 1024 * 1024, // 1MB
+  });
 
   const handleValidatorPubkeyChange = (value: string) => {
     setForm({ ...form, voteAccountKey: value });
@@ -101,15 +79,6 @@ export const CreateStakedPoolForm = ({ isLoading, banks, validatorPubKeys, onSub
       setErrors({ ...errors, voteAccountKey: "Invalid vote account key" });
     }
   };
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "image/png": [".png"],
-    },
-    maxFiles: 1,
-    maxSize: 1 * 1024 * 1024, // 1MB
-  });
 
   return (
     <form
@@ -149,7 +118,7 @@ export const CreateStakedPoolForm = ({ isLoading, banks, validatorPubKeys, onSub
           onChange={(e) => {
             const value = e.target.value;
             setForm({ ...form, assetName: value });
-            setErrors({ ...errors, assetName: validateName(value) });
+            setErrors({ ...errors, assetName: validateName(value, banks) });
           }}
           onBlur={() => setTouched({ ...touched, assetName: true })}
           className={cn(touched.assetName && errors.assetName && "border-red-500")}
@@ -167,7 +136,7 @@ export const CreateStakedPoolForm = ({ isLoading, banks, validatorPubKeys, onSub
           onChange={(e) => {
             const value = e.target.value;
             setForm({ ...form, assetSymbol: value });
-            setErrors({ ...errors, assetSymbol: validateSymbol(value) });
+            setErrors({ ...errors, assetSymbol: validateSymbol(value, banks) });
           }}
           onBlur={() => setTouched({ ...touched, assetSymbol: true })}
           className={cn(touched.assetSymbol && errors.assetSymbol && "border-red-500")}
