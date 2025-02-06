@@ -5,11 +5,13 @@ import BigNumber from "bignumber.js";
 import { MarginfiAccountWrapper, MarginfiClient, PriorityFees } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
+  addTransactionMetadata,
   ExtendedV0Transaction,
   LUT_PROGRAM_AUTHORITY_INDEX,
   nativeToUi,
   SolanaTransaction,
   TransactionBroadcastType,
+  TransactionType,
   uiToNative,
 } from "@mrgnlabs/mrgn-common";
 
@@ -503,5 +505,14 @@ export async function closePositionBuilder({
     },
   });
 
-  return { transactions, txOverflown };
+  const updatedTransactions = transactions.map((tx) =>
+    tx.type === TransactionType.REPAY_COLLAT
+      ? addTransactionMetadata(tx, {
+          ...tx,
+          type: TransactionType.CLOSE_POSITION,
+        })
+      : tx
+  );
+
+  return { transactions: updatedTransactions, txOverflown };
 }
