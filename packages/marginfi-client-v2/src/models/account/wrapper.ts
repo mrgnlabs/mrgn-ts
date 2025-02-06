@@ -822,7 +822,7 @@ class MarginfiAccountWrapper {
       // wallets won't add a priority fee if tx space is limited
       // this will decrease landing rate for non-rpc calls
       flashloanTx = await this.buildFlashLoanTx({
-        ixs: [...cuRequestIxs, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+        ixs: [...cuRequestIxs, ...borrowIxs.instructions, ...swapIxs, ...unwrapIx, ...depositIxs.instructions],
         addressLookupTableAccounts,
         blockhash,
       });
