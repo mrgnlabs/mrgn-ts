@@ -28,6 +28,7 @@ type ActionInputProps = {
   isInputDisabled?: boolean;
 
   walletTokens?: WalletToken[] | null;
+  showOnlyUserOwnedTokens?: boolean;
 
   setAmountRaw: (amount: string) => void;
   setSelectedBank: (bank: ExtendedBankInfo | WalletToken | null) => void;
@@ -51,6 +52,7 @@ export const ActionInput = ({
   setAmountRaw,
   setSelectedBank,
   walletTokens,
+  showOnlyUserOwnedTokens,
 }: ActionInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -96,6 +98,7 @@ export const ActionInput = ({
             lendMode={lendMode}
             connected={connected}
             walletTokens={walletTokens}
+            showOnlyUserOwnedTokens={showOnlyUserOwnedTokens}
           />
         </div>
         <div className="flex-auto flex flex-col gap-0 items-end">

@@ -499,6 +499,7 @@ export const DepositSwapBox = ({
             bank && setSelectedSwapBankPk(bank.address);
           }}
           walletTokens={walletTokens}
+          showOnlyUserOwnedTokens={true}
         />
       </div>
 
@@ -543,6 +544,7 @@ export const DepositSwapBox = ({
               bank && setSelectedDepositBankPk(bank.address);
             }}
             isInputDisabled={true}
+            showOnlyUserOwnedTokens={false}
           />
         </div>
       )}

@@ -19,6 +19,7 @@ type BankSelectProps = {
   setSelectedBank: (selectedBank: ExtendedBankInfo | WalletToken | null) => void;
 
   walletTokens?: WalletToken[] | null;
+  showOnlyUserOwnedTokens?: boolean;
 };
 
 export const BankSelect = ({
@@ -31,6 +32,7 @@ export const BankSelect = ({
   showTokenSelectionGroups,
   setSelectedBank,
   walletTokens,
+  showOnlyUserOwnedTokens,
 }: BankSelectProps) => {
   // idea check list if banks[] == 1 make it unselectable
   const [isOpen, setIsOpen] = React.useState(false);
@@ -58,6 +60,7 @@ export const BankSelect = ({
             connected={connected}
             showTokenSelectionGroups={showTokenSelectionGroups}
             walletTokens={walletTokens}
+            showOnlyUserOwnedTokens={showOnlyUserOwnedTokens}
           />
         }
       />
