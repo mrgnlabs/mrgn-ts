@@ -713,20 +713,23 @@ export async function trade({
   }
   const excludedTypes: TransactionType[] = [TransactionType.JUPITER_SWAP];
 
+  console.log("tradingProps", tradingProps);
+
   if (!multiStepToast) {
     const steps = getSteps({
       actionTxns,
       excludedTypes,
       customLabels: {
-        [TransactionType.LOOP]: `${tradingProps.tradeSide === "long" ? "Longing" : "Shorting"} ${
-          tradingProps.tradeSide === "long"
-            ? tradingProps.depositBank.meta.tokenSymbol
-            : tradingProps.borrowBank.meta.tokenSymbol
-        } with ${dynamicNumeralFormatter(tradingProps.depositAmount)} USDC`,
+        [TransactionType.LONG]: `Longing ${tradingProps.depositBank.meta.tokenSymbol} with ${dynamicNumeralFormatter(
+          tradingProps.depositAmount
+        )} ${tradingProps.borrowBank.meta.tokenSymbol}`,
+        [TransactionType.SHORT]: `Shorting ${tradingProps.borrowBank.meta.tokenSymbol} with ${dynamicNumeralFormatter(
+          tradingProps.depositAmount
+        )} ${tradingProps.depositBank.meta.tokenSymbol}`,
       },
-    }); // TODO: update custom labels
+    });
 
-    multiStepToast = new MultiStepToastHandle("Trading", steps);
+    multiStepToast = new MultiStepToastHandle(tradingProps.tradeSide === "long" ? "Longing" : "Shorting", steps);
     multiStepToast.start();
   } else {
     multiStepToast.resetAndStart();
