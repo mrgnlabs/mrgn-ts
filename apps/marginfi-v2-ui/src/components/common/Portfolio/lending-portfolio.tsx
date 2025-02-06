@@ -8,7 +8,7 @@ import { Id, toast } from "react-toastify";
 
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, LendingModes, usePrevious } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
@@ -56,12 +56,22 @@ export const LendingPortfolio = () => {
     state.marginfiAccounts,
     state.fetchMrgnlendState,
   ]);
-  const [setLendingMode, priorityFees, broadcastType, accountLabels, fetchAccountLabels] = useUiStore((state) => [
+  const [
+    setLendingMode,
+    priorityFees,
+    broadcastType,
+    accountLabels,
+    fetchAccountLabels,
+    setGlobalActionBoxProps,
+    globalActionBoxProps,
+  ] = useUiStore((state) => [
     state.setLendingMode,
     state.priorityFees,
     state.broadcastType,
     state.accountLabels,
     state.fetchAccountLabels,
+    state.setGlobalActionBoxProps,
+    state.globalActionBoxProps,
   ]);
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
@@ -240,23 +250,23 @@ export const LendingPortfolio = () => {
     return <Loader label={connected ? "Loading positions" : "Loading"} />;
   }
 
-  if (isStoreInitialized && connected) {
-    if (!lendingBanks.length && !borrowingBanks.length) {
-      return (
-        <div className="flex flex-col items-center justify-center gap-4">
-          <p className="text-center mt-4 text-muted-foreground">
-            You do not have any open positions.
-            <br className="md:hidden" />{" "}
-            <Link href="/" className="border-b border-muted-foreground transition-colors hover:border-transparent">
-              Explore the pools
-            </Link>{" "}
-            and make your first deposit
-            {hasMultipleAccount && " or select a different account from the dropdown below"}.
-          </p>
-        </div>
-      );
-    }
-  }
+  // if (isStoreInitialized && connected) {
+  //   if (!lendingBanks.length && !borrowingBanks.length) {
+  //     return (
+  //       <div className="flex flex-col items-center justify-center gap-4">
+  //         <p className="text-center mt-4 text-muted-foreground">
+  //           You do not have any open positions.
+  //           <br className="md:hidden" />{" "}
+  //           <Link href="/" className="border-b border-muted-foreground transition-colors hover:border-transparent">
+  //             Explore the pools
+  //           </Link>{" "}
+  //           and make your first deposit
+  //           {hasMultipleAccount && " or select a different account from the dropdown below"}.
+  //         </p>
+  //       </div>
+  //     );
+  //   }
+  // } // TODO: should display this if this is a new new user. Ie, only one account and no positions.
 
   return (
     <div className="py-4 md:py-6 flex flex-col w-full mb-10 gap-4">
@@ -400,6 +410,21 @@ export const LendingPortfolio = () => {
               ) : (
                 <div color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1">
                   No lending positions found.
+                  <button
+                    className="border-b border-primary/50 transition-colors hover:border-primary "
+                    onClick={() => {
+                      // setLendingMode(LendingModes.BORROW);
+                      // router.push("/");
+                      setGlobalActionBoxProps({
+                        ...globalActionBoxProps,
+                        isOpen: true,
+                        actionType: ActionType.Deposit,
+                      });
+                    }}
+                  >
+                    Search the pools
+                  </button>{" "}
+                  to lend assets.
                 </div>
               )
             ) : (
@@ -429,8 +454,9 @@ export const LendingPortfolio = () => {
                   <button
                     className="border-b border-primary/50 transition-colors hover:border-primary "
                     onClick={() => {
-                      setLendingMode(LendingModes.BORROW);
-                      router.push("/");
+                      // setLendingMode(LendingModes.BORROW);
+                      // router.push("/");
+                      setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: true, actionType: ActionType.Borrow });
                     }}
                   >
                     Search the pools
