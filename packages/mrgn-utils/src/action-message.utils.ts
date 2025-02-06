@@ -99,7 +99,7 @@ interface CheckLoopActionAvailableProps {
   connected: boolean;
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
-  banks: ExtendedBankInfo[];
+  banks?: ExtendedBankInfo[];
 }
 
 export function checkLoopActionAvailable({

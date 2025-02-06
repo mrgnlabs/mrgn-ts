@@ -57,7 +57,7 @@ export type LoopBoxProps = {
   banks: ExtendedBankInfo[];
   requestedBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
-  allBanks: ExtendedBankInfo[];
+  allBanks?: ExtendedBankInfo[];
 
   isDialog?: boolean;
 
@@ -187,7 +187,7 @@ export const LoopBox = ({
       connected,
       selectedBank,
       selectedSecondaryBank,
-      banks: allBanks,
+      banks: allBanks ?? [],
     });
   }, [amount, connected, selectedBank, selectedSecondaryBank, allBanks]);
 
