@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Storage } from "@google-cloud/storage";
 import { PublicKey } from "@solana/web3.js";
-import { validateName, validateSymbol } from "@mrgnlabs/mrgn-utils";
+import { validateAssetName, validateAssetSymbol, validateVoteAccount } from "@mrgnlabs/mrgn-utils";
 import { BankMetadata } from "@mrgnlabs/mrgn-common";
 
 const BUCKET_NAME = process.env.GCP_BUCKET_NAME || "mrgn-public";
@@ -33,6 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // check if public keys are valid
+  // if not something has gone wrong and we should not continue
   try {
     new PublicKey(bankAddress);
     new PublicKey(validatorVoteAccount);
@@ -54,8 +55,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ...JSON.parse(stakedBankFileContents.toString()),
     ];
 
-    const finalTokenName = validateName(tokenName, bankMetadatas) ? "Staked Asset" : tokenName;
-    const finalTokenSymbol = validateSymbol(tokenSymbol, bankMetadatas) ? "STAKED" : tokenSymbol;
+    // Get existing validator pubkeys from the metadata
+    const existingValidatorPubKeys = bankMetadatas
+      .filter((bank) => "validatorVoteAccount" in bank)
+      .map((bank) => new PublicKey((bank as StakedBankMetadata).validatorVoteAccount));
+
+    // validate the vote account
+    // if it is not valid, we should not continue
+    const voteAccountError = validateVoteAccount(validatorVoteAccount, existingValidatorPubKeys);
+    if (voteAccountError) {
+      res.status(400).json({ message: voteAccountError });
+      return;
+    }
+
+    // validate the token name and symbol
+    // if they are not valid, we should add fallbacks and continue
+    const nameError = validateAssetName(tokenName, bankMetadatas);
+    const symbolError = validateAssetSymbol(tokenSymbol, bankMetadatas);
+
+    const finalTokenName = nameError ? "Staked Asset" : tokenName;
+    const finalTokenSymbol = symbolError ? "STAKED" : tokenSymbol;
 
     await addStakedBankMetadata({
       bankAddress,
