@@ -1,5 +1,6 @@
 import { RegExpMatcher, englishDataset, englishRecommendedTransformers } from "obscenity";
 import { BankMetadata } from "@mrgnlabs/mrgn-common";
+import { PublicKey } from "@solana/web3.js";
 
 const profanityMatcher = new RegExpMatcher({
   ...englishDataset.build(),
@@ -10,7 +11,7 @@ export const containsProfanity = (text: string) => {
   return profanityMatcher.hasMatch(text);
 };
 
-export const validateName = (value: string, banks: BankMetadata[]) => {
+export const validateAssetName = (value: string, banks: BankMetadata[]) => {
   const nameRegex = /^[a-zA-Z0-9\s]{3,24}$/;
   const bankNames = banks.map((bank) => bank.tokenName);
   if (!nameRegex.test(value)) {
@@ -25,7 +26,7 @@ export const validateName = (value: string, banks: BankMetadata[]) => {
   return null;
 };
 
-export const validateSymbol = (value: string, banks: BankMetadata[]) => {
+export const validateAssetSymbol = (value: string, banks: BankMetadata[]) => {
   const symbolRegex = /^[a-zA-Z0-9]{3,10}$/;
   const bankSymbols = banks.map((bank) => bank.tokenSymbol);
   if (!symbolRegex.test(value)) {
@@ -38,4 +39,14 @@ export const validateSymbol = (value: string, banks: BankMetadata[]) => {
     return "Asset symbol contains profanity";
   }
   return null;
+};
+
+export const validateVoteAccount = (value: string, validatorPubKeys: PublicKey[]) => {
+  try {
+    new PublicKey(value);
+    const found = validatorPubKeys.find((key) => key.toBase58().toLowerCase() === value.toLowerCase());
+    return found ? "Bank already exists for this validator" : null;
+  } catch (e) {
+    return "Invalid vote account key";
+  }
 };

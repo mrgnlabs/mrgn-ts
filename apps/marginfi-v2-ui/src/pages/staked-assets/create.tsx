@@ -11,6 +11,8 @@ import {
   composeExplorerUrl,
   MultiStepToastHandle,
   useIsMobile,
+  validateAssetName,
+  validateAssetSymbol,
 } from "@mrgnlabs/mrgn-utils";
 import { MarginfiClient, vendor } from "@mrgnlabs/marginfi-client-v2";
 import { useWindowSize } from "@uidotdev/usehooks";
@@ -201,25 +203,6 @@ export default function CreateStakedAssetPage() {
     }
   };
 
-  const handleSumbitForm = (form: CreateStakedAssetForm) => {
-    const nameRegex = /^[a-zA-Z0-9\s]{1,24}$/;
-    const symbolRegex = /^[a-zA-Z0-9]{1,10}$/;
-
-    if (!nameRegex.test(form.assetName)) {
-      throw new Error("Asset name must be 1-24 characters long and contain only letters, numbers, and spaces");
-    }
-
-    if (!symbolRegex.test(form.assetSymbol)) {
-      throw new Error("Asset symbol must be 1-10 characters long and contain only letters and numbers");
-    }
-
-    if (!form.assetLogo) {
-      throw new Error("Asset logo is required");
-    }
-
-    createStakedAsset(form);
-  };
-
   const createStakedAsset = React.useCallback(
     async (
       form: CreateStakedAssetForm,
@@ -323,6 +306,28 @@ export default function CreateStakedAssetPage() {
       }
     },
     [client, connection, createStakedAssetSplPoolTxn, executeCreatedStakedAssetSplPoolTxn, fetchMrgnlendState]
+  );
+
+  const handleSumbitForm = React.useCallback(
+    (form: CreateStakedAssetForm) => {
+      const nameError = validateAssetName(form.assetName, bankMetas);
+      const symbolError = validateAssetSymbol(form.assetSymbol, bankMetas);
+
+      if (nameError) {
+        throw new Error(nameError);
+      }
+
+      if (symbolError) {
+        throw new Error(symbolError);
+      }
+
+      if (!form.assetLogo) {
+        throw new Error("Asset logo is required");
+      }
+
+      createStakedAsset(form);
+    },
+    [bankMetas, createStakedAsset]
   );
 
   return (

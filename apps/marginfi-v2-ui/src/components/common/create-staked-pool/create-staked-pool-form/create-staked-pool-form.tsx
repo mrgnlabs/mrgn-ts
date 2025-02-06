@@ -4,7 +4,7 @@ import { useDropzone } from "react-dropzone";
 import { IconPhoto, IconLoader2 } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
-import { cn, useIsMobile, validateName, validateSymbol } from "@mrgnlabs/mrgn-utils";
+import { cn, useIsMobile, validateAssetName, validateAssetSymbol, validateVoteAccount } from "@mrgnlabs/mrgn-utils";
 import { BankMetadata } from "@mrgnlabs/mrgn-common";
 
 import { Button } from "~/components/ui/button";
@@ -71,13 +71,7 @@ export const CreateStakedPoolForm = ({ isLoading, banks, validatorPubKeys, onSub
 
   const handleValidatorPubkeyChange = (value: string) => {
     setForm({ ...form, voteAccountKey: value });
-    try {
-      new PublicKey(value);
-      const found = validatorPubKeys.find((key) => key.toBase58().toLowerCase() === value.toLowerCase());
-      setErrors({ ...errors, voteAccountKey: found ? "Bank already exists" : null });
-    } catch (e) {
-      setErrors({ ...errors, voteAccountKey: "Invalid vote account key" });
-    }
+    setErrors({ ...errors, voteAccountKey: validateVoteAccount(value, validatorPubKeys) });
   };
 
   return (
@@ -118,7 +112,7 @@ export const CreateStakedPoolForm = ({ isLoading, banks, validatorPubKeys, onSub
           onChange={(e) => {
             const value = e.target.value;
             setForm({ ...form, assetName: value });
-            setErrors({ ...errors, assetName: validateName(value, banks) });
+            setErrors({ ...errors, assetName: validateAssetName(value, banks) });
           }}
           onBlur={() => setTouched({ ...touched, assetName: true })}
           className={cn(touched.assetName && errors.assetName && "border-red-500")}
@@ -136,7 +130,7 @@ export const CreateStakedPoolForm = ({ isLoading, banks, validatorPubKeys, onSub
           onChange={(e) => {
             const value = e.target.value;
             setForm({ ...form, assetSymbol: value });
-            setErrors({ ...errors, assetSymbol: validateSymbol(value, banks) });
+            setErrors({ ...errors, assetSymbol: validateAssetSymbol(value, banks) });
           }}
           onBlur={() => setTouched({ ...touched, assetSymbol: true })}
           className={cn(touched.assetSymbol && errors.assetSymbol && "border-red-500")}
