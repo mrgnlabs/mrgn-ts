@@ -38,7 +38,7 @@ type DepositSwapSimulationProps = {
   setActionTxns: (actionTxns: DepositSwapActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
   setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
-  actionMessages: ActionMessageType[];
+  isDisabled: boolean;
 };
 
 export function useDepositSwapSimulation({
@@ -55,7 +55,7 @@ export function useDepositSwapSimulation({
   setActionTxns,
   setErrorMessage,
   setIsLoading,
-  actionMessages,
+  isDisabled,
 }: DepositSwapSimulationProps) {
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const prevDepositBank = usePrevious(depositBank);
@@ -134,8 +134,6 @@ export function useDepositSwapSimulation({
   const handleSimulation = React.useCallback(
     async (amount: number) => {
       try {
-        const isDisabled = actionMessages.some((message) => !message.isEnabled);
-
         if (amount === 0 || !depositBank || !selectedAccount || !marginfiClient || !jupiterOptions || isDisabled) {
           // TODO: will there be cases where the account isnt defined? In arena esp?
           setActionTxns({ transactions: [], actionQuote: null });
@@ -203,7 +201,7 @@ export function useDepositSwapSimulation({
       setIsLoading,
       setSimulationResult,
       swapBank,
-      actionMessages,
+      isDisabled,
     ]
   );
 
