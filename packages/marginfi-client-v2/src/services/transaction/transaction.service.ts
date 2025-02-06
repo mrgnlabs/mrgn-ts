@@ -12,14 +12,12 @@ import {
   addTransactionMetadata,
   microLamportsToUi,
   getComputeBudgetUnits,
-  MaxCapType,
   SKIP_SIMULATION,
 } from "@mrgnlabs/mrgn-common";
 import {
   VersionedTransaction,
   TransactionSignature,
   Connection,
-  SendTransactionError,
   ConfirmOptions,
   PublicKey,
   Commitment,
