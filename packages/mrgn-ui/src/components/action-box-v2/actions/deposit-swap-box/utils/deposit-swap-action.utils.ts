@@ -67,7 +67,8 @@ export async function generateDepositSwapTxns(
 
   if (
     props.swapBank &&
-    ("info" in props.swapBank ? props.swapBank.info.state.mint.toBase58() : props.swapBank.symbol)
+    ("info" in props.swapBank ? props.swapBank.info.state.mint.toBase58() : props.swapBank.address.toBase58()) !==
+      props.depositBank.info.state.mint.toBase58()
   ) {
     try {
       swapTx = await createSwapTx(props);
@@ -104,7 +105,12 @@ export async function generateDepositSwapTxns(
 
   let finalDepositAmount = props.amount;
 
-  if (props.swapBank && !swapTx?.quote) {
+  if (
+    props.swapBank &&
+    ("info" in props.swapBank ? props.swapBank.info.state.mint.toBase58() : props.swapBank.address.toBase58()) !==
+      props.depositBank.info.state.mint.toBase58() &&
+    !swapTx?.quote
+  ) {
     return STATIC_SIMULATION_ERRORS.CREATE_SWAP_FAILED;
   } else if (props.swapBank && swapTx?.quote) {
     finalDepositAmount = Number(
