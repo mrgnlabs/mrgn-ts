@@ -44,7 +44,7 @@ import {
   Connection,
   ParsedAccountData,
 } from "@solana/web3.js";
-import { Token } from "@solana/spl-token";
+import { NATIVE_MINT, Token } from "@solana/spl-token";
 import BigNumber from "bignumber.js";
 import {
   LoopTxProps,
@@ -62,6 +62,7 @@ import {
   FlashloanActionResult,
   LoopProps,
   TransactionBuilderResult,
+  makeUnwrapSolIx,
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
@@ -748,6 +749,9 @@ class MarginfiAccountWrapper {
       }
     );
 
+    // unwrap if deposit bank is native
+    const unwrapIx = depositBank.mint.equals(NATIVE_MINT) ? [makeUnwrapSolIx(this.authority)] : [];
+
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
       depositBankAddress,
       borrowBankAddress,
@@ -796,7 +800,14 @@ class MarginfiAccountWrapper {
     // wallets add a priority fee ix by default breaking the flashloan tx so we need to add a placeholder priority fee ix
     // docs: https://docs.phantom.app/developer-powertools/solana-priority-fees
     flashloanTx = await this.buildFlashLoanTx({
-      ixs: [...cuRequestIxs, priorityFeeIx, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
+      ixs: [
+        ...cuRequestIxs,
+        priorityFeeIx,
+        ...borrowIxs.instructions,
+        ...swapIxs,
+        ...unwrapIx,
+        ...depositIxs.instructions,
+      ],
       addressLookupTableAccounts,
       blockhash,
     });
