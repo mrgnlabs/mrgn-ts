@@ -749,6 +749,16 @@ interface BankConfigOpt {
   freezeSettings: boolean | null;
 }
 
+interface OracleConfigOpt {
+  setup: OracleSetup;
+  keys: PublicKey[];
+}
+
+interface OracleConfigOptRaw {
+  setup: OracleSetupRaw;
+  keys: PublicKey[];
+}
+
 interface BankConfigOptRaw {
   assetWeightInit: WrappedI80F48 | null;
   assetWeightMaint: WrappedI80F48 | null;
@@ -940,7 +950,7 @@ function computeLoopingParams(
   return { borrowAmount, totalDepositAmount };
 }
 
-export type { InterestRateConfig, BankConfigOpt, BankConfigOptRaw };
+export type { InterestRateConfig, BankConfigOpt, BankConfigOptRaw, OracleConfigOpt, OracleConfigOptRaw };
 export {
   Bank,
   BankConfig,

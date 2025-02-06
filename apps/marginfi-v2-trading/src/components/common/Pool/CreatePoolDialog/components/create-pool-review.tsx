@@ -2,7 +2,14 @@ import React from "react";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 
-import { BankConfigOpt, getConfig, MARGINFI_IDL, MarginfiIdlType, MarginfiProgram } from "@mrgnlabs/marginfi-client-v2";
+import {
+  BankConfigOpt,
+  getConfig,
+  MARGINFI_IDL,
+  MarginfiIdlType,
+  MarginfiProgram,
+  OracleConfigOpt,
+} from "@mrgnlabs/marginfi-client-v2";
 import { dynamicNumeralFormatter, percentFormatter, shortenAddress, Wallet } from "@mrgnlabs/mrgn-common";
 import { IconChevronLeft, IconSparkles } from "@tabler/icons-react";
 import { Button } from "~/components/ui/button";
@@ -51,7 +58,7 @@ export const CreatePoolReview = ({ poolData, setCreatePoolState }: CreatePoolRev
     }
   }, [fetchFeeState, poolData]);
 
-  if (!poolData || !poolData.tokenBankConfig || !poolData.quoteBankConfig || !poolData.quoteToken) return null;
+  if (!poolData || !poolData.tokenConfig || !poolData.quoteTokenConfig || !poolData.quoteToken) return null;
 
   return (
     <>
@@ -82,7 +89,11 @@ export const CreatePoolReview = ({ poolData, setCreatePoolState }: CreatePoolRev
                 {poolData.token.name} ({poolData.token.symbol})
               </div>
             </h3>
-            <TokenSummary mintData={poolData.token} bankConfig={poolData.tokenBankConfig} />
+            <TokenSummary
+              mintData={poolData.token}
+              bankConfig={poolData.tokenConfig.bankConfig}
+              oracleConfig={poolData.tokenConfig.oracleConfig}
+            />
           </div>
           <div className="border rounded-lg p-4 w-full">
             <h3 className="font-medium space-y-1">
@@ -94,7 +105,11 @@ export const CreatePoolReview = ({ poolData, setCreatePoolState }: CreatePoolRev
                 {poolData.quoteToken.name} ({poolData.quoteToken.symbol})
               </div>
             </h3>
-            <TokenSummary mintData={poolData.quoteToken} bankConfig={poolData.quoteBankConfig} />
+            <TokenSummary
+              mintData={poolData.quoteToken}
+              bankConfig={poolData.quoteTokenConfig.bankConfig}
+              oracleConfig={poolData.quoteTokenConfig.oracleConfig}
+            />
           </div>
         </div>
 
@@ -113,8 +128,16 @@ export const CreatePoolReview = ({ poolData, setCreatePoolState }: CreatePoolRev
   );
 };
 
-const TokenSummary = ({ mintData, bankConfig }: { mintData: PoolMintData; bankConfig: BankConfigOpt }) => {
-  const hasOracleKeys = React.useMemo(() => (bankConfig?.oracle?.keys?.length ?? 0) > 0, [bankConfig]);
+const TokenSummary = ({
+  mintData,
+  bankConfig,
+  oracleConfig,
+}: {
+  mintData: PoolMintData;
+  bankConfig: BankConfigOpt;
+  oracleConfig: OracleConfigOpt | null;
+}) => {
+  const hasOracleKeys = React.useMemo(() => (oracleConfig?.keys?.length ?? 0) > 0, [oracleConfig]);
   const protocolIrFee = React.useMemo(() => bankConfig.interestRateConfig?.protocolIrFee.toNumber() ?? 0, [bankConfig]);
 
   const protocolFeeStatus = React.useMemo(() => {
@@ -169,13 +192,13 @@ const TokenSummary = ({ mintData, bankConfig }: { mintData: PoolMintData; bankCo
       </div>
       <div className="flex flex-row justify-between">
         <p className="text-sm text-muted-foreground">Oracle</p>
-        <p className="text-sm">{hasOracleKeys ? bankConfig?.oracle?.setup : "Oracle created at next step"}</p>
+        <p className="text-sm">{hasOracleKeys ? oracleConfig?.setup : "Oracle created at next step"}</p>
       </div>
-      {bankConfig?.oracle?.keys?.length ? (
+      {oracleConfig?.keys?.length ? (
         <div className="flex flex-row justify-between">
           <p className="text-sm text-muted-foreground">Oracle Keys</p>
           <p className="text-sm flex flex-col ">
-            {bankConfig.oracle?.keys
+            {oracleConfig.keys
               ?.filter((key) => !key.equals(PublicKey.default))
               .map((key) => (
                 <a

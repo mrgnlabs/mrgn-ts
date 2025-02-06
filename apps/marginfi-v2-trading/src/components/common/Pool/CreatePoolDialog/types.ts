@@ -1,4 +1,4 @@
-import { BankConfigOpt } from "@mrgnlabs/marginfi-client-v2";
+import { BankConfigOpt, OracleConfigOpt } from "@mrgnlabs/marginfi-client-v2";
 import { PublicKey } from "@solana/web3.js";
 
 export enum CreatePoolState {
@@ -24,7 +24,7 @@ export type PoolMintData = {
 export type PoolData = {
   token: PoolMintData;
   quoteToken?: PoolMintData;
-  tokenBankConfig?: BankConfigOpt;
-  quoteBankConfig?: BankConfigOpt;
+  tokenConfig?: { bankConfig: BankConfigOpt; oracleConfig: OracleConfigOpt | null };
+  quoteTokenConfig?: { bankConfig: BankConfigOpt; oracleConfig: OracleConfigOpt | null };
   group?: PublicKey;
 };
