@@ -61,6 +61,7 @@ export type DepositSwapBoxProps = {
   displaySettings?: boolean;
 
   walletTokens: WalletToken[] | null;
+  allBanks?: ExtendedBankInfo[];
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -84,6 +85,7 @@ export const DepositSwapBox = ({
   captureEvent,
   hidePoolStats,
   walletTokens,
+  allBanks,
   displaySettings,
   setDisplaySettings,
 }: DepositSwapBoxProps) => {
@@ -192,6 +194,7 @@ export const DepositSwapBox = ({
       marginfiAccount: selectedAccount,
       nativeSolBalance,
       lendMode,
+      allBanks,
     });
   }, [
     amount,
@@ -203,6 +206,7 @@ export const DepositSwapBox = ({
     selectedAccount,
     nativeSolBalance,
     lendMode,
+    allBanks,
   ]);
 
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
@@ -221,7 +225,7 @@ export const DepositSwapBox = ({
     setErrorMessage,
     setIsLoading: setIsSimulating,
     marginfiClient,
-    actionMessages: actionMessages.concat(additionalActionMessages),
+    isDisabled: actionMessages.some((message) => !message.isEnabled),
   });
 
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
@@ -268,23 +272,32 @@ export const DepositSwapBox = ({
   /*
   Cleaing additional action messages when the bank or amount changes. This is to prevent outdated errors from being displayed.
   */
-  const prevSelectedBank = usePrevious(selectedDepositBank);
-  const prevSwapBank = usePrevious(selectedSwapBank);
+  const prevSelectedBankPk = usePrevious(selectedDepositBankPk);
+  const prevSwapBankPk = usePrevious(selectedSwapBankPk);
   const prevAmount = usePrevious(amount);
 
   React.useEffect(() => {
     if (
-      prevSelectedBank &&
-      prevSwapBank &&
+      prevSelectedBankPk &&
+      prevSwapBankPk &&
       prevAmount &&
-      (prevSelectedBank.meta.tokenSymbol !== selectedDepositBank?.meta.tokenSymbol ||
-        ("info" in prevSwapBank && prevSwapBank.info.state.mint.toBase58() !== selectedSwapBank?.address.toBase58()) ||
-        prevAmount !== amount)
+      (prevSelectedBankPk !== selectedDepositBankPk || prevSwapBankPk !== selectedSwapBankPk || prevAmount !== amount)
     ) {
-      setAdditionalActionMessages([]);
       setErrorMessage(null);
+      setActionTxns({ transactions: [], actionQuote: null });
+      setSimulationResult(null);
     }
-  }, [prevSelectedBank, prevSwapBank, prevAmount, selectedDepositBank, selectedSwapBank, amount, setErrorMessage]);
+  }, [
+    prevSelectedBankPk,
+    prevSwapBankPk,
+    prevAmount,
+    selectedDepositBankPk,
+    selectedSwapBankPk,
+    amount,
+    setErrorMessage,
+    setActionTxns,
+    setSimulationResult,
+  ]);
 
   ///////////////////////
   // Deposit-Swap Actions //
