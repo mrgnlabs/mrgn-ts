@@ -135,18 +135,15 @@ const stateCreator: StateCreator<DepositSwapBoxState, [], []> = (set, get) => ({
   },
 
   setSelectedDepositBankPk(bankPk) {
-    const swapBankPk = get().selectedSwapBankPk;
     set({
       selectedDepositBankPk: bankPk,
-      selectedSwapBankPk: swapBankPk && bankPk?.toBase58() === swapBankPk.toBase58() ? null : swapBankPk, // cannot have same bank for both
     });
   },
 
   setSelectedSwapBankPk(bankPk) {
-    const depositBankPk = get().selectedDepositBankPk;
     set({
       selectedSwapBankPk: bankPk,
-      selectedDepositBankPk: depositBankPk && bankPk?.toBase58() === depositBankPk.toBase58() ? null : depositBankPk, // cannot have same bank for both
+      amountRaw: "",
     });
   },
 });

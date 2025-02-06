@@ -509,7 +509,18 @@ export const DepositSwapBox = ({
           showTokenSelectionGroups={showTokenSelectionGroups}
           setAmountRaw={setAmountRaw}
           setSelectedBank={(bank) => {
-            bank && setSelectedSwapBankPk(bank.address);
+            const bankPk = bank?.address;
+            if (!bankPk) {
+              setSelectedSwapBankPk(null);
+              return;
+            }
+
+            if (selectedDepositBankPk?.equals(bankPk) && !requestedSwapBank) {
+              setSelectedSwapBankPk(bankPk);
+              setSelectedDepositBankPk(null);
+            } else {
+              setSelectedSwapBankPk(bankPk);
+            }
           }}
           walletTokens={walletTokens}
           showOnlyUserOwnedTokens={true}
@@ -554,7 +565,18 @@ export const DepositSwapBox = ({
             showTokenSelectionGroups={showTokenSelectionGroups}
             setAmountRaw={setAmountRaw}
             setSelectedBank={(bank) => {
-              bank && setSelectedDepositBankPk(bank.address);
+              const bankPk = bank?.address;
+              if (!bankPk) {
+                setSelectedDepositBankPk(null);
+                return;
+              }
+
+              if (selectedSwapBankPk?.equals(bankPk) && !requestedDepositBank) {
+                setSelectedDepositBankPk(bankPk);
+                setSelectedSwapBankPk(null);
+              } else {
+                setSelectedDepositBankPk(bankPk);
+              }
             }}
             isInputDisabled={true}
             showOnlyUserOwnedTokens={false}
