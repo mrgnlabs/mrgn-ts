@@ -46,8 +46,9 @@ export default function CreateStakedAssetPage() {
   const router = useRouter();
   const { connection } = useConnection();
   const { wallet } = useWallet();
-  const [client, stakedAssetBankInfos, fetchMrgnlendState] = useMrgnlendStore((state) => [
+  const [client, extendedBankInfos, stakedAssetBankInfos, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.marginfiClient,
+    state.extendedBankInfos,
     state.stakedAssetBankInfos,
     state.fetchMrgnlendState,
   ]);
@@ -324,7 +325,12 @@ export default function CreateStakedAssetPage() {
         heading="Staked Asset Banks"
         body={<p>Create a new staked asset bank and let stakers use their native stake as collateral.</p>}
       />
-      <CreateStakedPoolForm isLoading={isLoading} onSubmit={handleSumbitForm} validatorPubKeys={validatorPubKeys} />
+      <CreateStakedPoolForm
+        isLoading={isLoading}
+        onSubmit={handleSumbitForm}
+        banks={extendedBankInfos}
+        validatorPubKeys={validatorPubKeys}
+      />
       <CreateStakedPoolDialog
         isOpen={isDialogOpen}
         onClose={() => {
