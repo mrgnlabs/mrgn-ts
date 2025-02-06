@@ -9,15 +9,7 @@ import { capture } from "@mrgnlabs/mrgn-utils";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { Button } from "~/components/ui/button";
 
-interface BorrowLendPortalProps {
-  actionType?: ActionType;
-  openTokenSelector?: boolean;
-}
-
-export const GlobalActionBoxPortal: React.FC<BorrowLendPortalProps> = ({
-  actionType = ActionType.Deposit,
-  openTokenSelector = false,
-}) => {
+export const GlobalActionBoxPortal = () => {
   const { connected, walletContextState } = useWallet();
   const [stakeAccounts, fetchMrgnlendState] = useMrgnlendStore((state) => [
     state.stakeAccounts,
@@ -46,11 +38,11 @@ export const GlobalActionBoxPortal: React.FC<BorrowLendPortalProps> = ({
               isTriggered: true,
             }}
             lendProps={{
-              requestedLendType: actionType,
+              requestedLendType: globalActionBoxProps.actionType,
               connected,
               walletContextState,
               stakeAccounts,
-              isTokenSelectorOpen: openTokenSelector,
+              isTokenSelectorOpen: globalActionBoxProps.isTokenSelectorOpen,
               captureEvent: (event, properties) => {
                 capture(event, properties);
               },
