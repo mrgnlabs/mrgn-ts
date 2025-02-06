@@ -5,6 +5,7 @@ import { IconPhoto, IconLoader2 } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
 import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -19,11 +20,12 @@ type CreateStakedAssetForm = {
 
 type CreateStakedPoolFormProps = {
   isLoading: boolean;
+  banks: ExtendedBankInfo[];
   validatorPubKeys: PublicKey[];
   onSubmit: (form: CreateStakedAssetForm) => void;
 };
 
-export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: CreateStakedPoolFormProps) => {
+export const CreateStakedPoolForm = ({ isLoading, banks, validatorPubKeys, onSubmit }: CreateStakedPoolFormProps) => {
   const [form, setForm] = React.useState<CreateStakedAssetForm>({
     voteAccountKey: "",
     assetName: "",
@@ -45,6 +47,9 @@ export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: 
 
   const isMobile = useIsMobile();
 
+  const bankSymbols = banks.map((bank) => bank.meta.tokenSymbol);
+  const bankNames = banks.map((bank) => bank.meta.tokenName);
+
   const onDrop = React.useCallback(
     (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
@@ -58,15 +63,33 @@ export const CreateStakedPoolForm = ({ isLoading, validatorPubKeys, onSubmit }: 
     [form, errors]
   );
 
-  const validateName = (value: string) => {
-    const nameRegex = /^[a-zA-Z0-9\s]{3,24}$/;
-    return nameRegex.test(value) ? null : "Name must be 3-24 characters and contain only letters, numbers, and spaces";
-  };
+  const validateName = React.useCallback(
+    (value: string) => {
+      const nameRegex = /^[a-zA-Z0-9\s]{3,24}$/;
+      if (!nameRegex.test(value)) {
+        return "Name must be 3-24 characters and contain only letters, numbers, and spaces";
+      }
+      if (bankNames.some((name) => name.toLowerCase() === value.toLowerCase())) {
+        return "Asset name already exists";
+      }
+      return null;
+    },
+    [bankNames]
+  );
 
-  const validateSymbol = (value: string) => {
-    const symbolRegex = /^[a-zA-Z0-9]{3,10}$/;
-    return symbolRegex.test(value) ? null : "Symbol must be 3-10 characters and contain only letters and numbers";
-  };
+  const validateSymbol = React.useCallback(
+    (value: string) => {
+      const symbolRegex = /^[a-zA-Z0-9]{3,10}$/;
+      if (!symbolRegex.test(value)) {
+        return "Symbol must be 3-10 characters and contain only letters and numbers";
+      }
+      if (bankSymbols.some((symbol) => symbol.toLowerCase() === value.toLowerCase())) {
+        return "Asset symbol already exists";
+      }
+      return null;
+    },
+    [bankSymbols]
+  );
 
   const handleValidatorPubkeyChange = (value: string) => {
     setForm({ ...form, voteAccountKey: value });
