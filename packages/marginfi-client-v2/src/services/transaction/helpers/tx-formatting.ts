@@ -19,6 +19,7 @@ import {
   uiToMicroLamports,
   MARGINFI_PROGRAM,
   addTransactionMetadata,
+  TransactionArenaKeyMap,
 } from "@mrgnlabs/mrgn-common";
 
 import { MARGINFI_IDL, MarginfiIdlType } from "../../../idl";
@@ -172,45 +173,40 @@ function addArenaTxTags(transactions: SolanaTransaction[]): SolanaTransaction[] 
   const txWithTags: SolanaTransaction[] = [];
 
   for (const [index, tx] of transactions.entries()) {
-    if (isV0Tx(tx)) {
-      const addressLookupTableAccounts = tx.addressLookupTables ?? [];
-      const message = decompileV0Transaction(tx, addressLookupTableAccounts);
-      const hasMarginfiIx = !!message.instructions.find((ix) => ix.programId.equals(MARGINFI_PROGRAM));
-      // const isMainMfiGroup = message.instructions.some((ix) =>
-      //   ix.keys.some((key) => key.pubkey.equals(new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8")))
-      // );
-      if (hasMarginfiIx) {
+    let solanaTx: SolanaTransaction = tx;
+    const arenaKey = TransactionArenaKeyMap[tx.type];
+    console.log("arenaKey", arenaKey);
+    console.log("tx.type", tx.type);
+
+    if (arenaKey) {
+      if (isV0Tx(solanaTx)) {
+        console.log("tx", solanaTx);
+        const addressLookupTableAccounts = solanaTx.addressLookupTables ?? [];
+        const message = decompileV0Transaction(solanaTx, addressLookupTableAccounts);
+
         message.instructions[0].keys.push({
-          pubkey: new PublicKey("ArenaGxeqvXoEzVtwpZR3rdyNVNJb374nabxLwDdHWLW"),
+          pubkey: arenaKey,
           isSigner: false,
           isWritable: false,
         });
-        const updatedTx = addTransactionMetadata(
+        solanaTx = addTransactionMetadata(
           new VersionedTransaction(message.compileToV0Message(tx.addressLookupTables)),
           {
-            addressLookupTables: tx.addressLookupTables,
-            signers: tx.signers,
-            unitsConsumed: tx.unitsConsumed,
-            type: tx.type,
+            signers: solanaTx.signers,
+            addressLookupTables: solanaTx.addressLookupTables,
+            type: solanaTx.type,
+            unitsConsumed: solanaTx.unitsConsumed,
           }
         );
-        txWithTags.push(updatedTx);
       } else {
-        txWithTags.push(tx);
-      }
-    } else {
-      const hasMarginfiIx = tx.instructions.some((ix) => ix.programId.equals(MARGINFI_PROGRAM));
-      if (hasMarginfiIx) {
-        tx.instructions[0].keys.push({
-          pubkey: new PublicKey("ArenaGxeqvXoEzVtwpZR3rdyNVNJb374nabxLwDdHWLW"),
+        solanaTx.instructions[0].keys.push({
+          pubkey: arenaKey,
           isSigner: false,
           isWritable: false,
         });
-        txWithTags.push(tx);
-      } else {
-        txWithTags.push(tx);
       }
     }
+    txWithTags.push(solanaTx);
   }
   return txWithTags;
 }
