@@ -86,6 +86,10 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.accountSummary,
   ]);
 
+  React.useEffect(() => {
+    console.log("globalActionBoxProps", globalActionBoxProps);
+  }, [globalActionBoxProps]);
+
   const { query, isReady } = useRouter();
   const [ready, setReady] = React.useState(false);
   const [rpcEndpoint, setRpcEndpoint] = React.useState("");
@@ -158,12 +162,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                         mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
                       />
                       <ToastContainer position="bottom-left" theme="dark" />
-                      {globalActionBoxProps.isOpen && (
-                        <GlobalActionBoxPortal
-                          openTokenSelector={globalActionBoxProps.isTokenSelectorOpen}
-                          actionType={globalActionBoxProps.actionType}
-                        />
-                      )}
+                      {globalActionBoxProps.isOpen && <GlobalActionBoxPortal />}
                     </ActionBoxProvider>
                   </ActionProvider>
                 </MrgnlendProvider>
