@@ -941,6 +941,7 @@ class MarginfiClient {
       programId: this.program.programId,
       bundleSimRpcEndpoint: this.bundleSimRpcEndpoint,
       dynamicStrategy: processOpts?.dynamicStrategy ?? this.processTransactionStrategy,
+      addArenaTxTag: this.addArenaTxTag,
     };
 
     console.log("processOpts", processOpts);
