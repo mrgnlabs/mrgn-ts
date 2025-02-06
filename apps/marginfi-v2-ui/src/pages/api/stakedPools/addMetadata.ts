@@ -1,8 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Storage } from "@google-cloud/storage";
 import { PublicKey } from "@solana/web3.js";
+import { validateName, validateSymbol } from "@mrgnlabs/mrgn-utils";
+import { BankMetadata } from "@mrgnlabs/mrgn-common";
 
 const BUCKET_NAME = process.env.GCP_BUCKET_NAME || "mrgn-public";
+const BANK_METADATA_FILE_NAME = "mrgn-bank-metadata-cache.json";
 const STAKED_BANK_METADATA_FILE_NAME = "mrgn-staked-bank-metadata-cache.json";
 const STAKED_TOKEN_METADATA_FILE_NAME = "mrgn-staked-token-metadata-cache.json";
 
@@ -29,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  // check if groupAddress and lutAddress are valid public keys
+  // check if public keys are valid
   try {
     new PublicKey(bankAddress);
     new PublicKey(validatorVoteAccount);
@@ -40,18 +43,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // Fetch existing banks metadata to validate against
+    const bucket = storage.bucket(BUCKET_NAME);
+    const bankFile = bucket.file(BANK_METADATA_FILE_NAME);
+    const stakedBankFile = bucket.file(STAKED_BANK_METADATA_FILE_NAME);
+    const [bankFileContents] = await bankFile.download();
+    const [stakedBankFileContents] = await stakedBankFile.download();
+    const bankMetadatas: BankMetadata[] = [
+      ...JSON.parse(bankFileContents.toString()),
+      ...JSON.parse(stakedBankFileContents.toString()),
+    ];
+
+    const finalTokenName = validateName(tokenName, bankMetadatas) ? "Staked Asset" : tokenName;
+    const finalTokenSymbol = validateSymbol(tokenSymbol, bankMetadatas) ? "STAKED" : tokenSymbol;
+
     await addStakedBankMetadata({
       bankAddress,
       validatorVoteAccount,
       tokenAddress,
-      tokenName,
-      tokenSymbol,
+      tokenName: finalTokenName,
+      tokenSymbol: finalTokenSymbol,
     });
 
     await addStakedTokenMetadata({
-      symbol: tokenSymbol,
+      symbol: finalTokenSymbol,
       address: tokenAddress,
-      name: tokenName,
+      name: finalTokenName,
       decimals: tokenDecimals,
     });
 

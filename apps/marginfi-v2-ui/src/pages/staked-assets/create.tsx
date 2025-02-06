@@ -68,6 +68,12 @@ export default function CreateStakedAssetPage() {
 
   const [isLoading, setIsLoading] = React.useState(false);
 
+  const bankMetas = extendedBankInfos.map((bank) => ({
+    tokenName: bank.meta.tokenName,
+    tokenSymbol: bank.meta.tokenSymbol,
+    tokenAddress: bank.meta.address.toBase58(),
+  }));
+
   const validatorPubKeys = stakedAssetBankInfos
     .map((bank) => bank.meta.stakePool?.validatorVoteAccount)
     .filter((key) => key !== undefined) as PublicKey[];
@@ -328,7 +334,7 @@ export default function CreateStakedAssetPage() {
       <CreateStakedPoolForm
         isLoading={isLoading}
         onSubmit={handleSumbitForm}
-        banks={extendedBankInfos}
+        banks={bankMetas}
         validatorPubKeys={validatorPubKeys}
       />
       <CreateStakedPoolDialog
