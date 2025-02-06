@@ -121,7 +121,7 @@ export function useMarginfiClient({
       clientOptions?.bundleSimRpcEndpoint,
       clientOptions?.processTransactionStrategy,
       lookupTables,
-      true
+      true // Add arena tag to transactions
     );
 
     return client;
