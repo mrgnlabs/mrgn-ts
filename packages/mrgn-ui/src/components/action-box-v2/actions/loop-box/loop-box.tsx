@@ -418,7 +418,7 @@ export const LoopBox = ({
   return (
     <ActionBoxContentWrapper>
       {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
-        <div className="absolute -top-7 right-4 z-50">
+        <div className="absolute top-0 right-4 z-50">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>

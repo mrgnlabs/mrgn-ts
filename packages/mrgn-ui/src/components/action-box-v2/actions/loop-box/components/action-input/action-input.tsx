@@ -73,47 +73,49 @@ export const ActionInput = ({
   );
 
   return (
-    <>
-      {/* Contains 'max' button and input title */}
-      <div className="bg-background rounded-lg p-2.5 mb-6">
-        <div className="flex justify-center gap-1 items-center font-medium text-3xl">
-          <div className="w-full flex-auto max-w-[162px]">
-            <BankSelect
-              actionMode={ActionType.Deposit}
-              selectedBank={selectedBank}
-              otherBank={selectedSecondaryBank}
-              banks={banks}
-              nativeSolBalance={nativeSolBalance}
-              setTokenBank={(bank) => setSelectedBank(bank)}
-            />
+    <div className="space-y-2">
+      <div className={cn("space-y-2 ")}>
+        <p className="text-sm font-normal text-muted-foreground">You supply</p>
+        <div className="bg-background rounded-lg p-2.5 mb-6">
+          <div className="flex justify-center gap-1 items-center font-medium text-3xl">
+            <div className="w-full flex-auto max-w-[162px]">
+              <BankSelect
+                actionMode={ActionType.Deposit}
+                selectedBank={selectedBank}
+                otherBank={selectedSecondaryBank}
+                banks={banks}
+                nativeSolBalance={nativeSolBalance}
+                setTokenBank={(bank) => setSelectedBank(bank)}
+              />
+            </div>
+            <div className="flex-auto flex flex-col gap-0 items-end">
+              <Input
+                type="text"
+                ref={amountInputRef}
+                inputMode="decimal"
+                value={amountRaw}
+                disabled={isInputDisabled}
+                onChange={(e) => handleInputChange(e.target.value)}
+                placeholder="0"
+                className="bg-transparent shadow-none min-w-[130px] h-auto py-0 pr-0 text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium disabled:opacity-100 disabled:text-primary"
+              />
+              {amount !== null && amount > 0 && selectedBank && (
+                <span className="text-xs text-muted-foreground font-light">
+                  {tokenPriceFormatter(amount * selectedBank.info.oraclePrice.priceRealtime.price.toNumber())}
+                </span>
+              )}
+            </div>
           </div>
-          <div className="flex-auto flex flex-col gap-0 items-end">
-            <Input
-              type="text"
-              ref={amountInputRef}
-              inputMode="decimal"
-              value={amountRaw}
-              disabled={isInputDisabled}
-              onChange={(e) => handleInputChange(e.target.value)}
-              placeholder="0"
-              className="bg-transparent shadow-none min-w-[130px] h-auto py-0 pr-0 text-right outline-none focus-visible:outline-none focus-visible:ring-0 border-none text-base font-medium disabled:opacity-100 disabled:text-primary"
-            />
-            {amount !== null && amount > 0 && selectedBank && (
-              <span className="text-xs text-muted-foreground font-light">
-                {tokenPriceFormatter(amount * selectedBank.info.oraclePrice.priceRealtime.price.toNumber())}
-              </span>
-            )}
-          </div>
+          <LoopAction
+            maxAmount={maxAmount}
+            onSetAmountRaw={(amount) => handleInputChange(amount)}
+            amountRaw={amountRaw}
+            selectedBank={selectedBank}
+            selectedSecondaryBank={selectedSecondaryBank}
+            loopActionTxns={actionTxns}
+            walletAmount={walletAmount}
+          />
         </div>
-        <LoopAction
-          maxAmount={maxAmount}
-          onSetAmountRaw={(amount) => handleInputChange(amount)}
-          amountRaw={amountRaw}
-          selectedBank={selectedBank}
-          selectedSecondaryBank={selectedSecondaryBank}
-          loopActionTxns={actionTxns}
-          walletAmount={walletAmount}
-        />
       </div>
       <div className={cn("space-y-2", !selectedBank && "pointer-events-none opacity-75")}>
         <p className="text-sm font-normal text-muted-foreground">You borrow</p>
@@ -155,6 +157,6 @@ export const ActionInput = ({
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
