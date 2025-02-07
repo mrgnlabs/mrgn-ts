@@ -3,7 +3,12 @@ import { Connection, LAMPORTS_PER_SOL, ParsedAccountData, PublicKey, StakeProgra
 import { MAX_U64 } from "@mrgnlabs/mrgn-common";
 import { vendor } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, ValidatorStakeGroup } from "../types";
-import { findPoolAddress, findPoolMintAddress, findPoolStakeAddress } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
+import {
+  findPoolAddress,
+  findPoolMintAddress,
+  findPoolStakeAddress,
+  getStakeAccount,
+} from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 
 /**
  * Fetches stake accounts for a given public key from API
@@ -188,29 +193,44 @@ const getStakePoolActiveStates = async (
   const currentEpoch = await connection.getEpochInfo();
   const activeStates = new Map<string, boolean>();
 
-  await Promise.all(
-    validatorVoteAccounts.map(async (validatorVoteAccount) => {
-      const poolAddress = findPoolAddress(validatorVoteAccount);
-      const poolStakeAddress = findPoolStakeAddress(poolAddress);
-      const poolMintAddress = findPoolMintAddress(poolAddress);
+  const poolMintAddressRecord: Record<string, PublicKey> = {};
+  const poolStakeAddressRecord: Record<string, PublicKey> = {};
 
-      const stakePoolAccount = await connection.getParsedAccountInfo(poolStakeAddress);
-      if (!stakePoolAccount.value) {
-        activeStates.set(poolMintAddress.toBase58(), false);
-        return;
-      }
+  validatorVoteAccounts.forEach((validatorVoteAccount) => {
+    const poolAddress = findPoolAddress(validatorVoteAccount);
+    const poolStakeAddress = findPoolStakeAddress(poolAddress);
+    const poolMintAddress = findPoolMintAddress(poolAddress);
 
-      const parsedData = (stakePoolAccount.value.data as any).parsed;
-      if (!parsedData?.info?.stake?.delegation) {
-        activeStates.set(poolMintAddress.toBase58(), false);
-        return;
-      }
+    poolMintAddressRecord[validatorVoteAccount.toBase58()] = poolMintAddress;
+    poolStakeAddressRecord[poolStakeAddress.toBase58()] = validatorVoteAccount;
+  });
 
-      const activationEpoch = parsedData.info.stake.delegation.activationEpoch;
-      const isActive = currentEpoch.epoch > Number(activationEpoch);
-      activeStates.set(poolMintAddress.toBase58(), isActive);
-    })
+  const poolStakeAddressKeys = Object.keys(poolStakeAddressRecord);
+
+  const poolStakeAccounts = Object.fromEntries(
+    (await connection.getMultipleAccountsInfo(poolStakeAddressKeys.map((key) => new PublicKey(key)))).map(
+      (ai, index) => [poolStakeAddressKeys[index], ai?.data ? getStakeAccount(ai.data) : null]
+    )
   );
+
+  validatorVoteAccounts.map(async (validatorVoteAccount) => {
+    const stakeAccount = poolStakeAccounts[validatorVoteAccount.toBase58()];
+    const poolMintAddress = poolMintAddressRecord[validatorVoteAccount.toBase58()];
+
+    if (!stakeAccount) {
+      activeStates.set(poolMintAddress.toBase58(), false);
+      return;
+    }
+
+    if (!stakeAccount.stake?.delegation) {
+      activeStates.set(poolMintAddress.toBase58(), false);
+      return;
+    }
+
+    const activationEpoch = stakeAccount.stake.delegation.activationEpoch;
+    const isActive = currentEpoch.epoch > Number(activationEpoch);
+    activeStates.set(poolMintAddress.toBase58(), isActive);
+  });
 
   return activeStates;
 };
