@@ -394,6 +394,10 @@ export async function loopingBuilder({
       lookupTables: swapLUTs,
     },
     blockhash,
+    depositOpts: {},
+    borrowOpts: {
+      createAtas: true,
+    },
     setupBankAddresses,
   });
 
