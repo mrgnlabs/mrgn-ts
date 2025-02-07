@@ -395,8 +395,9 @@ export async function loopingBuilder({
       lookupTables: swapLUTs,
     },
     blockhash,
+    depositOpts: {},
     borrowOpts,
-    setupBankAddresses,
+    // setupBankAddresses,
   });
 
   return { transactions, txOverflown, lastValidBlockHeight };
