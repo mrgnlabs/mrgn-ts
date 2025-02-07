@@ -1,7 +1,9 @@
 import MarginfiClient from "./clients/client";
+import ArenaClient from "./clients/arena-client";
 
 export * from "./config";
 export * from "./clients/client";
+export * from "./clients/arena-client";
 export * from "./errors";
 export * from "./instructions";
 export * from "./constants";
@@ -15,4 +17,4 @@ export * from "./idl";
 export * from "./types";
 export * from "./utils";
 export * as vendor from "./vendor";
-export { MarginfiClient };
+export { MarginfiClient, ArenaClient };

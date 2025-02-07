@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet, useWalletStore } from "~/components/wallet-v2";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
-import { useMarginfiClient } from "~/hooks/useMarginfiClient";
+import { useArenaClient } from "~/hooks/useArenaClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 
@@ -110,7 +110,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
 
   // Hooks
   const activePoolExtended = useExtendedPool(activePool);
-  const client = useMarginfiClient({ groupPk: activePoolExtended.groupPk });
+  const client = useArenaClient({ groupPk: activePoolExtended.groupPk });
   const { accountSummary, wrappedAccount } = useWrappedAccount({
     client,
     groupPk: activePoolExtended.groupPk,
