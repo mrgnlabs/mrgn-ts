@@ -397,8 +397,12 @@ export async function loopingBuilder({
       lookupTables: swapLUTs,
     },
     blockhash,
-    depositOpts: {},
+    depositOpts: {
+      wrapAndUnwrapSol: true,
+    },
     borrowOpts,
+    // commented out as looping requires ata to be created within borrow tx
+    // otherwise setupBankAddresses are used to create atas
     // setupBankAddresses,
   });
 
