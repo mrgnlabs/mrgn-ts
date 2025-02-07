@@ -63,7 +63,12 @@ export async function calculateLooping(props: CalculateLoopingProps): Promise<Lo
   //   outputMint: bank.info.state.mint.toBase58(),
   // });
 
-  const result = await calculateLoopingParams(props);
+  const params = {
+    ...props,
+    setupBankAddresses: [props.depositBank.address, props.borrowBank.address],
+  };
+
+  const result = await calculateLoopingParams(params);
 
   return result;
 }
