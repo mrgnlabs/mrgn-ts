@@ -50,6 +50,17 @@ class ArenaClient extends MarginfiClient {
     processOpts?: ProcessTransactionsClientOpts,
     txOpts?: TransactionOptions
   ): Promise<TransactionSignature> {
+    try {
+      await fetch(`${process.env.MARGINFI_API_URL}/arena/process-transactions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (error) {
+      console.error("Error processing transaction to the backend:", error);
+    }
+
     return super.processTransaction(transaction, { ...processOpts, addArenaTxTag: true }, txOpts);
   }
 
@@ -58,6 +69,17 @@ class ArenaClient extends MarginfiClient {
     processOpts?: ProcessTransactionsClientOpts,
     txOpts?: TransactionOptions
   ): Promise<TransactionSignature[]> {
+    try {
+      await fetch(`${process.env.MARGINFI_API_URL}/arena/process-transactions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } catch (error) {
+      console.error("Error processing transaction to the backend:", error);
+    }
+
     return super.processTransactions(transactions, { ...processOpts, addArenaTxTag: true }, txOpts);
   }
 }
