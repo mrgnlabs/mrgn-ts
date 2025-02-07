@@ -95,6 +95,14 @@ function createUiStore() {
         ) {
           state.jupiterOptions.slippageBps = 100;
         }
+
+        if (state?.globalActionBoxProps) {
+          state.globalActionBoxProps = {
+            isOpen: false,
+            isTokenSelectorOpen: true,
+            actionType: ActionType.Deposit,
+          };
+        } // Rehydrating this to ensure the global action box doesnt open on render
       },
     })
   );
