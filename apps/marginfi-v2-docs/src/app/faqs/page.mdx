@@ -12,8 +12,14 @@ In this guide, we will answer commonly asked questions regarding the marginfi pr
 
 <Note>
   If you do not see an answer to your question on this page, please contact marginfi support by joining
-  our [Discord server](https://discord.gg/pJ3U7gHJFe).
+  at <Button href="https://support.marginfi.com" variant="text"><>support.marginfi.com</></Button>.
 </Note>
+
+## How are interest rates calculated? {{ tag: '', label: '' }}
+
+Interest rates are calculated based on market demand for borrowing and lending. For lenders, the interest rate increases with higher market utilization (more borrowing). For borrowers, the rate consists of a base rate plus additional fees. We currently use a simple interest model where interest accrues linearly over time, rather than compounding.
+
+For a more detailed explanation of how interest rates are calculated, please refer to the <Button href="https://github.com/mrgnlabs/marginfi-v2/blob/3b7bf0aceb684a762c8552412001c8d355033119/programs/marginfi/src/state/marginfi_group.rs#L1018C1-L1043C32" variant="text"><>source code</></Button>.
 
 ## Is my native stake still earning rewards when I deposit it into marginfi? {{ tag: '', label: '' }}
 
