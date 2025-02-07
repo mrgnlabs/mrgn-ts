@@ -295,7 +295,11 @@ export function checkDepositSwapActionAvailable({
 }: CheckDepositSwapActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
-  if (allBanks && allBanks.some((bank) => bank.isActive && bank.info.rawBank.config.assetTag === 2)) {
+  if (
+    (depositBank || swapBank) &&
+    allBanks &&
+    allBanks.some((bank) => bank.isActive && bank.info.rawBank.config.assetTag === 2)
+  ) {
     checks.push(STATIC_SIMULATION_ERRORS.STAKED_ONLY_SOL_CHECK);
     return checks;
   }
