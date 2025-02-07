@@ -70,7 +70,7 @@ class ArenaClient extends MarginfiClient {
     txOpts?: TransactionOptions
   ): Promise<TransactionSignature[]> {
     try {
-      await fetch(`${process.env.MARGINFI_API_URL}/arena/process-transactions`, {
+      await fetch("/api/processTransaction", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
