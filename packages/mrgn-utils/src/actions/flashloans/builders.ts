@@ -13,6 +13,7 @@ import {
   TransactionBroadcastType,
   TransactionType,
   uiToNative,
+  WSOL_MINT,
 } from "@mrgnlabs/mrgn-common";
 
 import { deserializeInstruction, getAdressLookupTableAccounts, getSwapQuoteWithRetry } from "../helpers";
@@ -384,6 +385,8 @@ export async function loopingBuilder({
   swapLUTs.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
 
+  const borrowOpts = !borrowBank.info.rawBank.mint.equals(WSOL_MINT) ? { createAtas: true } : undefined;
+
   const { transactions, txOverflown } = await marginfiAccount.makeLoopTxV2({
     depositAmount: actualDepositAmount,
     borrowAmount,
@@ -394,10 +397,7 @@ export async function loopingBuilder({
       lookupTables: swapLUTs,
     },
     blockhash,
-    depositOpts: {},
-    borrowOpts: {
-      createAtas: true,
-    },
+    borrowOpts,
     setupBankAddresses,
   });
 
