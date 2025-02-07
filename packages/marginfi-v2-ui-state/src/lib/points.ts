@@ -57,7 +57,7 @@ let lastOrderDir: "desc" | "asc" | undefined;
 let prevPages: LeaderboardRow[][] = [];
 let lastSearch: string | undefined;
 
-const POINTS_DOCUMENT: string = "migrated_points";
+const POINTS_DOCUMENT: string = "stage_points";
 
 async function fetchLeaderboardData(connection: Connection, settings: LeaderboardSettings): Promise<LeaderboardRow[]> {
   if (settings.pageDirection === "prev" && settings.currentPage > 1) {
