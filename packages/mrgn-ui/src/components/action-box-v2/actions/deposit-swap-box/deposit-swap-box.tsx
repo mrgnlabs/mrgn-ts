@@ -309,10 +309,11 @@ export const DepositSwapBox = ({
       setIsLoading: (loading: boolean) => void;
       handleOnComplete: (txnSigs: string[]) => void;
       retryCallback: (txns: DepositSwapActionTxns, multiStepToast: MultiStepToastHandle) => void;
+      setAmountRaw: (amountRaw: string) => void;
     }
   ) => {
     const action = async (params: ExecuteDepositSwapActionProps) => {
-      handleExecuteDepositSwapAction({
+      await handleExecuteDepositSwapAction({
         params,
         captureEvent: (event, properties) => {
           callbacks.captureEvent && callbacks.captureEvent(event, properties);
@@ -332,7 +333,9 @@ export const DepositSwapBox = ({
         },
       });
     };
+
     await action(params);
+    callbacks.setAmountRaw("");
   };
 
   const retryDepositSwapAction = React.useCallback(
@@ -378,6 +381,7 @@ export const DepositSwapBox = ({
         retryCallback: (txns: DepositSwapActionTxns, multiStepToast: MultiStepToastHandle) => {
           retryDepositSwapAction({ ...params, actionTxns: txns, multiStepToast }, swapBank);
         },
+        setAmountRaw: setAmountRaw,
       });
     },
     [
@@ -390,6 +394,7 @@ export const DepositSwapBox = ({
       setIsActionComplete,
       setPreviousTxn,
       walletTokens,
+      setAmountRaw,
     ]
   );
 
@@ -462,6 +467,7 @@ export const DepositSwapBox = ({
       retryCallback: (txns: DepositSwapActionTxns, multiStepToast: MultiStepToastHandle) => {
         retryDepositSwapAction({ ...params, actionTxns: txns, multiStepToast }, selectedSwapBank);
       },
+      setAmountRaw: setAmountRaw,
     });
   }, [
     actionTxns,
@@ -480,6 +486,7 @@ export const DepositSwapBox = ({
     onComplete,
     walletTokens,
     retryDepositSwapAction,
+    setAmountRaw,
   ]);
 
   return (
