@@ -9,10 +9,9 @@ import { Loader } from "~/components/ui/loader";
 import { useWallet } from "~/components/wallet-v2";
 
 export default function LooperPage() {
-  const [initialized, extendedBankInfosWithoutStakedAssets, extendedBankInfos] = useMrgnlendStore((state) => [
+  const [initialized, extendedBankInfosWithoutStakedAssets] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfosWithoutStakedAssets,
-    state.extendedBankInfos,
   ]);
   const { connected, walletContextState } = useWallet();
 
@@ -28,7 +27,6 @@ export default function LooperPage() {
             loopProps={{
               connected: connected,
               banks: extendedBankInfosWithoutStakedAssets,
-              allBanks: extendedBankInfos,
               walletContextState: walletContextState,
               captureEvent: (event, properties) => {
                 capture(event, properties);

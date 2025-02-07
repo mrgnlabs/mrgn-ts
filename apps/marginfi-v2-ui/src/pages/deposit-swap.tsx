@@ -17,7 +17,7 @@ export default function DepositSwapPage() {
     initialized,
     extendedBankInfosWithoutStakedAssets,
     fetchWalletTokens,
-    extendedBankInfos,
+    extendedbankInfos,
     marginfiClient,
     updateWalletTokens,
     updateWalletToken,
@@ -38,13 +38,13 @@ export default function DepositSwapPage() {
   React.useEffect(() => {
     if (
       wallet &&
-      extendedBankInfos &&
-      extendedBankInfos.length > 0 &&
+      extendedbankInfos &&
+      extendedbankInfos.length > 0 &&
       (walletTokens === null || walletTokens.length === 0)
     ) {
-      fetchWalletTokens(wallet, extendedBankInfos);
+      fetchWalletTokens(wallet, extendedbankInfos);
     }
-  }, [fetchWalletTokens, wallet, walletTokens, extendedBankInfos]);
+  }, [fetchWalletTokens, wallet, walletTokens, extendedbankInfos]);
 
   const fetchAndUpdateTokens = React.useCallback(() => {
     if (!wallet || !connection) {
@@ -79,7 +79,6 @@ export default function DepositSwapPage() {
             useProvider={true}
             depositSwapProps={{
               banks: extendedBankInfosWithoutStakedAssets,
-              allBanks: extendedBankInfos,
               connected: connected,
               requestedDepositBank: undefined,
               requestedSwapBank: undefined,

@@ -21,7 +21,6 @@ type BankListProps = {
   onClose: () => void;
 
   walletTokens?: WalletToken[] | null;
-  showOnlyUserOwnedTokens?: boolean;
 };
 
 export const BankList = ({
@@ -35,7 +34,6 @@ export const BankList = ({
   isOpen,
   onClose,
   walletTokens,
-  showOnlyUserOwnedTokens,
 }: BankListProps) => {
   const lendingMode = React.useMemo(
     () =>
@@ -177,7 +175,7 @@ export const BankList = ({
     });
 
     return sorted as (ExtendedBankInfo | WalletToken)[];
-  }, [filteredWalletTokens, filteredBanksUserOwns, nativeSolBalance]);
+  }, [filteredWalletTokens, filteredBanks, nativeSolBalance]);
 
   return (
     <>
@@ -243,7 +241,7 @@ export const BankList = ({
         )}
 
         {/* GLOBAL & ISOLATED */}
-        {!showOnlyUserOwnedTokens && globalBanks.length > 0 && onSetSelectedBank && showTokenSelectionGroups && (
+        {globalBanks.length > 0 && onSetSelectedBank && showTokenSelectionGroups && (
           <CommandGroup heading="Global pools">
             {globalBanks.map((bank, index) => {
               return (
@@ -274,7 +272,7 @@ export const BankList = ({
             })}
           </CommandGroup>
         )}
-        {!showOnlyUserOwnedTokens && isolatedBanks.length > 0 && onSetSelectedBank && showTokenSelectionGroups && (
+        {isolatedBanks.length > 0 && onSetSelectedBank && showTokenSelectionGroups && (
           <CommandGroup heading="Isolated pools">
             {isolatedBanks.map((bank, index) => {
               return (

@@ -10,7 +10,6 @@ import {
   DYNAMIC_SIMULATION_ERRORS,
   LstData,
   canBeDepositSwapped,
-  STATIC_SIMULATION_ERRORS,
 } from ".";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
@@ -100,7 +99,7 @@ interface CheckLoopActionAvailableProps {
   connected: boolean;
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
-  banks?: ExtendedBankInfo[];
+  actionQuote: QuoteResponse | null;
 }
 
 export function checkLoopActionAvailable({
@@ -108,7 +107,7 @@ export function checkLoopActionAvailable({
   connected,
   selectedBank,
   selectedSecondaryBank,
-  banks,
+  actionQuote,
 }: CheckLoopActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
@@ -120,7 +119,7 @@ export function checkLoopActionAvailable({
 
   // allert checks
   if (selectedBank) {
-    const loopChecks = canBeLooped(selectedBank, selectedSecondaryBank, undefined, banks);
+    const loopChecks = canBeLooped(selectedBank, selectedSecondaryBank, actionQuote);
     if (loopChecks.length) checks.push(...loopChecks);
   }
 
@@ -278,7 +277,6 @@ interface CheckDepositSwapActionAvailableProps {
   banks: ExtendedBankInfo[];
   marginfiAccount: MarginfiAccountWrapper | null;
   lendMode: ActionType;
-  allBanks?: ExtendedBankInfo[];
 }
 
 export function checkDepositSwapActionAvailable({
@@ -291,18 +289,8 @@ export function checkDepositSwapActionAvailable({
   banks,
   marginfiAccount,
   lendMode,
-  allBanks,
 }: CheckDepositSwapActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
-
-  if (
-    (depositBank || swapBank) &&
-    allBanks &&
-    allBanks.some((bank) => bank.isActive && bank.info.rawBank.config.assetTag === 2)
-  ) {
-    checks.push(STATIC_SIMULATION_ERRORS.STAKED_ONLY_SOL_CHECK);
-    return checks;
-  }
 
   if (!connected || !depositBank || !swapBank) {
     checks.push({ isEnabled: false });

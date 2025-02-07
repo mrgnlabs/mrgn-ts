@@ -12,7 +12,6 @@ import {
   deserializeInstruction,
   getAdressLookupTableAccounts,
   MultiStepToastHandle,
-  CalculateTradingProps,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
@@ -114,30 +113,29 @@ const handleExecuteTradeAction = async ({
   }
 };
 
-export async function generateTradeTx(props: CalculateTradingProps): Promise<TradeActionTxns | ActionMessageType> {
+export async function generateTradeTx(props: CalculateLoopingProps): Promise<TradeActionTxns | ActionMessageType> {
   let swapTx: { quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType } | undefined;
 
   const swapNeeded = props.tradeState === "long";
   if (swapNeeded) {
+    console.log("Creating Quote swap transaction...");
     try {
       swapTx = await createSwapTx(
         props,
+
         props.marginfiClient.wallet.publicKey,
         props.marginfiClient.provider.connection
       );
       if (swapTx.error) {
-        console.error("Swap transaction error:", swapTx.error);
+        console.error("Quote swap transaction error:", swapTx.error);
         return swapTx.error;
       } else {
         if (!swapTx.tx || !swapTx.quote) {
-          // TODO: improve error message
-          console.error("Swap transaction error: no tx or quote");
           return STATIC_SIMULATION_ERRORS.FL_FAILED;
         }
       }
     } catch (error) {
-      // TODO: improve error message
-      console.error("Swap transaction error:", error);
+      console.error("Error creating Quote swap transaction:", error);
       return STATIC_SIMULATION_ERRORS.FL_FAILED;
     }
   }
@@ -177,11 +175,7 @@ export async function generateTradeTx(props: CalculateTradingProps): Promise<Tra
   if (result && "actionQuote" in result) {
     return {
       ...result,
-      transactions: [
-        ...(swapTx?.tx ? [swapTx.tx] : []),
-        ...accountCreationTx,
-        ...addArenaTxTypes(result.transactions, props.tradeState),
-      ],
+      transactions: [...(swapTx?.tx ? [swapTx.tx] : []), ...accountCreationTx, ...(result.transactions ?? [])],
       marginfiAccount: finalAccount ?? undefined,
     };
   }
@@ -189,25 +183,17 @@ export async function generateTradeTx(props: CalculateTradingProps): Promise<Tra
   return result;
 }
 
-function addArenaTxTypes(txs: SolanaTransaction[], tradeState: "long" | "short") {
-  return txs.map((tx) =>
-    tx.type === TransactionType.LOOP
-      ? addTransactionMetadata(tx, {
-          ...tx,
-          type: tradeState === "long" ? TransactionType.LONG : TransactionType.SHORT,
-        })
-      : tx
-  );
-}
-
 async function createMarginfiAccountTx(
   props: CalculateLoopingProps
 ): Promise<{ account: MarginfiAccountWrapper; tx: SolanaTransaction }> {
+  // if no marginfi account, we need to create one
+  console.log("Creating new marginfi account transaction...");
   const authority = props.marginfiAccount?.authority ?? props.marginfiClient.provider.publicKey;
+
   const marginfiAccountKeypair = Keypair.generate();
 
-  // create a dummy account with 15 empty balances to be used in other transactions
   const dummyWrappedI80F48 = bigNumberToWrappedI80F48(new BigNumber(0));
+
   const dummyBalances: BalanceRaw[] = Array(15).fill({
     active: false,
     bankPk: new PublicKey("11111111111111111111111111111111"),
@@ -216,6 +202,7 @@ async function createMarginfiAccountTx(
     emissionsOutstanding: dummyWrappedI80F48,
     lastUpdate: new BN(0),
   });
+
   const rawAccount: MarginfiAccountRaw = {
     group: props.marginfiClient.group.address,
     authority: authority,

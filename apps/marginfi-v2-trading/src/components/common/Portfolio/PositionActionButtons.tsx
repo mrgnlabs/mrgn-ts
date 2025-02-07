@@ -110,9 +110,10 @@ export const PositionActionButtons = ({
           depositSwapProps={{
             connected: connected,
             requestedDepositBank: depositBanks[0],
+            banks: extendedBankInfos,
             requestedSwapBank: arenaPool.status === GroupStatus.LONG ? borrowBank ?? undefined : undefined,
             showAvailableCollateral: false,
-            walletTokens: null,
+            walletTokens: walletTokens,
             captureEvent: () => {
               capture("position_add_btn_click", {
                 group: arenaPool.groupPk?.toBase58(),

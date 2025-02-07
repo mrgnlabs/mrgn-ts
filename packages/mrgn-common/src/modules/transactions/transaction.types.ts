@@ -1,4 +1,4 @@
-import { VersionedTransaction, Transaction, Signer, AddressLookupTableAccount, PublicKey } from "@solana/web3.js";
+import { VersionedTransaction, Transaction, Signer, AddressLookupTableAccount } from "@solana/web3.js";
 
 export enum TransactionType {
   // BASE LENDING ACTIONS
@@ -105,18 +105,6 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
   [TransactionType.JUPITER_SWAP]: { label: "Swapping tokens" },
   [TransactionType.INITIALIZE_STAKED_POOL]: { label: "Initializing Staked Pool" },
   [TransactionType.ADD_STAKED_BANK]: { label: "Adding Staked Bank" },
-};
-
-export const TransactionArenaKeyMap: Partial<Record<TransactionType, PublicKey>> = {
-  [TransactionType.DEPOSIT]: new PublicKey("ArenaDeposit1111111111111111111111111111111"),
-  [TransactionType.WITHDRAW]: new PublicKey("ArenaWithdraw111111111111111111111111111111"),
-  [TransactionType.BORROW]: new PublicKey("ArenaBorrow11111111111111111111111111111111"),
-  [TransactionType.REPAY]: new PublicKey("ArenaRepay111111111111111111111111111111111"),
-  [TransactionType.REPAY_COLLAT]: new PublicKey("ArenaRepayCo11at111111111111111111111111111"),
-  [TransactionType.LONG]: new PublicKey("ArenaLong1111111111111111111111111111111111"),
-  [TransactionType.SHORT]: new PublicKey("ArenaShort111111111111111111111111111111111"),
-  [TransactionType.CLOSE_POSITION]: new PublicKey("ArenaC1ose111111111111111111111111111111111"),
-  // Add more mappings if needed
 };
 
 export type ExtendedTransaction = Transaction & {

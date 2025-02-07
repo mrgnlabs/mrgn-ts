@@ -61,7 +61,6 @@ export type DepositSwapBoxProps = {
   displaySettings?: boolean;
 
   walletTokens: WalletToken[] | null;
-  allBanks?: ExtendedBankInfo[];
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -85,7 +84,6 @@ export const DepositSwapBox = ({
   captureEvent,
   hidePoolStats,
   walletTokens,
-  allBanks,
   displaySettings,
   setDisplaySettings,
 }: DepositSwapBoxProps) => {
@@ -194,7 +192,6 @@ export const DepositSwapBox = ({
       marginfiAccount: selectedAccount,
       nativeSolBalance,
       lendMode,
-      allBanks,
     });
   }, [
     amount,
@@ -206,7 +203,6 @@ export const DepositSwapBox = ({
     selectedAccount,
     nativeSolBalance,
     lendMode,
-    allBanks,
   ]);
 
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
@@ -225,7 +221,7 @@ export const DepositSwapBox = ({
     setErrorMessage,
     setIsLoading: setIsSimulating,
     marginfiClient,
-    isDisabled: actionMessages.some((message) => !message.isEnabled),
+    actionMessages: actionMessages.concat(additionalActionMessages),
   });
 
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
@@ -272,32 +268,23 @@ export const DepositSwapBox = ({
   /*
   Cleaing additional action messages when the bank or amount changes. This is to prevent outdated errors from being displayed.
   */
-  const prevSelectedBankPk = usePrevious(selectedDepositBankPk);
-  const prevSwapBankPk = usePrevious(selectedSwapBankPk);
+  const prevSelectedBank = usePrevious(selectedDepositBank);
+  const prevSwapBank = usePrevious(selectedSwapBank);
   const prevAmount = usePrevious(amount);
 
   React.useEffect(() => {
     if (
-      prevSelectedBankPk &&
-      prevSwapBankPk &&
+      prevSelectedBank &&
+      prevSwapBank &&
       prevAmount &&
-      (prevSelectedBankPk !== selectedDepositBankPk || prevSwapBankPk !== selectedSwapBankPk || prevAmount !== amount)
+      (prevSelectedBank.meta.tokenSymbol !== selectedDepositBank?.meta.tokenSymbol ||
+        ("info" in prevSwapBank && prevSwapBank.info.state.mint.toBase58() !== selectedSwapBank?.address.toBase58()) ||
+        prevAmount !== amount)
     ) {
+      setAdditionalActionMessages([]);
       setErrorMessage(null);
-      setActionTxns({ transactions: [], actionQuote: null });
-      setSimulationResult(null);
     }
-  }, [
-    prevSelectedBankPk,
-    prevSwapBankPk,
-    prevAmount,
-    selectedDepositBankPk,
-    selectedSwapBankPk,
-    amount,
-    setErrorMessage,
-    setActionTxns,
-    setSimulationResult,
-  ]);
+  }, [prevSelectedBank, prevSwapBank, prevAmount, selectedDepositBank, selectedSwapBank, amount, setErrorMessage]);
 
   ///////////////////////
   // Deposit-Swap Actions //
@@ -509,21 +496,9 @@ export const DepositSwapBox = ({
           showTokenSelectionGroups={showTokenSelectionGroups}
           setAmountRaw={setAmountRaw}
           setSelectedBank={(bank) => {
-            const bankPk = bank?.address;
-            if (!bankPk) {
-              setSelectedSwapBankPk(null);
-              return;
-            }
-
-            if (selectedDepositBankPk?.equals(bankPk) && !requestedSwapBank) {
-              setSelectedSwapBankPk(bankPk);
-              setSelectedDepositBankPk(null);
-            } else {
-              setSelectedSwapBankPk(bankPk);
-            }
+            bank && setSelectedSwapBankPk(bank.address);
           }}
           walletTokens={walletTokens}
-          showOnlyUserOwnedTokens={true}
         />
       </div>
 
@@ -565,21 +540,9 @@ export const DepositSwapBox = ({
             showTokenSelectionGroups={showTokenSelectionGroups}
             setAmountRaw={setAmountRaw}
             setSelectedBank={(bank) => {
-              const bankPk = bank?.address;
-              if (!bankPk) {
-                setSelectedDepositBankPk(null);
-                return;
-              }
-
-              if (selectedSwapBankPk?.equals(bankPk) && !requestedDepositBank) {
-                setSelectedDepositBankPk(bankPk);
-                setSelectedSwapBankPk(null);
-              } else {
-                setSelectedDepositBankPk(bankPk);
-              }
+              bank && setSelectedDepositBankPk(bank.address);
             }}
             isInputDisabled={true}
-            showOnlyUserOwnedTokens={false}
           />
         </div>
       )}

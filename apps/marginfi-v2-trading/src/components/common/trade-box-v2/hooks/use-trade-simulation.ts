@@ -10,12 +10,12 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
+  CalculateLoopingProps,
   DYNAMIC_SIMULATION_ERRORS,
   extractErrorString,
   TradeActionTxns,
   STATIC_SIMULATION_ERRORS,
   usePrevious,
-  CalculateTradingProps,
 } from "@mrgnlabs/mrgn-utils";
 
 import { SimulationStatus } from "~/components/action-box-v2/utils";
@@ -110,6 +110,8 @@ export function useTradeSimulation({
     if (props.txns.length > 0) {
       const simulationResult = await getSimulationResult(props);
 
+      console.log("simulationResult", simulationResult);
+
       if (simulationResult.actionMethod) {
         return { simulationResult: null, actionMessage: simulationResult.actionMethod };
       } else if (simulationResult.simulationResult) {
@@ -124,13 +126,15 @@ export function useTradeSimulation({
   };
 
   const fetchTradeTxnsAction = async (
-    props: CalculateTradingProps
+    props: CalculateLoopingProps
   ): Promise<{ actionTxns: TradeActionTxns | null; actionMessage: ActionMessageType | null }> => {
     try {
       console.log("fetching trade txns, props", props);
       const tradingResult = await generateTradeTx({
         ...props,
       });
+
+      console.log("tradingResult", tradingResult);
 
       if (tradingResult && "actionQuote" in tradingResult) {
         return { actionTxns: tradingResult, actionMessage: null };
