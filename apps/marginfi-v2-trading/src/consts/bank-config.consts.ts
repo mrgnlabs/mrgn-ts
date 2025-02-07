@@ -38,10 +38,6 @@ export const DEFAULT_STABLE_BANK_CONFIG: BankConfigOpt = {
   },
   operationalState: OperationalState.Operational,
 
-  oracle: {
-    setup: OracleSetup.None,
-    keys: [],
-  },
   oracleMaxAge: 300, // 5 mins
   permissionlessBadDebtSettlement: true,
   freezeSettings: true,
@@ -77,11 +73,6 @@ export const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
     protocolOriginationFee: new BigNumber(0),
   },
   operationalState: OperationalState.Operational,
-
-  oracle: {
-    setup: OracleSetup.None,
-    keys: [],
-  },
   oracleMaxAge: 60, // 1 mins
   permissionlessBadDebtSettlement: true,
   freezeSettings: true,
@@ -96,18 +87,18 @@ export const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
  * we can do so here
  */
 
-export const PYTH_USDC_ORACLE_CONFIG: BankConfigOpt["oracle"] = {
-  setup: OracleSetup.PythPushOracle,
-  keys: [
-    new PublicKey("Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD"), // feed id
-    new PublicKey("Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX"), // oracle key
-  ],
-};
+// export const PYTH_USDC_ORACLE_CONFIG: BankConfigOpt["oracle"] = {
+//   setup: OracleSetup.PythPushOracle,
+//   keys: [
+//     new PublicKey("Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD"), // feed id
+//     new PublicKey("Dpw1EAVrSB1ibxiDQyTAW6Zip3J4Btk2x4SgApQCeFbX"), // oracle key
+//   ],
+// };
 
-export const PYTH_LST_ORACLE_CONFIG: BankConfigOpt["oracle"] = {
-  setup: OracleSetup.PythLegacy,
-  keys: [new PublicKey("2H6gWKxJuoFjBS4REqNm4XRa7uVFf9n9yKEowpwh7LML")], // DECIDE WHAT TO USE
-};
+// export const PYTH_LST_ORACLE_CONFIG: BankConfigOpt["oracle"] = {
+//   setup: OracleSetup.PythLegacy,
+//   keys: [new PublicKey("2H6gWKxJuoFjBS4REqNm4XRa7uVFf9n9yKEowpwh7LML")], // DECIDE WHAT TO USE
+// };
 
 /**
  * ┌────────────────────────────--─────────────────┐

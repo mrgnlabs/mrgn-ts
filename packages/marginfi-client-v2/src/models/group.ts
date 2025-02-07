@@ -215,8 +215,6 @@ class MarginfiGroup {
 
     const rawBankConfigCompact = {
       ...rawBankConfig,
-      oracleKey: rawBankConfig.oracle?.keys[0],
-      oracleSetup: rawBankConfig.oracle?.setup,
       oracleMaxAge: bankConfig.oracleMaxAge,
       auto_padding_0: [0],
       auto_padding_1: [0],
@@ -232,7 +230,6 @@ class MarginfiGroup {
         bank: bankPubkey,
         tokenProgram: TOKEN_PROGRAM_ID,
         // if two oracle keys: first is feed id, second is oracle key
-        oracleKey: rawBankConfig.oracle?.keys[1] || rawBankConfigCompact.oracleKey,
       },
       {
         bankConfig: rawBankConfigCompact,

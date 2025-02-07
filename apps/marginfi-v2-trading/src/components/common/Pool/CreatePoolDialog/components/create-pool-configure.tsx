@@ -4,7 +4,7 @@ import { IconCheck, IconChevronLeft } from "@tabler/icons-react";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { percentFormatter, Wallet } from "@mrgnlabs/mrgn-common";
-import { BankConfigOpt, getConfig, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { BankConfigOpt, getConfig, MarginfiClient, OracleConfigOpt } from "@mrgnlabs/marginfi-client-v2";
 
 import { Button } from "~/components/ui/button";
 import { Loader } from "~/components/ui/loader";
@@ -39,8 +39,14 @@ export const CreatePoolConfigure = ({ poolData, setPoolData, setCreatePoolState 
   const [isLoading, setIsLoading] = React.useState(true);
 
   const [marginfiClient, setMarginfiClient] = React.useState<MarginfiClient | null>(null);
-  const [tokenBankConfig, setTokenBankConfig] = React.useState<BankConfigOpt | null>(null);
-  const [quoteTokenBankConfig, setQuoteTokenBankConfig] = React.useState<BankConfigOpt | null>(null);
+  const [tokenConfig, setTokenConfig] = React.useState<{
+    bankConfig: BankConfigOpt | null;
+    oracleConfig: OracleConfigOpt | null;
+  } | null>(null);
+  const [quoteTokenConfig, setQuoteTokenConfig] = React.useState<{
+    bankConfig: BankConfigOpt | null;
+    oracleConfig: OracleConfigOpt | null;
+  } | null>(null);
   const { connection } = useConnection();
 
   const fetchBankConfigs = React.useCallback(
@@ -62,21 +68,21 @@ export const CreatePoolConfigure = ({ poolData, setPoolData, setCreatePoolState 
         setMarginfiClient(client);
       }
 
-      const tokenBankConfig = await getBankConfig(
+      const tokenConfig = await getBankConfig(
         client,
         poolData?.token.mint,
         poolData?.token.decimals,
         useExistingOracleParam
       );
-      const quoteTokenBankConfig = await getBankConfig(
+      const quoteTokenConfig = await getBankConfig(
         client,
         poolData?.quoteToken.mint,
         poolData?.quoteToken.decimals,
         useExistingOracleParam
       );
 
-      setTokenBankConfig(tokenBankConfig);
-      setQuoteTokenBankConfig(quoteTokenBankConfig);
+      setTokenConfig(tokenConfig);
+      setQuoteTokenConfig(quoteTokenConfig);
       setIsLoading(false);
     },
     [connection, marginfiClient]
@@ -91,21 +97,21 @@ export const CreatePoolConfigure = ({ poolData, setPoolData, setCreatePoolState 
     (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
 
-      if (!tokenBankConfig || !quoteTokenBankConfig || !poolData) return;
+      if (!tokenConfig || !quoteTokenConfig || !poolData) return;
 
       const finalTokenBankConfig: BankConfigOpt = {
-        ...tokenBankConfig,
+        ...tokenConfig.bankConfig!,
         interestRateConfig: {
-          ...tokenBankConfig.interestRateConfig!,
+          ...tokenConfig.bankConfig!.interestRateConfig!,
           protocolOriginationFee: new BigNumber(originationFee),
           protocolIrFee: new BigNumber(groupFee),
         },
       };
 
       const finalQuoteTokenBankConfig: BankConfigOpt = {
-        ...quoteTokenBankConfig,
+        ...quoteTokenConfig.bankConfig!,
         interestRateConfig: {
-          ...quoteTokenBankConfig.interestRateConfig!,
+          ...quoteTokenConfig.bankConfig!.interestRateConfig!,
           protocolOriginationFee: new BigNumber(originationFee),
           protocolIrFee: new BigNumber(groupFee),
         },
@@ -113,12 +119,18 @@ export const CreatePoolConfigure = ({ poolData, setPoolData, setCreatePoolState 
 
       setPoolData({
         ...poolData,
-        tokenBankConfig: finalTokenBankConfig,
-        quoteBankConfig: finalQuoteTokenBankConfig,
+        tokenConfig: {
+          ...tokenConfig,
+          bankConfig: finalTokenBankConfig,
+        },
+        quoteTokenConfig: {
+          ...quoteTokenConfig,
+          bankConfig: finalQuoteTokenBankConfig,
+        },
       });
       setCreatePoolState(CreatePoolState.REVIEW);
     },
-    [tokenBankConfig, quoteTokenBankConfig, poolData, originationFee, groupFee, setPoolData, setCreatePoolState]
+    [tokenConfig, quoteTokenConfig, poolData, originationFee, groupFee, setPoolData, setCreatePoolState]
   );
 
   return (
@@ -138,7 +150,7 @@ export const CreatePoolConfigure = ({ poolData, setPoolData, setCreatePoolState 
         <p className="text-muted-foreground">Review the bank configuration and adjust the fees as necessary.</p>
       </div>
 
-      {isLoading || !tokenBankConfig || !quoteTokenBankConfig ? (
+      {isLoading || !tokenConfig || !quoteTokenConfig ? (
         <div className="flex items-center w-full  justify-center">
           <Loader label="Loading the bank configuration..." />
         </div>

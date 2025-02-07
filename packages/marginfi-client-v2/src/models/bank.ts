@@ -85,10 +85,7 @@ interface BankConfigRaw {
   freezeSettings: boolean;
 }
 
-interface BankConfigCompactRaw extends Omit<BankConfigRaw, "oracleKeys"> {
-  oracle?: { setup: OracleSetupRaw; keys: PublicKey[] };
-  oracleKey: PublicKey;
-  oracleSetup: OracleSetupRaw;
+interface BankConfigCompactRaw extends Omit<BankConfigRaw, "oracleKeys" | "oracle" | "oracleSetup"> {
   oracleMaxAge: number;
   // auto_padding_0: number[];
   // auto_padding_1: number[];
@@ -747,14 +744,19 @@ interface BankConfigOpt {
   interestRateConfig: InterestRateConfig | null;
   operationalState: OperationalState | null;
 
-  oracle: {
-    setup: OracleSetup;
-    keys: PublicKey[];
-  } | null;
-
   oracleMaxAge: number | null;
   permissionlessBadDebtSettlement: boolean | null;
   freezeSettings: boolean | null;
+}
+
+interface OracleConfigOpt {
+  setup: OracleSetup;
+  keys: PublicKey[];
+}
+
+interface OracleConfigOptRaw {
+  setup: OracleSetupRaw;
+  keys: PublicKey[];
 }
 
 interface BankConfigOptRaw {
@@ -772,17 +774,6 @@ interface BankConfigOptRaw {
 
   interestRateConfig: InterestRateConfigRaw | null;
   operationalState: { paused: {} } | { operational: {} } | { reduceOnly: {} } | null;
-
-  oracle: {
-    setup:
-      | { none: {} }
-      | { pythLegacy: {} }
-      | { switchboardV2: {} }
-      | { pythPushOracle: {} }
-      | { switchboardPull: {} }
-      | { stakedWithPythPush: {} };
-    keys: PublicKey[];
-  } | null;
 
   oracleMaxAge: number | null;
   permissionlessBadDebtSettlement: boolean | null;
@@ -815,10 +806,6 @@ function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw 
         protocolIrFee: toWrappedI80F48(bankConfigOpt.interestRateConfig.protocolIrFee),
       } as any),
     operationalState: bankConfigOpt.operationalState && serializeOperationalState(bankConfigOpt.operationalState),
-    oracle: bankConfigOpt.oracle && {
-      setup: serializeOracleSetup(bankConfigOpt.oracle.setup),
-      keys: bankConfigOpt.oracle.keys,
-    },
     oracleMaxAge: bankConfigOpt.oracleMaxAge,
     permissionlessBadDebtSettlement: bankConfigOpt.permissionlessBadDebtSettlement,
     freezeSettings: bankConfigOpt.freezeSettings,
@@ -963,7 +950,7 @@ function computeLoopingParams(
   return { borrowAmount, totalDepositAmount };
 }
 
-export type { InterestRateConfig, BankConfigOpt, BankConfigOptRaw };
+export type { InterestRateConfig, BankConfigOpt, BankConfigOptRaw, OracleConfigOpt, OracleConfigOptRaw };
 export {
   Bank,
   BankConfig,

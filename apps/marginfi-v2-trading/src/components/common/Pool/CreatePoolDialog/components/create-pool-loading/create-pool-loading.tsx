@@ -9,7 +9,7 @@ import {
   Signer,
 } from "@solana/web3.js";
 
-import { BankConfigOpt, MarginfiClient, OracleSetup, getConfig } from "@mrgnlabs/marginfi-client-v2";
+import { BankConfigOpt, MarginfiClient, OracleConfigOpt, OracleSetup, getConfig } from "@mrgnlabs/marginfi-client-v2";
 import { cn, getBearerToken, getFeeAccount, createReferalTokenAccount } from "@mrgnlabs/mrgn-utils";
 import { addTransactionMetadata, SolanaTransaction, TransactionType } from "@mrgnlabs/mrgn-common";
 
@@ -77,18 +77,6 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     [connection, wallet]
   );
 
-  // {
-  //   "base_bank": "string",
-  //   "created_by": "string",
-  //   "featured": true,
-  //   "group": "string",
-  //   "lookup_tables": [
-  //     "string"
-  //   ],
-  //   "quote_banks": [
-  //     "string"
-  //   ]
-
   const savePermissionlessPool = async (poolObject: { group: string; asset: string; quote: string; lut: string }) => {
     try {
       const formattedPoolObject = {
@@ -126,7 +114,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
 
       const verifiedPoolData = verifyPoolData(poolData);
       if (!verifiedPoolData) return;
-      const { tokenMint, quoteMint, tokenSymbol, quoteSymbol, tokenBankConfig, quoteBankConfig } = verifiedPoolData;
+      const { tokenMint, quoteMint, tokenSymbol, quoteSymbol, tokenConfig, quoteConfig } = verifiedPoolData;
 
       setStatus("loading");
 
@@ -139,25 +127,28 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         pullFeedIx: TransactionInstruction;
         feedSeed: Keypair;
       }[] = [];
-      const updatedTokenBankConfig = { ...tokenBankConfig };
-      const updatedQuoteBankConfig = { ...quoteBankConfig };
+      const updatedTokenBankConfig = { ...tokenConfig.bankConfig };
+      const updatedQuoteBankConfig = { ...quoteConfig.bankConfig };
 
-      if (updatedTokenBankConfig.oracle?.keys.length === 0) {
+      let updatedTokenOracleConfig = { ...tokenConfig.oracleConfig };
+      let updatedQuoteOracleConfig = { ...quoteConfig.oracleConfig };
+
+      if (updatedTokenOracleConfig?.keys?.length === 0) {
         const oracleCreationToken = await initializeOracle(tokenMint, tokenSymbol);
         if (!oracleCreationToken) throw new Error("Oracle creation failed");
 
-        updatedTokenBankConfig.oracle = {
+        updatedTokenOracleConfig = {
           setup: OracleSetup.SwitchboardPull,
           keys: [oracleCreationToken.feedPubkey],
         };
         pullFeedIx.push(oracleCreationToken);
       }
 
-      if (updatedQuoteBankConfig.oracle?.keys.length === 0) {
+      if (updatedQuoteOracleConfig?.keys?.length === 0) {
         const oracleCreationQuote = await initializeOracle(quoteMint, quoteSymbol);
         if (!oracleCreationQuote) throw new Error("Oracle creation failed");
 
-        updatedQuoteBankConfig.oracle = {
+        updatedQuoteOracleConfig = {
           setup: OracleSetup.SwitchboardPull,
           keys: [oracleCreationQuote.feedPubkey],
         };
@@ -194,10 +185,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       );
 
       // create lut ix
-      const oracleKeys = [
-        ...(updatedTokenBankConfig.oracle?.keys ?? []),
-        ...(updatedQuoteBankConfig.oracle?.keys ?? []),
-      ];
+      const oracleKeys = [...(updatedTokenOracleConfig?.keys ?? []), ...(updatedQuoteOracleConfig?.keys ?? [])];
       const bankKeys = [seeds.stableBankSeed.publicKey, seeds.tokenBankSeed.publicKey];
       const { lutAddress, createLutIx, extendLutIx } = await createPoolLookupTable({
         client,
@@ -377,12 +365,12 @@ type VerifiedPoolData = {
   quoteMint: PublicKey;
   tokenSymbol: string;
   quoteSymbol: string;
-  tokenBankConfig: BankConfigOpt;
-  quoteBankConfig: BankConfigOpt;
+  tokenConfig: { bankConfig: BankConfigOpt; oracleConfig: OracleConfigOpt | null };
+  quoteConfig: { bankConfig: BankConfigOpt; oracleConfig: OracleConfigOpt | null };
 };
 
 const verifyPoolData = (poolData: PoolData | null): VerifiedPoolData | null => {
-  if (!poolData || !poolData.token || !poolData.quoteToken || !poolData.tokenBankConfig || !poolData.quoteBankConfig) {
+  if (!poolData || !poolData.token || !poolData.quoteToken || !poolData.tokenConfig || !poolData.quoteTokenConfig) {
     return null;
   }
 
@@ -391,7 +379,7 @@ const verifyPoolData = (poolData: PoolData | null): VerifiedPoolData | null => {
     quoteMint: poolData.quoteToken.mint,
     tokenSymbol: poolData.token.symbol,
     quoteSymbol: poolData.quoteToken.symbol,
-    tokenBankConfig: poolData.tokenBankConfig,
-    quoteBankConfig: poolData.quoteBankConfig,
+    tokenConfig: poolData.tokenConfig,
+    quoteConfig: poolData.quoteTokenConfig,
   };
 };

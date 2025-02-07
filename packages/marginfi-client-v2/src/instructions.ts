@@ -161,7 +161,6 @@ function makeLendingAccountLiquidateIx(
   return mfiProgram.methods
     .lendingAccountLiquidate(args.assetAmount)
     .accounts({
-      marginfiGroup: accounts.marginfiGroup,
       signer: accounts.signer,
       assetBank: accounts.assetBank,
       liabBank: accounts.liabBank,
@@ -338,6 +337,24 @@ async function makeGroupInitIx(
     .instruction();
 }
 
+async function makeLendingPoolConfigureBankOracleIx(
+  mfProgram: MarginfiProgram,
+  accounts: {
+    bank: PublicKey;
+  },
+  args: {
+    setup: number;
+    oracle: PublicKey;
+  }
+) {
+  return mfProgram.methods
+    .lendingPoolConfigureBankOracle(args.setup, args.oracle)
+    .accounts({
+      bank: accounts.bank,
+    })
+    .instruction();
+}
+
 async function makePoolAddPermissionlessStakedBankIx(
   mfProgram: MarginfiProgram,
   accounts: {
@@ -382,7 +399,6 @@ async function makePoolAddBankIx(
     bankMint: PublicKey;
     bank: PublicKey;
     tokenProgram: PublicKey;
-    oracleKey: PublicKey;
   },
   args: {
     bankConfig: BankConfigCompactRaw;
@@ -390,21 +406,8 @@ async function makePoolAddBankIx(
 ) {
   return mfProgram.methods
     .lendingPoolAddBank({
-      assetWeightInit: args.bankConfig.assetWeightInit,
-      assetWeightMaint: args.bankConfig.assetWeightMaint,
-      liabilityWeightInit: args.bankConfig.liabilityWeightInit,
-      liabilityWeightMaint: args.bankConfig.liabilityWeightMaint,
-      depositLimit: args.bankConfig.depositLimit,
-      interestRateConfig: args.bankConfig.interestRateConfig,
-      operationalState: args.bankConfig.operationalState,
-      oracleSetup: args.bankConfig.oracleSetup,
-      oracleKey: args.bankConfig.oracleKey,
-      borrowLimit: args.bankConfig.borrowLimit,
-      riskTier: args.bankConfig.riskTier,
+      ...args.bankConfig,
       pad0: [0, 0, 0, 0, 0, 0, 0, 0],
-      totalAssetValueInitLimit: args.bankConfig.totalAssetValueInitLimit,
-      oracleMaxAge: args.bankConfig.oracleMaxAge,
-      assetTag: args.bankConfig.assetTag,
     })
     .accounts({
       marginfiGroup: accounts.marginfiGroup,
@@ -412,23 +415,8 @@ async function makePoolAddBankIx(
       feePayer: accounts.feePayer,
       bankMint: accounts.bankMint,
       bank: accounts.bank,
-      // liquidityVaultAuthority: {pda: {seeds: accounts.feeVaultAuthoritySeed, bank: accounts.insuranceVault}} as any,
-      // liquidityVault: accounts.liquidityVault,
-      // insuranceVaultAuthority: accounts.insuranceVaultAuthority,
-      // insuranceVault: accounts.insuranceVault,
-      // feeVaultAuthority: accounts.feeVaultAuthority,
-      // feeVault: accounts.feeVault,
-      // rent: accounts.rent,
       tokenProgram: accounts.tokenProgram,
-      // systemProgram: accounts.systemProgram,
     })
-    .remainingAccounts([
-      {
-        pubkey: accounts.oracleKey,
-        isSigner: false,
-        isWritable: false,
-      },
-    ])
     .instruction();
 }
 
@@ -468,6 +456,7 @@ const instructions = {
   makeGroupInitIx,
   makeCloseAccountIx,
   makePoolAddPermissionlessStakedBankIx,
+  makeLendingPoolConfigureBankOracleIx,
 };
 
 export default instructions;

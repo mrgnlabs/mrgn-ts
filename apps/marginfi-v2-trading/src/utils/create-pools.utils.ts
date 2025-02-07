@@ -5,7 +5,14 @@ import { CrossbarClient, decodeString } from "@switchboard-xyz/common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
-import { BankConfigOpt, getConfig, MarginfiClient, OracleSetup, RiskTier } from "@mrgnlabs/marginfi-client-v2";
+import {
+  BankConfigOpt,
+  getConfig,
+  MarginfiClient,
+  OracleConfigOpt,
+  OracleSetup,
+  RiskTier,
+} from "@mrgnlabs/marginfi-client-v2";
 import { uiToNative, Wallet } from "@mrgnlabs/mrgn-common";
 
 import { DEFAULT_STABLE_BANK_CONFIG, DEFAULT_TOKEN_BANK_CONFIG, STABLE_MINT_KEYS } from "~/consts/bank-config.consts";
@@ -24,8 +31,9 @@ export const getBankConfig = async (
   mint: PublicKey,
   decimals: number,
   useExistingOracle: boolean
-) => {
+): Promise<{ bankConfig: BankConfigOpt; oracleConfig: OracleConfigOpt | null }> => {
   let bankConfig: BankConfigOpt;
+  let oracleConfig: OracleConfigOpt | null = null;
 
   // search if bank exists in mrgnlend and if it is a main pool bank
   const bank = Array.from(marginfiClient.banks.entries()).find(
@@ -45,17 +53,21 @@ export const getBankConfig = async (
       (key) => !key.equals(new PublicKey("11111111111111111111111111111111"))
     );
 
-    bankConfig.oracle = {
+    oracleConfig = {
       setup: bank.config.oracleSetup,
       keys: [...feedKeys, bank.oracleKey],
     };
     bankConfig.oracleMaxAge = bank.config.oracleMaxAge;
   }
 
-  return bankConfig;
+  return { bankConfig, oracleConfig };
 };
 
-export const addLimitsToBankConfig = async (mint: PublicKey, bankConfig: BankConfigOpt, decimals: number) => {
+export const addLimitsToBankConfig = async (
+  mint: PublicKey,
+  bankConfig: BankConfigOpt,
+  decimals: number
+): Promise<BankConfigOpt> => {
   let depositLimit = new BigNumber(DEFAULT_DEPOSIT_LIMIT);
   let borrowLimit = new BigNumber(DEFAULT_BORROW_LIMIT);
 
