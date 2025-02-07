@@ -209,7 +209,7 @@ const getStakePoolActiveStates = async (
 
   const poolStakeAccounts = Object.fromEntries(
     (await connection.getMultipleAccountsInfo(poolStakeAddressKeys.map((key) => new PublicKey(key)))).map(
-      (ai, index) => [poolStakeAddressKeys[index], ai?.data ? getStakeAccount(ai.data) : null]
+      (ai, index) => [poolStakeAddressRecord[poolStakeAddressKeys[index]], ai?.data ? getStakeAccount(ai.data) : null]
     )
   );
 
