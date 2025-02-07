@@ -99,6 +99,10 @@ export interface DepositSwapActionTxns extends ActionTxns {
   actionQuote: QuoteResponse | null;
 }
 
+export interface CalculateTradingProps extends CalculateLoopingProps {
+  tradeState: "long" | "short";
+}
+
 export interface CalculateLoopingProps
   extends Pick<LoopingProps, "marginfiAccount" | "borrowBank" | "depositBank" | "depositAmount" | "connection"> {
   targetLeverage: number;
@@ -107,7 +111,6 @@ export interface CalculateLoopingProps
   slippageMode: "DYNAMIC" | "FIXED";
   platformFeeBps: number;
   setupBankAddresses?: PublicKey[];
-  tradeState?: "long" | "short";
 }
 
 export interface CalculateRepayCollateralProps

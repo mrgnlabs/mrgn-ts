@@ -12,14 +12,12 @@ import {
   addTransactionMetadata,
   microLamportsToUi,
   getComputeBudgetUnits,
-  MaxCapType,
   SKIP_SIMULATION,
 } from "@mrgnlabs/mrgn-common";
 import {
   VersionedTransaction,
   TransactionSignature,
   Connection,
-  SendTransactionError,
   ConfirmOptions,
   PublicKey,
   Commitment,
@@ -53,6 +51,7 @@ export interface ProcessTransactionOpts extends ProcessTransactionsClientOpts {
   isReadOnly?: boolean;
   programId?: PublicKey;
   bundleSimRpcEndpoint?: string;
+  addArenaTxTag?: boolean;
 }
 
 export type PriorityFees = {
@@ -246,7 +245,8 @@ export async function processTransactions({
     processOpts.bundleTipUi ?? 0,
     wallet.publicKey,
     blockhash,
-    maxCapUi
+    maxCapUi,
+    processOpts.addArenaTxTag
   );
 
   let signatures: TransactionSignature[] = [];

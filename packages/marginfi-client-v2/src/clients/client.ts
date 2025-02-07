@@ -119,6 +119,7 @@ class MarginfiClient {
   public processTransactionStrategy?: ProcessTransactionStrategy;
   private preloadedBankAddresses?: PublicKey[];
   private bundleSimRpcEndpoint: string;
+  private addArenaTxTag: boolean;
 
   // --------------------------------------------------------------------------
   // Factories
@@ -139,7 +140,8 @@ class MarginfiClient {
     readonly bankMetadataMap?: BankMetadataMap,
     bundleSimRpcEndpoint?: string,
     processTransactionStrategy?: ProcessTransactionStrategy,
-    lookupTablesAddresses?: PublicKey[]
+    lookupTablesAddresses?: PublicKey[],
+    addArenaTxTag?: boolean
   ) {
     this.group = group;
     this.banks = banks;
@@ -151,6 +153,7 @@ class MarginfiClient {
     this.bundleSimRpcEndpoint = bundleSimRpcEndpoint ?? program.provider.connection.rpcEndpoint;
     this.processTransactionStrategy = processTransactionStrategy;
     this.lookupTablesAddresses = lookupTablesAddresses ?? [];
+    this.addArenaTxTag = addArenaTxTag ?? false;
   }
 
   /**
@@ -938,6 +941,7 @@ class MarginfiClient {
       programId: this.program.programId,
       bundleSimRpcEndpoint: this.bundleSimRpcEndpoint,
       dynamicStrategy: processOpts?.dynamicStrategy ?? this.processTransactionStrategy,
+      addArenaTxTag: this.addArenaTxTag,
     };
 
     console.log("processOpts", processOpts);
@@ -976,6 +980,7 @@ class MarginfiClient {
       programId: this.program.programId,
       bundleSimRpcEndpoint: this.bundleSimRpcEndpoint,
       dynamicStrategy: processOpts?.dynamicStrategy ?? this.processTransactionStrategy,
+      addArenaTxTag: this.addArenaTxTag,
     };
 
     const [signature] = await processTransactions({

@@ -17,6 +17,9 @@ import {
   getComputeBudgetUnits,
   microLamportsToUi,
   uiToMicroLamports,
+  MARGINFI_PROGRAM,
+  addTransactionMetadata,
+  TransactionArenaKeyMap,
 } from "@mrgnlabs/mrgn-common";
 
 import { MARGINFI_IDL, MarginfiIdlType } from "../../../idl";
@@ -40,17 +43,6 @@ export function isFlashloan(tx: SolanaTransaction): boolean {
   return false;
 }
 
-export function hasBundleTip(tx: SolanaTransaction): boolean {
-  if (isV0Tx(tx)) {
-    const addressLookupTableAccounts = tx.addressLookupTables ?? [];
-    const message = decompileV0Transaction(tx, addressLookupTableAccounts);
-    const idl = { ...MARGINFI_IDL, address: new PublicKey(0) } as unknown as MarginfiIdlType;
-    const decoded = message.instructions.map((ix) => decodeInstruction(idl, ix.data));
-    return decoded.some((ix) => ix?.name.toLowerCase().includes("flashloan"));
-  }
-  return false;
-}
-
 function getFlashloanIndex(transactions: SolanaTransaction[]): number | null {
   for (const [index, transaction] of transactions.entries()) {
     if (isFlashloan(transaction)) {
@@ -61,23 +53,26 @@ function getFlashloanIndex(transactions: SolanaTransaction[]): number | null {
 }
 
 export function formatTransactions(
-  transactions: SolanaTransaction[],
+  transactionsArg: SolanaTransaction[],
   broadcastType: TransactionBroadcastType,
   priorityFeeMicro: number,
   bundleTipUi: number,
   feePayer: PublicKey,
   blockhash: string,
-  maxCapUi?: number
+  maxCapUi?: number,
+  addArenaTxTag?: boolean
 ): VersionedTransaction[] {
   let formattedTransactions: VersionedTransaction[] = [];
 
-  const flashloanIndex = getFlashloanIndex(transactions);
-  transactions.forEach((tx) => {
+  const flashloanIndex = getFlashloanIndex(transactionsArg);
+  transactionsArg.forEach((tx) => {
     if (!isV0Tx(tx)) {
       tx.recentBlockhash = blockhash;
       tx.feePayer = feePayer;
     }
   });
+
+  let transactions = addArenaTxTag ? addArenaTxTags(transactionsArg) : transactionsArg;
 
   const txSizes: number[] = transactions.map((tx) => getTxSize(tx));
   const dummyPriorityFeeIx = makePriorityFeeMicroIx(1);
@@ -172,4 +167,46 @@ export function formatTransactions(
   }
 
   return formattedTransactions;
+}
+
+function addArenaTxTags(transactions: SolanaTransaction[]): SolanaTransaction[] {
+  const txWithTags: SolanaTransaction[] = [];
+
+  for (const [index, tx] of transactions.entries()) {
+    let solanaTx: SolanaTransaction = tx;
+    const arenaKey = TransactionArenaKeyMap[tx.type];
+    console.log("arenaKey", arenaKey);
+    console.log("tx.type", tx.type);
+
+    if (arenaKey) {
+      if (isV0Tx(solanaTx)) {
+        console.log("tx", solanaTx);
+        const addressLookupTableAccounts = solanaTx.addressLookupTables ?? [];
+        const message = decompileV0Transaction(solanaTx, addressLookupTableAccounts);
+
+        message.instructions[0].keys.push({
+          pubkey: arenaKey,
+          isSigner: false,
+          isWritable: false,
+        });
+        solanaTx = addTransactionMetadata(
+          new VersionedTransaction(message.compileToV0Message(tx.addressLookupTables)),
+          {
+            signers: solanaTx.signers,
+            addressLookupTables: solanaTx.addressLookupTables,
+            type: solanaTx.type,
+            unitsConsumed: solanaTx.unitsConsumed,
+          }
+        );
+      } else {
+        solanaTx.instructions[0].keys.push({
+          pubkey: arenaKey,
+          isSigner: false,
+          isWritable: false,
+        });
+      }
+    }
+    txWithTags.push(solanaTx);
+  }
+  return txWithTags;
 }

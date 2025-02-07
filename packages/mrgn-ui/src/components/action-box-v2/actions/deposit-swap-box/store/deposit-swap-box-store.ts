@@ -135,11 +135,16 @@ const stateCreator: StateCreator<DepositSwapBoxState, [], []> = (set, get) => ({
   },
 
   setSelectedDepositBankPk(bankPk) {
-    set({ selectedDepositBankPk: bankPk });
+    set({
+      selectedDepositBankPk: bankPk,
+    });
   },
 
   setSelectedSwapBankPk(bankPk) {
-    set({ selectedSwapBankPk: bankPk });
+    set({
+      selectedSwapBankPk: bankPk,
+      amountRaw: "",
+    });
   },
 });
 

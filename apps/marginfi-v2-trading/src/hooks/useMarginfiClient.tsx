@@ -120,7 +120,8 @@ export function useMarginfiClient({
       bankMetadataByBankPk,
       clientOptions?.bundleSimRpcEndpoint,
       clientOptions?.processTransactionStrategy,
-      lookupTables
+      lookupTables,
+      true // Add arena tag to transactions
     );
 
     return client;
