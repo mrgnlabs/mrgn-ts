@@ -15,7 +15,9 @@ In this guide, we will answer commonly asked questions regarding the marginfi pr
   at <Button href="https://support.marginfi.com" variant="text"><>support.marginfi.com</></Button>.
 </Note>
 
-## 
+## Why can't I borrow the full amount shown as my maximum borrowing capacity? {{ tag: '', label: '' }}
+
+The actual borrowing limit is slightly lower than the theoretical maximum to account for price fluctuations. We use an Exponential Moving Average (EMA) price rather than the spot price when calculating initial borrowing limits. This creates a small safety buffer that helps protect your position from immediate liquidation due to minor price movements. When prices have been stable for a period, you may be able to borrow closer to the theoretical maximum.
 
 ## How are interest rates calculated? {{ tag: '', label: '' }}
 
