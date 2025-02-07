@@ -246,32 +246,33 @@ export const LendingPortfolio = () => {
     return <WalletButton />;
   }
 
-  if (isLoading) {
-    return <Loader label={connected ? "Loading positions" : "Loading"} />;
-  }
+  // if (isLoading) {
+  //   return <Loader label={connected ? "Loading positions" : "Loading"} />;
+  // }
 
-  // if (isStoreInitialized && connected) {
-  //   if (!lendingBanks.length && !borrowingBanks.length) {
-  //     return (
-  //       <div className="flex flex-col items-center justify-center gap-4">
-  //         <p className="text-center mt-4 text-muted-foreground">
-  //           You do not have any open positions.
-  //           <br className="md:hidden" />{" "}
-  //           <Link href="/" className="border-b border-muted-foreground transition-colors hover:border-transparent">
-  //             Explore the pools
-  //           </Link>{" "}
-  //           and make your first deposit
-  //           {hasMultipleAccount && " or select a different account from the dropdown below"}.
-  //         </p>
-  //       </div>
-  //     );
-  //   }
-  // } // TODO: should display this if this is a new new user. Ie, only one account and no positions.
+  if (isStoreInitialized && connected && !hasMultipleAccount) {
+    if (!lendingBanks.length && !borrowingBanks.length) {
+      return (
+        <div className="flex flex-col items-center justify-center gap-4">
+          <p className="text-center mt-4 text-muted-foreground">
+            You do not have any open positions.
+            <br className="md:hidden" />{" "}
+            <Link href="/" className="border-b border-muted-foreground transition-colors hover:border-transparent">
+              Explore the pools
+            </Link>{" "}
+            and make your first deposit
+            {hasMultipleAccount && " or select a different account from the dropdown below"}.
+          </p>
+        </div>
+      );
+    }
+  }
 
   return (
     <div className="py-4 md:py-6 flex flex-col w-full mb-10 gap-4">
-      <div className="px-4 md:px-6 flex items-center">
-        {hasMultipleAccount && (
+      {hasMultipleAccount && (
+        <div className="flex flex-col w-max items-start gap-1 ">
+          <p className="text-sm text-muted-foreground ">Manage accounts</p>
           <WalletAuthAccounts
             initialized={true}
             mfiClient={marginfiClient}
@@ -288,8 +289,8 @@ export const LendingPortfolio = () => {
             }}
             accountLabels={accountLabels}
           />
-        )}
-      </div>
+        </div>
+      )}
       <div className="p-4 md:p-6 rounded-xl space-y-3 w-full bg-background-gray-dark">
         <div className="flex justify-between w-full">
           <h2 className="font-medium text-xl">Lend/borrow</h2>
