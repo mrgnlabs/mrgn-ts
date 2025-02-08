@@ -70,6 +70,9 @@ export type LendBoxProps = {
   stakeAccounts?: ValidatorStakeGroup[];
 
   isTokenSelectorOpen?: boolean;
+  searchMode?: boolean;
+  onCloseDialog?: () => void;
+  setShouldBeHidden?: (hidden: boolean) => void;
 
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -96,7 +99,9 @@ export const LendBox = ({
   hidePoolStats,
   stakeAccounts,
   setDisplaySettings,
-  isTokenSelectorOpen,
+  onCloseDialog,
+  searchMode = false,
+  setShouldBeHidden,
 }: LendBoxProps) => {
   const [
     amountRaw,
@@ -139,6 +144,14 @@ export const LendBox = ({
     state.setStakeAccounts,
     state.setSelectedStakeAccount,
   ]);
+
+  React.useEffect(() => {
+    if (searchMode && !selectedBank) {
+      setShouldBeHidden?.(true);
+    } else {
+      setShouldBeHidden?.(false);
+    }
+  }, [searchMode, selectedBank, setShouldBeHidden]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
@@ -572,7 +585,10 @@ export const LendBox = ({
           showTokenSelectionGroups={showTokenSelectionGroups}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
-          isTokenSelectorOpen={isTokenSelectorOpen}
+          isTokenSelectorOpen={searchMode}
+          onCloseDialog={() => {
+            searchMode && onCloseDialog?.();
+          }}
         />
       </div>
       {lendMode === ActionType.Deposit &&

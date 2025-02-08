@@ -25,6 +25,7 @@ type ActionInputProps = {
   isMini?: boolean;
 
   isTokenSelectorOpen?: boolean;
+  onCloseDialog?: () => void;
 
   setAmountRaw: (amount: string) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
@@ -45,6 +46,7 @@ export const ActionInput = ({
   selectedBank,
   lendMode,
   isTokenSelectorOpen,
+  onCloseDialog,
   setAmountRaw,
   setSelectedBank,
 }: ActionInputProps) => {
@@ -102,6 +104,9 @@ export const ActionInput = ({
             lendMode={lendMode}
             connected={connected}
             isInitialOpen={isTokenSelectorOpen}
+            onCloseDialog={() => {
+              selectedBank === null && onCloseDialog?.();
+            }}
           />
         </div>
         <div className="flex-auto flex flex-col gap-0 items-end">
