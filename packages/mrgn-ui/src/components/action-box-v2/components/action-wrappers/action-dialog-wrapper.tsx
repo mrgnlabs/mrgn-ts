@@ -49,7 +49,7 @@ export const ActionDialogWrapper = ({
   }, [setIsOpen, isTriggered, onClose]);
 
   return (
-    <div className={"hidden"}>
+    <>
       <Mobile>
         <Drawer
           open={isOpen}
@@ -59,7 +59,12 @@ export const ActionDialogWrapper = ({
           }}
         >
           <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-          <DrawerContent className="rounded-lg bg-mfi-action-box-background shadow-lg justify-start flex  border-none z-50 p-4 pt-0">
+          <DrawerContent
+            className={cn(
+              "rounded-lg bg-mfi-action-box-background shadow-lg justify-start flex  border-none z-50 p-4 pt-0",
+              hidden ? "opacity-0" : "opacity-100"
+            )}
+          >
             {children}
           </DrawerContent>
         </Drawer>
@@ -75,9 +80,10 @@ export const ActionDialogWrapper = ({
         >
           <DialogTrigger asChild>{trigger}</DialogTrigger>
           <DialogContent
-            className={
-              "shadow-none overflow-visible md:flex md:max-w-[520px] md:py-3 md:px-5  sm:rounded-2xl bg-transparent border-none"
-            }
+            className={cn(
+              "shadow-none overflow-visible md:flex md:max-w-[520px] md:py-3 md:px-5  sm:rounded-2xl bg-transparent border-none",
+              hidden ? "opacity-0" : "opacity-100"
+            )}
             closeClassName={"-top-1 -right-1"}
           >
             <DialogHeader className="sr-only">
@@ -88,6 +94,6 @@ export const ActionDialogWrapper = ({
           </DialogContent>
         </Dialog>
       </Desktop>
-    </div>
+    </>
   );
 };
