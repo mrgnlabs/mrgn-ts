@@ -221,7 +221,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     set({ jupiterOptions: { ...jupiterOptions, slippageBps: jupiterOptions.slippageBps * 100 } });
   },
   setGlobalActionBoxProps: (props) => {
-    console.log("props", props);
     set({ globalActionBoxProps: props });
   },
 });
