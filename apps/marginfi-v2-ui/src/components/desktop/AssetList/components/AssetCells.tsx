@@ -274,9 +274,10 @@ export const getDepositsCell = (depositsData: DepositsData) => {
               depositsData.isBankFilled && "text-destructive-foreground"
             )}
           >
-            {depositsData.denominationUSD
-              ? usdFormatter.format(depositsData.bankDeposits)
-              : numeralFormatter(depositsData.bankDeposits)}
+            {depositsData.denominationUSD && "$"}
+            {dynamicNumeralFormatter(depositsData.bankDeposits, {
+              forceDecimals: true,
+            })}
 
             {(depositsData.isReduceOnly || depositsData.isBankHigh || depositsData.isBankFilled) && (
               <IconAlertTriangle size={14} />
@@ -332,7 +333,12 @@ export const getDepositsCell = (depositsData: DepositsData) => {
 };
 
 export const getBankCapCell = ({ bankCap, denominationUSD }: BankCapData) => (
-  <div className="flex justify-end">{denominationUSD ? usdFormatter.format(bankCap) : numeralFormatter(bankCap)}</div>
+  <div className="flex justify-end">
+    {denominationUSD && "$"}
+    {dynamicNumeralFormatter(bankCap, {
+      forceDecimals: true,
+    })}
+  </div>
 );
 
 export const getUtilizationCell = ({ utilization }: UtilizationData) => (
