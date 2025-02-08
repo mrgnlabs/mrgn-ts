@@ -18,6 +18,7 @@ export interface ActionDialogProps {
   title?: string;
   isTriggered?: boolean;
   onClose?: () => void;
+  hidden?: boolean;
 }
 
 interface ActionDialogWrapperProps extends ActionDialogProps {
@@ -30,6 +31,7 @@ export const ActionDialogWrapper = ({
   title,
   isTriggered = false,
   onClose,
+  hidden = false,
 }: ActionDialogWrapperProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isActionComplete] = useActionBoxStore((state) => [state.isActionComplete]);
@@ -47,7 +49,7 @@ export const ActionDialogWrapper = ({
   }, [setIsOpen, isTriggered, onClose]);
 
   return (
-    <>
+    <div className={"hidden"}>
       <Mobile>
         <Drawer
           open={isOpen}
@@ -86,6 +88,6 @@ export const ActionDialogWrapper = ({
           </DialogContent>
         </Dialog>
       </Desktop>
-    </>
+    </div>
   );
 };

@@ -16,6 +16,7 @@ import { useConnection } from "~/hooks/use-connection";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 import { IconMrgn } from "~/components/ui/icons";
+import { Input } from "~/components/ui/input";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
@@ -172,10 +173,23 @@ export const Navbar: FC = () => {
                 }}
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 shrink-0"
+                className="h-10 w-10 shrink-0 block sm:hidden"
               >
                 <IconSearch size={20} />
               </Button>
+
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: !globalActionBoxProps.isOpen });
+                }}
+                className="hidden sm:flex py-2 px-4 border border-background-gray-hover flex-row items-center justify-between w-48 text-muted-foreground cursor-pointer "
+              >
+                <div className="">Search pools...</div>
+
+                <div className={cn("")}>⌘ K</div>
+              </Button>
+
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">

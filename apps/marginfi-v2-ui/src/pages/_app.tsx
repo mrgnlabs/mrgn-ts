@@ -86,10 +86,6 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.accountSummary,
   ]);
 
-  React.useEffect(() => {
-    console.log("globalActionBoxProps", globalActionBoxProps);
-  }, [globalActionBoxProps]);
-
   const { query, isReady } = useRouter();
   const [ready, setReady] = React.useState(false);
   const [rpcEndpoint, setRpcEndpoint] = React.useState("");

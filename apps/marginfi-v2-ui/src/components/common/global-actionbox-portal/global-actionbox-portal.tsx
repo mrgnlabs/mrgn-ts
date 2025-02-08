@@ -26,7 +26,6 @@ export const GlobalActionBoxPortal = () => {
         className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 
                    opacity-0 animate-fadeIn transition-opacity duration-300 ease-in-out"
       >
-        {" "}
         <div className=" p-6 rounded-lg shadow-lg">
           <ActionBox.BorrowLend
             useProvider={true}
@@ -42,7 +41,7 @@ export const GlobalActionBoxPortal = () => {
               connected,
               walletContextState,
               stakeAccounts,
-              isTokenSelectorOpen: globalActionBoxProps.isTokenSelectorOpen,
+              searchMode: true,
               captureEvent: (event, properties) => {
                 capture(event, properties);
               },
