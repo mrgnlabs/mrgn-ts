@@ -36,10 +36,7 @@ export const AssetRow = (row: Row<AssetListModel>) => {
         className={cn(isStakedActivating && "opacity-50")}
       >
         {row.getVisibleCells().map((cell, idx) => (
-          <TableCell
-            className={cn(isHovering && "bg-background-gray", !isPosition ? "pb-2 rounded-md" : "rounded-t-md")}
-            key={cell.id}
-          >
+          <TableCell className={cn(!isPosition ? "pb-2 rounded-md" : "rounded-t-md")} key={cell.id}>
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </TableCell>
         ))}
@@ -47,11 +44,7 @@ export const AssetRow = (row: Row<AssetListModel>) => {
 
       {isPosition && (
         <TableRow onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
-          <TableCell
-            showPadding={true}
-            className={cn("rounded-b-md", "pb-2", isHovering && "bg-background-gray")}
-            colSpan={row.getVisibleCells().length}
-          >
+          <TableCell showPadding={true} className={cn("rounded-b-md", "pb-2")} colSpan={row.getVisibleCells().length}>
             {getPositionCell(row.original.position)}
           </TableCell>
         </TableRow>

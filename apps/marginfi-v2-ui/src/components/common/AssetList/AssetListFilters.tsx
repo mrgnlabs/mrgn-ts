@@ -48,7 +48,7 @@ export const AssetListFilters = () => {
         <div className="mr-auto">
           <ToggleGroup
             type="single"
-            variant={"actionBox"}
+            variant="actionBox"
             value={lendingMode}
             onValueChange={(value) => {
               if (value === LendingModes.LEND) {
