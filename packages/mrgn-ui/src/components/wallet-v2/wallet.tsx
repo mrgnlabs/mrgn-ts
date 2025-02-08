@@ -216,7 +216,7 @@ const Wallet = ({
                 <WalletAvatar pfp={pfp} address={wallet?.publicKey.toBase58()} size="sm" />
                 {userDataFetched && wallet?.publicKey ? (
                   <>
-                    <div className="flex flex-col items-center gap-0">
+                    <div className="flex flex-col items-start gap-0">
                       {shortenAddress(wallet?.publicKey)}
                       <div className="text-muted-foreground text-xs">
                         {accountLabels?.[selectedAccount?.address.toBase58() ?? "Account"]}

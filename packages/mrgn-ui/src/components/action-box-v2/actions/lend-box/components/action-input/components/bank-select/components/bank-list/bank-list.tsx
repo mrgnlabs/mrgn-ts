@@ -19,7 +19,7 @@ type BankListProps = {
   connected: boolean;
   showTokenSelectionGroups?: boolean;
   onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
-  onClose: () => void;
+  onClose: (hasSetBank: boolean) => void;
 };
 
 export const BankList = ({
@@ -154,7 +154,7 @@ export const BankList = ({
 
   return (
     <>
-      <BankListCommand selectedBank={selectedBank} onClose={onClose} onSetSearchQuery={setSearchQuery}>
+      <BankListCommand selectedBank={selectedBank} onClose={() => onClose(false)} onSetSearchQuery={setSearchQuery}>
         {!hasTokens && (
           <div className="text-sm text-[#C0BFBF] font-normal p-3">
             You don&apos;t own any supported tokens in marginfi. Check out what marginfi supports.
@@ -176,7 +176,7 @@ export const BankList = ({
                       onSetSelectedBank(
                         banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
                       );
-                      onClose();
+                      onClose(true);
                     }}
                     className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground"
                   >
@@ -216,7 +216,7 @@ export const BankList = ({
                     onSetSelectedBank(
                       banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
                     );
-                    onClose();
+                    onClose(true);
                   }}
                   className={cn(
                     "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground py-2"
@@ -250,7 +250,7 @@ export const BankList = ({
                     onSetSelectedBank(
                       banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
                     );
-                    onClose();
+                    onClose(true);
                   }}
                   className={cn(
                     "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground"
@@ -281,7 +281,7 @@ export const BankList = ({
                     onSetSelectedBank(
                       banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
                     );
-                    onClose();
+                    onClose(true);
                   }}
                   className={cn(
                     "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent hover:text-mfi-action-box-accent-foreground",
@@ -313,7 +313,7 @@ export const BankList = ({
                     onSetSelectedBank(
                       banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
                     );
-                    onClose();
+                    onClose(true);
                   }}
                   className={cn(
                     "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent hover:text-mfi-action-box-accent-foreground",
@@ -351,7 +351,7 @@ export const BankList = ({
                         onSetSelectedBank(
                           banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
                         );
-                        onClose();
+                        onClose(true);
                       }}
                       className="py-2 cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent hover:text-mfi-action-box-accent-foreground"
                     >

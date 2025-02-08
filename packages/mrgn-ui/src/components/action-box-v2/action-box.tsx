@@ -31,6 +31,8 @@ const ActionBox: ActionBoxComponent = (props) => {
   if (isDialogWrapperProps(props)) {
     const dialogProps = props.dialogProps;
 
+    console.log("dialogProps", dialogProps);
+
     return (
       <>
         <ActionDialogWrapper
@@ -38,6 +40,7 @@ const ActionBox: ActionBoxComponent = (props) => {
           trigger={dialogProps?.trigger}
           isTriggered={dialogProps?.isTriggered}
           onClose={dialogProps?.onClose}
+          hidden={dialogProps?.hidden}
         >
           {props.children}
         </ActionDialogWrapper>
@@ -109,6 +112,7 @@ const BorrowLend = (
 ) => {
   const contextProps = useActionBoxContext();
   const [selectedAction, setSelectedAction] = React.useState(ActionType.Deposit);
+
   const { lendProps, useProvider, ...actionBoxProps } = props;
 
   React.useEffect(() => {
@@ -126,16 +130,30 @@ const BorrowLend = (
     combinedProps = lendProps as LendBoxProps;
   }
 
+  const [shouldBeHidden, setShouldBeHidden] = React.useState(combinedProps.searchMode);
+  const dialogProps = actionBoxProps.isDialog ? { ...actionBoxProps.dialogProps, hidden: shouldBeHidden } : undefined;
+  const _actionBoxProps = actionBoxProps.isDialog ? { ...actionBoxProps, dialogProps } : actionBoxProps;
+
   return (
-    <ActionBox {...actionBoxProps}>
+    <ActionBox {..._actionBoxProps}>
       <ActionBoxWrapper showSettings={false} isDialog={actionBoxProps.isDialog} actionMode={ActionType.Deposit}>
         <ActionBoxNavigator
           selectedAction={selectedAction}
           onSelectAction={setSelectedAction}
           actionTypes={[ActionType.Deposit, ActionType.Borrow]}
         >
-          <LendBox {...combinedProps} requestedLendType={ActionType.Deposit} />
-          <LendBox {...combinedProps} requestedLendType={ActionType.Borrow} />
+          <LendBox
+            {...combinedProps}
+            requestedLendType={ActionType.Deposit}
+            onCloseDialog={dialogProps?.onClose}
+            setShouldBeHidden={setShouldBeHidden}
+          />
+          <LendBox
+            {...combinedProps}
+            requestedLendType={ActionType.Borrow}
+            onCloseDialog={dialogProps?.onClose}
+            setShouldBeHidden={setShouldBeHidden}
+          />
         </ActionBoxNavigator>
       </ActionBoxWrapper>
     </ActionBox>
