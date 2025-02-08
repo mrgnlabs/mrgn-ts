@@ -29,7 +29,7 @@ function createUserProfileStore() {
   return create<UserProfileState>()((set, get) => ({
     // State
     lendZoomLevel: 3,
-    denominationUSD: false,
+    denominationUSD: true,
     showBadges: false,
     currentFirebaseUser: null,
     hasUser: null,
