@@ -347,15 +347,23 @@ export const getUtilizationCell = ({ utilization }: UtilizationData) => (
 
 export const getPositionCell = (positionData: PositionData) => {
   const selectedPositionAmount = positionData.denominationUSD ? positionData.positionUsd : positionData.positionAmount;
+  const tokenAmount = `${dynamicNumeralFormatter(positionData.walletAmount)} ${positionData.symbol}`;
 
   return (
     <div className="w-full bg-background-gray rounded-md flex items-center gap-5 px-2 py-3">
       <dl className="flex gap-2 items-center">
         <dt className="text-accent-foreground text-xs font-light">Wallet:</dt>
         <dd>
-          {positionData.denominationUSD
-            ? usdFormatter.format(positionData.walletAmount * positionData.price)
-            : `${numeralFormatter(positionData.walletAmount)} ${positionData.symbol}`}
+          {positionData.denominationUSD ? (
+            <div className="flex items-center gap-2">
+              <span className="text-foreground">
+                {usdFormatter.format(positionData.walletAmount * positionData.price)}
+              </span>
+              <span className="text-muted-foreground">(${tokenAmount})</span>
+            </div>
+          ) : (
+            tokenAmount
+          )}
         </dd>
       </dl>
       {selectedPositionAmount && (

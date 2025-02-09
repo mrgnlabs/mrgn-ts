@@ -1,27 +1,16 @@
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
-import { useHotkeys } from "react-hotkeys-hook";
-import { IconAlertTriangle, IconExternalLink } from "@tabler/icons-react";
+import { IconExternalLink } from "@tabler/icons-react";
 
 import { ExtendedBankInfo, ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 
-import { useMrgnlendStore, useUserProfileStore, useUiStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 
-import {
-  LSTDialog,
-  LSTDialogVariants,
-  AssetListFilters,
-  sortApRate,
-  sortTvl,
-  STABLECOINS,
-  LSTS,
-} from "~/components/common/AssetList";
+import { LSTDialog, LSTDialogVariants, sortApRate, sortTvl, STABLECOINS, LSTS } from "~/components/common/AssetList";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow, AssetListNav } from "./components";
@@ -44,12 +33,12 @@ export const AssetsList = () => {
     state.fetchMrgnlendState,
     state.stakedAssetBankInfos,
   ]);
-  const [denominationUSD, setShowBadges] = useUserProfileStore((state) => [state.denominationUSD, state.setShowBadges]);
-  const [poolFilter, isFilteredUserPositions, sortOption, lendingMode] = useUiStore((state) => [
+  const [poolFilter, isFilteredUserPositions, sortOption, lendingMode, isDenominationUsd] = useUiStore((state) => [
     state.poolFilter,
     state.isFilteredUserPositions,
     state.sortOption,
     state.lendingMode,
+    state.isDenominationUsd,
   ]);
   const { connected, walletContextState } = useWallet();
 
@@ -124,66 +113,13 @@ export const AssetsList = () => {
     );
   }, [sortedBanks, isFilteredUserPositions]);
 
-  // Enter hotkey mode
-  useHotkeys(
-    "meta + k",
-    () => {
-      setIsHotkeyMode(true);
-      setShowBadges(true);
-
-      setTimeout(() => {
-        setIsHotkeyMode(false);
-        setShowBadges(false);
-      }, 5000);
-    },
-    { preventDefault: true, enableOnFormTags: true }
-  );
-
-  // Handle number keys in hotkey mode
-  useHotkeys(
-    extendedBankInfos
-      .filter((b) => !b.info.state.isIsolated)
-      .map((_, i) => `${i + 1}`)
-      .join(", "),
-    (_, handler) => {
-      if (isHotkeyMode) {
-        const globalBankTokenNames = extendedBankInfos
-          .filter((b) => !b.info.state.isIsolated)
-          .sort(
-            (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
-          )
-          .map((b) => b.meta.tokenSymbol);
-
-        const keyPressed = handler.keys?.join("");
-        if (Number(keyPressed) >= 1 && Number(keyPressed) <= globalBankTokenNames.length) {
-          inputRefs.current[globalBankTokenNames[Number(keyPressed) - 1]]?.querySelector("input")!.focus();
-          setIsHotkeyMode(false);
-          setShowBadges(false);
-        }
-      }
-    },
-    { preventDefault: false, enableOnFormTags: true }
-  );
-
-  // Toggle lending mode in hotkey mode
-  useHotkeys(
-    "q",
-    () => {
-      if (isHotkeyMode) {
-        setIsHotkeyMode(false);
-        setShowBadges(false);
-      }
-    },
-    { enableOnFormTags: true }
-  );
-
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
   const globalPoolTableData = React.useMemo(() => {
     return makeData(
       globalBanks,
       isInLendingMode,
-      denominationUSD,
+      isDenominationUsd,
       nativeSolBalance,
       selectedAccount,
       connected,
@@ -195,7 +131,7 @@ export const AssetsList = () => {
     walletContextState,
     globalBanks,
     isInLendingMode,
-    denominationUSD,
+    isDenominationUsd,
     nativeSolBalance,
     selectedAccount,
     fetchMrgnlendState,
@@ -205,7 +141,7 @@ export const AssetsList = () => {
     return makeData(
       isolatedBanks,
       isInLendingMode,
-      denominationUSD,
+      isDenominationUsd,
       nativeSolBalance,
       selectedAccount,
       connected,
@@ -217,7 +153,7 @@ export const AssetsList = () => {
     walletContextState,
     isolatedBanks,
     isInLendingMode,
-    denominationUSD,
+    isDenominationUsd,
     nativeSolBalance,
     selectedAccount,
     fetchMrgnlendState,
@@ -227,7 +163,7 @@ export const AssetsList = () => {
     return makeData(
       stakedAssetBanks,
       isInLendingMode,
-      denominationUSD,
+      isDenominationUsd,
       nativeSolBalance,
       selectedAccount,
       connected,
@@ -239,7 +175,7 @@ export const AssetsList = () => {
     walletContextState,
     stakedAssetBanks,
     isInLendingMode,
-    denominationUSD,
+    isDenominationUsd,
     nativeSolBalance,
     selectedAccount,
     fetchMrgnlendState,
@@ -249,7 +185,7 @@ export const AssetsList = () => {
     return makeData(
       stakedAssetBankInfos,
       isInLendingMode,
-      denominationUSD,
+      isDenominationUsd,
       nativeSolBalance,
       selectedAccount,
       connected,
@@ -261,7 +197,7 @@ export const AssetsList = () => {
     walletContextState,
     stakedAssetBankInfos,
     isInLendingMode,
-    denominationUSD,
+    isDenominationUsd,
     nativeSolBalance,
     selectedAccount,
     fetchMrgnlendState,
