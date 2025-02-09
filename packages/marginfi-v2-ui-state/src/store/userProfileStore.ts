@@ -8,7 +8,6 @@ type ZoomLevel = 1 | 2 | 3;
 interface UserProfileState {
   // State
   lendZoomLevel: ZoomLevel;
-  denominationUSD: boolean;
   showBadges: boolean;
   currentFirebaseUser: User | null;
   hasUser: boolean | null;
@@ -16,7 +15,6 @@ interface UserProfileState {
 
   // Actions
   setLendZoomLevel: (level: ZoomLevel) => void;
-  setDenominationUSD: (checked: boolean) => void;
   setShowBadges: (checked: boolean) => void;
   checkForFirebaseUser: (walletAddress: string) => Promise<void>;
   setFirebaseUser: (user: User | null) => void;
@@ -29,7 +27,6 @@ function createUserProfileStore() {
   return create<UserProfileState>()((set, get) => ({
     // State
     lendZoomLevel: 3,
-    denominationUSD: true,
     showBadges: false,
     currentFirebaseUser: null,
     hasUser: null,
@@ -37,7 +34,6 @@ function createUserProfileStore() {
 
     // Actions
     setLendZoomLevel: (level: ZoomLevel) => set(() => ({ lendZoomLevel: level })),
-    setDenominationUSD: (checked: boolean) => set(() => ({ denominationUSD: checked })),
     setShowBadges: (checked: boolean) => set(() => ({ showBadges: checked })),
     checkForFirebaseUser: async (walletAddress: string) => {
       let user;
