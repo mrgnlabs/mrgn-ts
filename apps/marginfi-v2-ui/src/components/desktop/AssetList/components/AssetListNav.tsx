@@ -136,9 +136,8 @@ const AssetListNav = () => {
         <Switch
           id="usd-denominated"
           checked={isDenominationUsd}
-          className="data-[state=checked]:bg-primary/50"
+          className="data-[state=unchecked]:bg-primary/20 data-[state=checked]:bg-primary/50"
           onCheckedChange={() => {
-            if (!connected) return;
             setIsDenominationUsd(!isDenominationUsd);
           }}
         />
