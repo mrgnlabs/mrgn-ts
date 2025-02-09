@@ -519,16 +519,7 @@ export const LoopBox = ({
           isActive={selectedBank && amount > 0 ? true : false}
           actionType={ActionType.Loop}
         />
-        {setDisplaySettings && (
-          <div className="flex justify-end gap-2 ml-auto">
-            <button
-              onClick={() => setDisplaySettings(true)}
-              className="text-xs gap-1 h-6 px-2 flex items-center rounded-full bg-mfi-action-box-accent hover:bg-mfi-action-box-accent/80 "
-            >
-              Settings <IconSettings size={20} />
-            </button>
-          </div>
-        )}
+        {setDisplaySettings && <ActionSettingsButton onClick={() => setDisplaySettings(true)} />}
       </div>
 
       <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />
