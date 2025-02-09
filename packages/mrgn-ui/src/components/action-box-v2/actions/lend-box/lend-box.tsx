@@ -28,11 +28,7 @@ import {
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 
-import {
-  ActionBoxContentWrapper,
-  ActionButton,
-  ActionCollateralProgressBar,
-} from "~/components/action-box-v2/components";
+import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -641,16 +637,7 @@ export const LendBox = ({
           isActive={selectedBank && amount > 0 ? true : false}
         />
 
-        {setDisplaySettings && (
-          <div className="flex justify-end gap-2 ml-auto">
-            <button
-              onClick={() => setDisplaySettings(true)}
-              className="text-xs gap-1 h-6 px-2 flex items-center rounded-full bg-mfi-action-box-accent hover:bg-mfi-action-box-accent/80 "
-            >
-              Settings <IconSettings size={20} />
-            </button>
-          </div>
-        )}
+        {setDisplaySettings && <ActionSettingsButton onClick={() => setDisplaySettings(true)} />}
       </div>
       <Preview
         actionSummary={actionSummary}
