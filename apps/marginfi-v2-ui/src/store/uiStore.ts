@@ -58,6 +58,7 @@ interface UiState {
   lendingMode: LendingModes;
   poolFilter: PoolTypes;
   sortOption: SortAssetOption;
+  isDenominationUsd: boolean;
   assetListSearch: string;
   broadcastType: TransactionBroadcastType;
   priorityType: TransactionPriorityType;
@@ -76,6 +77,7 @@ interface UiState {
   setLendingMode: (lendingMode: LendingModes) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
   setSortOption: (sortOption: SortAssetOption) => void;
+  setIsDenominationUsd: (isDenominationUsd: boolean) => void;
   setAssetListSearch: (search: string) => void;
   setTransactionSettings: (settings: TransactionSettings, connection: Connection) => void;
   fetchPriorityFee: (connection: Connection, settings?: TransactionSettings) => void;
@@ -117,6 +119,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   lendingMode: LendingModes.LEND,
   poolFilter: PoolTypes.GLOBAL,
   sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
+  isDenominationUsd: true,
   assetListSearch: "",
   priorityFees: {},
   accountLabels: {},
@@ -141,6 +144,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setAssetListSearch: (search: string) => set({ assetListSearch: search }),
+  setIsDenominationUsd: (isDenominationUsd: boolean) => set({ isDenominationUsd }),
   setTransactionSettings: (settings: TransactionSettings, connection: Connection) => {
     const { broadcastType, priorityType, maxCapType } = settings;
     set({ broadcastType, priorityType, maxCapType });
