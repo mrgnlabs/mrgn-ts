@@ -37,31 +37,6 @@ export const getAssetCell = (asset: AssetData) => {
         <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
         <div>{asset.symbol}</div>
       </div>
-
-      {asset.stakePool && (
-        <>
-          <div className="text-xs text-muted-foreground font-normal space-x-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger className="text-xs text-muted-foreground font-normal flex items-center gap-1 cursor-default">
-                  <IconInfoCircle size={14} />
-                  {!asset.stakePool.isActive && "Activating..."}
-                </TooltipTrigger>
-                <TooltipPortal>
-                  <TooltipContent>
-                    <ul className="space-y-1 font-normal text-muted-foreground">
-                      <li className="text-xs">
-                        <strong className="text-foreground">Validator:</strong>{" "}
-                        {shortenAddress(asset.stakePool.validatorVoteAccount?.toBase58() ?? "")}
-                      </li>
-                    </ul>
-                  </TooltipContent>
-                </TooltipPortal>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </>
-      )}
     </div>
   );
 };
@@ -346,50 +321,39 @@ export const getUtilizationCell = ({ utilization }: UtilizationData) => (
 );
 
 export const getPositionCell = (positionData: PositionData) => {
-  const selectedPositionAmount = positionData.denominationUSD ? positionData.positionUsd : positionData.positionAmount;
-  const tokenAmount = `${dynamicNumeralFormatter(positionData.walletAmount)} ${positionData.symbol}`;
+  const makeTokenAmount = (amount: number, symbol: string) => dynamicNumeralFormatter(amount) + " " + symbol;
+
+  const selectedPositionAmount = positionData.denominationUSD
+    ? usdFormatter.format(positionData.positionUsd!)
+    : makeTokenAmount(positionData.positionAmount!, positionData.symbol);
+
+  const tokenWalletAmount = makeTokenAmount(positionData.walletAmount, positionData.symbol);
+  const tokenPositionAmount = makeTokenAmount(positionData.positionAmount!, positionData.symbol);
 
   return (
-    <div className="w-full bg-background-gray rounded-md flex items-center gap-5 px-2 py-3">
+    <div className="w-full bg-background-gray rounded-md flex items-center gap-8 px-2 py-3">
       <dl className="flex gap-2 items-center">
-        <dt className="text-accent-foreground text-xs font-light">Wallet:</dt>
+        <dt className="text-accent-foreground font-light">Wallet:</dt>
         <dd>
           {positionData.denominationUSD ? (
             <div className="flex items-center gap-2">
               <span className="text-foreground">
                 {usdFormatter.format(positionData.walletAmount * positionData.price)}
               </span>
-              <span className="text-muted-foreground">(${tokenAmount})</span>
+              <span className="text-muted-foreground">(${tokenWalletAmount})</span>
             </div>
           ) : (
-            tokenAmount
+            tokenWalletAmount
           )}
         </dd>
       </dl>
-      {selectedPositionAmount && (
+      {selectedPositionAmount && positionData.positionAmount && (
         <dl className="flex gap-2 items-center">
-          <dt className="text-accent-foreground text-xs font-light">
+          <dt className="text-accent-foreground font-light">
             {positionData.isInLendingMode ? "Lending:" : "Borrowing:"}
           </dt>
-          <dd className="flex gap-1 items-center">
-            {selectedPositionAmount < 0.01 && "< 0.01"}
-            {selectedPositionAmount >= 0.01 &&
-              (positionData.denominationUSD
-                ? usdFormatter.format(selectedPositionAmount)
-                : numeralFormatter(selectedPositionAmount) + " " + positionData.symbol)}
-            {selectedPositionAmount < 0.01 && (
-              <div>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Image src="/info_icon.png" alt="info" height={12} width={12} />
-                    </TooltipTrigger>
-                    <TooltipContent>{selectedPositionAmount}</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            )}
-          </dd>
+          <dd className="flex gap-1 items-center">{selectedPositionAmount}</dd>
+          <span className="text-muted-foreground">(${tokenPositionAmount})</span>
         </dl>
       )}
       {positionData.liquidationPrice && (
@@ -421,6 +385,30 @@ export const getPositionCell = (positionData: PositionData) => {
           </dd>
         </dl>
       )}
+    </div>
+  );
+};
+
+export const getValidatorCell = (asset: AssetData) => {
+  if (!asset.stakePool?.validatorVoteAccount) return null;
+  return (
+    <div className="flex items-center gap-2">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href={`https://solscan.io/account/${asset.stakePool?.validatorVoteAccount}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {shortenAddress(asset.stakePool?.validatorVoteAccount)}
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{asset.stakePool?.validatorVoteAccount.toBase58()}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 };
