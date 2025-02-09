@@ -204,8 +204,8 @@ export const AssetsList = () => {
   ]);
 
   const tableColumns = React.useMemo(() => {
-    return generateColumns(isInLendingMode);
-  }, [isInLendingMode]);
+    return generateColumns(isInLendingMode, poolFilter);
+  }, [isInLendingMode, poolFilter]);
 
   const globalTable = useReactTable<AssetListModel>({
     data: globalPoolTableData,

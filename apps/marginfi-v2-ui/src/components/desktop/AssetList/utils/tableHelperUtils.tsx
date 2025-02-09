@@ -21,6 +21,7 @@ import {
   getUtilizationData,
   getDepositsData,
   getPositionData,
+  PoolTypes,
 } from "@mrgnlabs/mrgn-utils";
 
 import {
@@ -32,11 +33,13 @@ import {
   getDepositsCell,
   getRateCell,
   getUtilizationCell,
+  getValidatorCell,
 } from "../components";
 import { getAction } from "./columnDataUtils";
 
 export interface AssetListModel {
   asset: AssetData;
+  validator: string;
   price: AssetPriceData;
   rate: RateData;
   weight: AssetWeightData;
@@ -72,14 +75,14 @@ export const makeData = (
   );
 };
 
-export const generateColumns = (isInLendingMode: boolean) => {
+export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) => {
   const columnHelper = createColumnHelper<AssetListModel>();
 
-  const columns = [
+  const columns: ReturnType<typeof columnHelper.accessor>[] = [
     columnHelper.accessor("asset", {
       id: "asset",
       enableResizing: false,
-      size: 210,
+      size: poolType === PoolTypes.NATIVE_STAKE ? 280 : 210,
       cell: (props) => getAssetCell(props.getValue()),
       header: (header) => (
         <HeaderWrapper header={header} align="left">
@@ -89,6 +92,36 @@ export const generateColumns = (isInLendingMode: boolean) => {
       enableSorting: false,
       footer: (props) => props.column.id,
     }),
+  ];
+
+  if (poolType === PoolTypes.NATIVE_STAKE) {
+    columns.push(
+      columnHelper.accessor("asset", {
+        id: "validator",
+        enableResizing: false,
+        size: 80,
+        cell: (props) => getValidatorCell(props.getValue()),
+        header: (header) => (
+          <HeaderWrapper
+            header={header}
+            align="left"
+            infoTooltip={
+              <div className="flex flex-col items-start gap-1 text-left">
+                <h4 className="text-base">Realtime prices</h4>
+                <span className="font-normal">Powered by Pyth and Switchboard.</span>
+              </div>
+            }
+          >
+            Validator
+          </HeaderWrapper>
+        ),
+        enableSorting: false,
+        footer: (props) => props.column.id,
+      })
+    );
+  }
+
+  columns.push(
     columnHelper.accessor("price", {
       id: "price",
       enableResizing: false,
@@ -115,34 +148,42 @@ export const generateColumns = (isInLendingMode: boolean) => {
         return rowA.original.price.assetPrice - rowB.original.price.assetPrice;
       },
       footer: (props) => props.column.id,
-    }),
-    columnHelper.accessor("rate", {
-      id: "rate",
-      enableResizing: true,
-      maxSize: 120,
-      cell: (props) => getRateCell(props.getValue()),
-      header: (header) => (
-        <HeaderWrapper
-          header={header}
-          infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">APY</h4>
-              <span>
-                {isInLendingMode
-                  ? "What you'll earn on deposits over a year. This includes compounding."
-                  : "What you'll pay for your borrows over a year. This includes compounding."}
-              </span>
-            </div>
-          }
-        >
-          APY
-        </HeaderWrapper>
-      ),
-      sortingFn: (rowA, rowB, columnId) => {
-        return rowA.original.rate.rateAPY - rowB.original.rate.rateAPY;
-      },
-      footer: (props) => props.column.id,
-    }),
+    })
+  );
+
+  if (poolType !== PoolTypes.NATIVE_STAKE) {
+    columns.push(
+      columnHelper.accessor("rate", {
+        id: "rate",
+        enableResizing: true,
+        maxSize: 120,
+        cell: (props) => getRateCell(props.getValue()),
+        header: (header) => (
+          <HeaderWrapper
+            header={header}
+            infoTooltip={
+              <div className="flex flex-col items-start gap-1 text-left">
+                <h4 className="text-base">APY</h4>
+                <span>
+                  {isInLendingMode
+                    ? "What you'll earn on deposits over a year. This includes compounding."
+                    : "What you'll pay for your borrows over a year. This includes compounding."}
+                </span>
+              </div>
+            }
+          >
+            APY
+          </HeaderWrapper>
+        ),
+        sortingFn: (rowA, rowB, columnId) => {
+          return rowA.original.rate.rateAPY - rowB.original.rate.rateAPY;
+        },
+        footer: (props) => props.column.id,
+      })
+    );
+  }
+
+  columns.push(
     columnHelper.accessor("weight", {
       id: "weight",
       cell: (props) => getAssetWeightCell(props.getValue()),
@@ -249,8 +290,8 @@ export const generateColumns = (isInLendingMode: boolean) => {
       header: () => <></>,
       cell: (props) => props.getValue(),
       footer: (props) => props.column.id,
-    }),
-  ];
+    })
+  );
 
   return columns;
 };
