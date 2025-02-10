@@ -31,8 +31,6 @@ const ActionBox: ActionBoxComponent = (props) => {
   if (isDialogWrapperProps(props)) {
     const dialogProps = props.dialogProps;
 
-    console.log("dialogProps", dialogProps);
-
     return (
       <>
         <ActionDialogWrapper
@@ -112,7 +110,6 @@ const BorrowLend = (
 ) => {
   const contextProps = useActionBoxContext();
   const [selectedAction, setSelectedAction] = React.useState(ActionType.Deposit);
-
   const { lendProps, useProvider, ...actionBoxProps } = props;
 
   React.useEffect(() => {
