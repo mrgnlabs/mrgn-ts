@@ -271,9 +271,14 @@ export const WalletAuthAccounts = ({
             <div className="grid gap-4 w-[80]">
               <div className="space-y-2">
                 <h4 className="font-medium leading-none">Your accounts</h4>
-                <p className="text-sm text-muted-foreground">Select your marginfi account below.</p>
+                <p className="text-sm text-muted-foreground">Manage your accounts or create a new one below.</p>
               </div>
-              <div className={cn("grid gap-2", isActivatingAccount !== null && "pointer-events-none animate-pulsate")}>
+              <div
+                className={cn(
+                  "grid gap-2 max-h-[246px] overflow-y-auto",
+                  isActivatingAccount !== null && "pointer-events-none animate-pulsate"
+                )}
+              >
                 {marginfiAccounts
                   .sort((a, b) => {
                     const indexA = Object.keys(accountLabels || {}).indexOf(a.address.toBase58());
