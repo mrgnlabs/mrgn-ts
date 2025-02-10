@@ -3,11 +3,9 @@
 import React from "react";
 import * as RadixPortal from "@radix-ui/react-portal";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { Button } from "~/components/ui/button";
 
 export const GlobalActionBoxPortal = () => {
   const { connected, walletContextState } = useWallet();
@@ -22,10 +20,7 @@ export const GlobalActionBoxPortal = () => {
 
   return (
     <RadixPortal.Root>
-      <div
-        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 
-                   opacity-0 animate-fadeIn transition-opacity duration-300 ease-in-out"
-      >
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 opacity-0 animate-fadeIn transition-opacity duration-300 ease-in-out">
         <div className=" p-6 rounded-lg shadow-lg">
           <ActionBox.BorrowLend
             useProvider={true}
