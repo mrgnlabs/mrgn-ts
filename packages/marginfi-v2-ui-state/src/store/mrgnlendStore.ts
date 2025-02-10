@@ -25,6 +25,7 @@ import {
   StakePoolMetadata,
   getStakeAccountsCached,
   ValidatorStakeGroup,
+  getValidatorRates,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -398,6 +399,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           return new PublicKey(bankMetadata.validatorVoteAccount || "");
         });
       const stakePoolActiveStates = await getStakePoolActiveStates(connection, validatorVoteAccounts);
+      const validatorRates = await getValidatorRates(validatorVoteAccounts);
 
       let [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
         (acc, { bank, oraclePrice, tokenMetadata }) => {
@@ -425,6 +427,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
             );
             stakedAssetMetadata = {
               validatorVoteAccount,
+              validatorRewards: validatorRates.get(bank.mint.toBase58()) || 0,
               isActive,
             };
           }
