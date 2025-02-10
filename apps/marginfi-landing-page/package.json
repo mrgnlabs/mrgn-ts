@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.4.0",
-    "@mrgnlabs/marginfi-client-v2": "workspace:*",
+    "@mrgnlabs/marginfi-client-v2": "*",
     "@mrgnlabs/marginfi-v2-ui-state": "*",
-    "@mrgnlabs/mrgn-common": "workspace:*",
+    "@mrgnlabs/mrgn-common": "*",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-label": "^2.0.2",
