@@ -132,15 +132,7 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
           isInLendingMode,
         }),
       header: (header) => (
-        <HeaderWrapper
-          header={header}
-          infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">Realtime prices</h4>
-              <span className="font-normal">Powered by Pyth and Switchboard.</span>
-            </div>
-          }
-        >
+        <HeaderWrapper header={header} infoTooltip={<p>Real-time prices powered by Pyth and Switchboard.</p>}>
           Price
         </HeaderWrapper>
       ),
@@ -162,14 +154,11 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
           <HeaderWrapper
             header={header}
             infoTooltip={
-              <div className="flex flex-col items-start gap-1 text-left">
-                <h4 className="text-base">APY</h4>
-                <span>
-                  {isInLendingMode
-                    ? "What you'll earn on deposits over a year. This includes compounding."
-                    : "What you'll pay for your borrows over a year. This includes compounding."}
-                </span>
-              </div>
+              <p>
+                {isInLendingMode
+                  ? "What you'll earn on deposits over a year. This includes compounding."
+                  : "What you'll pay for your borrows over a year. This includes compounding."}
+              </p>
             }
           >
             APY
@@ -191,14 +180,11 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
         <HeaderWrapper
           header={header}
           infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">{isInLendingMode ? "Weight" : "LTV"}</h4>
-              <span>
-                {isInLendingMode
-                  ? "How much your assets count for collateral, relative to their USD value. The higher the weight, the more collateral you can borrow against it."
-                  : "How much you can borrow against your free collateral. The higher the LTV, the more you can borrow against your free collateral."}
-              </span>
-            </div>
+            <p>
+              {isInLendingMode
+                ? "Percentage of an asset's value that counts toward your collateral. Higher weight means more borrowing power for that asset."
+                : "Loan-to-Value ratio (LTV) shows how much you can borrow relative to your available collateral. A higher LTV means you can borrow more, but it also increases liquidation risk."}
+            </p>
           }
         >
           {isInLendingMode ? "Weight" : "LTV"}
@@ -211,55 +197,57 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
     }),
     columnHelper.accessor("deposits", {
       id: "deposits",
-      cell: (props) => getDepositsCell(props.getValue()),
+      cell: (props) =>
+        isInLendingMode ? getDepositsCell(props.getValue()) : getBankCapCell(props.row.original.bankCap),
       header: (header) => (
         <HeaderWrapper
           header={header}
-          infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">{isInLendingMode ? "Total deposits" : "Total available"}</h4>
-              <span>
-                {isInLendingMode
-                  ? "Total marginfi deposits for each asset. Everything is denominated in native tokens."
-                  : "The amount of tokens available to borrow for each asset. Calculated as the minimum of the asset's borrow limit and available liquidity that has not yet been borrowed."}
-              </span>
-            </div>
-          }
+          infoTooltip={<p>{isInLendingMode ? "Total deposits in the pool." : "Total borrows in the pool."}</p>}
         >
-          {isInLendingMode ? "Deposits" : "Available"}
+          {isInLendingMode ? "Deposits" : "Borrows"}
         </HeaderWrapper>
       ),
       sortingFn: (rowA, rowB) => {
-        const bankAInfo = rowA.original.bankCap.bank.info;
-        const bankBInfo = rowB.original.bankCap.bank.info;
-
-        const tvlA = bankAInfo.rawBank.computeTvl(bankAInfo.oraclePrice).toNumber();
-        const tvlB = bankBInfo.rawBank.computeTvl(bankBInfo.oraclePrice).toNumber();
-        return tvlA - tvlB;
+        if (isInLendingMode) {
+          const bankAInfo = rowA.original.bankCap.bank.info;
+          const bankBInfo = rowB.original.bankCap.bank.info;
+          const tvlA = bankAInfo.rawBank.computeTvl(bankAInfo.oraclePrice).toNumber();
+          const tvlB = bankBInfo.rawBank.computeTvl(bankBInfo.oraclePrice).toNumber();
+          return tvlA - tvlB;
+        } else {
+          return rowA.original.bankCap.bankCap - rowB.original.bankCap.bankCap;
+        }
       },
       footer: (props) => props.column.id,
     }),
     columnHelper.accessor("bankCap", {
       id: "bankCap",
-      cell: (props) => getBankCapCell(props.getValue()),
+      cell: (props) =>
+        isInLendingMode ? getBankCapCell(props.getValue()) : getDepositsCell(props.row.original.deposits),
       header: (header) => (
         <HeaderWrapper
           header={header}
           infoTooltip={
-            isInLendingMode ? (
-              <div className="flex flex-col items-start gap-1 text-left">
-                <h4 className="text-base">Global deposit cap</h4>
-                Each marginfi pool has global deposit and borrow limits, also known as caps. This is the total amount
-                that all users combined can deposit or borrow of a given token.
-              </div>
-            ) : undefined
+            <p>
+              {isInLendingMode
+                ? "Total amount that all users combined can deposit or borrow of a given token."
+                : "Total available to borrow, based on the asset's borrow limit and available liquidity."}
+            </p>
           }
         >
-          {isInLendingMode ? "Global limit" : "Total Borrows"}
+          {isInLendingMode ? "Global limit" : "Available"}
         </HeaderWrapper>
       ),
       sortingFn: (rowA, rowB) => {
-        return rowA.original.bankCap.bankCap - rowB.original.bankCap.bankCap;
+        if (isInLendingMode) {
+          return rowA.original.bankCap.bankCap - rowB.original.bankCap.bankCap;
+        } else {
+          const bankAInfo = rowA.original.bankCap.bank.info;
+          const bankBInfo = rowB.original.bankCap.bank.info;
+          const tvlA = bankAInfo.rawBank.computeTvl(bankAInfo.oraclePrice).toNumber();
+          const tvlB = bankBInfo.rawBank.computeTvl(bankBInfo.oraclePrice).toNumber();
+          return tvlA - tvlB;
+        }
       },
       footer: (props) => props.column.id,
     }),
@@ -267,16 +255,7 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
       id: "utilization",
       cell: (props) => getUtilizationCell(props.getValue()),
       header: (header) => (
-        <HeaderWrapper
-          header={header}
-          infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">Pool utilization</h4>
-              What percentage of supplied tokens have been borrowed. This helps determine interest rates. This is not
-              based on the global pool limits, which can limit utilization.
-            </div>
-          }
-        >
+        <HeaderWrapper header={header} infoTooltip={<p>The percentage of supplied tokens that have been borrowed.</p>}>
           Utilization
         </HeaderWrapper>
       ),

@@ -4,35 +4,37 @@ import { IconFilter, IconSearch, IconX } from "@tabler/icons-react";
 
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 
-import { useUiStore, useUserProfileStore } from "~/store";
+import { useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Input } from "~/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 const AssetListNav = () => {
-  const { connected } = useWallet();
-  const [
-    poolFilter,
-    setPoolFilter,
-    lendingMode,
-    setLendingMode,
-    assetListSearch,
-    setAssetListSearch,
-    isDenominationUsd,
-    setIsDenominationUsd,
-  ] = useUiStore((state) => [
-    state.poolFilter,
-    state.setPoolFilter,
-    state.lendingMode,
-    state.setLendingMode,
-    state.assetListSearch,
-    state.setAssetListSearch,
-    state.isDenominationUsd,
-    state.setIsDenominationUsd,
-  ]);
+  const [poolFilter, setPoolFilter, lendingMode, setLendingMode, assetListSearch, setAssetListSearch] = useUiStore(
+    (state) => [
+      state.poolFilter,
+      state.setPoolFilter,
+      state.lendingMode,
+      state.setLendingMode,
+      state.assetListSearch,
+      state.setAssetListSearch,
+    ]
+  );
+
+  const switchComponent = (
+    <Switch
+      className="data-[state=unchecked]:bg-chartreuse"
+      checked={lendingMode === LendingModes.BORROW}
+      onCheckedChange={(checked) => {
+        setLendingMode(checked ? LendingModes.BORROW : LendingModes.LEND);
+      }}
+      disabled={poolFilter === PoolTypes.NATIVE_STAKE}
+    />
+  );
 
   return (
     <div className="space-y-6 relative">
@@ -41,7 +43,7 @@ const AssetListNav = () => {
           <Label
             className={cn(
               "text-muted-foreground/60 hover:text-foreground/50 cursor-pointer transition-colors",
-              lendingMode === LendingModes.LEND && "text-foreground"
+              lendingMode === LendingModes.LEND && "text-foreground hover:text-foreground"
             )}
             onClick={() => {
               setLendingMode(LendingModes.LEND);
@@ -49,13 +51,20 @@ const AssetListNav = () => {
           >
             Lend
           </Label>
-          <Switch
-            className="data-[state=unchecked]:bg-chartreuse"
-            checked={lendingMode === LendingModes.BORROW}
-            onCheckedChange={(checked) => {
-              setLendingMode(checked ? LendingModes.BORROW : LendingModes.LEND);
-            }}
-          />
+          {poolFilter === PoolTypes.NATIVE_STAKE ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild className="translate-y-[2px]">
+                  <div>{switchComponent}</div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Native stake is not available in borrow mode.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            switchComponent
+          )}
           <Label
             className={cn(
               "text-muted-foreground/60 hover:text-foreground/50 cursor-pointer transition-colors",
@@ -81,14 +90,6 @@ const AssetListNav = () => {
             ✨ Native Stake
           </ToggleGroupItem>
         </ToggleGroup>
-        {/* <ToggleGroup type="single" value={lendingMode} onValueChange={setLendingMode} className="ml-auto">
-        <ToggleGroupItem value="lend" aria-label="Toggle lend">
-          Lend
-        </ToggleGroupItem>
-        <ToggleGroupItem value="borrow" aria-label="Toggle borrow">
-          Borrow
-        </ToggleGroupItem>
-      </ToggleGroup> */}
         <div className="relative w-full text-muted-foreground max-w-[320px] ml-auto">
           <IconSearch size={15} className="absolute top-2.5 left-4" />
           <Input
@@ -121,35 +122,6 @@ const AssetListNav = () => {
             <SelectItem value="lst">SOL / LST</SelectItem>
           </SelectContent>
         </Select>
-      </div>
-
-      <div
-        className={cn(
-          "absolute -bottom-[53px] z-50 right-1 flex shrink-0 items-center gap-2 text-sm",
-          !connected && "opacity-50"
-        )}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (connected) return;
-        }}
-      >
-        <Switch
-          id="usd-denominated"
-          checked={isDenominationUsd}
-          className="data-[state=unchecked]:bg-primary/20 data-[state=checked]:bg-primary/50"
-          onCheckedChange={() => {
-            setIsDenominationUsd(!isDenominationUsd);
-          }}
-        />
-        <Label
-          htmlFor="usd-denominated"
-          className={cn(
-            "transition-colors text-muted-foreground/60 cursor-pointer hover:text-foreground/50",
-            isDenominationUsd && "text-foreground/50"
-          )}
-        >
-          USD
-        </Label>
       </div>
     </div>
   );
