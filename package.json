@@ -26,9 +26,10 @@
     "start": "turbo run start --parallel",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/src/**/*.{ts,tsx,md,json}\"",
-    "release": "turbo run build && changeset version && changeset publish",
-    "update-dependencies": "node scripts/update-dependencies.js",
-    "revert-dependencies": "node scripts/revert-dependencies.js"
+    "beta-release": "turbo run build && node scripts/update-dependencies.js && yarn changeset pre enter beta && changeset version && changeset publish && node scripts/revert-dependencies.js",
+    "release": "turbo run build && node scripts/update-dependencies.js && changeset version && changeset publish && node scripts/revert-dependencies.js",
+    "workspace-dep-legacy": "node scripts/workspace-dep-legacy.js",
+    "workspace-dep": "node scripts/workspace-dep.js"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
