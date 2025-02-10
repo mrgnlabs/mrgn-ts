@@ -34,6 +34,7 @@ import {
   getRateCell,
   getUtilizationCell,
   getValidatorCell,
+  getValidatorRateCell,
 } from "../components";
 import { getAction } from "./columnDataUtils";
 
@@ -99,20 +100,24 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
       columnHelper.accessor("asset", {
         id: "validator",
         enableResizing: false,
-        size: 80,
+        size: 160,
         cell: (props) => getValidatorCell(props.getValue()),
         header: (header) => (
-          <HeaderWrapper
-            header={header}
-            align="left"
-            infoTooltip={
-              <div className="flex flex-col items-start gap-1 text-left">
-                <h4 className="text-base">Realtime prices</h4>
-                <span className="font-normal">Powered by Pyth and Switchboard.</span>
-              </div>
-            }
-          >
+          <HeaderWrapper header={header} align="left" infoTooltip={<p>Validator vote account public key.</p>}>
             Validator
+          </HeaderWrapper>
+        ),
+        enableSorting: false,
+        footer: (props) => props.column.id,
+      }),
+      columnHelper.accessor("asset", {
+        id: "validator-rate",
+        enableResizing: false,
+        size: 130,
+        cell: (props) => getValidatorRateCell(props.getValue()),
+        header: (header) => (
+          <HeaderWrapper header={header} align="right" infoTooltip={<p>Validator staking rewards.</p>}>
+            Staking APY
           </HeaderWrapper>
         ),
         enableSorting: false,

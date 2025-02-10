@@ -23,7 +23,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     return res.status(500).json({ error: "No validator API URL provided" });
   }
 
-  const validatorResponse = await fetch(process.env.VALIDATOR_API_URL!);
+  const validatorResponse = await fetch(
+    process.env.VALIDATOR_API_URL! + "/mrgn4t2JabSgvGnrCaHXMvz8ocr4F52scsxJnkQMQsQ"
+  );
 
   if (validatorResponse.ok) {
     const validatorData = await validatorResponse.json();
