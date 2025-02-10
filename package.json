@@ -26,7 +26,9 @@
     "start": "turbo run start --parallel",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/src/**/*.{ts,tsx,md,json}\"",
-    "release": "turbo run build && changeset version && changeset publish"
+    "release": "turbo run build && changeset version && changeset publish",
+    "update-dependencies": "node scripts/update-dependencies.js",
+    "revert-dependencies": "node scripts/revert-dependencies.js"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
