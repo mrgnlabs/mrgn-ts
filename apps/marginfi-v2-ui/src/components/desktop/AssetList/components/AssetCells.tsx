@@ -445,3 +445,11 @@ export const getValidatorCell = (asset: AssetData) => {
     </div>
   );
 };
+
+export const getValidatorRateCell = (asset: AssetData) => {
+  return (
+    <div className="text-right text-success">
+      {asset.stakePool?.validatorRewards ? percentFormatter.format(asset.stakePool?.validatorRewards / 100) : 0}
+    </div>
+  );
+};

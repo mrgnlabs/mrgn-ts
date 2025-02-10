@@ -5,6 +5,7 @@ import { LendingPosition, UserInfo } from "./token.types";
 
 interface StakePoolMetadata {
   validatorVoteAccount: PublicKey;
+  validatorRewards: number;
   isActive: boolean;
 }
 
