@@ -43,6 +43,7 @@ export interface DepositsData {
   isBankFilled: boolean;
   bankCap: number;
   bankDeposits: number;
+  bankDepositsUsd: number;
   capacity: number;
   available: number;
   symbol: string;
@@ -53,6 +54,7 @@ export interface DepositsData {
 
 export interface BankCapData {
   bankCap: number;
+  bankCapUsd: number;
   denominationUSD: boolean;
   bank: ExtendedBankInfo;
 }
@@ -188,11 +190,11 @@ export const getDepositsData = (
 
   const isReduceOnly = bank?.meta?.tokenSymbol ? REDUCE_ONLY_BANKS.includes(bank.meta.tokenSymbol) : false;
 
-  const bankDeposits =
-    (isInLendingMode
-      ? bank.info.state.totalDeposits
-      : Math.min(bank.info.state.availableLiquidity, bank.info.state.borrowCap - bank.info.state.totalBorrows)) *
-    (denominationUSD ? bank.info.state.price : 1);
+  const bankDeposits = isInLendingMode
+    ? bank.info.state.totalDeposits
+    : Math.min(bank.info.state.availableLiquidity, bank.info.state.borrowCap - bank.info.state.totalBorrows);
+
+  const bankDepositsUsd = bankDeposits * bank.info.state.price;
 
   const capacity = (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap;
 
@@ -206,6 +208,7 @@ export const getDepositsData = (
     isBankFilled,
     bankCap,
     bankDeposits,
+    bankDepositsUsd,
     capacity,
     available,
     symbol: bank.meta.tokenSymbol,
@@ -225,11 +228,12 @@ export const getBankCapData = (
     bank.info.state.mintDecimals
   );
 
-  const bankCap =
-    (isInLendingMode ? bankCapUi : bank.info.state.totalBorrows) * (denominationUSD ? bank.info.state.price : 1);
+  const bankCap = isInLendingMode ? bankCapUi : bank.info.state.totalBorrows;
+  const bankCapUsd = bankCap * bank.info.state.price;
 
   return {
     bankCap,
+    bankCapUsd,
     denominationUSD,
     bank,
   };

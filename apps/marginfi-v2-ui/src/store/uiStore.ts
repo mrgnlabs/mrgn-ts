@@ -141,7 +141,13 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
       lendingMode: lendingMode,
     }),
   setIsOraclesStale: (isOraclesStale: boolean) => set({ isOraclesStale: isOraclesStale }),
-  setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
+  setPoolFilter: (poolType: PoolTypes) => {
+    // force lend mode for native stake
+    if (poolType === PoolTypes.NATIVE_STAKE) {
+      set({ lendingMode: LendingModes.LEND });
+    }
+    set({ poolFilter: poolType });
+  },
   setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
   setAssetListSearch: (search: string) => set({ assetListSearch: search }),
   setIsDenominationUsd: (isDenominationUsd: boolean) => set({ isDenominationUsd }),
