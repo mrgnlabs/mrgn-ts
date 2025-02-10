@@ -69,7 +69,6 @@ export type LendBoxProps = {
   hidePoolStats?: HidePoolStats;
   stakeAccounts?: ValidatorStakeGroup[];
 
-  isTokenSelectorOpen?: boolean;
   searchMode?: boolean;
   onCloseDialog?: () => void;
   setShouldBeHidden?: (hidden: boolean) => void;
@@ -585,7 +584,7 @@ export const LendBox = ({
           showTokenSelectionGroups={showTokenSelectionGroups}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
-          isTokenSelectorOpen={searchMode}
+          searchMode={searchMode}
           onCloseDialog={() => {
             searchMode && onCloseDialog?.();
           }}
