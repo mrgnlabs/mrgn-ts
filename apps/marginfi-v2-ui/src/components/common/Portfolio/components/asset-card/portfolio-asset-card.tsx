@@ -1,13 +1,15 @@
 import React from "react";
 
 import Image from "next/image";
-import { IconAlertTriangle, IconFolderShare } from "@tabler/icons-react";
+import { IconAlertTriangle, IconExternalLink, IconFolderShare, IconInfoCircle } from "@tabler/icons-react";
 
 import {
   usdFormatter,
   dynamicNumeralFormatter,
   groupedNumberFormatter,
   tokenPriceFormatter,
+  percentFormatter,
+  shortenAddress,
 } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { capture } from "@mrgnlabs/mrgn-utils";
@@ -22,6 +24,10 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { MovePositionDialog } from "../move-position";
+import { TooltipProvider } from "~/components/ui/tooltip";
+import { TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
+import { Tooltip } from "~/components/ui/tooltip";
+import Link from "next/link";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -98,12 +104,37 @@ export const PortfolioAssetCard = ({
                     width={40}
                   />
                 </div>
-                <dl>
-                  <dt className="font-medium text-lg">{bank.meta.tokenSymbol}</dt>
-                  <dd className={cn("text-sm font-normal", isInLendingMode ? "text-success" : "text-warning")}>
-                    {rateAP.concat(...[" ", "APY"])}
-                  </dd>
-                </dl>
+                <ul>
+                  <li className="font-medium text-lg">{bank.meta.tokenSymbol}</li>
+                  {bank.info.rawBank.config.assetTag === 2 ? (
+                    <li className="font-normal flex items-center text-sm text-muted-foreground">
+                      {bank.meta.stakePool?.validatorRewards && (
+                        <>
+                          <span className="text-success">
+                            {percentFormatter.format(bank.meta.stakePool?.validatorRewards / 100)}
+                          </span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex items-center gap-1 ml-2">
+                                  <span className="text-xs">Staking APY</span>
+                                  <IconInfoCircle size={14} />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Staking rewards from the validator.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </>
+                      )}
+                    </li>
+                  ) : (
+                    <li className={cn("text-sm font-normal", isInLendingMode ? "text-success" : "text-warning")}>
+                      {rateAP.concat(...[" ", "APY"])}
+                    </li>
+                  )}
+                </ul>
               </div>
               <div className="flex flex-col items-end mr-2">
                 <div className="font-medium text-lg">
@@ -157,6 +188,22 @@ export const PortfolioAssetCard = ({
           )}
           <div className="bg-background/60 py-3 px-4 rounded-lg">
             <dl className="grid grid-cols-2 gap-y-0.5">
+              {bank.info.rawBank.config.assetTag === 2 && bank.meta.stakePool?.validatorVoteAccount && (
+                <>
+                  <dt className="text-muted-foreground">Validator</dt>
+                  <dd className="text-right text-white">
+                    <Link
+                      href={`https://solscan.io/account/${bank.meta.stakePool?.validatorVoteAccount}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-end gap-1 transition-colors hover:text-chartreuse"
+                    >
+                      <IconExternalLink size={14} className="text-muted-foreground" />
+                      {shortenAddress(bank.meta.stakePool?.validatorVoteAccount)}
+                    </Link>
+                  </dd>
+                </>
+              )}
               <dt className="text-muted-foreground">Value</dt>
               <dd className="text-right text-white">
                 {bank.position.amount > 1000

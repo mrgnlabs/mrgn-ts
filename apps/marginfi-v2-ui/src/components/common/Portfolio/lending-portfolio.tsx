@@ -262,7 +262,7 @@ export const LendingPortfolio = () => {
     <div className="py-4 md:py-6 flex flex-col w-full mb-10 gap-4">
       {hasMultipleAccount && (
         <div className="flex flex-col w-max items-start gap-1 ">
-          <p className="text-sm text-muted-foreground ">Manage accounts</p>
+          <p className="text-sm text-muted-foreground">Manage accounts</p>
           <WalletAuthAccounts
             initialized={true}
             mfiClient={marginfiClient}
