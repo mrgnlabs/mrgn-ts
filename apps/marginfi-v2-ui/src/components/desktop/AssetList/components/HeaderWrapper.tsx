@@ -14,38 +14,43 @@ interface HeaderWrapperProps {
 }
 
 export const HeaderWrapper = ({ header, infoTooltip, align = "right", children }: HeaderWrapperProps) => {
+  const colSort = header.column.getCanSort() ? (
+    header.column.getNextSortingOrder() === "asc" ? (
+      <IconSortDescending size={18} />
+    ) : header.column.getNextSortingOrder() === "desc" ? undefined : (
+      <IconSortAscending size={18} />
+    )
+  ) : undefined;
+
   return (
     <div
       className={cn(
-        "text-[#A1A1A1] text-sm font-light border-none flex items-center gap-1",
+        "text-muted-foreground text-sm font-light border-none flex items-center gap-1",
         align === "left" && "justify-start",
         align === "right" && "justify-end",
         header.column.getCanSort() ? "cursor-pointer select-none" : ""
       )}
       onClick={header.column.getToggleSortingHandler()}
     >
-      {children}
-
-      {header.column.getCanSort() ? (
-        header.column.getNextSortingOrder() === "asc" ? (
-          <IconSortDescending size={18} />
-        ) : header.column.getNextSortingOrder() === "desc" ? undefined : (
-          <IconSortAscending size={18} />
-        )
-      ) : undefined}
-
-      <div>
-        {infoTooltip && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
+      {infoTooltip ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1">
+                {children}
                 <IconInfoCircle size={14} />
-              </TooltipTrigger>
-              <TooltipContent>{infoTooltip}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}{" "}
-      </div>
+                {colSort}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>{infoTooltip}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        <>
+          {children}
+          {colSort}
+        </>
+      )}
     </div>
   );
 };
