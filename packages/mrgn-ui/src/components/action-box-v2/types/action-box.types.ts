@@ -10,7 +10,7 @@ import { ActionDialogProps } from "~/components/action-box-v2/components";
 
 type ActionBoxDialogProps = {
   isDialog: true;
-  dialogProps?: ActionDialogProps;
+  dialogProps: ActionDialogProps;
 };
 
 type ActionBoxWithoutDailogProps = {
