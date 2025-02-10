@@ -145,9 +145,7 @@ export const LendBox = ({
   ]);
 
   React.useEffect(() => {
-    if (searchMode && !selectedBank) {
-      setShouldBeHidden?.(true);
-    } else {
+    if (searchMode && selectedBank) {
       setShouldBeHidden?.(false);
     }
   }, [searchMode, selectedBank, setShouldBeHidden]);
