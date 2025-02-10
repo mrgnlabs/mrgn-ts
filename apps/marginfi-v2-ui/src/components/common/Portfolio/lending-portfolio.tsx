@@ -272,7 +272,6 @@ export const LendingPortfolio = () => {
             fetchMrgnlendState={fetchMrgnlendState}
             closeOnSwitch={true}
             popoverContentAlign="start"
-            // showAddAccountButton={false}
             processOpts={{
               ...priorityFees,
               broadcastType,
