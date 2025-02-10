@@ -1,15 +1,13 @@
 import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/router";
 
-import { VersionedTransaction } from "@solana/web3.js";
 import { IconInfoCircle, IconX } from "@tabler/icons-react";
 import { Id, toast } from "react-toastify";
 
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { cn, LendingModes, usePrevious } from "@mrgnlabs/mrgn-utils";
+import { cn, usePrevious } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
@@ -17,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { WalletAuthAccounts, WalletButton } from "~/components/wallet-v2";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Loader } from "~/components/ui/loader";
+
 import { RewardsDialog } from "./components/rewards";
 
 import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats } from "./components";
@@ -34,7 +33,6 @@ const initialRewardsState: RewardsType = {
 };
 
 export const LendingPortfolio = () => {
-  const router = useRouter();
   const { connected } = useWallet();
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
   const [
@@ -56,23 +54,15 @@ export const LendingPortfolio = () => {
     state.marginfiAccounts,
     state.fetchMrgnlendState,
   ]);
-  const [
-    setLendingMode,
-    priorityFees,
-    broadcastType,
-    accountLabels,
-    fetchAccountLabels,
-    setGlobalActionBoxProps,
-    globalActionBoxProps,
-  ] = useUiStore((state) => [
-    state.setLendingMode,
-    state.priorityFees,
-    state.broadcastType,
-    state.accountLabels,
-    state.fetchAccountLabels,
-    state.setGlobalActionBoxProps,
-    state.globalActionBoxProps,
-  ]);
+  const [priorityFees, broadcastType, accountLabels, setGlobalActionBoxProps, globalActionBoxProps] = useUiStore(
+    (state) => [
+      state.priorityFees,
+      state.broadcastType,
+      state.accountLabels,
+      state.setGlobalActionBoxProps,
+      state.globalActionBoxProps,
+    ]
+  );
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
   // Rewards
@@ -246,9 +236,9 @@ export const LendingPortfolio = () => {
     return <WalletButton />;
   }
 
-  // if (isLoading) {
-  //   return <Loader label={connected ? "Loading positions" : "Loading"} />;
-  // }
+  if (isLoading) {
+    return <Loader label={connected ? "Loading positions" : "Loading"} />;
+  }
 
   if (isStoreInitialized && connected && !hasMultipleAccount) {
     if (!lendingBanks.length && !borrowingBanks.length) {
@@ -409,13 +399,11 @@ export const LendingPortfolio = () => {
                   ))}
                 </div>
               ) : (
-                <div color="#868E95" className="font-aeonik font-[300] text-sm flex gap-1">
+                <div className="text-muted-foreground flex gap-1">
                   No lending positions found.
-                  <button
-                    className="border-b border-primary/50 transition-colors hover:border-primary "
+                  <span
+                    className="border-b border-primary/50 transition-colors hover:border-primary cursor-pointer"
                     onClick={() => {
-                      // setLendingMode(LendingModes.BORROW);
-                      // router.push("/");
                       setGlobalActionBoxProps({
                         ...globalActionBoxProps,
                         isOpen: true,
@@ -424,7 +412,7 @@ export const LendingPortfolio = () => {
                     }}
                   >
                     Search the pools
-                  </button>{" "}
+                  </span>{" "}
                   to lend assets.
                 </div>
               )
@@ -450,18 +438,16 @@ export const LendingPortfolio = () => {
                   ))}
                 </div>
               ) : (
-                <div color="#868E95" className="inline font-aeonik font-[300]  text-sm">
+                <div className="text-muted-foreground flex gap-1">
                   No borrow positions found.{" "}
-                  <button
-                    className="border-b border-primary/50 transition-colors hover:border-primary "
+                  <span
+                    className="border-b border-primary/50 transition-colors hover:border-primary cursor-pointer"
                     onClick={() => {
-                      // setLendingMode(LendingModes.BORROW);
-                      // router.push("/");
                       setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: true, actionType: ActionType.Borrow });
                     }}
                   >
                     Search the pools
-                  </button>{" "}
+                  </span>{" "}
                   and open a new borrow.
                 </div>
               )

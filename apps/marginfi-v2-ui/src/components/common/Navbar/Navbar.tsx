@@ -16,7 +16,6 @@ import { useConnection } from "~/hooks/use-connection";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 import { IconMrgn } from "~/components/ui/icons";
-import { Input } from "~/components/ui/input";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
@@ -185,9 +184,8 @@ export const Navbar: FC = () => {
                 }}
                 className="hidden sm:flex py-2 px-4 border border-background-gray-hover flex-row items-center justify-between w-48 text-muted-foreground cursor-pointer "
               >
-                <div className="">Search pools...</div>
-
-                <div className={cn("")}>⌘ K</div>
+                <span>Search pools...</span>
+                <span>⌘ K</span>
               </Button>
 
               <Popover>

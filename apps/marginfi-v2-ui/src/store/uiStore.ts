@@ -44,6 +44,11 @@ const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
   },
 };
 
+type GlobalActionBoxProps = {
+  isOpen: boolean;
+  actionType: ActionType;
+};
+
 interface UiState {
   // State
   isMenuDrawerOpen: boolean;
@@ -61,11 +66,7 @@ interface UiState {
   accountLabels: Record<string, string>;
   displaySettings: boolean;
   jupiterOptions: JupiterOptions;
-  globalActionBoxProps: {
-    isOpen: boolean;
-    isTokenSelectorOpen: boolean;
-    actionType: ActionType;
-  };
+  globalActionBoxProps: GlobalActionBoxProps;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -81,7 +82,7 @@ interface UiState {
   fetchAccountLabels: (accounts: MarginfiAccountWrapper[]) => Promise<void>;
   setDisplaySettings: (displaySettings: boolean) => void;
   setJupiterOptions: (jupiterOptions: JupiterOptions) => void;
-  setGlobalActionBoxProps: (props: { isOpen: boolean; isTokenSelectorOpen: boolean; actionType: ActionType }) => void;
+  setGlobalActionBoxProps: (props: GlobalActionBoxProps) => void;
 }
 
 function createUiStore() {
@@ -99,7 +100,6 @@ function createUiStore() {
         if (state?.globalActionBoxProps) {
           state.globalActionBoxProps = {
             isOpen: false,
-            isTokenSelectorOpen: true,
             actionType: ActionType.Deposit,
           };
         } // Rehydrating this to ensure the global action box doesnt open on render
@@ -125,7 +125,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   jupiterOptions: defaultJupiterOptions,
   globalActionBoxProps: {
     isOpen: false,
-    isTokenSelectorOpen: true,
     actionType: ActionType.Deposit,
   },
 

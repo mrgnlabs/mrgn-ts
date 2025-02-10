@@ -24,7 +24,7 @@ type ActionInputProps = {
   showTokenSelectionGroups?: boolean;
   isMini?: boolean;
 
-  isTokenSelectorOpen?: boolean;
+  searchMode?: boolean;
   onCloseDialog?: () => void;
 
   setAmountRaw: (amount: string) => void;
@@ -45,7 +45,7 @@ export const ActionInput = ({
   amount,
   selectedBank,
   lendMode,
-  isTokenSelectorOpen,
+  searchMode,
   onCloseDialog,
   setAmountRaw,
   setSelectedBank,
@@ -103,7 +103,7 @@ export const ActionInput = ({
             nativeSolBalance={nativeSolBalance}
             lendMode={lendMode}
             connected={connected}
-            isInitialOpen={isTokenSelectorOpen}
+            isInitialOpen={searchMode}
             onCloseDialog={() => {
               selectedBank === null && onCloseDialog?.();
             }}
