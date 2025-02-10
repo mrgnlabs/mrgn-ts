@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
-    "@mrgnlabs/marginfi-client-v2": "*",
-    "@mrgnlabs/mrgn-common": "*",
+    "@mrgnlabs/marginfi-client-v2": "workspace:*",
+    "@mrgnlabs/mrgn-common": "workspace:*",
     "@solana/wallet-adapter-base": "^0.9.20",
     "@solana/web3.js": "^1.91.3",
     "bignumber.js": "^9.1.1",
