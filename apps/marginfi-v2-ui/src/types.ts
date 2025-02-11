@@ -257,26 +257,6 @@ export type MayanSwapInfo = {
   fromAmount: number;
 };
 
-export type SortAssetOption = {
-  label: string;
-  borrowLabel?: string;
-  value: SortType;
-  field: "APY" | "TVL";
-  direction: sortDirection;
-};
-
-export enum sortDirection {
-  ASC = "ASC",
-  DESC = "DESC",
-}
-
-export enum SortType {
-  APY_ASC = "APY_ASC",
-  APY_DESC = "APY_DESC",
-  TVL_ASC = "TVL_ASC",
-  TVL_DESC = "TVL_DESC",
-}
-
 export type PreviousTxn = {
   type: ActionType;
   bank: ActiveBankInfo;
