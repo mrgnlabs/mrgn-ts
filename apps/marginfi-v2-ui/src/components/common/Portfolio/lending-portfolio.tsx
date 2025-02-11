@@ -259,25 +259,27 @@ export const LendingPortfolio = () => {
   }
 
   return (
-    <div className="py-4 md:py-6 flex flex-col w-full mb-10 gap-4">
+    <div className="py-4 md:py-6 flex flex-col w-full mb-10 gap-2">
       {hasMultipleAccount && (
-        <div className="flex flex-col w-max items-start gap-1 ">
-          <p className="text-sm text-muted-foreground">Manage accounts</p>
-          <WalletAuthAccounts
-            initialized={true}
-            mfiClient={marginfiClient}
-            connection={marginfiClient?.provider.connection ?? null}
-            marginfiAccounts={marginfiAccounts}
-            selectedAccount={selectedAccount}
-            fetchMrgnlendState={fetchMrgnlendState}
-            closeOnSwitch={true}
-            popoverContentAlign="start"
-            processOpts={{
-              ...priorityFees,
-              broadcastType,
-            }}
-            accountLabels={accountLabels}
-          />
+        <div className="flex w-max justify-center gap-1.5">
+          <p className="text-sm text-muted-foreground">Manage accounts:</p>
+          <div className="-translate-y-1.5">
+            <WalletAuthAccounts
+              initialized={true}
+              mfiClient={marginfiClient}
+              connection={marginfiClient?.provider.connection ?? null}
+              marginfiAccounts={marginfiAccounts}
+              selectedAccount={selectedAccount}
+              fetchMrgnlendState={fetchMrgnlendState}
+              closeOnSwitch={true}
+              popoverContentAlign="start"
+              processOpts={{
+                ...priorityFees,
+                broadcastType,
+              }}
+              accountLabels={accountLabels}
+            />
+          </div>
         </div>
       )}
       <div className="p-4 md:p-6 rounded-xl space-y-3 w-full bg-background-gray-dark">
