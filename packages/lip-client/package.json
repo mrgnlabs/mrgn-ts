@@ -18,6 +18,7 @@
     "@solana/wallet-adapter-base": "^0.9.20",
     "@solana/web3.js": "^1.91.3",
     "bignumber.js": "^9.1.1",
+    "bn.js": "^5.2.1",
     "bs58": "^5.0.0",
     "decimal.js": "^10.4.3",
     "superstruct": "^1.0.3"
