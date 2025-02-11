@@ -259,20 +259,31 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
         }
       },
       footer: (props) => props.column.id,
-    }),
-    columnHelper.accessor("utilization", {
-      id: "utilization",
-      cell: (props) => getUtilizationCell(props.getValue()),
-      header: (header) => (
-        <HeaderWrapper header={header} infoTooltip={<p>The percentage of supplied tokens that have been borrowed.</p>}>
-          Utilization
-        </HeaderWrapper>
-      ),
-      sortingFn: (rowA, rowB) => {
-        return rowA.original.utilization.utilization - rowB.original.utilization.utilization;
-      },
-      footer: (props) => props.column.id,
-    }),
+    })
+  );
+
+  if (poolType !== PoolTypes.NATIVE_STAKE) {
+    columns.push(
+      columnHelper.accessor("utilization", {
+        id: "utilization",
+        cell: (props) => getUtilizationCell(props.getValue()),
+        header: (header) => (
+          <HeaderWrapper
+            header={header}
+            infoTooltip={<p>The percentage of supplied tokens that have been borrowed.</p>}
+          >
+            Utilization
+          </HeaderWrapper>
+        ),
+        sortingFn: (rowA, rowB) => {
+          return rowA.original.utilization.utilization - rowB.original.utilization.utilization;
+        },
+        footer: (props) => props.column.id,
+      })
+    );
+  }
+
+  columns.push(
     columnHelper.accessor("action", {
       id: "action",
       header: () => <></>,

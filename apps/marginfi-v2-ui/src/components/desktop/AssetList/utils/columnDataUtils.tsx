@@ -47,7 +47,7 @@ const ActionBoxCell = ({
         dialogProps={{
           title: `${currentAction} ${bank.meta.tokenSymbol}`,
           trigger: (
-            <Button variant="secondary" className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground">
+            <Button variant="secondary" className="w-full md:w-[120px] hover:bg-primary hover:text-primary-foreground">
               {showCloseBalance ? "Close" : currentAction}
             </Button>
           ),
@@ -74,7 +74,7 @@ const ActionBoxCell = ({
           trigger: (
             <Button
               variant="secondary"
-              className="w-full max-w-[140px] hover:bg-primary hover:text-primary-foreground"
+              className="w-full md:w-[120px] hover:bg-primary hover:text-primary-foreground"
               disabled={bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakePool?.isActive}
             >
               {showCloseBalance ? "Close" : currentAction}
