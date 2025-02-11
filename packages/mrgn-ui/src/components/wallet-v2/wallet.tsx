@@ -210,18 +210,18 @@ const Wallet = ({
             {wallet?.publicKey && (
               <button
                 disabled={!userDataFetched}
-                className="flex items-center gap-2 hover:bg-accent/50 transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground"
+                className="flex items-center gap-2 hover:bg-accent/50 transition-colors rounded-full py-1 pr-3 pl-1 text-sm text-muted-foreground font-normal shrink-0"
               >
                 <WalletAvatar pfp={pfp} address={wallet?.publicKey.toBase58()} size="sm" />
                 {userDataFetched && wallet?.publicKey ? (
                   <>
                     <div className="flex flex-col items-start">
                       {shortenAddress(wallet?.publicKey)}
-                      <div className="text-muted-foreground text-xs">
+                      <div className="text-muted-foreground/70 text-xs">
                         {accountLabels?.[selectedAccount?.address.toBase58() ?? "Account"]}
                       </div>
                     </div>
-                    <IconChevronDown size={16} />
+                    <IconChevronDown size={16} className="ml-4" />
                   </>
                 ) : (
                   "Loading..."
