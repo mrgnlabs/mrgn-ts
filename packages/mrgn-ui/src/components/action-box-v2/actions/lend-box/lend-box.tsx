@@ -140,14 +140,23 @@ export const LendBox = ({
     state.setSelectedStakeAccount,
   ]);
 
+  // hide action box when search mode is on and no bank is selected
   React.useEffect(() => {
     if (searchMode && selectedBank) {
       setShouldBeHidden?.(false);
     } else if (searchMode && !selectedBank) {
       setShouldBeHidden?.(true);
-      refreshState();
     }
-  }, [searchMode, selectedBank, setShouldBeHidden, refreshState]);
+  }, [searchMode, selectedBank, setShouldBeHidden]);
+
+  // refresh state when search mode is on and a bank is selected, specific for searchmode. This is for initial load in searchMode
+  const hasRefreshedState = React.useRef(false);
+  React.useEffect(() => {
+    if (searchMode && selectedBank && !hasRefreshedState.current) {
+      refreshState();
+      hasRefreshedState.current = true;
+    }
+  }, [searchMode, selectedBank, refreshState]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
