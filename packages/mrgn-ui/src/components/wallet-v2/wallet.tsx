@@ -240,7 +240,7 @@ const Wallet = ({
                   <WalletAvatar pfp={pfp} address={walletData.address} size="md" className=" " />
 
                   {!headerComponent && mfiClient && marginfiAccounts && selectedAccount && (
-                    <div className="flex relative flex-col items-start gap-1 ">
+                    <div className="flex relative flex-col items-start gap-1.5">
                       <p className="text-xs self-center text-muted-foreground ">Manage accounts</p>
 
                       <WalletAuthAccounts
