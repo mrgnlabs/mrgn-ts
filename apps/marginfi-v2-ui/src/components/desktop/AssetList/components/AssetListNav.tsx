@@ -26,6 +26,7 @@ const AssetListNav = () => {
     ]
   );
   const [isSearchExpanded, setIsSearchExpanded] = React.useState(false);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   const switchComponent = (
     <Switch
@@ -95,16 +96,22 @@ const AssetListNav = () => {
             variant="ghost"
             size="icon"
             className={cn("flex rounded-md", isSearchExpanded && "hidden")}
-            onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+            onClick={() => {
+              setIsSearchExpanded(!isSearchExpanded);
+              setTimeout(() => {
+                searchInputRef.current?.focus();
+              }, 100);
+            }}
           >
             <IconSearch size={15} />
           </Button>
           <div className={cn("hidden", isSearchExpanded && "block")}>
-            <IconSearch size={15} className="absolute top-3 left-4" />
+            <IconSearch size={15} className="absolute top-[11px] left-4" />
             <Input
               placeholder="Search assets"
-              className="py-2 h-auto px-10 w-full rounded-full border-background-gray-hover transition-colors focus:text-primary/70 focus-visible:ring-primary/50"
+              className="py-1 h-9 px-10 w-full rounded-lg border-background-gray-hover transition-colors focus:text-primary/70 focus-visible:ring-primary/50"
               value={assetListSearch}
+              ref={searchInputRef}
               onChange={(e) => {
                 setAssetListSearch(e.target.value);
               }}
@@ -116,7 +123,7 @@ const AssetListNav = () => {
             />
             <IconX
               size={15}
-              className="absolute top-3 right-3 cursor-pointer"
+              className="absolute top-[11px] right-3 cursor-pointer"
               onClick={() => {
                 setAssetListSearch("");
                 setIsSearchExpanded(false);
