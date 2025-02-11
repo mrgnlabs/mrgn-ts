@@ -32,8 +32,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     const validatorData = await validatorResponse.json();
 
-    console.log(validatorData);
-
     res.setHeader("Cache-Control", "public, max-age=14400");
     return res.status(200).json({
       data: {
