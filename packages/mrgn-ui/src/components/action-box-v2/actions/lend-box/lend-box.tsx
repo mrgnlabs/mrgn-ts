@@ -145,8 +145,9 @@ export const LendBox = ({
       setShouldBeHidden?.(false);
     } else if (searchMode && !selectedBank) {
       setShouldBeHidden?.(true);
+      refreshState();
     }
-  }, [searchMode, selectedBank, setShouldBeHidden]);
+  }, [searchMode, selectedBank, setShouldBeHidden, refreshState]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
@@ -209,7 +210,6 @@ export const LendBox = ({
   }, [refreshState, connected, lendMode]);
 
   React.useEffect(() => {
-    console.log("refreshState");
     return () => {
       refreshState();
     };
