@@ -80,6 +80,11 @@ function createUiStore() {
             actionType: ActionType.Deposit,
           };
         } // Rehydrating this to ensure the global action box doesnt open on render
+
+        // "all" is an old value set to "global"
+        if (state?.poolFilter === PoolTypes.ALL) {
+          state.poolFilter = PoolTypes.GLOBAL;
+        }
       },
     })
   );

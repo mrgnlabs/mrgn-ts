@@ -52,7 +52,15 @@ const AssetListNav = () => {
   return (
     <div className="relative">
       <div className="flex justify-between items-center bg-background-gray p-2 rounded-lg">
-        <ToggleGroup type="single" value={poolFilter} onValueChange={setPoolFilter} className="shrink-0">
+        <ToggleGroup
+          type="single"
+          value={poolFilter}
+          onValueChange={(value) => {
+            if (!value) return;
+            setPoolFilter(value as PoolTypes);
+          }}
+          className="shrink-0"
+        >
           <ToggleGroupItem value="global" aria-label="Toggle global">
             Global
           </ToggleGroupItem>
