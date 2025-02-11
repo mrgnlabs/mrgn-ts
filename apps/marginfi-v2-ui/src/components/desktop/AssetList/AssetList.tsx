@@ -4,114 +4,83 @@ import Link from "next/link";
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
 import { IconExternalLink } from "@tabler/icons-react";
 
-import { ExtendedBankInfo, ActiveBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
+import { STABLECOINS, LSTS, MEMES } from "~/config/constants";
 
-import { LSTDialog, LSTDialogVariants, sortApRate, sortTvl, STABLECOINS, LSTS } from "~/components/common/AssetList";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
-import { AssetRow, AssetListNav } from "./components";
+import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./components";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Button } from "~/components/ui/button";
+import { TokenFilters } from "~/store/uiStore";
 
 export const AssetsList = () => {
-  const [
-    isStoreInitialized,
-    extendedBankInfos,
-    nativeSolBalance,
-    selectedAccount,
-    fetchMrgnlendState,
-    stakedAssetBankInfos,
-  ] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.extendedBankInfos,
-    state.nativeSolBalance,
-    state.selectedAccount,
-    state.fetchMrgnlendState,
-    state.stakedAssetBankInfos,
-  ]);
-  const [poolFilter, isFilteredUserPositions, sortOption, lendingMode, isDenominationUsd] = useUiStore((state) => [
+  const [extendedBankInfos, nativeSolBalance, selectedAccount, fetchMrgnlendState, stakedAssetBankInfos] =
+    useMrgnlendStore((state) => [
+      state.extendedBankInfos,
+      state.nativeSolBalance,
+      state.selectedAccount,
+      state.fetchMrgnlendState,
+      state.stakedAssetBankInfos,
+    ]);
+  const [poolFilter, isFilteredUserPositions, lendingMode, tokenFilter, setTokenFilter] = useUiStore((state) => [
     state.poolFilter,
     state.isFilteredUserPositions,
-    state.sortOption,
     state.lendingMode,
-    state.isDenominationUsd,
+    state.tokenFilter,
+    state.setTokenFilter,
   ]);
   const { connected, walletContextState } = useWallet();
 
-  const inputRefs = React.useRef<Record<string, HTMLInputElement | null>>({});
-  const [isHotkeyMode, setIsHotkeyMode] = React.useState(false);
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
 
   const isInLendingMode = React.useMemo(() => lendingMode === LendingModes.LEND, [lendingMode]);
 
-  const sortBanks = React.useCallback(
-    (banks: ExtendedBankInfo[]) => {
-      if (sortOption.field === "APY") {
-        return sortApRate(banks, isInLendingMode, sortOption.direction);
-      } else if (sortOption.field === "TVL") {
-        return sortTvl(banks, sortOption.direction);
-      } else {
-        return banks;
+  const filterBanksByTokenType = React.useCallback(
+    (banks: typeof extendedBankInfos) => {
+      if (tokenFilter === TokenFilters.STABLE) {
+        return banks.filter((b) => STABLECOINS.includes(b.meta.tokenSymbol));
+      } else if (tokenFilter === TokenFilters.LST) {
+        return banks.filter((b) => LSTS.includes(b.meta.tokenSymbol));
+      } else if (tokenFilter === TokenFilters.MEME) {
+        return banks.filter((b) => MEMES.includes(b.meta.tokenSymbol));
       }
+      return banks;
     },
-    [isInLendingMode, sortOption]
+    [tokenFilter]
   );
-
-  const sortedBanks = React.useMemo(() => {
-    let filteredBanks = extendedBankInfos;
-
-    if (poolFilter === "global") {
-      filteredBanks = filteredBanks.filter((b) => b.info.rawBank.config.assetTag !== 2 && !b.info.state.isIsolated);
-    } else if (poolFilter === "isolated") {
-      filteredBanks = filteredBanks.filter((b) => b.info.state.isIsolated);
-    } else if (poolFilter === "stable") {
-      filteredBanks = filteredBanks.filter((b) => STABLECOINS.includes(b.meta.tokenSymbol));
-    } else if (poolFilter === "lst") {
-      filteredBanks = filteredBanks.filter((b) => LSTS.includes(b.meta.tokenSymbol));
-    }
-
-    if (isStoreInitialized && sortOption) {
-      return sortBanks(filteredBanks);
-    } else {
-      return filteredBanks;
-    }
-  }, [isStoreInitialized, poolFilter, extendedBankInfos, sortOption, sortBanks]);
 
   // non isolated, non staked asset banks
   const globalBanks = React.useMemo(() => {
-    return (
-      sortedBanks &&
-      sortedBanks
-        .filter((b) => b.info.rawBank.config.assetTag !== 2 && !b.info.state.isIsolated)
-        .filter((b) => (isFilteredUserPositions ? b.isActive : true))
-    );
-  }, [isFilteredUserPositions, sortedBanks]);
+    const banks = extendedBankInfos
+      .filter((b) => b.info.rawBank.config.assetTag !== 2 && !b.info.state.isIsolated)
+      .filter((b) => (isFilteredUserPositions ? b.isActive : true));
+
+    return filterBanksByTokenType(banks);
+  }, [isFilteredUserPositions, extendedBankInfos, filterBanksByTokenType]);
 
   // isolated, non staked asset banks
   const isolatedBanks = React.useMemo(() => {
-    return (
-      sortedBanks &&
-      sortedBanks
-        .filter((b) => b.info.rawBank.config.assetTag !== 2 && b.info.state.isIsolated)
-        .filter((b) => (isFilteredUserPositions ? b.isActive : true))
-    );
-  }, [sortedBanks, isFilteredUserPositions]);
+    const banks = extendedBankInfos
+      .filter((b) => b.info.rawBank.config.assetTag !== 2 && b.info.state.isIsolated)
+      .filter((b) => (isFilteredUserPositions ? b.isActive : true));
+
+    return filterBanksByTokenType(banks);
+  }, [isFilteredUserPositions, extendedBankInfos, filterBanksByTokenType]);
 
   // staked asset banks
   const stakedAssetBanks = React.useMemo(() => {
-    return (
-      sortedBanks &&
-      sortedBanks
-        .filter((b) => b.info.rawBank.config.assetTag === 2)
-        .filter((b) => (isFilteredUserPositions ? b.isActive : true))
-    );
-  }, [sortedBanks, isFilteredUserPositions]);
+    const banks = extendedBankInfos
+      .filter((b) => b.info.rawBank.config.assetTag === 2)
+      .filter((b) => (isFilteredUserPositions ? b.isActive : true));
+
+    return filterBanksByTokenType(banks);
+  }, [isFilteredUserPositions, extendedBankInfos, filterBanksByTokenType]);
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
@@ -119,7 +88,6 @@ export const AssetsList = () => {
     return makeData(
       globalBanks,
       isInLendingMode,
-      isDenominationUsd,
       nativeSolBalance,
       selectedAccount,
       connected,
@@ -131,7 +99,6 @@ export const AssetsList = () => {
     walletContextState,
     globalBanks,
     isInLendingMode,
-    isDenominationUsd,
     nativeSolBalance,
     selectedAccount,
     fetchMrgnlendState,
@@ -141,7 +108,6 @@ export const AssetsList = () => {
     return makeData(
       isolatedBanks,
       isInLendingMode,
-      isDenominationUsd,
       nativeSolBalance,
       selectedAccount,
       connected,
@@ -153,7 +119,6 @@ export const AssetsList = () => {
     walletContextState,
     isolatedBanks,
     isInLendingMode,
-    isDenominationUsd,
     nativeSolBalance,
     selectedAccount,
     fetchMrgnlendState,
@@ -163,7 +128,6 @@ export const AssetsList = () => {
     return makeData(
       stakedAssetBanks,
       isInLendingMode,
-      isDenominationUsd,
       nativeSolBalance,
       selectedAccount,
       connected,
@@ -175,7 +139,6 @@ export const AssetsList = () => {
     walletContextState,
     stakedAssetBanks,
     isInLendingMode,
-    isDenominationUsd,
     nativeSolBalance,
     selectedAccount,
     fetchMrgnlendState,
@@ -185,7 +148,6 @@ export const AssetsList = () => {
     return makeData(
       stakedAssetBankInfos,
       isInLendingMode,
-      isDenominationUsd,
       nativeSolBalance,
       selectedAccount,
       connected,
@@ -197,7 +159,6 @@ export const AssetsList = () => {
     walletContextState,
     stakedAssetBankInfos,
     isInLendingMode,
-    isDenominationUsd,
     nativeSolBalance,
     selectedAccount,
     fetchMrgnlendState,
@@ -243,17 +204,11 @@ export const AssetsList = () => {
     onSortingChange: setSorting,
   });
 
-  const allStakedassetsTable = useReactTable<AssetListModel>({
-    data: allStakedAssetsTableData,
-    columns: tableColumns,
-    getRowCanExpand: () => true,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    state: {
-      sorting,
-    },
-    onSortingChange: setSorting,
-  });
+  React.useEffect(() => {
+    if (poolFilter === PoolTypes.NATIVE_STAKE && tokenFilter !== TokenFilters.ALL) {
+      setTokenFilter(TokenFilters.ALL);
+    }
+  }, [poolFilter, tokenFilter, setTokenFilter]);
 
   return (
     <div className="space-y-6">
