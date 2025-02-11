@@ -650,10 +650,10 @@ export const LendBox = ({
       {lendMode === ActionType.Deposit &&
         selectedBank &&
         selectedBank.info.rawBank.config.assetTag === 2 &&
-        amount > 0 &&
-        amount === maxAmount && (
+        amount > 0 && (
           <div className="mt-6 text-[11px] text-muted-foreground font-light">
-            <p>*Accumulated Jito mev rewards may be withdrawn to your wallet on deposit</p>
+            {amount === maxAmount && <p>Accumulated Jito mev rewards may be withdrawn to your wallet on deposit</p>}
+            <p>Staked asset banks do not currently receive Jito mev rewards</p>
           </div>
         )}
       <LSTDialog
