@@ -172,7 +172,7 @@ export const Navbar: FC = () => {
                 }}
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 shrink-0 block sm:hidden"
+                className="w-10 h-10 shrink-0 flex lg:hidden rounded-lg"
               >
                 <IconSearch size={20} />
               </Button>
@@ -182,7 +182,7 @@ export const Navbar: FC = () => {
                 onClick={() => {
                   setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: !globalActionBoxProps.isOpen });
                 }}
-                className="hidden sm:flex py-2 px-4 border border-background-gray-hover flex-row items-center justify-between w-48 text-muted-foreground cursor-pointer "
+                className="hidden lg:flex py-2 px-4 border bg-muted/60 border-background-gray-hover flex-row items-center justify-between w-56 text-muted-foreground cursor-pointer "
               >
                 <span>Search pools...</span>
                 <span>⌘ K</span>
@@ -190,7 +190,7 @@ export const Navbar: FC = () => {
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
+                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-lg">
                     <IconBell size={20} />
                   </Button>
                 </PopoverTrigger>
@@ -238,7 +238,7 @@ export const Navbar: FC = () => {
                 settingsDialogOpen={displaySettings}
                 setSettingsDialogOpen={setDisplaySettings}
               >
-                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
+                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-lg">
                   <IconSettings size={20} />
                 </Button>
               </ResponsiveSettingsWrapper>
