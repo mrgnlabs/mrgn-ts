@@ -9,6 +9,7 @@ import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command
 import { BankItem, BankListCommand } from "~/components/action-box-v2/components";
 import { Button } from "~/components/ui/button";
 import { IconExternalLink } from "@tabler/icons-react";
+import { useRouter } from "next/router";
 
 type BankListProps = {
   selectedBank: ExtendedBankInfo | null;
@@ -33,6 +34,7 @@ export const BankList = ({
   isOpen,
   onClose,
 }: BankListProps) => {
+  const router = useRouter();
   const lendingMode = React.useMemo(
     () =>
       lendMode === ActionType.Deposit || lendMode === ActionType.Withdraw ? LendingModes.LEND : LendingModes.BORROW,
@@ -194,10 +196,16 @@ export const BankList = ({
               })}
             <div className="space-y-2 text-center w-full pt-5 pb-4">
               <p className="text-xs text-muted-foreground">Don&apos;t hold supported tokens?</p>
-              <Button variant="outline" className="mx-auto font-normal text-[11px]" size="sm">
-                <Link href="/deposit-swap">
-                  <span>Try deposit swap</span>
-                </Link>
+              <Button
+                variant="outline"
+                className="mx-auto font-normal text-[11px]"
+                size="sm"
+                onClick={() => {
+                  onClose(false);
+                  router.push("/deposit-swap");
+                }}
+              >
+                <span>Try deposit swap</span>
               </Button>
             </div>
           </CommandGroup>
@@ -372,10 +380,16 @@ export const BankList = ({
               <div className="space-y-2 text-center w-full pt-3">
                 <p className="text-xs text-muted-foreground">Don&apos;t see your native stake available to deposit?</p>
                 <div className="flex flex-col gap-1 items-center justify-center">
-                  <Button variant="outline" className="mx-auto font-normal text-[11px]" size="sm">
-                    <Link href="/staked-assets/create">
-                      <span>Create staked asset pool</span>
-                    </Link>
+                  <Button
+                    variant="outline"
+                    className="mx-auto font-normal text-[11px]"
+                    size="sm"
+                    onClick={() => {
+                      onClose(false);
+                      router.push("/staked-assets/create");
+                    }}
+                  >
+                    <span>Create staked asset pool</span>
                   </Button>
                   <Link href="https://docs.marginfi.com/staked-collateral" target="_blank" rel="noreferrer">
                     <Button
