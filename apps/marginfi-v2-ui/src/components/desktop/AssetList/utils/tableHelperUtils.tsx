@@ -115,7 +115,11 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
         size: 130,
         cell: (props) => getValidatorRateCell(props.getValue()),
         header: (header) => (
-          <HeaderWrapper header={header} align="right" infoTooltip={<p>Validator staking rewards.</p>}>
+          <HeaderWrapper
+            header={header}
+            align="right"
+            infoTooltip={<p>Validator staking rewards. Staked assets do not currently receive Jito MEV rewards.</p>}
+          >
             Staking APY
           </HeaderWrapper>
         ),
