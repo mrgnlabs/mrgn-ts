@@ -29,6 +29,7 @@ import {
 import { IMAGE_CDN_URL } from "~/config/constants";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, TooltipPortal } from "~/components/ui/tooltip";
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { PublicKey } from "@solana/web3.js";
 
 export const getAssetCell = (asset: AssetData) => {
   return (
@@ -422,23 +423,20 @@ export const getPositionCell = (positionData: PositionData) => {
   );
 };
 
-export const getValidatorCell = (asset: AssetData) => {
-  if (!asset.stakePool?.validatorVoteAccount) return null;
+export const getValidatorCell = (validatorVoteAccount: PublicKey) => {
+  if (!validatorVoteAccount) return null;
+  const pkStr = validatorVoteAccount.toBase58();
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center justify-end gap-2">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Link
-              href={`https://solscan.io/account/${asset.stakePool?.validatorVoteAccount}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {shortenAddress(asset.stakePool?.validatorVoteAccount)}
+            <Link href={`https://solscan.io/account/${pkStr}`} target="_blank" rel="noreferrer">
+              {shortenAddress(pkStr)}
             </Link>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{asset.stakePool?.validatorVoteAccount.toBase58()}</p>
+            <p>{pkStr}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -446,10 +444,6 @@ export const getValidatorCell = (asset: AssetData) => {
   );
 };
 
-export const getValidatorRateCell = (asset: AssetData) => {
-  return (
-    <div className="text-right text-success">
-      {asset.stakePool?.validatorRewards ? percentFormatter.format(asset.stakePool?.validatorRewards / 100) : 0}
-    </div>
-  );
+export const getValidatorRateCell = (rewardRate: number) => {
+  return <div className="text-right text-success">{rewardRate ? percentFormatter.format(rewardRate / 100) : 0}</div>;
 };

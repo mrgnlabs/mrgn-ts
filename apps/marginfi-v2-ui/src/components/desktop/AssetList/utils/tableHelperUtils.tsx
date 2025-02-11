@@ -41,6 +41,7 @@ import { getAction } from "./columnDataUtils";
 export interface AssetListModel {
   asset: AssetData;
   validator: string;
+  "validator-rate": string;
   price: AssetPriceData;
   rate: RateData;
   weight: AssetWeightData;
@@ -63,6 +64,8 @@ export const makeData = (
     (bank) =>
       ({
         asset: getAssetData(bank.meta),
+        validator: bank.meta.stakePool?.validatorVoteAccount || "",
+        "validator-rate": bank.meta.stakePool?.validatorRewards || "",
         price: getAssetPriceData(bank),
         rate: getRateData(bank, isInLendingMode),
         weight: getAssetWeightData(bank, isInLendingMode),
@@ -82,7 +85,7 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
     columnHelper.accessor("asset", {
       id: "asset",
       enableResizing: false,
-      size: poolType === PoolTypes.NATIVE_STAKE ? 280 : 210,
+      size: 210,
       cell: (props) => getAssetCell(props.getValue()),
       header: (header) => (
         <HeaderWrapper header={header} align="left">
@@ -94,25 +97,58 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
     }),
   ];
 
+  columns.push(
+    columnHelper.accessor("price", {
+      id: "price",
+      enableResizing: false,
+      size: 170,
+      cell: (props) =>
+        getAssetPriceCell({
+          ...props.getValue(),
+          isInLendingMode,
+        }),
+      header: (header) => (
+        <HeaderWrapper
+          header={header}
+          infoTooltip={
+            <div className="space-y-2">
+              <p>Real-time prices powered by Pyth and Switchboard.</p>
+              <p>
+                {poolType === PoolTypes.NATIVE_STAKE &&
+                  "Native stake LST price reflects the total stake and rewards in the pool."}
+              </p>
+            </div>
+          }
+        >
+          Price
+        </HeaderWrapper>
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        return rowA.original.price.assetPrice - rowB.original.price.assetPrice;
+      },
+      footer: (props) => props.column.id,
+    })
+  );
+
   if (poolType === PoolTypes.NATIVE_STAKE) {
     columns.push(
-      columnHelper.accessor("asset", {
+      columnHelper.accessor("validator", {
         id: "validator",
         enableResizing: false,
-        size: 160,
+        size: 140,
         cell: (props) => getValidatorCell(props.getValue()),
         header: (header) => (
-          <HeaderWrapper header={header} align="left" infoTooltip={<p>Validator vote account public key.</p>}>
+          <HeaderWrapper header={header} align="right" infoTooltip={<p>Validator vote account public key.</p>}>
             Validator
           </HeaderWrapper>
         ),
         enableSorting: false,
         footer: (props) => props.column.id,
       }),
-      columnHelper.accessor("asset", {
+      columnHelper.accessor("validator-rate", {
         id: "validator-rate",
         enableResizing: false,
-        size: 130,
+        size: 170,
         cell: (props) => getValidatorRateCell(props.getValue()),
         header: (header) => (
           <HeaderWrapper
@@ -127,31 +163,7 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
         footer: (props) => props.column.id,
       })
     );
-  }
-
-  columns.push(
-    columnHelper.accessor("price", {
-      id: "price",
-      enableResizing: false,
-      size: 170,
-      cell: (props) =>
-        getAssetPriceCell({
-          ...props.getValue(),
-          isInLendingMode,
-        }),
-      header: (header) => (
-        <HeaderWrapper header={header} infoTooltip={<p>Real-time prices powered by Pyth and Switchboard.</p>}>
-          Price
-        </HeaderWrapper>
-      ),
-      sortingFn: (rowA, rowB, columnId) => {
-        return rowA.original.price.assetPrice - rowB.original.price.assetPrice;
-      },
-      footer: (props) => props.column.id,
-    })
-  );
-
-  if (poolType !== PoolTypes.NATIVE_STAKE) {
+  } else {
     columns.push(
       columnHelper.accessor("rate", {
         id: "rate",
