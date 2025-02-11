@@ -6,7 +6,7 @@ import {
   feedIdToString,
   getConfig,
   MARGINFI_IDL,
-  MarginfiClient,
+  ArenaClient,
   MarginfiConfig,
   MarginfiIdlType,
   MarginfiProgram,
@@ -28,7 +28,7 @@ type UseMarginfiClientProps = {
 
 const defaultConfig = getConfig();
 
-export function useMarginfiClient({
+export function useArenaClient({
   groupPk,
   clientOptions,
   clientConfig = {
@@ -105,7 +105,7 @@ export function useMarginfiClient({
       };
     });
 
-    const client = new MarginfiClient(
+    const client = new ArenaClient(
       { groupPk, ...clientConfig },
       program,
       wallet,
@@ -120,8 +120,7 @@ export function useMarginfiClient({
       bankMetadataByBankPk,
       clientOptions?.bundleSimRpcEndpoint,
       clientOptions?.processTransactionStrategy,
-      lookupTables,
-      true // Add arena tag to transactions
+      lookupTables
     );
 
     return client;
