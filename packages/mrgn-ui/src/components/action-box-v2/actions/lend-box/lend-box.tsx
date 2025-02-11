@@ -143,6 +143,8 @@ export const LendBox = ({
   React.useEffect(() => {
     if (searchMode && selectedBank) {
       setShouldBeHidden?.(false);
+    } else if (searchMode && !selectedBank) {
+      setShouldBeHidden?.(true);
     }
   }, [searchMode, selectedBank, setShouldBeHidden]);
 
@@ -207,6 +209,7 @@ export const LendBox = ({
   }, [refreshState, connected, lendMode]);
 
   React.useEffect(() => {
+    console.log("refreshState");
     return () => {
       refreshState();
     };
