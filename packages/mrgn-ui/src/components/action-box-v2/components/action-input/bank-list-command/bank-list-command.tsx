@@ -25,7 +25,7 @@ export const BankListCommand = ({ selectedBank, onSetSearchQuery, onClose, child
           ? "info" in selectedBank
             ? selectedBank.info.state.mint.toBase58()
             : selectedBank.address.toString().toLowerCase()
-          : ""
+          : undefined
       }
     >
       <CommandInput
