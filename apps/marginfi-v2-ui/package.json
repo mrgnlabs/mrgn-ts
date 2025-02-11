@@ -93,7 +93,9 @@
     "tweetnacl": "^1.0.3",
     "uuid": "^9.0.0",
     "vaul": "^0.9.0",
-    "zustand": "^4.4.1"
+    "zustand": "^4.4.1",
+    "sonner": "1.7.4",
+    "next-themes": "0.4.4"
   },
   "devDependencies": {
     "@mrgnlabs/tsconfig": "workspace:*",
