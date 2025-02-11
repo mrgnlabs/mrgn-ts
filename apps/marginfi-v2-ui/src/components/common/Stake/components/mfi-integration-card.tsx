@@ -18,7 +18,7 @@ interface MfiIntegrationCardProps {
 }
 
 const MfiIntegrationCard = ({ lstBank, connected, fetchMrgnlendState }: MfiIntegrationCardProps) => {
-  const depositData = React.useMemo(() => getDepositsData(lstBank, true, true), [lstBank]);
+  const depositData = React.useMemo(() => getDepositsData(lstBank, true), [lstBank]);
   const rateData = React.useMemo(() => getRateData(lstBank, true), [lstBank]);
 
   return (
@@ -50,10 +50,8 @@ const MfiIntegrationCard = ({ lstBank, connected, fetchMrgnlendState }: MfiInteg
           )}
           {depositData && (
             <li className="flex items-center justify-between gap-1">
-              <span className="text-muted-foreground">Deposits:</span>{" "}
-              {depositData.denominationUSD
-                ? usdFormatter.format(depositData.bankDeposits)
-                : numeralFormatter(depositData.bankDeposits)}
+              <span className="text-muted-foreground">Deposits:</span>
+              {usdFormatter.format(depositData.bankDepositsUsd)}
             </li>
           )}
         </ul>

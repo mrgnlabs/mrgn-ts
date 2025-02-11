@@ -53,7 +53,6 @@ export interface AssetListModel {
 export const makeData = (
   data: ExtendedBankInfo[],
   isInLendingMode: boolean,
-  denominationUSD: boolean,
   nativeSolBalance: number,
   marginfiAccount: MarginfiAccountWrapper | null,
   connected: boolean,
@@ -67,10 +66,10 @@ export const makeData = (
         price: getAssetPriceData(bank),
         rate: getRateData(bank, isInLendingMode),
         weight: getAssetWeightData(bank, isInLendingMode),
-        deposits: getDepositsData(bank, isInLendingMode, denominationUSD),
-        bankCap: getBankCapData(bank, isInLendingMode, denominationUSD),
+        deposits: getDepositsData(bank, isInLendingMode),
+        bankCap: getBankCapData(bank, isInLendingMode),
         utilization: getUtilizationData(bank),
-        position: getPositionData(bank, denominationUSD, nativeSolBalance, isInLendingMode),
+        position: getPositionData(bank, nativeSolBalance, isInLendingMode),
         action: getAction(bank, isInLendingMode, marginfiAccount, connected, walletContextState, fetchMrgnlendState),
       } as AssetListModel)
   );
@@ -177,29 +176,34 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
     );
   }
 
+  if (poolType !== PoolTypes.ISOLATED) {
+    columns.push(
+      columnHelper.accessor("weight", {
+        id: "weight",
+        cell: (props) => getAssetWeightCell(props.getValue()),
+        header: (header) => (
+          <HeaderWrapper
+            header={header}
+            infoTooltip={
+              <p>
+                {isInLendingMode
+                  ? "Percentage of an asset's value that counts toward your collateral. Higher weight means more borrowing power for that asset."
+                  : "Loan-to-Value ratio (LTV) shows how much you can borrow relative to your available collateral. A higher LTV means you can borrow more, but it also increases liquidation risk."}
+              </p>
+            }
+          >
+            {isInLendingMode ? "Weight" : "LTV"}
+          </HeaderWrapper>
+        ),
+        sortingFn: (rowA, rowB) => {
+          return rowA.original.weight.assetWeight - rowB.original.weight.assetWeight;
+        },
+        footer: (props) => props.column.id,
+      })
+    );
+  }
+
   columns.push(
-    columnHelper.accessor("weight", {
-      id: "weight",
-      cell: (props) => getAssetWeightCell(props.getValue()),
-      header: (header) => (
-        <HeaderWrapper
-          header={header}
-          infoTooltip={
-            <p>
-              {isInLendingMode
-                ? "Percentage of an asset's value that counts toward your collateral. Higher weight means more borrowing power for that asset."
-                : "Loan-to-Value ratio (LTV) shows how much you can borrow relative to your available collateral. A higher LTV means you can borrow more, but it also increases liquidation risk."}
-            </p>
-          }
-        >
-          {isInLendingMode ? "Weight" : "LTV"}
-        </HeaderWrapper>
-      ),
-      sortingFn: (rowA, rowB) => {
-        return rowA.original.weight.assetWeight - rowB.original.weight.assetWeight;
-      },
-      footer: (props) => props.column.id,
-    }),
     columnHelper.accessor("deposits", {
       id: "deposits",
       cell: (props) =>

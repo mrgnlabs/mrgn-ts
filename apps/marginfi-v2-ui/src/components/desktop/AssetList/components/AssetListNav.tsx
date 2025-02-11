@@ -5,6 +5,7 @@ import { IconFilter, IconSearch, IconX } from "@tabler/icons-react";
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 
 import { useUiStore } from "~/store";
+import { TokenFilters } from "~/store/uiStore";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -15,16 +16,25 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { Button } from "~/components/ui/button";
 
 const AssetListNav = () => {
-  const [poolFilter, setPoolFilter, lendingMode, setLendingMode, assetListSearch, setAssetListSearch] = useUiStore(
-    (state) => [
-      state.poolFilter,
-      state.setPoolFilter,
-      state.lendingMode,
-      state.setLendingMode,
-      state.assetListSearch,
-      state.setAssetListSearch,
-    ]
-  );
+  const [
+    poolFilter,
+    setPoolFilter,
+    lendingMode,
+    setLendingMode,
+    assetListSearch,
+    setAssetListSearch,
+    tokenFilter,
+    setTokenFilter,
+  ] = useUiStore((state) => [
+    state.poolFilter,
+    state.setPoolFilter,
+    state.lendingMode,
+    state.setLendingMode,
+    state.assetListSearch,
+    state.setAssetListSearch,
+    state.tokenFilter,
+    state.setTokenFilter,
+  ]);
   const [isSearchExpanded, setIsSearchExpanded] = React.useState(false);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -131,7 +141,7 @@ const AssetListNav = () => {
             />
           </div>
         </div>
-        <Select>
+        <Select value={tokenFilter} onValueChange={setTokenFilter} disabled={poolFilter === PoolTypes.NATIVE_STAKE}>
           <SelectTrigger className="md:w-[180px] shrink-0">
             <div className="flex items-center gap-2">
               <IconFilter size={18} />
@@ -139,9 +149,10 @@ const AssetListNav = () => {
             </div>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All tokens</SelectItem>
-            <SelectItem value="stable">Stablecoins</SelectItem>
-            <SelectItem value="lst">SOL / LST</SelectItem>
+            <SelectItem value={TokenFilters.ALL}>All tokens</SelectItem>
+            <SelectItem value={TokenFilters.STABLE}>Stablecoins</SelectItem>
+            <SelectItem value={TokenFilters.LST}>SOL / LST</SelectItem>
+            <SelectItem value={TokenFilters.MEME}>Memes</SelectItem>
           </SelectContent>
         </Select>
       </div>

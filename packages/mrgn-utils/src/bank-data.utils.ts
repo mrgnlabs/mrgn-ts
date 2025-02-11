@@ -47,7 +47,6 @@ export interface DepositsData {
   capacity: number;
   available: number;
   symbol: string;
-  denominationUSD: boolean;
   isInLendingMode: boolean;
   isStakedAsset: boolean;
 }
@@ -55,7 +54,6 @@ export interface DepositsData {
 export interface BankCapData {
   bankCap: number;
   bankCapUsd: number;
-  denominationUSD: boolean;
   bank: ExtendedBankInfo;
 }
 
@@ -173,11 +171,7 @@ export const getAssetWeightData = (bank: ExtendedBankInfo, isInLendingMode: bool
   };
 };
 
-export const getDepositsData = (
-  bank: ExtendedBankInfo,
-  isInLendingMode: boolean,
-  denominationUSD: boolean
-): DepositsData => {
+export const getDepositsData = (bank: ExtendedBankInfo, isInLendingMode: boolean): DepositsData => {
   const bankCap = nativeToUi(
     isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit,
     bank.info.state.mintDecimals
@@ -212,17 +206,12 @@ export const getDepositsData = (
     capacity,
     available,
     symbol: bank.meta.tokenSymbol,
-    denominationUSD,
     isInLendingMode,
     isStakedAsset,
   };
 };
 
-export const getBankCapData = (
-  bank: ExtendedBankInfo,
-  isInLendingMode: boolean,
-  denominationUSD: boolean
-): BankCapData => {
+export const getBankCapData = (bank: ExtendedBankInfo, isInLendingMode: boolean): BankCapData => {
   const bankCapUi = nativeToUi(
     isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit,
     bank.info.state.mintDecimals
@@ -234,7 +223,6 @@ export const getBankCapData = (
   return {
     bankCap,
     bankCapUsd,
-    denominationUSD,
     bank,
   };
 };
@@ -245,7 +233,6 @@ export const getUtilizationData = (bank: ExtendedBankInfo): UtilizationData => (
 
 export const getPositionData = (
   bank: ExtendedBankInfo,
-  denominationUSD: boolean,
   nativeSolBalance: number,
   isInLendingMode: boolean
 ): PositionData => {
@@ -275,7 +262,6 @@ export const getPositionData = (
   }
 
   return {
-    denominationUSD,
     price: bank.info.state.price,
     walletAmount,
     positionAmount,
