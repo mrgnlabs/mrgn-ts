@@ -150,14 +150,16 @@ export const LendBox = ({
   }, [searchMode, selectedBank, setShouldBeHidden]);
 
   // refresh state when search mode is on and a bank is selected, specific for searchmode. This is for initial load in searchMode & not when the bank updates in the component itself
-  const hasRefreshedState = React.useRef(false);
-  const wasSearchModePreviouslyFalse = React.useRef(!searchMode);
+  const [hasRun, setHasRun] = React.useState(false);
+  const isClient = typeof window !== "undefined";
+
   React.useEffect(() => {
-    if (!hasRefreshedState.current && wasSearchModePreviouslyFalse.current && searchMode && selectedBank) {
+    if (!isClient) return;
+    if (!hasRun && searchMode && selectedBank) {
       refreshState();
-      hasRefreshedState.current = true; // Ensure it only runs once
+      setHasRun(true);
     }
-  }, [searchMode, selectedBank, refreshState]);
+  }, [searchMode, selectedBank, refreshState, hasRun, isClient]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
