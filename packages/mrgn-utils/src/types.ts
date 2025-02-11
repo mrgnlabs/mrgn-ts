@@ -8,6 +8,7 @@ export enum LendingModes {
 }
 
 export enum PoolTypes {
+  ALL = "all",
   GLOBAL = "global",
   ISOLATED = "isolated",
   STABLE = "stable",
