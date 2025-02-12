@@ -37,6 +37,7 @@ import {
   getValidatorRateCell,
 } from "../components";
 import { getAction } from "./columnDataUtils";
+import Link from "next/link";
 
 export interface AssetListModel {
   asset: AssetData;
@@ -154,7 +155,19 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
           <HeaderWrapper
             header={header}
             align="right"
-            infoTooltip={<p>Validator staking rewards. Staked assets do not currently receive Jito MEV rewards.</p>}
+            infoTooltip={
+              <p>
+                Validator staking rewards. Staked assets do not currently receive Jito MEV rewards.{" "}
+                <Link
+                  href="https://docs.marginfi.com/staked-collateral#earning-yield-on-your-stake"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="border-b border-foreground/60 transition-colors hover:border-transparent"
+                >
+                  Learn more
+                </Link>
+              </p>
+            }
           >
             Staking APY
           </HeaderWrapper>
