@@ -683,7 +683,17 @@ export const LendBox = ({
         amount > 0 && (
           <div className="mt-6 text-[11px] text-muted-foreground font-light">
             {amount === maxAmount && <p>Accumulated Jito mev rewards may be withdrawn to your wallet on deposit</p>}
-            <p>Staked asset banks do not currently receive Jito mev rewards</p>
+            <p>
+              Staked asset banks do not currently receive Jito mev rewards.{" "}
+              <Link
+                href="https://docs.marginfi.com/staked-collateral#earning-yield-on-your-stake"
+                target="_blank"
+                rel="noreferrer"
+                className="border-b border-muted-foreground/60 transition-colors hover:border-transparent"
+              >
+                Learn more
+              </Link>
+            </p>
           </div>
         )}
       <LSTDialog
