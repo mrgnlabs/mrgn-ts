@@ -18,6 +18,7 @@
     "@google-cloud/storage": "^7.15.1",
     "@grpc/grpc-js": "^1.12.2",
     "@jup-ag/api": "^6.0.38",
+    "@jup-ag/common": "^6.1.0",
     "@moongate/moongate-adapter": "^0.1.2",
     "@moonpay/moonpay-js": "^0.1.0",
     "@mrgnlabs/lip-client": "workspace:*",

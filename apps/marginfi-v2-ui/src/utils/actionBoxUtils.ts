@@ -1,3 +1,4 @@
+import { QuoteResponseMeta } from "@mrgnlabs/mrgn-utils";
 import { QuoteResponse } from "@jup-ag/api";
 import { PublicKey } from "@solana/web3.js";
 
