@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 
+import { PublicKey } from "@solana/web3.js";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { TransferCompletePayload } from "@meso-network/meso-js";
 import { IconCheck, IconExternalLink } from "@tabler/icons-react";
@@ -69,7 +70,7 @@ const JupiterSuccessScreen = ({ extendedBankInfos, txid, swapResult, quoteRespon
   const requestedBank = React.useMemo(() => {
     const mint = quoteResponseMeta?.quoteResponse.outputMint;
     if (mint && extendedBankInfos) {
-      const bank = extendedBankInfos.filter((bank) => bank.info.state.mint.equals(mint));
+      const bank = extendedBankInfos.filter((bank) => bank.info.state.mint.equals(new PublicKey(mint)));
       if (bank.length !== 0) return bank[0];
     }
   }, [extendedBankInfos]);

@@ -16,7 +16,7 @@
     "@bonfida/spl-name-service": "2.5.4",
     "@coral-xyz/anchor": "^0.30.1",
     "@jup-ag/api": "^6.0.38",
-    "@jup-ag/react-hook": "^6.0.0-beta.8",
+    "@jup-ag/common": "^6.1.0",
     "@meso-network/meso-js": "^0.1.2",
     "@mrgnlabs/marginfi-client-v2": "workspace:*",
     "@mrgnlabs/marginfi-v2-ui-state": "workspace:*",

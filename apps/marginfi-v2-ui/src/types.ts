@@ -3,7 +3,8 @@ import { Root } from "react-dom/client";
 
 import { AddressLookupTableAccount, ComputeBudgetInstruction, PublicKey, TransactionError } from "@solana/web3.js";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
+import { QuoteResponseMeta } from "@mrgnlabs/mrgn-utils";
+import { SwapResult } from "@jup-ag/common";
 import { createStore } from "zustand";
 import { SwapMode } from "@jup-ag/api";
 import { WalletContextStateOverride } from "~/components/wallet-v2";

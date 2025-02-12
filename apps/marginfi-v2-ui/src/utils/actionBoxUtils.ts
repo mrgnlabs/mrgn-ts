@@ -1,4 +1,3 @@
-import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { QuoteResponse } from "@jup-ag/api";
 import { PublicKey } from "@solana/web3.js";
 
@@ -14,6 +13,7 @@ import {
   canBeWithdrawn,
   RepayType,
   StakeData,
+  QuoteResponseMeta,
 } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";

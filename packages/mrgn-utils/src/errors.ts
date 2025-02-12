@@ -1,10 +1,9 @@
-import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/react-hook";
-
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionMessageType } from "./actions";
 import { MAX_SLIPPAGE_PERCENTAGE } from "./slippage.consts";
+import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/common";
 
 // Static errors that are not expected to change
 export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
