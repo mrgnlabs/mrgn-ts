@@ -142,12 +142,13 @@ export const LendBox = ({
 
   const hasRefreshed = React.useRef(false);
   const _prevSelectedBank = usePrevious(selectedBank);
+  const _prevSearchMode = usePrevious(searchMode);
 
   /**
    * Handles visibility and state refresh logic when `searchMode` is enabled.
    * - If no bank is selected, hide the component.
    * - If a bank is selected, show the component.
-   * - If `searchMode` is first enabled and a bank was already selected, refresh the state (only once per session).
+   * - If `searchMode` is first enabled and a bank was already selected, refresh the state.
    */
   React.useEffect(() => {
     if (!searchMode) return;
@@ -158,12 +159,22 @@ export const LendBox = ({
       setShouldBeHidden?.(false);
     }
 
-    // Only refresh if searchMode just became true AND a bank was already selected initially
-    if (searchMode && !hasRefreshed.current && _prevSelectedBank === undefined && selectedBank) {
+    // Refresh state when searchMode is enabled and a bank was initially selected
+    if (!hasRefreshed.current && _prevSelectedBank === undefined && selectedBank) {
       refreshState();
       hasRefreshed.current = true;
     }
   }, [searchMode, selectedBank, _prevSelectedBank, setShouldBeHidden, refreshState]);
+
+  /**
+   * Resets `hasRefreshed` when `searchMode` changes from `false` → `true`.
+   * This ensures `refreshState()` can run again when toggling `searchMode` on.
+   */
+  React.useEffect(() => {
+    if (_prevSearchMode === false && searchMode === true) {
+      hasRefreshed.current = false;
+    }
+  }, [searchMode, _prevSearchMode]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
