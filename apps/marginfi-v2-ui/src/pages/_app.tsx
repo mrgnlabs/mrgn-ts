@@ -30,6 +30,7 @@ import { Tutorial } from "~/components/common/Tutorial";
 import "swiper/css";
 import "swiper/css/pagination";
 import "react-toastify/dist/ReactToastify.min.css";
+import { ToastProvider } from "@mrgnlabs/mrgn-toasts";
 
 registerMoonGateWallet({ authMode: "Google", position: "bottom-right" });
 registerMoonGateWallet({ authMode: "Ethereum", position: "bottom-right" });
@@ -158,6 +159,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                         mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
                       />
                       <ToastContainer position="bottom-left" theme="dark" />
+                      <ToastProvider />
                       {globalActionBoxProps.isOpen && <GlobalActionBoxPortal />}
                     </ActionBoxProvider>
                   </ActionProvider>
