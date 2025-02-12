@@ -140,26 +140,51 @@ export const LendBox = ({
     state.setSelectedStakeAccount,
   ]);
 
-  // hide action box when search mode is on and no bank is selected
+  // // hide action box when search mode is on and no bank is selected
+  // React.useEffect(() => {
+  //   if (searchMode && selectedBank) {
+  //     setShouldBeHidden?.(false);
+  //   } else if (searchMode && !selectedBank) {
+  //     setShouldBeHidden?.(true);
+  //   }
+  // }, [searchMode, selectedBank, setShouldBeHidden]);
+
+  // // refresh state when search mode is on and a bank is selected, specific for searchmode. This is for initial load in searchMode & not when the bank updates in the component itself
+  // const [hasRun, setHasRun] = React.useState(false);
+  // const isClient = typeof window !== "undefined";
+
+  // React.useEffect(() => {
+  //   if (!isClient) return;
+  //   if (!hasRun && searchMode && selectedBank) {
+  //     refreshState();
+  //     setHasRun(true);
+  //   }
+  // }, [searchMode, selectedBank, refreshState, hasRun, isClient]);
+
+  const hasRefreshed = React.useRef(false);
+  const _prevSelectedBank = usePrevious(selectedBank);
+
+  /**
+   * Handles visibility and state refresh logic when `searchMode` is enabled.
+   * - If no bank is selected, hide the component.
+   * - If a bank is selected, show the component.
+   * - If `searchMode` is first enabled and a bank was already selected, refresh the state (only once per session).
+   */
   React.useEffect(() => {
-    if (searchMode && selectedBank) {
-      setShouldBeHidden?.(false);
-    } else if (searchMode && !selectedBank) {
+    if (!searchMode) return;
+
+    if (!selectedBank) {
       setShouldBeHidden?.(true);
+    } else {
+      setShouldBeHidden?.(false);
     }
-  }, [searchMode, selectedBank, setShouldBeHidden]);
 
-  // refresh state when search mode is on and a bank is selected, specific for searchmode. This is for initial load in searchMode & not when the bank updates in the component itself
-  const [hasRun, setHasRun] = React.useState(false);
-  const isClient = typeof window !== "undefined";
-
-  React.useEffect(() => {
-    if (!isClient) return;
-    if (!hasRun && searchMode && selectedBank) {
+    // Only refresh if searchMode just became true AND a bank was already selected initially
+    if (searchMode && !hasRefreshed.current && _prevSelectedBank === undefined && selectedBank) {
       refreshState();
-      setHasRun(true);
+      hasRefreshed.current = true;
     }
-  }, [searchMode, selectedBank, refreshState, hasRun, isClient]);
+  }, [searchMode, selectedBank, _prevSelectedBank, setShouldBeHidden, refreshState]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
