@@ -5,7 +5,7 @@ import { IconBrandX, IconBrandApple, IconBrandGoogle } from "@tabler/icons-react
 import { MarginfiAccount, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Web3AuthSocialProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { ExtendedWallet } from "@mrgnlabs/mrgn-utils";
+import { ExtendedWallet, QuoteResponseMeta } from "@mrgnlabs/mrgn-utils";
 import {
   InAppSignIn,
   OnboardingEth,
