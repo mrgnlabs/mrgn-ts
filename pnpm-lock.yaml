@@ -453,6 +453,12 @@ importers:
       '@emotion/styled':
         specifier: ^11.11.5
         version: 11.14.0(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.2.0))(@types/react@18.3.18)(react@18.2.0)
+      '@google-cloud/storage':
+        specifier: ^7.15.1
+        version: 7.15.1
+      '@grpc/grpc-js':
+        specifier: ^1.12.2
+        version: 1.12.6
       '@jup-ag/api':
         specifier: ^6.0.38
         version: 6.0.39
@@ -495,6 +501,9 @@ importers:
       '@next/third-parties':
         specifier: ^15.1.7
         version: 15.1.7(next@14.2.21(@babel/core@7.26.8)(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react@18.2.0)
+      '@noble/ed25519':
+        specifier: ^2.1.0
+        version: 2.2.3
       '@radix-ui/react-accordion':
         specifier: ^1.1.2
         version: 1.2.3(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -591,8 +600,11 @@ importers:
       '@solana/web3.js':
         specifier: ^1.91.3
         version: 1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@switchboard-xyz/common':
+        specifier: ^2.5.19
+        version: 2.5.19(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@switchboard-xyz/on-demand':
-        specifier: ^1.2.54
+        specifier: ^1.2.65
         version: 1.2.65(bufferutil@4.0.9)(fastestsmallesttextencoderdecoder@1.0.22)(utf-8-validate@5.0.10)
       '@tabler/icons-react':
         specifier: ^2.40.0
@@ -654,6 +666,9 @@ importers:
       cmdk:
         specifier: ^0.2.0
         version: 0.2.1(@types/react@18.3.18)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      cookie:
+        specifier: ^0.4.1
+        version: 0.4.2
       csv-parse:
         specifier: ^5.5.5
         version: 5.6.0
@@ -705,6 +720,9 @@ importers:
       posthog-js:
         specifier: ^1.155.0
         version: 1.216.1
+      protobufjs:
+        specifier: ^6.11.4
+        version: 6.11.4
       react:
         specifier: 18.2.0
         version: 18.2.0
@@ -787,6 +805,9 @@ importers:
       '@types/bn.js':
         specifier: ^5.1.6
         version: 5.1.6
+      '@types/cookie':
+        specifier: ^0.6.0
+        version: 0.6.0
       '@types/google-protobuf':
         specifier: ^3.15.6
         version: 3.15.12

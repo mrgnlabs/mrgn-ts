@@ -1,4 +1,4 @@
-import * as sb from "@switchboard-xyz/on-demand";
+import * as sb from "@switchboard-xyz/common";
 
 /**
  * ┌────────────────────────────--─────────────────┐
