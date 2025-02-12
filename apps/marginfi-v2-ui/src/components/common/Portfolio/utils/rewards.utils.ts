@@ -126,7 +126,8 @@ export const fetchAfterStateEmissions = (
       return;
     }
 
-    const afterAmount = Number(AccountLayout.decode(ata).amount);
+    // TODO verify this is works
+    const afterAmount = Number(AccountLayout.decode(ata as any).amount);
     const bankAddress = banksWithEmissions[index].meta.address;
     const beforeData = beforeAmounts.get(bankAddress);
 

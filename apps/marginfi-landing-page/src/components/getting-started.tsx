@@ -8,7 +8,7 @@ import { IconArrowRight } from "@tabler/icons-react";
 import Link from "next/link";
 import Image from "next/image";
 
-import random from "lodash/random";
+import random from "lodash.random";
 
 import { Card, CardContent, CardFooter } from "~/components/ui/card";
 
