@@ -79,6 +79,14 @@ New pools require one epoch (2-3 days) before lending can begin, with stake pool
 
 This architecture particularly benefits institutional users who prefer native staking over liquid staking tokens for tax considerations. The immutable pool settings and absence of controlling entities provide additional security assurances for all participants.
 
+## Earning Yield on Your Stake {{ tag: '', label: '' }}
+
+Users staking SOL as collateral through marginfi currently receive base staking rewards, but MEV/Jito rewards integration varies by validator. When staking, users receive vouchers (similar to LSTs) representing their share of the stake pool. While these voucher amounts remain constant, their underlying value increases as the pool earns staking rewards. 
+
+MEV rewards that require manual claiming (like Jito's) aren't currently supported for all validators since the stake account is program-owned, but this functionality is being added progressively over time.
+
+Despite not capturing all MEV rewards yet, calculations show that even max-borrowed positions with 7% APY versus 10% borrow rate would take over 2 years to reach critical health levels.
+
 ## Using Native Stake: Step by Step {{ tag: '', label: '' }}
 
 To post your native stake as collateral on marginfi, simply navigate to <Button href="https://app.marginfi.com" variant="text"><>app.marginfi.com</></Button> and click "Select token" on the dropdown menu. Make sure the "Lend" tab is selected in the action box.
