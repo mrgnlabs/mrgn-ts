@@ -1,141 +1,125 @@
 import { toast } from "sonner";
 import { WarningToast } from "../components/toasts/warning-toast";
 import { ErrorToast } from "../components/toasts/error-toast";
-import { MultiStepToast } from "../components/toasts/multi-step-toast";
+import { MultiStepToast } from "../components/toasts/multi-step-toast/multi-step-toast";
 
-export interface ToastStepV2 {
+export interface ToastStep {
   label: string;
-  status: "pending" | "success" | "error" | "canceled" | "todo" | "paused";
+  status: "todo" | "pending" | "success" | "error" | "canceled" | "paused";
   message?: string;
+  signature?: string;
+  explorerUrl?: string;
 }
 
 class ToastManager {
   showWarningToast(title: string, message: string) {
-    toast(<WarningToast title={title} message={message} />, { duration: 3000 });
+    toast(<WarningToast title={title} message={message} />, { duration: Infinity });
   }
 
-  showErrorToast(title: string, message: string, description?: string, code?: number) {
-    toast(<ErrorToast title={title} message={message} description={description} code={code} />, {
-      duration: 5000,
-    });
-  }
-
-  createMultiStepToast(title: string, steps: ToastStepV2[], onClose?: () => void) {
-    return new MultiStepToastHandle(title, steps, onClose);
-  }
-}
-
-// Singleton instance
-export const toastManager = new ToastManager();
-
-export class MultiStepToastHandle {
-  private _title: string;
-  private _stepIndex: number;
-  private _stepsWithStatus: ToastStepV2[];
-  private _toastId: string | number | undefined = undefined;
-  private _onClose?: () => void;
-
-  constructor(title: string, steps: ToastStepV2[], onClose?: () => void) {
-    this._title = title;
-    this._stepIndex = 0;
-    this._stepsWithStatus = steps.map((step, index) => ({
-      ...step,
-      status: index === 0 ? "pending" : "todo",
-    }));
-    this._onClose = onClose;
-  }
-
-  start() {
-    this._toastId = toast(<MultiStepToast title={this._title} steps={this._stepsWithStatus} />, {
+  showErrorToast(title: string, description: string, code?: number) {
+    toast(<ErrorToast title={title} description={description} code={code} />, {
       duration: Infinity,
-      closeButton: false,
     });
   }
 
-  close() {
-    if (this._toastId) {
-      toast.dismiss(this._toastId);
-      this._toastId = undefined;
-    }
-  }
+  createMultiStepToast(title: string, steps: ToastStep[]) {
+    let toastId: string | number | undefined = undefined;
 
-  pause() {
-    if (!this._toastId || !this._stepsWithStatus[this._stepIndex]) return;
-    this._stepsWithStatus[this._stepIndex].status = "paused";
-    this.recreateToast();
-  }
-
-  resume() {
-    if (!this._toastId || !this._stepsWithStatus[this._stepIndex]) return;
-    this._stepsWithStatus[this._stepIndex].status = "pending";
-    this.recreateToast();
-  }
-
-  setSuccessAndNext(stepsToAdvance: number = 1) {
-    if (!this._toastId) return;
-
-    this._stepsWithStatus[this._stepIndex].status = "success";
-
-    const nextStepIndex = this._stepIndex + stepsToAdvance;
-    if (nextStepIndex >= this._stepsWithStatus.length) {
-      for (let i = this._stepIndex + 1; i < this._stepsWithStatus.length; i++) {
-        this._stepsWithStatus[i].status = "success";
+    const updateToast = () => {
+      if (toastId) {
+        toast(<MultiStepToast toastId={toastId.toString()} title={title} steps={steps} />, {
+          id: toastId,
+          duration: Infinity,
+        });
       }
-      this.recreateToast(6000);
-    } else {
-      for (let i = this._stepIndex + 1; i <= nextStepIndex; i++) {
-        if (this._stepsWithStatus[i]) {
-          this._stepsWithStatus[i].status = "pending";
+    };
+
+    const ToastController = {
+      start: () => {
+        if (!toastId) {
+          toastId = toast(<MultiStepToast toastId={title} title={title} steps={steps} />, {
+            id: title,
+            duration: Infinity,
+          });
         }
-      }
-      this._stepIndex = nextStepIndex;
-      this.recreateToast();
-    }
-  }
+      },
 
-  setSuccess() {
-    if (!this._toastId) return;
-    this._stepsWithStatus.forEach((step) => (step.status = "success"));
-    this.recreateToast(6000);
-  }
+      successAndNext: (explorerUrl?: string, signature?: string) => {
+        const currentIndex = steps.findIndex((s) => s.status === "pending");
+        if (currentIndex === -1) return;
 
-  setFailed(message: string, retry?: () => void) {
-    if (!this._toastId) return;
+        steps[currentIndex] = { ...steps[currentIndex], status: "success", explorerUrl, signature };
 
-    this._stepsWithStatus[this._stepIndex].status = "error";
-    this._stepsWithStatus[this._stepIndex].message = message;
+        if (currentIndex < steps.length - 1) {
+          steps[currentIndex + 1].status = "pending";
+        }
 
-    for (let i = this._stepIndex + 1; i < this._stepsWithStatus.length; i++) {
-      this._stepsWithStatus[i].status = "canceled";
-    }
+        updateToast();
+      },
 
-    this.recreateToast(Infinity, retry);
-  }
+      success: (explorerUrl?: string, signature?: string) => {
+        steps = steps.map((s, index) => ({
+          ...s,
+          status: "success",
+          explorerUrl: index === steps.length - 1 ? explorerUrl : undefined,
+          signature: index === steps.length - 1 ? signature : undefined,
+        }));
 
-  resetAndStart() {
-    if (!this._toastId) return;
+        updateToast();
 
-    if (this._stepsWithStatus[this._stepIndex].status === "error") {
-      this._stepsWithStatus[this._stepIndex].status = "pending";
-      this._stepsWithStatus[this._stepIndex].message = undefined;
-    }
+        setTimeout(() => {
+          if (toastId) toast.dismiss(toastId);
+        }, 5000);
+      },
 
-    for (let i = this._stepIndex + 1; i < this._stepsWithStatus.length; i++) {
-      this._stepsWithStatus[i].status = "todo";
-      this._stepsWithStatus[i].message = undefined;
-    }
+      setFailed: (message?: string, retry?: () => void) => {
+        const currentIndex = steps.findIndex((s) => s.status === "pending");
+        if (currentIndex === -1) return;
 
-    this.recreateToast();
-  }
+        steps[currentIndex] = { ...steps[currentIndex], status: "error", message };
 
-  private recreateToast(duration: number = Infinity, retry?: () => void) {
-    if (!this._toastId) return;
+        updateToast();
+      },
 
-    toast.dismiss(this._toastId); // Remove existing toast
+      pause: () => {
+        const currentIndex = steps.findIndex((s) => s.status === "pending");
+        if (currentIndex !== -1) {
+          steps[currentIndex].status = "paused";
+        }
 
-    this._toastId = toast(<MultiStepToast title={this._title} steps={this._stepsWithStatus} retry={retry} />, {
-      duration,
-      closeButton: false,
-    });
+        updateToast();
+      },
+
+      resume: () => {
+        const currentIndex = steps.findIndex((s) => s.status === "paused");
+        if (currentIndex !== -1) {
+          steps[currentIndex].status = "pending";
+        }
+
+        updateToast();
+      },
+
+      resetAndStart: () => {
+        steps = steps.map((step, index) => ({
+          ...step,
+          status: index === 0 ? "pending" : "todo",
+          message: undefined,
+        }));
+
+        updateToast();
+      },
+
+      close: () => {
+        if (toastId) {
+          toast.dismiss(toastId);
+          toastId = undefined;
+        }
+      },
+    };
+
+    return ToastController;
   }
 }
+
+// Singleton toastManager instance
+export const toastManager = new ToastManager();
