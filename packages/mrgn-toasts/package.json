@@ -1,0 +1,32 @@
+{
+  "name": "@mrgnlabs/mrgn-toasts",
+  "version": "0.0.1",
+  "private": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rimraf dist node_modules",
+    "dev": "tsc --watch",
+    "lint": "TIMING=1 eslint \"**/*.ts*\"",
+    "build": "tsc -p tsconfig.json",
+    "test": "jest"
+  },
+  "dependencies": {
+    "sonner": "1.7.4",
+    "next-themes": "0.4.4",
+    "@tabler/icons-react": "^3.3.0",
+    "react": "18.2.0"
+  },
+  "devDependencies": {
+    "@mrgnlabs/eslint-config-custom": "*",
+    "@mrgnlabs/tsconfig": "*",
+    "@types/numeral": "^2.0.5",
+    "eslint": "^9.5.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
