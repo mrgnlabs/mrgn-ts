@@ -119,6 +119,14 @@ function parseBankMetadatas(bankMetadataListRaw: BankMetadataListRaw): {
   );
 }
 
+async function loadStakedBankMetadatas(
+  cacheUrl: string = "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json"
+): Promise<{
+  [address: string]: BankMetadata;
+}> {
+  return loadBankMetadatas(cacheUrl);
+}
+
 async function loadBankMetadatas(
   cacheUrl: string = "https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache.json"
 ): Promise<{
@@ -142,5 +150,5 @@ async function loadBankMetadatas(
 
 type BankMetadataMap = { [address: string]: BankMetadata };
 
-export { loadBankMetadatas };
+export { loadBankMetadatas, loadStakedBankMetadatas };
 export type { BankMetadata, BankMetadataRaw, BankMetadataListRaw, BankMetadataMap };

@@ -38,6 +38,7 @@ import {
   TransactionOptions,
   TransactionType,
   Wallet,
+  loadStakedBankMetadatas,
 } from "@mrgnlabs/mrgn-common";
 import { MarginfiGroup } from "../models/group";
 import {
@@ -198,7 +199,10 @@ class MarginfiClient {
     let bankMetadataMap: BankMetadataMap | undefined = clientOptions?.bankMetadataMap;
     try {
       if (!bankMetadataMap) {
-        bankMetadataMap = await loadBankMetadatas();
+        bankMetadataMap = {
+          ...(await loadBankMetadatas()),
+          ...(await loadStakedBankMetadatas()),
+        };
       }
     } catch (error) {
       console.error("Failed to load bank metadatas. Convenience getter by symbol will not be available", error);

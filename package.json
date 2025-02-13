@@ -26,7 +26,7 @@
     "start": "turbo run start --parallel",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/src/**/*.{ts,tsx,md,json}\"",
-    "beta-release": "changeset pre enter beta && changeset version && changeset publish && node scripts/revert-dependencies.js",
+    "beta-release": "changeset pre enter beta && changeset version && changeset publish && node scripts/revert-dependencies.js && changeset pre exit",
     "release": "turbo run build && node scripts/update-dependencies.js && changeset version && changeset publish && node scripts/revert-dependencies.js",
     "workspace-dep-legacy": "node scripts/workspace-dep-legacy.js",
     "workspace-dep": "node scripts/workspace-dep.js",
