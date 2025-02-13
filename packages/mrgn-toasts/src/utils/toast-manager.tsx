@@ -3,12 +3,25 @@ import { WarningToast } from "../components/toasts/warning-toast";
 import { ErrorToast } from "../components/toasts/error-toast";
 import { MultiStepToast } from "../components/toasts/multi-step-toast/multi-step-toast";
 
-export interface ToastStepV2{ // TODO: update name
+export interface MultiStepToastStep {
   label: string;
   status: "todo" | "pending" | "success" | "error" | "canceled" | "paused";
   message?: string;
   signature?: string;
   explorerUrl?: string;
+  retry?: () => void;
+}
+
+/** 🔹 Type for MultiStepToastController */
+export interface MultiStepToastController {
+  start: () => void;
+  successAndNext: (explorerUrl?: string, signature?: string) => void;
+  success: (explorerUrl?: string, signature?: string) => void;
+  setFailed: (message?: string, retry?: () => void) => void;
+  pause: () => void;
+  resume: () => void;
+  resetAndStart: () => void;
+  close: () => void;
 }
 
 class ToastManager {
@@ -22,48 +35,56 @@ class ToastManager {
     });
   }
 
-  createMultiStepToast(title: string, steps: ToastStepV2[]) {
-    let toastId: string | number | undefined = undefined;
+  /** ✅ Create a multi-step toast */
+  createMultiStepToast(title: string, steps: { label: string }[]): MultiStepToastController {
+    let toastId: string | number | undefined = crypto.randomUUID?.() || Math.random().toString(36).substring(2, 9);
+
+    const stepsWithStatus: MultiStepToastStep[] = steps.map((step, index) => ({
+      ...step,
+      status: index === 0 ? "pending" : "todo", // ✅ First step starts as "pending"
+    }));
 
     const updateToast = () => {
       if (toastId) {
-        toast(<MultiStepToast toastId={toastId.toString()} title={title} steps={steps} />, {
+        toast(<MultiStepToast toastId={toastId.toString()} title={title} steps={stepsWithStatus} />, {
           id: toastId,
           duration: Infinity,
         });
       }
     };
 
-    const ToastController = {
+    const ToastController: MultiStepToastController = {
       start: () => {
         if (!toastId) {
-          toastId = toast(<MultiStepToast toastId={title} title={title} steps={steps} />, {
-            id: title,
+          toastId = crypto.randomUUID?.() || Math.random().toString(36).substring(2, 9); // Ensure unique ID
+          toastId = toast(<MultiStepToast toastId={toastId} title={title} steps={stepsWithStatus} />, {
+            id: toastId,
             duration: Infinity,
           });
         }
       },
 
       successAndNext: (explorerUrl?: string, signature?: string) => {
-        const currentIndex = steps.findIndex((s) => s.status === "pending");
+        const currentIndex = stepsWithStatus.findIndex((s) => s.status === "pending");
         if (currentIndex === -1) return;
 
-        steps[currentIndex] = { ...steps[currentIndex], status: "success", explorerUrl, signature };
+        stepsWithStatus[currentIndex] = { ...stepsWithStatus[currentIndex], status: "success", explorerUrl, signature };
 
-        if (currentIndex < steps.length - 1) {
-          steps[currentIndex + 1].status = "pending";
+        if (currentIndex < stepsWithStatus.length - 1) {
+          stepsWithStatus[currentIndex + 1].status = "pending"; // ✅ Next step becomes "pending"
         }
 
         updateToast();
       },
 
       success: (explorerUrl?: string, signature?: string) => {
-        steps = steps.map((s, index) => ({
-          ...s,
-          status: "success",
-          explorerUrl: index === steps.length - 1 ? explorerUrl : undefined,
-          signature: index === steps.length - 1 ? signature : undefined,
-        }));
+        stepsWithStatus.forEach((s, index) => {
+          s.status = "success";
+          if (index === stepsWithStatus.length - 1) {
+            s.explorerUrl = explorerUrl;
+            s.signature = signature;
+          }
+        });
 
         updateToast();
 
@@ -73,38 +94,46 @@ class ToastManager {
       },
 
       setFailed: (message?: string, retry?: () => void) => {
-        const currentIndex = steps.findIndex((s) => s.status === "pending");
+        const currentIndex = stepsWithStatus.findIndex((s) => s.status === "pending");
         if (currentIndex === -1) return;
 
-        steps[currentIndex] = { ...steps[currentIndex], status: "error", message };
+        stepsWithStatus[currentIndex] = {
+          ...stepsWithStatus[currentIndex],
+          status: "error",
+          message,
+          retry,
+        };
 
         updateToast();
       },
 
       pause: () => {
-        const currentIndex = steps.findIndex((s) => s.status === "pending");
+        const currentIndex = stepsWithStatus.findIndex((s) => s.status === "pending");
         if (currentIndex !== -1) {
-          steps[currentIndex].status = "paused";
+          stepsWithStatus[currentIndex].status = "paused";
         }
 
         updateToast();
       },
 
       resume: () => {
-        const currentIndex = steps.findIndex((s) => s.status === "paused");
+        const currentIndex = stepsWithStatus.findIndex((s) => s.status === "paused");
         if (currentIndex !== -1) {
-          steps[currentIndex].status = "pending";
+          stepsWithStatus[currentIndex].status = "pending";
         }
 
         updateToast();
       },
 
       resetAndStart: () => {
-        steps = steps.map((step, index) => ({
-          ...step,
-          status: index === 0 ? "pending" : "todo",
-          message: undefined,
-        }));
+        const failedIndex = stepsWithStatus.findIndex((s) => s.status === "error");
+
+        if (failedIndex !== -1) {
+          stepsWithStatus[failedIndex].status = "pending";
+          stepsWithStatus.slice(failedIndex + 1).forEach((step) => {
+            step.status = "todo";
+          });
+        }
 
         updateToast();
       },
@@ -121,5 +150,5 @@ class ToastManager {
   }
 }
 
-// Singleton toastManager instance
+// ✅ Exporting singleton instance
 export const toastManager = new ToastManager();

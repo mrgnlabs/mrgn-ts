@@ -1,4 +1,5 @@
 import React from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import {
   ActiveBankInfo,
@@ -19,6 +20,9 @@ import {
   DepositSwapActionTxns,
   checkDepositSwapActionAvailable,
   usePrevious,
+  executeDepositSwapAction,
+  ExecuteDepositSwapActionPropsV2,
+  ExecuteDepositSwapActionV2,
 } from "@mrgnlabs/mrgn-utils";
 
 import {
@@ -303,190 +307,232 @@ export const DepositSwapBox = ({
   ///////////////////////
   // Deposit-Swap Actions //
   ///////////////////////
-  const executeAction = async (
-    params: ExecuteDepositSwapActionProps,
-    callbacks: {
-      captureEvent?: (event: string, properties?: Record<string, any>) => void;
-      setIsLoading: (loading: boolean) => void;
-      handleOnComplete: (txnSigs: string[]) => void;
-      retryCallback: (txns: DepositSwapActionTxns, multiStepToast: MultiStepToastHandle) => void;
-      setAmountRaw: (amountRaw: string) => void;
-    }
-  ) => {
-    const action = async (params: ExecuteDepositSwapActionProps) => {
-      await handleExecuteDepositSwapAction({
-        params,
-        captureEvent: (event, properties) => {
-          callbacks.captureEvent && callbacks.captureEvent(event, properties);
-        },
-        setIsLoading: callbacks.setIsLoading,
-        setIsComplete: callbacks.handleOnComplete,
-        setError: (error: IndividualFlowError) => {
-          const toast = error.multiStepToast as MultiStepToastHandle;
-          const txs = error.actionTxns as DepositSwapActionTxns;
-          const errorMessage = error.message;
-          let retry = undefined;
-          if (error.retry && toast && txs) {
-            retry = () => callbacks.retryCallback(txs, toast);
-          }
-          toast?.setFailed(errorMessage, retry);
-          callbacks.setIsLoading(false);
-        },
-      });
-    };
+  // const executeAction = async (
+  //   params: ExecuteDepositSwapActionProps,
+  //   callbacks: {
+  //     captureEvent?: (event: string, properties?: Record<string, any>) => void;
+  //     setIsLoading: (loading: boolean) => void;
+  //     handleOnComplete: (txnSigs: string[]) => void;
+  //     retryCallback: (txns: DepositSwapActionTxns, multiStepToast: MultiStepToastHandle) => void;
+  //     setAmountRaw: (amountRaw: string) => void;
+  //   }
+  // ) => {
+  //   const action = async (params: ExecuteDepositSwapActionProps) => {
+  //     await handleExecuteDepositSwapAction({
+  //       params,
+  //       captureEvent: (event, properties) => {
+  //         callbacks.captureEvent && callbacks.captureEvent(event, properties);
+  //       },
+  //       setIsLoading: callbacks.setIsLoading,
+  //       setIsComplete: callbacks.handleOnComplete,
+  //       setError: (error: IndividualFlowError) => {
+  //         const toast = error.multiStepToast as MultiStepToastHandle;
+  //         const txs = error.actionTxns as DepositSwapActionTxns;
+  //         const errorMessage = error.message;
+  //         let retry = undefined;
+  //         if (error.retry && toast && txs) {
+  //           retry = () => callbacks.retryCallback(txs, toast);
+  //         }
+  //         toast?.setFailed(errorMessage, retry);
+  //         callbacks.setIsLoading(false);
+  //       },
+  //     });
+  //   };
 
-    await action(params);
-    callbacks.setAmountRaw("");
-  };
+  //   await action(params);
+  //   callbacks.setAmountRaw("");
+  // };
 
-  const retryDepositSwapAction = React.useCallback(
-    async (params: ExecuteDepositSwapActionProps, swapBank: ExtendedBankInfo | WalletToken | null) => {
-      executeAction(params, {
-        captureEvent: captureEvent,
-        setIsLoading: setIsTransactionExecuting,
-        handleOnComplete: (txnSigs: string[]) => {
-          setIsActionComplete(true);
-          setPreviousTxn({
-            txn: txnSigs[txnSigs.length - 1] ?? "",
-            txnType: "DEPOSIT_SWAP",
-            depositSwapOptions: {
-              depositBank: selectedDepositBank as ActiveBankInfo,
-              swapBank: selectedSwapBank as ActiveBankInfo,
-              depositAmount: actionTxns?.actionQuote
-                ? Number(
-                    nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
-                  )
-                : debouncedAmount ?? 0,
-              swapAmount: actionTxns?.actionQuote ? debouncedAmount ?? 0 : 0,
-            },
-          });
-          onComplete &&
-            onComplete({
-              txn: txnSigs[txnSigs.length - 1] ?? "",
-              txnType: "DEPOSIT_SWAP",
-              depositSwapOptions: {
-                depositBank: selectedDepositBank as ActiveBankInfo,
-                swapBank: selectedSwapBank as ActiveBankInfo,
-                depositAmount: actionTxns?.actionQuote
-                  ? Number(
-                      nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
-                    )
-                  : debouncedAmount ?? 0,
-                swapAmount: actionTxns?.actionQuote ? debouncedAmount ?? 0 : 0,
-                walletToken: walletTokens?.find(
-                  (token) => token.address.toBase58() === selectedSwapBank?.address.toBase58()
-                ),
-              },
-            });
-        },
-        retryCallback: (txns: DepositSwapActionTxns, multiStepToast: MultiStepToastHandle) => {
-          retryDepositSwapAction({ ...params, actionTxns: txns, multiStepToast }, swapBank);
-        },
-        setAmountRaw: setAmountRaw,
-      });
-    },
-    [
-      actionTxns.actionQuote,
-      captureEvent,
-      debouncedAmount,
-      onComplete,
-      selectedDepositBank,
-      selectedSwapBank,
-      setIsActionComplete,
-      setPreviousTxn,
-      walletTokens,
-      setAmountRaw,
-    ]
-  );
+  // const retryDepositSwapAction = React.useCallback(
+  //   async (params: ExecuteDepositSwapActionProps, swapBank: ExtendedBankInfo | WalletToken | null) => {
+  //     executeAction(params, {
+  //       captureEvent: captureEvent,
+  //       setIsLoading: setIsTransactionExecuting,
+  //       handleOnComplete: (txnSigs: string[]) => {
+  //         setIsActionComplete(true);
+  //         setPreviousTxn({
+  //           txn: txnSigs[txnSigs.length - 1] ?? "",
+  //           txnType: "DEPOSIT_SWAP",
+  //           depositSwapOptions: {
+  //             depositBank: selectedDepositBank as ActiveBankInfo,
+  //             swapBank: selectedSwapBank as ActiveBankInfo,
+  //             depositAmount: actionTxns?.actionQuote
+  //               ? Number(
+  //                   nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
+  //                 )
+  //               : debouncedAmount ?? 0,
+  //             swapAmount: actionTxns?.actionQuote ? debouncedAmount ?? 0 : 0,
+  //           },
+  //         });
+  //         onComplete &&
+  //           onComplete({
+  //             txn: txnSigs[txnSigs.length - 1] ?? "",
+  //             txnType: "DEPOSIT_SWAP",
+  //             depositSwapOptions: {
+  //               depositBank: selectedDepositBank as ActiveBankInfo,
+  //               swapBank: selectedSwapBank as ActiveBankInfo,
+  //               depositAmount: actionTxns?.actionQuote
+  //                 ? Number(
+  //                     nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
+  //                   )
+  //                 : debouncedAmount ?? 0,
+  //               swapAmount: actionTxns?.actionQuote ? debouncedAmount ?? 0 : 0,
+  //               walletToken: walletTokens?.find(
+  //                 (token) => token.address.toBase58() === selectedSwapBank?.address.toBase58()
+  //               ),
+  //             },
+  //           });
+  //       },
+  //       retryCallback: (txns: DepositSwapActionTxns, multiStepToast: MultiStepToastHandle) => {
+  //         retryDepositSwapAction({ ...params, actionTxns: txns, multiStepToast }, swapBank);
+  //       },
+  //       setAmountRaw: setAmountRaw,
+  //     });
+  //   },
+  //   [
+  //     actionTxns.actionQuote,
+  //     captureEvent,
+  //     debouncedAmount,
+  //     onComplete,
+  //     selectedDepositBank,
+  //     selectedSwapBank,
+  //     setIsActionComplete,
+  //     setPreviousTxn,
+  //     walletTokens,
+  //     setAmountRaw,
+  //   ]
+  // );
 
-  const handleDepositSwapAction = React.useCallback(async () => {
-    if (
-      !actionTxns ||
-      !marginfiClient ||
-      !debouncedAmount ||
-      debouncedAmount === 0 ||
-      !transactionSettings ||
-      !selectedAccount
-    ) {
-      return;
-    }
+  // const handleDepositSwapAction = React.useCallback(async () => {
+  //   if (
+  //     !actionTxns ||
+  //     !marginfiClient ||
+  //     !debouncedAmount ||
+  //     debouncedAmount === 0 ||
+  //     !transactionSettings ||
+  //     !selectedAccount
+  //   ) {
+  //     return;
+  //   }
 
-    const params = {
-      marginfiClient: marginfiClient,
-      actionTxns: actionTxns,
-      bank: selectedDepositBank,
-      amount: debouncedAmount,
-      nativeSolBalance,
-      marginfiAccount: selectedAccount,
+  //   const params = {
+  //     marginfiClient: marginfiClient,
+  //     actionTxns: actionTxns,
+  //     bank: selectedDepositBank,
+  //     amount: debouncedAmount,
+  //     nativeSolBalance,
+  //     marginfiAccount: selectedAccount,
+  //     processOpts: {
+  //       ...priorityFees,
+  //       broadcastType: transactionSettings.broadcastType,
+  //     },
+  //     txOpts: {},
+  //     actionType: lendMode,
+  //     swapBank: selectedSwapBank,
+  //   } as ExecuteDepositSwapActionProps;
+
+  //   await executeAction(params, {
+  //     captureEvent: captureEvent,
+  //     setIsLoading: setIsTransactionExecuting,
+  //     handleOnComplete: (txnSigs: string[]) => {
+  //       setIsActionComplete(true);
+  //       setPreviousTxn({
+  //         txn: txnSigs[txnSigs.length - 1] ?? "",
+  //         txnType: "DEPOSIT_SWAP",
+  //         depositSwapOptions: {
+  //           depositBank: selectedDepositBank as ActiveBankInfo,
+  //           swapBank: selectedSwapBank as ActiveBankInfo,
+  //           depositAmount: actionTxns?.actionQuote
+  //             ? Number(
+  //                 nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
+  //               )
+  //             : debouncedAmount,
+  //           swapAmount: actionTxns?.actionQuote ? debouncedAmount : 0,
+  //         },
+  //       });
+  //       onComplete &&
+  //         onComplete({
+  //           txn: txnSigs[txnSigs.length - 1] ?? "",
+  //           txnType: "DEPOSIT_SWAP",
+  //           depositSwapOptions: {
+  //             depositBank: selectedDepositBank as ActiveBankInfo,
+  //             swapBank: selectedSwapBank as ActiveBankInfo,
+  //             depositAmount: actionTxns?.actionQuote
+  //               ? Number(
+  //                   nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
+  //                 )
+  //               : debouncedAmount,
+  //             swapAmount: actionTxns?.actionQuote ? debouncedAmount : 0,
+  //             walletToken: walletTokens?.find(
+  //               (token) => token.address.toBase58() === selectedSwapBank?.address.toBase58()
+  //             ),
+  //           },
+  //         });
+  //     },
+  //     retryCallback: (txns: DepositSwapActionTxns, multiStepToast: MultiStepToastHandle) => {
+  //       retryDepositSwapAction({ ...params, actionTxns: txns, multiStepToast }, selectedSwapBank);
+  //     },
+  //     setAmountRaw: setAmountRaw,
+  //   });
+  // }, [
+  //   actionTxns,
+  //   marginfiClient,
+  //   debouncedAmount,
+  //   transactionSettings,
+  //   selectedAccount,
+  //   selectedDepositBank,
+  //   nativeSolBalance,
+  //   priorityFees,
+  //   lendMode,
+  //   selectedSwapBank,
+  //   captureEvent,
+  //   setIsActionComplete,
+  //   setPreviousTxn,
+  //   onComplete,
+  //   walletTokens,
+  //   retryDepositSwapAction,
+  //   setAmountRaw,
+  // ]);
+
+  const handleDepositSwapAction = React.useCallback(() => {
+    if (!marginfiClient) return;
+
+    const attemptUuid = uuidv4();
+
+    const props: ExecuteDepositSwapActionPropsV2 = {
+      actionTxns,
+      attemptUuid,
+      marginfiClient,
       processOpts: {
         ...priorityFees,
-        broadcastType: transactionSettings.broadcastType,
+        broadcastType: transactionSettings?.broadcastType,
       },
       txOpts: {},
-      actionType: lendMode,
-      swapBank: selectedSwapBank,
-    } as ExecuteDepositSwapActionProps;
+      callbacks: {
+        captureEvent: captureEvent ?? (() => {}), // TODO: fix undefined case here
+      },
+      infoProps: {
+        depositToken: selectedDepositBank?.meta.tokenSymbol ?? "",
+        swapToken: selectedSwapBank
+          ? "info" in selectedSwapBank
+            ? selectedSwapBank.meta.tokenSymbol
+            : selectedSwapBank.symbol
+          : "NO_SWAP",
+        amount: debouncedAmount ?? 0,
+      },
+    };
 
-    await executeAction(params, {
-      captureEvent: captureEvent,
-      setIsLoading: setIsTransactionExecuting,
-      handleOnComplete: (txnSigs: string[]) => {
-        setIsActionComplete(true);
-        setPreviousTxn({
-          txn: txnSigs[txnSigs.length - 1] ?? "",
-          txnType: "DEPOSIT_SWAP",
-          depositSwapOptions: {
-            depositBank: selectedDepositBank as ActiveBankInfo,
-            swapBank: selectedSwapBank as ActiveBankInfo,
-            depositAmount: actionTxns?.actionQuote
-              ? Number(
-                  nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
-                )
-              : debouncedAmount,
-            swapAmount: actionTxns?.actionQuote ? debouncedAmount : 0,
-          },
-        });
-        onComplete &&
-          onComplete({
-            txn: txnSigs[txnSigs.length - 1] ?? "",
-            txnType: "DEPOSIT_SWAP",
-            depositSwapOptions: {
-              depositBank: selectedDepositBank as ActiveBankInfo,
-              swapBank: selectedSwapBank as ActiveBankInfo,
-              depositAmount: actionTxns?.actionQuote
-                ? Number(
-                    nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
-                  )
-                : debouncedAmount,
-              swapAmount: actionTxns?.actionQuote ? debouncedAmount : 0,
-              walletToken: walletTokens?.find(
-                (token) => token.address.toBase58() === selectedSwapBank?.address.toBase58()
-              ),
-            },
-          });
-      },
-      retryCallback: (txns: DepositSwapActionTxns, multiStepToast: MultiStepToastHandle) => {
-        retryDepositSwapAction({ ...params, actionTxns: txns, multiStepToast }, selectedSwapBank);
-      },
-      setAmountRaw: setAmountRaw,
-    });
+    ExecuteDepositSwapActionV2(props);
+    setAmountRaw("");
   }, [
     actionTxns,
     marginfiClient,
-    debouncedAmount,
-    transactionSettings,
-    selectedAccount,
-    selectedDepositBank,
-    nativeSolBalance,
     priorityFees,
-    lendMode,
-    selectedSwapBank,
+    transactionSettings,
     captureEvent,
-    setIsActionComplete,
-    setPreviousTxn,
-    onComplete,
-    walletTokens,
-    retryDepositSwapAction,
+    selectedDepositBank,
+    selectedSwapBank,
+    debouncedAmount,
     setAmountRaw,
   ]);
 
