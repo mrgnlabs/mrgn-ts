@@ -4,11 +4,14 @@ TODO list of common banks and groups...
 
 - Mainnet - MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA
 - Staging - stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct
+- Mocks - HfCg2Re4BnZmQ7SzUcw3fhBtf1fqWmtMY1wov59VFrYs
 
 ## MULTISIG
 
 - Management - AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1
 - Program - 3HGdGLrnK9DsnHi1mCrUMLGfQHcu6xUrXhMY14GYjqvM
+- Management v4 - CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw
+- Program v4 -J3oBkTkDXU3TcAggJEa3YeBZE5om5yNAdTtLVNXFD47
 
 ## GROUPS
 
