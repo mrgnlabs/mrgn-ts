@@ -7,10 +7,10 @@ import { MultiStepToastHandle, showErrorToast } from "@mrgnlabs/mrgn-utils";
 export default function TestPage() {
   const handleStartProcess = () => {
     const toast = toastManager.createMultiStepToast("Processing Transaction", [
-      { label: "Initiating", status: "pending" },
-      { label: "Signing", status: "todo" },
-      { label: "Broadcasting", status: "todo" },
-      { label: "Confirming", status: "todo" },
+      { label: "Initiating" },
+      { label: "Signing" },
+      { label: "Broadcasting"},
+      { label: "Confirming" },
     ]);
 
     toast.start();
