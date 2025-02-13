@@ -1,18 +1,11 @@
 import { IconLoader2, IconCheck, IconExternalLink, IconX } from "@tabler/icons-react";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-
-export interface ToastStep {
-  label: string;
-  status: "todo" | "pending" | "success" | "error" | "canceled" | "paused";
-  message?: string;
-  signature?: string;
-  explorerUrl?: string;
-}
+import { MultiStepToastStep } from "~/utils/toast-manager";
 
 interface MultiStepToastProps {
   toastId: string;
   title: string;
-  steps: ToastStep[];
+  steps: MultiStepToastStep[];
 }
 
 export function MultiStepToast({ title, steps }: MultiStepToastProps) {
@@ -31,12 +24,18 @@ export function MultiStepToast({ title, steps }: MultiStepToastProps) {
 }
 
 // Step Rendering
-function StepComponent({ step, isLastFailed }: { step: ToastStep; isLastFailed: boolean }) {
+function StepComponent({ step, isLastFailed }: { step: MultiStepToastStep; isLastFailed: boolean }) {
   switch (step.status) {
     case "success":
       return <SuccessStep label={step.label} signature={step.signature} explorerUrl={step.explorerUrl} />;
     case "error":
-      return <ErrorStep label={step.label} message={step.message} showRetry={isLastFailed} />;
+      return (
+        <ErrorStep
+          label={step.label}
+          message={step.message}
+          retry={isLastFailed && step.retry ? step.retry : undefined}
+        />
+      );
     case "pending":
       return <PendingStep label={step.label} />;
     case "canceled":
@@ -77,21 +76,25 @@ const SuccessStep = ({
   </div>
 );
 
-const ErrorStep = ({ label, message, showRetry }: { label: string; message?: string; showRetry: boolean }) => (
+const ErrorStep = ({ label, message, retry }: { label: string; message?: string; retry?: () => void }) => (
   <div className="flex flex-col">
     <div className="flex items-center space-x-2">
       <IconX size={16} className="text-mrgn-error flex-shrink-0" />
       <span className="text-error">{label}</span>
-      {showRetry && (
-        <button className="ml-2 inline-flex gap-2 items-center justify-center text-[10px] font-medium rounded-md bg-accent text-primary px-2 py-0.5 shadow-sm hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-600">
+    </div>
+    <div className="flex justify-between space-x-2 w-full px-6">
+      {message && <div className="py-1 text-xs text-muted-foreground">{message}</div>}
+      {retry && (
+        <button
+          className="ml-2 inline-flex gap-2 items-center justify-center text-[10px] font-medium rounded-md bg-accent text-primary px-2 py-0.5 shadow-sm hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-600"
+          onClick={retry}
+        >
           Retry
         </button>
       )}
     </div>
-    {message && <div className="py-1 text-xs text-muted-foreground">{message}</div>}
   </div>
 );
-
 const PendingStep = ({ label }: { label: string }) => (
   <div className="flex items-center space-x-2">
     <IconLoader2 size={16} className="animate-spin flex-shrink-0" />
