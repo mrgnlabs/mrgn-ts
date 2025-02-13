@@ -44,8 +44,8 @@
     "tailwind-merge": "^1.14.0"
   },
   "devDependencies": {
-    "@mrgnlabs/eslint-config-custom": "*",
-    "@mrgnlabs/tsconfig": "*",
+    "@mrgnlabs/eslint-config-custom": "workspace:*",
+    "@mrgnlabs/tsconfig": "workspace:*",
     "@types/numeral": "^2.0.5",
     "@types/react": "^18.2.61",
     "@types/bn.js": "^5.1.1",

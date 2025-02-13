@@ -24,8 +24,8 @@
     "superstruct": "^1.0.3"
   },
   "devDependencies": {
-    "@mrgnlabs/eslint-config-custom": "*",
-    "@mrgnlabs/tsconfig": "*",
+    "@mrgnlabs/eslint-config-custom": "workspace:*",
+    "@mrgnlabs/tsconfig": "workspace:*",
     "@types/node": "^18.15.0",
     "eslint": "^7.32.0",
     "ts-node": "^10.9.1",
