@@ -1,0 +1,308 @@
+{
+  "address": "HfCg2Re4BnZmQ7SzUcw3fhBtf1fqWmtMY1wov59VFrYs",
+  "metadata": {
+    "name": "mocks",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "External program mocks"
+  },
+  "instructions": [
+    {
+      "name": "do_nothing",
+      "docs": [
+        "Do nothing"
+      ],
+      "discriminator": [
+        112,
+        130,
+        224,
+        161,
+        71,
+        149,
+        192,
+        187
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "init_pool_auth",
+      "docs": [
+        "Init authority for fake jupiter-like swap pools"
+      ],
+      "discriminator": [
+        48,
+        155,
+        246,
+        118,
+        211,
+        80,
+        8,
+        220
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "docs": [
+            "Pays the init fee"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pool_auth",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "arg",
+                "path": "nonce"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint_a"
+        },
+        {
+          "name": "mint_b"
+        },
+        {
+          "name": "pool_a",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "mint_a"
+              },
+              {
+                "kind": "account",
+                "path": "pool_auth"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  115
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "pool_b",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "mint_b"
+              },
+              {
+                "kind": "account",
+                "path": "pool_auth"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  115
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "nonce",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "swap_like_jupiter",
+      "docs": [
+        "Execute an exchange of a:b like-jupiter. You set the amount a sent and b received."
+      ],
+      "discriminator": [
+        53,
+        0,
+        48,
+        18,
+        207,
+        211,
+        11,
+        240
+      ],
+      "accounts": [
+        {
+          "name": "user_authority",
+          "signer": true
+        },
+        {
+          "name": "pool_auth",
+          "docs": [
+            "PDA authority of the pools"
+          ]
+        },
+        {
+          "name": "pool_a",
+          "writable": true
+        },
+        {
+          "name": "pool_b",
+          "writable": true
+        },
+        {
+          "name": "source_a",
+          "writable": true
+        },
+        {
+          "name": "destination_b",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amt_a",
+          "type": "u64"
+        },
+        {
+          "name": "amt_b",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "write",
+      "docs": [
+        "Write arbitrary bytes to an arbitrary account. YOLO."
+      ],
+      "discriminator": [
+        235,
+        116,
+        91,
+        200,
+        206,
+        170,
+        144,
+        120
+      ],
+      "accounts": [
+        {
+          "name": "target",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "offset",
+          "type": "u64"
+        },
+        {
+          "name": "data",
+          "type": "bytes"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "PoolAuth",
+      "discriminator": [
+        84,
+        40,
+        134,
+        46,
+        2,
+        144,
+        109,
+        184
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "SomeError",
+      "msg": "This is an error."
+    }
+  ],
+  "types": [
+    {
+      "name": "PoolAuth",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "key",
+            "docs": [
+              "The account's own key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_a",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_b",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump_seed",
+            "type": "u8"
+          },
+          {
+            "name": "nonce",
+            "type": "u16"
+          }
+        ]
+      }
+    }
+  ]
+}
