@@ -3,7 +3,7 @@ import { WarningToast } from "../components/toasts/warning-toast";
 import { ErrorToast } from "../components/toasts/error-toast";
 import { MultiStepToast } from "../components/toasts/multi-step-toast/multi-step-toast";
 
-export interface ToastStep {
+export interface ToastStepV2{ // TODO: update name
   label: string;
   status: "todo" | "pending" | "success" | "error" | "canceled" | "paused";
   message?: string;
@@ -22,7 +22,7 @@ class ToastManager {
     });
   }
 
-  createMultiStepToast(title: string, steps: ToastStep[]) {
+  createMultiStepToast(title: string, steps: ToastStepV2[]) {
     let toastId: string | number | undefined = undefined;
 
     const updateToast = () => {
