@@ -24,6 +24,9 @@ type ActionInputProps = {
   showTokenSelectionGroups?: boolean;
   isMini?: boolean;
 
+  searchMode?: boolean;
+  onCloseDialog?: () => void;
+
   setAmountRaw: (amount: string) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
 };
@@ -42,6 +45,8 @@ export const ActionInput = ({
   amount,
   selectedBank,
   lendMode,
+  searchMode,
+  onCloseDialog,
   setAmountRaw,
   setSelectedBank,
 }: ActionInputProps) => {
@@ -98,6 +103,10 @@ export const ActionInput = ({
             nativeSolBalance={nativeSolBalance}
             lendMode={lendMode}
             connected={connected}
+            isInitialOpen={searchMode}
+            onCloseDialog={() => {
+              selectedBank === null && onCloseDialog?.();
+            }}
           />
         </div>
         <div className="flex-auto flex flex-col gap-0 items-end">

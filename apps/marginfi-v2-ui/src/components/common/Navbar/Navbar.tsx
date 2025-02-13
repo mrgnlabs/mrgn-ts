@@ -3,7 +3,7 @@ import React, { FC } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { IconBell, IconBrandTelegram, IconSettings } from "@tabler/icons-react";
+import { IconBell, IconBrandTelegram, IconSearch, IconSettings } from "@tabler/icons-react";
 
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { ResponsiveSettingsWrapper, Settings, Wallet } from "@mrgnlabs/mrgn-ui";
@@ -20,7 +20,6 @@ import { IconMrgn } from "~/components/ui/icons";
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
   useFirebaseAccount();
-  const [settingsDialogOpen, setSettingsDialogOpen] = React.useState(false);
 
   const { connection } = useConnection();
   const router = useRouter();
@@ -58,6 +57,8 @@ export const Navbar: FC = () => {
     setDisplaySettings,
     jupiterOptions,
     setJupiterOptions,
+    setGlobalActionBoxProps,
+    globalActionBoxProps,
   } = useUiStore((state) => ({
     priorityType: state.priorityType,
     broadcastType: state.broadcastType,
@@ -70,9 +71,28 @@ export const Navbar: FC = () => {
     setDisplaySettings: state.setDisplaySettings,
     jupiterOptions: state.jupiterOptions,
     setJupiterOptions: state.setJupiterOptions,
+    setGlobalActionBoxProps: state.setGlobalActionBoxProps,
+    globalActionBoxProps: state.globalActionBoxProps,
   }));
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+        event.preventDefault();
+        setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: true });
+      } else if (event.key === "Escape") {
+        setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: false });
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   return (
     <header className="h-[64px] mb-4 md:mb-8 lg:mb-14">
@@ -145,10 +165,32 @@ export const Navbar: FC = () => {
             </div>
           </div>
           {initialized && (
-            <div className="h-full w-1/2 flex justify-end items-center z-10 gap-4 lg:gap-4 text-[#868E95]">
+            <div className="h-full w-1/2 flex justify-end items-center z-10 gap-2 sm:gap-4 text-[#868E95]">
+              <Button
+                onClick={() => {
+                  setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: !globalActionBoxProps.isOpen });
+                }}
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 shrink-0 flex lg:hidden rounded-lg"
+              >
+                <IconSearch size={20} />
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: !globalActionBoxProps.isOpen });
+                }}
+                className="hidden lg:flex py-2 px-4 border bg-muted/60 border-background-gray-light flex-row items-center justify-between w-56 text-muted-foreground cursor-pointer "
+              >
+                <span>Search pools...</span>
+                <span>⌘ K</span>
+              </Button>
+
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
+                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-lg">
                     <IconBell size={20} />
                   </Button>
                 </PopoverTrigger>
@@ -196,7 +238,7 @@ export const Navbar: FC = () => {
                 settingsDialogOpen={displaySettings}
                 setSettingsDialogOpen={setDisplaySettings}
               >
-                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
+                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-lg">
                   <IconSettings size={20} />
                 </Button>
               </ResponsiveSettingsWrapper>

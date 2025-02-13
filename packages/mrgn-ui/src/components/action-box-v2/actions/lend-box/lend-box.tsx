@@ -28,11 +28,7 @@ import {
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 
-import {
-  ActionBoxContentWrapper,
-  ActionButton,
-  ActionCollateralProgressBar,
-} from "~/components/action-box-v2/components";
+import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -69,6 +65,10 @@ export type LendBoxProps = {
   hidePoolStats?: HidePoolStats;
   stakeAccounts?: ValidatorStakeGroup[];
 
+  searchMode?: boolean;
+  onCloseDialog?: () => void;
+  setShouldBeHidden?: (hidden: boolean) => void;
+
   onComplete?: (previousTxn: PreviousTxn) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
   setDisplaySettings?: (displaySettings: boolean) => void;
@@ -94,6 +94,9 @@ export const LendBox = ({
   hidePoolStats,
   stakeAccounts,
   setDisplaySettings,
+  onCloseDialog,
+  searchMode = false,
+  setShouldBeHidden,
 }: LendBoxProps) => {
   const [
     amountRaw,
@@ -136,6 +139,42 @@ export const LendBox = ({
     state.setStakeAccounts,
     state.setSelectedStakeAccount,
   ]);
+
+  const hasRefreshed = React.useRef(false);
+  const _prevSelectedBank = usePrevious(selectedBank);
+  const _prevSearchMode = usePrevious(searchMode);
+
+  /**
+   * Handles visibility and state refresh logic when `searchMode` is enabled.
+   * - If no bank is selected, hide the component.
+   * - If a bank is selected, show the component.
+   * - If `searchMode` is first enabled and a bank was already selected, refresh the state.
+   */
+  React.useEffect(() => {
+    if (!searchMode) return;
+
+    if (!selectedBank) {
+      setShouldBeHidden?.(true);
+    } else {
+      setShouldBeHidden?.(false);
+    }
+
+    // Refresh state when searchMode is enabled and a bank was initially selected
+    if (!hasRefreshed.current && _prevSelectedBank === undefined && selectedBank) {
+      refreshState();
+      hasRefreshed.current = true;
+    }
+  }, [searchMode, selectedBank, _prevSelectedBank, setShouldBeHidden, refreshState]);
+
+  /**
+   * Resets `hasRefreshed` when `searchMode` changes from `false` → `true`.
+   * This ensures `refreshState()` can run again when toggling `searchMode` on.
+   */
+  React.useEffect(() => {
+    if (_prevSearchMode === false && searchMode === true) {
+      hasRefreshed.current = false;
+    }
+  }, [searchMode, _prevSearchMode]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
@@ -569,6 +608,10 @@ export const LendBox = ({
           showTokenSelectionGroups={showTokenSelectionGroups}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
+          searchMode={searchMode}
+          onCloseDialog={() => {
+            searchMode && onCloseDialog?.();
+          }}
         />
       </div>
       {lendMode === ActionType.Deposit &&
@@ -624,16 +667,7 @@ export const LendBox = ({
           isActive={selectedBank && amount > 0 ? true : false}
         />
 
-        {setDisplaySettings && (
-          <div className="flex justify-end gap-2 ml-auto">
-            <button
-              onClick={() => setDisplaySettings(true)}
-              className="text-xs gap-1 h-6 px-2 flex items-center rounded-full bg-mfi-action-box-accent hover:bg-mfi-action-box-accent/80 "
-            >
-              Settings <IconSettings size={20} />
-            </button>
-          </div>
-        )}
+        {setDisplaySettings && <ActionSettingsButton onClick={() => setDisplaySettings(true)} />}
       </div>
       <Preview
         actionSummary={actionSummary}
@@ -646,10 +680,20 @@ export const LendBox = ({
       {lendMode === ActionType.Deposit &&
         selectedBank &&
         selectedBank.info.rawBank.config.assetTag === 2 &&
-        amount > 0 &&
-        amount === maxAmount && (
+        amount > 0 && (
           <div className="mt-6 text-[11px] text-muted-foreground font-light">
-            <p>*Accumulated Jito mev rewards may be withdrawn to your wallet on deposit</p>
+            {amount === maxAmount && <p>Accumulated Jito mev rewards may be withdrawn to your wallet on deposit</p>}
+            <p>
+              Staked asset banks do not currently receive Jito mev rewards.{" "}
+              <Link
+                href="https://docs.marginfi.com/staked-collateral#earning-yield-on-your-stake"
+                target="_blank"
+                rel="noreferrer"
+                className="border-b border-muted-foreground/60 transition-colors hover:border-transparent"
+              >
+                Learn more
+              </Link>
+            </p>
           </div>
         )}
       <LSTDialog

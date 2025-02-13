@@ -210,12 +210,18 @@ const Wallet = ({
             {wallet?.publicKey && (
               <button
                 disabled={!userDataFetched}
-                className="flex items-center gap-2 hover:bg-accent/50 transition-colors rounded-full py-0.5 pr-2 pl-1 text-sm text-muted-foreground"
+                className="flex items-center gap-2 hover:bg-accent/50 transition-colors rounded-full py-1 sm:pr-3 sm:pl-1 text-sm text-muted-foreground font-normal shrink-0"
               >
                 <WalletAvatar pfp={pfp} address={wallet?.publicKey.toBase58()} size="sm" />
                 {userDataFetched && wallet?.publicKey ? (
                   <>
-                    {shortenAddress(wallet?.publicKey)} <IconChevronDown size={16} />
+                    <div className="flex flex-col items-start">
+                      {shortenAddress(wallet?.publicKey)}
+                      <div className="text-muted-foreground/70 text-xs">
+                        {accountLabels?.[selectedAccount?.address.toBase58() ?? "Account"]}
+                      </div>
+                    </div>
+                    <IconChevronDown size={16} className="sm:ml-4 ml-2" />
                   </>
                 ) : (
                   "Loading..."
@@ -230,11 +236,13 @@ const Wallet = ({
             </SheetHeader>
             {walletData.address ? (
               <div className="max-h-full">
-                <header className="flex items-center gap-2 h-12">
-                  <WalletAvatar pfp={pfp} address={walletData.address} size="md" className="absolute left-2" />
+                <header className="flex items-center gap-2 h-16 items-center justify-between px-2">
+                  <WalletAvatar pfp={pfp} address={walletData.address} size="md" className=" " />
 
                   {!headerComponent && mfiClient && marginfiAccounts && selectedAccount && (
-                    <div className="mx-auto">
+                    <div className="flex relative flex-col items-start gap-1.5">
+                      <p className="text-xs self-center text-muted-foreground ">Manage accounts</p>
+
                       <WalletAuthAccounts
                         initialized={initialized}
                         mfiClient={mfiClient}
@@ -251,7 +259,7 @@ const Wallet = ({
 
                   {headerComponent && headerComponent}
 
-                  <div className="absolute right-2 flex items-center md:gap-1">
+                  <div className="flex items-center md:gap-1">
                     {web3AuthConncected && (
                       <Button
                         variant="ghost"

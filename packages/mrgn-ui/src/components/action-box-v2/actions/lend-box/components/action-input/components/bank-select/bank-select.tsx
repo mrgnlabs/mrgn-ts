@@ -16,6 +16,8 @@ type BankSelectProps = {
   isSelectable?: boolean;
   showTokenSelectionGroups?: boolean;
   setSelectedBank: (selectedBank: ExtendedBankInfo | null) => void;
+  isInitialOpen?: boolean;
+  onCloseDialog?: () => void;
 };
 
 export const BankSelect = ({
@@ -27,9 +29,11 @@ export const BankSelect = ({
   isSelectable = true,
   showTokenSelectionGroups,
   setSelectedBank,
+  isInitialOpen = false,
+  onCloseDialog,
 }: BankSelectProps) => {
   // idea check list if banks[] == 1 make it unselectable
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(isInitialOpen);
 
   const lendingMode = React.useMemo(
     () =>
@@ -57,12 +61,18 @@ export const BankSelect = ({
       {isSelectable && (
         <BankListWrapper
           isOpen={isOpen}
-          setIsOpen={setIsOpen}
+          setIsOpen={(open) => {
+            !open && onCloseDialog?.();
+            setIsOpen(open);
+          }}
           Trigger={<BankTrigger selectedBank={selectedBank} lendingMode={lendingMode} isOpen={isOpen} />}
           Content={
             <BankList
               isOpen={isOpen}
-              onClose={() => setIsOpen(false)}
+              onClose={(hasSetBank) => {
+                !hasSetBank && onCloseDialog?.();
+                setIsOpen(false);
+              }}
               selectedBank={selectedBank}
               onSetSelectedBank={setSelectedBank}
               lendMode={lendMode}

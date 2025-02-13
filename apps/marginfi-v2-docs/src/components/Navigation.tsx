@@ -266,12 +266,12 @@ export const navigation: Array<NavGroup> = [
       { title: 'Progressive Web App', href: '/pwa' },
     ],
   },
-  {
-    title: 'White Papers',
-    links: [
-      { title: '$YBX', href: '/ybx' },
-    ],
-  },
+  // {
+  //   title: 'White Papers',
+  //   links: [
+  //     { title: '$YBX', href: '/ybx' },
+  //   ],
+  // },
 ]
 
 export function Navigation(props: React.ComponentPropsWithoutRef<'nav'>) {

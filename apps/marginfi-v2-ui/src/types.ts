@@ -5,6 +5,7 @@ import { AddressLookupTableAccount, ComputeBudgetInstruction, PublicKey, Transac
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { QuoteResponseMeta } from "@mrgnlabs/mrgn-utils";
 import { SwapResult } from "@jup-ag/common";
+
 import { createStore } from "zustand";
 import { SwapMode } from "@jup-ag/api";
 import { WalletContextStateOverride } from "~/components/wallet-v2";
@@ -256,26 +257,6 @@ export type MayanSwapInfo = {
   toToken: string;
   fromAmount: number;
 };
-
-export type SortAssetOption = {
-  label: string;
-  borrowLabel?: string;
-  value: SortType;
-  field: "APY" | "TVL";
-  direction: sortDirection;
-};
-
-export enum sortDirection {
-  ASC = "ASC",
-  DESC = "DESC",
-}
-
-export enum SortType {
-  APY_ASC = "APY_ASC",
-  APY_DESC = "APY_DESC",
-  TVL_ASC = "TVL_ASC",
-  TVL_DESC = "TVL_DESC",
-}
 
 export type PreviousTxn = {
   type: ActionType;

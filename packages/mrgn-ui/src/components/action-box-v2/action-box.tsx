@@ -34,9 +34,11 @@ const ActionBox: ActionBoxComponent = (props) => {
     return (
       <>
         <ActionDialogWrapper
-          title={dialogProps.title}
-          trigger={dialogProps.trigger}
-          isTriggered={dialogProps.isTriggered}
+          title={dialogProps?.title}
+          trigger={dialogProps?.trigger}
+          isTriggered={dialogProps?.isTriggered}
+          onClose={dialogProps?.onClose}
+          hidden={dialogProps?.hidden}
         >
           {props.children}
         </ActionDialogWrapper>
@@ -107,22 +109,23 @@ const BorrowLend = (
   props: ActionBoxProps & { lendProps: RequiredLendBoxProps | LendBoxProps; useProvider?: boolean }
 ) => {
   const contextProps = useActionBoxContext();
-  const [selectedAction, setSelectedAction] = React.useState(ActionType.Deposit);
   const { lendProps, useProvider, ...actionBoxProps } = props;
 
+  const [selectedAction, setSelectedAction] = React.useState(lendProps.requestedLendType);
   React.useEffect(() => {
     setSelectedAction(lendProps.requestedLendType);
   }, [lendProps.requestedLendType]);
 
-  let combinedProps: LendBoxProps;
+  let combinedProps: LendBoxProps =
+    useProvider && contextProps
+      ? { ...contextProps, ...(lendProps as RequiredLendBoxProps) }
+      : (lendProps as LendBoxProps);
 
-  if (useProvider && contextProps) {
-    combinedProps = {
-      ...contextProps,
-      ...(lendProps as RequiredLendBoxProps),
-    };
-  } else {
-    combinedProps = lendProps as LendBoxProps;
+  // State to store whether the action box should be hidden
+  const [shouldBeHidden, setShouldBeHidden] = React.useState<boolean>(!!combinedProps.searchMode);
+
+  if (actionBoxProps.isDialog) {
+    actionBoxProps.dialogProps = { ...actionBoxProps.dialogProps, hidden: shouldBeHidden };
   }
 
   return (
@@ -133,8 +136,20 @@ const BorrowLend = (
           onSelectAction={setSelectedAction}
           actionTypes={[ActionType.Deposit, ActionType.Borrow]}
         >
-          <LendBox {...combinedProps} requestedLendType={ActionType.Deposit} />
-          <LendBox {...combinedProps} requestedLendType={ActionType.Borrow} />
+          <LendBox
+            {...combinedProps}
+            requestedLendType={ActionType.Deposit}
+            onCloseDialog={actionBoxProps.isDialog ? actionBoxProps.dialogProps?.onClose : undefined}
+            searchMode={shouldBeHidden}
+            setShouldBeHidden={setShouldBeHidden}
+          />
+          <LendBox
+            {...combinedProps}
+            requestedLendType={ActionType.Borrow}
+            onCloseDialog={actionBoxProps.isDialog ? actionBoxProps.dialogProps?.onClose : undefined}
+            searchMode={shouldBeHidden}
+            setShouldBeHidden={setShouldBeHidden}
+          />
         </ActionBoxNavigator>
       </ActionBoxWrapper>
     </ActionBox>

@@ -235,4 +235,44 @@ const getStakePoolActiveStates = async (
   return activeStates;
 };
 
-export { getStakeAccountsCached, filterStakedAssetBanks, getStakeAccounts, getStakePoolActiveStates };
+/**
+ * Gets APY rates for validators associated with staked asset banks
+ *
+ * @param validatorVoteAccounts - Array of validator vote account public keys
+ * @returns Promise<Map<string, number>> - Map of bank addresses to APY rates
+ */
+const getValidatorRates = async (validatorVoteAccounts: PublicKey[]): Promise<Map<string, number>> => {
+  const rates = new Map<string, number>();
+
+  await Promise.all(
+    validatorVoteAccounts.map(async (validatorVoteAccount) => {
+      const poolAddress = findPoolAddress(validatorVoteAccount);
+      const poolMintAddress = findPoolMintAddress(poolAddress);
+
+      try {
+        const response = await fetch(`/api/validator-info?validator=${validatorVoteAccount.toBase58()}`);
+
+        if (!response.ok) {
+          rates.set(poolMintAddress.toBase58(), 0);
+          return;
+        }
+
+        const data = await response.json();
+        rates.set(poolMintAddress.toBase58(), data.data?.staking_apy ?? 0);
+      } catch (error) {
+        console.error("Error fetching validator rate:", error);
+        rates.set(poolMintAddress.toBase58(), 0);
+      }
+    })
+  );
+
+  return rates;
+};
+
+export {
+  getStakeAccountsCached,
+  filterStakedAssetBanks,
+  getStakeAccounts,
+  getStakePoolActiveStates,
+  getValidatorRates,
+};

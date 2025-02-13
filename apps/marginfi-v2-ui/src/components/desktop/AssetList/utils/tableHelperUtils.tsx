@@ -21,6 +21,7 @@ import {
   getUtilizationData,
   getDepositsData,
   getPositionData,
+  PoolTypes,
 } from "@mrgnlabs/mrgn-utils";
 
 import {
@@ -32,11 +33,16 @@ import {
   getDepositsCell,
   getRateCell,
   getUtilizationCell,
+  getValidatorCell,
+  getValidatorRateCell,
 } from "../components";
 import { getAction } from "./columnDataUtils";
+import Link from "next/link";
 
 export interface AssetListModel {
   asset: AssetData;
+  validator: string;
+  "validator-rate": string;
   price: AssetPriceData;
   rate: RateData;
   weight: AssetWeightData;
@@ -49,7 +55,6 @@ export interface AssetListModel {
 export const makeData = (
   data: ExtendedBankInfo[],
   isInLendingMode: boolean,
-  denominationUSD: boolean,
   nativeSolBalance: number,
   marginfiAccount: MarginfiAccountWrapper | null,
   connected: boolean,
@@ -60,22 +65,24 @@ export const makeData = (
     (bank) =>
       ({
         asset: getAssetData(bank.meta),
+        validator: bank.meta.stakePool?.validatorVoteAccount || "",
+        "validator-rate": bank.meta.stakePool?.validatorRewards || "",
         price: getAssetPriceData(bank),
         rate: getRateData(bank, isInLendingMode),
         weight: getAssetWeightData(bank, isInLendingMode),
-        deposits: getDepositsData(bank, isInLendingMode, denominationUSD),
-        bankCap: getBankCapData(bank, isInLendingMode, denominationUSD),
+        deposits: getDepositsData(bank, isInLendingMode),
+        bankCap: getBankCapData(bank, isInLendingMode),
         utilization: getUtilizationData(bank),
-        position: getPositionData(bank, denominationUSD, nativeSolBalance, isInLendingMode),
+        position: getPositionData(bank, nativeSolBalance, isInLendingMode),
         action: getAction(bank, isInLendingMode, marginfiAccount, connected, walletContextState, fetchMrgnlendState),
       } as AssetListModel)
   );
 };
 
-export const generateColumns = (isInLendingMode: boolean) => {
+export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) => {
   const columnHelper = createColumnHelper<AssetListModel>();
 
-  const columns = [
+  const columns: ReturnType<typeof columnHelper.accessor>[] = [
     columnHelper.accessor("asset", {
       id: "asset",
       enableResizing: false,
@@ -89,6 +96,9 @@ export const generateColumns = (isInLendingMode: boolean) => {
       enableSorting: false,
       footer: (props) => props.column.id,
     }),
+  ];
+
+  columns.push(
     columnHelper.accessor("price", {
       id: "price",
       enableResizing: false,
@@ -102,9 +112,12 @@ export const generateColumns = (isInLendingMode: boolean) => {
         <HeaderWrapper
           header={header}
           infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">Realtime prices</h4>
-              <span className="font-normal">Powered by Pyth and Switchboard.</span>
+            <div className="space-y-2">
+              <p>Real-time prices powered by Pyth and Switchboard.</p>
+              <p>
+                {poolType === PoolTypes.NATIVE_STAKE &&
+                  "Native stake LST price reflects the total stake and rewards in the pool."}
+              </p>
             </div>
           }
         >
@@ -115,142 +128,198 @@ export const generateColumns = (isInLendingMode: boolean) => {
         return rowA.original.price.assetPrice - rowB.original.price.assetPrice;
       },
       footer: (props) => props.column.id,
-    }),
-    columnHelper.accessor("rate", {
-      id: "rate",
-      enableResizing: true,
-      maxSize: 120,
-      cell: (props) => getRateCell(props.getValue()),
-      header: (header) => (
-        <HeaderWrapper
-          header={header}
-          infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">APY</h4>
-              <span>
+    })
+  );
+
+  if (poolType === PoolTypes.NATIVE_STAKE) {
+    columns.push(
+      columnHelper.accessor("validator", {
+        id: "validator",
+        enableResizing: false,
+        size: 140,
+        cell: (props) => getValidatorCell(props.getValue()),
+        header: (header) => (
+          <HeaderWrapper header={header} align="right" infoTooltip={<p>Validator vote account public key.</p>}>
+            Validator
+          </HeaderWrapper>
+        ),
+        enableSorting: false,
+        footer: (props) => props.column.id,
+      }),
+      columnHelper.accessor("validator-rate", {
+        id: "validator-rate",
+        enableResizing: false,
+        size: 170,
+        cell: (props) => getValidatorRateCell(props.getValue()),
+        header: (header) => (
+          <HeaderWrapper
+            header={header}
+            align="right"
+            infoTooltip={
+              <p>
+                Validator staking rewards. Staked assets do not currently receive Jito MEV rewards.{" "}
+                <Link
+                  href="https://docs.marginfi.com/staked-collateral#earning-yield-on-your-stake"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="border-b border-foreground/60 transition-colors hover:border-transparent"
+                >
+                  Learn more
+                </Link>
+              </p>
+            }
+          >
+            Staking APY
+          </HeaderWrapper>
+        ),
+        enableSorting: false,
+        footer: (props) => props.column.id,
+      })
+    );
+  } else {
+    columns.push(
+      columnHelper.accessor("rate", {
+        id: "rate",
+        enableResizing: true,
+        maxSize: 120,
+        cell: (props) => getRateCell(props.getValue()),
+        header: (header) => (
+          <HeaderWrapper
+            header={header}
+            infoTooltip={
+              <p>
                 {isInLendingMode
                   ? "What you'll earn on deposits over a year. This includes compounding."
                   : "What you'll pay for your borrows over a year. This includes compounding."}
-              </span>
-            </div>
-          }
-        >
-          APY
-        </HeaderWrapper>
-      ),
-      sortingFn: (rowA, rowB, columnId) => {
-        return rowA.original.rate.rateAPY - rowB.original.rate.rateAPY;
-      },
-      footer: (props) => props.column.id,
-    }),
-    columnHelper.accessor("weight", {
-      id: "weight",
-      cell: (props) => getAssetWeightCell(props.getValue()),
-      header: (header) => (
-        <HeaderWrapper
-          header={header}
-          infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">{isInLendingMode ? "Weight" : "LTV"}</h4>
-              <span>
+              </p>
+            }
+          >
+            APY
+          </HeaderWrapper>
+        ),
+        sortingFn: (rowA, rowB, columnId) => {
+          return rowA.original.rate.rateAPY - rowB.original.rate.rateAPY;
+        },
+        footer: (props) => props.column.id,
+      })
+    );
+  }
+
+  if (poolType !== PoolTypes.ISOLATED) {
+    columns.push(
+      columnHelper.accessor("weight", {
+        id: "weight",
+        cell: (props) => getAssetWeightCell(props.getValue()),
+        header: (header) => (
+          <HeaderWrapper
+            header={header}
+            infoTooltip={
+              <p>
                 {isInLendingMode
-                  ? "How much your assets count for collateral, relative to their USD value. The higher the weight, the more collateral you can borrow against it."
-                  : "How much you can borrow against your free collateral. The higher the LTV, the more you can borrow against your free collateral."}
-              </span>
-            </div>
-          }
-        >
-          {isInLendingMode ? "Weight" : "LTV"}
-        </HeaderWrapper>
-      ),
-      sortingFn: (rowA, rowB) => {
-        return rowA.original.weight.assetWeight - rowB.original.weight.assetWeight;
-      },
-      footer: (props) => props.column.id,
-    }),
+                  ? "Percentage of an asset's value that counts toward your collateral. Higher weight means more borrowing power for that asset."
+                  : "Loan-to-Value ratio (LTV) shows how much you can borrow relative to your available collateral. A higher LTV means you can borrow more, but it also increases liquidation risk."}
+              </p>
+            }
+          >
+            {isInLendingMode ? "Weight" : "LTV"}
+          </HeaderWrapper>
+        ),
+        sortingFn: (rowA, rowB) => {
+          return rowA.original.weight.assetWeight - rowB.original.weight.assetWeight;
+        },
+        footer: (props) => props.column.id,
+      })
+    );
+  }
+
+  columns.push(
     columnHelper.accessor("deposits", {
       id: "deposits",
-      cell: (props) => getDepositsCell(props.getValue()),
+      cell: (props) =>
+        isInLendingMode ? getDepositsCell(props.getValue()) : getBankCapCell(props.row.original.bankCap),
       header: (header) => (
         <HeaderWrapper
           header={header}
-          infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">{isInLendingMode ? "Total deposits" : "Total available"}</h4>
-              <span>
-                {isInLendingMode
-                  ? "Total marginfi deposits for each asset. Everything is denominated in native tokens."
-                  : "The amount of tokens available to borrow for each asset. Calculated as the minimum of the asset's borrow limit and available liquidity that has not yet been borrowed."}
-              </span>
-            </div>
-          }
+          infoTooltip={<p>{isInLendingMode ? "Total deposits in the pool." : "Total borrows in the pool."}</p>}
         >
-          {isInLendingMode ? "Deposits" : "Available"}
+          {isInLendingMode ? "Deposits" : "Borrows"}
         </HeaderWrapper>
       ),
       sortingFn: (rowA, rowB) => {
-        const bankAInfo = rowA.original.bankCap.bank.info;
-        const bankBInfo = rowB.original.bankCap.bank.info;
-
-        const tvlA = bankAInfo.rawBank.computeTvl(bankAInfo.oraclePrice).toNumber();
-        const tvlB = bankBInfo.rawBank.computeTvl(bankBInfo.oraclePrice).toNumber();
-        return tvlA - tvlB;
+        if (isInLendingMode) {
+          const bankAInfo = rowA.original.bankCap.bank.info;
+          const bankBInfo = rowB.original.bankCap.bank.info;
+          const tvlA = bankAInfo.rawBank.computeTvl(bankAInfo.oraclePrice).toNumber();
+          const tvlB = bankBInfo.rawBank.computeTvl(bankBInfo.oraclePrice).toNumber();
+          return tvlA - tvlB;
+        } else {
+          return rowA.original.bankCap.bankCap - rowB.original.bankCap.bankCap;
+        }
       },
       footer: (props) => props.column.id,
     }),
     columnHelper.accessor("bankCap", {
       id: "bankCap",
-      cell: (props) => getBankCapCell(props.getValue()),
+      cell: (props) =>
+        isInLendingMode ? getBankCapCell(props.getValue()) : getDepositsCell(props.row.original.deposits),
       header: (header) => (
         <HeaderWrapper
           header={header}
           infoTooltip={
-            isInLendingMode ? (
-              <div className="flex flex-col items-start gap-1 text-left">
-                <h4 className="text-base">Global deposit cap</h4>
-                Each marginfi pool has global deposit and borrow limits, also known as caps. This is the total amount
-                that all users combined can deposit or borrow of a given token.
-              </div>
-            ) : undefined
+            <p>
+              {isInLendingMode
+                ? "Total amount that all users combined can deposit or borrow of a given token."
+                : "Total available to borrow, based on the asset's borrow limit and available liquidity."}
+            </p>
           }
         >
-          {isInLendingMode ? "Global limit" : "Total Borrows"}
+          {isInLendingMode ? "Global limit" : "Available"}
         </HeaderWrapper>
       ),
       sortingFn: (rowA, rowB) => {
-        return rowA.original.bankCap.bankCap - rowB.original.bankCap.bankCap;
+        if (isInLendingMode) {
+          return rowA.original.bankCap.bankCap - rowB.original.bankCap.bankCap;
+        } else {
+          const bankAInfo = rowA.original.bankCap.bank.info;
+          const bankBInfo = rowB.original.bankCap.bank.info;
+          const tvlA = bankAInfo.rawBank.computeTvl(bankAInfo.oraclePrice).toNumber();
+          const tvlB = bankBInfo.rawBank.computeTvl(bankBInfo.oraclePrice).toNumber();
+          return tvlA - tvlB;
+        }
       },
       footer: (props) => props.column.id,
-    }),
-    columnHelper.accessor("utilization", {
-      id: "utilization",
-      cell: (props) => getUtilizationCell(props.getValue()),
-      header: (header) => (
-        <HeaderWrapper
-          header={header}
-          infoTooltip={
-            <div className="flex flex-col items-start gap-1 text-left">
-              <h4 className="text-base">Pool utilization</h4>
-              What percentage of supplied tokens have been borrowed. This helps determine interest rates. This is not
-              based on the global pool limits, which can limit utilization.
-            </div>
-          }
-        >
-          Utilization
-        </HeaderWrapper>
-      ),
-      sortingFn: (rowA, rowB) => {
-        return rowA.original.utilization.utilization - rowB.original.utilization.utilization;
-      },
-      footer: (props) => props.column.id,
-    }),
+    })
+  );
+
+  if (poolType !== PoolTypes.NATIVE_STAKE) {
+    columns.push(
+      columnHelper.accessor("utilization", {
+        id: "utilization",
+        cell: (props) => getUtilizationCell(props.getValue()),
+        header: (header) => (
+          <HeaderWrapper
+            header={header}
+            infoTooltip={<p>The percentage of supplied tokens that have been borrowed.</p>}
+          >
+            Utilization
+          </HeaderWrapper>
+        ),
+        sortingFn: (rowA, rowB) => {
+          return rowA.original.utilization.utilization - rowB.original.utilization.utilization;
+        },
+        footer: (props) => props.column.id,
+      })
+    );
+  }
+
+  columns.push(
     columnHelper.accessor("action", {
       id: "action",
       header: () => <></>,
       cell: (props) => props.getValue(),
       footer: (props) => props.column.id,
-    }),
-  ];
+    })
+  );
 
   return columns;
 };

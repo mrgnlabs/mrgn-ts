@@ -7,14 +7,9 @@ import { WSOL_MINT, LST_MINT } from "@mrgnlabs/mrgn-common";
 import { capture, generateEndpoint } from "@mrgnlabs/mrgn-utils";
 import { PublicKey } from "@solana/web3.js";
 import { SwapResult } from "@jup-ag/common";
-import { QuoteResponse } from "@jup-ag/api";
+import { QuoteResponseMeta } from "@mrgnlabs/mrgn-utils";
 
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-
-type QuoteResponseMeta = {
-  quoteResponse: QuoteResponse;
-  original: any;
-};
 
 type SwapProps = {
   onLoad?: () => void;

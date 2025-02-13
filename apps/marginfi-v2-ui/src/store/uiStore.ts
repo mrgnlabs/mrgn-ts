@@ -1,5 +1,6 @@
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
+import { Connection } from "@solana/web3.js";
 
 import {
   MaxCapType,
@@ -8,40 +9,22 @@ import {
   TransactionSettings,
 } from "@mrgnlabs/mrgn-common";
 import { LendingModes, PoolTypes, DEFAULT_PRIORITY_SETTINGS, fetchPriorityFee } from "@mrgnlabs/mrgn-utils";
-
-import { SortType, sortDirection, SortAssetOption } from "~/types";
-import { Connection } from "@solana/web3.js";
 import { MarginfiAccountWrapper, PriorityFees } from "@mrgnlabs/marginfi-client-v2";
+import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+
 import { defaultJupiterOptions, JupiterOptions } from "~/components";
 
-const SORT_OPTIONS_MAP: { [key in SortType]: SortAssetOption } = {
-  APY_DESC: {
-    label: "APY highest to lowest",
-    borrowLabel: "APY highest to lowest",
-    value: SortType.APY_DESC,
-    field: "APY",
-    direction: sortDirection.DESC,
-  },
-  APY_ASC: {
-    label: "APY lowest to highest",
-    borrowLabel: "APY lowest to highest",
-    value: SortType.APY_ASC,
-    field: "APY",
-    direction: sortDirection.ASC,
-  },
-  TVL_DESC: {
-    label: "$ highest to lowest",
-    value: SortType.TVL_DESC,
-    field: "TVL",
-    direction: sortDirection.DESC,
-  },
-  TVL_ASC: {
-    label: "$ lowest to highest",
-    value: SortType.TVL_ASC,
-    field: "TVL",
-    direction: sortDirection.ASC,
-  },
+type GlobalActionBoxProps = {
+  isOpen: boolean;
+  actionType: ActionType;
 };
+
+export enum TokenFilters {
+  ALL = "all",
+  STABLE = "stable",
+  LST = "lst",
+  MEME = "meme",
+}
 
 interface UiState {
   // State
@@ -51,7 +34,7 @@ interface UiState {
   isOraclesStale: boolean;
   lendingMode: LendingModes;
   poolFilter: PoolTypes;
-  sortOption: SortAssetOption;
+  tokenFilter: TokenFilters;
   assetListSearch: string;
   broadcastType: TransactionBroadcastType;
   priorityType: TransactionPriorityType;
@@ -60,6 +43,7 @@ interface UiState {
   accountLabels: Record<string, string>;
   displaySettings: boolean;
   jupiterOptions: JupiterOptions;
+  globalActionBoxProps: GlobalActionBoxProps;
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => void;
@@ -68,13 +52,14 @@ interface UiState {
   setIsOraclesStale: (isOraclesStale: boolean) => void;
   setLendingMode: (lendingMode: LendingModes) => void;
   setPoolFilter: (poolType: PoolTypes) => void;
-  setSortOption: (sortOption: SortAssetOption) => void;
+  setTokenFilter: (tokenFilter: TokenFilters) => void;
   setAssetListSearch: (search: string) => void;
   setTransactionSettings: (settings: TransactionSettings, connection: Connection) => void;
   fetchPriorityFee: (connection: Connection, settings?: TransactionSettings) => void;
   fetchAccountLabels: (accounts: MarginfiAccountWrapper[]) => Promise<void>;
   setDisplaySettings: (displaySettings: boolean) => void;
   setJupiterOptions: (jupiterOptions: JupiterOptions) => void;
+  setGlobalActionBoxProps: (props: GlobalActionBoxProps) => void;
 }
 
 function createUiStore() {
@@ -88,6 +73,18 @@ function createUiStore() {
         ) {
           state.jupiterOptions.slippageBps = 100;
         }
+
+        if (state?.globalActionBoxProps) {
+          state.globalActionBoxProps = {
+            isOpen: false,
+            actionType: ActionType.Deposit,
+          };
+        } // Rehydrating this to ensure the global action box doesnt open on render
+
+        // "all" is an old value set to "global"
+        if (state?.poolFilter === PoolTypes.ALL) {
+          state.poolFilter = PoolTypes.GLOBAL;
+        }
       },
     })
   );
@@ -100,14 +97,18 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   isFilteredUserPositions: false,
   isOraclesStale: false,
   lendingMode: LendingModes.LEND,
-  poolFilter: PoolTypes.ALL,
-  sortOption: SORT_OPTIONS_MAP[SortType.TVL_DESC],
+  poolFilter: PoolTypes.GLOBAL,
+  tokenFilter: TokenFilters.ALL,
   assetListSearch: "",
   priorityFees: {},
   accountLabels: {},
   ...DEFAULT_PRIORITY_SETTINGS,
   displaySettings: false,
   jupiterOptions: defaultJupiterOptions,
+  globalActionBoxProps: {
+    isOpen: false,
+    actionType: ActionType.Deposit,
+  },
 
   // Actions
   setIsMenuDrawerOpen: (isOpen: boolean) => set({ isMenuDrawerOpen: isOpen }),
@@ -119,8 +120,14 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
       lendingMode: lendingMode,
     }),
   setIsOraclesStale: (isOraclesStale: boolean) => set({ isOraclesStale: isOraclesStale }),
-  setPoolFilter: (poolType: PoolTypes) => set({ poolFilter: poolType }),
-  setSortOption: (sortOption: SortAssetOption) => set({ sortOption: sortOption }),
+  setPoolFilter: (poolType: PoolTypes) => {
+    // force lend mode for native stake
+    if (poolType === PoolTypes.NATIVE_STAKE) {
+      set({ lendingMode: LendingModes.LEND });
+    }
+    set({ poolFilter: poolType });
+  },
+  setTokenFilter: (tokenFilter: TokenFilters) => set({ tokenFilter }),
   setAssetListSearch: (search: string) => set({ assetListSearch: search }),
   setTransactionSettings: (settings: TransactionSettings, connection: Connection) => {
     const { broadcastType, priorityType, maxCapType } = settings;
@@ -200,7 +207,10 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   setJupiterOptions: (jupiterOptions: JupiterOptions) => {
     set({ jupiterOptions: { ...jupiterOptions, slippageBps: jupiterOptions.slippageBps * 100 } });
   },
+  setGlobalActionBoxProps: (props) => {
+    set({ globalActionBoxProps: props });
+  },
 });
 
-export { createUiStore, SORT_OPTIONS_MAP };
+export { createUiStore };
 export type { UiState };

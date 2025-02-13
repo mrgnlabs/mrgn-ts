@@ -43,17 +43,17 @@ export interface DepositsData {
   isBankFilled: boolean;
   bankCap: number;
   bankDeposits: number;
+  bankDepositsUsd: number;
   capacity: number;
   available: number;
   symbol: string;
-  denominationUSD: boolean;
   isInLendingMode: boolean;
   isStakedAsset: boolean;
 }
 
 export interface BankCapData {
   bankCap: number;
-  denominationUSD: boolean;
+  bankCapUsd: number;
   bank: ExtendedBankInfo;
 }
 
@@ -171,11 +171,7 @@ export const getAssetWeightData = (bank: ExtendedBankInfo, isInLendingMode: bool
   };
 };
 
-export const getDepositsData = (
-  bank: ExtendedBankInfo,
-  isInLendingMode: boolean,
-  denominationUSD: boolean
-): DepositsData => {
+export const getDepositsData = (bank: ExtendedBankInfo, isInLendingMode: boolean): DepositsData => {
   const bankCap = nativeToUi(
     isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit,
     bank.info.state.mintDecimals
@@ -188,11 +184,11 @@ export const getDepositsData = (
 
   const isReduceOnly = bank?.meta?.tokenSymbol ? REDUCE_ONLY_BANKS.includes(bank.meta.tokenSymbol) : false;
 
-  const bankDeposits =
-    (isInLendingMode
-      ? bank.info.state.totalDeposits
-      : Math.min(bank.info.state.availableLiquidity, bank.info.state.borrowCap - bank.info.state.totalBorrows)) *
-    (denominationUSD ? bank.info.state.price : 1);
+  const bankDeposits = isInLendingMode
+    ? bank.info.state.totalDeposits
+    : Math.min(bank.info.state.availableLiquidity, bank.info.state.borrowCap - bank.info.state.totalBorrows);
+
+  const bankDepositsUsd = bankDeposits * bank.info.state.price;
 
   const capacity = (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap;
 
@@ -206,31 +202,27 @@ export const getDepositsData = (
     isBankFilled,
     bankCap,
     bankDeposits,
+    bankDepositsUsd,
     capacity,
     available,
     symbol: bank.meta.tokenSymbol,
-    denominationUSD,
     isInLendingMode,
     isStakedAsset,
   };
 };
 
-export const getBankCapData = (
-  bank: ExtendedBankInfo,
-  isInLendingMode: boolean,
-  denominationUSD: boolean
-): BankCapData => {
+export const getBankCapData = (bank: ExtendedBankInfo, isInLendingMode: boolean): BankCapData => {
   const bankCapUi = nativeToUi(
     isInLendingMode ? bank.info.rawBank.config.depositLimit : bank.info.rawBank.config.borrowLimit,
     bank.info.state.mintDecimals
   );
 
-  const bankCap =
-    (isInLendingMode ? bankCapUi : bank.info.state.totalBorrows) * (denominationUSD ? bank.info.state.price : 1);
+  const bankCap = isInLendingMode ? bankCapUi : bank.info.state.totalBorrows;
+  const bankCapUsd = bankCap * bank.info.state.price;
 
   return {
     bankCap,
-    denominationUSD,
+    bankCapUsd,
     bank,
   };
 };
@@ -241,7 +233,6 @@ export const getUtilizationData = (bank: ExtendedBankInfo): UtilizationData => (
 
 export const getPositionData = (
   bank: ExtendedBankInfo,
-  denominationUSD: boolean,
   nativeSolBalance: number,
   isInLendingMode: boolean
 ): PositionData => {
@@ -271,7 +262,6 @@ export const getPositionData = (
   }
 
   return {
-    denominationUSD,
     price: bank.info.state.price,
     walletAmount,
     positionAmount,

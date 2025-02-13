@@ -29,6 +29,7 @@ import {
 import { IMAGE_CDN_URL } from "~/config/constants";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, TooltipPortal } from "~/components/ui/tooltip";
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { PublicKey } from "@solana/web3.js";
 
 export const getAssetCell = (asset: AssetData) => {
   return (
@@ -37,31 +38,6 @@ export const getAssetCell = (asset: AssetData) => {
         <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
         <div>{asset.symbol}</div>
       </div>
-
-      {asset.stakePool && (
-        <>
-          <div className="text-xs text-muted-foreground font-normal space-x-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger className="text-xs text-muted-foreground font-normal flex items-center gap-1 cursor-default">
-                  <IconInfoCircle size={14} />
-                  {!asset.stakePool.isActive && "Activating..."}
-                </TooltipTrigger>
-                <TooltipPortal>
-                  <TooltipContent>
-                    <ul className="space-y-1 font-normal text-muted-foreground">
-                      <li className="text-xs">
-                        <strong className="text-foreground">Validator:</strong>{" "}
-                        {shortenAddress(asset.stakePool.validatorVoteAccount?.toBase58() ?? "")}
-                      </li>
-                    </ul>
-                  </TooltipContent>
-                </TooltipPortal>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </>
-      )}
     </div>
   );
 };
@@ -264,75 +240,117 @@ export const getAssetWeightCell = ({ assetWeight }: AssetWeightData) => (
 
 export const getDepositsCell = (depositsData: DepositsData) => {
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span
-            className={cn(
-              "flex items-center justify-end gap-1.5 text-white",
-              (depositsData.isReduceOnly || depositsData.isBankHigh) && "text-warning",
-              depositsData.isBankFilled && "text-destructive-foreground"
-            )}
-          >
-            {depositsData.denominationUSD
-              ? usdFormatter.format(depositsData.bankDeposits)
-              : numeralFormatter(depositsData.bankDeposits)}
+    <div
+      className={cn(
+        "flex flex-col items-end gap-0.5 text-foreground",
+        (depositsData.isReduceOnly || depositsData.isBankHigh) && "text-warning",
+        depositsData.isBankFilled && "text-destructive-foreground"
+      )}
+    >
+      <div className="flex items-center gap-1">
+        {dynamicNumeralFormatter(depositsData.bankDeposits, {
+          forceDecimals: true,
+        })}
 
-            {(depositsData.isReduceOnly || depositsData.isBankHigh || depositsData.isBankFilled) && (
-              <IconAlertTriangle size={14} />
-            )}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent className="text-left">
-          {depositsData.isStakedAsset && !depositsData.isInLendingMode ? (
-            <div>
-              <span>Native stake can only be deposited at this time.</span>
-            </div>
-          ) : (
-            <>
-              <div>
-                {depositsData.isReduceOnly
-                  ? "Reduce Only"
-                  : depositsData.isBankHigh && (depositsData.isBankFilled ? "Limit Reached" : "Approaching Limit")}
-              </div>
+        {(depositsData.isReduceOnly || depositsData.isBankHigh || depositsData.isBankFilled) && (
+          <IconAlertTriangle size={14} />
+        )}
+      </div>
 
-              {depositsData.isReduceOnly ? (
-                <span>{depositsData.symbol} is being discontinued.</span>
-              ) : (
-                <>
-                  <span>
-                    {depositsData.symbol} {depositsData.isInLendingMode ? "deposits" : "borrows"} are at{" "}
-                    {percentFormatterMod(depositsData.capacity, {
-                      minFractionDigits: 0,
-                      maxFractionDigits:
-                        depositsData.isBankHigh && !depositsData.isBankFilled && depositsData.capacity >= 0.99 ? 4 : 2,
-                    })}{" "}
-                    capacity.
-                  </span>
-                  {!depositsData.isBankFilled && (
-                    <>
-                      <br />
-                      <br />
-                      <span>Available: {numeralFormatter(depositsData.available)}</span>
-                    </>
-                  )}
-                </>
-              )}
-              <br />
-              <br />
-              <a href="https://docs.marginfi.com">
-                <u>Learn more.</u>
-              </a>
-            </>
-          )}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+      <p className="text-xs text-muted-foreground">
+        $
+        {dynamicNumeralFormatter(depositsData.bankDepositsUsd, {
+          forceDecimals: true,
+        })}
+      </p>
+    </div>
   );
 };
 
-export const getBankCapCell = ({ bankCap, denominationUSD }: BankCapData) => (
-  <div className="flex justify-end">{denominationUSD ? usdFormatter.format(bankCap) : numeralFormatter(bankCap)}</div>
+// export const getDepositsCell = (depositsData: DepositsData) => {
+//   return (
+//     <TooltipProvider>
+//       <Tooltip>
+//         <TooltipTrigger asChild>
+//           <span
+//             className={cn(
+//               "flex items-center justify-end gap-1.5 text-white",
+//               (depositsData.isReduceOnly || depositsData.isBankHigh) && "text-warning",
+//               depositsData.isBankFilled && "text-destructive-foreground"
+//             )}
+//           >
+//             {depositsData.denominationUSD && "$"}
+//             {dynamicNumeralFormatter(depositsData.bankDeposits, {
+//               forceDecimals: true,
+//             })}
+
+//             {(depositsData.isReduceOnly || depositsData.isBankHigh || depositsData.isBankFilled) && (
+//               <IconAlertTriangle size={14} />
+//             )}
+//           </span>
+//         </TooltipTrigger>
+//         <TooltipContent className="text-left">
+//           {depositsData.isStakedAsset && !depositsData.isInLendingMode ? (
+//             <div>
+//               <span>Native stake can only be deposited at this time.</span>
+//             </div>
+//           ) : (
+//             <>
+//               <div>
+//                 {depositsData.isReduceOnly
+//                   ? "Reduce Only"
+//                   : depositsData.isBankHigh && (depositsData.isBankFilled ? "Limit Reached" : "Approaching Limit")}
+//               </div>
+
+//               {depositsData.isReduceOnly ? (
+//                 <span>{depositsData.symbol} is being discontinued.</span>
+//               ) : (
+//                 <>
+//                   <span>
+//                     {depositsData.symbol} {depositsData.isInLendingMode ? "deposits" : "borrows"} are at{" "}
+//                     {percentFormatterMod(depositsData.capacity, {
+//                       minFractionDigits: 0,
+//                       maxFractionDigits:
+//                         depositsData.isBankHigh && !depositsData.isBankFilled && depositsData.capacity >= 0.99 ? 4 : 2,
+//                     })}{" "}
+//                     capacity.
+//                   </span>
+//                   {!depositsData.isBankFilled && (
+//                     <>
+//                       <br />
+//                       <br />
+//                       <span>Available: {numeralFormatter(depositsData.available)}</span>
+//                     </>
+//                   )}
+//                 </>
+//               )}
+//               <br />
+//               <br />
+//               <a href="https://docs.marginfi.com">
+//                 <u>Learn more.</u>
+//               </a>
+//             </>
+//           )}
+//         </TooltipContent>
+//       </Tooltip>
+//     </TooltipProvider>
+//   );
+// };
+
+export const getBankCapCell = ({ bankCap, bankCapUsd }: BankCapData) => (
+  <div className="flex flex-col items-end gap-0.5 text-foreground">
+    <p>
+      {dynamicNumeralFormatter(bankCap, {
+        forceDecimals: true,
+      })}
+    </p>
+    <p className="text-xs text-muted-foreground">
+      $
+      {dynamicNumeralFormatter(bankCapUsd, {
+        forceDecimals: true,
+      })}
+    </p>
+  </div>
 );
 
 export const getUtilizationCell = ({ utilization }: UtilizationData) => (
@@ -340,42 +358,36 @@ export const getUtilizationCell = ({ utilization }: UtilizationData) => (
 );
 
 export const getPositionCell = (positionData: PositionData) => {
-  const selectedPositionAmount = positionData.denominationUSD ? positionData.positionUsd : positionData.positionAmount;
+  const makeTokenAmount = (amount: number, symbol: string) => dynamicNumeralFormatter(amount) + " " + symbol;
+  const tokenWalletAmount = makeTokenAmount(positionData.walletAmount, positionData.symbol);
+  const tokenPositionAmount = makeTokenAmount(positionData.positionAmount!, positionData.symbol);
 
   return (
-    <div className="w-full bg-background-gray rounded-md flex items-center gap-5 px-2 py-3">
+    <div className="w-full bg-background-gray rounded-md flex items-center gap-8 px-2 py-3">
       <dl className="flex gap-2 items-center">
-        <dt className="text-accent-foreground text-xs font-light">Wallet:</dt>
+        <dt className="text-accent-foreground font-light">Wallet:</dt>
         <dd>
-          {positionData.denominationUSD
-            ? usdFormatter.format(positionData.walletAmount * positionData.price)
-            : `${numeralFormatter(positionData.walletAmount)} ${positionData.symbol}`}
+          <div className="flex items-center gap-2">
+            <span className="text-foreground">{tokenWalletAmount}</span>
+            <span className="text-muted-foreground">
+              ({usdFormatter.format(positionData.walletAmount * positionData.price)})
+            </span>
+          </div>
         </dd>
       </dl>
-      {selectedPositionAmount && (
+      {positionData.positionAmount && positionData.positionUsd && (
         <dl className="flex gap-2 items-center">
-          <dt className="text-accent-foreground text-xs font-light">
+          <dt className="text-accent-foreground font-light">
             {positionData.isInLendingMode ? "Lending:" : "Borrowing:"}
           </dt>
-          <dd className="flex gap-1 items-center">
-            {selectedPositionAmount < 0.01 && "< 0.01"}
-            {selectedPositionAmount >= 0.01 &&
-              (positionData.denominationUSD
-                ? usdFormatter.format(selectedPositionAmount)
-                : numeralFormatter(selectedPositionAmount) + " " + positionData.symbol)}
-            {selectedPositionAmount < 0.01 && (
-              <div>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Image src="/info_icon.png" alt="info" height={12} width={12} />
-                    </TooltipTrigger>
-                    <TooltipContent>{selectedPositionAmount}</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            )}
-          </dd>
+          <dd className="flex gap-1 items-center">{tokenPositionAmount}</dd>
+          <span className="text-muted-foreground">
+            ($
+            {dynamicNumeralFormatter(positionData.positionUsd, {
+              forceDecimals: true,
+            })}
+            )
+          </span>
         </dl>
       )}
       {positionData.liquidationPrice && (
@@ -409,4 +421,29 @@ export const getPositionCell = (positionData: PositionData) => {
       )}
     </div>
   );
+};
+
+export const getValidatorCell = (validatorVoteAccount: PublicKey) => {
+  if (!validatorVoteAccount) return null;
+  const pkStr = validatorVoteAccount.toBase58();
+  return (
+    <div className="flex items-center justify-end gap-2">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link href={`https://solscan.io/account/${pkStr}`} target="_blank" rel="noreferrer">
+              {shortenAddress(pkStr)}
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{pkStr}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+};
+
+export const getValidatorRateCell = (rewardRate: number) => {
+  return <div className="text-right text-success">{rewardRate ? percentFormatter.format(rewardRate / 100) : 0}</div>;
 };

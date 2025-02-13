@@ -34,6 +34,7 @@
     "@next/third-parties": "^15.1.7",
     "@noble/ed25519": "^2.1.0",
     "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-portal": "^1.1.4",
     "@sentry/nextjs": "^7.77.0",
     "@solana/buffer-layout": "^4.0.1",
     "@solana/spl-stake-pool": "^0.6.5",

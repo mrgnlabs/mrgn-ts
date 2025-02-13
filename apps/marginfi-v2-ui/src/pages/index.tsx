@@ -67,14 +67,19 @@ export default function HomePage() {
     return [
       {
         image: <IconSparkles size={22} className="text-chartreuse" />,
-        text: "Native stake as collateral is now live!",
-        onClick: () => window.open("https://app.marginfi.com/staked-assets"),
+        text: "Native stake as collateral is live!",
+        onClick: () => router.push("/staked-assets"),
+      },
+      {
+        image: <IconSparkles size={22} className="text-chartreuse" />,
+        text: "Deposit Swap is live!",
+        onClick: () => router.push("/deposit-swap"),
       },
       ...banks.map((bank) => ({
         bank: bank,
       })),
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
-  }, [extendedBankInfos, marginfiClient]);
+  }, [extendedBankInfos, marginfiClient, router]);
 
   return (
     <>
