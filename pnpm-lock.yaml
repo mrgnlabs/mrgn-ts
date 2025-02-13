@@ -1677,6 +1677,9 @@ importers:
       '@mrgnlabs/mrgn-common':
         specifier: workspace:*
         version: link:../mrgn-common
+      '@mrgnlabs/mrgn-toasts':
+        specifier: workspace:*
+        version: link:../mrgn-toasts
       '@sentry/nextjs':
         specifier: ^7.77.0
         version: 7.120.3(next@14.2.21)(react@18.2.0)(webpack@5.97.1)
