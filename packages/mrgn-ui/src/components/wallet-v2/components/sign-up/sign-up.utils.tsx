@@ -32,11 +32,6 @@ import { QuoteResponse } from "@jup-ag/api";
 
 export type InstallingWallet = { wallet: string; flow: "eth" | "onramp" | "sol" };
 
-type QuoteResponseMeta = {
-  quoteResponse: QuoteResponse;
-  original: any;
-};
-
 export interface JupiterScreenProps {
   extendedBankInfos?: ExtendedBankInfo[];
   txid: string;
