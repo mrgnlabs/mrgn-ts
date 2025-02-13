@@ -30,7 +30,6 @@ import {
   RawMint,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
-import { push } from "@socialgouv/matomo-next";
 import { Connection, LAMPORTS_PER_SOL, PublicKey, StakeProgram } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { cp } from "fs";
