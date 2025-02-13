@@ -119,3 +119,8 @@ export type PreviousTxn =
   | PreviousTxnStake
   | PreviousTxnDepositSwap
   | PreviousTxnRepay;
+
+export type QuoteResponseMeta = {
+  quoteResponse: QuoteResponse;
+  original: any;
+};

@@ -1,6 +1,6 @@
 import * as sb from "@switchboard-xyz/on-demand";
 import * as anchor from "@coral-xyz/anchor";
-import { CrossbarClient, decodeString } from "@switchboard-xyz/common";
+import { CrossbarClient, decodeString, OracleJob } from "@switchboard-xyz/common";
 
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
@@ -104,10 +104,10 @@ export const createOracleIx = async (mint: PublicKey, symbol: string, connection
   const crossbarClient = CrossbarClient.default();
 
   // Initialize tasks for the oracle job
-  const valueTask = sb.OracleJob.Task.create(VALUE_TASK);
-  const divideTask = sb.OracleJob.Task.create(createDivideOracleTask(mint.toBase58()));
-  const multiplyTask = sb.OracleJob.Task.create(MULTIPLY_ORACLE_TASK);
-  const oracleJob = sb.OracleJob.create({
+  const valueTask = OracleJob.Task.create(VALUE_TASK);
+  const divideTask = OracleJob.Task.create(createDivideOracleTask(mint.toBase58()));
+  const multiplyTask = OracleJob.Task.create(MULTIPLY_ORACLE_TASK);
+  const oracleJob = OracleJob.create({
     tasks: [valueTask, divideTask, multiplyTask],
   });
 

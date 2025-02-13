@@ -1,7 +1,7 @@
 {
   "name": "@mrgnlabs/scripts-ts",
   "version": "0.0.1",
-  "private": false,
+  "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",

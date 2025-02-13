@@ -1,5 +1,3 @@
-import { SwapRequest, createJupiterApiClient } from "@jup-ag/api";
-import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import {
   AddressLookupTableAccount,
   Connection,
@@ -50,6 +48,8 @@ import { captureSentryException } from "../sentry.utils";
 import { loopingBuilder, repayWithCollatBuilder } from "./flashloans";
 import { STATIC_SIMULATION_ERRORS } from "../errors";
 import { ExecuteDepositSwapActionProps } from "./actions";
+import { createJupiterApiClient, SwapRequest } from "@jup-ag/api";
+import { QuoteResponseMeta } from "../types";
 
 //-----------------------//
 // Local utils functions //

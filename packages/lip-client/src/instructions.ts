@@ -1,7 +1,7 @@
 import { PublicKey, SystemProgram } from "@solana/web3.js";
-import BN from "bn.js";
 import { LipProgram } from "./types";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import { BN } from "@coral-xyz/anchor";
 
 async function makeCreateDepositIx(
   lipProgram: LipProgram,

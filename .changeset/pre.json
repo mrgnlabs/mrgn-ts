@@ -1,0 +1,24 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@mrgnlabs/health-notifier": "0.1.0",
+    "@mrgnlabs/marginfi-landing-page": "0.1.0",
+    "@mrgnlabs/marginfi-v2-docs": "0.1.0",
+    "@mrgnlabs/marginfi-v2-trading": "1.0.0",
+    "@mrgnlabs/marginfi-v2-ui": "1.0.0",
+    "@mrgnlabs/eslint-config-custom": "1.0.0",
+    "@mrgnlabs/lip-client": "1.1.0",
+    "@mrgnlabs/marginfi-client-v2": "5.0.0-beta.0",
+    "@mrgnlabs/marginfi-v2-ui-state": "0.0.1",
+    "@mrgnlabs/mrgn-common": "2.0.0-beta.0",
+    "@mrgnlabs/mrgn-ui": "0.0.1",
+    "@mrgnlabs/mrgn-utils": "0.0.1",
+    "@mrgnlabs/scripts": "0.0.1",
+    "@mrgnlabs/tsconfig": "0.0.1"
+  },
+  "changesets": [
+    "heavy-kangaroos-applaud",
+    "serious-pans-unite"
+  ]
+}

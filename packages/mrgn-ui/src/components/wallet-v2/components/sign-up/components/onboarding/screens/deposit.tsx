@@ -1,4 +1,7 @@
 import React from "react";
+import { IconLoader2 } from "@tabler/icons-react";
+import { PublicKey } from "@solana/web3.js";
+
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { OnrampScreenProps } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
@@ -6,7 +9,6 @@ import { ActionBox } from "~/components/action-box-v2";
 
 import { ScreenWrapper, WalletSeperator } from "~/components/wallet-v2/components/sign-up/components";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { IconLoader2 } from "@tabler/icons-react";
 
 interface DepositTokenProps extends OnrampScreenProps {}
 
@@ -20,7 +22,7 @@ export const DepositToken = ({ mrgnState, successProps, onNext, onClose }: Depos
   const requestedBank = React.useMemo(() => {
     const mint = successProps?.jupiterSuccess?.quoteResponseMeta?.quoteResponse.outputMint;
     if (mint) {
-      const bank = extendedBankInfos.filter((bank) => bank.info.state.mint.equals(mint));
+      const bank = extendedBankInfos.filter((bank) => bank.info.state.mint.equals(new PublicKey(mint)));
       if (bank.length !== 0) return bank[0];
     }
   }, [successProps?.jupiterSuccess, extendedBankInfos]);

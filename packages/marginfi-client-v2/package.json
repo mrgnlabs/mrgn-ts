@@ -1,6 +1,6 @@
 {
   "name": "@mrgnlabs/marginfi-client-v2",
-  "version": "2.12.0",
+  "version": "5.0.0-beta.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
@@ -16,15 +16,18 @@
   ],
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
-    "@mrgnlabs/mrgn-common": "*",
+    "@coral-xyz/borsh": "^0.30.1",
+    "@mrgnlabs/mrgn-common": "workspace:*",
     "@pythnetwork/pyth-solana-receiver": "^0.8.0",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/web3.js": "^1.93.2",
+    "@solana/spl-token": "^0.1.8",
     "@switchboard-xyz/on-demand": "^1.2.54",
     "bignumber.js": "^9.1.2",
     "borsh": "^2.0.0",
     "bs58": "^6.0.0",
     "decimal.js": "^10.4.3",
+    "crypto-hash": "^3.1.0",
     "superstruct": "^1.0.4"
   },
   "peerDependencies": {
@@ -32,8 +35,8 @@
   },
   "devDependencies": {
     "@jup-ag/api": "^6.0.38",
-    "@mrgnlabs/eslint-config-custom": "*",
-    "@mrgnlabs/tsconfig": "*",
+    "@mrgnlabs/eslint-config-custom": "workspace:*",
+    "@mrgnlabs/tsconfig": "workspace:*",
     "@types/big.js": "^6.2.2",
     "@types/bn.js": "^5.1.5",
     "@types/debug": "^4.1.12",

@@ -17,10 +17,10 @@
     "@dialectlabs/blockchain-sdk-solana": "^1.2.0",
     "@dialectlabs/monitor": "^3.4.2",
     "@dialectlabs/sdk": "^1.9.1",
-    "@mrgnlabs/eslint-config-custom": "*",
-    "@mrgnlabs/marginfi-client-v2": "*",
-    "@mrgnlabs/mrgn-common": "*",
-    "@mrgnlabs/tsconfig": "*",
+    "@mrgnlabs/eslint-config-custom": "workspace:*",
+    "@mrgnlabs/marginfi-client-v2": "workspace:*",
+    "@mrgnlabs/mrgn-common": "workspace:*",
+    "@mrgnlabs/tsconfig": "workspace:*",
     "@sentry/node": "^7.40.0",
     "@solana/buffer-layout": "4.0.0",
     "@solana/buffer-layout-utils": "~0.2.0",
@@ -43,7 +43,7 @@
     "zod": "^3.20.6"
   },
   "devDependencies": {
-    "@mrgnlabs/tsconfig": "*",
+    "@mrgnlabs/tsconfig": "workspace:*",
     "@project-serum/anchor": "0.24.2",
     "@sentry/types": "7.32.1",
     "@types/bn.js": "^5.1.0",

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-import shuffle from "lodash/shuffle";
+import shuffle from "lodash.shuffle";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
 
@@ -29,7 +29,8 @@ const projects = shuffle([
   },
   {
     title: "Carrot",
-    description: "Carrot is building an auto-adjusting yield bearing token and using marginfi to rebalance user deposits.",
+    description:
+      "Carrot is building an auto-adjusting yield bearing token and using marginfi to rebalance user deposits.",
     url: "https://deficarrot.com/",
     author: {
       name: "Carrot",
@@ -81,7 +82,8 @@ const projects = shuffle([
   },
   {
     title: "Fluxbeam",
-    description: "Solana's premier Telegram trading bot is using marginfi to give their users access to liquidity for their trading strategies.",
+    description:
+      "Solana's premier Telegram trading bot is using marginfi to give their users access to liquidity for their trading strategies.",
     url: "https://fluxbot.xyz/",
     author: {
       name: "FluxBeam",

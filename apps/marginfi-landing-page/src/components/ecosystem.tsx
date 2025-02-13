@@ -7,7 +7,7 @@ import Image from "next/image";
 
 import { IconArrowRight, IconBrandGithubFilled, IconExternalLink } from "@tabler/icons-react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
-import shuffle from "lodash/shuffle";
+import shuffle from "lodash.shuffle";
 
 import { cn } from "~/lib/utils";
 
@@ -190,7 +190,7 @@ const CONTENT = {
       author: {
         name: "Asgard",
         avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/asgardwatchbot.jpg",
-        url: "https://twitter.com/asgardfi"
+        url: "https://twitter.com/asgardfi",
       },
     },
     {

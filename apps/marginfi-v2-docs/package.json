@@ -52,6 +52,8 @@
     "zustand": "^4.3.2"
   },
   "devDependencies": {
+    "@mrgnlabs/eslint-config-custom": "workspace:*",
+    "@mrgnlabs/tsconfig": "workspace:*",
     "@types/katex": "^0.16.7",
     "@types/react-katex": "^3.0.4",
     "eslint": "^8.56.0",

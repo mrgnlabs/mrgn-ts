@@ -1,6 +1,5 @@
 import { BN } from "@coral-xyz/anchor";
 import { QuoteResponse } from "@jup-ag/api";
-import { QuoteResponseMeta } from "@jup-ag/react-hook";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { Connection, PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import * as solanaStakePool from "@solana/spl-stake-pool";
@@ -12,6 +11,7 @@ import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi
 
 import { WalletContextStateOverride } from "../wallet";
 import { MultiStepToastHandle } from "../toasts/toastUtils";
+import { QuoteResponseMeta } from "../types";
 
 export enum RepayType {
   RepayRaw = "Repay",

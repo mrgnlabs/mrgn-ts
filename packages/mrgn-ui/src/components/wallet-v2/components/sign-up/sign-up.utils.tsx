@@ -1,4 +1,4 @@
-import { QuoteResponseMeta, SwapResult } from "@jup-ag/react-hook";
+import { SwapResult } from "@jup-ag/common";
 import { TransferCompletePayload } from "@meso-network/meso-js";
 import { WalletName } from "@solana/wallet-adapter-base";
 import { IconBrandX, IconBrandApple, IconBrandGoogle } from "@tabler/icons-react";
@@ -28,8 +28,14 @@ import {
   IconGlowWallet,
   IconEthereum,
 } from "~/components/ui/icons";
+import { QuoteResponse } from "@jup-ag/api";
 
 export type InstallingWallet = { wallet: string; flow: "eth" | "onramp" | "sol" };
+
+type QuoteResponseMeta = {
+  quoteResponse: QuoteResponse;
+  original: any;
+};
 
 export interface JupiterScreenProps {
   extendedBankInfos?: ExtendedBankInfo[];

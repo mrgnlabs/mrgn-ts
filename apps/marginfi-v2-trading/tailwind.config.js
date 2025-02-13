@@ -8,8 +8,10 @@ module.exports = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx}",
     "./src/components/**/*.{js,ts,jsx,tsx}",
-    "../../packages/mrgn-ui/**/*.{js,ts,jsx,tsx}",
-    "../../packages/mrgn-utils/**/*.{js,ts,jsx,tsx}",
+    "../../packages/mrgn-ui/src/**/*.{js,ts,jsx,tsx}",
+    "../../packages/mrgn-utils/src/**/*.{js,ts,jsx,tsx}",
+    "!../../packages/mrgn-ui/node_modules/**/*", // Exclude node_modules
+    "!../../packages/mrgn-utils/node_modules/**/*", // Exclude node_modules,
   ],
   theme: {
     container: {
