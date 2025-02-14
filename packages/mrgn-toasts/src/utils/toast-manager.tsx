@@ -12,7 +12,6 @@ export interface MultiStepToastStep {
   retry?: () => void;
 }
 
-/** 🔹 Type for MultiStepToastController */
 export interface MultiStepToastController {
   start: () => void;
   successAndNext: (explorerUrl?: string, signature?: string) => void;
@@ -139,5 +138,5 @@ class ToastManager {
   }
 }
 
-// ✅ Exporting singleton instance
+// Exporting singleton instance
 export const toastManager = new ToastManager();

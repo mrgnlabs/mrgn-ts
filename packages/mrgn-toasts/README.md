@@ -1,4 +1,4 @@
 # mrgn-toasts
 
-- Install: `yarn`
-- Run: `yarn dev`
+- Install: `pnpm install`
+- Run: `pnpm run dev`
