@@ -58,28 +58,28 @@ interface TransactionConfig {
 
 export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = {
   [TransactionType.DEPOSIT]: {
-    label: "Depositing",
+    label: "Depositing AMOUNT TOKEN",
   },
   [TransactionType.WITHDRAW]: {
-    label: "Withdrawing",
+    label: "Withdrawing AMOUNT TOKEN",
   },
   [TransactionType.REPAY]: {
-    label: "Repaying",
+    label: "Repaying AMOUNT TOKEN",
   },
   [TransactionType.BORROW]: {
-    label: "Borrowing",
+    label: "Borrowing AMOUNT TOKEN",
   },
   [TransactionType.LOOP]: {
-    label: "Looping",
+    label: "Looping DEPOSIT AMOUNT DEPOSIT TOKEN with BORROW AMOUNT BORROW TOKEN",
   },
   [TransactionType.REPAY_COLLAT]: {
-    label: "Repaying Collateral",
+    label: "Repaying BORROW AMOUNT BORROW TOKEN with DEPOSIT AMOUNT DEPOSIT TOKEN",
   },
   [TransactionType.LONG]: {
-    label: "Long Position",
+    label: "Longing DEPOSIT TOKEN with AMOUNT BORROW TOKEN",
   },
   [TransactionType.SHORT]: {
-    label: "Short Position",
+    label: "Shorting BORROW TOKEN with AMOUNT DEPOSIT TOKEN",
   },
   [TransactionType.CRANK]: {
     label: "Updating latest prices",
@@ -90,19 +90,19 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
   [TransactionType.CLOSE_ACCOUNT]: { label: "Closing Account" },
   [TransactionType.CLOSE_POSITION]: { label: "Closing Position" },
   [TransactionType.MOVE_POSITION]: { label: "Moving Position" },
-  [TransactionType.WITHDRAW_ALL]: { label: "Withdraw All" },
+  [TransactionType.WITHDRAW_ALL]: { label: "Withdrawing AMOUNT TOKEN" },
   [TransactionType.TRANSFER_AUTH]: { label: "Transfer Auth" },
-  [TransactionType.DEPOSIT_STAKE]: { label: "Deposit Stake" },
-  [TransactionType.WITHDRAW_STAKE]: { label: "Withdraw Stake" },
-  [TransactionType.WITHDRAW_EMISSIONS]: { label: "Withdraw Emissions" },
+  [TransactionType.DEPOSIT_STAKE]: { label: "Staking and depositing AMOUNT TOKEN" },
+  [TransactionType.WITHDRAW_STAKE]: { label: "Unstaking and withdrawing AMOUNT TOKEN" },
+  [TransactionType.WITHDRAW_EMISSIONS]: { label: "Withdrawing Emissions" },
   [TransactionType.LIQUIDATE_ACCOUNT]: { label: "Liquidate Account" },
   [TransactionType.STAKE_TO_STAKE]: { label: "Stake to Stake" },
   [TransactionType.MINT_LST_NATIVE]: { label: "Mint LST Native" },
   [TransactionType.CREATE_PERM_BANK]: { label: "Create Perm Bank" },
   [TransactionType.CREATE_GROUP]: { label: "Create Group" },
-  [TransactionType.SWAP_TO_SOL]: { label: "Swap to SOL" },
-  [TransactionType.SOL_TO_LST]: { label: "SOL to LST" },
-  [TransactionType.JUPITER_SWAP]: { label: "Swapping tokens" },
+  [TransactionType.SWAP_TO_SOL]: { label: "Swapping AMOUNT TOKEN to SOL" },
+  [TransactionType.SOL_TO_LST]: { label: "Swapping AMOUNT TOKEN to LST" },
+  [TransactionType.JUPITER_SWAP]: { label: "Swapping ORIGIN AMOUNT ORIGIN TOKEN for DESTINATION AMOUNT DESTINATION TOKEN" },
   [TransactionType.INITIALIZE_STAKED_POOL]: { label: "Initializing Staked Pool" },
   [TransactionType.ADD_STAKED_BANK]: { label: "Adding Staked Bank" },
 };
