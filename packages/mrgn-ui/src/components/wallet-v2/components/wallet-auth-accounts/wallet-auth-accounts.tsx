@@ -275,7 +275,7 @@ export const WalletAuthAccounts = ({
               </div>
               <div
                 className={cn(
-                  "grid gap-2 max-h-[246px] overflow-y-auto",
+                  "grid gap-2",
                   isActivatingAccount !== null && "pointer-events-none animate-pulsate"
                 )}
               >
