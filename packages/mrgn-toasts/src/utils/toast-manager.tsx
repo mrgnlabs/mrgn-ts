@@ -35,33 +35,29 @@ class ToastManager {
     });
   }
 
-  /** ✅ Create a multi-step toast */
   createMultiStepToast(title: string, steps: { label: string }[]): MultiStepToastController {
-    let toastId: string | number | undefined = crypto.randomUUID?.() || Math.random().toString(36).substring(2, 9);
+    const toastId: string = Math.random().toString(36).substring(2, 9);
 
     const stepsWithStatus: MultiStepToastStep[] = steps.map((step, index) => ({
       ...step,
-      status: index === 0 ? "pending" : "todo", // ✅ First step starts as "pending"
+      status: index === 0 ? "pending" : "todo",
     }));
 
+    toast(<MultiStepToast toastId={toastId} title={title} steps={stepsWithStatus} />, {
+      id: toastId,
+      duration: Infinity,
+    });
+
     const updateToast = () => {
-      if (toastId) {
-        toast(<MultiStepToast toastId={toastId.toString()} title={title} steps={stepsWithStatus} />, {
-          id: toastId,
-          duration: Infinity,
-        });
-      }
+      toast(<MultiStepToast toastId={toastId} title={title} steps={stepsWithStatus} />, {
+        id: toastId,
+        duration: Infinity,
+      });
     };
 
     const ToastController: MultiStepToastController = {
       start: () => {
-        if (!toastId) {
-          toastId = crypto.randomUUID?.() || Math.random().toString(36).substring(2, 9); // Ensure unique ID
-          toastId = toast(<MultiStepToast toastId={toastId} title={title} steps={stepsWithStatus} />, {
-            id: toastId,
-            duration: Infinity,
-          });
-        }
+        updateToast(); 
       },
 
       successAndNext: (explorerUrl?: string, signature?: string) => {
@@ -71,7 +67,7 @@ class ToastManager {
         stepsWithStatus[currentIndex] = { ...stepsWithStatus[currentIndex], status: "success", explorerUrl, signature };
 
         if (currentIndex < stepsWithStatus.length - 1) {
-          stepsWithStatus[currentIndex + 1].status = "pending"; // ✅ Next step becomes "pending"
+          stepsWithStatus[currentIndex + 1].status = "pending";
         }
 
         updateToast();
@@ -88,9 +84,7 @@ class ToastManager {
 
         updateToast();
 
-        setTimeout(() => {
-          if (toastId) toast.dismiss(toastId);
-        }, 5000);
+        setTimeout(() => toast.dismiss(toastId), 5000);
       },
 
       setFailed: (message?: string, retry?: () => void) => {
@@ -138,12 +132,7 @@ class ToastManager {
         updateToast();
       },
 
-      close: () => {
-        if (toastId) {
-          toast.dismiss(toastId);
-          toastId = undefined;
-        }
-      },
+      close: () => toast.dismiss(toastId),
     };
 
     return ToastController;
