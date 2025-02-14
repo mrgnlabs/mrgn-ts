@@ -43,7 +43,7 @@ import { useActionContext, HidePoolStats } from "../../contexts";
 import { getBankByPk, getBankOrWalletTokenByPk, handleExecuteDepositSwapAction } from "./utils";
 import { useDepositSwapBoxStore } from "./store";
 import { ActionInput, Preview } from "./components";
-import { nativeToUi, WalletToken } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter, nativeToUi, WalletToken } from "@mrgnlabs/mrgn-common";
 
 import { IconSettings } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
@@ -495,11 +495,14 @@ export const DepositSwapBox = ({
   // ]);
 
   const handleDepositSwapAction = React.useCallback(() => {
-    if (!marginfiClient) return;
+    if (!marginfiClient || actionTxns.transactions.length === 0) return;
 
     const attemptUuid = uuidv4();
 
-    const props: ExecuteDepositSwapActionPropsV2 = {
+   
+
+
+    const props = {
       actionTxns,
       attemptUuid,
       marginfiClient,
@@ -509,18 +512,16 @@ export const DepositSwapBox = ({
       },
       txOpts: {},
       callbacks: {
-        captureEvent: captureEvent ?? (() => {}), // TODO: fix undefined case here
+        captureEvent: captureEvent ,
       },
       infoProps: {
-        depositToken: selectedDepositBank?.meta.tokenSymbol ?? "",
-        swapToken: selectedSwapBank
-          ? "info" in selectedSwapBank
-            ? selectedSwapBank.meta.tokenSymbol
-            : selectedSwapBank.symbol
-          : "NO_SWAP",
-        amount: debouncedAmount ?? 0,
-      },
-    };
+        depositToken: selectedDepositBank?.meta.tokenSymbol,
+        swapToken: selectedSwapBank ? "info" in selectedSwapBank ? selectedSwapBank.meta.tokenSymbol : selectedSwapBank.symbol : "",
+        depositAmount: dynamicNumeralFormatter(Number(actionTxns.actionQuote?.outAmount) ? Number(nativeToUi(Number(actionTxns.actionQuote?.outAmount), selectedDepositBank?.info.rawBank.mintDecimals ?? 9)) : 0),
+        swapAmount: dynamicNumeralFormatter(debouncedAmount ?? 0),
+
+      }, // TODO: clean this up 
+    } as ExecuteDepositSwapActionPropsV2;
 
     ExecuteDepositSwapActionV2(props);
     setAmountRaw("");
