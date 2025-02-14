@@ -1,6 +1,6 @@
 import { IconLoader2, IconCheck, IconExternalLink, IconX } from "@tabler/icons-react";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { MultiStepToastStep } from "~/utils/toast-manager";
+import { MultiStepToastStep, ToastStatus } from "~/utils/toast-manager";
 
 interface MultiStepToastProps {
   toastId: string;
@@ -9,7 +9,7 @@ interface MultiStepToastProps {
 }
 
 export function MultiStepToast({ title, steps }: MultiStepToastProps) {
-  const lastFailedIndex = steps.map((s) => s.status).lastIndexOf("error");
+  const lastFailedIndex = steps.map((s) => s.status).lastIndexOf(ToastStatus.ERROR);
 
   return (
     <div className="w-full h-full rounded-md z-50 md:min-w-[340px]">
@@ -33,7 +33,7 @@ function StepComponent({ step, isLastFailed }: { step: MultiStepToastStep; isLas
         <ErrorStep
           label={step.label}
           message={step.message}
-          retry={isLastFailed && step.retry ? step.retry : undefined}
+          onRetry={isLastFailed && step.onRetry ? step.onRetry : undefined}
         />
       );
     case "pending":
@@ -76,7 +76,7 @@ const SuccessStep = ({
   </div>
 );
 
-const ErrorStep = ({ label, message, retry }: { label: string; message?: string; retry?: () => void }) => (
+const ErrorStep = ({ label, message, onRetry }: { label: string; message?: string; onRetry?: () => void }) => (
   <div className="flex flex-col">
     <div className="flex items-center space-x-2">
       <IconX size={16} className="text-mrgn-error flex-shrink-0" />
@@ -84,10 +84,10 @@ const ErrorStep = ({ label, message, retry }: { label: string; message?: string;
     </div>
     <div className="flex justify-between space-x-2 w-full px-6">
       {message && <div className="py-1 text-xs text-muted-foreground">{message}</div>}
-      {retry && (
+      {onRetry && (
         <button
           className="ml-2 inline-flex gap-2 items-center justify-center text-[10px] font-medium rounded-md bg-accent text-primary px-2 py-0.5 shadow-sm hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-600"
-          onClick={retry}
+          onClick={onRetry}
         >
           Retry
         </button>
