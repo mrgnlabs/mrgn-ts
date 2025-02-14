@@ -159,6 +159,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                         mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
                       />
                       <ToastContainer position="bottom-left" theme="dark" />
+                      {/* TODO: remove above toast container */}
                       <ToastProvider />
                       {globalActionBoxProps.isOpen && <GlobalActionBoxPortal />}
                     </ActionBoxProvider>
