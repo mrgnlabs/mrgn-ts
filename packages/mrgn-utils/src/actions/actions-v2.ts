@@ -1,4 +1,4 @@
-import { TransactionConfigMap, TransactionOptions } from "@mrgnlabs/mrgn-common";
+import { TransactionConfigMapV2, TransactionOptions } from "@mrgnlabs/mrgn-common";
 import { ActionTxns, IndividualFlowError, DepositSwapActionTxns } from "./types";
 import { depositSwap } from "./individualFlows";
 import { toastManager, MultiStepToastController } from "@mrgnlabs/mrgn-toasts";
@@ -76,10 +76,22 @@ export interface ExecuteDepositSwapActionPropsV2 extends ExecuteActionProps {
     swapToken: string;
     amount: number;
   };
-} // TODO: move to types file
+} // TODO: move to types 
 
 export async function ExecuteDepositSwapActionV2(props: ExecuteDepositSwapActionPropsV2) {
-  const steps = getDepositSwapSteps(props.actionTxns);
+
+  console.log("props", props);
+
+  const steps = getSteps(props.actionTxns, {
+    amount: props.infoProps.amount,
+    token: props.infoProps.depositToken,
+    originToken: props.infoProps.swapToken,
+    destinationToken: props.infoProps.swapToken,
+    originAmount: props.infoProps.amount,
+    destinationAmount: props.infoProps.amount, // TODO: update this
+  });
+
+  console.log("steps", steps);
 
   props.callbacks.captureEvent("user_deposit_swap_initiate", { uuid: props.attemptUuid, ...props.infoProps }); 
 
@@ -101,10 +113,23 @@ export async function ExecuteDepositSwapActionV2(props: ExecuteDepositSwapAction
   props.callbacks.captureEvent("user_deposit_swap", { uuid: props.attemptUuid, ...props.infoProps }); // TODO: Does this get executed if an error is thrown? 
 }
 
-function getDepositSwapSteps(actionTxns: ActionTxns) {
-  const steps = [
+function getSteps(actionTxns: ActionTxns, infoProps: Record<string, any>) {
+  console.log("infoProps", infoProps);
+  console.log("actionTxns", actionTxns);
+  return [
     { label: "Signing Transaction" },
-    ...actionTxns.transactions.map((tx) => ({ label: TransactionConfigMap[tx.type].label })),
+    ...actionTxns.transactions.map((tx) => {
+      const config = TransactionConfigMapV2[tx.type];
+
+      // Generate the label using `infoProps`
+      const message = config.label(infoProps);
+
+      // Log warning if fallback is used (indicating missing required values)
+      if (config.fallback && message === config.fallback) {
+        console.warn(`[getSteps] Missing required fields for transaction type ${tx.type}`);
+      }
+
+      return { label: message };
+    }),
   ];
-  return steps;
-} // TODO: update this and move to utils file
+}
