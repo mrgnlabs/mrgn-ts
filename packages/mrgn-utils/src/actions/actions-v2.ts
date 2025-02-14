@@ -99,7 +99,7 @@ function detectBroadcastType(signature: string): "RPC" | "BUNDLE" | "UNKNOWN" {
   return "UNKNOWN";
 }
 
-export function composeExplorerUrl(signature?: string): string | undefined {
+function composeExplorerUrl(signature?: string): string | undefined {
   if (!signature) return undefined;
 
   const detectedBroadcastType = detectBroadcastType(signature);
