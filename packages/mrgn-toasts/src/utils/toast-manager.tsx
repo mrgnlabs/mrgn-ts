@@ -3,20 +3,29 @@ import { WarningToast } from "../components/toasts/warning-toast";
 import { ErrorToast } from "../components/toasts/error-toast";
 import { MultiStepToast } from "../components/toasts/multi-step-toast/multi-step-toast";
 
+export enum ToastStatus {
+  TODO = "todo",
+  PENDING = "pending",
+  SUCCESS = "success",
+  ERROR = "error",
+  CANCELED = "canceled",
+  PAUSED = "paused",
+}
+
 export interface MultiStepToastStep {
   label: string;
-  status: "todo" | "pending" | "success" | "error" | "canceled" | "paused";
+  status: ToastStatus;
   message?: string;
   signature?: string;
   explorerUrl?: string;
-  retry?: () => void;
+  onRetry?: () => void;
 }
 
 export interface MultiStepToastController {
   start: () => void;
-  successAndNext: (explorerUrl?: string, signature?: string) => void;
+  successAndNext: (stepsToAdvance?: number | undefined, explorerUrl?: string, signature?: string) => void;
   success: (explorerUrl?: string, signature?: string) => void;
-  setFailed: (message?: string, retry?: () => void) => void;
+  setFailed: (message?: string, onRetry?: () => void) => void;
   pause: () => void;
   resume: () => void;
   resetAndStart: () => void;
@@ -39,7 +48,7 @@ class ToastManager {
 
     const stepsWithStatus: MultiStepToastStep[] = steps.map((step, index) => ({
       ...step,
-      status: index === 0 ? "pending" : "todo",
+      status: index === 0 ? ToastStatus.PENDING : ToastStatus.TODO,
     }));
 
     toast(<MultiStepToast toastId={toastId} title={title} steps={stepsWithStatus} />, {
@@ -59,22 +68,44 @@ class ToastManager {
         updateToast(); 
       },
 
-      successAndNext: (explorerUrl?: string, signature?: string) => {
-        const currentIndex = stepsWithStatus.findIndex((s) => s.status === "pending");
-        if (currentIndex === -1) return;
+      successAndNext: (stepsToAdvance: number | undefined , explorerUrl?: string, signature?: string) => {
+  if (!toastId) return;
 
-        stepsWithStatus[currentIndex] = { ...stepsWithStatus[currentIndex], status: "success", explorerUrl, signature };
+  const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.PENDING);
+  if (currentIndex === -1) return;
 
-        if (currentIndex < stepsWithStatus.length - 1) {
-          stepsWithStatus[currentIndex + 1].status = "pending";
-        }
+  stepsWithStatus[currentIndex] = {
+    ...stepsWithStatus[currentIndex],
+    status: ToastStatus.SUCCESS,
+    explorerUrl,
+    signature,
+  };
 
-        updateToast();
-      },
+  const advanceSteps = stepsToAdvance ?? 1;
+  const nextStepIndex = currentIndex + advanceSteps;
+
+  if (nextStepIndex >= stepsWithStatus.length) {
+    for (let i = currentIndex + 1; i < stepsWithStatus.length; i++) {
+      stepsWithStatus[i].status = ToastStatus.SUCCESS;
+    }
+
+    updateToast();
+
+    setTimeout(() => toast.dismiss(toastId), 5000);
+  } else {
+    for (let i = currentIndex + 1; i <= nextStepIndex; i++) {
+      if (stepsWithStatus[i]) {
+        stepsWithStatus[i].status = ToastStatus.PENDING;
+      }
+    }
+
+    updateToast();
+  }
+},
 
       success: (explorerUrl?: string, signature?: string) => {
         stepsWithStatus.forEach((s, index) => {
-          s.status = "success";
+          s.status = ToastStatus.SUCCESS;
           if (index === stepsWithStatus.length - 1) {
             s.explorerUrl = explorerUrl;
             s.signature = signature;
@@ -86,45 +117,45 @@ class ToastManager {
         setTimeout(() => toast.dismiss(toastId), 5000);
       },
 
-      setFailed: (message?: string, retry?: () => void) => {
-        const currentIndex = stepsWithStatus.findIndex((s) => s.status === "pending");
+      setFailed: (message?: string, onRetry?: () => void) => {
+        const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.PENDING);
         if (currentIndex === -1) return;
 
         stepsWithStatus[currentIndex] = {
           ...stepsWithStatus[currentIndex],
-          status: "error",
+          status: ToastStatus.ERROR,
           message,
-          retry,
+          onRetry,
         };
 
         updateToast();
       },
 
       pause: () => {
-        const currentIndex = stepsWithStatus.findIndex((s) => s.status === "pending");
+        const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.PENDING);
         if (currentIndex !== -1) {
-          stepsWithStatus[currentIndex].status = "paused";
+          stepsWithStatus[currentIndex].status = ToastStatus.PAUSED;
         }
 
         updateToast();
       },
 
       resume: () => {
-        const currentIndex = stepsWithStatus.findIndex((s) => s.status === "paused");
+        const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.PAUSED);
         if (currentIndex !== -1) {
-          stepsWithStatus[currentIndex].status = "pending";
+          stepsWithStatus[currentIndex].status = ToastStatus.PENDING;
         }
 
         updateToast();
       },
 
       resetAndStart: () => {
-        const failedIndex = stepsWithStatus.findIndex((s) => s.status === "error");
+        const failedIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.ERROR);
 
         if (failedIndex !== -1) {
-          stepsWithStatus[failedIndex].status = "pending";
+          stepsWithStatus[failedIndex].status = ToastStatus.PENDING;
           stepsWithStatus.slice(failedIndex + 1).forEach((step) => {
-            step.status = "todo";
+            step.status = ToastStatus.TODO;
           });
         }
 

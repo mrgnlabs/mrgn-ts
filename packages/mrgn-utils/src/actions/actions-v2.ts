@@ -1,17 +1,45 @@
 import { TransactionConfigMapV2, TransactionOptions } from "@mrgnlabs/mrgn-common";
 import { ActionTxns, IndividualFlowError, DepositSwapActionTxns } from "./types";
-import { depositSwap } from "./individualFlows";
 import { toastManager, MultiStepToastController } from "@mrgnlabs/mrgn-toasts";
 import { MarginfiClient, ProcessTransactionsClientOpts, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
 import { captureSentryException } from "../sentry.utils";
 import { SolanaJSONRPCError } from "@solana/web3.js";
 import { extractErrorString } from "../mrgnUtils";
 
+interface ExecuteActionProps {
+  actionTxns: ActionTxns;
+  attemptUuid: string;
+  marginfiClient: MarginfiClient;
+  processOpts: ProcessTransactionsClientOpts;
+  txOpts: TransactionOptions;
+  callbacks: {
+    captureEvent?: (event: string, properties?: Record<string, any>) => void;
+  };
+} 
+
+function getSteps(actionTxns: ActionTxns, infoProps: Record<string, any>) {
+  return [
+    { label: "Signing Transaction" },
+    ...actionTxns.transactions.map((tx) => {
+      const config = TransactionConfigMapV2[tx.type];
+
+      const message = config.label(infoProps);
+
+      if (config.fallback && message === config.fallback) {
+        console.warn(`[getSteps] Missing required fields for transaction type ${tx.type}`);
+      }
+
+      return { label: message };
+    }),
+  ];
+}
+
+
 async function executeActionWrapper(
   action: (
     txns: ActionTxns,
-    onSuccessAndNext: (explorerUrl?: string, signature?: string) => void
-  ) => Promise<string | string[]>,
+    onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void
+  ) => Promise<string >,
   steps: { label: string }[],
   actionName: string,
   failedTxns: ActionTxns,
@@ -25,14 +53,14 @@ async function executeActionWrapper(
   }
 
   try {
-    const txnSig = await action(failedTxns, (explorerUrl, signature) => {
-      toast.successAndNext(explorerUrl, signature);
+    const txnSig = await action(failedTxns, (stepsToAdvance, explorerUrl, signature) => {
+      toast.successAndNext(stepsToAdvance ?? 1, explorerUrl, signature);
     });
-    toast.success("", typeof txnSig === "string" ? txnSig : txnSig[txnSig.length - 1]); // TODO: clean this up, always return one signature
+    toast.success(composeExplorerUrl(txnSig), txnSig);
     return txnSig;
   } catch (error) {
     if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
-      captureSentryException(error, JSON.stringify(error), { action: actionName }); // TODO: update with more info, move to action function if needed
+      captureSentryException(error, JSON.stringify(error), { action: actionName })
     }
 
     if (error instanceof ProcessTransactionError) {
@@ -58,78 +86,69 @@ async function executeActionWrapper(
   }
 }
 
-interface ExecuteActionProps {
-  actionTxns: ActionTxns;
-  attemptUuid: string;
-  marginfiClient: MarginfiClient;
-  processOpts: ProcessTransactionsClientOpts;
-  txOpts: TransactionOptions;
-  callbacks: {
-    captureEvent: (event: string, properties?: Record<string, any>) => void;
-  };
-} // TODO: move to types file
+function detectBroadcastType(signature: string): "RPC" | "BUNDLE" | "UNKNOWN" {
+  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+  const hexRegex = /^[0-9a-fA-F]{64}$/;
+
+  if (base58Regex.test(signature)) {
+    return "RPC";
+  } else if (hexRegex.test(signature)) {
+    return "BUNDLE";
+  }
+
+  return "UNKNOWN";
+}
+
+export function composeExplorerUrl(signature?: string): string | undefined {
+  if (!signature) return undefined;
+
+  const detectedBroadcastType = detectBroadcastType(signature);
+
+  return detectedBroadcastType === "BUNDLE"
+    ? `https://explorer.jito.wtf/bundle/${signature}`
+    : `https://solscan.io/tx/${signature}`;
+}
 
 
 export interface ExecuteDepositSwapActionPropsV2 extends ExecuteActionProps {
   infoProps: {
     depositToken: string;
     swapToken: string;
-    amount: number;
+    depositAmount: string;
+    swapAmount: string;
   };
-} // TODO: move to types 
+}
 
 export async function ExecuteDepositSwapActionV2(props: ExecuteDepositSwapActionPropsV2) {
 
-  console.log("props", props);
-
   const steps = getSteps(props.actionTxns, {
-    amount: props.infoProps.amount,
+    amount: props.infoProps.depositAmount,
     token: props.infoProps.depositToken,
     originToken: props.infoProps.swapToken,
-    destinationToken: props.infoProps.swapToken,
-    originAmount: props.infoProps.amount,
-    destinationAmount: props.infoProps.amount, // TODO: update this
+    destinationToken: props.infoProps.depositToken,
+    originAmount: props.infoProps.swapAmount,
+    destinationAmount: props.infoProps.depositAmount, 
   });
 
-  console.log("steps", steps);
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_deposit_swap_initiate", { uuid: props.attemptUuid, ...props.infoProps }); 
 
-  props.callbacks.captureEvent("user_deposit_swap_initiate", { uuid: props.attemptUuid, ...props.infoProps }); 
-
-  const action = async (txns: ActionTxns, onSuccessAndNext: (explorerUrl?: string, signature?: string) => void) => {
-    return await props.marginfiClient.processTransactions(
+  const action = async (txns: ActionTxns, onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void) => {
+    const actionResponse = await props.marginfiClient.processTransactions(
       txns.transactions,
       {
         ...props.processOpts,
         callback: (index, success, sig, stepsToAdvance) => {
-          success && onSuccessAndNext(undefined, sig); // TODO: add stepsToAdvance & explorerUrl to toast handler. !! DOES NOT WORK with bundles, need to implement stepsToAdvance
+          success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig); // TODO: add stepsToAdvance & explorerUrl to toast handler. !! DOES NOT WORK with bundles, need to implement stepsToAdvance
         },
       },
       props.txOpts
     );
+
+    return actionResponse[actionResponse.length - 1];
   };
 
   await executeActionWrapper(action, steps, "Deposit", props.actionTxns);
 
-  props.callbacks.captureEvent("user_deposit_swap", { uuid: props.attemptUuid, ...props.infoProps }); // TODO: Does this get executed if an error is thrown? 
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_deposit_swap", { uuid: props.attemptUuid, ...props.infoProps });
 }
 
-function getSteps(actionTxns: ActionTxns, infoProps: Record<string, any>) {
-  console.log("infoProps", infoProps);
-  console.log("actionTxns", actionTxns);
-  return [
-    { label: "Signing Transaction" },
-    ...actionTxns.transactions.map((tx) => {
-      const config = TransactionConfigMapV2[tx.type];
-
-      // Generate the label using `infoProps`
-      const message = config.label(infoProps);
-
-      // Log warning if fallback is used (indicating missing required values)
-      if (config.fallback && message === config.fallback) {
-        console.warn(`[getSteps] Missing required fields for transaction type ${tx.type}`);
-      }
-
-      return { label: message };
-    }),
-  ];
-}
