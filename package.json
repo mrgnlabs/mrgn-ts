@@ -50,6 +50,18 @@
     "@changesets/cli": "^2.26.0"
   },
   "packageManager": "pnpm@10.3.0",
+  "pnpm": {
+    "overrides": {
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0",
+      "@solana/web3.js": "^1.93.2",
+      "@solana/wallet-adapter-base": "^0.9.23",
+      "@solana/wallet-adapter-react": "^0.15.35",
+      "@solana/buffer-layout": "^4.0.1",
+      "@solana/buffer-layout-utils": "^0.2.0",
+      "@solana/spl-token": "^0.3.8"
+    }
+  },
   "resolutions": {
     "@trezor/connect-web": "9.1.6"
   }

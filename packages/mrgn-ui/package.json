@@ -41,11 +41,13 @@
     "@radix-ui/react-toggle-group": "^1.0.4",
     "@radix-ui/react-tooltip": "1.0.7",
     "@sentry/nextjs": "^8",
+    "@solana/buffer-layout": "^4.0.1",
     "@solana/buffer-layout-utils": "^0.2.0",
     "@solana/spl-stake-pool": "^0.6.5",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/web3.js": "^1.93.2",
+    "@solana/spl-token": "^0.3.8",
     "@tabler/icons-react": "^3.3.0",
     "@uidotdev/usehooks": "^2.4.1",
     "@web3auth/base": "^7.0.4",
@@ -63,7 +65,6 @@
     "lottie-react": "^2.4.0",
     "lucide-react": "^0.475.0",
     "minidenticons": "^4.2.0",
-    "next": "14.2.21",
     "numeral": "^2.0.6",
     "react": "18.2.0",
     "react-confetti": "^6.1.0",
@@ -88,9 +89,21 @@
     "@types/uuid": "^9.0.2",
     "eslint": "^9.5.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/web3.js": "^1.91.3",
+    "@solana/buffer-layout": "^4.0.1",
+    "@solana/buffer-layout-utils": "^0.2.0",
+    "@solana/spl-token": "^0.3.8"
   }
 }
