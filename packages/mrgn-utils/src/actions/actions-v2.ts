@@ -28,7 +28,7 @@ async function executeActionWrapper(
     const txnSig = await action(failedTxns, (explorerUrl, signature) => {
       toast.successAndNext(explorerUrl, signature);
     });
-    toast.success("", typeof txnSig === "string" ? txnSig : txnSig[txnSig.length - 1]); // TODO: clean this up
+    toast.success("", typeof txnSig === "string" ? txnSig : txnSig[txnSig.length - 1]); // TODO: clean this up, always return one signature
     return txnSig;
   } catch (error) {
     if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
@@ -67,7 +67,8 @@ interface ExecuteActionProps {
   callbacks: {
     captureEvent: (event: string, properties?: Record<string, any>) => void;
   };
-}
+} // TODO: move to types file
+
 
 export interface ExecuteDepositSwapActionPropsV2 extends ExecuteActionProps {
   infoProps: {
@@ -75,12 +76,12 @@ export interface ExecuteDepositSwapActionPropsV2 extends ExecuteActionProps {
     swapToken: string;
     amount: number;
   };
-}
+} // TODO: move to types file
 
 export async function ExecuteDepositSwapActionV2(props: ExecuteDepositSwapActionPropsV2) {
   const steps = getDepositSwapSteps(props.actionTxns);
 
-  props.callbacks.captureEvent("user_deposit_swap_initiate", { uuid: props.attemptUuid, ...props.infoProps });
+  props.callbacks.captureEvent("user_deposit_swap_initiate", { uuid: props.attemptUuid, ...props.infoProps }); 
 
   const action = async (txns: ActionTxns, onSuccessAndNext: (explorerUrl?: string, signature?: string) => void) => {
     return await props.marginfiClient.processTransactions(
@@ -88,7 +89,7 @@ export async function ExecuteDepositSwapActionV2(props: ExecuteDepositSwapAction
       {
         ...props.processOpts,
         callback: (index, success, sig, stepsToAdvance) => {
-          success && onSuccessAndNext(undefined, sig); // TODO: add stepsToAdvance & explorerUrl to toast handler
+          success && onSuccessAndNext(undefined, sig); // TODO: add stepsToAdvance & explorerUrl to toast handler. !! DOES NOT WORK with bundles, need to implement stepsToAdvance
         },
       },
       props.txOpts
@@ -97,7 +98,7 @@ export async function ExecuteDepositSwapActionV2(props: ExecuteDepositSwapAction
 
   await executeActionWrapper(action, steps, "Deposit", props.actionTxns);
 
-  props.callbacks.captureEvent("user_deposit_swap", { uuid: props.attemptUuid, ...props.infoProps }); // TODO: Does this get executed if an error is thrown? Check
+  props.callbacks.captureEvent("user_deposit_swap", { uuid: props.attemptUuid, ...props.infoProps }); // TODO: Does this get executed if an error is thrown? 
 }
 
 function getDepositSwapSteps(actionTxns: ActionTxns) {
@@ -106,4 +107,4 @@ function getDepositSwapSteps(actionTxns: ActionTxns) {
     ...actionTxns.transactions.map((tx) => ({ label: TransactionConfigMap[tx.type].label })),
   ];
   return steps;
-}
+} // TODO: update this and move to utils file
