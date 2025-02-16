@@ -1,11 +1,12 @@
 import { TransactionConfigMapV2, TransactionOptions } from "@mrgnlabs/mrgn-common";
 import { ActionTxns, IndividualFlowError, DepositSwapActionTxns } from "./types";
 import { toastManager, MultiStepToastController } from "@mrgnlabs/mrgn-toasts";
-import { MarginfiClient, ProcessTransactionsClientOpts, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiClient, ProcessTransactionsClientOpts, ProcessTransactionError, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { captureSentryException } from "../sentry.utils";
 import { SolanaJSONRPCError } from "@solana/web3.js";
 import { extractErrorString } from "../mrgnUtils";
-
+import { ActionType, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state"; 
+import { STATIC_SIMULATION_ERRORS } from "../errors";
 interface ExecuteActionProps {
   actionTxns: ActionTxns;
   attemptUuid: string;
@@ -15,6 +16,7 @@ interface ExecuteActionProps {
   callbacks: {
     captureEvent?: (event: string, properties?: Record<string, any>) => void;
   };
+  
 } 
 
 function getSteps(actionTxns: ActionTxns, infoProps: Record<string, any>) {
@@ -150,5 +152,59 @@ export async function ExecuteDepositSwapActionV2(props: ExecuteDepositSwapAction
   await executeActionWrapper(action, steps, "Deposit", props.actionTxns);
 
   props.callbacks.captureEvent && props.callbacks.captureEvent("user_deposit_swap", { uuid: props.attemptUuid, ...props.infoProps });
+} // TODO: this does not handle create account. We should handle this. 
+
+export interface ExecuteLendingActionPropsV2 extends ExecuteActionProps {
+  nativeSolBalance: number;
+  actionType: ActionType;
+  marginfiAccount?: MarginfiAccountWrapper;
+  infoProps: {
+    amount: string;
+    token: string;
+  };
 }
 
+
+export async function ExecuteLendingActionV2(props: ExecuteLendingActionPropsV2) {
+
+  console.log("props", props);
+
+  if (props.nativeSolBalance < FEE_MARGIN) {
+
+    toastManager.showErrorToast(STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS); // TODO: fix
+    return;
+  } // TODO: can move this to wrapper level? Should we always check this? 
+
+  const steps = getSteps(props.actionTxns, {
+    amount: props.infoProps.amount,
+    token: props.infoProps.token,
+  });
+
+  console.log("steps", steps);
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_lending_initiate", { uuid: props.attemptUuid, ...props.infoProps }); 
+
+ if (!props.marginfiAccount) {} // TODO: handle when creating transaction
+
+
+ const action = async (txns: ActionTxns, onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void) => {
+  const actionResponse = await props.marginfiClient.processTransactions(
+    txns.transactions,
+    {
+      ...props.processOpts,
+      callback: (index, success, sig, stepsToAdvance) => {
+        success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig); // TODO: add stepsToAdvance & explorerUrl to toast handler. !! DOES NOT WORK with bundles, need to implement stepsToAdvance
+      },
+    },
+    props.txOpts
+  );
+
+  return actionResponse[actionResponse.length - 1];
+};
+
+await executeActionWrapper(action, steps, props.actionType, props.actionTxns);
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_lending", { uuid: props.attemptUuid, ...props.infoProps });
+  
+  
+}
