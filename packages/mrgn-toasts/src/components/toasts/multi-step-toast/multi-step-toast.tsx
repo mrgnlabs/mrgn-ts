@@ -61,7 +61,7 @@ const SuccessStep = ({
 }) => (
   <div className="flex items-center space-x-2">
     <IconCheck size={16} className="text-success flex-shrink-0" />
-    <span className="text-primary">{label}</span>
+    <span className="text-primary truncate">{label}</span>
     {signature && explorerUrl && (
       <a
         href={explorerUrl}
@@ -70,7 +70,7 @@ const SuccessStep = ({
         rel="noopener noreferrer"
       >
         <IconExternalLink size={12} />
-        {shortenAddress(signature)}
+        <span className="text-xs truncate"> {shortenAddress(signature)}</span>
       </a>
     )}
   </div>
