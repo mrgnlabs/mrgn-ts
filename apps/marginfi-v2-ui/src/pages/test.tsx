@@ -7,7 +7,7 @@ import { MultiStepToastHandle, showErrorToast } from "@mrgnlabs/mrgn-utils";
 export default function TestPage() {
   const handleStartProcess = () => {
     const toast = toastManager.createMultiStepToast("Processing Transaction", [
-      { label: "Initiating" },
+      { label: "Swapping 0.000001 ETH for 0.0001 USDC" },
       { label: "Signing" },
       { label: "Broadcasting"},
       { label: "Confirming" },
@@ -16,37 +16,11 @@ export default function TestPage() {
     toast.start();
 
     setTimeout(() => {
-      console.log("Pausing...");
-      toast.pause();
-    }, 2000);
-
-    setTimeout(() => {
-      console.log("Resuming...");
-      toast.resume();
-    }, 4000);
-
-    setTimeout(() => {
       console.log("Success and moving to next step...");
-      toast.successAndNext();
+      toast.successAndNext(undefined, "https://solscan.io/tx/2222222222222222222222222222222222222222222222222222222222222222", "2222222222222222222222222222222222222222222222222222222222222222");
     }, 6000);
 
-    setTimeout(() => {
-      console.log("Setting step to failed...");
-      toast.setFailed("Transaction failed, please try again.", () => {
-        console.log("Retrying...");
-        toast.resetAndStart();
-      });
-    }, 8000);
-
-    setTimeout(() => {
-      console.log("Retrying transaction...");
-      toast.resetAndStart();
-    }, 10000);
-
-    setTimeout(() => {
-      console.log("Completing transaction...");
-      toast.success();
-    }, 12000);
+   
   };
 
   return (
