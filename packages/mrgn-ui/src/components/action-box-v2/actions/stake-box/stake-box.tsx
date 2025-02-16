@@ -165,7 +165,7 @@ export const StakeBox = ({
     };
   }, [refreshState]);
 
-  const { handleSimulation, refreshSimulation } = useStakeSimulation({
+  const {  refreshSimulation } = useStakeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedBank,
     actionMode,
@@ -360,11 +360,6 @@ export const StakeBox = ({
       setAdditionalActionMessages([{ ...errorMessage, isEnabled: false }]);
     }
   }, [errorMessage]);
-
-  React.useEffect(() => {
-    handleSimulation([...(actionTxns.transactions ?? [])]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [actionTxns]);
 
   React.useEffect(() => {
     if (marginfiClient) {
