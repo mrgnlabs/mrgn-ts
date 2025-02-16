@@ -96,7 +96,7 @@ export function useLendSimulation({
       }
     }
     else {
-      throw new Error("account, bank or transactions are null");
+      throw new Error("account, bank or transactions are null"); // TODO: return error message? 
     }
   }
   
@@ -140,6 +140,7 @@ export function useLendSimulation({
   const handleSimulation = React.useCallback(async (amount: number) => {
     try {
       if (amount === 0 || !selectedBank || !marginfiClient) { // Selected account can be undefined, we'll make a tx for this if so
+        console.error('Missing params')
         setActionTxns({ transactions: [] });
         return;
       }
@@ -165,8 +166,6 @@ export function useLendSimulation({
           setIsLoading,
         });
         return;
-
-
       }
 
       const simulationResult = await simulationAction({
@@ -190,7 +189,7 @@ export function useLendSimulation({
         setActionTxns(_actionTxns.txns?.actionTxns);
         setErrorMessage(null);
       } else {
-        throw new Error("Unknown error");
+        throw new Error("Unknown error"); // TODO: return error message? 
       }
 
     }
