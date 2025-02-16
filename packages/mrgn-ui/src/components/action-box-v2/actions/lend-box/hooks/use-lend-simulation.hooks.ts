@@ -50,7 +50,6 @@ export function useLendSimulation({
       setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
     }
   ) => {
-    console.log("actionMessage", actionMessage);
     if (typeof actionMessage === "string") {
       const errorMessage = extractErrorString(actionMessage);
       const _actionMessage: ActionMessageType = {
@@ -147,8 +146,6 @@ export function useLendSimulation({
 
       setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
 
-      console.log("selectedAccount", selectedAccount);
-
       const props = {
         marginfiAccount: selectedAccount,
         marginfiClient: marginfiClient,
@@ -171,8 +168,6 @@ export function useLendSimulation({
 
 
       }
-
-      console.log(_actionTxns);
 
       const simulationResult = await simulationAction({
         txns: _actionTxns.txns?.actionTxns,

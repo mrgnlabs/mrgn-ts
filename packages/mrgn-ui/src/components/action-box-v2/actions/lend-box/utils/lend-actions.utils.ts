@@ -131,17 +131,11 @@ export async function generateActionTxns(props: {
   let accountCreationTx: SolanaTransaction[] = [];
   let account: MarginfiAccountWrapper | null = props.marginfiAccount;
 
-  console.log("account", account);
-
   if (!account && props.lendMode === ActionType.Deposit) {
-    console.log("creating new account");
     const { account: newAccount, tx } = await createMarginfiAccountTx({
       marginfiAccount: props.marginfiAccount,
       marginfiClient: props.marginfiClient,
     });
-
-    console.log("newAccount", newAccount);
-    console.log("tx", tx);
     account = newAccount;
     accountCreationTx.push(tx);
   }
