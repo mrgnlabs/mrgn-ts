@@ -21,6 +21,7 @@ export interface MultiStepToastStep {
   onRetry?: () => void;
 }
 
+
 export interface MultiStepToastController {
   start: () => void;
   successAndNext: (stepsToAdvance?: number | undefined, explorerUrl?: string, signature?: string) => void;
@@ -37,8 +38,18 @@ class ToastManager {
     toast(<WarningToast title={title} message={message} />, { duration: Infinity });
   }
 
-  showErrorToast(title: string, description: string, code?: number) {
-    toast(<ErrorToast title={title} description={description} code={code} />, {
+  showErrorToast(props: string | any) { // TODO: this should be actionMessageType
+    let description: string;
+  let code: number | undefined;
+  if (typeof props === "string") {
+    description = props;
+    code = undefined;
+  } else {
+    description = props.description || "";
+    code = props.code;
+  }
+    
+    toast(<ErrorToast title={"Error"}  description={description} code={code} />, {
       duration: Infinity,
     });
   }
