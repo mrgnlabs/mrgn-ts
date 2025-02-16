@@ -285,7 +285,7 @@ export const DepositSwapBox = ({
   ]);
 
   const handleDepositSwapAction = React.useCallback(() => {
-    if (!marginfiClient || actionTxns.transactions.length === 0) return;
+    if (!marginfiClient || actionTxns.transactions.length === 0) return; // TODO: see if this is ok enough, might need more checks
 
     const props = {
       actionTxns,
