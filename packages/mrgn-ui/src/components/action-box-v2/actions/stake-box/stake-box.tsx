@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
@@ -15,6 +16,8 @@ import {
   ActionTxns,
   IndividualFlowError,
   usePrevious,
+  ExecuteStakeActionPropsV2,
+  ExecuteStakeActionV2,
 } from "@mrgnlabs/mrgn-utils";
 
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
@@ -220,136 +223,31 @@ export const StakeBox = ({
   /////////////////////
   // Staking Actions //
   /////////////////////
-  const executeAction = async (
-    params: ExecuteLstActionParams,
-    receiveAmount: number,
-    callbacks: {
-      captureEvent?: (event: string, properties?: Record<string, any>) => void;
-      setIsActionComplete: (isComplete: boolean) => void;
-      setPreviousTxn: (previousTxn: PreviousTxn) => void;
-      onComplete?: (previousTxn: PreviousTxn) => void;
-      setIsLoading: (isLoading: boolean) => void;
-      retryCallback: (txns: any, multiStepToast: MultiStepToastHandle) => void;
-      setAmountRaw: (amountRaw: string) => void;
-    }
-  ) => {
-    const action = async (params: ExecuteLstActionParams, receiveAmount: number) => {
-      await handleExecuteLstAction({
-        params,
-        captureEvent: (event, properties) => {
-          callbacks.captureEvent && callbacks.captureEvent(event, properties);
-        },
-        setIsComplete: (txnSigs) => {
-          callbacks.setIsActionComplete(true);
-          callbacks.setPreviousTxn({
-            txn: txnSigs[txnSigs.length - 1] ?? "",
-            txnType: params.actionType === ActionType.MintLST ? "STAKE" : "UNSTAKE",
-            stakingOptions: {
-              amount: receiveAmount,
-              type: params.actionType,
-              originDetails: {
-                amount: params.originDetails.amount,
-                bank: params.bank,
-              },
-            },
-          });
-
-          callbacks.onComplete &&
-            callbacks.onComplete({
-              txn: txnSigs[txnSigs.length - 1] ?? "",
-              txnType: params.actionType === ActionType.MintLST ? "STAKE" : "UNSTAKE",
-              stakingOptions: {
-                amount: receiveAmount,
-                type: params.actionType,
-                originDetails: {
-                  amount: params.originDetails.amount,
-                  bank: params.bank,
-                },
-              },
-            });
-        },
-        setError: (error: IndividualFlowError) => {
-          const toast = error.multiStepToast as MultiStepToastHandle;
-          const txs = error.actionTxns as ActionTxns;
-          let retry = undefined;
-          if (error.retry && txs && toast) {
-            retry = () => callbacks.retryCallback(txs, toast);
-          }
-          toast?.setFailed(error.message, retry);
-          callbacks.setIsLoading(false);
-        },
-        setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
-      });
-    };
-
-    await action(params, receiveAmount);
-    callbacks.setAmountRaw("");
-  };
-
-  const retryLstAction = React.useCallback(
-    async (params: ExecuteLstActionParams, receiveAmount: number) => {
-      executeAction(params, receiveAmount, {
-        captureEvent,
-        setIsActionComplete,
-        setPreviousTxn,
-        onComplete,
-        setIsLoading: setIsTransactionExecuting,
-        retryCallback: (txns, multiStepToast) =>
-          retryLstAction({ ...params, actionTxns: txns, multiStepToast }, receiveAmount),
-        setAmountRaw,
-      });
-    },
-    [captureEvent, onComplete, setAmountRaw, setIsActionComplete, setIsTransactionExecuting, setPreviousTxn]
-  );
-
   const handleLstAction = React.useCallback(async () => {
     if (!selectedBank || !amount || !marginfiClient || !transactionSettings) {
       return;
     }
-    const params = {
-      actionTxns,
-      marginfiClient,
-      actionType: requestedActionType,
-      nativeSolBalance,
-      broadcastType: transactionSettings.broadcastType,
-      originDetails: {
-        amount,
-        tokenSymbol: selectedBank.meta.tokenSymbol,
-      },
-      processOpts: {
-        broadcastType: transactionSettings.broadcastType,
-        ...priorityFees,
-      },
-      bank: selectedBank,
-    };
 
-    executeAction(params, receiveAmount, {
-      captureEvent,
-      setIsActionComplete,
-      setPreviousTxn,
-      onComplete,
-      setIsLoading: setIsTransactionExecuting,
-      retryCallback: (txns, multiStepToast) =>
-        retryLstAction({ ...params, actionTxns: txns, multiStepToast }, receiveAmount),
-      setAmountRaw,
-    });
-  }, [
-    actionTxns,
-    amount,
-    captureEvent,
-    marginfiClient,
-    nativeSolBalance,
-    onComplete,
-    priorityFees,
-    receiveAmount,
-    requestedActionType,
-    retryLstAction,
-    selectedBank,
-    setAmountRaw,
-    setIsActionComplete,
-    setPreviousTxn,
-    transactionSettings,
-  ]);
+    const params: ExecuteStakeActionPropsV2 = {
+      actionTxns,
+      attemptUuid: uuidv4(),
+      marginfiClient,
+      processOpts: { ...priorityFees, broadcastType: transactionSettings.broadcastType },
+      txOpts: {},
+      callbacks: {
+        captureEvent: captureEvent,
+      },
+      infoProps: {
+        amount: amount.toString(),
+        token: selectedBank.meta.tokenSymbol,
+        actionType: requestedActionType,
+      }, // TODO: update infoProps 
+    }
+
+    ExecuteStakeActionV2(params)
+
+    setAmountRaw("")
+  }, [actionTxns, amount, captureEvent, marginfiClient, priorityFees, requestedActionType, selectedBank, setAmountRaw, transactionSettings])
 
   React.useEffect(() => {
     fetchActionBoxState({ requestedLendType: requestedActionType, requestedBank });
