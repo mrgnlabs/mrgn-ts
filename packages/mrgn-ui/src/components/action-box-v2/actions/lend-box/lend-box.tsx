@@ -330,13 +330,12 @@ export const LendBox = ({
       },
       nativeSolBalance: nativeSolBalance,
       actionType: lendMode,
-      marginfiAccount: selectedAccount,
     } as ExecuteLendingActionPropsV2;
 
     ExecuteLendingActionV2(props);
 
     setAmountRaw("")
-  }, [actionTxns, amount, captureEvent, lendMode, marginfiClient, nativeSolBalance, priorityFees, selectedAccount, selectedBank, setAmountRaw, transactionSettings])
+  }, [actionTxns, amount, captureEvent, lendMode, marginfiClient, nativeSolBalance, priorityFees, selectedBank, setAmountRaw, transactionSettings])
 
   const hasErrorsWarnings = React.useMemo(() => {
     return (
