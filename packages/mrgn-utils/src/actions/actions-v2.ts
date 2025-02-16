@@ -47,7 +47,7 @@ async function executeActionWrapper(
   failedTxns: ActionTxns,
   existingToast?: MultiStepToastController
 ) {
-  const toast = existingToast || toastManager.createMultiStepToast(`Processing ${actionName}`, steps);
+  const toast = existingToast || toastManager.createMultiStepToast(`${actionName}`, steps);
   if (!existingToast) {
     toast.start();
   } else {
@@ -157,7 +157,6 @@ export async function ExecuteDepositSwapActionV2(props: ExecuteDepositSwapAction
 export interface ExecuteLendingActionPropsV2 extends ExecuteActionProps {
   nativeSolBalance: number;
   actionType: ActionType;
-  marginfiAccount?: MarginfiAccountWrapper;
   infoProps: {
     amount: string;
     token: string;
@@ -184,16 +183,13 @@ export async function ExecuteLendingActionV2(props: ExecuteLendingActionPropsV2)
 
   props.callbacks.captureEvent && props.callbacks.captureEvent("user_lending_initiate", { uuid: props.attemptUuid, ...props.infoProps }); 
 
- if (!props.marginfiAccount) {} // TODO: handle when creating transaction
-
-
  const action = async (txns: ActionTxns, onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void) => {
   const actionResponse = await props.marginfiClient.processTransactions(
     txns.transactions,
     {
       ...props.processOpts,
       callback: (index, success, sig, stepsToAdvance) => {
-        success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig); // TODO: add stepsToAdvance & explorerUrl to toast handler. !! DOES NOT WORK with bundles, need to implement stepsToAdvance
+        success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
       },
     },
     props.txOpts
@@ -207,4 +203,125 @@ await executeActionWrapper(action, steps, props.actionType, props.actionTxns);
   props.callbacks.captureEvent && props.callbacks.captureEvent("user_lending", { uuid: props.attemptUuid, ...props.infoProps });
   
   
+}
+
+export interface ExecuteLoopActionPropsV2 extends ExecuteActionProps {
+  infoProps: {
+    depositAmount: string;
+    depositToken: string;
+    borrowAmount: string;
+    borrowToken: string;
+  };
+}
+
+
+export async function ExecuteLoopActionV2(props: ExecuteLoopActionPropsV2) {
+
+  const steps = getSteps(props.actionTxns, {
+    depositAmount: props.infoProps.depositAmount,
+    depositToken: props.infoProps.depositToken,
+    borrowAmount: props.infoProps.borrowAmount,
+    borrowToken: props.infoProps.borrowToken,
+  });
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_looping_initiate", { uuid: props.attemptUuid, ...props.infoProps }); 
+
+  const action = async (txns: ActionTxns, onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void) => {
+    const actionResponse = await props.marginfiClient.processTransactions(
+      txns.transactions,
+      {
+        ...props.processOpts,
+        callback: (index, success, sig, stepsToAdvance) => {
+          success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+        },
+      },
+      props.txOpts
+    );
+
+    return actionResponse[actionResponse.length - 1];
+  };
+
+  await executeActionWrapper(action, steps, "Looping", props.actionTxns);
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_looping", { uuid: props.attemptUuid, ...props.infoProps });
+}
+
+export interface ExecuteStakeActionPropsV2 extends ExecuteActionProps {
+  infoProps: {
+    amount: string;
+    token: string;
+    actionType: ActionType;
+  };
+}
+
+
+export async function ExecuteStakeActionV2(props: ExecuteStakeActionPropsV2) {
+
+  const steps = getSteps(props.actionTxns, {
+    amount: props.infoProps.amount,
+    token: props.infoProps.token,
+  });
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent(`user_${props.infoProps.actionType}_initiate`, { uuid: props.attemptUuid, ...props.infoProps }); 
+
+  const action = async (txns: ActionTxns, onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void) => {
+    const actionResponse = await props.marginfiClient.processTransactions(
+      txns.transactions,
+      {
+        ...props.processOpts,
+        callback: (index, success, sig, stepsToAdvance) => {
+          success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+        },
+      },
+      props.txOpts
+    );
+
+    return actionResponse[actionResponse.length - 1];
+  };
+
+  await executeActionWrapper(action, steps, props.infoProps.actionType === ActionType.MintLST ? "Staking" : "Unstaking", props.actionTxns);
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent(`user_${props.infoProps.actionType}`, { uuid: props.attemptUuid, ...props.infoProps });
+} 
+
+export interface ExecuteRepayActionPropsV2 extends ExecuteActionProps {
+  actionType: ActionType;
+  infoProps: {
+    borrowAmount: string;
+    borrowToken: string;
+    depositAmount: string;
+    depositToken: string;
+  } 
+}
+
+
+export async function ExecuteRepayActionV2(props: ExecuteRepayActionPropsV2) {
+
+  const steps = getSteps(props.actionTxns, {
+    borrowAmount: props.infoProps.borrowAmount,
+    borrowToken: props.infoProps.borrowToken,
+    depositAmount: props.infoProps.depositAmount,
+    depositToken: props.infoProps.depositToken,
+  });
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent(`user_${props.actionType}_initiate`, { uuid: props.attemptUuid, ...props.infoProps }); 
+
+  const action = async (txns: ActionTxns, onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void) => {
+    const actionResponse = await props.marginfiClient.processTransactions(
+      txns.transactions,
+      {
+        ...props.processOpts,
+        callback: (index, success, sig, stepsToAdvance) => {
+          success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+        },
+      },
+      props.txOpts
+    );
+
+    return actionResponse[actionResponse.length - 1];
+  };
+
+  await executeActionWrapper(action, steps, props.actionType, props.actionTxns);
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent(`user_${props.actionType}`, { uuid: props.attemptUuid, ...props.infoProps });
 }
