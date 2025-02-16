@@ -236,6 +236,12 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     isEnabled: false,
     code: 138,
   },
+  NATIVE_STAKE_NOT_FOUND: {
+    description: "Stake account or validator not found for this staked asset bank",
+    isEnabled: false,
+    actionMethod: "ERROR",
+    code: 139,
+  },
 };
 
 const createInsufficientStakeBalanceCheck = (tokenName?: string): ActionMessageType => ({
