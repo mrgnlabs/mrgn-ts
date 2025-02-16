@@ -49,6 +49,8 @@ import { useActionContext } from "../../contexts";
 import { PublicKey } from "@solana/web3.js";
 import { dynamicNumeralFormatter, nativeToUi } from "@mrgnlabs/mrgn-common";
 
+// TODO: !!! close balance action is not working yet !!!
+
 // error handling
 export type LendBoxProps = {
   nativeSolBalance: number;
@@ -439,8 +441,10 @@ export const LendBox = ({
           connected={connected}
           // showCloseBalance={showCloseBalance}
           handleAction={() => {
-            showCloseBalance ? handleCloseBalance() : handleLendingAction();
+            // showCloseBalance ? handleCloseBalance() : handleLendingAction();
+            handleLendingAction();
           }}
+
           buttonLabel={buttonLabel}
         />
       </div>
