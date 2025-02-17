@@ -25,11 +25,9 @@ async function fetchGroupData(
   tokenDatas: Map<string, MintData>;
   feedIdMap: PythPushFeedIdMap;
 }> {
-  const debug = require("debug")("mfi:client");
   // Fetch & shape all accounts of Bank type (~ bank discovery)
   let bankDatasKeyed: { address: PublicKey; data: BankRaw }[] = [];
   if (bankAddresses && bankAddresses.length > 0) {
-    debug("Using preloaded bank addresses, skipping gpa call", bankAddresses.length, "banks");
     let bankAccountsData = await program.account.bank.fetchMultiple(bankAddresses);
     for (let i = 0; i < bankAccountsData.length; i++) {
       if (bankAccountsData[i] !== null) {
@@ -153,8 +151,6 @@ async function fetchGroupData(
       return [bankAddress.toBase58(), priceData as OraclePrice];
     })
   );
-
-  debug("Fetched %s banks and %s price feeds", banks.size, priceInfos.size);
 
   return {
     marginfiGroup,
