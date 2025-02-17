@@ -11,7 +11,7 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { SolanaTransaction, TransactionType } from "./transaction.types";
+import { ExtendedTransactionProperties, SolanaTransaction, TransactionType } from "./transaction.types";
 
 /**
  * Determines if a given transaction is a VersionedTransaction.
@@ -246,22 +246,14 @@ export function replaceV0TxBlockhash(transaction: VersionedTransaction, blockhas
  * @param options - An object containing optional metadata:
  *   - signers: An array of Signer objects that are associated with the transaction.
  *   - addressLookupTables: An array of AddressLookupTableAccount objects for address resolution.
+ *   - unitsConsumed: A number representing the compute units consumed by the transaction.
+ *   - type: The type of the transaction, as defined by TransactionType.
  * @returns A SolanaTransaction object that includes the original transaction and the additional metadata.
  */
 export function addTransactionMetadata<T extends Transaction | VersionedTransaction>(
   transaction: T,
-  options: {
-    signers?: Array<Signer>;
-    addressLookupTables?: AddressLookupTableAccount[];
-    type: TransactionType;
-    unitsConsumed?: number;
-  }
-): T & {
-  signers?: Array<Signer>;
-  addressLookupTables?: AddressLookupTableAccount[];
-  type: TransactionType;
-  unitsConsumed?: number;
-} {
+  options: ExtendedTransactionProperties
+): T & ExtendedTransactionProperties {
   return Object.assign(transaction, options);
 }
 

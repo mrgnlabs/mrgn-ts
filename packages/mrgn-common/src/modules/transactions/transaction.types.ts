@@ -119,18 +119,15 @@ export const TransactionArenaKeyMap: Partial<Record<TransactionType, PublicKey>>
   // Add more mappings if needed
 };
 
-export type ExtendedTransaction = Transaction & {
+export type ExtendedTransactionProperties = {
   type: TransactionType;
   signers?: Array<Signer>;
   addressLookupTables?: AddressLookupTableAccount[];
   unitsConsumed?: number;
 };
 
-export type ExtendedV0Transaction = VersionedTransaction & {
-  type: TransactionType;
-  signers?: Array<Signer>;
-  addressLookupTables?: AddressLookupTableAccount[];
-  unitsConsumed?: number;
-};
+export type ExtendedTransaction = Transaction & ExtendedTransactionProperties
+
+export type ExtendedV0Transaction = VersionedTransaction & ExtendedTransactionProperties
 
 export type SolanaTransaction = ExtendedTransaction | ExtendedV0Transaction;

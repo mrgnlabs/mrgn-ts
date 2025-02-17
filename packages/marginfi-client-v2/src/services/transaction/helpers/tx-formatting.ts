@@ -17,7 +17,6 @@ import {
   getComputeBudgetUnits,
   microLamportsToUi,
   uiToMicroLamports,
-  MARGINFI_PROGRAM,
   addTransactionMetadata,
   TransactionArenaKeyMap,
 } from "@mrgnlabs/mrgn-common";
@@ -52,17 +51,33 @@ function getFlashloanIndex(transactions: SolanaTransaction[]): number | null {
   return null;
 }
 
-export function formatTransactions(
-  transactionsArg: SolanaTransaction[],
-  broadcastType: TransactionBroadcastType,
+type FeeSettings = {
   priorityFeeMicro: number,
   bundleTipUi: number,
   feePayer: PublicKey,
-  blockhash: string,
   maxCapUi?: number,
-  addArenaTxTag?: boolean
+}
+
+/**
+ * Formats a list of Solana transactions into versioned transactions, applying
+ * necessary settings such as fees and blockhash. Optionally adds transaction tags.
+ *
+ * @param {SolanaTransaction[]} transactionsArg - The array of Solana transactions to format.
+ * @param {TransactionBroadcastType} broadcastType - The type of transaction broadcast to use.
+ * @param {string} blockhash - The recent blockhash to set for the transactions.
+ * @param {FeeSettings} feeSettings - The settings for transaction fees, including priority fee and bundle tip.
+ * @param {boolean} [addTransactionTags] - Optional flag to add transaction tags.
+ * @returns {VersionedTransaction[]} - The array of formatted versioned transactions.
+ */
+export function formatTransactions(
+  transactionsArg: SolanaTransaction[],
+  broadcastType: TransactionBroadcastType,
+  blockhash: string,
+  feeSettings: FeeSettings,
+  addTransactionTags?: boolean
 ): VersionedTransaction[] {
   let formattedTransactions: VersionedTransaction[] = [];
+  const { priorityFeeMicro, bundleTipUi, feePayer, maxCapUi } = feeSettings;
 
   const flashloanIndex = getFlashloanIndex(transactionsArg);
   transactionsArg.forEach((tx) => {
@@ -72,7 +87,7 @@ export function formatTransactions(
     }
   });
 
-  let transactions = addArenaTxTag ? addArenaTxTags(transactionsArg) : transactionsArg;
+  let transactions = addTransactionTags ? addTransactionTxTags(transactionsArg) : transactionsArg;
 
   const txSizes: number[] = transactions.map((tx) => getTxSize(tx));
   const dummyPriorityFeeIx = makePriorityFeeMicroIx(1);
@@ -169,14 +184,12 @@ export function formatTransactions(
   return formattedTransactions;
 }
 
-function addArenaTxTags(transactions: SolanaTransaction[]): SolanaTransaction[] {
+function addTransactionTxTags(transactions: SolanaTransaction[]): SolanaTransaction[] {
   const txWithTags: SolanaTransaction[] = [];
 
-  for (const [index, tx] of transactions.entries()) {
+  for (const [_, tx] of transactions.entries()) {
     let solanaTx: SolanaTransaction = tx;
     const arenaKey = TransactionArenaKeyMap[tx.type];
-    console.log("arenaKey", arenaKey);
-    console.log("tx.type", tx.type);
 
     if (arenaKey) {
       if (isV0Tx(solanaTx)) {
