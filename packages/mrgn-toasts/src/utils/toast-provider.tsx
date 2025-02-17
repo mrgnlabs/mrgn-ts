@@ -1,9 +1,9 @@
 "use client";
 
-import { Toaster } from "sonner";
+import { Toaster, ToasterProps } from "sonner";
 
-export function ToastProvider() {
+export function ToastProvider(props: ToasterProps) {
   return <Toaster toastOptions={{
     className: "bg-mfi-toast-background",
-  }} position="bottom-right" theme="dark" />;
+  }} position="bottom-right" theme="dark" {...props} />;
 }
