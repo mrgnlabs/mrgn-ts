@@ -28,16 +28,16 @@ async function main() {
         .map((line) => line.trim())
         .join("\n  ");
 
-      console.log(`yarn ${name}`);
+      console.log(`pnpm ${name}`);
       console.log(`  Options:`);
       console.log(`  ${optionsSection || "No options available"}\n`);
     } catch (error) {
-      console.log(`yarn ${name}: Unable to get description\n`);
+      console.log(`Unable to get details\n`);
     }
   }
 
   console.log("\nRun any script with --help for more details");
-  console.log("Example: yarn account:get --help\n");
+  console.log("Example: pnpm account:get --help\n");
 }
 
 main().catch((err) => {
