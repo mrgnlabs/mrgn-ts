@@ -13,6 +13,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 import { ActionProvider } from "~/components/action-box-v2";
 import { generateEndpoint } from "~/rpc.utils";
+import { ToastProvider } from "@mrgnlabs/mrgn-toasts";
 
 import config from "~/config";
 import { useUiStore } from "~/store";
@@ -122,6 +123,7 @@ export default function MrgnApp({ Component, pageProps }: AppProps & StaticArena
 
                       <AuthDialog onboardingEnabled={false} />
                       <ToastContainer position="bottom-left" theme="light" />
+                      <ToastProvider theme="light" />
                     </div>
                   </ActionProvider>
                 </TradePovider>
