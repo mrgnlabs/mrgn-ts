@@ -1,4 +1,5 @@
 import React from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import {
   ExtendedBankInfo,
@@ -18,6 +19,8 @@ import {
   IndividualFlowError,
   checkRepayActionAvailable,
   ExecuteRepayActionProps,
+  ExecuteRepayActionPropsV2,
+  ExecuteRepayActionV2,
 } from "@mrgnlabs/mrgn-utils";
 import { IconSettings } from "@tabler/icons-react";
 
@@ -257,148 +260,41 @@ export const RepayBox = ({
   //////////////////
   // Repay Action //
   //////////////////
-  const executeAction = async (
-    props: ExecuteRepayActionProps,
-    callbacks: {
-      captureEvent?: (event: string, properties?: Record<string, any>) => void;
-      setIsActionComplete: (isComplete: boolean) => void;
-      setPreviousTxn: (previousTxn: PreviousTxn) => void;
-      onComplete?: (previousTxn: PreviousTxn) => void;
-      setIsLoading: (isLoading: boolean) => void;
-      retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => void;
-      setAmountRaw: (amountRaw: string) => void;
-    }
-  ) => {
-    const action = async (props: ExecuteRepayActionProps) => {
-      await handleExecuteRepayAction({
-        props,
-        captureEvent: (event, properties) => {
-          callbacks.captureEvent && callbacks.captureEvent(event, properties);
-        },
-        setIsComplete: (txnSigs) => {
-          callbacks.setIsActionComplete(true);
-
-          callbacks.setPreviousTxn({
-            txn: txnSigs[txnSigs.length - 1] ?? "",
-            txnType: "REPAY",
-            repayOptions: {
-              type:
-                props.selectedBank?.address.toBase58() === props.selectedSecondaryBank?.address.toBase58()
-                  ? ActionType.Repay
-                  : ActionType.RepayCollat,
-              selectedBank: props.selectedBank as ActiveBankInfo,
-              selectedSecondaryBank: props.selectedSecondaryBank as ActiveBankInfo,
-              repayAmount: props.repayAmount,
-              withdrawAmount: props.withdrawAmount,
-            },
-          });
-
-          callbacks.onComplete &&
-            callbacks.onComplete({
-              txn: txnSigs[txnSigs.length - 1] ?? "",
-              txnType: "REPAY",
-              repayOptions: {
-                type:
-                  props.selectedBank?.address.toBase58() === props.selectedSecondaryBank?.address.toBase58()
-                    ? ActionType.Repay
-                    : ActionType.RepayCollat,
-                selectedBank: props.selectedBank as ActiveBankInfo,
-                selectedSecondaryBank: props.selectedSecondaryBank as ActiveBankInfo,
-                repayAmount: props.repayAmount,
-                withdrawAmount: props.withdrawAmount,
-              },
-            });
-        },
-        setError: (error: IndividualFlowError) => {
-          const toast = error.multiStepToast as MultiStepToastHandle;
-          const txs = error.actionTxns as ActionTxns;
-          let retry = undefined;
-          if (error.retry && toast && txs) {
-            retry = () => callbacks.retryCallback(txs, toast);
-          }
-          toast.setFailed(error.message, retry);
-          callbacks.setIsLoading(false);
-        },
-        setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
-      });
-    };
-
-    await action(props);
-  };
-
-  const retryRepayAction = React.useCallback(
-    (params: ExecuteRepayActionProps) => {
-      executeAction(params, {
-        captureEvent,
-        setIsActionComplete,
-        setPreviousTxn,
-        onComplete,
-        setIsLoading: setIsTransactionExecuting,
-        retryCallback: (txns, multiStepToast) =>
-          retryRepayAction({ ...params, actionTxns: txns, multiStepToast: multiStepToast }),
-        setAmountRaw,
-      });
-    },
-    [captureEvent, setIsActionComplete, setPreviousTxn, onComplete, setAmountRaw]
-  );
 
   const handleRepayAction = React.useCallback(async () => {
     if (
-      !marginfiClient ||
-      !selectedAccount ||
-      !marginfiClient.provider.connection ||
-      !transactionSettings ||
-      !selectedBank ||
-      !selectedSecondaryBank
-    ) {
-      return;
-    }
+          !marginfiClient ||
+          !selectedAccount ||
+          !marginfiClient.provider.connection ||
+          !transactionSettings ||
+          !selectedBank ||
+          !selectedSecondaryBank
+        ) {
+          return;
+        }
 
-    const props: ExecuteRepayActionProps = {
-      marginfiClient,
-      actionTxns,
-      processOpts: {
-        ...priorityFees,
-        broadcastType: transactionSettings?.broadcastType,
-      },
-      txOpts: {},
+        const params: ExecuteRepayActionPropsV2 = {
+          actionTxns,
+          attemptUuid: uuidv4(),
+          marginfiClient,
+          processOpts: { ...priorityFees, broadcastType: transactionSettings.broadcastType },
+          txOpts: {},
+          callbacks: {
+            captureEvent: captureEvent,
+          },
+          actionType: actionMode,
+          infoProps: {
+            borrowAmount: repayAmount.toString(),
+            borrowToken: selectedBank.meta.tokenSymbol,
+            depositAmount: amount.toString(),
+            depositToken: selectedSecondaryBank.meta.tokenSymbol,
+          } // TODO: check if these are correct
+        }
 
-      marginfiAccount: selectedAccount,
-      repayAmount,
-      withdrawAmount: amount,
-      selectedBank,
-      selectedSecondaryBank,
-      quote: actionTxns.actionQuote ?? null,
-      connection: marginfiClient?.provider.connection,
-    };
+        ExecuteRepayActionV2(params)
 
-    await executeAction(props, {
-      captureEvent: captureEvent,
-      setIsActionComplete: setIsActionComplete,
-      setPreviousTxn: setPreviousTxn,
-      onComplete: onComplete,
-      setIsLoading: setIsTransactionExecuting,
-      retryCallback: (txns, multiStepToast) =>
-        retryRepayAction({ ...props, actionTxns: txns, multiStepToast: multiStepToast }),
-      setAmountRaw: setAmountRaw,
-    });
-  }, [
-    actionTxns,
-    amount,
-    transactionSettings,
-    captureEvent,
-    marginfiClient,
-    onComplete,
-    priorityFees,
-    repayAmount,
-    retryRepayAction,
-    selectedAccount,
-    selectedBank,
-    selectedSecondaryBank,
-    setAmountRaw,
-    setIsActionComplete,
-    setPreviousTxn,
-  ]);
+        setAmountRaw("")
+  }, [actionMode, actionTxns, amount, captureEvent, marginfiClient, priorityFees, repayAmount, selectedAccount, selectedBank, selectedSecondaryBank, setAmountRaw, transactionSettings])
 
   return (
     <ActionBoxContentWrapper>
