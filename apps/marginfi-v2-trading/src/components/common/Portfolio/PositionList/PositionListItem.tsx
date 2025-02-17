@@ -7,7 +7,7 @@ import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
-import { useMarginfiClient } from "~/hooks/useMarginfiClient";
+import { useArenaClient } from "~/hooks/useArenaClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { usePositionsData } from "~/hooks/usePositionsData";
 
@@ -23,7 +23,7 @@ interface props {
 export const PositionListItem = ({ arenaPool }: props) => {
   const router = useRouter();
   const positionData = usePositionsData({ groupPk: arenaPool.groupPk });
-  const client = useMarginfiClient({ groupPk: arenaPool.groupPk });
+  const client = useArenaClient({ groupPk: arenaPool.groupPk });
   const { accountSummary, wrappedAccount } = useWrappedAccount({
     client,
     groupPk: arenaPool.groupPk,

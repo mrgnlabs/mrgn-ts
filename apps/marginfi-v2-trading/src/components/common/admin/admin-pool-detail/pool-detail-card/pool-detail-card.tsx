@@ -31,7 +31,7 @@ import { ActionBox, ActionBoxProvider } from "@mrgnlabs/mrgn-ui";
 
 import { ArenaBank, ArenaPoolV2, ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
-import { useMarginfiClient } from "~/hooks/useMarginfiClient";
+import { useArenaClient } from "~/hooks/useArenaClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { useWallet } from "~/components/wallet-v2/hooks";
 
@@ -145,7 +145,7 @@ const YieldItem = ({
   }, [bank]);
 
   const [nativeSolBalance, refreshGroup] = useTradeStoreV2((state) => [state.nativeSolBalance, state.refreshGroup]);
-  const client = useMarginfiClient({ groupPk: pool.groupPk });
+  const client = useArenaClient({ groupPk: pool.groupPk });
   const { accountSummary, wrappedAccount } = useWrappedAccount({
     client,
     groupPk: pool.groupPk,
