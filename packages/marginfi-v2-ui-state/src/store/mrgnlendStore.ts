@@ -119,7 +119,6 @@ async function getCachedMarginfiAccountsForAuthority(
   authority: PublicKey,
   client: MarginfiClient
 ): Promise<MarginfiAccountWrapper[]> {
-  const debug = require("debug")("mfi:getCachedMarginfiAccountsForAuthority");
   if (typeof window === "undefined") {
     return client.getMarginfiAccountsForAuthority(authority);
   }
@@ -132,7 +131,6 @@ async function getCachedMarginfiAccountsForAuthority(
     cachedAccounts = JSON.parse(cachedAccountsStr);
   }
 
-  debug("cachedAccounts", cachedAccounts);
   if (cachedAccounts && cachedAccounts.length > 0) {
     const accountAddresses: PublicKey[] = cachedAccounts.reduce((validAddresses: PublicKey[], address: string) => {
       try {
@@ -147,7 +145,6 @@ async function getCachedMarginfiAccountsForAuthority(
 
     // Update local storage with valid addresses only
     window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses.map((addr) => addr.toString())));
-    debug("Loading ", accountAddresses.length, "accounts from cache");
     return client.getMultipleMarginfiAccounts(accountAddresses);
   } else {
     const accounts = await client.getMarginfiAccountsForAuthority(authority);
@@ -229,7 +226,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
       const stageTokens = args?.stageTokens ?? get().stageTokens;
 
-      const isReadOnly = args?.isOverride !== undefined ? args.isOverride : get().marginfiClient?.isReadOnly ?? false;
+      const isReadOnly = args?.isOverride !== undefined ? args.isOverride : (get().marginfiClient?.isReadOnly ?? false);
       const bundleSimRpcEndpoint = args?.bundleSimRpcEndpoint ?? get().bundleSimRpcEndpoint ?? undefined;
       const processTransactionStrategy =
         args?.processTransactionStrategy ?? get().processTransactionStrategy ?? undefined;
