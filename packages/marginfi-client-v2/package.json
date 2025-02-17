@@ -31,15 +31,13 @@
     "superstruct": "^1.0.4"
   },
   "devDependencies": {
-    "@jup-ag/api": "^6.0.38",
-    "@mrgnlabs/eslint-config-custom": "workspace:*",
     "@mrgnlabs/tsconfig": "workspace:*",
+    "@jup-ag/api": "^6.0.38",
     "@types/big.js": "^6.2.2",
     "@types/bn.js": "^5.1.5",
     "@types/debug": "^4.1.12",
     "@types/inquirer": "^9.0.7",
     "big.js": "^6.2.1",
-    "eslint": "^9.5.0",
     "inquirer": "^9.2.23",
     "ts-node": "^10.9.2",
     "typedoc": "^0.26.2",

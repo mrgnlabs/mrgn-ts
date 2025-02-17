@@ -1,3 +1,5 @@
+const path = require("path");
+
 const withPWA = require("next-pwa")({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
@@ -28,10 +30,24 @@ let config = withBundleAnalyzer({
   //     },
   //   ];
   // },
-  transpilePackages: ["@mrgnlabs/marginfi-client-v2", "@mrgnlabs/mrgn-common", "@mrgnlabs/lip-client"],
+  transpilePackages: [
+    "@mrgnlabs/marginfi-client-v2",
+    "@mrgnlabs/mrgn-common",
+    "@mrgnlabs/lip-client",
+    "@mrgnlabs/mrgn-utils",
+    "@mrgnlabs/mrgn-ui",
+  ],
   reactStrictMode: true,
+  experimental: {
+    externalDir: true,
+  },
   webpack: (config) => {
-    config.resolve.alias["@solana/spl-token-0.4"] = require.resolve("@solana/spl-token");
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "@solana/wallet-adapter-react": path.resolve(__dirname, "node_modules/@solana/wallet-adapter-react"),
+      react: path.resolve(__dirname, "node_modules/react"),
+      "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
+    };
     config.resolve.fallback = {
       fs: false,
       path: false,
