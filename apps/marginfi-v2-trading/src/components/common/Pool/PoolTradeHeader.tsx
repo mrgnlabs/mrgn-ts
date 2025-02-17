@@ -32,14 +32,14 @@ import { Button } from "~/components/ui/button";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
 import { ArenaPoolV2, GroupStatus } from "~/types/trade-store.types";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
-import { useMarginfiClient } from "~/hooks/useMarginfiClient";
+import { useArenaClient } from "~/hooks/useArenaClient";
 
 export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => {
   const router = useRouter();
   const { connected, wallet } = useWallet();
 
   const extendedPool = useExtendedPool(activePool);
-  const client = useMarginfiClient({ groupPk: activePool.groupPk });
+  const client = useArenaClient({ groupPk: activePool.groupPk });
   const { accountSummary, wrappedAccount } = useWrappedAccount({
     client,
     groupPk: activePool.groupPk,

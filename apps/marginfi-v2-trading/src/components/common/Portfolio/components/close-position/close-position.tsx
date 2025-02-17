@@ -14,7 +14,7 @@ import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Button } from "~/components/ui/button";
 import { ArenaBank, ArenaPoolPositions, ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
-import { useMarginfiClient } from "~/hooks/useMarginfiClient";
+import { useArenaClient } from "~/hooks/useArenaClient";
 import { useConnection } from "~/hooks/use-connection";
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks";
@@ -38,7 +38,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
   const [multiStepToast, setMultiStepToast] = React.useState<MultiStepToastHandle | null>(null);
   const [actionTxns, setActionTxns] = React.useState<ClosePositionActionTxns | null>(null);
 
-  const client = useMarginfiClient({ groupPk: arenaPool.groupPk });
+  const client = useArenaClient({ groupPk: arenaPool.groupPk });
   const { wrappedAccount } = useWrappedAccount({
     client,
     groupPk: arenaPool.groupPk,

@@ -95,6 +95,7 @@ export interface ProcessTransactionsClientOpts extends PriorityFees {
   broadcastType?: TransactionBroadcastType;
   dynamicStrategy?: ProcessTransactionStrategy;
   isSequentialTxs?: boolean;
+  addArenaTxTag?: boolean;
   callback?: (index?: number, success?: boolean, signature?: string, stepsToAdvance?: number) => void;
 }
 

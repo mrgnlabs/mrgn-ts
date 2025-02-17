@@ -12,7 +12,7 @@ import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
-import { useMarginfiClient } from "~/hooks/useMarginfiClient";
+import { useArenaClient } from "~/hooks/useArenaClient";
 
 type LpActionButtonsProps = {
   activePool: ArenaPoolV2Extended;
@@ -26,7 +26,7 @@ export const LpActionButtons = ({ size = "sm", activePool }: LpActionButtonsProp
     setDisplaySettings: state.setDisplaySettings,
   }));
   const [refreshGroup, nativeSolBalance] = useTradeStoreV2((state) => [state.refreshGroup, state.nativeSolBalance]);
-  const client = useMarginfiClient({ groupPk: activePool.groupPk });
+  const client = useArenaClient({ groupPk: activePool.groupPk });
   const { accountSummary, wrappedAccount } = useWrappedAccount({
     client,
     groupPk: activePool.groupPk,

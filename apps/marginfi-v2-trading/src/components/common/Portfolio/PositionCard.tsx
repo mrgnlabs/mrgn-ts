@@ -11,7 +11,7 @@ import { PositionActionButtons } from "~/components/common/Portfolio";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
-import { useMarginfiClient } from "~/hooks/useMarginfiClient";
+import { useArenaClient } from "~/hooks/useArenaClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { usePositionsData } from "~/hooks/usePositionsData";
 import { PnlBadge, PnlLabel } from "~/components/common/pnl-display";
@@ -34,7 +34,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
   const [showQuotePrice, setShowQuotePrice] = React.useState(false);
 
   const positionData = usePositionsData({ groupPk: arenaPool.groupPk });
-  const client = useMarginfiClient({ groupPk: arenaPool.groupPk });
+  const client = useArenaClient({ groupPk: arenaPool.groupPk });
   const { accountSummary, wrappedAccount } = useWrappedAccount({
     client,
     groupPk: arenaPool.groupPk,
