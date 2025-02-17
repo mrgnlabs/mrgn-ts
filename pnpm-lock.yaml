@@ -478,6 +478,9 @@ importers:
       '@mrgnlabs/mrgn-common':
         specifier: workspace:*
         version: link:../../packages/mrgn-common
+      '@mrgnlabs/mrgn-toasts':
+        specifier: workspace:*
+        version: link:../../packages/mrgn-toasts
       '@mrgnlabs/mrgn-ui':
         specifier: workspace:*
         version: link:../../packages/mrgn-ui
