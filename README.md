@@ -6,8 +6,6 @@
   <p>
     <!-- Build -->
     <a><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/mrgnlabs/mrgn-ts/main.yml?style=flat-square"/></a>
-    <!-- Discord -->
-    <a href="https://discord.gg/pJ3U7gHJFe"><img alt="Discord Chat" src="https://img.shields.io/discord/882369954916212737?color=blueviolet&style=flat-square"/></a>
     <!-- License -->
     <a href="http://www.apache.org/licenses/LICENSE-2.0"><img alt="License" src="https://img.shields.io/github/license/mrgnlabs/mrgn-ts?style=flat-square&color=ffff00"/></a>
     <!-- Total lines -->
@@ -32,7 +30,7 @@ A monorepo for [marginfi](https://app.marginfi.com)-related TypeScript projects 
 
 ## About
 
-`mrgn-ts` is an open source monorepo for TypeScript projects. It includes various app UI frontends, such as one for the product `mrgnlend`, as well as SDKs for `marginfi v2`, the `marginfi v2 liquidator` client, and the `liquidity incentive program (LIP)` client.
+`mrgn-ts` is an open source monorepo for TypeScript projects. It includes various app UI frontends, such as one for the product `mrgnlend` and `the arena`, as well as SDKs for `marginfi v2`.
 
 ## Features
 
@@ -47,7 +45,7 @@ A monorepo for [marginfi](https://app.marginfi.com)-related TypeScript projects 
 2. Install dependencies:
 
 ```
-yarn
+pnpm install
 ```
 
 3. marginfi frontend UIs can be found in [apps/](apps/).
