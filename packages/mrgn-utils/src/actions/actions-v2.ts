@@ -325,3 +325,46 @@ export async function ExecuteRepayActionV2(props: ExecuteRepayActionPropsV2) {
 
   props.callbacks.captureEvent && props.callbacks.captureEvent(`user_${props.actionType}`, { uuid: props.attemptUuid, ...props.infoProps });
 }
+
+
+export interface ExecuteTradeActionPropsV2 extends ExecuteActionProps {
+  infoProps: {
+    depositAmount: string;
+    depositToken: string;
+    borrowAmount: string;
+    borrowToken: string;
+    tradeSide: "long" | "short";
+  }
+}
+
+export async function ExecuteTradeActionV2(props: ExecuteTradeActionPropsV2) {
+
+  const steps = getSteps(props.actionTxns, {
+    depositAmount: props.infoProps.depositAmount,
+    depositToken: props.infoProps.depositToken,
+    borrowAmount: props.infoProps.borrowAmount,
+    borrowToken: props.infoProps.borrowToken,
+    tradeSide: props.infoProps.tradeSide,
+  });
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_trade_initiate", { uuid: props.attemptUuid, ...props.infoProps }); 
+
+  const action = async (txns: ActionTxns, onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void) => {
+    const actionResponse = await props.marginfiClient.processTransactions(
+      txns.transactions,
+      {
+        ...props.processOpts,
+        callback: (index, success, sig, stepsToAdvance) => {
+          success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+        },
+      },
+      props.txOpts
+    );
+
+    return actionResponse[actionResponse.length - 1];
+  };
+
+  await executeActionWrapper(action, steps, props.infoProps.tradeSide === "long" ? "Longing" : "Shorting", props.actionTxns);
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_trade", { uuid: props.attemptUuid, ...props.infoProps });
+}

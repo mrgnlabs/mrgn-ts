@@ -4,13 +4,10 @@ import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
 
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { IconInfoCircle, IconSettings } from "@tabler/icons-react";
 
 import {
-  ActiveBankInfo,
   ExtendedBankInfo,
   ActionType,
-  TokenAccountMap,
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
@@ -20,13 +17,9 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import { ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMessageType,
-  ActionTxns,
   checkLendActionAvailable,
   ExecuteLendingActionPropsV2,
   ExecuteLendingActionV2,
-  IndividualFlowError,
-  MarginfiActionParams,
-  MultiStepToastHandle,
   PreviousTxn,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
@@ -38,7 +31,6 @@ import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wal
 import { ActionMessage } from "~/components";
 
 import { useLendBoxStore } from "./store";
-import { HandleCloseBalanceParamsProps, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { ActionSimulationStatus } from "../../components";
 import { Collateral, ActionInput, Preview, StakeAccountSwitcher } from "./components";
 import { SimulationStatus } from "../../utils";
@@ -48,8 +40,6 @@ import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
 import { PublicKey } from "@solana/web3.js";
 import { dynamicNumeralFormatter, nativeToUi } from "@mrgnlabs/mrgn-common";
-
-// TODO: !!! close balance action is not working yet !!!
 
 // error handling
 export type LendBoxProps = {
@@ -306,11 +296,6 @@ export const LendBox = ({
     }
   }, [prevSelectedBank, prevAmount, selectedBank, amount, setErrorMessage]);
 
-  //////////////////////////
-  // Close Balance Action //
-  //////////////////////////
-  const handleCloseBalance = React.useCallback(() => {}, [])
-
   const handleLendingAction = React.useCallback(() => {
 
     if (!selectedBank || !amount || !transactionSettings || !marginfiClient) return 
@@ -438,9 +423,7 @@ export const LendBox = ({
             !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
           }
           connected={connected}
-          // showCloseBalance={showCloseBalance}
           handleAction={() => {
-            // showCloseBalance ? handleCloseBalance() : handleLendingAction();
             handleLendingAction();
           }}
 
