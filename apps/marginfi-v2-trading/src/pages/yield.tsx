@@ -20,7 +20,6 @@ import { YieldCard } from "~/components/common/Yield/YieldCard";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
 import { GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
-import { ArenaActionComplete } from "~/components/common/ActionComplete";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
 
 const sortOptions: {

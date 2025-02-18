@@ -1,5 +1,6 @@
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
+import BigNumber from "bignumber.js";
 
 import {
   ExtendedBankInfo,
@@ -7,24 +8,19 @@ import {
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
-  ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
-  ActionTxns,
   checkLoopActionAvailable,
-  ExecuteLoopingActionProps,
-  MultiStepToastHandle,
   PreviousTxn,
   showErrorToast,
   cn,
-  IndividualFlowError,
   usePrevious,
-  ExecuteLoopActionPropsV2,
-  ExecuteLoopActionV2,
+  ExecuteLoopActionProps,
+  ExecuteLoopAction,
 } from "@mrgnlabs/mrgn-utils";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
@@ -35,9 +31,7 @@ import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/c
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 import { ActionMessage } from "~/components";
 
-import { useActionBoxStore } from "../../store";
 import { SimulationStatus } from "../../utils/simulation.utils";
-import { handleExecuteLoopAction } from "./utils";
 import { ActionInput, Preview } from "./components";
 import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
@@ -45,8 +39,6 @@ import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
 import { ActionSimulationStatus } from "../../components";
 import { useActionContext } from "../../contexts";
-import BigNumber from "bignumber.js";
-import { IconSettings } from "@tabler/icons-react";
 
 // error handling
 export type LoopBoxProps = {
@@ -135,13 +127,6 @@ export const LoopBox = ({
     jupiterOptions: null,
   };
 
-  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.setIsSettingsDialogOpen,
-    state.setPreviousTxn,
-    state.setIsActionComplete,
-  ]);
-
-  const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
     isLoading: boolean;
     status: SimulationStatus;
@@ -149,11 +134,6 @@ export const LoopBox = ({
     isLoading: false,
     status: SimulationStatus.IDLE,
   });
-
-  const isLoading = React.useMemo(
-    () => isTransactionExecuting || isSimulating.isLoading,
-    [isTransactionExecuting, isSimulating.isLoading]
-  );
 
   const { isRefreshTxn, blockProgress } = usePollBlockHeight(
     marginfiClient?.provider.connection,
@@ -283,7 +263,7 @@ export const LoopBox = ({
       return
     }
 
-    const params: ExecuteLoopActionPropsV2 = {
+    const params: ExecuteLoopActionProps = {
       actionTxns,
       attemptUuid: uuidv4(),
       marginfiClient,
@@ -300,7 +280,7 @@ export const LoopBox = ({
       }, 
     }
 
-    ExecuteLoopActionV2(params)
+    ExecuteLoopAction(params)
 
     setAmountRaw("")
   }, [actionTxns, amount, captureEvent, marginfiClient, priorityFees, selectedBank, selectedSecondaryBank, setAmountRaw, transactionSettings]) 
@@ -350,7 +330,7 @@ export const LoopBox = ({
           setSelectedSecondaryBank={(bank) => {
             setSelectedSecondaryBank(bank);
           }}
-          isLoading={isLoading}
+          isLoading={isSimulating.isLoading}
           walletAmount={walletAmount}
           actionTxns={actionTxns}
         />
@@ -392,7 +372,7 @@ export const LoopBox = ({
 
       <div className="mb-3 space-y-2">
         <ActionButton
-          isLoading={isLoading}
+          isLoading={isSimulating.isLoading}
           isEnabled={
             !additionalActionMessages
               .concat(actionMessages)
@@ -418,7 +398,7 @@ export const LoopBox = ({
         {setDisplaySettings && <ActionSettingsButton onClick={() => setDisplaySettings(true)} />}
       </div>
 
-      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />
+      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isSimulating.isLoading} />
     </ActionBoxContentWrapper>
   );
 };

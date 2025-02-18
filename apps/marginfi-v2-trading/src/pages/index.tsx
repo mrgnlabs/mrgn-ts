@@ -19,7 +19,6 @@ import { Loader } from "~/components/common/Loader";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { getArenaStaticProps, StaticArenaProps } from "~/utils/trade-store.utils";
-import { ArenaActionComplete } from "~/components/common/ActionComplete";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
 
 const sortOptions: {

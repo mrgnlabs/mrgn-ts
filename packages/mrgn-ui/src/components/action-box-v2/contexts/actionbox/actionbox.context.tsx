@@ -7,7 +7,6 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { useActionBoxStore } from "../../store";
-import { ActionComplete } from "~/components/action-complete";
 
 export type HidePoolStats = Array<"amount" | "health" | "size" | "type" | "oracle" | "liquidation">;
 
@@ -17,7 +16,6 @@ type ActionBoxContextType = {
   connected: boolean;
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
-  showActionComplete?: boolean;
   walletContextState?: WalletContextStateOverride | WalletContextState;
   accountSummaryArg?: AccountSummary;
   hidePoolStats?: HidePoolStats;
@@ -28,32 +26,13 @@ const ActionBoxContext = React.createContext<ActionBoxContextType | null>(null);
 
 export const ActionBoxProvider: React.FC<ActionBoxContextType & { children: React.ReactNode }> = ({
   children,
-  showActionComplete = true,
   ...props
 }) => {
-  const [isActionComplete, previousTxn, setIsActionComplete, setPreviousTxn] = useActionBoxStore((state) => [
-    state.isActionComplete,
-    state.previousTxn,
-    state.setIsActionComplete,
-    state.setPreviousTxn,
-  ]);
 
-  React.useEffect(() => {
-    if (previousTxn && isActionComplete && !showActionComplete) {
-      setIsActionComplete(false);
-    }
-  }, [isActionComplete, previousTxn, showActionComplete]);
 
   return (
     <ActionBoxContext.Provider value={props}>
       {children}
-      {previousTxn && isActionComplete && showActionComplete && (
-        <ActionComplete
-          isActionComplete={isActionComplete}
-          setIsActionComplete={setIsActionComplete}
-          previousTxn={previousTxn}
-        />
-      )}
     </ActionBoxContext.Provider>
   );
 };
