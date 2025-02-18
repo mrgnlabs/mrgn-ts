@@ -28,6 +28,7 @@ interface ExecuteActionProps {
   txOpts: TransactionOptions;
   callbacks: {
     captureEvent?: (event: string, properties?: Record<string, any>) => void;
+    onComplete?: () => void | null;
   };
   nativeSolBalance?: number;
 } 
@@ -57,11 +58,12 @@ async function executeActionWrapper(props: {
   ) => Promise<string >,
   steps: { label: string }[],
   actionName: string,
-  failedTxns: ActionTxns,
+  txns: ActionTxns,
   existingToast?: MultiStepToastController,
-  nativeSolBalance?: number
+  nativeSolBalance?: number,
+  onComplete?: () => void
 }) {
-  const { action, steps, actionName, failedTxns, existingToast, nativeSolBalance } = props;
+  const { action, steps, actionName, txns, existingToast, nativeSolBalance, onComplete } = props;
 
   if (nativeSolBalance && nativeSolBalance < FEE_MARGIN) {
     toastManager.showErrorToast(STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS); 
@@ -76,10 +78,11 @@ async function executeActionWrapper(props: {
   }
 
   try {
-    const txnSig = await action(failedTxns, (stepsToAdvance, explorerUrl, signature) => {
+    const txnSig = await action(txns, (stepsToAdvance, explorerUrl, signature) => {
       toast.successAndNext(stepsToAdvance ?? 1, explorerUrl, signature);
     });
     toast.success(composeExplorerUrl(txnSig), txnSig);
+    onComplete && onComplete();
     return txnSig;
   } catch (error) {
     if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
@@ -89,13 +92,13 @@ async function executeActionWrapper(props: {
     if (error instanceof ProcessTransactionError) {
       const message = extractErrorString(error);
 
-      if (error.failedTxs && failedTxns) {
+      if (error.failedTxs && txns) {
         const updatedFailedTxns = {
-          ...failedTxns,
+          ...txns,
           transactions: error.failedTxs,
         };
         toast.setFailed(message, async () => {
-          await executeActionWrapper({action, steps, actionName, failedTxns: updatedFailedTxns, existingToast: toast, nativeSolBalance});
+          await executeActionWrapper({...props, txns: updatedFailedTxns, existingToast: toast});
         });
       } else {
         toast.setFailed(message);
@@ -122,8 +125,6 @@ export interface ExecuteDepositSwapActionProps extends ExecuteActionProps {
 }
 
 export async function ExecuteDepositSwapAction(props: ExecuteDepositSwapActionProps) {
-
-
   const steps = getSteps(props.actionTxns, {
     amount: props.infoProps.depositAmount,
     token: props.infoProps.depositToken,
@@ -150,7 +151,7 @@ export async function ExecuteDepositSwapAction(props: ExecuteDepositSwapActionPr
     return actionResponse[actionResponse.length - 1];
   };
 
-  await executeActionWrapper({action, steps, actionName: "Deposit", failedTxns: props.actionTxns, nativeSolBalance: props.nativeSolBalance});
+  await executeActionWrapper({action, steps, actionName: "Deposit", txns: props.actionTxns, nativeSolBalance: props.nativeSolBalance, onComplete: props.callbacks.onComplete});
 
   props.callbacks.captureEvent && props.callbacks.captureEvent("user_deposit_swap", { uuid: props.attemptUuid, ...props.infoProps });
 } // TODO: this does not handle create account. We should handle this. 
@@ -189,7 +190,7 @@ export async function ExecuteLendingAction(props: ExecuteLendingActionProps) {
   return actionResponse[actionResponse.length - 1];
 };
 
-await executeActionWrapper({action, steps, actionName: props.actionType, failedTxns: props.actionTxns, nativeSolBalance: props.nativeSolBalance});
+await executeActionWrapper({action, steps, actionName: props.actionType, txns: props.actionTxns, nativeSolBalance: props.nativeSolBalance, onComplete: props.callbacks.onComplete});
 
   props.callbacks.captureEvent && props.callbacks.captureEvent("user_lending", { uuid: props.attemptUuid, ...props.infoProps });
   
@@ -232,7 +233,7 @@ export async function ExecuteLoopAction(props: ExecuteLoopActionProps) {
     return actionResponse[actionResponse.length - 1];
   };
 
-  await executeActionWrapper({action, steps, actionName: "Looping", failedTxns: props.actionTxns, nativeSolBalance: props.nativeSolBalance});
+  await executeActionWrapper({action, steps, actionName: "Looping", txns: props.actionTxns, nativeSolBalance: props.nativeSolBalance, onComplete: props.callbacks.onComplete});
 
   props.callbacks.captureEvent && props.callbacks.captureEvent("user_looping", { uuid: props.attemptUuid, ...props.infoProps });
 }
@@ -272,7 +273,7 @@ export async function ExecuteStakeAction(props: ExecuteStakeActionProps) {
     return actionResponse[actionResponse.length - 1];
   };
 
-  await executeActionWrapper({action, steps, actionName: props.infoProps.actionType === ActionType.MintLST ? "Staking" : "Unstaking", failedTxns: props.actionTxns, nativeSolBalance: props.nativeSolBalance});
+  await executeActionWrapper({action, steps, actionName: props.infoProps.actionType === ActionType.MintLST ? "Staking" : "Unstaking", txns: props.actionTxns, nativeSolBalance: props.nativeSolBalance, onComplete: props.callbacks.onComplete});
 
   props.callbacks.captureEvent && props.callbacks.captureEvent(`user_${props.infoProps.actionType}`, { uuid: props.attemptUuid, ...props.infoProps });
 } 
@@ -314,7 +315,7 @@ export async function ExecuteRepayAction(props: ExecuteRepayActionProps) {
     return actionResponse[actionResponse.length - 1];
   };
 
-  await executeActionWrapper({action, steps, actionName: props.actionType, failedTxns: props.actionTxns, nativeSolBalance: props.nativeSolBalance});
+  await executeActionWrapper({action, steps, actionName: props.actionType, txns: props.actionTxns, nativeSolBalance: props.nativeSolBalance, onComplete: props.callbacks.onComplete});
 
   props.callbacks.captureEvent && props.callbacks.captureEvent(`user_${props.actionType}`, { uuid: props.attemptUuid, ...props.infoProps });
 }
@@ -356,11 +357,13 @@ export async function ExecuteTradeAction(props: ExecuteTradeActionProps) {
     return actionResponse[actionResponse.length - 1];
   };
 
-  await executeActionWrapper({action, steps, actionName: props.infoProps.tradeSide === "long" ? "Longing" : "Shorting", failedTxns: props.actionTxns, nativeSolBalance: props.nativeSolBalance});
+  await executeActionWrapper({action, steps, actionName: props.infoProps.tradeSide === "long" ? "Longing" : "Shorting", txns: props.actionTxns, nativeSolBalance: props.nativeSolBalance, onComplete: props.callbacks.onComplete});
 
   props.callbacks.captureEvent && props.callbacks.captureEvent("user_trade", { uuid: props.attemptUuid, ...props.infoProps });
 }
 
+// This function is tailor made for closing positions in the arena. 
+// This functionality slightly deviates from the general functionality, but is still similar to the point where it should live here
 export interface ExecuteClosePositionActionProps extends ExecuteActionProps {
   infoProps: {
     token: string;
@@ -422,5 +425,5 @@ export async function ExecuteClosePositionAction(props: ExecuteClosePositionActi
     });
 
     captureSentryException(error, JSON.stringify(error), { action: "Close Position" });
-  }
-}
+  } 
+} 
