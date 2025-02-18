@@ -37,6 +37,7 @@ import { useActionBoxStore } from "../../store";
 import { useRepaySimulation } from "./hooks";
 import { ActionInput, Preview } from "./components";
 import { useActionContext } from "../../contexts";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 export type RepayBoxProps = {
   nativeSolBalance: number;
@@ -276,11 +277,11 @@ export const RepayBox = ({
           },
           actionType: actionMode,
           infoProps: {
-            borrowAmount: repayAmount.toString(),
-            borrowToken: selectedBank.meta.tokenSymbol,
-            depositAmount: amount.toString(),
-            depositToken: selectedSecondaryBank.meta.tokenSymbol,
-          } // TODO: check if these are correct
+            repayAmount: dynamicNumeralFormatter(repayAmount),
+            repayToken: selectedSecondaryBank.meta.tokenSymbol,
+            amount: dynamicNumeralFormatter(amount),
+            token: selectedBank.meta.tokenSymbol,
+          }
         }
 
     ExecuteRepayAction(params);

@@ -80,18 +80,18 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
         : "Looping",
   },
   [TransactionType.REPAY_COLLAT]: {
-    label: ({ borrowAmount, borrowToken, depositAmount, depositToken } = {}) =>
-      borrowAmount && borrowToken && depositAmount && depositToken
-        ? `Repaying ${borrowAmount} ${borrowToken} with ${depositAmount} ${depositToken}`
+    label: ({ repayAmount, repayToken, amount, token } = {}) =>
+      repayAmount && repayToken && amount && token
+        ? `Repaying ${repayAmount} ${token} with   ${amount} ${repayToken}`
         : "Repaying with collateral",
   },
   [TransactionType.LONG]: {
-    label: ({ depositToken, amount, borrowToken } = {}) =>
-      depositToken && amount && borrowToken ? `Longing ${depositToken} with ${amount} ${borrowToken}` : "Opening Long position",
+    label: ({ depositToken, depositAmount, borrowToken } = {}) =>
+      depositToken && depositAmount && borrowToken ? `Longing ${depositToken} with ${depositAmount} ${borrowToken}` : "Opening Long position",
   },
   [TransactionType.SHORT]: {
-    label: ({ borrowToken, amount, depositToken } = {}) =>
-      borrowToken && amount && depositToken ? `Shorting ${borrowToken} with ${amount} ${depositToken}` : "Opening Short position",
+    label: ({ borrowToken, depositAmount, depositToken } = {}) =>
+      borrowToken && depositAmount && depositToken ? `Shorting ${borrowToken} with ${depositAmount} ${depositToken}` : "Opening Short position",
   },
 
   // SWB
@@ -127,10 +127,10 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
   [TransactionType.STAKE_TO_STAKE]: { label: () => "Converting Staked Token" },
   [TransactionType.MINT_LST_NATIVE]: { label: () => "Minting Liquid Staked Native Token" },
   [TransactionType.SWAP_TO_SOL]: {
-    label: ({ amount, token } = {}) => (amount && token ? `Swapping ${amount} ${token} to SOL` : "Swapping to SOL"),
+    label: ({ swapAmount, token } = {}) => (swapAmount && token ? `Swapping ${swapAmount} ${token} to SOL` : "Swapping to SOL"),
   },
   [TransactionType.SOL_TO_LST]: {
-    label: ({ amount, token } = {}) => (amount && token ? `Swapping ${amount} SOL to ${token}` : "Swapping to LST"),
+    label: ({ amount } = {}) => (amount  ? `Minting LST with ${amount} SOL` : "Minting LST with SOL"),
   },
 
   // EMISSIONS
