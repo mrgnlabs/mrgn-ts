@@ -27,9 +27,10 @@ export const handleExecuteLoopAction = async ({
     const attemptUuid = uuidv4();
     captureEvent(`user_loop_initiate`, {
       uuid: attemptUuid,
-      tokenSymbol: props.borrowBank.meta.tokenSymbol,
-      tokenName: props.borrowBank.meta.tokenName,
-      amount: props.depositAmount,
+      depositBank: props.depositBank.meta.tokenSymbol,
+      borrowBank: props.borrowBank.meta.tokenSymbol,
+      depositAmount: props.depositAmount,
+      borrowAmount: props.borrowAmount,
       priorityFee: props.processOpts?.priorityFeeMicro ?? 0,
     });
 
@@ -41,9 +42,10 @@ export const handleExecuteLoopAction = async ({
       setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
       captureEvent(`user_loop`, {
         uuid: attemptUuid,
-        tokenSymbol: props.borrowBank.meta.tokenSymbol,
-        tokenName: props.borrowBank.meta.tokenName,
-        amount: props.depositAmount,
+        depositBank: props.depositBank.meta.tokenSymbol,
+        borrowBank: props.borrowBank.meta.tokenSymbol,
+        depositAmount: props.depositAmount,
+        borrowAmount: props.borrowAmount,
         txn: txnSig!,
         priorityFee: props.processOpts?.priorityFeeMicro ?? 0,
       });
@@ -54,15 +56,6 @@ export const handleExecuteLoopAction = async ({
 };
 
 export async function calculateLooping(props: CalculateLoopingProps): Promise<LoopActionTxns | ActionMessageType> {
-  // TODO setup logging again
-  // capture("looper", {
-  //   amountIn: uiToNative(amount, loopBank.info.state.mintDecimals).toNumber(),
-  //   firstQuote,
-  //   bestQuote: swapQuote,
-  //   inputMint: loopBank.info.state.mint.toBase58(),
-  //   outputMint: bank.info.state.mint.toBase58(),
-  // });
-
   const params = {
     ...props,
     setupBankAddresses: [props.depositBank.address, props.borrowBank.address],

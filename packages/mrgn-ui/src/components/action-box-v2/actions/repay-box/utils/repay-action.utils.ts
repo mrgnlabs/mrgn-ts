@@ -31,10 +31,10 @@ export const handleExecuteRepayAction = async ({
     setIsLoading(true);
 
     const attemptUuid = uuidv4();
-    captureEvent(`user_repay_with_collat_initiate`, {
+    captureEvent(`user_repay_initiate`, {
       uuid: attemptUuid,
-      selectedBank: props.selectedBank.meta.tokenName,
-      selectedSecondaryBank: props.selectedSecondaryBank.meta.tokenName,
+      selectedBank: props.selectedBank.meta.tokenSymbol,
+      selectedSecondaryBank: props.selectedSecondaryBank.meta.tokenSymbol,
       repayAmount: props.repayAmount,
       withdrawAmount: props.withdrawAmount,
     });
@@ -45,10 +45,10 @@ export const handleExecuteRepayAction = async ({
 
     if (txnSig) {
       setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
-      captureEvent(`user_repay_with_collat`, {
+      captureEvent(`user_repay`, {
         uuid: attemptUuid,
-        selectedBank: props.selectedBank.meta.tokenName,
-        selectedSecondaryBank: props.selectedSecondaryBank.meta.tokenName,
+        selectedBank: props.selectedBank.meta.tokenSymbol,
+        selectedSecondaryBank: props.selectedSecondaryBank.meta.tokenSymbol,
         repayAmount: props.repayAmount,
         withdrawAmount: props.withdrawAmount,
       });

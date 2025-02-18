@@ -81,7 +81,7 @@ const StakeCard = ({ lstBank, lstOverview, connected, extendedBankInfosWithoutSt
               connected: connected,
               requestedActionType: ActionType.MintLST,
               captureEvent: (event, properties) => {
-                capture("stake_button_click", properties);
+                capture("user_stake", properties);
               },
             }}
             dialogProps={{
@@ -102,7 +102,7 @@ const StakeCard = ({ lstBank, lstOverview, connected, extendedBankInfosWithoutSt
               requestedActionType: ActionType.UnstakeLST,
               requestedBank: lstBank,
               captureEvent: (event, properties) => {
-                capture("unstake_button_click", properties);
+                capture("user_unstake", properties);
               },
             }}
             dialogProps={{
