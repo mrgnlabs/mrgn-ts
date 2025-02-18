@@ -120,3 +120,26 @@ export const debounceFn = (fn: Function, ms = 300) => {
     timeoutId = setTimeout(() => fn.apply(this, args), ms);
   };
 };
+
+function detectBroadcastType(signature: string): "RPC" | "BUNDLE" | "UNKNOWN" {
+  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+  const hexRegex = /^[0-9a-fA-F]{64}$/;
+
+  if (base58Regex.test(signature)) {
+    return "RPC";
+  } else if (hexRegex.test(signature)) {
+    return "BUNDLE";
+  }
+
+  return "UNKNOWN";
+}
+
+export function composeExplorerUrl(signature?: string): string | undefined {
+  if (!signature) return undefined;
+
+  const detectedBroadcastType = detectBroadcastType(signature);
+
+  return detectedBroadcastType === "BUNDLE"
+    ? `https://explorer.jito.wtf/bundle/${signature}`
+    : `https://solscan.io/tx/${signature}`;
+}

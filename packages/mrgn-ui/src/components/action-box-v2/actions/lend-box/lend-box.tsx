@@ -1,15 +1,13 @@
 import React from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import Link from "next/link";
 
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { IconInfoCircle, IconSettings } from "@tabler/icons-react";
 
 import {
-  ActiveBankInfo,
   ExtendedBankInfo,
   ActionType,
-  TokenAccountMap,
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
@@ -19,12 +17,9 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import { ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMessageType,
-  ActionTxns,
   checkLendActionAvailable,
-  IndividualFlowError,
-  MarginfiActionParams,
-  MultiStepToastHandle,
-  PreviousTxn,
+  ExecuteLendingActionProps,
+  ExecuteLendingAction,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 
@@ -35,15 +30,14 @@ import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wal
 import { ActionMessage } from "~/components";
 
 import { useLendBoxStore } from "./store";
-import { HandleCloseBalanceParamsProps, handleExecuteCloseBalance, handleExecuteLendingAction } from "./utils";
 import { ActionSimulationStatus } from "../../components";
 import { Collateral, ActionInput, Preview, StakeAccountSwitcher } from "./components";
 import { SimulationStatus } from "../../utils";
 import { useLendSimulation } from "./hooks";
-import { useActionBoxStore } from "../../store";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
 import { PublicKey } from "@solana/web3.js";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 // error handling
 export type LendBoxProps = {
@@ -69,7 +63,7 @@ export type LendBoxProps = {
   onCloseDialog?: () => void;
   setShouldBeHidden?: (hidden: boolean) => void;
 
-  onComplete?: (previousTxn: PreviousTxn) => void;
+  onComplete?: () => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
   setDisplaySettings?: (displaySettings: boolean) => void;
 };
@@ -198,11 +192,6 @@ export const LendBox = ({
     );
   }, [accountSummaryArg, selectedAccount, banks]);
 
-  const [setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.setPreviousTxn,
-    state.setIsActionComplete,
-  ]);
-
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
     selectedBank,
@@ -218,12 +207,12 @@ export const LendBox = ({
     lendMode,
     actionTxns,
     simulationResult,
-    connection: marginfiClient?.provider.connection,
     selectedStakeAccount: selectedStakeAccount?.address || undefined,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
     setIsLoading: setIsSimulating,
+    marginfiClient: marginfiClient,
   });
 
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
@@ -300,257 +289,32 @@ export const LendBox = ({
     }
   }, [prevSelectedBank, prevAmount, selectedBank, amount, setErrorMessage]);
 
-  //////////////////////////
-  // Close Balance Action //
-  //////////////////////////
-  const closeBalanceAction = async (
-    params: HandleCloseBalanceParamsProps,
-    selectedBank: ExtendedBankInfo,
-    callbacks: {
-      captureEvent?: (event: string, properties?: Record<string, any>) => void;
-      setIsActionComplete: (isComplete: boolean) => void;
-      setPreviousTxn: (previousTxn: PreviousTxn) => void;
-      setIsLoading: (isLoading: boolean) => void;
-      onComplete?: (previousTxn: PreviousTxn) => void;
-      retryCallback: (multiStepToast: MultiStepToastHandle) => void;
-      setAmountRaw: (amount: string) => void;
-    }
-  ) => {
-    await handleExecuteCloseBalance({
-      params,
-      captureEvent: (event, properties) => {
-        callbacks.captureEvent && callbacks.captureEvent(event, properties);
-      },
-      setIsComplete: (txnSigs) => {
-        callbacks.setIsActionComplete(true);
-        callbacks.setPreviousTxn({
-          txn: txnSigs[txnSigs.length - 1] ?? "",
-          txnType: "LEND",
-          lendingOptions: {
-            amount: 0,
-            type: ActionType.Withdraw,
-            bank: selectedBank as ActiveBankInfo,
-          },
-        });
+  const handleLendingAction = React.useCallback(() => {
 
-        callbacks.onComplete &&
-          callbacks.onComplete({
-            txn: txnSigs[txnSigs.length - 1] ?? "",
-            txnType: "LEND",
-            lendingOptions: {
-              amount: 0,
-              type: ActionType.Withdraw,
-              bank: selectedBank as ActiveBankInfo,
-            },
-          });
-      },
-      setError: (error: IndividualFlowError) => {
-        const toast = error.multiStepToast as MultiStepToastHandle;
-        callbacks.setIsLoading(false);
-        let retry = undefined;
-        if (error.retry) {
-          retry = () => callbacks.retryCallback(toast);
-        }
-        toast.setFailed(error.message, retry);
-      },
-      setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
-    });
+    if (!selectedBank || !amount || !transactionSettings || !marginfiClient) return 
 
-    callbacks.setAmountRaw("");
-  };
-
-  const retryCloseBalanceAction = React.useCallback(
-    async (params: HandleCloseBalanceParamsProps, selectedBank: ExtendedBankInfo) => {
-      closeBalanceAction(params, selectedBank, {
-        captureEvent: captureEvent,
-        setIsActionComplete: setIsActionComplete,
-        setPreviousTxn: setPreviousTxn,
-        setIsLoading: setIsTransactionExecuting,
-        onComplete: onComplete,
-        retryCallback: (multiStepToast: MultiStepToastHandle) =>
-          retryCloseBalanceAction({ ...params, multiStepToast }, selectedBank),
-        setAmountRaw: setAmountRaw,
-      });
-    },
-    [captureEvent, onComplete, setAmountRaw, setIsActionComplete, setIsTransactionExecuting, setPreviousTxn]
-  );
-
-  const handleCloseBalance = React.useCallback(async () => {
-    if (!selectedBank || !selectedAccount || !transactionSettings) {
-      return;
-    }
-
-    const params = {
-      bank: selectedBank,
-      marginfiAccount: selectedAccount,
-      processOpts: { ...priorityFees, broadcastType: transactionSettings.broadcastType },
-    };
-
-    closeBalanceAction(params, selectedBank, {
-      captureEvent: captureEvent,
-      setIsActionComplete: setIsActionComplete,
-      setPreviousTxn: setPreviousTxn,
-      setIsLoading: setIsTransactionExecuting,
-      onComplete: onComplete,
-      retryCallback: (multiStepToast: MultiStepToastHandle) =>
-        retryCloseBalanceAction({ ...params, multiStepToast }, selectedBank),
-      setAmountRaw: setAmountRaw,
-    });
-  }, [
-    transactionSettings,
-    captureEvent,
-    onComplete,
-    priorityFees,
-    retryCloseBalanceAction,
-    selectedAccount,
-    selectedBank,
-    setAmountRaw,
-    setIsActionComplete,
-    setIsTransactionExecuting,
-    setPreviousTxn,
-  ]);
-
-  ////////////////////
-  // Lending Actions //
-  ////////////////////
-  const executeAction = async (
-    params: MarginfiActionParams,
-    selectedBank: ExtendedBankInfo,
-    callbacks: {
-      setIsActionComplete: (isComplete: boolean) => void;
-      setPreviousTxn: (previousTxn: PreviousTxn) => void;
-      setIsLoading: (isLoading: boolean) => void;
-      captureEvent?: (event: string, properties?: Record<string, any>) => void;
-      onComplete?: (previousTxn: PreviousTxn) => void;
-      setLSTDialogCallback: (callback: () => void) => void;
-      setAmountRaw: (amountRaw: string) => void;
-      retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => void;
-    }
-  ) => {
-    const action = async (params: MarginfiActionParams) =>
-      handleExecuteLendingAction({
-        params,
-        captureEvent: (event, properties) => {
-          callbacks.captureEvent && callbacks.captureEvent(event, properties);
-        },
-        setIsComplete: (txnSigs) => {
-          callbacks.setIsActionComplete(true);
-          callbacks.setPreviousTxn({
-            txn: txnSigs.pop() ?? "",
-            txnType: "LEND",
-            lendingOptions: {
-              amount: params.amount,
-              type: params.actionType,
-              bank: selectedBank as ActiveBankInfo,
-            },
-          });
-          callbacks.onComplete &&
-            callbacks.onComplete({
-              txn: txnSigs.pop() ?? "",
-              txnType: "LEND",
-              lendingOptions: {
-                amount: params.amount,
-                type: params.actionType,
-                bank: selectedBank as ActiveBankInfo,
-              },
-            });
-        },
-        setError: (error: IndividualFlowError) => {
-          const toast = error.multiStepToast as MultiStepToastHandle;
-          const txs = error.actionTxns as ActionTxns;
-          const errorMessage = error.message;
-          let retry = undefined;
-          if (error.retry && toast && txs) {
-            retry = () => callbacks.retryCallback(txs, toast);
-          }
-          toast && toast.setFailed(errorMessage, retry);
-          callbacks.setIsLoading(false);
-        },
-        setIsLoading: callbacks.setIsLoading,
-      });
-
-    if (
-      params.actionType === ActionType.Deposit &&
-      (selectedBank.meta.tokenSymbol === "SOL" || selectedBank.meta.tokenSymbol === "stSOL")
-    ) {
-      const actionFn = () => action(params);
-      callbacks.setLSTDialogCallback(() => actionFn);
-    } else {
-      await action(params);
-    }
-  };
-
-  // TODO: remove selectedBank, use params.bank instead
-
-  const retryLendingAction = React.useCallback(
-    async (params: MarginfiActionParams, selectedBank: ExtendedBankInfo) =>
-      executeAction(params, selectedBank, {
-        captureEvent: captureEvent,
-        setIsActionComplete: setIsActionComplete,
-        setPreviousTxn: setPreviousTxn,
-        onComplete: onComplete,
-        setIsLoading: setIsTransactionExecuting,
-        setLSTDialogCallback: setLSTDialogCallback,
-        setAmountRaw: setAmountRaw,
-        retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
-          retryLendingAction({ ...params, actionTxns: txns, multiStepToast }, selectedBank);
-        },
-      }),
-    [captureEvent, setIsActionComplete, setPreviousTxn, onComplete, setIsTransactionExecuting, setAmountRaw]
-  );
-
-  const handleLendingAction = React.useCallback(
-    async (_actionTxns?: ActionTxns, multiStepToast?: MultiStepToastHandle) => {
-      if (!selectedBank || !amount || !transactionSettings) {
-        return;
-      }
-
-      const params: MarginfiActionParams = {
-        marginfiClient,
-        actionType: lendMode,
-        bank: selectedBank,
-        amount,
-        nativeSolBalance,
-        marginfiAccount: selectedAccount,
-        walletContextState,
-        actionTxns: _actionTxns ?? actionTxns,
-        processOpts: { ...priorityFees, broadcastType: transactionSettings.broadcastType },
-        multiStepToast,
-      };
-
-      return await executeAction(params, selectedBank, {
-        captureEvent: captureEvent,
-        setIsActionComplete: setIsActionComplete,
-        setPreviousTxn: setPreviousTxn,
-        onComplete: onComplete,
-        setIsLoading: setIsTransactionExecuting,
-        setLSTDialogCallback: setLSTDialogCallback,
-        setAmountRaw: setAmountRaw,
-        retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
-          retryLendingAction({ ...params, actionTxns: txns, multiStepToast }, selectedBank);
-        },
-      });
-    },
-    [
+    const props: ExecuteLendingActionProps = {
       actionTxns,
-      amount,
-      captureEvent,
-      lendMode,
+      attemptUuid: uuidv4(),
       marginfiClient,
-      nativeSolBalance,
-      onComplete,
-      priorityFees,
-      retryLendingAction,
-      selectedAccount,
-      selectedBank,
-      setAmountRaw,
-      setIsActionComplete,
-      setIsTransactionExecuting,
-      setPreviousTxn,
-      walletContextState,
-      transactionSettings,
-    ]
-  );
+      processOpts: { ...priorityFees, broadcastType: transactionSettings.broadcastType },
+      txOpts: {},
+      callbacks: {
+        captureEvent: captureEvent,
+        onComplete: onComplete,
+      },
+      infoProps: {
+        amount: dynamicNumeralFormatter(amount),
+        token: selectedBank.meta.tokenSymbol,
+      },
+      nativeSolBalance: nativeSolBalance,
+      actionType: lendMode,
+    } ;
+
+    ExecuteLendingAction(props);
+
+    setAmountRaw("")
+  }, [actionTxns, amount, captureEvent, lendMode, marginfiClient, nativeSolBalance, priorityFees, selectedBank, setAmountRaw, transactionSettings, onComplete])
 
   const hasErrorsWarnings = React.useMemo(() => {
     return (
@@ -653,10 +417,10 @@ export const LendBox = ({
             !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
           }
           connected={connected}
-          // showCloseBalance={showCloseBalance}
           handleAction={() => {
-            showCloseBalance ? handleCloseBalance() : handleLendingAction();
+            handleLendingAction();
           }}
+
           buttonLabel={buttonLabel}
         />
       </div>

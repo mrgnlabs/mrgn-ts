@@ -9,7 +9,6 @@ import {
   captureSentryException,
   cn,
   composeExplorerUrl,
-  MultiStepToastHandle,
   useIsMobile,
   validateAssetName,
   validateAssetSymbol,
@@ -24,6 +23,7 @@ import { useConnection } from "~/hooks/use-connection";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { CreateStakedPoolDialog, CreateStakedPoolForm } from "~/components/common/create-staked-pool";
 import { addTransactionMetadata, SolanaTransaction, TransactionType } from "@mrgnlabs/mrgn-common";
+import { MultiStepToastController, toastManager } from "@mrgnlabs/mrgn-toasts";
 
 type CreateStakedAssetForm = {
   voteAccountKey: string;
@@ -116,19 +116,19 @@ export default function CreateStakedAssetPage() {
   );
 
   const executeCreatedStakedAssetSplPoolTxn = React.useCallback(
-    async (txns: SolanaTransaction[], client: MarginfiClient, multiStepToast: MultiStepToastHandle) => {
+    async (txns: SolanaTransaction[], client: MarginfiClient, multiStepToast: MultiStepToastController) => {
       const txSignature = await client.processTransactions(txns, {
         broadcastType: "RPC",
         ...priorityFees,
         callback(index, success, signature, stepsToAdvance) {
-          success && multiStepToast.setSuccessAndNext(stepsToAdvance, signature, composeExplorerUrl(signature));
+          success && multiStepToast.successAndNext(stepsToAdvance, composeExplorerUrl(signature), signature);
         },
       });
 
-      multiStepToast.setSuccessAndNext(
+      multiStepToast.successAndNext(
         undefined,
+        composeExplorerUrl(txSignature[txSignature.length - 1]),
         txSignature[txSignature.length - 1],
-        composeExplorerUrl(txSignature[txSignature.length - 1])
       );
     },
     [priorityFees]
@@ -211,7 +211,7 @@ export default function CreateStakedAssetPage() {
         bankKey?: PublicKey;
         mintAddress?: PublicKey;
         txns?: SolanaTransaction[];
-        multiStepToast?: MultiStepToastHandle;
+        multiStepToast?: MultiStepToastController;
       } = {
         hasExecutedCreateStakedAssetSplPoolTxn: false,
         bankKey: undefined,
@@ -224,7 +224,7 @@ export default function CreateStakedAssetPage() {
       setIsLoading(true);
 
       if (!retryOptions.multiStepToast) {
-        retryOptions.multiStepToast = new MultiStepToastHandle("Creating Staked Asset Bank", [
+        retryOptions.multiStepToast = toastManager.createMultiStepToast("Creating Staked Asset Bank", [
           { label: "Signing transaction" },
           { label: "Creating SPL stake pool" },
           { label: "Adding permissionless bank" },
@@ -272,13 +272,13 @@ export default function CreateStakedAssetPage() {
 
         await addMetadata(new PublicKey(form.voteAccountKey), bankKey, mintAddress, form.assetName, form.assetSymbol);
 
-        retryOptions.multiStepToast.setSuccessAndNext();
+        retryOptions.multiStepToast.successAndNext();
 
         if (form.assetLogo) {
           await uploadImage(form.assetLogo, mintAddress.toBase58());
         }
 
-        retryOptions.multiStepToast.setSuccess();
+        retryOptions.multiStepToast.success();
         setCompletedForm({ ...form, assetMint: mintAddress });
         setIsDialogOpen(true);
         fetchMrgnlendState();

@@ -10,8 +10,8 @@ import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts }
 import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "../wallet";
-import { MultiStepToastHandle } from "../toasts/toastUtils";
 import { QuoteResponseMeta } from "../types";
+import { MultiStepToastController } from "@mrgnlabs/mrgn-toasts";
 
 export enum RepayType {
   RepayRaw = "Repay",
@@ -146,7 +146,7 @@ export type RepayProps = {
   selectedSecondaryBank: ExtendedBankInfo;
   quote: QuoteResponse | null;
   connection: Connection;
-  multiStepToast?: MultiStepToastHandle;
+  multiStepToast?: MultiStepToastController;
 };
 
 export type RepayWithCollatProps = {
@@ -158,7 +158,7 @@ export type RepayWithCollatProps = {
   quote: QuoteResponse;
   connection: Connection;
 
-  multiStepToast?: MultiStepToastHandle;
+  multiStepToast?: MultiStepToastController;
 };
 
 // deprecated
@@ -181,7 +181,7 @@ export type LoopingProps = {
   quote: QuoteResponse;
   connection: Connection;
   setupBankAddresses?: PublicKey[];
-  multiStepToast?: MultiStepToastHandle;
+  multiStepToast?: MultiStepToastController;
 };
 
 export type MarginfiActionParams = {
@@ -197,7 +197,7 @@ export type MarginfiActionParams = {
   processOpts?: ProcessTransactionsClientOpts;
   txOpts?: TransactionOptions;
 
-  multiStepToast?: MultiStepToastHandle;
+  multiStepToast?: MultiStepToastController;
 };
 
 export type LstActionParams = {
@@ -217,14 +217,14 @@ export type LstActionParams = {
 
 export class IndividualFlowError extends Error {
   public readonly actionTxns?: ActionTxns;
-  public readonly multiStepToast?: MultiStepToastHandle;
+  public readonly multiStepToast?: MultiStepToastController;
   public readonly retry: boolean;
 
   constructor(
     message: string,
     options?: {
       failedTxns?: ActionTxns;
-      multiStepToast?: MultiStepToastHandle;
+      multiStepToast?: MultiStepToastController;
       retry?: boolean;
     }
   ) {

@@ -1,7 +1,8 @@
 import React from "react";
 import Script from "next/script";
 
-import { MultiStepToastHandle, capture, generateEndpoint } from "@mrgnlabs/mrgn-utils";
+import {  capture, generateEndpoint } from "@mrgnlabs/mrgn-utils";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -91,7 +92,7 @@ export const Mayan = ({ onLoad }: MayanProps) => {
   }, [walletContextState, setIsWalletSignUpOpen]);
 
   const handleLoadMayanWidget = React.useCallback(() => {
-    const multiStepToast = new MultiStepToastHandle("Bridge", [{ label: `Cross-chain swap/bridge in progress` }]);
+    const multiStepToast = toastManager.createMultiStepToast("Bridge", [{ label: `Cross-chain swap/bridge in progress` }]);
     const config: MayanWidgetConfigType = {
       ...mayanWidgetConfig,
       // With current useWalletContext it's impossible to make pass through work
@@ -102,7 +103,7 @@ export const Mayan = ({ onLoad }: MayanProps) => {
       multiStepToast.start();
     });
     window.MayanSwap.setSwapCompleteListener((data) => {
-      multiStepToast.setSuccessAndNext();
+      multiStepToast.successAndNext();
       capture("user_swap", {
         txn: data.hash,
         fromChain: data.fromChain,

@@ -16,7 +16,6 @@ import {
   checkLendActionAvailable,
   composeExplorerUrl,
   extractErrorString,
-  MultiStepToastHandle,
 } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
@@ -28,6 +27,7 @@ import { useMoveSimulation } from "../../hooks";
 import { ActionMessage, useActionContext } from "~/components";
 import { IconArrowRight } from "@tabler/icons-react";
 import { useUiStore } from "~/store";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 interface MovePositionDialogProps {
   selectedAccount: MarginfiAccountWrapper | null;
@@ -139,7 +139,7 @@ export const MovePositionDialog = ({
 
     const processOpts = { ...priorityFees, broadcastType };
 
-    const multiStepToast = new MultiStepToastHandle("Moving position", [
+    const multiStepToast = toastManager.createMultiStepToast("Moving position", [
       { label: "Signing transaction" },
       { label: `Withdrawing from account ${shortenAddress(selectedAccount?.address.toBase58() ?? "", 8)}` },
       { label: `Depositing to account ${shortenAddress(accountToMoveTo?.address.toBase58(), 8)}` },
@@ -151,10 +151,10 @@ export const MovePositionDialog = ({
       const sigs = await marginfiClient.processTransactions(actionTxns, {
         ...processOpts,
         callback: (index, success, sig, stepsToAdvance) =>
-          success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig, composeExplorerUrl(sig)),
+          success && multiStepToast.successAndNext(stepsToAdvance,  composeExplorerUrl(sig), sig),
       });
       await fetchMrgnlendState();
-      multiStepToast.setSuccess();
+      multiStepToast.success();
       setIsOpen(false);
     } catch (error) {
       const msg = extractErrorString(error);

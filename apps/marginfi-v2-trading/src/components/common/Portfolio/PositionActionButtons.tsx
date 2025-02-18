@@ -99,7 +99,6 @@ export const PositionActionButtons = ({
       selectedAccount={selectedAccount}
       connected={connected}
       accountSummaryArg={accountSummary}
-      showActionComplete={false}
       hidePoolStats={["type"]}
       setDisplaySettings={setDisplaySettings}
     >

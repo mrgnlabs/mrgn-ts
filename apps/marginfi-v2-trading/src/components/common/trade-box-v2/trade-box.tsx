@@ -1,20 +1,19 @@
-import React from "react";
+import React, { useCallback } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import {
   ActionMessageType,
   capture,
-  ExecuteTradeActionProps,
   formatAmount,
-  TradeActionTxns,
-  MultiStepToastHandle,
-  showErrorToast,
   useConnection,
-  STATIC_SIMULATION_ERRORS,
+  ExecuteTradeActionProps,
+  ExecuteTradeAction,
 } from "@mrgnlabs/mrgn-utils";
 import { IconSettings } from "@tabler/icons-react";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { ArenaPoolV2 } from "~/types/trade-store.types";
-import { initiateTradeAction, SimulationStatus, TradeSide } from "~/components/common/trade-box-v2/utils";
+import {  SimulationStatus, TradeSide } from "~/components/common/trade-box-v2/utils";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet, useWalletStore } from "~/components/wallet-v2";
@@ -31,15 +30,13 @@ import {
   Header,
   LeverageSlider,
   Stats,
-  TradingBoxSettingsDialog,
   InfoMessages,
   ActionSimulationStatus,
 } from "./components";
 import { useTradeBoxStore } from "./store";
 import { checkTradeActionAvailable } from "./utils";
 import { useTradeSimulation, useActionAmounts } from "./hooks";
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 type TradeBoxV2Props = {
   activePool: ArenaPoolV2;
   side?: TradeSide;
@@ -93,16 +90,12 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     platformFeeBps,
     broadcastType,
     priorityFees,
-    setIsActionComplete,
-    setPreviousTxn,
     setDisplaySettings,
   ] = useUiStore((state) => [
     state.jupiterOptions,
     state.platformFeeBps,
     state.broadcastType,
     state.priorityFees,
-    state.setIsActionComplete,
-    state.setPreviousTxn,
     state.setDisplaySettings,
   ]);
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
@@ -222,7 +215,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
       if (errorMessage.actionMethod === "ERROR") {
-        showErrorToast(errorMessage);
+        toastManager.showErrorToast(errorMessage);
       }
       setDynamicActionMessages([errorMessage]);
     } else {
@@ -261,159 +254,46 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       const amount = formatAmount(amountRaw, maxAmount, activePoolExtended.quoteBank, numberFormater);
       setAmountRaw(amount);
     },
-    [maxAmount, depositBank, numberFormater, setAmountRaw]
+    [maxAmount, activePoolExtended, numberFormater, setAmountRaw]
   );
 
   /////////////////////
   // Trading Actions //
   /////////////////////
+  const handleTradeAction = useCallback(() => {
+    if (!depositBank || !actionTxns || !borrowBank || !client) return 
 
-  const retryTradeAction = React.useCallback(
-    (params: ExecuteTradeActionProps, leverage: number) => {
-      initiateTradeAction(params, {
-        captureEvent: () => {
-          capture("trade_action_retry", {
-            group: activePoolExtended.groupPk.toBase58(),
-            bank: depositBank?.meta.tokenSymbol,
-          });
-        },
-        handleOnComplete: (txnSigs: string[]) => {
-          setIsActionComplete(true);
-          setPreviousTxn({
-            txnType: "TRADING",
-            txn: txnSigs[txnSigs.length - 1] ?? "",
-            tradingOptions: {
-              depositBank: params.depositBank as ActiveBankInfo,
-              borrowBank: params.borrowBank as ActiveBankInfo,
-              initDepositAmount: params.depositAmount.toString(),
-              depositAmount: params.actualDepositAmount,
-              borrowAmount: params.borrowAmount.toNumber(),
-              leverage: leverage,
-              type: params.tradeSide,
-              quote: params.actionTxns.actionQuote!,
-              entryPrice: activePoolExtended.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
-            },
-          });
+
+    const props : ExecuteTradeActionProps = {
+      actionTxns,
+      attemptUuid: uuidv4(),
+      marginfiClient: client,
+      processOpts: { ...priorityFees, broadcastType },
+      txOpts: {},
+      callbacks: {
+        captureEvent: capture,
+        onComplete: () => {
           refreshGroup({
             connection,
             wallet,
             groupPk: activePoolExtended.groupPk,
             banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
-          });
+          })
         },
-
-        setIsLoading: setIsTransactionExecuting,
-        setAmountRaw,
-        retryCallback: (txns: TradeActionTxns, multiStepToast: MultiStepToastHandle) => {
-          retryTradeAction({ ...params, actionTxns: txns, multiStepToast }, leverage);
-        },
-      });
-    },
-    [
-      activePoolExtended,
-      setIsActionComplete,
-      setPreviousTxn,
-      setAmountRaw,
-      depositBank?.meta.tokenSymbol,
-      refreshGroup,
-      connection,
-      wallet,
-    ]
-  );
-
-  const handleTradeAction = React.useCallback(async () => {
-    // Validate required dependencies for trade action
-    if (!client) {
-      showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
-      return;
-    }
-    if (!depositBank || !borrowBank) {
-      showErrorToast(STATIC_SIMULATION_ERRORS.BANK_NOT_INITIALIZED);
-      return;
-    }
-    if (!actionTxns) {
-      showErrorToast(STATIC_SIMULATION_ERRORS.SIMULATION_NOT_READY);
-      return;
-    }
-
-    const params: ExecuteTradeActionProps = {
-      marginfiClient: client,
-      actionTxns,
-      processOpts: {
-        ...priorityFees,
-        broadcastType,
       },
-      txOpts: {},
+      infoProps: {
+        depositAmount: dynamicNumeralFormatter(Number(amountRaw)),
+        depositToken: depositBank.meta.tokenSymbol,
+        borrowAmount: dynamicNumeralFormatter(actionTxns.borrowAmount.toNumber()),
+        borrowToken: borrowBank.meta.tokenSymbol,
+        tradeSide: tradeState,
+      }
+    } 
 
-      marginfiAccount: wrappedAccount,
-      depositAmount: amount,
-      borrowAmount: actionTxns.borrowAmount,
-      actualDepositAmount: actionTxns.actualDepositAmount,
-      depositBank: depositBank,
-      borrowBank: borrowBank,
-      quote: actionTxns.actionQuote!,
-      connection: client.provider.connection,
-      tradeSide: tradeState,
-    };
+    ExecuteTradeAction(props);
 
-    initiateTradeAction(params, {
-      captureEvent: () => {
-        capture("trade_action_execute", {
-          group: activePoolExtended.groupPk.toBase58(),
-          bank: depositBank?.meta.tokenSymbol,
-        });
-      },
-      handleOnComplete: (txnSigs: string[]) => {
-        console.log("handleOnComplete in trade-box.tsx");
-        setIsActionComplete(true);
-        setPreviousTxn({
-          txnType: "TRADING",
-          txn: txnSigs[txnSigs.length - 1] ?? "",
-          tradingOptions: {
-            depositBank: params.depositBank as ActiveBankInfo,
-            borrowBank: params.borrowBank as ActiveBankInfo,
-            initDepositAmount: params.depositAmount.toString(),
-            depositAmount: params.actualDepositAmount,
-            borrowAmount: params.borrowAmount.toNumber(),
-            leverage: leverage,
-            type: params.tradeSide,
-            quote: params.actionTxns.actionQuote!,
-            entryPrice: activePoolExtended.tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
-          },
-        });
-        refreshGroup({
-          connection,
-          wallet,
-          groupPk: activePoolExtended.groupPk,
-          banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
-        });
-      },
-      setIsLoading: setIsTransactionExecuting,
-      setAmountRaw,
-      retryCallback: (txns: TradeActionTxns, multiStepToast: MultiStepToastHandle) => {
-        retryTradeAction({ ...params, actionTxns: txns, multiStepToast }, leverage);
-      },
-    });
-  }, [
-    client,
-    depositBank,
-    borrowBank,
-    actionTxns,
-    priorityFees,
-    broadcastType,
-    wrappedAccount,
-    amount,
-    tradeState,
-    leverage,
-    setIsActionComplete,
-    setPreviousTxn,
-    setAmountRaw,
-    refreshGroup,
-    connection,
-    wallet,
-    retryTradeAction,
-    activePoolExtended,
-  ]);
+    setAmountRaw("");
+  }, [depositBank, actionTxns, borrowBank, client, priorityFees, broadcastType, amountRaw, tradeState, setAmountRaw, refreshGroup, connection, wallet, activePoolExtended])
 
   return (
     <Card className="shadow-none border-border w-full">

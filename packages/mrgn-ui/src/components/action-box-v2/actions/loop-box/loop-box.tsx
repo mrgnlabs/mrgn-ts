@@ -1,4 +1,6 @@
 import React from "react";
+import { v4 as uuidv4 } from "uuid";
+import BigNumber from "bignumber.js";
 
 import {
   ExtendedBankInfo,
@@ -6,22 +8,17 @@ import {
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
-  ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
-  ActionTxns,
   checkLoopActionAvailable,
-  ExecuteLoopingActionProps,
-  MultiStepToastHandle,
-  PreviousTxn,
-  showErrorToast,
   cn,
-  IndividualFlowError,
   usePrevious,
+  ExecuteLoopActionProps,
+  ExecuteLoopAction,
 } from "@mrgnlabs/mrgn-utils";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
@@ -32,9 +29,7 @@ import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/c
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 import { ActionMessage } from "~/components";
 
-import { useActionBoxStore } from "../../store";
 import { SimulationStatus } from "../../utils/simulation.utils";
-import { handleExecuteLoopAction } from "./utils";
 import { ActionInput, Preview } from "./components";
 import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
@@ -42,8 +37,8 @@ import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
 import { ActionSimulationStatus } from "../../components";
 import { useActionContext } from "../../contexts";
-import BigNumber from "bignumber.js";
-import { IconSettings } from "@tabler/icons-react";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 // error handling
 export type LoopBoxProps = {
@@ -61,7 +56,7 @@ export type LoopBoxProps = {
 
   isDialog?: boolean;
 
-  onComplete?: (previousTxn: PreviousTxn) => void;
+  onComplete?: () => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
   setDisplaySettings?: (displaySettings: boolean) => void;
 };
@@ -132,13 +127,6 @@ export const LoopBox = ({
     jupiterOptions: null,
   };
 
-  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.setIsSettingsDialogOpen,
-    state.setPreviousTxn,
-    state.setIsActionComplete,
-  ]);
-
-  const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
     isLoading: boolean;
     status: SimulationStatus;
@@ -146,11 +134,6 @@ export const LoopBox = ({
     isLoading: false,
     status: SimulationStatus.IDLE,
   });
-
-  const isLoading = React.useMemo(
-    () => isTransactionExecuting || isSimulating.isLoading,
-    [isTransactionExecuting, isSimulating.isLoading]
-  );
 
   const { isRefreshTxn, blockProgress } = usePollBlockHeight(
     marginfiClient?.provider.connection,
@@ -211,8 +194,6 @@ export const LoopBox = ({
     actionMessages: actionMessages,
   });
 
-  const [showSimSuccess, setShowSimSuccess] = React.useState(false);
-
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
     if (debouncedAmount === 0 && simulationResult) {
@@ -238,7 +219,7 @@ export const LoopBox = ({
 
   React.useEffect(() => {
     if (errorMessage?.description) {
-      showErrorToast(errorMessage.description);
+      toastManager.showErrorToast(errorMessage.description);
       setAdditionalActionMessages((prevMessages) => [...prevMessages, errorMessage]);
     } else {
       setAdditionalActionMessages([]);
@@ -276,138 +257,35 @@ export const LoopBox = ({
   /////////////////////
   // Looping Actions //
   /////////////////////
-  const executeAction = async (
-    params: ExecuteLoopingActionProps,
-    leverage: number,
-    callbacks: {
-      captureEvent?: (event: string, properties?: Record<string, any>) => void;
-      setIsActionComplete: (isComplete: boolean) => void;
-      setPreviousTxn: (previousTxn: PreviousTxn) => void;
-      onComplete?: (txn: PreviousTxn) => void;
-      setIsLoading: (isLoading: boolean) => void;
-      setAmountRaw: (amountRaw: string) => void;
-      retryCallback: (txs: ActionTxns, toast: MultiStepToastHandle) => void;
-    }
-  ) => {
-    const action = async (params: ExecuteLoopingActionProps) => {
-      await handleExecuteLoopAction({
-        props: params,
-        captureEvent: (event, properties) => {
-          callbacks.captureEvent && callbacks.captureEvent(event, properties);
-        },
-        setIsComplete: (txnSigs) => {
-          callbacks.setIsActionComplete(true);
-          callbacks.setPreviousTxn({
-            txn: txnSigs[txnSigs.length - 1] ?? "",
-            txnType: "LOOP",
-            loopOptions: {
-              depositBank: params.depositBank as ActiveBankInfo,
-              borrowBank: params.borrowBank as ActiveBankInfo,
-              depositAmount: params.actualDepositAmount,
-              borrowAmount: params.borrowAmount.toNumber(),
-              leverage: leverage,
-            },
-          });
-
-          callbacks.onComplete &&
-            callbacks.onComplete({
-              txn: txnSigs[txnSigs.length - 1] ?? "",
-              txnType: "LEND",
-              lendingOptions: {
-                amount: params.depositAmount,
-                type: ActionType.Loop,
-                bank: params.depositBank as ActiveBankInfo,
-              },
-            });
-        },
-        setError: (error: IndividualFlowError) => {
-          const toast = error.multiStepToast as MultiStepToastHandle;
-          const txs = error.actionTxns as ActionTxns;
-          let retry = undefined;
-          if (error.retry && toast && txs) {
-            retry = () => callbacks.retryCallback(txs, toast);
-          }
-          toast.setFailed(error.message, retry);
-          callbacks.setIsLoading(false);
-        },
-        setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
-      });
-    };
-
-    await action(params);
-    callbacks.setAmountRaw("");
-  };
-
-  const retryLoopAction = React.useCallback(
-    (params: ExecuteLoopingActionProps, leverage: number) => {
-      executeAction(params, leverage, {
-        captureEvent,
-        setIsActionComplete,
-        setPreviousTxn,
-        onComplete,
-        setIsLoading: setIsTransactionExecuting,
-        setAmountRaw,
-        retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
-          retryLoopAction({ ...params, actionTxns: txns, multiStepToast }, leverage);
-        },
-      });
-    },
-    [captureEvent, onComplete, setAmountRaw, setIsActionComplete, setIsTransactionExecuting, setPreviousTxn]
-  );
-
   const handleLoopAction = React.useCallback(async () => {
+
     if (!selectedBank || !amount || !marginfiClient || !selectedSecondaryBank || !transactionSettings) {
-      return;
+      return
     }
 
-    const params: ExecuteLoopingActionProps = {
-      marginfiClient,
+    const params: ExecuteLoopActionProps = {
       actionTxns,
-      processOpts: {
-        ...priorityFees,
-        broadcastType: transactionSettings.broadcastType,
-      },
+      attemptUuid: uuidv4(),
+      marginfiClient,
+      processOpts: { ...priorityFees, broadcastType: transactionSettings.broadcastType },
       txOpts: {},
-
-      marginfiAccount: selectedAccount,
-      depositAmount: amount,
-      borrowAmount: actionTxns.borrowAmount,
-      actualDepositAmount: actionTxns.actualDepositAmount,
-      depositBank: selectedBank,
-      borrowBank: selectedSecondaryBank,
-      quote: actionTxns.actionQuote!,
-      connection: marginfiClient.provider.connection,
-    };
-
-    executeAction(params, leverage, {
-      captureEvent,
-      setIsActionComplete,
-      setPreviousTxn,
-      onComplete,
-      setIsLoading: setIsTransactionExecuting,
-      setAmountRaw,
-      retryCallback: (txns: ActionTxns, multiStepToast: MultiStepToastHandle) => {
-        retryLoopAction({ ...params, actionTxns: txns, multiStepToast }, leverage);
+      callbacks: {
+        captureEvent: captureEvent,
+        onComplete: onComplete,
       },
-    });
-  }, [
-    actionTxns,
-    amount,
-    transactionSettings,
-    captureEvent,
-    leverage,
-    marginfiClient,
-    onComplete,
-    priorityFees,
-    retryLoopAction,
-    selectedAccount,
-    selectedBank,
-    selectedSecondaryBank,
-    setAmountRaw,
-    setIsActionComplete,
-    setIsTransactionExecuting,
-    setPreviousTxn,
-  ]);
+      infoProps: {
+        depositAmount: dynamicNumeralFormatter(amount),
+        depositToken: selectedBank.meta.tokenSymbol,
+        borrowAmount: dynamicNumeralFormatter(actionTxns.borrowAmount.toNumber()),
+        borrowToken: selectedSecondaryBank.meta.tokenSymbol,
+      }, 
+      nativeSolBalance: nativeSolBalance,
+    }
+
+    ExecuteLoopAction(params)
+
+    setAmountRaw("")
+  }, [actionTxns, amount, captureEvent, marginfiClient, priorityFees, selectedBank, selectedSecondaryBank, setAmountRaw, transactionSettings, nativeSolBalance, onComplete]) 
 
   React.useEffect(() => {
     if (marginfiClient) {
@@ -454,7 +332,7 @@ export const LoopBox = ({
           setSelectedSecondaryBank={(bank) => {
             setSelectedSecondaryBank(bank);
           }}
-          isLoading={isLoading}
+          isLoading={isSimulating.isLoading}
           walletAmount={walletAmount}
           actionTxns={actionTxns}
         />
@@ -496,7 +374,7 @@ export const LoopBox = ({
 
       <div className="mb-3 space-y-2">
         <ActionButton
-          isLoading={isLoading}
+          isLoading={isSimulating.isLoading}
           isEnabled={
             !additionalActionMessages
               .concat(actionMessages)
@@ -522,7 +400,7 @@ export const LoopBox = ({
         {setDisplaySettings && <ActionSettingsButton onClick={() => setDisplaySettings(true)} />}
       </div>
 
-      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />
+      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isSimulating.isLoading} />
     </ActionBoxContentWrapper>
   );
 };

@@ -51,60 +51,100 @@ export enum TransactionType {
   CREATE_GROUP = "CREATE_GROUP",
   JUPITER_SWAP = "JUPITER_SWAP",
 }
-
 interface TransactionConfig {
-  label: string;
+  label: (infoProps?: Record<string, any>) => string; // Always a function
+  fallback?: string; // Only for dynamic messages
 }
 
 export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = {
+  // BASE LENDING ACTIONS
   [TransactionType.DEPOSIT]: {
-    label: "Depositing",
+    label: ({ amount, token } = {}) => (amount && token ? `Depositing ${amount} ${token}` : "Depositing"),
   },
   [TransactionType.WITHDRAW]: {
-    label: "Withdrawing",
+    label: ({ amount, token } = {}) => (amount && token ? `Withdrawing ${amount} ${token}` : "Withdrawing"),
   },
   [TransactionType.REPAY]: {
-    label: "Repaying",
+    label: ({ amount, token } = {}) => (amount && token ? `Repaying ${amount} ${token}` : "Repaying"),
   },
   [TransactionType.BORROW]: {
-    label: "Borrowing",
+    label: ({ amount, token } = {}) => (amount && token ? `Borrowing ${amount} ${token}` : "Borrowing"),
   },
+
+  // FLASHLOANS
+  [TransactionType.FLASHLOAN]: { label: () => "Executing Flashloan" },
   [TransactionType.LOOP]: {
-    label: "Looping",
+    label: ({ depositAmount, depositToken, borrowAmount, borrowToken } = {}) =>
+      depositAmount && depositToken && borrowAmount && borrowToken
+        ? `Looping ${depositAmount} ${depositToken} with ${borrowAmount} ${borrowToken}`
+        : "Looping",
   },
   [TransactionType.REPAY_COLLAT]: {
-    label: "Repaying Collateral",
+    label: ({ repayAmount, repayToken, amount, token } = {}) =>
+      repayAmount && repayToken && amount && token
+        ? `Repaying ${repayAmount} ${token} with   ${amount} ${repayToken}`
+        : "Repaying with collateral",
   },
   [TransactionType.LONG]: {
-    label: "Long Position",
+    label: ({ depositToken, depositAmount, borrowToken } = {}) =>
+      depositToken && depositAmount && borrowToken ? `Longing ${depositToken} with ${depositAmount} ${borrowToken}` : "Opening Long position",
   },
   [TransactionType.SHORT]: {
-    label: "Short Position",
+    label: ({ borrowToken, depositAmount, depositToken } = {}) =>
+      borrowToken && depositAmount && depositToken ? `Shorting ${borrowToken} with ${depositAmount} ${depositToken}` : "Opening Short position",
   },
-  [TransactionType.CRANK]: {
-    label: "Updating latest prices",
+
+  // SWB
+  [TransactionType.CRANK]: { label: () => "Updating latest prices" },
+  [TransactionType.JUPITER_SWAP]: {
+    label: ({ originAmount, originToken, destinationAmount, destinationToken } = {}) =>
+      originAmount && originToken && destinationAmount && destinationToken
+        ? `Swapping ${originAmount} ${originToken} for ${destinationAmount} ${destinationToken}`
+        : "Swapping tokens",
   },
-  [TransactionType.FLASHLOAN]: { label: "Flashloan" },
-  [TransactionType.CREATE_ACCOUNT]: { label: "Creating Account" },
-  [TransactionType.CREATE_ATA]: { label: "Creating ATA" },
-  [TransactionType.CLOSE_ACCOUNT]: { label: "Closing Account" },
-  [TransactionType.CLOSE_POSITION]: { label: "Closing Position" },
-  [TransactionType.MOVE_POSITION]: { label: "Moving Position" },
-  [TransactionType.WITHDRAW_ALL]: { label: "Withdraw All" },
-  [TransactionType.TRANSFER_AUTH]: { label: "Transfer Auth" },
-  [TransactionType.DEPOSIT_STAKE]: { label: "Deposit Stake" },
-  [TransactionType.WITHDRAW_STAKE]: { label: "Withdraw Stake" },
-  [TransactionType.WITHDRAW_EMISSIONS]: { label: "Withdraw Emissions" },
-  [TransactionType.LIQUIDATE_ACCOUNT]: { label: "Liquidate Account" },
-  [TransactionType.STAKE_TO_STAKE]: { label: "Stake to Stake" },
-  [TransactionType.MINT_LST_NATIVE]: { label: "Mint LST Native" },
-  [TransactionType.CREATE_PERM_BANK]: { label: "Create Perm Bank" },
-  [TransactionType.CREATE_GROUP]: { label: "Create Group" },
-  [TransactionType.SWAP_TO_SOL]: { label: "Swap to SOL" },
-  [TransactionType.SOL_TO_LST]: { label: "SOL to LST" },
-  [TransactionType.JUPITER_SWAP]: { label: "Swapping tokens" },
-  [TransactionType.INITIALIZE_STAKED_POOL]: { label: "Initializing Staked Pool" },
-  [TransactionType.ADD_STAKED_BANK]: { label: "Adding Staked Bank" },
+
+  // SETUP
+  [TransactionType.CREATE_ACCOUNT]: { label: () => "Creating Account" },
+  [TransactionType.CREATE_ATA]: { label: () => "Creating ATA" },
+
+  // ACCOUNT MANAGEMENT
+  [TransactionType.CLOSE_ACCOUNT]: { label: () => "Closing Account" },
+  [TransactionType.CLOSE_POSITION]: { label: () => "Closing Position" },
+  [TransactionType.MOVE_POSITION]: { label: () => "Moving Position" },
+  [TransactionType.TRANSFER_AUTH]: { label: () => "Transferring Account Authorization" },
+
+  // NATIVE STAKE ACTIONS
+  [TransactionType.DEPOSIT_STAKE]: {
+    label: ({ amount, token } = {}) => (amount && token ? `Staking and depositing ${amount} ${token}` : "Staking and depositing"),
+  },
+  [TransactionType.WITHDRAW_STAKE]: {
+    label: ({ amount, token } = {}) => (amount && token ? `Unstaking and withdrawing ${amount} ${token}` : "Unstaking and withdrawing"),
+  },
+  [TransactionType.INITIALIZE_STAKED_POOL]: { label: () => "Initializing Staked Pool" },
+  [TransactionType.ADD_STAKED_BANK]: { label: () => "Adding Staked Bank" },
+
+  // LST (Liquid Staking Tokens)
+  [TransactionType.STAKE_TO_STAKE]: { label: () => "Converting Staked Token" },
+  [TransactionType.MINT_LST_NATIVE]: { label: () => "Minting Liquid Staked Native Token" },
+  [TransactionType.SWAP_TO_SOL]: {
+    label: ({ swapAmount, token } = {}) => (swapAmount && token ? `Swapping ${swapAmount} ${token} to SOL` : "Swapping to SOL"),
+  },
+  [TransactionType.SOL_TO_LST]: {
+    label: ({ amount } = {}) => (amount  ? `Minting LST with ${amount} SOL` : "Minting LST with SOL"),
+  },
+
+  // EMISSIONS
+  [TransactionType.WITHDRAW_EMISSIONS]: { label: () => "Withdrawing Emissions" },
+
+  // LIQUIDATE
+  [TransactionType.LIQUIDATE_ACCOUNT]: { label: () => "Liquidating Account" },
+
+  // BANK and GROUPS
+  [TransactionType.CREATE_PERM_BANK]: { label: () => "Creating Permanent Bank" },
+  [TransactionType.CREATE_GROUP]: { label: () => "Creating Group" },
+  [TransactionType.WITHDRAW_ALL]: {
+    label: ({ amount, token } = {}) => (amount && token ? `Withdrawing ${amount} ${token}` : "Withdrawing all"),
+  },
 };
 
 export const TransactionArenaKeyMap: Partial<Record<TransactionType, PublicKey>> = {

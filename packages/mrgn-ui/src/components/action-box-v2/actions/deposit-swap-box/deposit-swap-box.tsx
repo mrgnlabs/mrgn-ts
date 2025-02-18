@@ -1,7 +1,7 @@
 import React from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import {
-  ActiveBankInfo,
   ExtendedBankInfo,
   ActionType,
   AccountSummary,
@@ -12,13 +12,10 @@ import {
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
-  ExecuteDepositSwapActionProps,
-  IndividualFlowError,
-  MultiStepToastHandle,
-  PreviousTxn,
-  DepositSwapActionTxns,
   checkDepositSwapActionAvailable,
   usePrevious,
+  ExecuteDepositSwapActionProps,
+  ExecuteDepositSwapAction,
 } from "@mrgnlabs/mrgn-utils";
 
 import {
@@ -28,21 +25,17 @@ import {
   ActionSettingsButton,
 } from "~/components/action-box-v2/components";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
-import { ActionMessage, Settings } from "~/components";
+import { ActionMessage } from "~/components";
 
 import { ActionSimulationStatus } from "../../components";
 import { SimulationStatus } from "../../utils";
 import { useDepositSwapActionAmounts, useDepositSwapSimulation } from "./hooks";
-import { useActionBoxStore } from "../../store";
 import { useActionContext, HidePoolStats } from "../../contexts";
 
-import { getBankByPk, getBankOrWalletTokenByPk, handleExecuteDepositSwapAction } from "./utils";
+import { getBankByPk, getBankOrWalletTokenByPk } from "./utils";
 import { useDepositSwapBoxStore } from "./store";
 import { ActionInput, Preview } from "./components";
-import { nativeToUi, WalletToken } from "@mrgnlabs/mrgn-common";
-
-import { IconSettings } from "@tabler/icons-react";
-import { PublicKey } from "@solana/web3.js";
+import { dynamicNumeralFormatter, nativeToUi, WalletToken } from "@mrgnlabs/mrgn-common";
 
 export type DepositSwapBoxProps = {
   nativeSolBalance: number;
@@ -64,7 +57,9 @@ export type DepositSwapBoxProps = {
   walletTokens: WalletToken[] | null;
   allBanks?: ExtendedBankInfo[];
 
-  onComplete?: (previousTxn: PreviousTxn) => void;
+  onComplete?: (infoProps: {
+    walletToken?: WalletToken,
+  }) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
   setDisplaySettings?: (displaySettings: boolean) => void;
 };
@@ -138,7 +133,6 @@ export const DepositSwapBox = ({
     return getBankOrWalletTokenByPk(banks, walletTokens, selectedSwapBankPk);
   }, [banks, walletTokens, selectedSwapBankPk]);
 
-  const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
     isLoading: boolean;
     status: SimulationStatus;
@@ -146,10 +140,6 @@ export const DepositSwapBox = ({
     isLoading: false,
     status: SimulationStatus.IDLE,
   });
-  const isLoading = React.useMemo(
-    () => isTransactionExecuting || isSimulating.isLoading,
-    [isTransactionExecuting, isSimulating.isLoading]
-  );
 
   const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
     transactionSettings: null,
@@ -162,11 +152,6 @@ export const DepositSwapBox = ({
       accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount, banks) : DEFAULT_ACCOUNT_SUMMARY)
     );
   }, [accountSummaryArg, selectedAccount, banks]);
-
-  const [setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.setPreviousTxn,
-    state.setIsActionComplete,
-  ]);
 
   const isDust = React.useMemo(
     () => selectedDepositBank?.isActive && selectedDepositBank?.position.isDust,
@@ -300,194 +285,47 @@ export const DepositSwapBox = ({
     setSimulationResult,
   ]);
 
-  ///////////////////////
-  // Deposit-Swap Actions //
-  ///////////////////////
-  const executeAction = async (
-    params: ExecuteDepositSwapActionProps,
-    callbacks: {
-      captureEvent?: (event: string, properties?: Record<string, any>) => void;
-      setIsLoading: (loading: boolean) => void;
-      handleOnComplete: (txnSigs: string[]) => void;
-      retryCallback: (txns: DepositSwapActionTxns, multiStepToast: MultiStepToastHandle) => void;
-      setAmountRaw: (amountRaw: string) => void;
-    }
-  ) => {
-    const action = async (params: ExecuteDepositSwapActionProps) => {
-      await handleExecuteDepositSwapAction({
-        params,
-        captureEvent: (event, properties) => {
-          callbacks.captureEvent && callbacks.captureEvent(event, properties);
-        },
-        setIsLoading: callbacks.setIsLoading,
-        setIsComplete: callbacks.handleOnComplete,
-        setError: (error: IndividualFlowError) => {
-          const toast = error.multiStepToast as MultiStepToastHandle;
-          const txs = error.actionTxns as DepositSwapActionTxns;
-          const errorMessage = error.message;
-          let retry = undefined;
-          if (error.retry && toast && txs) {
-            retry = () => callbacks.retryCallback(txs, toast);
-          }
-          toast?.setFailed(errorMessage, retry);
-          callbacks.setIsLoading(false);
-        },
-      });
-    };
+  const handleDepositSwapAction = React.useCallback(() => {
+    if (!marginfiClient || actionTxns.transactions.length === 0) return; // TODO: see if this is ok enough, might need more checks
 
-    await action(params);
-    callbacks.setAmountRaw("");
-  };
-
-  const retryDepositSwapAction = React.useCallback(
-    async (params: ExecuteDepositSwapActionProps, swapBank: ExtendedBankInfo | WalletToken | null) => {
-      executeAction(params, {
-        captureEvent: captureEvent,
-        setIsLoading: setIsTransactionExecuting,
-        handleOnComplete: (txnSigs: string[]) => {
-          setIsActionComplete(true);
-          setPreviousTxn({
-            txn: txnSigs[txnSigs.length - 1] ?? "",
-            txnType: "DEPOSIT_SWAP",
-            depositSwapOptions: {
-              depositBank: selectedDepositBank as ActiveBankInfo,
-              swapBank: selectedSwapBank as ActiveBankInfo,
-              depositAmount: actionTxns?.actionQuote
-                ? Number(
-                    nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
-                  )
-                : debouncedAmount ?? 0,
-              swapAmount: actionTxns?.actionQuote ? debouncedAmount ?? 0 : 0,
-            },
-          });
-          onComplete &&
-            onComplete({
-              txn: txnSigs[txnSigs.length - 1] ?? "",
-              txnType: "DEPOSIT_SWAP",
-              depositSwapOptions: {
-                depositBank: selectedDepositBank as ActiveBankInfo,
-                swapBank: selectedSwapBank as ActiveBankInfo,
-                depositAmount: actionTxns?.actionQuote
-                  ? Number(
-                      nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
-                    )
-                  : debouncedAmount ?? 0,
-                swapAmount: actionTxns?.actionQuote ? debouncedAmount ?? 0 : 0,
-                walletToken: walletTokens?.find(
-                  (token) => token.address.toBase58() === selectedSwapBank?.address.toBase58()
-                ),
-              },
-            });
-        },
-        retryCallback: (txns: DepositSwapActionTxns, multiStepToast: MultiStepToastHandle) => {
-          retryDepositSwapAction({ ...params, actionTxns: txns, multiStepToast }, swapBank);
-        },
-        setAmountRaw: setAmountRaw,
-      });
-    },
-    [
-      actionTxns.actionQuote,
-      captureEvent,
-      debouncedAmount,
-      onComplete,
-      selectedDepositBank,
-      selectedSwapBank,
-      setIsActionComplete,
-      setPreviousTxn,
-      walletTokens,
-      setAmountRaw,
-    ]
-  );
-
-  const handleDepositSwapAction = React.useCallback(async () => {
-    if (
-      !actionTxns ||
-      !marginfiClient ||
-      !debouncedAmount ||
-      debouncedAmount === 0 ||
-      !transactionSettings ||
-      !selectedAccount
-    ) {
-      return;
-    }
-
-    const params = {
-      marginfiClient: marginfiClient,
-      actionTxns: actionTxns,
-      bank: selectedDepositBank,
-      amount: debouncedAmount,
-      nativeSolBalance,
-      marginfiAccount: selectedAccount,
+    const props: ExecuteDepositSwapActionProps  = {
+      actionTxns,
+      attemptUuid: uuidv4(),
+      marginfiClient,
       processOpts: {
         ...priorityFees,
-        broadcastType: transactionSettings.broadcastType,
+        broadcastType: transactionSettings?.broadcastType,
       },
       txOpts: {},
-      actionType: lendMode,
-      swapBank: selectedSwapBank,
-    } as ExecuteDepositSwapActionProps;
+      callbacks: {
+        captureEvent: captureEvent ,
+        onComplete: () => {
+          onComplete?.({
+            walletToken: selectedSwapBank &&  "info" in selectedSwapBank ? undefined : selectedSwapBank ?? undefined ,
+          })
+        } ,
+      },
+      infoProps: {
+        depositToken: selectedDepositBank?.meta.tokenSymbol ??'',
+        swapToken: selectedSwapBank ? "info" in selectedSwapBank ? selectedSwapBank.meta.tokenSymbol : selectedSwapBank.symbol : "",
+        depositAmount: dynamicNumeralFormatter(Number(actionTxns.actionQuote?.outAmount) ? Number(nativeToUi(Number(actionTxns.actionQuote?.outAmount), selectedDepositBank?.info.rawBank.mintDecimals ?? 9)) :debouncedAmount ?? 0),
+        swapAmount: dynamicNumeralFormatter(debouncedAmount ?? 0),
+      },
+    } 
 
-    await executeAction(params, {
-      captureEvent: captureEvent,
-      setIsLoading: setIsTransactionExecuting,
-      handleOnComplete: (txnSigs: string[]) => {
-        setIsActionComplete(true);
-        setPreviousTxn({
-          txn: txnSigs[txnSigs.length - 1] ?? "",
-          txnType: "DEPOSIT_SWAP",
-          depositSwapOptions: {
-            depositBank: selectedDepositBank as ActiveBankInfo,
-            swapBank: selectedSwapBank as ActiveBankInfo,
-            depositAmount: actionTxns?.actionQuote
-              ? Number(
-                  nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
-                )
-              : debouncedAmount,
-            swapAmount: actionTxns?.actionQuote ? debouncedAmount : 0,
-          },
-        });
-        onComplete &&
-          onComplete({
-            txn: txnSigs[txnSigs.length - 1] ?? "",
-            txnType: "DEPOSIT_SWAP",
-            depositSwapOptions: {
-              depositBank: selectedDepositBank as ActiveBankInfo,
-              swapBank: selectedSwapBank as ActiveBankInfo,
-              depositAmount: actionTxns?.actionQuote
-                ? Number(
-                    nativeToUi(actionTxns.actionQuote?.outAmount, selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
-                  )
-                : debouncedAmount,
-              swapAmount: actionTxns?.actionQuote ? debouncedAmount : 0,
-              walletToken: walletTokens?.find(
-                (token) => token.address.toBase58() === selectedSwapBank?.address.toBase58()
-              ),
-            },
-          });
-      },
-      retryCallback: (txns: DepositSwapActionTxns, multiStepToast: MultiStepToastHandle) => {
-        retryDepositSwapAction({ ...params, actionTxns: txns, multiStepToast }, selectedSwapBank);
-      },
-      setAmountRaw: setAmountRaw,
-    });
+    ExecuteDepositSwapAction(props);
+    setAmountRaw("");
   }, [
     actionTxns,
     marginfiClient,
-    debouncedAmount,
-    transactionSettings,
-    selectedAccount,
-    selectedDepositBank,
-    nativeSolBalance,
     priorityFees,
-    lendMode,
-    selectedSwapBank,
+    transactionSettings,
     captureEvent,
-    setIsActionComplete,
-    setPreviousTxn,
-    onComplete,
-    walletTokens,
-    retryDepositSwapAction,
+    selectedDepositBank,
+    selectedSwapBank,
+    debouncedAmount,
     setAmountRaw,
+    onComplete,
   ]);
 
   return (
@@ -613,12 +451,11 @@ export const DepositSwapBox = ({
 
       <div className="mb-3">
         <ActionButton
-          isLoading={isLoading}
+          isLoading={isSimulating.isLoading}
           isEnabled={
             !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
           }
           connected={connected}
-          // showCloseBalance={showCloseBalance}
           handleAction={() => {
             handleDepositSwapAction();
           }}
@@ -638,7 +475,7 @@ export const DepositSwapBox = ({
       <Preview
         actionSummary={actionSummary}
         selectedBank={selectedDepositBank}
-        isLoading={isLoading}
+        isLoading={isSimulating.isLoading}
         lendMode={lendMode}
         hidePoolStats={hidePoolStats}
       />

@@ -1,0 +1,3 @@
+{
+  "extends": "@mrgnlabs/eslint-config-custom"
+}

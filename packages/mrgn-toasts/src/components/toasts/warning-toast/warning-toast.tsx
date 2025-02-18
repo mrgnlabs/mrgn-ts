@@ -1,12 +1,11 @@
 import { IconAlertTriangle } from "@tabler/icons-react";
-import { cn } from "./themeUtils";
 
 export interface WarningToastProps {
   title: string;
   message: string;
 }
 
-export const WarningToast = ({ title, message }: WarningToastProps) => {
+export function WarningToast({ title, message }: WarningToastProps) {
   return (
     <div className="w-full h-full rounded-md z-50 md:min-w-[340px]">
       <h2 className="text-lg mb-5 font-medium">{title}</h2>
@@ -16,4 +15,4 @@ export const WarningToast = ({ title, message }: WarningToastProps) => {
       </div>
     </div>
   );
-};
+}

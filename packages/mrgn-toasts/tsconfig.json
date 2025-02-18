@@ -1,0 +1,18 @@
+{
+  "extends": "@mrgnlabs/tsconfig/base.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "downlevelIteration": true,
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./src/*", "../../packages/mrgn-utils/src/*"]
+    },
+    "module": "ESNext"
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "."],
+  "exclude": ["dist", "node_modules", "*.spec.ts"]
+}
