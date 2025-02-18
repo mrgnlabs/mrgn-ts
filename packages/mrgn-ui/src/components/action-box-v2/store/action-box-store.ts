@@ -1,6 +1,5 @@
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
-import { PreviousTxn } from "@mrgnlabs/mrgn-utils";
 
 interface ActionBoxState {
   // State

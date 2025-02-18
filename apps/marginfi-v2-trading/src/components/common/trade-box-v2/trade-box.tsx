@@ -272,6 +272,14 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       txOpts: {},
       callbacks: {
         captureEvent: capture,
+        onComplete: () => {
+          refreshGroup({
+            connection,
+            wallet,
+            groupPk: activePoolExtended.groupPk,
+            banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
+          })
+        },
       },
       infoProps: {
         depositAmount: dynamicNumeralFormatter(Number(amountRaw)),
@@ -285,7 +293,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     ExecuteTradeAction(props);
 
     setAmountRaw("");
-  }, [depositBank, actionTxns, borrowBank, client, priorityFees, broadcastType, amountRaw, tradeState, setAmountRaw])
+  }, [depositBank, actionTxns, borrowBank, client, priorityFees, broadcastType, amountRaw, tradeState, setAmountRaw, refreshGroup, connection, wallet, activePoolExtended])
 
   return (
     <Card className="shadow-none border-border w-full">

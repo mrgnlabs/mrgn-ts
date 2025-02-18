@@ -20,7 +20,6 @@ import {
   checkLendActionAvailable,
   ExecuteLendingActionProps,
   ExecuteLendingAction,
-  PreviousTxn,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
 
@@ -64,7 +63,7 @@ export type LendBoxProps = {
   onCloseDialog?: () => void;
   setShouldBeHidden?: (hidden: boolean) => void;
 
-  onComplete?: (previousTxn: PreviousTxn) => void;
+  onComplete?: () => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
   setDisplaySettings?: (displaySettings: boolean) => void;
 };
@@ -302,6 +301,7 @@ export const LendBox = ({
       txOpts: {},
       callbacks: {
         captureEvent: captureEvent,
+        onComplete: onComplete,
       },
       infoProps: {
         amount: dynamicNumeralFormatter(amount),
@@ -314,7 +314,7 @@ export const LendBox = ({
     ExecuteLendingAction(props);
 
     setAmountRaw("")
-  }, [actionTxns, amount, captureEvent, lendMode, marginfiClient, nativeSolBalance, priorityFees, selectedBank, setAmountRaw, transactionSettings])
+  }, [actionTxns, amount, captureEvent, lendMode, marginfiClient, nativeSolBalance, priorityFees, selectedBank, setAmountRaw, transactionSettings, onComplete])
 
   const hasErrorsWarnings = React.useMemo(() => {
     return (
