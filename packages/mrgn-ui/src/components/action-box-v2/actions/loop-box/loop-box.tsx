@@ -15,7 +15,6 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import {
   ActionMessageType,
   checkLoopActionAvailable,
-  showErrorToast,
   cn,
   usePrevious,
   ExecuteLoopActionProps,
@@ -39,6 +38,7 @@ import { ApyStat } from "./components/apy-stat";
 import { ActionSimulationStatus } from "../../components";
 import { useActionContext } from "../../contexts";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 // error handling
 export type LoopBoxProps = {
@@ -219,7 +219,7 @@ export const LoopBox = ({
 
   React.useEffect(() => {
     if (errorMessage?.description) {
-      showErrorToast(errorMessage.description);
+      toastManager.showErrorToast(errorMessage.description);
       setAdditionalActionMessages((prevMessages) => [...prevMessages, errorMessage]);
     } else {
       setAdditionalActionMessages([]);

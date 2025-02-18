@@ -23,7 +23,6 @@ import {
   createTransferCheckedInstruction,
   createAssociatedTokenAccountInstruction,
 } from "@mrgnlabs/mrgn-common";
-import { MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
 
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -35,6 +34,7 @@ import { Input } from "~/components/ui/input";
 
 import { Token as TokenType } from "~/components/wallet-v2/components/wallet-tokens/wallet-tokens";
 import { confirmTransaction } from "@mrgnlabs/marginfi-client-v2";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 type WalletSendProps = {
   connection: Connection;
@@ -136,7 +136,7 @@ export const WalletSend = ({
         return;
       }
 
-      const multiStepToast = new MultiStepToastHandle(`Transfer ${token.meta.tokenSymbol}`, [
+      const multiStepToast = toastManager.createMultiStepToast(`Transfer ${token.meta.tokenSymbol}`, [
         { label: `Sending ${amount} ${token.meta.tokenSymbol} to ${shortenAddress(recipientAddress)}` },
       ]);
 
@@ -215,7 +215,7 @@ export const WalletSend = ({
         //   },
         //   "confirmed"
         // );
-        multiStepToast.setSuccessAndNext();
+        multiStepToast.successAndNext();
         setSendingState(SendingState.SUCCESS);
         setSendSig(signature);
         capture("send_token", {
