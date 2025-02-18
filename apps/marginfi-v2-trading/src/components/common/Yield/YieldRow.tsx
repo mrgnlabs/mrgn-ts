@@ -249,7 +249,6 @@ const YieldItem = ({
             selectedAccount={wrappedAccount}
             connected={connected}
             accountSummaryArg={accountSummary}
-            showActionComplete={false}
             hidePoolStats={["type"]}
             setDisplaySettings={setDisplaySettings}
           >

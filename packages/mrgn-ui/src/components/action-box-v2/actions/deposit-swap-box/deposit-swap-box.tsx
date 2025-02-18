@@ -15,8 +15,8 @@ import {
   PreviousTxn,
   checkDepositSwapActionAvailable,
   usePrevious,
-  ExecuteDepositSwapActionPropsV2,
-  ExecuteDepositSwapActionV2,
+  ExecuteDepositSwapActionProps,
+  ExecuteDepositSwapAction,
 } from "@mrgnlabs/mrgn-utils";
 
 import {
@@ -287,7 +287,7 @@ export const DepositSwapBox = ({
   const handleDepositSwapAction = React.useCallback(() => {
     if (!marginfiClient || actionTxns.transactions.length === 0) return; // TODO: see if this is ok enough, might need more checks
 
-    const props = {
+    const props: ExecuteDepositSwapActionProps  = {
       actionTxns,
       attemptUuid: uuidv4(),
       marginfiClient,
@@ -300,15 +300,14 @@ export const DepositSwapBox = ({
         captureEvent: captureEvent ,
       },
       infoProps: {
-        depositToken: selectedDepositBank?.meta.tokenSymbol,
+        depositToken: selectedDepositBank?.meta.tokenSymbol ??'',
         swapToken: selectedSwapBank ? "info" in selectedSwapBank ? selectedSwapBank.meta.tokenSymbol : selectedSwapBank.symbol : "",
         depositAmount: dynamicNumeralFormatter(Number(actionTxns.actionQuote?.outAmount) ? Number(nativeToUi(Number(actionTxns.actionQuote?.outAmount), selectedDepositBank?.info.rawBank.mintDecimals ?? 9)) : 0),
         swapAmount: dynamicNumeralFormatter(debouncedAmount ?? 0),
-
       },
-    } as ExecuteDepositSwapActionPropsV2;
+    } 
 
-    ExecuteDepositSwapActionV2(props);
+    ExecuteDepositSwapAction(props);
     setAmountRaw("");
   }, [
     actionTxns,

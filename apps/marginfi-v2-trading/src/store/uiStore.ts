@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { LendingModes, PreviousTxn } from "~/types";
+import { LendingModes } from "~/types";
 import {
   MaxCapType,
   TransactionBroadcastType,
@@ -32,8 +32,6 @@ interface UiState {
   lendingMode: LendingModes;
   jupiterOptions: JupiterOptions;
   platformFeeBps: number;
-  isActionComplete: boolean;
-  previousTxn: PreviousTxn | null;
   isActionBoxInputFocussed: boolean;
   walletState: WalletState;
   isOnrampActive: boolean;
@@ -47,9 +45,7 @@ interface UiState {
   setIsWalletAuthDialogOpen: (isOpen: boolean) => void;
   setIsWalletOpen: (isOpen: boolean) => void;
   setLendingMode: (lendingMode: LendingModes) => void;
-  setIsActionComplete: (isActionSuccess: boolean) => void;
   setJupiterOptions: (jupiterOptions: JupiterOptions) => void;
-  setPreviousTxn: (previousTxn: PreviousTxn) => void;
   setWalletState: (walletState: WalletState) => void;
   setIsActionBoxInputFocussed: (isFocussed: boolean) => void;
   setIsOnrampActive: (isOnrampActive: boolean) => void;
@@ -87,8 +83,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   actionMode: ActionType.Deposit,
   platformFeeBps: 30,
   selectedTokenBank: null,
-  isActionComplete: false,
-  previousTxn: null,
   isActionBoxInputFocussed: false,
   walletState: WalletState.DEFAULT,
   isOnrampActive: false,
@@ -106,8 +100,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     set({
       lendingMode: lendingMode,
     }),
-  setIsActionComplete: (isActionComplete: boolean) => set({ isActionComplete: isActionComplete }),
-  setPreviousTxn: (previousTxn: PreviousTxn) => set({ previousTxn: previousTxn }),
   setWalletState: (walletState: WalletState) => set({ walletState: walletState }),
   setIsActionBoxInputFocussed: (isFocussed: boolean) => set({ isActionBoxInputFocussed: isFocussed }),
   setIsOnrampActive: (isOnrampActive: boolean) => set({ isOnrampActive: isOnrampActive }),

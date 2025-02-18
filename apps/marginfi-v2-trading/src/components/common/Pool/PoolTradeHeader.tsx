@@ -71,7 +71,6 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
       selectedAccount={wrappedAccount}
       connected={connected}
       accountSummaryArg={accountSummary ?? undefined}
-      showActionComplete={false}
       hidePoolStats={["type"]}
       setDisplaySettings={setDisplaySettings}
     >

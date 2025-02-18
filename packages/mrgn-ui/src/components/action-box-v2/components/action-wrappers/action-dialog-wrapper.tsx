@@ -34,15 +34,6 @@ export const ActionDialogWrapper = ({
   hidden = false,
 }: ActionDialogWrapperProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [isActionComplete] = useActionBoxStore((state) => [state.isActionComplete]);
-  const prevIsActionComplete = usePrevious(isActionComplete);
-
-  React.useEffect(() => {
-    if (!prevIsActionComplete && isActionComplete) {
-      setIsOpen(false);
-      onClose && onClose();
-    }
-  }, [prevIsActionComplete, isActionComplete, onClose]);
 
   React.useEffect(() => {
     setIsOpen(isTriggered);

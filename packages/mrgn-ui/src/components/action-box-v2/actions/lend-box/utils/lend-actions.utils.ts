@@ -1,123 +1,18 @@
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
-import { v4 as uuidv4 } from "uuid";
+import { Keypair, PublicKey } from "@solana/web3.js";
 
-import { BalanceRaw, MarginfiAccount, MarginfiAccountRaw, MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
+import { BalanceRaw, MarginfiAccount, MarginfiAccountRaw, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { bigNumberToWrappedI80F48, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
   ActionTxns,
-  closeBalance,
-  executeLendingAction,
-  IndividualFlowError,
   isWholePosition,
-  MarginfiActionParams,
-  MultiStepToastHandle,
   STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
 
-import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
 import { BN } from "@coral-xyz/anchor";
 import BigNumber from "bignumber.js";
 
-interface ExecuteLendingActionsProps extends ExecuteActionsCallbackProps {
-  params: MarginfiActionParams;
-}
-
-export const handleExecuteLendingAction = async ({
-  params,
-  captureEvent,
-  setIsLoading,
-  setIsComplete,
-  setError,
-}: ExecuteLendingActionsProps) => {
-  try {
-    const { actionType, bank, amount, processOpts } = params;
-
-    setIsLoading(true);
-    const attemptUuid = uuidv4();
-    captureEvent(`user_${actionType.toLowerCase()}_initiate`, {
-      uuid: attemptUuid,
-      tokenSymbol: bank.meta.tokenSymbol,
-      tokenName: bank.meta.tokenName,
-      amount,
-      processOpts: processOpts?.priorityFeeMicro,
-    });
-
-    const txnSig = await executeLendingAction(params);
-
-    setIsLoading(false);
-
-    if (txnSig) {
-      setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
-      captureEvent(`user_${actionType.toLowerCase()}`, {
-        uuid: attemptUuid,
-        tokenSymbol: bank.meta.tokenSymbol,
-        tokenName: bank.meta.tokenName,
-        amount: amount,
-        txn: txnSig!,
-        priorityFee: processOpts?.priorityFeeMicro,
-      });
-    }
-  } catch (error) {
-    setError(error as IndividualFlowError);
-  }
-};
-
-export interface HandleCloseBalanceParamsProps {
-  bank: ExtendedBankInfo;
-  marginfiAccount: MarginfiAccountWrapper | null;
-  processOpts?: ProcessTransactionsClientOpts;
-  multiStepToast?: MultiStepToastHandle;
-}
-
-interface HandleCloseBalanceProps extends ExecuteActionsCallbackProps {
-  params: HandleCloseBalanceParamsProps;
-}
-
-export const handleExecuteCloseBalance = async ({
-  params,
-  captureEvent,
-  setIsLoading,
-  setIsComplete,
-  setError,
-}: HandleCloseBalanceProps) => {
-  try {
-    const { bank, marginfiAccount, processOpts } = params;
-
-    setIsLoading(true);
-    const attemptUuid = uuidv4();
-    captureEvent(`user_close_balance_initiate`, {
-      uuid: attemptUuid,
-      tokenSymbol: bank.meta.tokenSymbol,
-      tokenName: bank.meta.tokenName,
-      amount: 0,
-      priorityFee: processOpts?.priorityFeeMicro,
-    });
-
-    const txnSig = await closeBalance({
-      marginfiAccount: marginfiAccount,
-      bank: bank,
-      processOpts,
-      multiStepToast: params.multiStepToast,
-    });
-    setIsLoading(false);
-
-    if (txnSig) {
-      setIsComplete([...txnSig]);
-      captureEvent(`user_close_balance`, {
-        uuid: attemptUuid,
-        tokenSymbol: bank.meta.tokenSymbol,
-        tokenName: bank.meta.tokenName,
-        amount: 0,
-        txn: txnSig!,
-        priorityFee: processOpts?.priorityFeeMicro,
-      });
-    }
-  } catch (error) {
-    setError(error as IndividualFlowError);
-  }
-};
 
 export async function generateActionTxns(props: {
   marginfiAccount: MarginfiAccountWrapper | null,

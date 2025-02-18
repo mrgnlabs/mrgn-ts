@@ -1,41 +1,15 @@
-import { WalletContextState } from "@solana/wallet-adapter-react";
+import { SolanaJSONRPCError } from "@solana/web3.js";
 
-import { MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { FEE_MARGIN, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { TransactionOptions, WalletToken, WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { TransactionConfigMap, TransactionOptions } from "@mrgnlabs/mrgn-common";
+import { toastManager, MultiStepToastController } from "@mrgnlabs/mrgn-toasts";
+import { MarginfiClient, ProcessTransactionsClientOpts, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
+import { ActionType, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state"; 
 
-import { MultiStepToastHandle, showErrorToast } from "../toasts";
-import {
-  MarginfiActionParams,
-  LstActionParams,
-  ActionTxns,
-  RepayWithCollatProps,
-  LoopingProps,
-  TradeActionTxns,
-  ClosePositionActionTxns,
-  DepositSwapActionTxns,
-  RepayProps,
-  RepayActionTxns,
-} from "./types";
-import { WalletContextStateOverride } from "../wallet";
-import {
-  deposit,
-  repay,
-  borrow,
-  withdraw,
-  looping,
-  trade,
-  repayWithCollat,
-  createAccountAndDeposit,
-  createAccount,
-  mintLstNative,
-  mintLstToken,
-  mintLstStakeToStake,
-  closePosition,
-  depositSwap,
-  repayV2,
-} from "./individualFlows";
+import { ActionTxns, } from "./types";
+import { composeExplorerUrl } from "./helpers";
 import { STATIC_SIMULATION_ERRORS } from "../errors";
+import { captureSentryException } from "../sentry.utils";
+import { extractErrorString } from "../mrgnUtils";
 
 // ------------------------------------------------------------------//
 // Actions //
@@ -46,230 +20,407 @@ import { STATIC_SIMULATION_ERRORS } from "../errors";
  */
 // ------------------------------------------------------------------//
 
-export async function createAccountAction({
-  marginfiClient,
-  nativeSolBalance,
-  walletContextState,
-}: {
-  marginfiClient: MarginfiClient | null;
-  nativeSolBalance: number;
-  walletContextState?: WalletContextState | WalletContextStateOverride;
-}) {
-  if (nativeSolBalance < FEE_MARGIN) {
-    showErrorToast(STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS);
-    return;
-  }
-
-  const marginfiAccount = await createAccount({ mfiClient: marginfiClient, walletContextState });
-  return marginfiAccount;
-}
-
-export async function executeLendingAction(params: MarginfiActionParams) {
-  let txnSig: string | string[] | undefined;
-
-  if (params.nativeSolBalance < FEE_MARGIN) {
-    showErrorToast(STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS);
-    return;
-  }
-
-  if (params.actionType === ActionType.Deposit) {
-    if (params.marginfiAccount) {
-      txnSig = await deposit(params);
-    } else {
-      txnSig = await createAccountAndDeposit(params);
-    }
-    return txnSig;
-  }
-
-  if (!params.marginfiAccount) {
-    showErrorToast(STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED);
-    return;
-  }
-
-  if (params.actionType === ActionType.Repay) {
-    txnSig = await repay(params);
-  }
-
-  if (!params.marginfiClient) {
-    showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
-    return;
-  }
-
-  if (params.actionType === ActionType.Borrow) {
-    txnSig = await borrow(params);
-  }
-
-  if (params.actionType === ActionType.Withdraw) {
-    txnSig = await withdraw(params);
-  }
-
-  return txnSig;
-}
-
-export interface ExecuteRepayActionProps extends RepayProps {
-  marginfiClient: MarginfiClient;
-  actionTxns: RepayActionTxns;
-  processOpts: ProcessTransactionsClientOpts;
-  txOpts: TransactionOptions;
-}
-
-export async function executeRepayAction(params: ExecuteRepayActionProps) {
-  let txnSig: string[] | undefined;
-  txnSig = await repayV2(params);
-  return txnSig;
-}
-
-export interface ExecuteRepayWithCollatActionProps extends RepayWithCollatProps {
-  marginfiClient: MarginfiClient;
+interface ExecuteActionProps {
   actionTxns: ActionTxns;
-  processOpts: ProcessTransactionsClientOpts;
-  txOpts: TransactionOptions;
-
-  multiStepToast?: MultiStepToastHandle;
-}
-
-export async function executeRepayWithCollatAction(params: ExecuteRepayWithCollatActionProps) {
-  let txnSig: string[] | undefined;
-  txnSig = await repayWithCollat(params);
-  return txnSig;
-}
-
-export interface ExecuteLoopingActionProps extends LoopingProps {
+  attemptUuid: string;
   marginfiClient: MarginfiClient;
-  actionTxns: ActionTxns;
   processOpts: ProcessTransactionsClientOpts;
   txOpts: TransactionOptions;
-}
+  callbacks: {
+    captureEvent?: (event: string, properties?: Record<string, any>) => void;
+  };
+  
+} 
 
-export async function executeLoopingAction(params: ExecuteLoopingActionProps) {
-  let txnSig: string[] | undefined;
+function getSteps(actionTxns: ActionTxns, infoProps: Record<string, any>) {
+  return [
+    { label: "Signing Transaction" },
+    ...actionTxns.transactions.map((tx) => {
+      const config = TransactionConfigMap[tx.type];
 
-  if (!params.marginfiAccount) {
-    showErrorToast(STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED);
-    return;
-  }
+      const message = config.label(infoProps);
 
-  txnSig = await looping(params);
-
-  return txnSig;
-}
-
-export interface ExecuteTradeActionProps extends LoopingProps {
-  marginfiClient: MarginfiClient;
-  actionTxns: TradeActionTxns;
-  processOpts: ProcessTransactionsClientOpts;
-  txOpts: TransactionOptions;
-  tradeSide: "long" | "short";
-}
-
-export async function executeTradeAction(params: ExecuteTradeActionProps) {
-  let txnSig: string[] | undefined;
-
-  txnSig = await trade(params);
-
-  return txnSig;
-}
-
-export interface ExecuteDepositSwapActionProps extends MarginfiActionParams {
-  swapBank: ExtendedBankInfo | WalletToken | null;
-  actionTxns: DepositSwapActionTxns;
-}
-
-export async function executeDepositSwapAction(params: ExecuteDepositSwapActionProps) {
-  let txnSig: string[] | undefined;
-
-  txnSig = await depositSwap(params);
-
-  return txnSig;
-}
-
-export interface ExecuteClosePositionActionProps {
-  marginfiClient: MarginfiClient;
-  actionTxns: ClosePositionActionTxns;
-  processOpts: ProcessTransactionsClientOpts;
-  txOpts: TransactionOptions;
-  multiStepToast: MultiStepToastHandle;
-}
-
-export async function executeClosePositionAction(params: ExecuteClosePositionActionProps) {
-  let txnSig: string[] | undefined;
-
-  txnSig = await closePosition(params);
-
-  return txnSig;
-}
-
-export async function executeLstAction({
-  actionMode,
-  marginfiClient,
-  amount,
-  connection,
-  wallet,
-  lstData,
-  bank,
-  nativeSolBalance,
-  selectedStakingAccount,
-  quoteResponseMeta,
-  priorityFee,
-  theme = "dark",
-}: LstActionParams) {
-  let txnSig: string | undefined;
-
-  if (nativeSolBalance < FEE_MARGIN) {
-    showErrorToast(STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS);
-    return;
-  }
-
-  if (!wallet.publicKey) {
-    showErrorToast("Wallet not connected.");
-    return;
-  }
-
-  if (!selectedStakingAccount && !bank) {
-    showErrorToast("No token selected.");
-    return;
-  }
-
-  if (actionMode === ActionType.MintLST) {
-    // Stake account selected
-    if (selectedStakingAccount) {
-      txnSig = await mintLstStakeToStake({
-        marginfiClient,
-        priorityFee,
-        connection,
-        selectedStakingAccount,
-        wallet,
-        lstData,
-        theme,
-      });
-    }
-
-    if (bank) {
-      if (bank.info.state.mint.equals(WSOL_MINT)) {
-        // SOL selected
-        txnSig = await mintLstNative({ marginfiClient, bank, amount, priorityFee, connection, wallet, lstData, theme });
-      } else {
-        // token selected
-        txnSig = await mintLstToken({ bank, amount, priorityFee, connection, wallet, quoteResponseMeta, theme });
+      if (config.fallback && message === config.fallback) {
+        console.warn(`[getSteps] Missing required fields for transaction type ${tx.type}`);
       }
-    }
-    return txnSig;
-  } else if (actionMode === ActionType.UnstakeLST) {
-    if (bank) {
-      txnSig = await mintLstToken({
-        bank,
-        amount,
-        priorityFee,
-        connection,
-        wallet,
-        quoteResponseMeta,
-        isUnstake: true,
-        theme,
-      });
-      return txnSig;
-    }
+
+      return { label: message };
+    }),
+  ];
+}
+
+
+async function executeActionWrapper(
+  action: (
+    txns: ActionTxns,
+    onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void
+  ) => Promise<string >,
+  steps: { label: string }[],
+  actionName: string,
+  failedTxns: ActionTxns,
+  existingToast?: MultiStepToastController
+) {
+  const toast = existingToast || toastManager.createMultiStepToast(`${actionName}`, steps);
+  if (!existingToast) {
+    toast.start();
   } else {
-    throw new Error("Action not implemented");
-    // Sentry.captureException({ message: "Action not implemented" });
+    toast.resetAndStart();
+  }
+
+  try {
+    const txnSig = await action(failedTxns, (stepsToAdvance, explorerUrl, signature) => {
+      toast.successAndNext(stepsToAdvance ?? 1, explorerUrl, signature);
+    });
+    toast.success(composeExplorerUrl(txnSig), txnSig);
+    return txnSig;
+  } catch (error) {
+    if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {
+      captureSentryException(error, JSON.stringify(error), { action: actionName })
+    }
+
+    if (error instanceof ProcessTransactionError) {
+      const message = extractErrorString(error);
+
+      if (error.failedTxs && failedTxns) {
+        const updatedFailedTxns = {
+          ...failedTxns,
+          transactions: error.failedTxs,
+        };
+        toast.setFailed(message, async () => {
+          await executeActionWrapper(action, steps, actionName, updatedFailedTxns, toast);
+        });
+      } else {
+        toast.setFailed(message);
+      }
+    } else if (error instanceof SolanaJSONRPCError) {
+      toast.setFailed(error.message);
+    } else {
+      const message = extractErrorString(error);
+      toast.setFailed(message ?? JSON.stringify(error));
+    }
+  }
+}
+
+
+
+
+export interface ExecuteDepositSwapActionProps extends ExecuteActionProps {
+  infoProps: {
+    depositToken: string;
+    swapToken: string;
+    depositAmount: string;
+    swapAmount: string;
+  };
+}
+
+export async function ExecuteDepositSwapAction(props: ExecuteDepositSwapActionProps) {
+
+  const steps = getSteps(props.actionTxns, {
+    amount: props.infoProps.depositAmount,
+    token: props.infoProps.depositToken,
+    originToken: props.infoProps.swapToken,
+    destinationToken: props.infoProps.depositToken,
+    originAmount: props.infoProps.swapAmount,
+    destinationAmount: props.infoProps.depositAmount, 
+  });
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_deposit_swap_initiate", { uuid: props.attemptUuid, ...props.infoProps }); 
+
+  const action = async (txns: ActionTxns, onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void) => {
+    const actionResponse = await props.marginfiClient.processTransactions(
+      txns.transactions,
+      {
+        ...props.processOpts,
+        callback: (index, success, sig, stepsToAdvance) => {
+          success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig); // TODO: add stepsToAdvance & explorerUrl to toast handler. !! DOES NOT WORK with bundles, need to implement stepsToAdvance
+        },
+      },
+      props.txOpts
+    );
+
+    return actionResponse[actionResponse.length - 1];
+  };
+
+  await executeActionWrapper(action, steps, "Deposit", props.actionTxns);
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_deposit_swap", { uuid: props.attemptUuid, ...props.infoProps });
+} // TODO: this does not handle create account. We should handle this. 
+
+export interface ExecuteLendingActionProps extends ExecuteActionProps {
+  nativeSolBalance: number;
+  actionType: ActionType;
+  infoProps: {
+    amount: string;
+    token: string;
+  };
+}
+
+
+export async function ExecuteLendingAction(props: ExecuteLendingActionProps) {
+
+  console.log("props", props);
+
+  if (props.nativeSolBalance < FEE_MARGIN) {
+
+    toastManager.showErrorToast(STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS); // TODO: fix
+    return;
+  } // TODO: can move this to wrapper level? Should we always check this? 
+
+  const steps = getSteps(props.actionTxns, {
+    amount: props.infoProps.amount,
+    token: props.infoProps.token,
+  });
+
+  console.log("steps", steps);
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_lending_initiate", { uuid: props.attemptUuid, ...props.infoProps }); 
+
+ const action = async (txns: ActionTxns, onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void) => {
+  const actionResponse = await props.marginfiClient.processTransactions(
+    txns.transactions,
+    {
+      ...props.processOpts,
+      callback: (index, success, sig, stepsToAdvance) => {
+        success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+      },
+    },
+    props.txOpts
+  );
+
+  return actionResponse[actionResponse.length - 1];
+};
+
+await executeActionWrapper(action, steps, props.actionType, props.actionTxns);
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_lending", { uuid: props.attemptUuid, ...props.infoProps });
+  
+  
+}
+
+export interface ExecuteLoopActionProps extends ExecuteActionProps {
+  infoProps: {
+    depositAmount: string;
+    depositToken: string;
+    borrowAmount: string;
+    borrowToken: string;
+  };
+}
+
+
+export async function ExecuteLoopAction(props: ExecuteLoopActionProps) {
+
+  const steps = getSteps(props.actionTxns, {
+    depositAmount: props.infoProps.depositAmount,
+    depositToken: props.infoProps.depositToken,
+    borrowAmount: props.infoProps.borrowAmount,
+    borrowToken: props.infoProps.borrowToken,
+  });
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_looping_initiate", { uuid: props.attemptUuid, ...props.infoProps }); 
+
+  const action = async (txns: ActionTxns, onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void) => {
+    const actionResponse = await props.marginfiClient.processTransactions(
+      txns.transactions,
+      {
+        ...props.processOpts,
+        callback: (index, success, sig, stepsToAdvance) => {
+          success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+        },
+      },
+      props.txOpts
+    );
+
+    return actionResponse[actionResponse.length - 1];
+  };
+
+  await executeActionWrapper(action, steps, "Looping", props.actionTxns);
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_looping", { uuid: props.attemptUuid, ...props.infoProps });
+}
+
+export interface ExecuteStakeActionProps extends ExecuteActionProps {
+  infoProps: {
+    amount: string;
+    token: string;
+    actionType: ActionType;
+  };
+}
+
+
+export async function ExecuteStakeAction(props: ExecuteStakeActionProps) {
+
+  const steps = getSteps(props.actionTxns, {
+    amount: props.infoProps.amount,
+    token: props.infoProps.token,
+  });
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent(`user_${props.infoProps.actionType}_initiate`, { uuid: props.attemptUuid, ...props.infoProps }); 
+
+  const action = async (txns: ActionTxns, onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void) => {
+    const actionResponse = await props.marginfiClient.processTransactions(
+      txns.transactions,
+      {
+        ...props.processOpts,
+        callback: (index, success, sig, stepsToAdvance) => {
+          success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+        },
+      },
+      props.txOpts
+    );
+
+    return actionResponse[actionResponse.length - 1];
+  };
+
+  await executeActionWrapper(action, steps, props.infoProps.actionType === ActionType.MintLST ? "Staking" : "Unstaking", props.actionTxns);
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent(`user_${props.infoProps.actionType}`, { uuid: props.attemptUuid, ...props.infoProps });
+} 
+
+export interface ExecuteRepayActionProps extends ExecuteActionProps {
+  actionType: ActionType;
+  infoProps: {
+    borrowAmount: string;
+    borrowToken: string;
+    depositAmount: string;
+    depositToken: string;
+  } 
+}
+
+
+export async function ExecuteRepayAction(props: ExecuteRepayActionProps) {
+
+  const steps = getSteps(props.actionTxns, {
+    borrowAmount: props.infoProps.borrowAmount,
+    borrowToken: props.infoProps.borrowToken,
+    depositAmount: props.infoProps.depositAmount,
+    depositToken: props.infoProps.depositToken,
+  });
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent(`user_${props.actionType}_initiate`, { uuid: props.attemptUuid, ...props.infoProps }); 
+
+  const action = async (txns: ActionTxns, onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void) => {
+    const actionResponse = await props.marginfiClient.processTransactions(
+      txns.transactions,
+      {
+        ...props.processOpts,
+        callback: (index, success, sig, stepsToAdvance) => {
+          success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+        },
+      },
+      props.txOpts
+    );
+
+    return actionResponse[actionResponse.length - 1];
+  };
+
+  await executeActionWrapper(action, steps, props.actionType, props.actionTxns);
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent(`user_${props.actionType}`, { uuid: props.attemptUuid, ...props.infoProps });
+}
+
+
+export interface ExecuteTradeActionProps extends ExecuteActionProps {
+  infoProps: {
+    depositAmount: string;
+    depositToken: string;
+    borrowAmount: string;
+    borrowToken: string;
+    tradeSide: "long" | "short";
+  }
+}
+
+export async function ExecuteTradeAction(props: ExecuteTradeActionProps) {
+
+  const steps = getSteps(props.actionTxns, {
+    depositAmount: props.infoProps.depositAmount,
+    depositToken: props.infoProps.depositToken,
+    borrowAmount: props.infoProps.borrowAmount,
+    borrowToken: props.infoProps.borrowToken,
+    tradeSide: props.infoProps.tradeSide,
+  });
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_trade_initiate", { uuid: props.attemptUuid, ...props.infoProps }); 
+
+  const action = async (txns: ActionTxns, onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void) => {
+    const actionResponse = await props.marginfiClient.processTransactions(
+      txns.transactions,
+      {
+        ...props.processOpts,
+        callback: (index, success, sig, stepsToAdvance) => {
+          success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+        },
+      },
+      props.txOpts
+    );
+
+    return actionResponse[actionResponse.length - 1];
+  };
+
+  await executeActionWrapper(action, steps, props.infoProps.tradeSide === "long" ? "Longing" : "Shorting", props.actionTxns);
+
+  props.callbacks.captureEvent && props.callbacks.captureEvent("user_trade", { uuid: props.attemptUuid, ...props.infoProps });
+}
+
+export interface ExecuteClosePositionActionProps extends ExecuteActionProps {
+  infoProps: {
+    token: string;
+    tokenSize: string;
+    quoteSize: string;
+  };
+  multiStepToast: MultiStepToastController;
+}
+export async function ExecuteClosePositionAction(props: ExecuteClosePositionActionProps) {
+  const { multiStepToast } = props;
+
+  multiStepToast.resume();
+
+  props.callbacks.captureEvent &&
+    props.callbacks.captureEvent("user_close_position_initiate", {
+      uuid: props.attemptUuid,
+      ...props.infoProps,
+    });
+
+  const action = async (
+    txns: ActionTxns,
+    onSuccessAndNext: (stepsToAdvance?: number, explorerUrl?: string, signature?: string) => void
+  ) => {
+    const actionResponse = await props.marginfiClient.processTransactions(
+      txns.transactions,
+      {
+        ...props.processOpts,
+        callback: (index, success, sig, stepsToAdvance) => {
+          if (success) {
+            onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+          }
+        },
+      },
+      props.txOpts
+    );
+
+    return actionResponse[actionResponse.length - 1];
+  };
+
+  try {
+    const txnSig = await action(props.actionTxns, (stepsToAdvance, explorerUrl, signature) => {
+      multiStepToast.successAndNext(stepsToAdvance, explorerUrl, signature);
+    });
+
+    multiStepToast.success(composeExplorerUrl(txnSig), txnSig);
+
+    props.callbacks.captureEvent &&
+      props.callbacks.captureEvent("user_close_position", { uuid: props.attemptUuid, ...props.infoProps });
+
+    return txnSig;
+  } catch (error) {
+    console.error("ExecuteClosePositionAction error:", error);
+
+    const message = extractErrorString(error);
+    
+    multiStepToast.setFailed(message, async () => {
+      // When retry is clicked, execute the function again.
+      await ExecuteClosePositionAction(props);
+    });
+
+    captureSentryException(error, JSON.stringify(error), { action: "Close Position" });
   }
 }

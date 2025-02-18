@@ -1,8 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
 import {
-  IndividualFlowError,
-  executeTradeAction,
-  ExecuteTradeActionProps,
   CalculateLoopingProps,
   ActionMessageType,
   calculateLoopingParams,
@@ -11,11 +7,9 @@ import {
   STATIC_SIMULATION_ERRORS,
   deserializeInstruction,
   getAdressLookupTableAccounts,
-  MultiStepToastHandle,
   CalculateTradingProps,
 } from "@mrgnlabs/mrgn-utils";
 
-import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
 import { Connection, Keypair, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { BalanceRaw, MarginfiAccount, MarginfiAccountRaw, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import BN from "bn.js";
@@ -30,90 +24,6 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
-import { ArenaPoolV2Extended } from "~/types/trade-store.types";
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { PreviousTxn } from "~/types";
-import { JupiterOptions } from "~/components";
-
-interface ExecuteTradeActionsProps extends ExecuteActionsCallbackProps {
-  props: ExecuteTradeActionProps;
-}
-
-export const initiateTradeAction = async (
-  params: ExecuteTradeActionProps,
-  callbacks: {
-    captureEvent?: (event: string, properties?: Record<string, any>) => void;
-    handleOnComplete: (txnSigs: string[]) => void;
-    setIsLoading: (isLoading: boolean) => void;
-    setAmountRaw: (amountRaw: string) => void;
-    retryCallback: (txs: TradeActionTxns, toast: MultiStepToastHandle) => void;
-  }
-) => {
-  const action = async (params: ExecuteTradeActionProps) => {
-    await handleExecuteTradeAction({
-      props: params,
-      captureEvent: (event, properties) => {
-        callbacks.captureEvent && callbacks.captureEvent(event, properties);
-      },
-      setIsComplete: callbacks.handleOnComplete,
-      setError: (error: IndividualFlowError) => {
-        const toast = error.multiStepToast as MultiStepToastHandle;
-        if (!toast) {
-          return;
-        }
-        const txs = error.actionTxns as TradeActionTxns;
-        let retry = undefined;
-        if (error.retry && toast && txs) {
-          retry = () => callbacks.retryCallback(txs, toast);
-        }
-        toast.setFailed(error.message, retry);
-        callbacks.setIsLoading(false);
-      },
-      setIsLoading: (isLoading) => callbacks.setIsLoading(isLoading),
-    });
-  };
-  await action(params);
-  callbacks.setAmountRaw("");
-};
-
-const handleExecuteTradeAction = async ({
-  props,
-  captureEvent,
-  setIsLoading,
-  setIsComplete,
-  setError,
-}: ExecuteTradeActionsProps) => {
-  try {
-    setIsLoading(true);
-    const attemptUuid = uuidv4();
-    captureEvent(`user_trade_initiate`, {
-      uuid: attemptUuid,
-      tokenSymbol: props.borrowBank.meta.tokenSymbol,
-      tokenName: props.borrowBank.meta.tokenName,
-      amount: props.depositAmount,
-      priorityFee: props.processOpts?.priorityFeeMicro ?? 0,
-    });
-
-    const txnSig = await executeTradeAction(props);
-
-    setIsLoading(false);
-
-    if (txnSig) {
-      setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
-      captureEvent(`user_trade`, {
-        uuid: attemptUuid,
-        tokenSymbol: props.borrowBank.meta.tokenSymbol,
-        tokenName: props.borrowBank.meta.tokenName,
-        amount: props.depositAmount,
-        txn: txnSig!,
-        priorityFee: props.processOpts?.priorityFeeMicro ?? 0,
-      });
-    }
-  } catch (error) {
-    setError(error as IndividualFlowError);
-  }
-};
-
 export async function generateTradeTx(props: CalculateTradingProps): Promise<TradeActionTxns | ActionMessageType> {
   let swapTx: { quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType } | undefined;
 

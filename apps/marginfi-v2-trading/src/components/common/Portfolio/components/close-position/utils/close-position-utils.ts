@@ -1,6 +1,5 @@
 import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
 import { Connection, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
-import { v4 as uuidv4 } from "uuid";
 
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -16,17 +15,13 @@ import {
   calculateMaxRepayableCollateralLegacy,
   ClosePositionActionTxns,
   deserializeInstruction,
-  executeClosePositionAction,
-  ExecuteClosePositionActionProps,
   extractErrorString,
   getAdressLookupTableAccounts,
   getSwapQuoteWithRetry,
-  IndividualFlowError,
   STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
 import { calculateClosePositions } from "~/utils";
-import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
-import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
+import { GroupStatus } from "~/types/trade-store.types";
 import { JupiterOptions } from "~/components";
 
 /**
@@ -168,47 +163,6 @@ const fetchClosePositionTxns = async (props: {
   }
 };
 
-interface ExecuteClosePositionActionsProps extends ExecuteActionsCallbackProps {
-  params: ExecuteClosePositionActionProps;
-  arenaPool: ArenaPoolV2Extended;
-}
-
-export const handleExecuteClosePositionAction = async ({
-  params,
-  arenaPool,
-  captureEvent,
-  setIsLoading,
-  setIsComplete,
-  setError,
-}: ExecuteClosePositionActionsProps) => {
-  try {
-    setIsLoading(true);
-    const attemptUuid = uuidv4();
-    captureEvent(`user_close_position_initiate`, {
-      uuid: attemptUuid,
-      token: arenaPool.tokenBank.meta.tokenSymbol,
-      tokenSize: arenaPool.tokenBank.isActive ? arenaPool.tokenBank.position.amount : 0,
-      quoteSize: arenaPool.quoteBank.isActive ? arenaPool.quoteBank.position.amount : 0,
-    });
-
-    const txnSig = await executeClosePositionAction(params);
-
-    setIsLoading(false);
-
-    if (txnSig) {
-      setIsComplete(txnSig ?? "");
-      captureEvent(`user_close_position`, {
-        uuid: attemptUuid,
-        txn: txnSig!,
-        token: arenaPool.tokenBank.meta.tokenSymbol,
-        tokenSize: arenaPool.tokenBank.isActive ? arenaPool.tokenBank.position.amount : 0,
-        quoteSize: arenaPool.quoteBank.isActive ? arenaPool.quoteBank.position.amount : 0,
-      });
-    }
-  } catch (error) {
-    setError(error as IndividualFlowError);
-  }
-};
 
 /**
  * Creates a transaction to close a marginfi account

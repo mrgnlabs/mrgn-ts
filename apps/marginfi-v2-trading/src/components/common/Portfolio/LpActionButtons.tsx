@@ -52,7 +52,6 @@ export const LpActionButtons = ({ size = "sm", activePool }: LpActionButtonsProp
       selectedAccount={wrappedAccount}
       connected={connected}
       accountSummaryArg={accountSummary ?? undefined}
-      showActionComplete={false}
       hidePoolStats={["type"]}
       setDisplaySettings={setDisplaySettings}
     >
