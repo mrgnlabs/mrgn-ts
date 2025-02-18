@@ -7,7 +7,6 @@ import { useRouter } from "next/router";
 import { WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
-import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { registerMoonGateWallet } from "@moongate/moongate-adapter";
 
@@ -158,8 +157,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                       <AuthDialog
                         mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
                       />
-                      <ToastContainer position="bottom-left" theme="dark" />
-                      {/* TODO: remove above toast container */}
+
                       <ToastProvider />
                       {globalActionBoxProps.isOpen && <GlobalActionBoxPortal />}
                     </ActionBoxProvider>

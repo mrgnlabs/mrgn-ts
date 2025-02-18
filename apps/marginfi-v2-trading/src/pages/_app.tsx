@@ -8,7 +8,6 @@ import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
 import { WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
-import { ToastContainer } from "react-toastify";
 import { Analytics } from "@vercel/analytics/react";
 import { Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 import { ActionProvider } from "~/components/action-box-v2";
@@ -122,7 +121,6 @@ export default function MrgnApp({ Component, pageProps }: AppProps & StaticArena
                       <Analytics />
 
                       <AuthDialog onboardingEnabled={false} />
-                      <ToastContainer position="bottom-left" theme="light" />
                       <ToastProvider theme="light" />
                     </div>
                   </ActionProvider>
