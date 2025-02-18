@@ -2,7 +2,7 @@ import React from "react";
 
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
 import { clearAccountCache, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
-import { getMaybeSquadsOptions, MultiStepToastHandle, capture } from "@mrgnlabs/mrgn-utils";
+import { getMaybeSquadsOptions, capture } from "@mrgnlabs/mrgn-utils";
 import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle } from "@tabler/icons-react";
 import { Connection } from "@solana/web3.js";
 
@@ -18,6 +18,7 @@ import { Badge } from "~/components/ui/badge";
 import { Input } from "~/components/ui/input";
 import { Checkbox } from "~/components/ui/checkbox";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 enum WalletAuthAccountsState {
   DEFAULT = "DEFAULT",
@@ -120,7 +121,7 @@ export const WalletAuthAccounts = ({
 
     editAccountNameRef.current?.blur();
 
-    const multiStepToast = new MultiStepToastHandle("Edit account", [{ label: "Updating account label" }]);
+    const multiStepToast = toastManager.createMultiStepToast("Edit account", [{ label: "Updating account label" }]);
     multiStepToast.start();
 
     const blockhashInfo = await connection.getLatestBlockhash();
@@ -139,7 +140,7 @@ export const WalletAuthAccounts = ({
       return;
     }
 
-    multiStepToast.setSuccessAndNext();
+    multiStepToast.successAndNext();
     setIsSubmitting(false);
     setEditingAccount(null);
     setEditingAccountName("");
@@ -171,7 +172,7 @@ export const WalletAuthAccounts = ({
 
     newAccountNameRef.current?.blur();
 
-    const multiStepToast = new MultiStepToastHandle("Create new account", [
+    const multiStepToast = toastManager.createMultiStepToast("Create new account", [
       { label: "Creating account" },
       { label: "Updating account label" },
     ]);
@@ -189,7 +190,7 @@ export const WalletAuthAccounts = ({
       }
 
       clearAccountCache(mfiClient.provider.publicKey);
-      multiStepToast.setSuccessAndNext();
+      multiStepToast.successAndNext();
 
       const blockhashInfo = await connection.getLatestBlockhash();
 
@@ -207,7 +208,7 @@ export const WalletAuthAccounts = ({
         return;
       }
 
-      multiStepToast.setSuccessAndNext();
+      multiStepToast.successAndNext();
       setIsSubmitting(false);
       setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
       await fetchAccountLabels?.(marginfiAccounts);
