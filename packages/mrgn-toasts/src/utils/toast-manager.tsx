@@ -3,7 +3,7 @@ import { WarningToast } from "../components/toasts/warning-toast";
 import { ErrorToast } from "../components/toasts/error-toast";
 import { MultiStepToast } from "../components/toasts/multi-step-toast/multi-step-toast";
 
-export enum ToastStatusV2 {
+export enum ToastStatus {
   TODO = "todo",
   PENDING = "pending",
   SUCCESS = "success",
@@ -14,7 +14,7 @@ export enum ToastStatusV2 {
 
 export interface MultiStepToastStep {
   label: string;
-  status: ToastStatusV2;
+  status: ToastStatus;
   message?: string;
   signature?: string;
   explorerUrl?: string;
@@ -59,7 +59,7 @@ class ToastManager {
 
     const stepsWithStatus: MultiStepToastStep[] = steps.map((step, index) => ({
       ...step,
-      status: index === 0 ? ToastStatusV2.PENDING : ToastStatusV2.TODO,
+      status: index === 0 ? ToastStatus.PENDING : ToastStatus.TODO,
     }));
 
     toast(<MultiStepToast toastId={toastId} title={title} steps={stepsWithStatus} />, {
@@ -82,12 +82,12 @@ class ToastManager {
       successAndNext: (stepsToAdvance: number | undefined , explorerUrl?: string, signature?: string) => {
   if (!toastId) return;
 
-  const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatusV2.PENDING);
+  const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.PENDING);
   if (currentIndex === -1) return;
 
   stepsWithStatus[currentIndex] = {
     ...stepsWithStatus[currentIndex],
-    status: ToastStatusV2.SUCCESS,
+    status: ToastStatus.SUCCESS,
     explorerUrl,
     signature,
   };
@@ -97,7 +97,7 @@ class ToastManager {
 
   if (nextStepIndex >= stepsWithStatus.length) {
     for (let i = currentIndex + 1; i < stepsWithStatus.length; i++) {
-      stepsWithStatus[i].status = ToastStatusV2.SUCCESS;
+      stepsWithStatus[i].status = ToastStatus.SUCCESS;
     }
 
     updateToast();
@@ -106,7 +106,7 @@ class ToastManager {
   } else {
     for (let i = currentIndex + 1; i <= nextStepIndex; i++) {
       if (stepsWithStatus[i]) {
-        stepsWithStatus[i].status = ToastStatusV2.PENDING;
+        stepsWithStatus[i].status = ToastStatus.PENDING;
       }
     }
 
@@ -116,7 +116,7 @@ class ToastManager {
 
       success: (explorerUrl?: string, signature?: string) => {
         stepsWithStatus.forEach((s, index) => {
-          s.status = ToastStatusV2.SUCCESS;
+          s.status = ToastStatus.SUCCESS;
           if (index === stepsWithStatus.length - 1) {
             s.explorerUrl = explorerUrl;
             s.signature = signature;
@@ -129,12 +129,12 @@ class ToastManager {
       },
 
       setFailed: (message?: string, onRetry?: () => void) => {
-        const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatusV2.PENDING);
+        const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.PENDING);
         if (currentIndex === -1) return;
 
         stepsWithStatus[currentIndex] = {
           ...stepsWithStatus[currentIndex],
-          status: ToastStatusV2.ERROR,
+          status: ToastStatus.ERROR,
           message,
           onRetry,
         };
@@ -143,30 +143,30 @@ class ToastManager {
       },
 
       pause: () => {
-        const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatusV2.PENDING);
+        const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.PENDING);
         if (currentIndex !== -1) {
-          stepsWithStatus[currentIndex].status = ToastStatusV2.PAUSED;
+          stepsWithStatus[currentIndex].status = ToastStatus.PAUSED;
         }
 
         updateToast();
       },
 
       resume: () => {
-        const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatusV2.PAUSED);
+        const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.PAUSED);
         if (currentIndex !== -1) {
-          stepsWithStatus[currentIndex].status = ToastStatusV2.PENDING;
+          stepsWithStatus[currentIndex].status = ToastStatus.PENDING;
         }
 
         updateToast();
       },
 
       resetAndStart: () => {
-        const failedIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatusV2.ERROR);
+        const failedIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.ERROR);
 
         if (failedIndex !== -1) {
-          stepsWithStatus[failedIndex].status = ToastStatusV2.PENDING;
+          stepsWithStatus[failedIndex].status = ToastStatus.PENDING;
           stepsWithStatus.slice(failedIndex + 1).forEach((step) => {
-            step.status = ToastStatusV2.TODO;
+            step.status = ToastStatus.TODO;
           });
         }
 

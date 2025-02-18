@@ -1,6 +1,6 @@
 import { IconLoader2, IconCheck, IconExternalLink, IconX } from "@tabler/icons-react";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { MultiStepToastStep, ToastStatusV2 } from "../../../utils/toast-manager"; // TODO: fix this
+import { MultiStepToastStep, ToastStatus } from "~/utils";
 
 interface MultiStepToastProps {
   toastId: string;
@@ -9,7 +9,7 @@ interface MultiStepToastProps {
 }
 
 export function MultiStepToast({ title, steps }: MultiStepToastProps) {
-  const lastFailedIndex = steps.map((s) => s.status).lastIndexOf(ToastStatusV2.ERROR);
+  const lastFailedIndex = steps.map((s) => s.status).lastIndexOf(ToastStatus.ERROR);
 
   return (
     <div className="w-full h-full rounded-md z-50 md:min-w-[340px]">
