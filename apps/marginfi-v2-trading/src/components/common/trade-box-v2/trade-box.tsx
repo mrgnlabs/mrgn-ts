@@ -7,8 +7,8 @@ import {
   formatAmount,
   showErrorToast,
   useConnection,
-  ExecuteTradeActionPropsV2,
-  ExecuteTradeActionV2,
+  ExecuteTradeActionProps,
+  ExecuteTradeAction,
 } from "@mrgnlabs/mrgn-utils";
 import { IconSettings } from "@tabler/icons-react";
 
@@ -90,16 +90,12 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     platformFeeBps,
     broadcastType,
     priorityFees,
-    setIsActionComplete,
-    setPreviousTxn,
     setDisplaySettings,
   ] = useUiStore((state) => [
     state.jupiterOptions,
     state.platformFeeBps,
     state.broadcastType,
     state.priorityFees,
-    state.setIsActionComplete,
-    state.setPreviousTxn,
     state.setDisplaySettings,
   ]);
   const [setIsWalletOpen] = useWalletStore((state) => [state.setIsWalletOpen]);
@@ -267,7 +263,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   const handleTradeAction = useCallback(() => {
     if (!depositBank || !actionTxns || !borrowBank || !client) return 
 
-    const props = {
+    const props : ExecuteTradeActionProps = {
       actionTxns,
       attemptUuid: uuidv4(),
       marginfiClient: client,
@@ -283,9 +279,9 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
         borrowToken: borrowBank.meta.tokenSymbol,
         tradeSide: tradeState,
       }
-    } as ExecuteTradeActionPropsV2; // TODO: validate values here
+    } ; // TODO: validate values here
 
-    ExecuteTradeActionV2(props);
+    ExecuteTradeAction(props);
 
     setAmountRaw("");
   }, [depositBank, actionTxns, borrowBank, client, priorityFees, broadcastType, amountRaw, tradeState, setAmountRaw])

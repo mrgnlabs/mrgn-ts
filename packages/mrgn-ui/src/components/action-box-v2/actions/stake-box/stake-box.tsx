@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { v4 as uuidv4 } from "uuid";
 
 import { WalletContextState } from "@solana/wallet-adapter-react";
@@ -12,27 +12,21 @@ import {
   PreviousTxn,
   ActionMessageType,
   checkStakeActionAvailable,
-  MultiStepToastHandle,
-  ActionTxns,
-  IndividualFlowError,
   usePrevious,
-  ExecuteStakeActionPropsV2,
-  ExecuteStakeActionV2,
+  ExecuteStakeActionProps,
+  ExecuteStakeAction,
 } from "@mrgnlabs/mrgn-utils";
 
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ActionMessage } from "~/components";
+import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton , ActionSimulationStatus} from "~/components/action-box-v2/components";
 
 import { useStakeBoxStore } from "./store";
 import { AmountPreview } from "./components/amount-preview";
 import { StatsPreview } from "./components/stats-preview";
 import { useStakeSimulation } from "./hooks";
-import { useActionBoxStore } from "../../store";
-import { ExecuteLstActionParams, handleExecuteLstAction } from "./utils/stake-action.utils";
 import { ActionInput } from "./components/action-input";
-import { ActionSimulationStatus } from "~/components/action-box-v2/components";
-import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
 
 import { useActionContext, useStakeBoxContext } from "../../contexts";
 import { SimulationStatus } from "../../utils";
@@ -131,12 +125,6 @@ export const StakeBox = ({
     jupiterOptions: null,
   };
 
-  const [setIsSettingsDialogOpen, setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.setIsSettingsDialogOpen,
-    state.setPreviousTxn,
-    state.setIsActionComplete,
-  ]);
-
   const { lstData } = useStakeBoxContext()!;
 
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
@@ -228,7 +216,7 @@ export const StakeBox = ({
       return;
     }
 
-    const params: ExecuteStakeActionPropsV2 = {
+    const params: ExecuteStakeActionProps = {
       actionTxns,
       attemptUuid: uuidv4(),
       marginfiClient,
@@ -244,7 +232,7 @@ export const StakeBox = ({
       }, // TODO: update infoProps 
     }
 
-    ExecuteStakeActionV2(params)
+    ExecuteStakeAction(params)
 
     setAmountRaw("")
   }, [actionTxns, amount, captureEvent, marginfiClient, priorityFees, requestedActionType, selectedBank, setAmountRaw, transactionSettings])

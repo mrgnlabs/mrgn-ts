@@ -18,8 +18,8 @@ import { ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMessageType,
   checkLendActionAvailable,
-  ExecuteLendingActionPropsV2,
-  ExecuteLendingActionV2,
+  ExecuteLendingActionProps,
+  ExecuteLendingAction,
   PreviousTxn,
   usePrevious,
 } from "@mrgnlabs/mrgn-utils";
@@ -35,11 +35,10 @@ import { ActionSimulationStatus } from "../../components";
 import { Collateral, ActionInput, Preview, StakeAccountSwitcher } from "./components";
 import { SimulationStatus } from "../../utils";
 import { useLendSimulation } from "./hooks";
-import { useActionBoxStore } from "../../store";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
 import { PublicKey } from "@solana/web3.js";
-import { dynamicNumeralFormatter, nativeToUi } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 // error handling
 export type LendBoxProps = {
@@ -194,11 +193,6 @@ export const LendBox = ({
     );
   }, [accountSummaryArg, selectedAccount, banks]);
 
-  const [setPreviousTxn, setIsActionComplete] = useActionBoxStore((state) => [
-    state.setPreviousTxn,
-    state.setIsActionComplete,
-  ]);
-
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
     selectedBank,
@@ -300,7 +294,7 @@ export const LendBox = ({
 
     if (!selectedBank || !amount || !transactionSettings || !marginfiClient) return 
 
-    const props = {
+    const props: ExecuteLendingActionProps = {
       actionTxns,
       attemptUuid: uuidv4(),
       marginfiClient,
@@ -315,9 +309,9 @@ export const LendBox = ({
       },
       nativeSolBalance: nativeSolBalance,
       actionType: lendMode,
-    } as ExecuteLendingActionPropsV2;
+    } ;
 
-    ExecuteLendingActionV2(props);
+    ExecuteLendingAction(props);
 
     setAmountRaw("")
   }, [actionTxns, amount, captureEvent, lendMode, marginfiClient, nativeSolBalance, priorityFees, selectedBank, setAmountRaw, transactionSettings])

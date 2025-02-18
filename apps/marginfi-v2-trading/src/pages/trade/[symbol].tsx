@@ -12,7 +12,6 @@ import { PositionList } from "~/components/common/Portfolio";
 import { PoolTradeHeader } from "~/components/common/Pool/PoolTradeHeader";
 import { Loader } from "~/components/common/Loader";
 import { TradeBoxV2 } from "~/components/common/trade-box-v2";
-import { ArenaActionComplete } from "~/components/common/ActionComplete";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
 
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -37,7 +36,6 @@ export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
     state.fetchArenaGroups,
     state.setHydrationComplete,
   ]);
-  const [previousTxnUi] = useUiStore((state) => [state.previousTxn]);
   const [activePool, setActivePool] = React.useState<ArenaPoolV2 | null>(null);
 
   React.useEffect(() => {
@@ -93,7 +91,6 @@ export default function TradeSymbolPage({ initialData }: StaticArenaProps) {
           )}
         </div>
 
-        {initialized && previousTxnUi && <ArenaActionComplete />}
       </GeoBlockingWrapper>
     </>
   );

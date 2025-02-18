@@ -7,22 +7,16 @@ import {
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
-  ActiveBankInfo,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   PreviousTxn,
   ActionMessageType,
   showErrorToast,
-  ActionTxns,
-  MultiStepToastHandle,
-  IndividualFlowError,
   checkRepayActionAvailable,
   ExecuteRepayActionProps,
-  ExecuteRepayActionPropsV2,
-  ExecuteRepayActionV2,
+  ExecuteRepayAction,
 } from "@mrgnlabs/mrgn-utils";
-import { IconSettings } from "@tabler/icons-react";
 
 import {
   ActionBoxContentWrapper,
@@ -32,17 +26,17 @@ import {
 } from "~/components/action-box-v2/components";
 import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
 import { ActionMessage } from "~/components";
+import { CircularProgress } from "~/components/ui/circular-progress";
+import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
+import { TooltipProvider } from "~/components/ui/tooltip";
+
 import { ActionSimulationStatus } from "../../components";
 import { useRepayBoxStore } from "./store";
 import { SimulationStatus } from "../../utils";
 import { useActionBoxStore } from "../../store";
 import { useRepaySimulation } from "./hooks";
-import { CircularProgress } from "~/components/ui/circular-progress";
 import { ActionInput, Preview } from "./components";
 import { useActionContext } from "../../contexts";
-import { handleExecuteRepayAction } from "./utils/repay-action.utils";
-import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
-import { TooltipProvider } from "~/components/ui/tooltip";
 
 export type RepayBoxProps = {
   nativeSolBalance: number;
@@ -152,9 +146,7 @@ export const RepayBox = ({
     actionTxns?.lastValidBlockHeight
   );
 
-  const [setPreviousTxn, setIsActionComplete, platformFeeBps] = useActionBoxStore((state) => [
-    state.setPreviousTxn,
-    state.setIsActionComplete,
+  const [ platformFeeBps] = useActionBoxStore((state) => [
     state.platformFeeBps,
   ]);
 
@@ -273,13 +265,13 @@ export const RepayBox = ({
           return;
         }
 
-        const params: ExecuteRepayActionPropsV2 = {
-          actionTxns,
-          attemptUuid: uuidv4(),
-          marginfiClient,
-          processOpts: { ...priorityFees, broadcastType: transactionSettings.broadcastType },
-          txOpts: {},
-          callbacks: {
+    const params: ExecuteRepayActionProps = {
+      actionTxns,
+      attemptUuid: uuidv4(),
+      marginfiClient,
+      processOpts: { ...priorityFees, broadcastType: transactionSettings.broadcastType },
+      txOpts: {},
+      callbacks: {
             captureEvent: captureEvent,
           },
           actionType: actionMode,
@@ -291,10 +283,10 @@ export const RepayBox = ({
           } // TODO: check if these are correct
         }
 
-        ExecuteRepayActionV2(params)
+    ExecuteRepayAction(params);
 
-        setAmountRaw("")
-  }, [actionMode, actionTxns, amount, captureEvent, marginfiClient, priorityFees, repayAmount, selectedAccount, selectedBank, selectedSecondaryBank, setAmountRaw, transactionSettings])
+    setAmountRaw("");
+  }, [actionMode, actionTxns, amount, captureEvent, marginfiClient, priorityFees, repayAmount, selectedAccount, selectedBank, selectedSecondaryBank, setAmountRaw, transactionSettings]);
 
   return (
     <ActionBoxContentWrapper>

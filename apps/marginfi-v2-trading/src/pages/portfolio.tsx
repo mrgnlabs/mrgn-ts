@@ -15,7 +15,6 @@ import { useExtendedPools } from "~/hooks/useExtendedPools";
 import { GroupStatus } from "~/types/trade-store.types";
 import { GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
-import { ArenaActionComplete } from "~/components/common/ActionComplete";
 import { Skeleton } from "~/components/ui/skeleton";
 import { PnlBadge, PnlLabel } from "~/components/common/pnl-display";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
@@ -31,7 +30,6 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
     state.setHydrationComplete,
     state.positionsByGroupPk,
   ]);
-  const [previousTxn] = useUiStore((state) => [state.previousTxn]);
   const extendedPools = useExtendedPools();
 
   React.useEffect(() => {
@@ -185,7 +183,7 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
             </div>
           )}
         </div>
-        {poolsFetched && previousTxn && <ArenaActionComplete />}
+
       </GeoBlockingWrapper>
     </>
   );
