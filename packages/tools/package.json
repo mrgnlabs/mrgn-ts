@@ -32,12 +32,12 @@
     "tsx": "^4.19.2"
   },
   "devDependencies": {
+    "@mrgnlabs/tsconfig": "workspace:*",
     "@types/bn.js": "^5.1.0",
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.0.0",
     "big.js": "^6.2.1",
     "chai": "^4.3.4",
-    "prettier": "^2.6.2",
     "ts-node": "^10.9.1",
     "typescript": "^4.3.5",
     "@switchboard-xyz/on-demand": "^1.2.54"

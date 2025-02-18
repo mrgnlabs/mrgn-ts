@@ -81,7 +81,7 @@ export function formatTransactions(
 
   const flashloanIndex = getFlashloanIndex(transactionsArg);
   transactionsArg.forEach((tx) => {
-    if (!isV0Tx(tx)) {
+if (!isV0Tx(tx)) {
       tx.recentBlockhash = blockhash;
       tx.feePayer = feePayer;
     }
