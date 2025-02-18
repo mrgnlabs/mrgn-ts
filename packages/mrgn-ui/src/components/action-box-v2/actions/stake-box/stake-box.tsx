@@ -9,7 +9,6 @@ import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi
 import { dynamicNumeralFormatter, nativeToUi, NATIVE_MINT as SOL_MINT, uiToNative } from "@mrgnlabs/mrgn-common";
 import {
   LstData,
-  PreviousTxn,
   ActionMessageType,
   checkStakeActionAvailable,
   usePrevious,
@@ -46,7 +45,7 @@ export type StakeBoxProps = {
   lstData?: LstData | null;
 
   onConnect?: () => void;
-  onComplete?: (previousTxn: PreviousTxn) => void;
+  onComplete?: () => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
   setDisplaySettings?: (displaySettings: boolean) => void;
 };
@@ -215,7 +214,7 @@ export const StakeBox = ({
     if (!selectedBank || !amount || !marginfiClient || !transactionSettings || !actionTxns) {
       return;
     }
-    
+
     const params: ExecuteStakeActionProps = {
       actionTxns,
       attemptUuid: uuidv4(),
@@ -224,6 +223,7 @@ export const StakeBox = ({
       txOpts: {},
       callbacks: {
         captureEvent: captureEvent,
+        onComplete: onComplete,
       },
       infoProps: {
         swapAmount: dynamicNumeralFormatter(amount),
@@ -236,7 +236,7 @@ export const StakeBox = ({
     ExecuteStakeAction(params)
 
     setAmountRaw("")
-  }, [actionTxns, amount, captureEvent, marginfiClient, priorityFees, requestedActionType, selectedBank, setAmountRaw, transactionSettings])
+  }, [actionTxns, amount, captureEvent, marginfiClient, priorityFees, requestedActionType, selectedBank, setAmountRaw, transactionSettings, onComplete])
 
   React.useEffect(() => {
     fetchActionBoxState({ requestedLendType: requestedActionType, requestedBank });

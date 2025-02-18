@@ -10,7 +10,6 @@ import {
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
-  PreviousTxn,
   ActionMessageType,
   showErrorToast,
   checkRepayActionAvailable,
@@ -52,7 +51,7 @@ export type RepayBoxProps = {
 
   showAvailableCollateral?: boolean;
 
-  onComplete?: (previousTxn: PreviousTxn) => void;
+  onComplete?: () => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
   setDisplaySettings?: (displaySettings: boolean) => void;
 };
@@ -274,6 +273,7 @@ export const RepayBox = ({
       txOpts: {},
       callbacks: {
             captureEvent: captureEvent,
+            onComplete: onComplete,
           },
           actionType: actionMode,
           infoProps: {
@@ -287,7 +287,7 @@ export const RepayBox = ({
     ExecuteRepayAction(params);
 
     setAmountRaw("");
-  }, [actionMode, actionTxns, amount, captureEvent, marginfiClient, priorityFees, repayAmount, selectedAccount, selectedBank, selectedSecondaryBank, setAmountRaw, transactionSettings]);
+  }, [actionMode, actionTxns, amount, captureEvent, marginfiClient, priorityFees, repayAmount, selectedAccount, selectedBank, selectedSecondaryBank, setAmountRaw, transactionSettings, onComplete]);
 
   return (
     <ActionBoxContentWrapper>

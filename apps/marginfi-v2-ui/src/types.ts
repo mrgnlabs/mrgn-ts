@@ -2,7 +2,6 @@ import { CSSProperties } from "react";
 import { Root } from "react-dom/client";
 
 import { AddressLookupTableAccount, ComputeBudgetInstruction, PublicKey, TransactionError } from "@solana/web3.js";
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { QuoteResponseMeta } from "@mrgnlabs/mrgn-utils";
 import { SwapResult } from "@jup-ag/common";
 
@@ -258,17 +257,3 @@ export type MayanSwapInfo = {
   fromAmount: number;
 };
 
-export type PreviousTxn = {
-  type: ActionType;
-  bank: ActiveBankInfo;
-  amount: number;
-  txn: string;
-  lstQuote?: QuoteResponseMeta;
-  loopingOptions?: {
-    depositAmount: number;
-    depositBank: ActiveBankInfo;
-    borrowAmount: number;
-    borrowBank: ActiveBankInfo;
-    leverage: number;
-  };
-};

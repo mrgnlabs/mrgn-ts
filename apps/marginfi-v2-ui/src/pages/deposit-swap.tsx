@@ -10,6 +10,7 @@ import { useMrgnlendStore } from "~/store";
 import { PageHeading } from "~/components/common/PageHeading";
 import { Loader } from "~/components/ui/loader";
 import { useWallet } from "~/components/wallet-v2";
+import { WalletToken } from "@mrgnlabs/mrgn-common";
 
 export default function DepositSwapPage() {
   const [
@@ -21,6 +22,7 @@ export default function DepositSwapPage() {
     marginfiClient,
     updateWalletTokens,
     updateWalletToken,
+    fetchMrgnlendState,
   ] = useMrgnlendStore((state) => [
     state.walletTokens,
     state.initialized,
@@ -30,6 +32,7 @@ export default function DepositSwapPage() {
     state.marginfiClient,
     state.updateWalletTokens,
     state.updateWalletToken,
+    state.fetchMrgnlendState
   ]);
   const { connected, wallet } = useWallet();
   const { connection } = useConnection();
@@ -87,19 +90,21 @@ export default function DepositSwapPage() {
               captureEvent: (event, properties) => {
                 capture(event, properties);
               },
-              onComplete(previousTxn) {
+              onComplete(infoProps: {
+                walletToken?: WalletToken,
+              }) {
                 const connection = marginfiClient?.provider.connection;
                 if (
-                  previousTxn.txnType === "DEPOSIT_SWAP" &&
-                  previousTxn.depositSwapOptions.walletToken &&
+                  infoProps.walletToken &&
                   connection
                 ) {
                   updateWalletToken(
-                    previousTxn.depositSwapOptions.walletToken.address.toBase58(),
-                    previousTxn.depositSwapOptions.walletToken.ata.toBase58(),
+                    infoProps.walletToken.address.toBase58(),
+                    infoProps.walletToken.ata.toBase58(),
                     marginfiClient?.provider.connection
                   );
                 }
+                fetchMrgnlendState()
               },
             }}
           />

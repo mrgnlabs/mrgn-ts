@@ -15,7 +15,6 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import {
   ActionMessageType,
   checkLoopActionAvailable,
-  PreviousTxn,
   showErrorToast,
   cn,
   usePrevious,
@@ -57,7 +56,7 @@ export type LoopBoxProps = {
 
   isDialog?: boolean;
 
-  onComplete?: (previousTxn: PreviousTxn) => void;
+  onComplete?: () => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
   setDisplaySettings?: (displaySettings: boolean) => void;
 };
@@ -272,6 +271,7 @@ export const LoopBox = ({
       txOpts: {},
       callbacks: {
         captureEvent: captureEvent,
+        onComplete: onComplete,
       },
       infoProps: {
         depositAmount: dynamicNumeralFormatter(amount),
@@ -285,7 +285,7 @@ export const LoopBox = ({
     ExecuteLoopAction(params)
 
     setAmountRaw("")
-  }, [actionTxns, amount, captureEvent, marginfiClient, priorityFees, selectedBank, selectedSecondaryBank, setAmountRaw, transactionSettings, nativeSolBalance]) 
+  }, [actionTxns, amount, captureEvent, marginfiClient, priorityFees, selectedBank, selectedSecondaryBank, setAmountRaw, transactionSettings, nativeSolBalance, onComplete]) 
 
   React.useEffect(() => {
     if (marginfiClient) {

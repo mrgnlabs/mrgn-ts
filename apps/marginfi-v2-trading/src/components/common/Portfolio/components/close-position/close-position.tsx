@@ -23,7 +23,6 @@ import { usePositionsData } from "~/hooks/usePositionsData";
 
 import { ClosePositionDialog } from "./components/close-position-dialog";
 import {  simulateClosePosition } from "./utils/close-position-utils";
-import { PreviousTxn } from "~/types";
 import { MultiStepToastController, toastManager } from "@mrgnlabs/mrgn-toasts";
 
 interface ClosePositionProps {

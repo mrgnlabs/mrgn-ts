@@ -12,7 +12,6 @@ import {
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
-  PreviousTxn,
   checkDepositSwapActionAvailable,
   usePrevious,
   ExecuteDepositSwapActionProps,
@@ -58,7 +57,9 @@ export type DepositSwapBoxProps = {
   walletTokens: WalletToken[] | null;
   allBanks?: ExtendedBankInfo[];
 
-  onComplete?: (previousTxn: PreviousTxn) => void;
+  onComplete?: (infoProps: {
+    walletToken?: WalletToken,
+  }) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
   setDisplaySettings?: (displaySettings: boolean) => void;
 };
@@ -298,6 +299,11 @@ export const DepositSwapBox = ({
       txOpts: {},
       callbacks: {
         captureEvent: captureEvent ,
+        onComplete: () => {
+          onComplete?.({
+            walletToken: selectedSwapBank &&  "info" in selectedSwapBank ? undefined : selectedSwapBank ?? undefined ,
+          })
+        } ,
       },
       infoProps: {
         depositToken: selectedDepositBank?.meta.tokenSymbol ??'',
@@ -319,6 +325,7 @@ export const DepositSwapBox = ({
     selectedSwapBank,
     debouncedAmount,
     setAmountRaw,
+    onComplete,
   ]);
 
   return (
