@@ -7,7 +7,7 @@ import { PublicKey } from "@solana/web3.js";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { extractErrorString, MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+import { extractErrorString } from "@mrgnlabs/mrgn-utils";
 import { IconAlertTriangle, IconTransfer, IconX, IconExternalLink } from "@tabler/icons-react";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
@@ -22,6 +22,7 @@ import { Alert, AlertTitle } from "~/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { IconMrgn } from "~/components/ui/icons";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger } from "~/components/ui/select";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 export default function MigrateAccountPage() {
   const router = useRouter();
@@ -43,7 +44,7 @@ export default function MigrateAccountPage() {
 
   const migrateAccount = React.useCallback(async () => {
     if (!selectedAccount || !walletAddressInputRef?.current?.value || !broadcastType || !priorityFees) return;
-    const multiStepToast = new MultiStepToastHandle("Migrate Account", [{ label: "Migrating account" }]);
+    const multiStepToast = toastManager.createMultiStepToast("Migrate Account", [{ label: "Migrating account" }]);
     multiStepToast.start();
 
     console.log("Migrating account...", selectedAccount.address.toBase58(), walletAddressInputRef.current.value);
@@ -53,7 +54,7 @@ export default function MigrateAccountPage() {
         ...priorityFees,
         broadcastType,
       });
-      multiStepToast.setSuccessAndNext();
+      multiStepToast.successAndNext();
       localStorage.removeItem(`marginfi_accounts-${wallet.publicKey.toBase58()}`);
       localStorage.removeItem(`marginfi_accounts-${walletAddressInputRef.current.value}`);
       setTxnSignature(data);

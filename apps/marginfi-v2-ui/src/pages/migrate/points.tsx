@@ -4,7 +4,8 @@ import Link from "next/link";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MultiStepToastHandle } from "@mrgnlabs/mrgn-utils";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
+import { IconAlertTriangle, IconTransfer, IconX } from "@tabler/icons-react";
 
 import { useMrgnlendStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -19,8 +20,6 @@ import { Checkbox } from "~/components/ui/checkbox";
 import { Label } from "~/components/ui/label";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
 import { IconMrgn } from "~/components/ui/icons";
-import { IconAlertTriangle, IconTransfer, IconX } from "@tabler/icons-react";
-
 export default function MigratePointsPage() {
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);
   const { connected, wallet } = useWallet();
@@ -32,7 +31,7 @@ export default function MigratePointsPage() {
   const migratePoints = React.useCallback(async () => {
     if (!walletAddressInputRef.current) return;
 
-    const multiStepToast = new MultiStepToastHandle("Migrate Points", [{ label: "Migrating points" }]);
+    const multiStepToast = toastManager.createMultiStepToast("Migrate Points", [{ label: "Migrating points" }]);
     multiStepToast.start();
 
     const blockhashInfo = await connection.getLatestBlockhash();
@@ -50,7 +49,7 @@ export default function MigratePointsPage() {
         return;
       }
 
-      multiStepToast.setSuccessAndNext();
+      multiStepToast.successAndNext();
       setIsComplete(true);
     } catch (loginError: any) {
       multiStepToast.setFailed(loginError.message || "Error migrating points");

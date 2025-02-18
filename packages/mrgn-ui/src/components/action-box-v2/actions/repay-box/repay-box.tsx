@@ -11,7 +11,6 @@ import {
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
-  showErrorToast,
   checkRepayActionAvailable,
   ExecuteRepayActionProps,
   ExecuteRepayAction,
@@ -37,6 +36,7 @@ import { useRepaySimulation } from "./hooks";
 import { ActionInput, Preview } from "./components";
 import { useActionContext } from "../../contexts";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 export type RepayBoxProps = {
   nativeSolBalance: number;
@@ -225,7 +225,7 @@ export const RepayBox = ({
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
-      showErrorToast(errorMessage?.description);
+      toastManager.showErrorToast(errorMessage?.description);
       setAdditionalActionMessages([errorMessage]);
     } else {
       setAdditionalActionMessages([]);
