@@ -242,11 +242,14 @@ export async function processTransactions({
   versionedTransactions = formatTransactions(
     updatedTransactions,
     broadcastType,
-    processOpts.priorityFeeMicro ?? 0,
-    processOpts.bundleTipUi ?? 0,
-    wallet.publicKey,
     blockhash,
-    maxCapUi,
+    {
+      priorityFeeMicro: processOpts.priorityFeeMicro ?? 0,
+      bundleTipUi: processOpts.bundleTipUi ?? 0,
+      feePayer: wallet.publicKey,
+   
+      maxCapUi,
+    },
     processOpts.addArenaTxTag
   );
 
