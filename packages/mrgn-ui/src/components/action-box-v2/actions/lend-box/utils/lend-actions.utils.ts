@@ -57,38 +57,12 @@ export async function generateActionTxns(props: {
         } else {
           depositTx = await account.makeDepositTx(props.amount, props.bank.address);
         }
-
-        depositTx = await marginfiAccount.makeDepositStakedTx(
-          amount,
-          bank.address,
-          stakeAccount,
-          bank.meta.stakePool?.validatorVoteAccount
-        );
-      } else {
-        depositTx = await marginfiAccount.makeDepositTx(amount, bank.address);
-      }
-
       return {
-        transactions: [depositTx],
+        transactions: {
+          transactions: accountCreationTx ?  [...accountCreationTx, depositTx] : [depositTx],
+        },
+        finalAccount: account,
       };
-    case ActionType.Borrow:
-      const borrowTxObject = await marginfiAccount.makeBorrowTx(amount, bank.address);
-      return {
-        transactions: borrowTxObject.transactions,
-      };
-    case ActionType.Withdraw:
-      if (bank.info.rawBank.config.assetTag === 2) {
-        const withdrawTx = await marginfiAccount.makeWithdrawStakedTx(
-          amount,
-          bank.address,
-          bank.isActive && isWholePosition(bank, amount)
-        );
-        return {
-          transactions:{
-            transactions: accountCreationTx ?  [...accountCreationTx, depositTx] : [depositTx],  
-          },
-          finalAccount: account,
-        }
       case ActionType.Borrow:
         const borrowTxObject = await account.makeBorrowTx(props.amount, props.bank.address, {
           createAtas: true,
