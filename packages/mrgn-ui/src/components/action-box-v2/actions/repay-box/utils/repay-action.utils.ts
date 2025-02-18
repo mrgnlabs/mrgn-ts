@@ -1,62 +1,15 @@
-import { v4 as uuidv4 } from "uuid";
-
 import {
   ActionMessageType,
   calculateRepayCollateralParams,
-  executeRepayAction,
-  ExecuteRepayActionProps,
   handleSimulationError,
-  IndividualFlowError,
 } from "@mrgnlabs/mrgn-utils";
 
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { isWholePosition, RepayActionTxns } from "@mrgnlabs/mrgn-utils";
 import { Connection, Transaction, VersionedTransaction } from "@solana/web3.js";
-import { ExecuteActionsCallbackProps } from "~/components/action-box-v2/types";
 import { JupiterOptions } from "~/components/settings";
 
-interface HandleExecuteRepayActionProps extends ExecuteActionsCallbackProps {
-  props: ExecuteRepayActionProps;
-}
-
-export const handleExecuteRepayAction = async ({
-  props,
-  captureEvent,
-  setIsLoading,
-  setIsComplete,
-  setError,
-}: HandleExecuteRepayActionProps) => {
-  try {
-    setIsLoading(true);
-
-    const attemptUuid = uuidv4();
-    captureEvent(`user_repay_initiate`, {
-      uuid: attemptUuid,
-      selectedBank: props.selectedBank.meta.tokenSymbol,
-      selectedSecondaryBank: props.selectedSecondaryBank.meta.tokenSymbol,
-      repayAmount: props.repayAmount,
-      withdrawAmount: props.withdrawAmount,
-    });
-
-    const txnSig = await executeRepayAction(props);
-
-    setIsLoading(false);
-
-    if (txnSig) {
-      setIsComplete(Array.isArray(txnSig) ? txnSig : [txnSig]);
-      captureEvent(`user_repay`, {
-        uuid: attemptUuid,
-        selectedBank: props.selectedBank.meta.tokenSymbol,
-        selectedSecondaryBank: props.selectedSecondaryBank.meta.tokenSymbol,
-        repayAmount: props.repayAmount,
-        withdrawAmount: props.withdrawAmount,
-      });
-    }
-  } catch (error) {
-    setError(error as IndividualFlowError);
-  }
-};
 
 export interface SimulateActionProps {
   txns: (VersionedTransaction | Transaction)[];
