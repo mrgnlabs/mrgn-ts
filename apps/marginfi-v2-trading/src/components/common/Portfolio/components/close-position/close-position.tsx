@@ -7,6 +7,7 @@ import {
   ExecuteClosePositionActionProps,
   ExecuteClosePositionAction,
   extractErrorString,
+  capture,
 
 } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -92,7 +93,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
       }
 
       multiStepToast.successAndNext();
-      multiStepToast.pause(); // TODO: toast might need to be closed if pause is active for some time
+      multiStepToast.pause(); 
 
       setActionTxns(actionTxns);
       setIsOpen(true);
@@ -107,13 +108,26 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
     }
   }, [wrappedAccount, connection, depositBanks, borrowBank, jupiterOptions, platformFeeBps, arenaPool]);
 
+  const [wasActionTaken, setWasActionTaken] = React.useState(false);
+
   const handleChangeDialogState = (open: boolean) => {
     setIsOpen(open);
     setActionTxns(null);
+    if (!open) {
+      if (!wasActionTaken && multiStepToast) {
+        // User manually closed the dialog -> Close the toast
+        const timeout = setTimeout(() => {
+          multiStepToast.close();
+        }, 2000);
+        return () => clearTimeout(timeout);
+      }
+  
+      // Reset wasActionTaken when the dialog closes
+      setWasActionTaken(false);
+    }
+  
   };
-
-  const hasBeenOpened = React.useRef(false);
-
+  
   ////////////////////////////
   // Close Position Actions //
   ////////////////////////////
@@ -121,31 +135,29 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
     if (!actionTxns || !client || !multiStepToast || !arenaPool) {
       return;
     }
+  
+    setWasActionTaken(true); // Mark that an action was taken
+  
     const props: ExecuteClosePositionActionProps = {
       actionTxns,
       attemptUuid: uuidv4(),
       marginfiClient: client,
-      multiStepToast ,
+      multiStepToast,
       infoProps: {
         token: arenaPool.tokenBank.meta.tokenSymbol,
         tokenSize: positionSizeUsd.toString(),
         quoteSize: positionSizeUsd.toString(),
       },
       callbacks: {
-        captureEvent: (event: string, properties?: Record<string, any>) => {
-          console.log("captureEvent", event, properties);
-        },
+        captureEvent: capture,
       },
       processOpts: { ...priorityFees, broadcastType },
       txOpts: {},
-
     };
-
+  
     ExecuteClosePositionAction(props);
-    handleChangeDialogState(false); 
-
+    setIsOpen(false);
   }, [actionTxns, client, multiStepToast, arenaPool, positionSizeUsd, priorityFees, broadcastType]);
-
   return (
     <>
       <Button onClick={handleSimulation} disabled={false} variant="destructive" size="sm" className="gap-1 min-w-16">
