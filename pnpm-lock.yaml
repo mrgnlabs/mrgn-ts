@@ -14611,7 +14611,6 @@ snapshots:
       '@babel/core': 7.26.9
       '@babel/helper-create-regexp-features-plugin': 7.26.3(@babel/core@7.26.9)
       '@babel/helper-plugin-utils': 7.26.5
-    dev: false
 
   '@babel/plugin-transform-arrow-functions@7.25.9(@babel/core@7.26.9)':
     dependencies:
@@ -22857,25 +22856,6 @@ snapshots:
       '@babel/plugin-syntax-private-property-in-object': 7.14.5(@babel/core@7.26.9)
       '@babel/plugin-syntax-top-level-await': 7.14.5(@babel/core@7.26.9)
 
-  babel-preset-current-node-syntax@1.1.0(@babel/core@7.26.9):
-    dependencies:
-      '@babel/core': 7.26.9
-      '@babel/plugin-syntax-async-generators': 7.8.4(@babel/core@7.26.9)
-      '@babel/plugin-syntax-bigint': 7.8.3(@babel/core@7.26.9)
-      '@babel/plugin-syntax-class-properties': 7.12.13(@babel/core@7.26.9)
-      '@babel/plugin-syntax-class-static-block': 7.14.5(@babel/core@7.26.9)
-      '@babel/plugin-syntax-import-attributes': 7.26.0(@babel/core@7.26.9)
-      '@babel/plugin-syntax-import-meta': 7.10.4(@babel/core@7.26.9)
-      '@babel/plugin-syntax-json-strings': 7.8.3(@babel/core@7.26.9)
-      '@babel/plugin-syntax-logical-assignment-operators': 7.10.4(@babel/core@7.26.9)
-      '@babel/plugin-syntax-nullish-coalescing-operator': 7.8.3(@babel/core@7.26.9)
-      '@babel/plugin-syntax-numeric-separator': 7.10.4(@babel/core@7.26.9)
-      '@babel/plugin-syntax-object-rest-spread': 7.8.3(@babel/core@7.26.9)
-      '@babel/plugin-syntax-optional-catch-binding': 7.8.3(@babel/core@7.26.9)
-      '@babel/plugin-syntax-optional-chaining': 7.8.3(@babel/core@7.26.9)
-      '@babel/plugin-syntax-private-property-in-object': 7.14.5(@babel/core@7.26.9)
-      '@babel/plugin-syntax-top-level-await': 7.14.5(@babel/core@7.26.9)
-
   babel-preset-fbjs@3.4.0(@babel/core@7.26.9):
     dependencies:
       '@babel/core': 7.26.9
@@ -27338,9 +27318,7 @@ snapshots:
       '@babel/runtime': 7.26.9
       react-refresh: 0.4.3
 
-  /metro-source-map@0.81.1:
-    resolution: {integrity: sha512-1i8ROpNNiga43F0ZixAXoFE/SS3RqcRDCCslpynb+ytym0VI7pkTH1woAN2HI9pczYtPrp3Nq0AjRpsuY35ieA==}
-    engines: {node: '>=18.18'}
+  metro-runtime@0.73.9:
     dependencies:
       '@babel/runtime': 7.26.9
       react-refresh: 0.4.3
@@ -27386,38 +27364,6 @@ snapshots:
     dependencies:
       invariant: 2.2.4
       metro-source-map: 0.73.9
-      nullthrows: 1.1.1
-      source-map: 0.5.7
-      through2: 2.0.5
-      vlq: 1.0.1
-    transitivePeerDependencies:
-      - supports-color
-
-  metro-transform-plugins@0.73.10:
-    dependencies:
-      '@babel/core': 7.26.9
-      '@babel/generator': 7.26.9
-      '@babel/template': 7.26.9
-      '@babel/traverse': 7.26.9
-      nullthrows: 1.1.1
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
-
-  metro-symbolicate@0.73.9:
-    dependencies:
-      '@babel/core': 7.26.9
-      '@babel/generator': 7.26.9
-      '@babel/parser': 7.26.9
-      '@babel/types': 7.26.9
-      babel-preset-fbjs: 3.4.0(@babel/core@7.26.9)
-      metro: 0.73.10(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      metro-babel-transformer: 0.73.10
-      metro-cache: 0.73.10
-      metro-cache-key: 0.73.10
-      metro-hermes-compiler: 0.73.10
-      metro-source-map: 0.73.10
-      metro-transform-plugins: 0.73.10
       nullthrows: 1.1.1
       source-map: 0.5.7
       through2: 2.0.5
