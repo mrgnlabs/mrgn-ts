@@ -1,4 +1,4 @@
 # marginfi ui
 
-- Install: `yarn`
-- Run: `yarn dev`
+- Install: `pnpm install`
+- Run: `pnpm dev`
