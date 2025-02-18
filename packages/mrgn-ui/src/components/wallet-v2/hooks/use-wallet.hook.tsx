@@ -12,10 +12,11 @@ import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
 
-import { showErrorToast, generateEndpoint } from "@mrgnlabs/mrgn-utils";
+import {  generateEndpoint } from "@mrgnlabs/mrgn-utils";
 import type { Wallet } from "@mrgnlabs/mrgn-common";
 
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 // use-wallet.hook.tsx
 // --------------------
@@ -256,7 +257,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     ) => {
       try {
         if (!web3Auth) {
-          showErrorToast("marginfi account not ready.");
+          toastManager.showErrorToast("marginfi account not ready.");
           throw new Error("marginfi account not ready.");
         }
         await web3Auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {

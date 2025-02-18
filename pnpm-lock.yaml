@@ -1410,6 +1410,9 @@ importers:
       '@mrgnlabs/mrgn-common':
         specifier: workspace:*
         version: link:../mrgn-common
+      '@mrgnlabs/mrgn-toasts':
+        specifier: workspace:*
+        version: link:../mrgn-toasts
       '@mrgnlabs/mrgn-utils':
         specifier: workspace:*
         version: link:../mrgn-utils

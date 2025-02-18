@@ -6,7 +6,7 @@ import {
   ProcessTransactionError,
   ProcessTransactionOpts,
 } from "@mrgnlabs/marginfi-client-v2";
-import { extractErrorString, MultiStepToastHandle, captureSentryException } from "@mrgnlabs/mrgn-utils";
+import { extractErrorString, captureSentryException, composeExplorerUrl } from "@mrgnlabs/mrgn-utils";
 import {
   AccountLayout,
   ExtendedV0Transaction,
@@ -15,6 +15,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 export const executeCollectTxn = async (
   marginfiClient: MarginfiClient,
@@ -24,7 +25,7 @@ export const executeCollectTxn = async (
   closeDialog: () => void
 ) => {
   setIsLoading(true);
-  const multiStepToast = new MultiStepToastHandle("Collecting rewards", [
+  const multiStepToast = toastManager.createMultiStepToast("Collecting rewards", [
     { label: "Signing transaction" },
     {
       label: "Collecting rewards",
@@ -36,9 +37,9 @@ export const executeCollectTxn = async (
     const sig = await marginfiClient.processTransactions([actionTxn], {
       ...processOpts,
       callback: (index, success, sig, stepsToAdvance) =>
-        success && multiStepToast.setSuccessAndNext(stepsToAdvance, sig),
+        success && multiStepToast.successAndNext(stepsToAdvance, composeExplorerUrl(sig), sig),
     });
-    multiStepToast.setSuccess();
+    multiStepToast.success();
     closeDialog();
     return sig;
   } catch (error) {

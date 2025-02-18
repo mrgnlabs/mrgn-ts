@@ -25,9 +25,6 @@ import {
   ActionMessageType,
   calculateBorrowLendPositionParams,
   getMaybeSquadsOptions,
-  ToastStep,
-  MultiStepToastHandle,
-  showErrorToast,
   STATIC_SIMULATION_ERRORS,
   extractErrorString,
   LoopActionTxns,
@@ -39,6 +36,7 @@ import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wal
 import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import { TradeSide } from "~/components/common/trade-box-v2";
 import { JupiterOptions } from "~/components";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 export async function createMarginfiGroup({
   marginfiClient,
@@ -49,12 +47,12 @@ export async function createMarginfiGroup({
   additionalIxs: TransactionInstruction[];
   seed?: Keypair;
 }) {
-  const multiStepToast = new MultiStepToastHandle("Group Creation", [{ label: `Creating group` }]);
+  const multiStepToast = toastManager.createMultiStepToast("Group Creation", [{ label: `Creating group` }]);
   multiStepToast.start();
 
   try {
     const marginfiGroup = await marginfiClient.createMarginfiGroup(seed, additionalIxs, {});
-    multiStepToast.setSuccessAndNext();
+    multiStepToast.successAndNext();
     return marginfiGroup;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -136,7 +134,7 @@ export async function createPermissionlessBank({
   seed?: Keypair;
   processOpts?: ProcessTransactionsClientOpts;
 }) {
-  const multiStepToast = new MultiStepToastHandle("Bank Creation", [{ label: `Creating permissionless bank` }]);
+  const multiStepToast = toastManager.createMultiStepToast("Bank Creation", [{ label: `Creating permissionless bank` }]);
   multiStepToast.start();
 
   try {
@@ -148,7 +146,7 @@ export async function createPermissionlessBank({
       seed,
       processOpts,
     });
-    multiStepToast.setSuccessAndNext();
+    multiStepToast.successAndNext();
     return txnSig;
   } catch (error: any) {
     const msg = extractErrorString(error);
@@ -188,15 +186,15 @@ export async function executeLeverageAction({
   broadcastType: TransactionBroadcastType;
 }) {
   if (!marginfiClient) {
-    showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
+    toastManager.showErrorToast(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
     return;
   }
   if (!loopActionTxns) {
-    showErrorToast(STATIC_SIMULATION_ERRORS.SIMULATION_NOT_READY);
+    toastManager.showErrorToast(STATIC_SIMULATION_ERRORS.SIMULATION_NOT_READY);
     return;
   }
 
-  let toastSteps: ToastStep[] = [];
+  let toastSteps: { label: string }[] = [];
   const tradeActionLabel = tradeState === "long" ? "longing" : "shorting";
 
   if (!_marginfiAccount) {
@@ -209,7 +207,7 @@ export async function executeLeverageAction({
 
   toastSteps.push({ label: `Executing ${tradeState.slice(0, 1).toUpperCase() + tradeState.slice(1)} position` });
 
-  const multiStepToast = new MultiStepToastHandle(
+  const multiStepToast = toastManager.createMultiStepToast(
     `${tradeState.slice(0, 1).toUpperCase() + tradeState.slice(1)} 
       ${tradeState === "long" ? depositBank.meta.tokenSymbol : borrowBank.meta.tokenSymbol}`,
     toastSteps
@@ -228,7 +226,7 @@ export async function executeLeverageAction({
 
       clearAccountCache(marginfiClient.provider.publicKey);
 
-      multiStepToast.setSuccessAndNext();
+      multiStepToast.successAndNext();
     } catch (error: any) {
       const msg = extractErrorString(error);
       Sentry.captureException({ message: error });
@@ -260,7 +258,7 @@ export async function executeLeverageAction({
         multiStepToast.setFailed(result.description ?? "Something went wrong, please try again.");
         return;
       }
-      multiStepToast.setSuccessAndNext();
+      multiStepToast.successAndNext();
     } catch (error) {
       const msg = extractErrorString(error);
       Sentry.captureException({ message: error });
@@ -284,7 +282,7 @@ export async function executeLeverageAction({
         throw new Error("Something went wrong, please try again.");
       }
 
-      multiStepToast.setSuccessAndNext();
+      multiStepToast.successAndNext();
       return txnSig;
     } else {
       throw new Error("Something went wrong, please try again.");

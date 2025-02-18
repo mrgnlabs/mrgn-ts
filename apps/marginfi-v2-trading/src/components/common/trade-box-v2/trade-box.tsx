@@ -5,7 +5,6 @@ import {
   ActionMessageType,
   capture,
   formatAmount,
-  showErrorToast,
   useConnection,
   ExecuteTradeActionProps,
   ExecuteTradeAction,
@@ -37,6 +36,7 @@ import {
 import { useTradeBoxStore } from "./store";
 import { checkTradeActionAvailable } from "./utils";
 import { useTradeSimulation, useActionAmounts } from "./hooks";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 type TradeBoxV2Props = {
   activePool: ArenaPoolV2;
   side?: TradeSide;
@@ -215,7 +215,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
       if (errorMessage.actionMethod === "ERROR") {
-        showErrorToast(errorMessage);
+        toastManager.showErrorToast(errorMessage);
       }
       setDynamicActionMessages([errorMessage]);
     } else {
