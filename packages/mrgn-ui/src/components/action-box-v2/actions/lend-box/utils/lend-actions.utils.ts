@@ -151,10 +151,7 @@ export async function calculateLendingTransaction(
         transactions: [depositTx],
       };
     case ActionType.Borrow:
-      const borrowTxObject = await marginfiAccount.makeBorrowTx(amount, bank.address, {
-        createAtas: true,
-        wrapAndUnwrapSol: false,
-      });
+      const borrowTxObject = await marginfiAccount.makeBorrowTx(amount, bank.address);
       return {
         transactions: borrowTxObject.transactions,
       };
