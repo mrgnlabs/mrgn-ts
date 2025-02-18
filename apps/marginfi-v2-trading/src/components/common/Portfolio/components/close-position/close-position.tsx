@@ -93,7 +93,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
       }
 
       multiStepToast.successAndNext();
-      multiStepToast.pause();
+      multiStepToast.pause(); // TODO: toast might need to be closed if pause is active for some time
 
       setActionTxns(actionTxns);
       setIsOpen(true);
@@ -115,19 +115,6 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
 
   const hasBeenOpened = React.useRef(false);
 
-  React.useEffect(() => {
-    if (isOpen) {
-      hasBeenOpened.current = true;
-    } else if (hasBeenOpened.current && multiStepToast) {
-      const timeout = setTimeout(() => {
-        multiStepToast.close();
-        hasBeenOpened.current = false;
-      }, 2000);
-
-      return () => clearTimeout(timeout);
-    }
-  }, [isOpen, multiStepToast]);
-
   ////////////////////////////
   // Close Position Actions //
   ////////////////////////////
@@ -135,7 +122,6 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
     if (!actionTxns || !client || !multiStepToast || !arenaPool) {
       return;
     }
-    
     const props: ExecuteClosePositionActionProps = {
       actionTxns,
       attemptUuid: uuidv4(),
@@ -157,6 +143,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
     };
 
     ExecuteClosePositionAction(props);
+    handleChangeDialogState(false); 
 
   }, [actionTxns, client, multiStepToast, arenaPool, positionSizeUsd, priorityFees, broadcastType]);
 

@@ -11,6 +11,7 @@ import {
   ExecuteTradeAction,
 } from "@mrgnlabs/mrgn-utils";
 import { IconSettings } from "@tabler/icons-react";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { ArenaPoolV2 } from "~/types/trade-store.types";
 import {  SimulationStatus, TradeSide } from "~/components/common/trade-box-v2/utils";
@@ -36,7 +37,6 @@ import {
 import { useTradeBoxStore } from "./store";
 import { checkTradeActionAvailable } from "./utils";
 import { useTradeSimulation, useActionAmounts } from "./hooks";
-
 type TradeBoxV2Props = {
   activePool: ArenaPoolV2;
   side?: TradeSide;
@@ -263,6 +263,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   const handleTradeAction = useCallback(() => {
     if (!depositBank || !actionTxns || !borrowBank || !client) return 
 
+
     const props : ExecuteTradeActionProps = {
       actionTxns,
       attemptUuid: uuidv4(),
@@ -273,13 +274,13 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
         captureEvent: capture,
       },
       infoProps: {
-        depositAmount: amountRaw,
+        depositAmount: dynamicNumeralFormatter(Number(amountRaw)),
         depositToken: depositBank.meta.tokenSymbol,
-        borrowAmount: actionTxns.borrowAmount.toString(),
+        borrowAmount: dynamicNumeralFormatter(actionTxns.borrowAmount.toNumber()),
         borrowToken: borrowBank.meta.tokenSymbol,
         tradeSide: tradeState,
       }
-    } ; // TODO: validate values here
+    } 
 
     ExecuteTradeAction(props);
 

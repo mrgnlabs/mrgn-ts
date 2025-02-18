@@ -29,7 +29,7 @@ interface ExecuteActionProps {
   callbacks: {
     captureEvent?: (event: string, properties?: Record<string, any>) => void;
   };
-  
+  nativeSolBalance?: number;
 } 
 
 function getSteps(actionTxns: ActionTxns, infoProps: Record<string, any>) {
@@ -50,7 +50,7 @@ function getSteps(actionTxns: ActionTxns, infoProps: Record<string, any>) {
 }
 
 
-async function executeActionWrapper(
+async function executeActionWrapper(props: {
   action: (
     txns: ActionTxns,
     onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void
@@ -58,8 +58,16 @@ async function executeActionWrapper(
   steps: { label: string }[],
   actionName: string,
   failedTxns: ActionTxns,
-  existingToast?: MultiStepToastController
-) {
+  existingToast?: MultiStepToastController,
+  nativeSolBalance?: number
+}) {
+  const { action, steps, actionName, failedTxns, existingToast, nativeSolBalance } = props;
+
+  if (nativeSolBalance && nativeSolBalance < FEE_MARGIN) {
+    toastManager.showErrorToast(STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS); 
+    return;
+  }
+
   const toast = existingToast || toastManager.createMultiStepToast(`${actionName}`, steps);
   if (!existingToast) {
     toast.start();
@@ -87,7 +95,7 @@ async function executeActionWrapper(
           transactions: error.failedTxs,
         };
         toast.setFailed(message, async () => {
-          await executeActionWrapper(action, steps, actionName, updatedFailedTxns, toast);
+          await executeActionWrapper({action, steps, actionName, failedTxns: updatedFailedTxns, existingToast: toast, nativeSolBalance});
         });
       } else {
         toast.setFailed(message);
@@ -115,6 +123,7 @@ export interface ExecuteDepositSwapActionProps extends ExecuteActionProps {
 
 export async function ExecuteDepositSwapAction(props: ExecuteDepositSwapActionProps) {
 
+
   const steps = getSteps(props.actionTxns, {
     amount: props.infoProps.depositAmount,
     token: props.infoProps.depositToken,
@@ -141,13 +150,12 @@ export async function ExecuteDepositSwapAction(props: ExecuteDepositSwapActionPr
     return actionResponse[actionResponse.length - 1];
   };
 
-  await executeActionWrapper(action, steps, "Deposit", props.actionTxns);
+  await executeActionWrapper({action, steps, actionName: "Deposit", failedTxns: props.actionTxns, nativeSolBalance: props.nativeSolBalance});
 
   props.callbacks.captureEvent && props.callbacks.captureEvent("user_deposit_swap", { uuid: props.attemptUuid, ...props.infoProps });
 } // TODO: this does not handle create account. We should handle this. 
 
 export interface ExecuteLendingActionProps extends ExecuteActionProps {
-  nativeSolBalance: number;
   actionType: ActionType;
   infoProps: {
     amount: string;
@@ -158,20 +166,11 @@ export interface ExecuteLendingActionProps extends ExecuteActionProps {
 
 export async function ExecuteLendingAction(props: ExecuteLendingActionProps) {
 
-  console.log("props", props);
-
-  if (props.nativeSolBalance < FEE_MARGIN) {
-
-    toastManager.showErrorToast(STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS); // TODO: fix
-    return;
-  } // TODO: can move this to wrapper level? Should we always check this? 
-
   const steps = getSteps(props.actionTxns, {
     amount: props.infoProps.amount,
     token: props.infoProps.token,
   });
 
-  console.log("steps", steps);
 
   props.callbacks.captureEvent && props.callbacks.captureEvent("user_lending_initiate", { uuid: props.attemptUuid, ...props.infoProps }); 
 
@@ -190,7 +189,7 @@ export async function ExecuteLendingAction(props: ExecuteLendingActionProps) {
   return actionResponse[actionResponse.length - 1];
 };
 
-await executeActionWrapper(action, steps, props.actionType, props.actionTxns);
+await executeActionWrapper({action, steps, actionName: props.actionType, failedTxns: props.actionTxns, nativeSolBalance: props.nativeSolBalance});
 
   props.callbacks.captureEvent && props.callbacks.captureEvent("user_lending", { uuid: props.attemptUuid, ...props.infoProps });
   
@@ -233,7 +232,7 @@ export async function ExecuteLoopAction(props: ExecuteLoopActionProps) {
     return actionResponse[actionResponse.length - 1];
   };
 
-  await executeActionWrapper(action, steps, "Looping", props.actionTxns);
+  await executeActionWrapper({action, steps, actionName: "Looping", failedTxns: props.actionTxns, nativeSolBalance: props.nativeSolBalance});
 
   props.callbacks.captureEvent && props.callbacks.captureEvent("user_looping", { uuid: props.attemptUuid, ...props.infoProps });
 }
@@ -241,6 +240,7 @@ export async function ExecuteLoopAction(props: ExecuteLoopActionProps) {
 export interface ExecuteStakeActionProps extends ExecuteActionProps {
   infoProps: {
     amount: string;
+    swapAmount: string;
     token: string;
     actionType: ActionType;
   };
@@ -251,6 +251,7 @@ export async function ExecuteStakeAction(props: ExecuteStakeActionProps) {
 
   const steps = getSteps(props.actionTxns, {
     amount: props.infoProps.amount,
+    swapAmount: props.infoProps.swapAmount,
     token: props.infoProps.token,
   });
 
@@ -271,7 +272,7 @@ export async function ExecuteStakeAction(props: ExecuteStakeActionProps) {
     return actionResponse[actionResponse.length - 1];
   };
 
-  await executeActionWrapper(action, steps, props.infoProps.actionType === ActionType.MintLST ? "Staking" : "Unstaking", props.actionTxns);
+  await executeActionWrapper({action, steps, actionName: props.infoProps.actionType === ActionType.MintLST ? "Staking" : "Unstaking", failedTxns: props.actionTxns, nativeSolBalance: props.nativeSolBalance});
 
   props.callbacks.captureEvent && props.callbacks.captureEvent(`user_${props.infoProps.actionType}`, { uuid: props.attemptUuid, ...props.infoProps });
 } 
@@ -279,10 +280,10 @@ export async function ExecuteStakeAction(props: ExecuteStakeActionProps) {
 export interface ExecuteRepayActionProps extends ExecuteActionProps {
   actionType: ActionType;
   infoProps: {
-    borrowAmount: string;
-    borrowToken: string;
-    depositAmount: string;
-    depositToken: string;
+    repayAmount: string;
+    repayToken: string;
+    amount: string;
+    token: string;
   } 
 }
 
@@ -290,10 +291,10 @@ export interface ExecuteRepayActionProps extends ExecuteActionProps {
 export async function ExecuteRepayAction(props: ExecuteRepayActionProps) {
 
   const steps = getSteps(props.actionTxns, {
-    borrowAmount: props.infoProps.borrowAmount,
-    borrowToken: props.infoProps.borrowToken,
-    depositAmount: props.infoProps.depositAmount,
-    depositToken: props.infoProps.depositToken,
+    repayAmount: props.infoProps.repayAmount,
+    repayToken: props.infoProps.repayToken,
+    amount: props.infoProps.amount,
+    token: props.infoProps.token,
   });
 
   props.callbacks.captureEvent && props.callbacks.captureEvent(`user_${props.actionType}_initiate`, { uuid: props.attemptUuid, ...props.infoProps }); 
@@ -313,7 +314,7 @@ export async function ExecuteRepayAction(props: ExecuteRepayActionProps) {
     return actionResponse[actionResponse.length - 1];
   };
 
-  await executeActionWrapper(action, steps, props.actionType, props.actionTxns);
+  await executeActionWrapper({action, steps, actionName: props.actionType, failedTxns: props.actionTxns, nativeSolBalance: props.nativeSolBalance});
 
   props.callbacks.captureEvent && props.callbacks.captureEvent(`user_${props.actionType}`, { uuid: props.attemptUuid, ...props.infoProps });
 }
@@ -336,7 +337,6 @@ export async function ExecuteTradeAction(props: ExecuteTradeActionProps) {
     depositToken: props.infoProps.depositToken,
     borrowAmount: props.infoProps.borrowAmount,
     borrowToken: props.infoProps.borrowToken,
-    tradeSide: props.infoProps.tradeSide,
   });
 
   props.callbacks.captureEvent && props.callbacks.captureEvent("user_trade_initiate", { uuid: props.attemptUuid, ...props.infoProps }); 
@@ -356,7 +356,7 @@ export async function ExecuteTradeAction(props: ExecuteTradeActionProps) {
     return actionResponse[actionResponse.length - 1];
   };
 
-  await executeActionWrapper(action, steps, props.infoProps.tradeSide === "long" ? "Longing" : "Shorting", props.actionTxns);
+  await executeActionWrapper({action, steps, actionName: props.infoProps.tradeSide === "long" ? "Longing" : "Shorting", failedTxns: props.actionTxns, nativeSolBalance: props.nativeSolBalance});
 
   props.callbacks.captureEvent && props.callbacks.captureEvent("user_trade", { uuid: props.attemptUuid, ...props.infoProps });
 }

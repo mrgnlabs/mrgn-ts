@@ -39,6 +39,7 @@ import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
 import { ActionSimulationStatus } from "../../components";
 import { useActionContext } from "../../contexts";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 // error handling
 export type LoopBoxProps = {
@@ -273,17 +274,18 @@ export const LoopBox = ({
         captureEvent: captureEvent,
       },
       infoProps: {
-        depositAmount: amount.toString(),
+        depositAmount: dynamicNumeralFormatter(amount),
         depositToken: selectedBank.meta.tokenSymbol,
-        borrowAmount: actionTxns.borrowAmount.toString(),
+        borrowAmount: dynamicNumeralFormatter(actionTxns.borrowAmount.toNumber()),
         borrowToken: selectedSecondaryBank.meta.tokenSymbol,
       }, 
+      nativeSolBalance: nativeSolBalance,
     }
 
     ExecuteLoopAction(params)
 
     setAmountRaw("")
-  }, [actionTxns, amount, captureEvent, marginfiClient, priorityFees, selectedBank, selectedSecondaryBank, setAmountRaw, transactionSettings]) 
+  }, [actionTxns, amount, captureEvent, marginfiClient, priorityFees, selectedBank, selectedSecondaryBank, setAmountRaw, transactionSettings, nativeSolBalance]) 
 
   React.useEffect(() => {
     if (marginfiClient) {

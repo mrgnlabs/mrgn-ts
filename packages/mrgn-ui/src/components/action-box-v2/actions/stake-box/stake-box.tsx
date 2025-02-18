@@ -6,7 +6,7 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 import { getPriceWithConfidence, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { nativeToUi, NATIVE_MINT as SOL_MINT, uiToNative } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter, nativeToUi, NATIVE_MINT as SOL_MINT, uiToNative } from "@mrgnlabs/mrgn-common";
 import {
   LstData,
   PreviousTxn,
@@ -212,10 +212,10 @@ export const StakeBox = ({
   // Staking Actions //
   /////////////////////
   const handleLstAction = React.useCallback(async () => {
-    if (!selectedBank || !amount || !marginfiClient || !transactionSettings) {
+    if (!selectedBank || !amount || !marginfiClient || !transactionSettings || !actionTxns) {
       return;
     }
-
+    
     const params: ExecuteStakeActionProps = {
       actionTxns,
       attemptUuid: uuidv4(),
@@ -226,10 +226,11 @@ export const StakeBox = ({
         captureEvent: captureEvent,
       },
       infoProps: {
-        amount: amount.toString(),
+        swapAmount: dynamicNumeralFormatter(amount),
+        amount: dynamicNumeralFormatter(actionTxns.actionQuote ? nativeToUi(Number(actionTxns?.actionQuote?.outAmount), 9 ) : amount), // Always sol as output so 9 decimals
         token: selectedBank.meta.tokenSymbol,
         actionType: requestedActionType,
-      }, // TODO: update infoProps 
+      }, 
     }
 
     ExecuteStakeAction(params)

@@ -302,7 +302,7 @@ export const DepositSwapBox = ({
       infoProps: {
         depositToken: selectedDepositBank?.meta.tokenSymbol ??'',
         swapToken: selectedSwapBank ? "info" in selectedSwapBank ? selectedSwapBank.meta.tokenSymbol : selectedSwapBank.symbol : "",
-        depositAmount: dynamicNumeralFormatter(Number(actionTxns.actionQuote?.outAmount) ? Number(nativeToUi(Number(actionTxns.actionQuote?.outAmount), selectedDepositBank?.info.rawBank.mintDecimals ?? 9)) : 0),
+        depositAmount: dynamicNumeralFormatter(Number(actionTxns.actionQuote?.outAmount) ? Number(nativeToUi(Number(actionTxns.actionQuote?.outAmount), selectedDepositBank?.info.rawBank.mintDecimals ?? 9)) :debouncedAmount ?? 0),
         swapAmount: dynamicNumeralFormatter(debouncedAmount ?? 0),
       },
     } 
