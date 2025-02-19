@@ -1,12 +1,11 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo, ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-state";
-import { formatAmount } from "@mrgnlabs/mrgn-utils";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { formatAmount, useIsMobile } from "@mrgnlabs/mrgn-utils";
 import { tokenPriceFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { Input } from "~/components/ui/input";
 import { LendingAction, BankSelect } from "./components";
-import { OracleSetup } from "@mrgnlabs/marginfi-client-v2";
 
 type ActionInputProps = {
   amountRaw: string;
@@ -51,6 +50,7 @@ export const ActionInput = ({
   setSelectedBank,
 }: ActionInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
@@ -87,6 +87,12 @@ export const ActionInput = ({
       return selectedBank?.info.oraclePrice.priceRealtime.price.toNumber() ?? 0;
     }
   }, [banks, selectedBank, isDepositingStakedCollat]);
+
+  React.useEffect(() => {
+    if (selectedBank && !isMobile) {
+      amountInputRef.current?.focus();
+    }
+  }, [selectedBank, isMobile]);
 
   return (
     <div className="rounded-lg p-2.5 bg-mfi-action-box-background-dark">
