@@ -23,7 +23,6 @@
     "@sanity/image-url": "1",
     "@sanity/vision": "3",
     "@sindresorhus/slugify": "^2.1.1",
-    "@tailwindcss/typography": "^0.5.10",
     "@types/mdx": "^2.0.8",
     "@types/node": "^20.10.8",
     "@types/react": "^18.2.47",
@@ -61,6 +60,7 @@
   "devDependencies": {
     "@mrgnlabs/eslint-config-custom": "workspace:*",
     "@mrgnlabs/tsconfig": "workspace:*",
+    "@tailwindcss/typography": "^0.5.16",
     "@types/katex": "^0.16.7",
     "@types/react-katex": "^3.0.4",
     "eslint": "^8.56.0",
