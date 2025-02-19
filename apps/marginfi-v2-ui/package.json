@@ -121,8 +121,5 @@
     "ts-proto": "~1.138.0",
     "ts-protoc-gen": "~0.15.0",
     "typescript": "5"
-  },
-  "eslintConfig": {
-    "root": true
   }
 }
