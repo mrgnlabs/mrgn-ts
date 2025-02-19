@@ -1,4 +1,11 @@
-import { IconLoader2, IconCheck, IconExternalLink, IconX, IconCircleCheckFilled } from "@tabler/icons-react";
+import {
+  IconLoader2,
+  IconCheck,
+  IconExternalLink,
+  IconX,
+  IconCircleCheckFilled,
+  IconCircleXFilled,
+} from "@tabler/icons-react";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { MultiStepToastStep } from "~/utils";
 
@@ -18,16 +25,22 @@ interface MultiStepToastProps {
 }
 
 export function MultiStepToast({ title, steps }: MultiStepToastProps) {
+  const anyFailed = steps.some((s) => s.status === ToastStatus.ERROR);
   const lastFailedIndex = steps.map((s) => s.status).lastIndexOf(ToastStatus.ERROR);
   const allSuccessful = steps.every((step) => step.status === ToastStatus.SUCCESS);
 
   return (
-    <div className="relative w-full h-full rounded-md z-50 md:min-w-[340px]">
-      <h2 className="flex items-center gap-1.5 text-lg mb-5 font-medium">
+    <div className="relative w-full h-full rounded-md z-50 md:min-w-[340px] font-light">
+      <h2 className="flex items-center gap-1.5 text-lg mb-5 font-normal">
         {allSuccessful ? (
           <>
-            <IconCircleCheckFilled size={24} className="text-success flex-shrink-0" />
+            <IconCircleCheckFilled className="text-success flex-shrink-0" />
             Transaction confirmed
+          </>
+        ) : anyFailed ? (
+          <>
+            <IconCircleXFilled className="text-mrgn-error flex-shrink-0" />
+            Transaction failed
           </>
         ) : (
           title
@@ -135,8 +148,8 @@ const SuccessStep = ({
 const ErrorStep = ({ label, message, onRetry }: { label: string; message?: string; onRetry?: () => void }) => (
   <div className="flex flex-col">
     <div className="flex items-center space-x-2">
-      <IconX size={16} className="text-mrgn-error flex-shrink-0" />
-      <span className="text-error">{label}</span>
+      <IconX size={16} className="flex-shrink-0 text-mrgn-error" />
+      <span>{label}</span>
     </div>
     <div className="flex justify-between space-x-2 w-full px-6">
       {message && <div className="py-1 text-xs text-muted-foreground">{message}</div>}
@@ -155,7 +168,7 @@ const ErrorStep = ({ label, message, onRetry }: { label: string; message?: strin
 const PendingStep = ({ label }: { label: string }) => (
   <div className="flex items-center space-x-2">
     <IconLoader2 size={16} className="animate-spin flex-shrink-0" />
-    <span className="text-yellow-500">{label}</span>
+    <span>{label}</span>
   </div>
 );
 
