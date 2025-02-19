@@ -60,16 +60,16 @@ interface TransactionConfig {
 export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = {
   // BASE LENDING ACTIONS
   [TransactionType.DEPOSIT]: {
-    label: ({ amount, token } = {}) => (amount && token ? `Depositing ${amount} ${token}` : "Depositing"),
+    label: ({ amount, token } = {}) => (amount && token ? `Deposit ${amount} ${token}` : "Deposit"),
   },
   [TransactionType.WITHDRAW]: {
-    label: ({ amount, token } = {}) => (amount && token ? `Withdrawing ${amount} ${token}` : "Withdrawing"),
+    label: ({ amount, token } = {}) => (amount && token ? `Withdraw ${amount} ${token}` : "Withdraw"),
   },
   [TransactionType.REPAY]: {
-    label: ({ amount, token } = {}) => (amount && token ? `Repaying ${amount} ${token}` : "Repaying"),
+    label: ({ amount, token } = {}) => (amount && token ? `Repay ${amount} ${token}` : "Repay"),
   },
   [TransactionType.BORROW]: {
-    label: ({ amount, token } = {}) => (amount && token ? `Borrowing ${amount} ${token}` : "Borrowing"),
+    label: ({ amount, token } = {}) => (amount && token ? `Borrow ${amount} ${token}` : "Borrow"),
   },
 
   // FLASHLOANS
@@ -77,14 +77,14 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
   [TransactionType.LOOP]: {
     label: ({ depositAmount, depositToken, borrowAmount, borrowToken } = {}) =>
       depositAmount && depositToken && borrowAmount && borrowToken
-        ? `Looping ${depositAmount} ${depositToken} with ${borrowAmount} ${borrowToken}`
-        : "Looping",
+        ? `Loop ${depositAmount} ${depositToken} with ${borrowAmount} ${borrowToken}`
+        : "Loop",
   },
   [TransactionType.REPAY_COLLAT]: {
     label: ({ repayAmount, repayToken, amount, token } = {}) =>
       repayAmount && repayToken && amount && token
-        ? `Repaying ${repayAmount} ${token} with   ${amount} ${repayToken}`
-        : "Repaying with collateral",
+        ? `Repay ${repayAmount} ${token} with   ${amount} ${repayToken}`
+        : "Repay with collateral",
   },
   [TransactionType.LONG]: {
     label: ({ depositToken, depositAmount, borrowToken } = {}) =>
@@ -104,59 +104,57 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
   [TransactionType.JUPITER_SWAP]: {
     label: ({ originAmount, originToken, destinationAmount, destinationToken } = {}) =>
       originAmount && originToken && destinationAmount && destinationToken
-        ? `Swapping ${originAmount} ${originToken} for ${destinationAmount} ${destinationToken}`
-        : "Swapping tokens",
+        ? `Swap ${originAmount} ${originToken} for ${destinationAmount} ${destinationToken}`
+        : "Swap tokens",
   },
 
   // SETUP
-  [TransactionType.CREATE_ACCOUNT]: { label: () => "Creating Account" },
-  [TransactionType.CREATE_ATA]: { label: () => "Creating ATA" },
+  [TransactionType.CREATE_ACCOUNT]: { label: () => "Create marginfi account" },
+  [TransactionType.CREATE_ATA]: { label: () => "Configure token account" },
 
   // ACCOUNT MANAGEMENT
-  [TransactionType.CLOSE_ACCOUNT]: { label: () => "Closing Account" },
-  [TransactionType.CLOSE_POSITION]: { label: () => "Closing Position" },
+  [TransactionType.CLOSE_ACCOUNT]: { label: () => "Close marginfi account" },
+  [TransactionType.CLOSE_POSITION]: { label: () => "Close position" },
   [TransactionType.MOVE_POSITION_WITHDRAW]: {
-    label: ({ originAccountAddress } = {}) => `Withdrawing from ${originAccountAddress}`,
+    label: ({ originAccountAddress } = {}) => `Move position from ${originAccountAddress}`,
   },
   [TransactionType.MOVE_POSITION_DEPOSIT]: {
-    label: ({ destinationAccountAddress } = {}) => `Depositing to ${destinationAccountAddress}`,
+    label: ({ destinationAccountAddress } = {}) => `Move position to ${destinationAccountAddress}`,
   },
-  [TransactionType.TRANSFER_AUTH]: { label: () => "Transferring Account Authorization" },
+  [TransactionType.TRANSFER_AUTH]: { label: () => "Authorize account transfer" },
 
   // NATIVE STAKE ACTIONS
   [TransactionType.DEPOSIT_STAKE]: {
     label: ({ amount, token } = {}) =>
-      amount && token ? `Staking and depositing ${amount} ${token}` : "Staking and depositing",
+      amount && token ? `Authorize stake account and deposit ${amount} ${token}` : "Authorize stake and deposit",
   },
   [TransactionType.WITHDRAW_STAKE]: {
-    label: ({ amount, token } = {}) =>
-      amount && token ? `Unstaking and withdrawing ${amount} ${token}` : "Unstaking and withdrawing",
+    label: ({ amount, token } = {}) => "Authorize stake account",
   },
-  [TransactionType.INITIALIZE_STAKED_POOL]: { label: () => "Initializing Staked Pool" },
-  [TransactionType.ADD_STAKED_BANK]: { label: () => "Adding Staked Bank" },
+  [TransactionType.INITIALIZE_STAKED_POOL]: { label: () => "Initialize stake pool" },
+  [TransactionType.ADD_STAKED_BANK]: { label: () => "Create staked asset bank" },
 
   // LST (Liquid Staking Tokens)
-  [TransactionType.STAKE_TO_STAKE]: { label: () => "Converting Staked Token" },
-  [TransactionType.MINT_LST_NATIVE]: { label: () => "Minting Liquid Staked Native Token" },
+  [TransactionType.STAKE_TO_STAKE]: { label: () => "Convert stake" },
+  [TransactionType.MINT_LST_NATIVE]: { label: () => "Mint LST" },
   [TransactionType.SWAP_TO_SOL]: {
-    label: ({ swapAmount, token } = {}) =>
-      swapAmount && token ? `Swapping ${swapAmount} ${token} to SOL` : "Swapping to SOL",
+    label: ({ swapAmount, token } = {}) => (swapAmount && token ? `Swap ${swapAmount} ${token} to SOL` : "Swap to SOL"),
   },
   [TransactionType.SOL_TO_LST]: {
-    label: ({ amount } = {}) => (amount ? `Minting LST with ${amount} SOL` : "Minting LST with SOL"),
+    label: ({ amount } = {}) => (amount ? `Mint LST with ${amount} SOL` : "Mint LST with SOL"),
   },
 
   // EMISSIONS
-  [TransactionType.WITHDRAW_EMISSIONS]: { label: () => "Withdrawing Emissions" },
+  [TransactionType.WITHDRAW_EMISSIONS]: { label: () => "Withdraw emissions" },
 
   // LIQUIDATE
-  [TransactionType.LIQUIDATE_ACCOUNT]: { label: () => "Liquidating Account" },
+  [TransactionType.LIQUIDATE_ACCOUNT]: { label: () => "Liquidate account" },
 
   // BANK and GROUPS
-  [TransactionType.CREATE_PERM_BANK]: { label: () => "Creating Permanent Bank" },
-  [TransactionType.CREATE_GROUP]: { label: () => "Creating Group" },
+  [TransactionType.CREATE_PERM_BANK]: { label: () => "Create permissionless bank" },
+  [TransactionType.CREATE_GROUP]: { label: () => "Create marginfi group" },
   [TransactionType.WITHDRAW_ALL]: {
-    label: ({ amount, token } = {}) => (amount && token ? `Withdrawing ${amount} ${token}` : "Withdrawing all"),
+    label: ({ amount, token } = {}) => (amount && token ? `Withdraw ${amount} ${token}` : "Withdraw all"),
   },
 };
 
