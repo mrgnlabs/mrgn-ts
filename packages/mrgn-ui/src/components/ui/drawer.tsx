@@ -9,7 +9,22 @@ const Drawer = ({ shouldScaleBackground = true, ...props }: React.ComponentProps
 );
 Drawer.displayName = "Drawer";
 
-const DrawerTrigger = DrawerPrimitive.Trigger;
+// window.scrollTo(0,0) for IOS drawer issue !!
+const DrawerTrigger = React.forwardRef<
+  React.ElementRef<typeof DrawerPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Trigger>
+>(({ className, ...props }, ref) => {
+  return (
+  <DrawerPrimitive.Trigger onClick={(e)=>{
+      props.onClick?.(e);
+      window.scrollTo(0, 0);
+    }}
+    ref={ref}
+    className={cn(className)}
+    {...props}
+  />
+)});
+DrawerTrigger.displayName = DrawerPrimitive.Trigger.displayName;
 
 const DrawerPortal = DrawerPrimitive.Portal;
 
