@@ -13,7 +13,7 @@ import { IconSettings } from "@tabler/icons-react";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { ArenaPoolV2 } from "~/types/trade-store.types";
-import {  SimulationStatus, TradeSide } from "~/components/common/trade-box-v2/utils";
+import { SimulationStatus, TradeSide } from "~/components/common/trade-box-v2/utils";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useWallet, useWalletStore } from "~/components/wallet-v2";
@@ -85,13 +85,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     state.setBorrowBankPk,
     state.setMaxLeverage,
   ]);
-  const [
-    jupiterOptions,
-    platformFeeBps,
-    broadcastType,
-    priorityFees,
-    setDisplaySettings,
-  ] = useUiStore((state) => [
+  const [jupiterOptions, platformFeeBps, broadcastType, priorityFees, setDisplaySettings] = useUiStore((state) => [
     state.jupiterOptions,
     state.platformFeeBps,
     state.broadcastType,
@@ -141,7 +135,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
 
   // Loading states
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
-  const [isSimulating, setIsSimulating] = React.useState<{
+  const [simulationStatus, setSimulationStatus] = React.useState<{
     isLoading: boolean;
     status: SimulationStatus;
   }>({
@@ -149,8 +143,8 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     status: SimulationStatus.IDLE,
   });
   const isLoading = React.useMemo(
-    () => isTransactionExecuting || isSimulating.isLoading,
-    [isTransactionExecuting, isSimulating.isLoading]
+    () => isTransactionExecuting || simulationStatus.isLoading,
+    [isTransactionExecuting, simulationStatus.isLoading]
   );
 
   // Memos
@@ -243,7 +237,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
     isEnabled: !actionMethods.filter((value) => value.isEnabled === false).length,
     setActionTxns: setActionTxns,
     setErrorMessage: setErrorMessage,
-    setIsLoading: setIsSimulating,
+    setIsLoading: setSimulationStatus,
     setSimulationResult,
     setMaxLeverage,
     tradeState,
@@ -261,10 +255,9 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
   // Trading Actions //
   /////////////////////
   const handleTradeAction = useCallback(() => {
-    if (!depositBank || !actionTxns || !borrowBank || !client) return 
+    if (!depositBank || !actionTxns || !borrowBank || !client) return;
 
-
-    const props : ExecuteTradeActionProps = {
+    const props: ExecuteTradeActionProps = {
       actionTxns,
       attemptUuid: uuidv4(),
       marginfiClient: client,
@@ -278,7 +271,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
             wallet,
             groupPk: activePoolExtended.groupPk,
             banks: [activePoolExtended.tokenBank.address, activePoolExtended.quoteBank.address],
-          })
+          });
         },
       },
       infoProps: {
@@ -287,13 +280,27 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
         borrowAmount: dynamicNumeralFormatter(actionTxns.borrowAmount.toNumber()),
         borrowToken: borrowBank.meta.tokenSymbol,
         tradeSide: tradeState,
-      }
-    } 
+      },
+    };
 
     ExecuteTradeAction(props);
 
     setAmountRaw("");
-  }, [depositBank, actionTxns, borrowBank, client, priorityFees, broadcastType, amountRaw, tradeState, setAmountRaw, refreshGroup, connection, wallet, activePoolExtended])
+  }, [
+    depositBank,
+    actionTxns,
+    borrowBank,
+    client,
+    priorityFees,
+    broadcastType,
+    amountRaw,
+    tradeState,
+    setAmountRaw,
+    refreshGroup,
+    connection,
+    wallet,
+    activePoolExtended,
+  ]);
 
   return (
     <Card className="shadow-none border-border w-full">
@@ -327,7 +334,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
             <AmountPreview
               tradeSide={tradeState}
               amount={leveragedAmount}
-              isLoading={isLoading && isSimulating.isLoading}
+              isLoading={isLoading && simulationStatus.isLoading}
               depositBank={activePoolExtended.tokenBank}
             />
           )}
@@ -345,7 +352,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
                 })
               }
               refreshSimulation={refreshSimulation}
-              isRetrying={isSimulating.isLoading}
+              isRetrying={simulationStatus.isLoading}
               quoteBalance={maxAmount}
               quoteBank={activePoolExtended.quoteBank}
             />
@@ -363,7 +370,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
           />
           <div className="flex items-center w-full justify-between">
             <ActionSimulationStatus
-              simulationStatus={isSimulating.status}
+              simulationStatus={simulationStatus.status}
               hasErrorMessages={dynamicActionMessages.length > 0}
               isActive={depositBank && amount > 0 ? true : false}
             />

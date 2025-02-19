@@ -123,7 +123,7 @@ export const RepayBox = ({
   ]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
-  const [isSimulating, setIsSimulating] = React.useState<{
+  const [simulationStatus, setSimulationStatus] = React.useState<{
     isLoading: boolean;
     status: SimulationStatus;
   }>({
@@ -132,8 +132,8 @@ export const RepayBox = ({
   });
 
   const isLoading = React.useMemo(
-    () => isTransactionExecuting || isSimulating.isLoading,
-    [isTransactionExecuting, isSimulating.isLoading]
+    () => isTransactionExecuting || simulationStatus.isLoading,
+    [isTransactionExecuting, simulationStatus.isLoading]
   );
 
   const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
@@ -146,9 +146,7 @@ export const RepayBox = ({
     actionTxns?.lastValidBlockHeight
   );
 
-  const [ platformFeeBps] = useActionBoxStore((state) => [
-    state.platformFeeBps,
-  ]);
+  const [platformFeeBps] = useActionBoxStore((state) => [state.platformFeeBps]);
 
   const accountSummary = React.useMemo(() => {
     return (
@@ -193,7 +191,7 @@ export const RepayBox = ({
     setActionTxns,
     setErrorMessage,
     setRepayAmount,
-    setIsLoading: setIsSimulating,
+    setIsLoading: setSimulationStatus,
     setMaxAmountCollateral,
     setMaxOverflowHit,
   });
@@ -255,15 +253,15 @@ export const RepayBox = ({
 
   const handleRepayAction = React.useCallback(async () => {
     if (
-          !marginfiClient ||
-          !selectedAccount ||
-          !marginfiClient.provider.connection ||
-          !transactionSettings ||
-          !selectedBank ||
-          !selectedSecondaryBank
-        ) {
-          return;
-        }
+      !marginfiClient ||
+      !selectedAccount ||
+      !marginfiClient.provider.connection ||
+      !transactionSettings ||
+      !selectedBank ||
+      !selectedSecondaryBank
+    ) {
+      return;
+    }
 
     const params: ExecuteRepayActionProps = {
       actionTxns,
@@ -272,22 +270,36 @@ export const RepayBox = ({
       processOpts: { ...priorityFees, broadcastType: transactionSettings.broadcastType },
       txOpts: {},
       callbacks: {
-            captureEvent: captureEvent,
-            onComplete: onComplete,
-          },
-          actionType: actionMode,
-          infoProps: {
-            repayAmount: dynamicNumeralFormatter(repayAmount),
-            repayToken: selectedSecondaryBank.meta.tokenSymbol,
-            amount: dynamicNumeralFormatter(amount),
-            token: selectedBank.meta.tokenSymbol,
-          }
-        }
+        captureEvent: captureEvent,
+        onComplete: onComplete,
+      },
+      actionType: actionMode,
+      infoProps: {
+        repayAmount: dynamicNumeralFormatter(repayAmount),
+        repayToken: selectedSecondaryBank.meta.tokenSymbol,
+        amount: dynamicNumeralFormatter(amount),
+        token: selectedBank.meta.tokenSymbol,
+      },
+    };
 
     ExecuteRepayAction(params);
 
     setAmountRaw("");
-  }, [actionMode, actionTxns, amount, captureEvent, marginfiClient, priorityFees, repayAmount, selectedAccount, selectedBank, selectedSecondaryBank, setAmountRaw, transactionSettings, onComplete]);
+  }, [
+    actionMode,
+    actionTxns,
+    amount,
+    captureEvent,
+    marginfiClient,
+    priorityFees,
+    repayAmount,
+    selectedAccount,
+    selectedBank,
+    selectedSecondaryBank,
+    setAmountRaw,
+    transactionSettings,
+    onComplete,
+  ]);
 
   return (
     <ActionBoxContentWrapper>
@@ -341,7 +353,7 @@ export const RepayBox = ({
               <ActionMessage
                 _actionMessage={actionMessage}
                 retry={refreshSimulation}
-                isRetrying={isSimulating.isLoading}
+                isRetrying={simulationStatus.isLoading}
               />
             </div>
           )
@@ -369,7 +381,7 @@ export const RepayBox = ({
 
       <div className="flex items-center justify-between">
         <ActionSimulationStatus
-          simulationStatus={isSimulating.status}
+          simulationStatus={simulationStatus.status}
           hasErrorMessages={additionalActionMessages.length > 0}
           isActive={selectedBank && amount > 0 ? true : false}
         />

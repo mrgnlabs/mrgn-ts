@@ -171,7 +171,7 @@ export const LendBox = ({
   }, [searchMode, _prevSearchMode]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
-  const [isSimulating, setIsSimulating] = React.useState<{
+  const [simulationStatus, setSimulationStatus] = React.useState<{
     isLoading: boolean;
     status: SimulationStatus;
   }>({
@@ -180,8 +180,8 @@ export const LendBox = ({
   });
 
   const isLoading = React.useMemo(
-    () => isTransactionExecuting || isSimulating.isLoading,
-    [isTransactionExecuting, isSimulating.isLoading]
+    () => isTransactionExecuting || simulationStatus.isLoading,
+    [isTransactionExecuting, simulationStatus.isLoading]
   );
 
   const { transactionSettings, priorityFees } = useActionContext() || { transactionSettings: null, priorityFees: null };
@@ -211,7 +211,7 @@ export const LendBox = ({
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
-    setIsLoading: setIsSimulating,
+    setIsLoading: setSimulationStatus,
     marginfiClient: marginfiClient,
   });
 
@@ -290,8 +290,7 @@ export const LendBox = ({
   }, [prevSelectedBank, prevAmount, selectedBank, amount, setErrorMessage]);
 
   const handleLendingAction = React.useCallback(() => {
-
-    if (!selectedBank || !amount || !transactionSettings || !marginfiClient) return 
+    if (!selectedBank || !amount || !transactionSettings || !marginfiClient) return;
 
     const props: ExecuteLendingActionProps = {
       actionTxns,
@@ -309,12 +308,24 @@ export const LendBox = ({
       },
       nativeSolBalance: nativeSolBalance,
       actionType: lendMode,
-    } ;
+    };
 
     ExecuteLendingAction(props);
 
-    setAmountRaw("")
-  }, [actionTxns, amount, captureEvent, lendMode, marginfiClient, nativeSolBalance, priorityFees, selectedBank, setAmountRaw, transactionSettings, onComplete])
+    setAmountRaw("");
+  }, [
+    actionTxns,
+    amount,
+    captureEvent,
+    lendMode,
+    marginfiClient,
+    nativeSolBalance,
+    priorityFees,
+    selectedBank,
+    setAmountRaw,
+    transactionSettings,
+    onComplete,
+  ]);
 
   const hasErrorsWarnings = React.useMemo(() => {
     return (
@@ -400,7 +411,7 @@ export const LendBox = ({
               <ActionMessage
                 _actionMessage={actionMessage}
                 retry={refreshSimulation}
-                isRetrying={isSimulating.isLoading}
+                isRetrying={simulationStatus.isLoading}
               />
             </div>
           )
@@ -420,13 +431,12 @@ export const LendBox = ({
           handleAction={() => {
             handleLendingAction();
           }}
-
           buttonLabel={buttonLabel}
         />
       </div>
       <div className="flex items-center justify-between">
         <ActionSimulationStatus
-          simulationStatus={isSimulating.status}
+          simulationStatus={simulationStatus.status}
           hasErrorMessages={hasErrorsWarnings}
           isActive={selectedBank && amount > 0 ? true : false}
         />

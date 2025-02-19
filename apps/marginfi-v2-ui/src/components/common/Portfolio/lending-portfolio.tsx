@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import { v4 as uuidv4 } from "uuid";
 
 import { IconInfoCircle, IconX } from "@tabler/icons-react";
 import { Id, toast } from "react-toastify";
@@ -7,7 +8,13 @@ import { Id, toast } from "react-toastify";
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { cn, usePrevious } from "@mrgnlabs/mrgn-utils";
+import {
+  cn,
+  ExecuteActionProps,
+  ExecuteCollectRewardsAction,
+  ExecuteLoopActionProps,
+  usePrevious,
+} from "@mrgnlabs/mrgn-utils";
 
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
@@ -102,14 +109,26 @@ export const LendingPortfolio = () => {
     }
   }, [handleSimulation, marginfiClient, selectedAccount, shouldFetchRewards]);
 
-  const handleCollectExecution = React.useCallback(async () => {
+  const handleCollectRewardsAction = React.useCallback(async () => {
     if (!marginfiClient || !actionTxn) return;
-    await executeCollectTxn(marginfiClient, actionTxn, { ...priorityFees, broadcastType }, setRewardsLoading, () => {
-      setRewardsDialogOpen(false);
-    });
-    setRewardsState(initialRewardsState);
-    handleSimulation();
-  }, [marginfiClient, actionTxn, priorityFees, broadcastType, handleSimulation]);
+    const props: ExecuteActionProps = {
+      marginfiClient,
+      actionTxns: { transactions: [actionTxn] },
+      attemptUuid: uuidv4(),
+      processOpts: { ...priorityFees, broadcastType },
+      txOpts: {},
+      callbacks: {
+        onComplete: () => {
+          setRewardsState(initialRewardsState);
+          handleSimulation();
+        },
+      },
+    };
+
+    ExecuteCollectRewardsAction(props);
+
+    setRewardsDialogOpen(false);
+  }, [marginfiClient, actionTxn, priorityFees, broadcastType, handleSimulation, setRewardsDialogOpen]);
 
   const lendingBanks = React.useMemo(
     () =>
@@ -466,7 +485,7 @@ export const LendingPortfolio = () => {
           onOpenChange={(open) => {
             setRewardsDialogOpen(open);
           }}
-          onCollect={handleCollectExecution}
+          onCollect={handleCollectRewardsAction}
           isLoading={rewardsLoading}
         />
       </div>

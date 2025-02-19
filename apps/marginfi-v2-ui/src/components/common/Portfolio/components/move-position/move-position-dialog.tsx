@@ -1,6 +1,7 @@
 import React from "react";
 
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import { v4 as uuidv4 } from "uuid";
 
 import {
   usdFormatter,
@@ -15,6 +16,8 @@ import {
   captureSentryException,
   checkLendActionAvailable,
   composeExplorerUrl,
+  ExecuteMovePositionAction,
+  ExecuteMovePositionActionProps,
   extractErrorString,
 } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
@@ -134,46 +137,36 @@ export const MovePositionDialog = ({
 
   const handleMovePosition = React.useCallback(async () => {
     if (!marginfiClient || !accountToMoveTo || !actionTxns || !broadcastType || !priorityFees) {
+      console.error("Missing required props for ExecuteMovePositionAction");
       return;
     }
 
-    const processOpts = { ...priorityFees, broadcastType };
+    const props: ExecuteMovePositionActionProps = {
+      actionTxns: { transactions: actionTxns },
+      attemptUuid: uuidv4(),
+      marginfiClient,
+      processOpts: { ...priorityFees, broadcastType },
+      txOpts: {},
+      infoProps: {
+        originAccountAddress: shortenAddress(selectedAccount?.address.toBase58() ?? ""),
+        destinationAccountAddress: shortenAddress(accountToMoveTo?.address.toBase58() ?? ""),
+      },
+      callbacks: {
+        onComplete: () => {
+          fetchMrgnlendState();
+        },
+      },
+    };
 
-    const multiStepToast = toastManager.createMultiStepToast("Moving position", [
-      { label: "Signing transaction" },
-      { label: `Withdrawing from account ${shortenAddress(selectedAccount?.address.toBase58() ?? "", 8)}` },
-      { label: `Depositing to account ${shortenAddress(accountToMoveTo?.address.toBase58(), 8)}` },
-      { label: "Updating accounts" },
-    ]);
-    multiStepToast.start();
-    setIsExecutionLoading(true);
-    try {
-      const sigs = await marginfiClient.processTransactions(actionTxns, {
-        ...processOpts,
-        callback: (index, success, sig, stepsToAdvance) =>
-          success && multiStepToast.successAndNext(stepsToAdvance,  composeExplorerUrl(sig), sig),
-      });
-      await fetchMrgnlendState();
-      multiStepToast.success();
-      setIsOpen(false);
-    } catch (error) {
-      const msg = extractErrorString(error);
-      console.error("Error moving position between accounts", msg);
-      multiStepToast.setFailed(msg);
-      captureSentryException(error, msg, {
-        action: "movePosition",
-        wallet: marginfiClient?.wallet.publicKey.toBase58(),
-      });
-    } finally {
-      setIsExecutionLoading(false);
-    }
+    ExecuteMovePositionAction(props);
+    setIsOpen(false);
   }, [
     marginfiClient,
     accountToMoveTo,
     actionTxns,
     broadcastType,
     priorityFees,
-    selectedAccount?.address,
+    selectedAccount,
     fetchMrgnlendState,
     setIsOpen,
   ]);
@@ -181,7 +174,7 @@ export const MovePositionDialog = ({
   React.useEffect(() => {
     if (!accountToMoveTo) return;
     handleSimulateTxns();
-  }, [accountToMoveTo]);
+  }, [accountToMoveTo, handleSimulateTxns]);
 
   return (
     <Dialog
@@ -262,8 +255,8 @@ export const MovePositionDialog = ({
                   actionSummary.health >= 0.5
                     ? "text-success"
                     : actionSummary.health >= 0.25
-                    ? "text-alert-foreground"
-                    : "text-destructive-foreground"
+                      ? "text-alert-foreground"
+                      : "text-destructive-foreground"
                 }`}
               >
                 <>

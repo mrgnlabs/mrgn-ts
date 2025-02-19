@@ -19,7 +19,12 @@ import {
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ActionMessage } from "~/components";
-import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton , ActionSimulationStatus} from "~/components/action-box-v2/components";
+import {
+  ActionBoxContentWrapper,
+  ActionButton,
+  ActionSettingsButton,
+  ActionSimulationStatus,
+} from "~/components/action-box-v2/components";
 
 import { useStakeBoxStore } from "./store";
 import { AmountPreview } from "./components/amount-preview";
@@ -98,7 +103,7 @@ export const StakeBox = ({
   ]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
-  const [isSimulating, setIsSimulating] = React.useState<{
+  const [simulationStatus, setSimulationStatus] = React.useState<{
     isLoading: boolean;
     status: SimulationStatus;
   }>({
@@ -107,8 +112,8 @@ export const StakeBox = ({
   });
 
   const isLoading = React.useMemo(
-    () => isTransactionExecuting || isSimulating.isLoading,
-    [isTransactionExecuting, isSimulating.isLoading]
+    () => isTransactionExecuting || simulationStatus.isLoading,
+    [isTransactionExecuting, simulationStatus.isLoading]
   );
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
@@ -155,7 +160,7 @@ export const StakeBox = ({
     };
   }, [refreshState]);
 
-  const {  refreshSimulation } = useStakeSimulation({
+  const { refreshSimulation } = useStakeSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedBank,
     actionMode,
@@ -165,7 +170,7 @@ export const StakeBox = ({
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
-    setIsLoading: setIsSimulating,
+    setIsLoading: setSimulationStatus,
     marginfiClient,
     lstData,
   });
@@ -227,16 +232,29 @@ export const StakeBox = ({
       },
       infoProps: {
         swapAmount: dynamicNumeralFormatter(amount),
-        amount: dynamicNumeralFormatter(actionTxns.actionQuote ? nativeToUi(Number(actionTxns?.actionQuote?.outAmount), 9 ) : amount), // Always sol as output so 9 decimals
+        amount: dynamicNumeralFormatter(
+          actionTxns.actionQuote ? nativeToUi(Number(actionTxns?.actionQuote?.outAmount), 9) : amount
+        ), // Always sol as output so 9 decimals
         token: selectedBank.meta.tokenSymbol,
         actionType: requestedActionType,
-      }, 
-    }
+      },
+    };
 
-    ExecuteStakeAction(params)
+    ExecuteStakeAction(params);
 
-    setAmountRaw("")
-  }, [actionTxns, amount, captureEvent, marginfiClient, priorityFees, requestedActionType, selectedBank, setAmountRaw, transactionSettings, onComplete])
+    setAmountRaw("");
+  }, [
+    actionTxns,
+    amount,
+    captureEvent,
+    marginfiClient,
+    priorityFees,
+    requestedActionType,
+    selectedBank,
+    setAmountRaw,
+    transactionSettings,
+    onComplete,
+  ]);
 
   React.useEffect(() => {
     fetchActionBoxState({ requestedLendType: requestedActionType, requestedBank });
@@ -273,7 +291,7 @@ export const StakeBox = ({
         />
       </div>
       <div className="mb-5">
-        <AmountPreview actionMode={actionMode} amount={receiveAmount} isLoading={isSimulating.isLoading} />
+        <AmountPreview actionMode={actionMode} amount={receiveAmount} isLoading={simulationStatus.isLoading} />
       </div>
       {additionalActionMessages.concat(actionMessages).map(
         (actionMessage, idx) =>
@@ -282,7 +300,7 @@ export const StakeBox = ({
               <ActionMessage
                 _actionMessage={actionMessage}
                 retry={refreshSimulation}
-                isRetrying={isSimulating.isLoading}
+                isRetrying={simulationStatus.isLoading}
               />
             </div>
           )
@@ -301,7 +319,7 @@ export const StakeBox = ({
 
       <div className="flex items-center justify-between">
         <ActionSimulationStatus
-          simulationStatus={isSimulating.status}
+          simulationStatus={simulationStatus.status}
           hasErrorMessages={additionalActionMessages.length > 0}
           isActive={selectedBank && amount > 0 ? true : false}
         />

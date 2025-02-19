@@ -1,6 +1,15 @@
 import { IconLoader2, IconCheck, IconExternalLink, IconX } from "@tabler/icons-react";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { MultiStepToastStep, ToastStatus } from "../../../utils";
+import { MultiStepToastStep } from "~/utils";
+
+enum ToastStatus {
+  TODO = "todo",
+  PENDING = "pending",
+  SUCCESS = "success",
+  ERROR = "error",
+  CANCELED = "canceled",
+  PAUSED = "paused",
+} // TODO: remove this and fix import
 
 interface MultiStepToastProps {
   toastId: string;
@@ -9,6 +18,7 @@ interface MultiStepToastProps {
 }
 
 export function MultiStepToast({ title, steps }: MultiStepToastProps) {
+  console.log(ToastStatus);
   const lastFailedIndex = steps.map((s) => s.status).lastIndexOf(ToastStatus.ERROR);
 
   return (
