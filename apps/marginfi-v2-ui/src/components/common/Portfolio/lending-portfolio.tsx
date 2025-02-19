@@ -28,7 +28,6 @@ import { RewardsDialog } from "./components/rewards";
 import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats } from "./components";
 import { RewardsType } from "./types";
 import { useRewardSimulation } from "./hooks";
-import { executeCollectTxn } from "./utils";
 import { IconLoader } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 

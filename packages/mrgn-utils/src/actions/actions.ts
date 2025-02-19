@@ -35,12 +35,9 @@ export interface ExecuteActionProps {
 
 function getSteps(actionTxns: ActionTxns, infoProps: Record<string, any>) {
   return [
-    { label: "Signing Transaction" },
+    { label: "Sign Transaction" },
     ...actionTxns.transactions.map((tx) => {
-      console.log("tx", tx.type);
       const config = TransactionConfigMap[tx.type];
-
-      console.log("config", config);
 
       const message = config.label(infoProps);
 
@@ -501,10 +498,6 @@ export async function ExecuteMovePositionAction(props: ExecuteMovePositionAction
     originAccountAddress: props.infoProps.originAccountAddress,
     destinationAccountAddress: props.infoProps.destinationAccountAddress,
   });
-
-  console.log("steps", steps);
-
-  console.log("ExecuteMovePositionAction props", props);
 
   props.callbacks.captureEvent &&
     props.callbacks.captureEvent("user_move_position_initiate", { uuid: props.attemptUuid, ...props.infoProps });
