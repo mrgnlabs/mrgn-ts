@@ -35,7 +35,7 @@ export interface ExecuteActionProps {
 
 function getSteps(actionTxns: ActionTxns, infoProps: Record<string, any>) {
   return [
-    { label: "Signing Transaction" },
+    { label: "Sign Transaction" },
     ...actionTxns.transactions.map((tx) => {
       console.log("tx", tx.type);
       const config = TransactionConfigMap[tx.type];
@@ -181,7 +181,6 @@ export async function ExecuteLendingAction(props: ExecuteLendingActionProps) {
     token: props.infoProps.token,
   });
 
-  console.log("steps", steps);
   props.callbacks.captureEvent &&
     props.callbacks.captureEvent("user_lending_initiate", { uuid: props.attemptUuid, ...props.infoProps });
 
