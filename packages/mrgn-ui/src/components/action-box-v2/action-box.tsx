@@ -140,14 +140,16 @@ const BorrowLend = (
             {...combinedProps}
             requestedLendType={ActionType.Deposit}
             onCloseDialog={actionBoxProps.isDialog ? actionBoxProps.dialogProps?.onClose : undefined}
-            searchMode={shouldBeHidden}
+            searchMode={combinedProps.searchMode}
+            shouldBeHidden={shouldBeHidden}
             setShouldBeHidden={setShouldBeHidden}
           />
           <LendBox
             {...combinedProps}
             requestedLendType={ActionType.Borrow}
             onCloseDialog={actionBoxProps.isDialog ? actionBoxProps.dialogProps?.onClose : undefined}
-            searchMode={shouldBeHidden}
+            searchMode={combinedProps.searchMode}
+            shouldBeHidden={shouldBeHidden}
             setShouldBeHidden={setShouldBeHidden}
           />
         </ActionBoxNavigator>

@@ -66,6 +66,7 @@ export type LendBoxProps = {
 
   searchMode?: boolean;
   onCloseDialog?: () => void;
+  shouldBeHidden?: boolean;
   setShouldBeHidden?: (hidden: boolean) => void;
 
   onComplete?: (previousTxn: PreviousTxn) => void;
@@ -94,6 +95,7 @@ export const LendBox = ({
   stakeAccounts,
   setDisplaySettings,
   onCloseDialog,
+  shouldBeHidden = false,
   searchMode = false,
   setShouldBeHidden,
 }: LendBoxProps) => {
@@ -141,16 +143,16 @@ export const LendBox = ({
 
   const hasRefreshed = React.useRef(false);
   const _prevSelectedBank = usePrevious(selectedBank);
-  const _prevSearchMode = usePrevious(searchMode);
+  const _prevShouldBeHidden = usePrevious(shouldBeHidden);
 
   /**
-   * Handles visibility and state refresh logic when `searchMode` is enabled.
+   * Handles visibility and state refresh logic when `shouldBeHidden` is enabled.
    * - If no bank is selected, hide the component.
    * - If a bank is selected, show the component.
-   * - If `searchMode` is first enabled and a bank was already selected, refresh the state.
+   * - If `shouldBeHidden` is first enabled and a bank was already selected, refresh the state.
    */
   React.useEffect(() => {
-    if (!searchMode) return;
+    if (!shouldBeHidden) return;
 
     if (!selectedBank) {
       setShouldBeHidden?.(true);
@@ -158,22 +160,22 @@ export const LendBox = ({
       setShouldBeHidden?.(false);
     }
 
-    // Refresh state when searchMode is enabled and a bank was initially selected
+    // Refresh state when shouldBeHidden is enabled and a bank was initially selected
     if (!hasRefreshed.current && _prevSelectedBank === undefined && selectedBank) {
       refreshState();
       hasRefreshed.current = true;
     }
-  }, [searchMode, selectedBank, _prevSelectedBank, setShouldBeHidden, refreshState]);
+  }, [shouldBeHidden, selectedBank, _prevSelectedBank, setShouldBeHidden, refreshState]);
 
   /**
-   * Resets `hasRefreshed` when `searchMode` changes from `false` → `true`.
-   * This ensures `refreshState()` can run again when toggling `searchMode` on.
+   * Resets `hasRefreshed` when `shouldBeHidden` changes from `false` → `true`.
+   * This ensures `refreshState()` can run again when toggling `shouldBeHidden` on.
    */
   React.useEffect(() => {
-    if (_prevSearchMode === false && searchMode === true) {
+    if (_prevShouldBeHidden === false && shouldBeHidden === true) {
       hasRefreshed.current = false;
     }
-  }, [searchMode, _prevSearchMode]);
+  }, [shouldBeHidden, _prevShouldBeHidden]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [isSimulating, setIsSimulating] = React.useState<{
@@ -593,7 +595,7 @@ export const LendBox = ({
 
   React.useEffect(() => {
     const handleKeyPress = async (event: KeyboardEvent) => {
-      if (isMobile || event.key !== "Enter" || isLoading || !connected) {
+      if (isMobile || event.key !== "Enter" || isLoading || !connected || searchMode) {
         return;
       }
 
@@ -617,6 +619,7 @@ export const LendBox = ({
     handleCloseBalance,
     handleLendingAction,
     isMobile,
+    searchMode,
   ]);
 
   return (
@@ -637,9 +640,9 @@ export const LendBox = ({
           showTokenSelectionGroups={showTokenSelectionGroups}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
-          searchMode={searchMode}
+          searchMode={shouldBeHidden}
           onCloseDialog={() => {
-            searchMode && onCloseDialog?.();
+            shouldBeHidden && onCloseDialog?.();
           }}
         />
       </div>
