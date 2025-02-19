@@ -1,4 +1,4 @@
-import { IconLoader2, IconCheck, IconExternalLink, IconX } from "@tabler/icons-react";
+import { IconLoader2, IconCheck, IconExternalLink, IconX, IconCircleCheckFilled } from "@tabler/icons-react";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { MultiStepToastStep } from "~/utils";
 
@@ -23,7 +23,16 @@ export function MultiStepToast({ title, steps }: MultiStepToastProps) {
 
   return (
     <div className="relative w-full h-full rounded-md z-50 md:min-w-[340px]">
-      <h2 className="text-lg mb-5 font-medium">{allSuccessful ? `Transaction confirmed` : title}</h2>
+      <h2 className="flex items-center gap-1.5 text-lg mb-5 font-medium">
+        {allSuccessful ? (
+          <>
+            <IconCircleCheckFilled size={24} className="text-success flex-shrink-0" />
+            Transaction confirmed
+          </>
+        ) : (
+          title
+        )}
+      </h2>
       <div className="flex flex-col gap-2">
         {steps.map((step, index) => (
           <StepComponent
