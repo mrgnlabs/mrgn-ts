@@ -21,7 +21,7 @@
     "@jup-ag/api": "^6.0.38",
     "@jup-ag/common": "^6.1.0",
     "@meso-network/meso-js": "^0.1.2",
-    "@moongate/moongate-adapter": "^0.4.2",
+    "@moongate/moongate-adapter": "^0.6.2",
     "@moonpay/moonpay-js": "^0.1.0",
     "@mrgnlabs/lip-client": "workspace:*",
     "@mrgnlabs/marginfi-client-v2": "workspace:*",
