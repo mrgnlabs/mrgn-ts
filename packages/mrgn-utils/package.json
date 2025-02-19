@@ -23,8 +23,6 @@
     "@sentry/nextjs": "^7.77.0",
     "@solana/buffer-layout-utils": "^0.2.0",
     "@solana/spl-stake-pool": "^0.6.5",
-    "@solana/wallet-adapter-base": "^0.9.23",
-    "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/web3.js": "^1.93.2",
     "@tabler/icons-react": "^3.3.0",
     "bignumber.js": "^9.1.2",
@@ -35,26 +33,32 @@
     "decimal.js": "^10.4.3",
     "lodash.debounce": "^4.0.8",
     "numeral": "^2.0.6",
-    "obscenity": "^0.4.3",
     "posthog-js": "^1.104.4",
-    "react": "18.2.0",
     "react-responsive": "^9.0.2",
     "react-toastify": "^9.1.1",
     "superstruct": "^1.0.4",
     "tailwind-merge": "^1.14.0"
   },
   "devDependencies": {
-    "@mrgnlabs/eslint-config-custom": "workspace:*",
     "@mrgnlabs/tsconfig": "workspace:*",
     "@types/numeral": "^2.0.5",
     "@types/react": "^18.2.61",
     "@types/bn.js": "^5.1.1",
     "@types/lodash.debounce": "^4.0.9",
-    "eslint": "^9.5.0",
     "ts-node": "^10.9.2",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
     "typescript": "^5.5.2"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "peerDependencies": {
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   }
 }

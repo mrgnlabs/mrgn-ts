@@ -19,7 +19,6 @@
     "@grpc/grpc-js": "^1.12.2",
     "@jup-ag/api": "^6.0.38",
     "@jup-ag/common": "^6.1.0",
-    "@moongate/moongate-adapter": "^0.1.2",
     "@moonpay/moonpay-js": "^0.1.0",
     "@mrgnlabs/lip-client": "workspace:*",
     "@mrgnlabs/marginfi-client-v2": "workspace:*",
@@ -35,6 +34,7 @@
     "@solana/spl-stake-pool": "^0.6.5",
     "@solana/spl-token": "^0.4.6",
     "@solana/spl-token-registry": "^0.2.4574",
+    "@solana/buffer-layout": "^4.0.1",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/wallet-adapter-react-ui": "^0.9.34",
@@ -99,7 +99,6 @@
     "zustand": "^4.4.1"
   },
   "devDependencies": {
-    "@mrgnlabs/eslint-config-custom": "workspace:*",
     "@mrgnlabs/tsconfig": "workspace:*",
     "@tailwindcss/typography": "^0.5.10",
     "@types/bn.js": "^5.1.6",
@@ -115,10 +114,8 @@
     "@types/react-dom": "^18.2.19",
     "@types/uuid": "^9.0.2",
     "autoprefixer": "^10.4.13",
-    "eslint": "8.30.0",
     "next-transpile-modules": "^10.0.0",
     "postcss": "^8.4.20",
-    "prettier": "^2.8.1",
     "tailwindcss": "^3.2.4",
     "typescript": "5"
   }

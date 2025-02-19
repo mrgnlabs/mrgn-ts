@@ -44,8 +44,6 @@
     "@solana/buffer-layout": "^4.0.1",
     "@solana/buffer-layout-utils": "^0.2.0",
     "@solana/spl-stake-pool": "^0.6.5",
-    "@solana/wallet-adapter-base": "^0.9.23",
-    "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/web3.js": "^1.93.2",
     "@solana/spl-token": "^0.3.8",
     "@tabler/icons-react": "^3.3.0",
@@ -61,12 +59,10 @@
     "cmdk": "^0.2.0",
     "decimal.js": "^10.4.3",
     "embla-carousel-react": "^8.1.6",
-    "eslint": "8.30.0",
     "lottie-react": "^2.4.0",
     "lucide-react": "^0.475.0",
     "minidenticons": "^4.2.0",
     "numeral": "^2.0.6",
-    "react": "18.2.0",
     "react-confetti": "^6.1.0",
     "react-cookie": "^6.1.1",
     "react-copy-to-clipboard": "^5.1.0",
@@ -81,25 +77,27 @@
     "zustand": "^4.4.1"
   },
   "devDependencies": {
-    "@mrgnlabs/eslint-config-custom": "workspace:*",
     "@mrgnlabs/tsconfig": "workspace:*",
     "@types/numeral": "^2.0.5",
     "@types/react": "^18.2.61",
     "@types/react-copy-to-clipboard": "^5.0.5",
     "@types/uuid": "^9.0.2",
-    "eslint": "^9.5.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "next": "14.2.21"
   },
   "publishConfig": {
     "access": "public"
   },
   "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "@solana/wallet-adapter-base": "^0.9.23",
-    "@solana/wallet-adapter-react": "^0.15.35"
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "next": "14.2.21"
   }
 }
