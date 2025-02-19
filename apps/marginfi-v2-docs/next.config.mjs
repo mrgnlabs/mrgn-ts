@@ -22,6 +22,14 @@ const nextConfig = {
   experimental: {
     appDir: false,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cdn.sanity.io",
+      },
+    ],
+  },
 }
 
 export default withSearch(withMDX(nextConfig))
