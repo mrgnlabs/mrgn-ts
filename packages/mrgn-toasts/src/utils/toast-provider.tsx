@@ -3,7 +3,18 @@
 import { Toaster, ToasterProps } from "sonner";
 
 export function ToastProvider(props: ToasterProps) {
-  return <Toaster toastOptions={{
-    className: "bg-mfi-toast-background",
-  }} position="bottom-right" theme="dark" {...props} />;
+  return (
+    <Toaster
+      toastOptions={{
+        className: "bg-mfi-toast-background",
+        classNames: {
+          closeButton: "bg-mfi-toast-background -right-4 left-auto",
+        },
+      }}
+      position="bottom-right"
+      theme="dark"
+      closeButton
+      {...props}
+    />
+  );
 }
