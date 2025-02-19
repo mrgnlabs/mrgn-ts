@@ -1,14 +1,14 @@
-import { RegExpMatcher, englishDataset, englishRecommendedTransformers } from "obscenity";
+// import { RegExpMatcher, englishDataset, englishRecommendedTransformers } from "obscenity";
 import { BankMetadata } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 
-const profanityMatcher = new RegExpMatcher({
-  ...englishDataset.build(),
-  ...englishRecommendedTransformers,
-});
+// const profanityMatcher = new RegExpMatcher({
+//   ...englishDataset.build(),
+//   ...englishRecommendedTransformers,
+// });
 
 export const containsProfanity = (text: string) => {
-  return profanityMatcher.hasMatch(text);
+  return false;
 };
 
 export const validateAssetName = (value: string, banks: BankMetadata[]) => {

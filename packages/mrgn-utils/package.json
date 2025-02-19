@@ -33,7 +33,6 @@
     "decimal.js": "^10.4.3",
     "lodash.debounce": "^4.0.8",
     "numeral": "^2.0.6",
-    "obscenity": "^0.4.3",
     "posthog-js": "^1.104.4",
     "react-responsive": "^9.0.2",
     "react-toastify": "^9.1.1",
@@ -60,6 +59,9 @@
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-react": "^0.15.35",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0" 
+  },
+  "eslintConfig": {
+    "root": true
   }
 }

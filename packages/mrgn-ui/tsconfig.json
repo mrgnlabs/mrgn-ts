@@ -9,7 +9,8 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./src/*", "../../packages/mrgn-utils/src/*"]
+      "~/*": ["./src/*", "../../packages/mrgn-utils/src/*"],
+      "@mrgnlabs/mrgn-utils": ["../../packages/mrgn-utils/src/*"]
     },
     "module": "ESNext"
   },
