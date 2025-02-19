@@ -18,15 +18,20 @@ interface MultiStepToastProps {
 }
 
 export function MultiStepToast({ title, steps }: MultiStepToastProps) {
-  console.log(ToastStatus);
   const lastFailedIndex = steps.map((s) => s.status).lastIndexOf(ToastStatus.ERROR);
+  const allSuccessful = steps.every((step) => step.status === ToastStatus.SUCCESS);
 
   return (
-    <div className="w-full h-full rounded-md z-50 md:min-w-[340px]">
-      <h2 className="text-lg mb-5 font-medium">{title}</h2>
+    <div className="relative w-full h-full rounded-md z-50 md:min-w-[340px]">
+      <h2 className="text-lg mb-5 font-medium">{allSuccessful ? `Transaction confirmed` : title}</h2>
       <div className="flex flex-col gap-2">
         {steps.map((step, index) => (
-          <StepComponent key={index} step={step} isLastFailed={index === lastFailedIndex} />
+          <StepComponent
+            key={index}
+            step={step}
+            isLastFailed={index === lastFailedIndex}
+            isLastStep={index === steps.length - 1}
+          />
         ))}
       </div>
     </div>
@@ -34,10 +39,25 @@ export function MultiStepToast({ title, steps }: MultiStepToastProps) {
 }
 
 // Step Rendering
-function StepComponent({ step, isLastFailed }: { step: MultiStepToastStep; isLastFailed: boolean }) {
+function StepComponent({
+  step,
+  isLastFailed,
+  isLastStep,
+}: {
+  step: MultiStepToastStep;
+  isLastFailed: boolean;
+  isLastStep: boolean;
+}) {
   switch (step.status) {
     case "success":
-      return <SuccessStep label={step.label} signature={step.signature} explorerUrl={step.explorerUrl} />;
+      return (
+        <SuccessStep
+          label={step.label}
+          signature={step.signature}
+          explorerUrl={step.explorerUrl}
+          isLastStep={isLastStep}
+        />
+      );
     case "error":
       return (
         <ErrorStep
@@ -64,24 +84,41 @@ const SuccessStep = ({
   label,
   signature,
   explorerUrl,
+  isLastStep,
 }: {
   label: string;
   signature?: string;
   explorerUrl?: string;
+  isLastStep: boolean;
 }) => (
-  <div className="flex items-center space-x-2">
-    <IconCheck size={16} className="text-success flex-shrink-0" />
-    <span className="text-primary truncate">{label}</span>
-    {signature && explorerUrl && (
-      <a
-        href={explorerUrl}
-        className="text-xs text-blue-500 flex items-center"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <IconExternalLink size={12} />
-        <span className="text-xs truncate"> {shortenAddress(signature)}</span>
-      </a>
+  <div className="flex flex-col">
+    <div className="flex items-center space-x-2">
+      <IconCheck size={16} className="text-success flex-shrink-0" />
+      <span className="text-primary truncate">{label}</span>
+      {!isLastStep && signature && explorerUrl && (
+        <a
+          href={explorerUrl}
+          className="text-xs text-blue-500 flex items-center text-muted-foreground"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <IconExternalLink size={12} />
+          <span className="text-xs truncate"> {shortenAddress(signature)}</span>
+        </a>
+      )}
+    </div>
+    {isLastStep && signature && explorerUrl && (
+      <div className="flex justify-between space-x-2 w-full px-6 py-1">
+        <a
+          href={explorerUrl}
+          className="text-xs text-blue-500 flex items-center text-muted-foreground"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <IconExternalLink size={12} />
+          <span className="text-xs truncate"> {shortenAddress(signature)}</span>
+        </a>
+      </div>
     )}
   </div>
 );
@@ -105,6 +142,7 @@ const ErrorStep = ({ label, message, onRetry }: { label: string; message?: strin
     </div>
   </div>
 );
+
 const PendingStep = ({ label }: { label: string }) => (
   <div className="flex items-center space-x-2">
     <IconLoader2 size={16} className="animate-spin flex-shrink-0" />
@@ -119,6 +157,6 @@ const CanceledStep = ({ label }: { label: string }) => (
   </div>
 );
 
-const TodoStep = ({ label }: { label: string }) => <span className="ml-6 text-muted-foreground/50">{label}</span>;
+const TodoStep = ({ label }: { label: string }) => <span className="ml-6 text-muted-foreground">{label}</span>;
 
-const PausedStep = ({ label }: { label: string }) => <span className="ml-6 text-muted-foreground/50">{label}</span>;
+const PausedStep = ({ label }: { label: string }) => <span className="ml-6 text-muted-foreground">{label}</span>;
