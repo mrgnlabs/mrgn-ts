@@ -110,7 +110,7 @@ module.exports = {
             highlight: "hsl(var(--mfi-action-box-highlight))",
           },
           toast: {
-            background: "hsl(var(--mfi-toast-background))",
+            background: "hsl(var(--mfi-toast-background) / var(--mfi-toast-background-opacity))",
           },
         },
       },

@@ -51,6 +51,7 @@
     --mfi-stake-calculator-chart-2: 0 0% 85%;
 
     --mfi-toast-background: 204 13% 8%;
+    --mfi-toast-background-opacity: 0.8;
   }
 }
 
@@ -213,12 +214,16 @@ a {
 }
 
 .glow {
-  text-shadow: 0 0 10px #dce85d, 0 0 30px #dce85d;
+  text-shadow:
+    0 0 10px #dce85d,
+    0 0 30px #dce85d;
   color: #dce85d !important;
 }
 
 .glow-uxd {
-  text-shadow: 0 0 10px #05ffff, 0 0 30px #05ffff;
+  text-shadow:
+    0 0 10px #05ffff,
+    0 0 30px #05ffff;
   color: #05ffff !important;
 }
 
