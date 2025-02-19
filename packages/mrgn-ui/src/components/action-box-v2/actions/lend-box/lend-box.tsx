@@ -3,13 +3,11 @@ import React from "react";
 import Link from "next/link";
 
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { IconInfoCircle, IconSettings } from "@tabler/icons-react";
 
 import {
   ActiveBankInfo,
   ExtendedBankInfo,
   ActionType,
-  TokenAccountMap,
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
@@ -26,6 +24,7 @@ import {
   MultiStepToastHandle,
   PreviousTxn,
   usePrevious,
+  useIsMobile,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
@@ -228,6 +227,8 @@ export const LendBox = ({
 
   const [lstDialogCallback, setLSTDialogCallback] = React.useState<(() => void) | null>(null);
   const [additionalActionMessages, setAdditionalActionMessages] = React.useState<ActionMessageType[]>([]);
+
+  const isMobile = useIsMobile();
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -589,6 +590,34 @@ export const LendBox = ({
       refreshSelectedBanks(banks);
     }
   }, [marginfiClient, banks, refreshSelectedBanks]);
+
+  React.useEffect(() => {
+    const handleKeyPress = async (event: KeyboardEvent) => {
+      if (isMobile || event.key !== "Enter" || isLoading || !connected) {
+        return;
+      }
+
+      const isActionEnabled = !additionalActionMessages
+        .concat(actionMessages)
+        .filter((value) => value.isEnabled === false).length;
+
+      if (isActionEnabled) {
+        showCloseBalance ? await handleCloseBalance() : await handleLendingAction();
+      }
+    };
+
+    document.addEventListener("keypress", handleKeyPress);
+    return () => document.removeEventListener("keypress", handleKeyPress);
+  }, [
+    isLoading,
+    connected,
+    additionalActionMessages,
+    actionMessages,
+    showCloseBalance,
+    handleCloseBalance,
+    handleLendingAction,
+    isMobile,
+  ]);
 
   return (
     <ActionBoxContentWrapper>
