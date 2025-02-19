@@ -57,9 +57,7 @@ export type DepositSwapBoxProps = {
   walletTokens: WalletToken[] | null;
   allBanks?: ExtendedBankInfo[];
 
-  onComplete?: (infoProps: {
-    walletToken?: WalletToken,
-  }) => void;
+  onComplete?: (infoProps: { walletToken?: WalletToken }) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
   setDisplaySettings?: (displaySettings: boolean) => void;
 };
@@ -133,7 +131,7 @@ export const DepositSwapBox = ({
     return getBankOrWalletTokenByPk(banks, walletTokens, selectedSwapBankPk);
   }, [banks, walletTokens, selectedSwapBankPk]);
 
-  const [isSimulating, setIsSimulating] = React.useState<{
+  const [simulationStatus, setSimulationStatus] = React.useState<{
     isLoading: boolean;
     status: SimulationStatus;
   }>({
@@ -209,7 +207,7 @@ export const DepositSwapBox = ({
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
-    setIsLoading: setIsSimulating,
+    setIsLoading: setSimulationStatus,
     marginfiClient,
     isDisabled: actionMessages.some((message) => !message.isEnabled),
   });
@@ -286,32 +284,49 @@ export const DepositSwapBox = ({
   ]);
 
   const handleDepositSwapAction = React.useCallback(() => {
-    if (!marginfiClient || actionTxns.transactions.length === 0) return; // TODO: see if this is ok enough, might need more checks
+    if (!actionTxns || !marginfiClient || !debouncedAmount || debouncedAmount === 0 || !transactionSettings) {
+      console.error("Missing required props for ExecuteDepositSwapAction");
+      return;
+    }
 
-    const props: ExecuteDepositSwapActionProps  = {
+    const depositAmount = !!actionTxns.actionQuote
+      ? dynamicNumeralFormatter(
+          Number(
+            nativeToUi(Number(actionTxns.actionQuote?.outAmount), selectedDepositBank?.info.rawBank.mintDecimals ?? 9)
+          )
+        )
+      : dynamicNumeralFormatter(debouncedAmount ?? 0);
+
+    const swapTokenSymbol = selectedSwapBank
+      ? "info" in selectedSwapBank
+        ? selectedSwapBank.meta.tokenSymbol
+        : selectedSwapBank.symbol
+      : "";
+
+    const props = {
       actionTxns,
       attemptUuid: uuidv4(),
       marginfiClient,
       processOpts: {
         ...priorityFees,
-        broadcastType: transactionSettings?.broadcastType,
+        broadcastType: transactionSettings.broadcastType,
       },
       txOpts: {},
       callbacks: {
-        captureEvent: captureEvent ,
+        captureEvent: captureEvent,
         onComplete: () => {
           onComplete?.({
-            walletToken: selectedSwapBank &&  "info" in selectedSwapBank ? undefined : selectedSwapBank ?? undefined ,
-          })
-        } ,
+            walletToken: selectedSwapBank && "info" in selectedSwapBank ? undefined : (selectedSwapBank ?? undefined),
+          });
+        },
       },
       infoProps: {
-        depositToken: selectedDepositBank?.meta.tokenSymbol ??'',
-        swapToken: selectedSwapBank ? "info" in selectedSwapBank ? selectedSwapBank.meta.tokenSymbol : selectedSwapBank.symbol : "",
-        depositAmount: dynamicNumeralFormatter(Number(actionTxns.actionQuote?.outAmount) ? Number(nativeToUi(Number(actionTxns.actionQuote?.outAmount), selectedDepositBank?.info.rawBank.mintDecimals ?? 9)) :debouncedAmount ?? 0),
+        depositToken: selectedDepositBank?.meta.tokenSymbol ?? "",
+        swapToken: swapTokenSymbol,
+        depositAmount,
         swapAmount: dynamicNumeralFormatter(debouncedAmount ?? 0),
       },
-    } 
+    };
 
     ExecuteDepositSwapAction(props);
     setAmountRaw("");
@@ -437,7 +452,7 @@ export const DepositSwapBox = ({
               <ActionMessage
                 _actionMessage={actionMessage}
                 retry={refreshSimulation}
-                isRetrying={isSimulating.isLoading}
+                isRetrying={simulationStatus.isLoading}
               />
             </div>
           )
@@ -451,7 +466,7 @@ export const DepositSwapBox = ({
 
       <div className="mb-3">
         <ActionButton
-          isLoading={isSimulating.isLoading}
+          isLoading={simulationStatus.isLoading}
           isEnabled={
             !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
           }
@@ -465,7 +480,7 @@ export const DepositSwapBox = ({
 
       <div className="flex items-center justify-between">
         <ActionSimulationStatus
-          simulationStatus={isSimulating.status}
+          simulationStatus={simulationStatus.status}
           hasErrorMessages={additionalActionMessages.length > 0}
           isActive={selectedDepositBank && amount > 0 ? true : false}
         />
@@ -475,7 +490,7 @@ export const DepositSwapBox = ({
       <Preview
         actionSummary={actionSummary}
         selectedBank={selectedDepositBank}
-        isLoading={isSimulating.isLoading}
+        isLoading={simulationStatus.isLoading}
         lendMode={lendMode}
         hidePoolStats={hidePoolStats}
       />

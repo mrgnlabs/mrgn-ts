@@ -127,7 +127,7 @@ export const LoopBox = ({
     jupiterOptions: null,
   };
 
-  const [isSimulating, setIsSimulating] = React.useState<{
+  const [simulationStatus, setSimulationStatus] = React.useState<{
     isLoading: boolean;
     status: SimulationStatus;
   }>({
@@ -190,7 +190,7 @@ export const LoopBox = ({
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
-    setIsLoading: setIsSimulating,
+    setIsLoading: setSimulationStatus,
     actionMessages: actionMessages,
   });
 
@@ -258,9 +258,8 @@ export const LoopBox = ({
   // Looping Actions //
   /////////////////////
   const handleLoopAction = React.useCallback(async () => {
-
     if (!selectedBank || !amount || !marginfiClient || !selectedSecondaryBank || !transactionSettings) {
-      return
+      return;
     }
 
     const params: ExecuteLoopActionProps = {
@@ -278,14 +277,26 @@ export const LoopBox = ({
         depositToken: selectedBank.meta.tokenSymbol,
         borrowAmount: dynamicNumeralFormatter(actionTxns.borrowAmount.toNumber()),
         borrowToken: selectedSecondaryBank.meta.tokenSymbol,
-      }, 
+      },
       nativeSolBalance: nativeSolBalance,
-    }
+    };
 
-    ExecuteLoopAction(params)
+    ExecuteLoopAction(params);
 
-    setAmountRaw("")
-  }, [actionTxns, amount, captureEvent, marginfiClient, priorityFees, selectedBank, selectedSecondaryBank, setAmountRaw, transactionSettings, nativeSolBalance, onComplete]) 
+    setAmountRaw("");
+  }, [
+    actionTxns,
+    amount,
+    captureEvent,
+    marginfiClient,
+    priorityFees,
+    selectedBank,
+    selectedSecondaryBank,
+    setAmountRaw,
+    transactionSettings,
+    nativeSolBalance,
+    onComplete,
+  ]);
 
   React.useEffect(() => {
     if (marginfiClient) {
@@ -332,7 +343,7 @@ export const LoopBox = ({
           setSelectedSecondaryBank={(bank) => {
             setSelectedSecondaryBank(bank);
           }}
-          isLoading={isSimulating.isLoading}
+          isLoading={simulationStatus.isLoading}
           walletAmount={walletAmount}
           actionTxns={actionTxns}
         />
@@ -366,7 +377,7 @@ export const LoopBox = ({
                 <ActionMessage
                   _actionMessage={actionMessage}
                   retry={refreshSimulation}
-                  isRetrying={isSimulating.isLoading}
+                  isRetrying={simulationStatus.isLoading}
                 />
               </div>
             )
@@ -374,7 +385,7 @@ export const LoopBox = ({
 
       <div className="mb-3 space-y-2">
         <ActionButton
-          isLoading={isSimulating.isLoading}
+          isLoading={simulationStatus.isLoading}
           isEnabled={
             !additionalActionMessages
               .concat(actionMessages)
@@ -392,7 +403,7 @@ export const LoopBox = ({
 
       <div className="flex items-center justify-between">
         <ActionSimulationStatus
-          simulationStatus={isSimulating.status}
+          simulationStatus={simulationStatus.status}
           hasErrorMessages={additionalActionMessages.length > 0}
           isActive={selectedBank && amount > 0 ? true : false}
           actionType={ActionType.Loop}
@@ -400,7 +411,7 @@ export const LoopBox = ({
         {setDisplaySettings && <ActionSettingsButton onClick={() => setDisplaySettings(true)} />}
       </div>
 
-      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isSimulating.isLoading} />
+      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={simulationStatus.isLoading} />
     </ActionBoxContentWrapper>
   );
 };
