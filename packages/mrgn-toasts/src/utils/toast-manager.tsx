@@ -32,6 +32,9 @@ export interface MultiStepToastController {
   close: () => void;
 }
 
+/*
+Singleton class that manages all toasts.
+*/
 class ToastManager {
   showWarningToast(title: string, message: string) {
     toast(<WarningToast title={title} message={message} />, { duration: Infinity });
@@ -54,19 +57,25 @@ class ToastManager {
     });
   }
 
+  // Function to create a multi-step toast.
+  // Returns a controller object that can be used to update the toast.
   createMultiStepToast(title: string, steps: { label: string }[]): MultiStepToastController {
+    // Generate a unique ID for the toast. This is used to identify the toast in the DOM & cannot be the same as another instance.
     const toastId: string = Math.random().toString(36).substring(2, 9);
 
+    // Create MultiStepToastStep objects for each step.
     const stepsWithStatus: MultiStepToastStep[] = steps.map((step, index) => ({
       ...step,
       status: index === 0 ? ToastStatus.PENDING : ToastStatus.TODO,
     }));
 
+    // Create the toast.
     toast(<MultiStepToast toastId={toastId} title={title} steps={stepsWithStatus} />, {
       id: toastId,
       duration: Infinity,
     });
 
+    // Function to update the toast.
     const updateToast = () => {
       toast(<MultiStepToast toastId={toastId} title={title} steps={stepsWithStatus} />, {
         id: toastId,
@@ -74,11 +83,15 @@ class ToastManager {
       });
     };
 
+    // Create a controller object that can be used to update the toast.
     const ToastController: MultiStepToastController = {
       start: () => {
         updateToast();
       },
 
+      // Function to update the toast to the next step.
+      // If stepsToAdvance is not provided, it will default to 1.
+      // If explorerUrl && signature are provided, the explorerUrl will be displayed in the toast.
       successAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => {
         if (!toastId) return;
 
@@ -114,6 +127,8 @@ class ToastManager {
         }
       },
 
+      // Function to set all steps to success.
+      // If explorerUrl && signature are provided, the explorerUrl will be displayed in the toast.
       success: (explorerUrl?: string, signature?: string) => {
         stepsWithStatus.forEach((s, index) => {
           s.status = ToastStatus.SUCCESS;
@@ -128,6 +143,8 @@ class ToastManager {
         setTimeout(() => toast.dismiss(toastId), 5000);
       },
 
+      // Function to set the current step to error.
+      // If message && onRetry are provided, the message will be displayed in the toast & the onRetry function will be called.
       setFailed: (message?: string, onRetry?: () => void) => {
         const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.PENDING);
         if (currentIndex === -1) return;
@@ -142,6 +159,7 @@ class ToastManager {
         updateToast();
       },
 
+      // Function to pause the toast at the current step.
       pause: () => {
         const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.PENDING);
         if (currentIndex !== -1) {
@@ -151,6 +169,7 @@ class ToastManager {
         updateToast();
       },
 
+      // Function to resume the toast from the paused step.
       resume: () => {
         const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.PAUSED);
         if (currentIndex !== -1) {
@@ -160,6 +179,7 @@ class ToastManager {
         updateToast();
       },
 
+      // Function to reset the last failed step & start the toast from that step.
       resetAndStart: () => {
         const failedIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.ERROR);
 
