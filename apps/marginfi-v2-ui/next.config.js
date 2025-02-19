@@ -56,8 +56,15 @@ let config = withBundleAnalyzer({
       child_process: false,
       request: false,
     };
+
+    config.module.rules.push({
+      test: /\.mjs$/,
+      include: /node_modules/,
+      type: "javascript/auto",
+    });
     return config;
   },
+
   images: {
     remotePatterns: [
       {
