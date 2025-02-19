@@ -12,6 +12,8 @@ module.exports = {
     "../../packages/mrgn-utils/src/**/*.{js,ts,jsx,tsx}",
     "!../../packages/mrgn-ui/node_modules/**/*", // Exclude node_modules
     "!../../packages/mrgn-utils/node_modules/**/*", // Exclude node_modules
+    "../../packages/mrgn-toasts/src/**/*.{js,ts,jsx,tsx}",
+    "!../../packages/mrgn-toasts/node_modules/**/*", // Exclude node_modules
   ],
   theme: {
     container: {
