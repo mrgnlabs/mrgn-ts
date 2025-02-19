@@ -111,7 +111,11 @@ class MarginfiAccountWrapper {
   /**
    * @internal
    */
-  constructor(marginfiAccountPk: PublicKey, private readonly client: MarginfiClient, marginfiAccount: MarginfiAccount) {
+  constructor(
+    marginfiAccountPk: PublicKey,
+    private readonly client: MarginfiClient,
+    marginfiAccount: MarginfiAccount
+  ) {
     this.address = marginfiAccountPk;
     this._marginfiAccount = marginfiAccount;
   }
@@ -477,7 +481,7 @@ class MarginfiAccountWrapper {
       {
         signers: withdrawIxs.keys,
         addressLookupTables: lookupTables,
-        type: TransactionType.WITHDRAW,
+        type: TransactionType.MOVE_POSITION_WITHDRAW,
       }
     );
 
@@ -486,7 +490,7 @@ class MarginfiAccountWrapper {
     const depositTx = addTransactionMetadata(tx, {
       signers: depositIx.keys,
       addressLookupTables: lookupTables,
-      type: TransactionType.MOVE_POSITION,
+      type: TransactionType.MOVE_POSITION_DEPOSIT,
     });
 
     const transactions = [...feedCrankTxs, withdrawTx, depositTx];

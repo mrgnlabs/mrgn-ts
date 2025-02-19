@@ -21,7 +21,8 @@ export enum TransactionType {
   // ACCOUNT MANAGEMENT
   CLOSE_ACCOUNT = "CLOSE_ACCOUNT",
   CLOSE_POSITION = "CLOSE_POSITION",
-  MOVE_POSITION = "MOVE_POSITION",
+  MOVE_POSITION_WITHDRAW = "MOVE_POSITION_WITHDRAW",
+  MOVE_POSITION_DEPOSIT = "MOVE_POSITION_DEPOSIT",
   WITHDRAW_ALL = "WITHDRAW_ALL",
   TRANSFER_AUTH = "TRANSFER_AUTH",
 
@@ -87,11 +88,15 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
   },
   [TransactionType.LONG]: {
     label: ({ depositToken, depositAmount, borrowToken } = {}) =>
-      depositToken && depositAmount && borrowToken ? `Longing ${depositToken} with ${depositAmount} ${borrowToken}` : "Opening Long position",
+      depositToken && depositAmount && borrowToken
+        ? `Longing ${depositToken} with ${depositAmount} ${borrowToken}`
+        : "Opening Long position",
   },
   [TransactionType.SHORT]: {
     label: ({ borrowToken, depositAmount, depositToken } = {}) =>
-      borrowToken && depositAmount && depositToken ? `Shorting ${borrowToken} with ${depositAmount} ${depositToken}` : "Opening Short position",
+      borrowToken && depositAmount && depositToken
+        ? `Shorting ${borrowToken} with ${depositAmount} ${depositToken}`
+        : "Opening Short position",
   },
 
   // SWB
@@ -110,15 +115,22 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
   // ACCOUNT MANAGEMENT
   [TransactionType.CLOSE_ACCOUNT]: { label: () => "Closing Account" },
   [TransactionType.CLOSE_POSITION]: { label: () => "Closing Position" },
-  [TransactionType.MOVE_POSITION]: { label: () => "Moving Position" },
+  [TransactionType.MOVE_POSITION_WITHDRAW]: {
+    label: ({ originAccountAddress } = {}) => `Withdrawing from ${originAccountAddress}`,
+  },
+  [TransactionType.MOVE_POSITION_DEPOSIT]: {
+    label: ({ destinationAccountAddress } = {}) => `Depositing to ${destinationAccountAddress}`,
+  },
   [TransactionType.TRANSFER_AUTH]: { label: () => "Transferring Account Authorization" },
 
   // NATIVE STAKE ACTIONS
   [TransactionType.DEPOSIT_STAKE]: {
-    label: ({ amount, token } = {}) => (amount && token ? `Staking and depositing ${amount} ${token}` : "Staking and depositing"),
+    label: ({ amount, token } = {}) =>
+      amount && token ? `Staking and depositing ${amount} ${token}` : "Staking and depositing",
   },
   [TransactionType.WITHDRAW_STAKE]: {
-    label: ({ amount, token } = {}) => (amount && token ? `Unstaking and withdrawing ${amount} ${token}` : "Unstaking and withdrawing"),
+    label: ({ amount, token } = {}) =>
+      amount && token ? `Unstaking and withdrawing ${amount} ${token}` : "Unstaking and withdrawing",
   },
   [TransactionType.INITIALIZE_STAKED_POOL]: { label: () => "Initializing Staked Pool" },
   [TransactionType.ADD_STAKED_BANK]: { label: () => "Adding Staked Bank" },
@@ -127,10 +139,11 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
   [TransactionType.STAKE_TO_STAKE]: { label: () => "Converting Staked Token" },
   [TransactionType.MINT_LST_NATIVE]: { label: () => "Minting Liquid Staked Native Token" },
   [TransactionType.SWAP_TO_SOL]: {
-    label: ({ swapAmount, token } = {}) => (swapAmount && token ? `Swapping ${swapAmount} ${token} to SOL` : "Swapping to SOL"),
+    label: ({ swapAmount, token } = {}) =>
+      swapAmount && token ? `Swapping ${swapAmount} ${token} to SOL` : "Swapping to SOL",
   },
   [TransactionType.SOL_TO_LST]: {
-    label: ({ amount } = {}) => (amount  ? `Minting LST with ${amount} SOL` : "Minting LST with SOL"),
+    label: ({ amount } = {}) => (amount ? `Minting LST with ${amount} SOL` : "Minting LST with SOL"),
   },
 
   // EMISSIONS
@@ -166,8 +179,8 @@ export type ExtendedTransactionProperties = {
   unitsConsumed?: number;
 };
 
-export type ExtendedTransaction = Transaction & ExtendedTransactionProperties
+export type ExtendedTransaction = Transaction & ExtendedTransactionProperties;
 
-export type ExtendedV0Transaction = VersionedTransaction & ExtendedTransactionProperties
+export type ExtendedV0Transaction = VersionedTransaction & ExtendedTransactionProperties;
 
 export type SolanaTransaction = ExtendedTransaction | ExtendedV0Transaction;
