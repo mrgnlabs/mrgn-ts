@@ -35,7 +35,7 @@ export interface ExecuteActionProps {
 
 function getSteps(actionTxns: ActionTxns, infoProps: Record<string, any>) {
   return [
-    { label: "Sign Transaction" },
+    { label: "Signing Transaction" },
     ...actionTxns.transactions.map((tx) => {
       console.log("tx", tx.type);
       const config = TransactionConfigMap[tx.type];
