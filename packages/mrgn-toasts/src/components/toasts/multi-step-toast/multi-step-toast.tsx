@@ -1,6 +1,6 @@
 import { IconLoader2, IconCheck, IconExternalLink, IconX } from "@tabler/icons-react";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { MultiStepToastStep, ToastStatus } from "~/utils";
+import { MultiStepToastStep, ToastStatus } from "../../../utils";
 
 interface MultiStepToastProps {
   toastId: string;
