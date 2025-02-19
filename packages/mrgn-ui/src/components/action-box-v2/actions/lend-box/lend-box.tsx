@@ -21,6 +21,7 @@ import {
   ExecuteLendingActionProps,
   ExecuteLendingAction,
   usePrevious,
+  useIsMobile,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
@@ -60,6 +61,8 @@ export type LendBoxProps = {
   stakeAccounts?: ValidatorStakeGroup[];
 
   searchMode?: boolean;
+  shouldBeHidden?: boolean;
+
   onCloseDialog?: () => void;
   setShouldBeHidden?: (hidden: boolean) => void;
 
@@ -90,6 +93,7 @@ export const LendBox = ({
   setDisplaySettings,
   onCloseDialog,
   searchMode = false,
+  shouldBeHidden = false,
   setShouldBeHidden,
 }: LendBoxProps) => {
   const [
@@ -134,9 +138,10 @@ export const LendBox = ({
     state.setSelectedStakeAccount,
   ]);
 
+  const isMobile = useIsMobile();
   const hasRefreshed = React.useRef(false);
   const _prevSelectedBank = usePrevious(selectedBank);
-  const _prevSearchMode = usePrevious(searchMode);
+  const _prevShouldBeHidden = usePrevious(shouldBeHidden);
 
   /**
    * Handles visibility and state refresh logic when `searchMode` is enabled.
@@ -145,7 +150,7 @@ export const LendBox = ({
    * - If `searchMode` is first enabled and a bank was already selected, refresh the state.
    */
   React.useEffect(() => {
-    if (!searchMode) return;
+    if (!shouldBeHidden) return;
 
     if (!selectedBank) {
       setShouldBeHidden?.(true);
@@ -158,17 +163,17 @@ export const LendBox = ({
       refreshState();
       hasRefreshed.current = true;
     }
-  }, [searchMode, selectedBank, _prevSelectedBank, setShouldBeHidden, refreshState]);
+  }, [shouldBeHidden, selectedBank, _prevSelectedBank, setShouldBeHidden, refreshState]);
 
   /**
    * Resets `hasRefreshed` when `searchMode` changes from `false` → `true`.
    * This ensures `refreshState()` can run again when toggling `searchMode` on.
    */
   React.useEffect(() => {
-    if (_prevSearchMode === false && searchMode === true) {
+    if (_prevShouldBeHidden === false && shouldBeHidden === true) {
       hasRefreshed.current = false;
     }
-  }, [searchMode, _prevSearchMode]);
+  }, [shouldBeHidden, _prevShouldBeHidden]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [simulationStatus, setSimulationStatus] = React.useState<{
@@ -364,6 +369,34 @@ export const LendBox = ({
       refreshSelectedBanks(banks);
     }
   }, [marginfiClient, banks, refreshSelectedBanks]);
+
+  React.useEffect(() => {
+    const handleKeyPress = async (event: KeyboardEvent) => {
+      if (isMobile || event.key !== "Enter" || isLoading || !connected || searchMode) {
+        return;
+      }
+
+      const isActionEnabled = !additionalActionMessages
+        .concat(actionMessages)
+        .filter((value) => value.isEnabled === false).length;
+
+      if (isActionEnabled) {
+        await handleLendingAction();
+      }
+    };
+
+    document.addEventListener("keypress", handleKeyPress);
+    return () => document.removeEventListener("keypress", handleKeyPress);
+  }, [
+    isLoading,
+    connected,
+    additionalActionMessages,
+    actionMessages,
+    showCloseBalance,
+    handleLendingAction,
+    isMobile,
+    searchMode,
+  ]);
 
   return (
     <ActionBoxContentWrapper>
