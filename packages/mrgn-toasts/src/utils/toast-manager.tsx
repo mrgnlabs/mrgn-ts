@@ -64,7 +64,7 @@ const toastManager = {
     const toastId: string = Math.random().toString(36).substring(2, 9);
 
     // Create MultiStepToastStep objects for each step.
-    const stepsWithStatus: MultiStepToastStep[] = steps.map((step, index) => ({
+    let stepsWithStatus: MultiStepToastStep[] = steps.map((step, index) => ({
       ...step,
       status: index === 0 ? ToastStatus.PENDING : ToastStatus.TODO,
     }));
@@ -143,18 +143,20 @@ const toastManager = {
         setTimeout(() => toast.dismiss(toastId), 5000);
       },
 
-      // Function to set the current step to error.
+      // Function to set all current steps in PENDING state to ERROR.
       // If message && onRetry are provided, the message will be displayed in the toast & the onRetry function will be called.
       setFailed: (message?: string, onRetry?: () => void) => {
-        const currentIndex = stepsWithStatus.findIndex((s) => s.status === ToastStatus.PENDING);
-        if (currentIndex === -1) return;
-
-        stepsWithStatus[currentIndex] = {
-          ...stepsWithStatus[currentIndex],
-          status: ToastStatus.ERROR,
-          message,
-          onRetry,
-        };
+        stepsWithStatus = stepsWithStatus.map((step) => {
+          if (step.status === ToastStatus.PENDING) {
+            return {
+              ...step,
+              status: ToastStatus.ERROR,
+              message,
+              onRetry,
+            };
+          }
+          return step;
+        });
 
         updateToast();
       },
