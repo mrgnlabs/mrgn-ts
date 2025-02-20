@@ -253,6 +253,7 @@ const Wallet = ({
                         processOpts={processOpts}
                         accountLabels={accountLabels}
                         fetchAccountLabels={fetchAccountLabels}
+                        fullHeight={true}
                       />
                     </div>
                   )}
