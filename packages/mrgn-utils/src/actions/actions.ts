@@ -410,7 +410,7 @@ export async function ExecuteTradeAction(props: ExecuteTradeActionProps) {
   await executeActionWrapper({
     action,
     steps,
-    actionName: props.infoProps.tradeSide === "long" ? "Longing" : "Shorting",
+    actionName: props.infoProps.tradeSide === "long" ? "Open long position" : "Open short position",
     txns: props.actionTxns,
     nativeSolBalance: props.nativeSolBalance,
     onComplete: props.callbacks.onComplete,
