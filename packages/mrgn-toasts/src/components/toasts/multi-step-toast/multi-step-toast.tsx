@@ -34,14 +34,11 @@ export function MultiStepToast({ title, steps }: MultiStepToastProps) {
       <h2 className="flex items-center gap-1.5 text-lg mb-5 font-normal">
         {allSuccessful ? (
           <>
-            <IconCheck className="text-success flex-shrink-0" />
+            <IconCircleCheckFilled className="text-success flex-shrink-0" />
             Transaction confirmed
           </>
         ) : anyFailed ? (
-          <>
-            <IconX className="text-mrgn-error flex-shrink-0" />
-            Transaction failed
-          </>
+          <span className="text-mrgn-error">Transaction failed</span>
         ) : (
           title
         )}
