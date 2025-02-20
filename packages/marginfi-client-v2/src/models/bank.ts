@@ -862,6 +862,25 @@ function serializeOperationalState(
   }
 }
 
+function oracleSetupToIndex(oracleSetup: OracleSetup): number {
+  switch (oracleSetup) {
+    case OracleSetup.None:
+      return 0;
+    case OracleSetup.PythLegacy:
+      return 1;
+    case OracleSetup.SwitchboardV2:
+      return 2;
+    case OracleSetup.PythPushOracle:
+      return 3;
+    case OracleSetup.SwitchboardPull:
+      return 4;
+    case OracleSetup.StakedWithPythPush:
+      return 5;
+    default:
+      return 0;
+  }
+}
+
 function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
   const oracleKey = Object.keys(oracleSetupRaw)[0].toLowerCase();
   switch (oracleKey) {
@@ -959,6 +978,7 @@ export {
   OracleSetup,
   parseRiskTier,
   parseOracleSetup,
+  oracleSetupToIndex,
   serializeBankConfigOpt,
   computeMaxLeverage,
   computeLoopingParams,

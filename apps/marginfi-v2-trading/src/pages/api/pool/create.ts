@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import cookie from "cookie";
 import { fetchAuthToken } from "~/utils";
 
-const ARENA_URL = `${process.env.MARGINFI_API_URL}/arena/create`;
+const ARENA_URL = `${process.env.MARGINFI_API_URL}/arena/register`;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
