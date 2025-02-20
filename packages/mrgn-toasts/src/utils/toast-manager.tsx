@@ -35,12 +35,12 @@ export interface MultiStepToastController {
 /*
 Singleton class that manages all toasts.
 */
-class ToastManager {
-  showWarningToast(title: string, message: string) {
+const toastManager = {
+  showWarningToast: (title: string, message: string) => {
     toast(<WarningToast title={title} message={message} />, { duration: Infinity });
-  }
+  },
 
-  showErrorToast(props: string | any) {
+  showErrorToast: (props: string | any) => {
     // TODO: this should be actionMessageType
     let description: string;
     let code: number | undefined;
@@ -55,11 +55,11 @@ class ToastManager {
     toast(<ErrorToast title={"Error"} description={description} code={code} />, {
       duration: Infinity,
     });
-  }
+  },
 
   // Function to create a multi-step toast.
   // Returns a controller object that can be used to update the toast.
-  createMultiStepToast(title: string, steps: { label: string }[]): MultiStepToastController {
+  createMultiStepToast: (title: string, steps: { label: string }[]): MultiStepToastController => {
     // Generate a unique ID for the toast. This is used to identify the toast in the DOM & cannot be the same as another instance.
     const toastId: string = Math.random().toString(36).substring(2, 9);
 
@@ -197,8 +197,8 @@ class ToastManager {
     };
 
     return ToastController;
-  }
-}
+  },
+};
 
 // Exporting singleton instance
-export const toastManager = new ToastManager();
+export { toastManager };
