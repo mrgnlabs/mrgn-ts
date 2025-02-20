@@ -78,13 +78,7 @@ function StepComponent({
         />
       );
     case "error":
-      return (
-        <ErrorStep
-          label={step.label}
-          message={step.message}
-          onRetry={isLastFailed && step.onRetry ? step.onRetry : undefined}
-        />
-      );
+      return <ErrorStep label={step.label} message={step.message} onRetry={step.onRetry} isLastFailed={isLastFailed} />;
     case "pending":
       return <PendingStep label={step.label} />;
     case "canceled":
@@ -142,15 +136,25 @@ const SuccessStep = ({
   </div>
 );
 
-const ErrorStep = ({ label, message, onRetry }: { label: string; message?: string; onRetry?: () => void }) => (
+const ErrorStep = ({
+  label,
+  message,
+  onRetry,
+  isLastFailed,
+}: {
+  label: string;
+  message?: string;
+  onRetry?: () => void;
+  isLastFailed: boolean;
+}) => (
   <div className="flex flex-col">
     <div className="flex items-center space-x-2">
       <IconX size={16} className="flex-shrink-0 text-mrgn-error" />
       <span>{label}</span>
     </div>
-    <div className="flex space-x-2 w-full px-6">
-      {message && <div className="py-1 text-xs text-muted-foreground">{message}</div>}
-      {onRetry && (
+    <div className="flex items-center space-x-2 w-full px-6">
+      {isLastFailed && message && <div className="py-1 text-xs text-muted-foreground">{message}</div>}
+      {isLastFailed && onRetry && (
         <button
           className="ml-2 w-16 h-max py-2 inline-flex gap-2 items-center justify-center text-[10px] font-medium rounded-md bg-accent text-primary px-2 py-0.5 shadow-sm hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-600"
           onClick={onRetry}
