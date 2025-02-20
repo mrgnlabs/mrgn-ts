@@ -223,7 +223,6 @@ export const RepayBox = ({
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
-      toastManager.showErrorToast(errorMessage?.description);
       setAdditionalActionMessages([errorMessage]);
     } else {
       setAdditionalActionMessages([]);

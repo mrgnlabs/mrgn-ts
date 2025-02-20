@@ -253,7 +253,9 @@ export function useRepaySimulation({
   }, [debouncedAmount, handleSimulation, prevDebouncedAmount, isRefreshTxn]);
 
   const refreshSimulation = React.useCallback(async () => {
-    await handleSimulation(debouncedAmount ?? 0);
+    if (debouncedAmount > 0) {
+      await handleSimulation(debouncedAmount);
+    }
   }, [handleSimulation, debouncedAmount]);
 
   const handleActionSummary = React.useCallback(
