@@ -9,7 +9,15 @@ import {
   Signer,
 } from "@solana/web3.js";
 
-import { BankConfigOpt, MarginfiClient, OracleConfigOpt, OracleSetup, getConfig } from "@mrgnlabs/marginfi-client-v2";
+import {
+  BankConfigOpt,
+  MarginfiClient,
+  OracleConfigOpt,
+  OracleSetup,
+  addOracleToBanksIx,
+  getConfig,
+  instructions,
+} from "@mrgnlabs/marginfi-client-v2";
 import { cn, getBearerToken, getFeeAccount, createReferalTokenAccount } from "@mrgnlabs/mrgn-utils";
 import { addTransactionMetadata, SolanaTransaction, TransactionType } from "@mrgnlabs/mrgn-common";
 
@@ -48,8 +56,9 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
     () => [
       { label: "Step 1", description: "Setting up a switchboard oracle" },
       { label: "Step 2", description: "Generating transactions" },
-      { label: "Step 3", description: "Executing transactions" },
-      { label: "Step 4", description: "Finalizing pool" },
+      { label: "Step 3", description: "Indexing pool" },
+      { label: "Step 4", description: "Executing transactions" },
+      { label: "Step 5", description: "Finalizing pool" },
     ],
     []
   );
@@ -184,6 +193,35 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         }
       );
 
+      // add oracle to banks
+
+      if (
+        !updatedTokenOracleConfig.setup ||
+        !updatedTokenOracleConfig.keys ||
+        !updatedQuoteOracleConfig.setup ||
+        !updatedQuoteOracleConfig.keys
+      ) {
+        throw new Error("Oracle setup or keys not found");
+      }
+
+      const addOracleToBanksIxs = [];
+      addOracleToBanksIxs.push(
+        await addOracleToBanksIx(
+          client.program,
+          seeds.stableBankSeed.publicKey,
+          updatedQuoteOracleConfig.keys[0],
+          updatedQuoteOracleConfig.setup
+        )
+      );
+      addOracleToBanksIxs.push(
+        await addOracleToBanksIx(
+          client.program,
+          seeds.tokenBankSeed.publicKey,
+          updatedTokenOracleConfig.keys[0],
+          updatedTokenOracleConfig.setup
+        )
+      );
+
       // create lut ix
       const oracleKeys = [...(updatedTokenOracleConfig?.keys ?? []), ...(updatedQuoteOracleConfig?.keys ?? [])];
       const bankKeys = [seeds.stableBankSeed.publicKey, seeds.tokenBankSeed.publicKey];
@@ -214,7 +252,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         transactions.push(createTransaction([ix.pullFeedIx], wallet.publicKey, [ix.feedSeed], blockhash));
       });
 
-      // create lut & create group transaction & referal token account transaction
+      // create lut & create group transaction
       transactions.push(
         createTransaction(
           [createLutIx, extendLutIx, ...groupIxWrapped.instructions],
@@ -224,10 +262,10 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         )
       );
 
-      // create quote bank
+      // create quote bank & referal token account transaction
       transactions.push(
         createTransaction(
-          [...quoteBankIxWrapper.instructions],
+          [...quoteBankIxWrapper.instructions, ...referralTokenAccountIxs],
           wallet.publicKey,
           [seeds.stableBankSeed, ...quoteBankIxWrapper.keys],
           blockhash
@@ -246,16 +284,6 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
 
       setActiveStep(2);
 
-      // transaction execution
-      const sigs = await client.processTransactions(transactions, {
-        broadcastType: "BUNDLE",
-        bundleTipUi: 0.005, // 0.005 SOL fixed bundle tip
-      });
-
-      if (!sigs) throw new Error("Transaction execution failed");
-
-      setActiveStep(3);
-
       try {
         const response = await savePermissionlessPool({
           group: seeds.marginfiGroupSeed.publicKey.toBase58(),
@@ -270,16 +298,21 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         throw error;
       }
 
+      setActiveStep(3);
+
+      // transaction execution
+      const sigs = await client.processTransactions(transactions, {
+        broadcastType: "BUNDLE",
+        bundleTipUi: 0.005, // 0.005 SOL fixed bundle tip
+      });
+
+      if (!sigs) throw new Error("Transaction execution failed");
+
       setPoolData((state) => {
         if (!state) return null;
         return { ...state, group: seeds.marginfiGroupSeed.publicKey };
       });
       setCreatePoolState(CreatePoolState.SUCCESS);
-      // fetchTradeState({
-      //   connection,
-      //   wallet,
-      //   refresh: true,
-      // });
     } catch (error) {
       setStatus("error");
       console.error("Failed to create permissionless pool");
