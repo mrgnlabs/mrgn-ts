@@ -71,9 +71,9 @@ export function useLoopSimulation({
   const prevSelectedSecondaryBank = usePrevious(selectedSecondaryBank);
   const prevActionTxn = usePrevious(actionTxns?.transactions);
 
-   ///////////////////////
-   // Handle simulation //
-   const handleError = (
+  ///////////////////////
+  // Handle simulation //
+  const handleError = (
     actionMessage: ActionMessageType | string,
     callbacks: {
       setErrorMessage: (error: ActionMessageType | null) => void;
@@ -100,7 +100,7 @@ export function useLoopSimulation({
       actualDepositAmount: 0,
       borrowAmount: new BigNumber(0),
     });
-      console.error(
+    console.error(
       "Error simulating transaction",
       typeof actionMessage === "string" ? extractErrorString(actionMessage) : actionMessage.description
     );
@@ -108,160 +108,177 @@ export function useLoopSimulation({
   };
 
   const simulationAction = async (txns: LoopActionTxns, account: MarginfiAccountWrapper, bank: ExtendedBankInfo) => {
-   if (txns.transactions.length > 0) {
+    if (txns.transactions.length > 0) {
+      const simulationResult = await getSimulationResult({
+        account,
+        bank,
+        txns: txns.transactions,
+      });
 
-    const simulationResult = await getSimulationResult({
-      account,
-      bank,
-      txns: txns.transactions,
-    });
-
-    if (simulationResult.actionMethod) {
-      return { simulationResult: null, actionMessage: simulationResult.actionMethod };
-    } else if (simulationResult.simulationResult) {
-      return { simulationResult: simulationResult.simulationResult, actionMessage: null };
+      if (simulationResult.actionMethod) {
+        return { simulationResult: null, actionMessage: simulationResult.actionMethod };
+      } else if (simulationResult.simulationResult) {
+        return { simulationResult: simulationResult.simulationResult, actionMessage: null };
+      } else {
+        const errorMessage = STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
+        return { simulationResult: null, actionMessage: errorMessage };
+      }
     } else {
-      const errorMessage = STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED; 
-      return { simulationResult: null, actionMessage: errorMessage };
+      throw new Error("account, bank or transactions are null"); // TODO: return error message?
     }
-    
-    
-   }
-else {
-  throw new Error("account, bank or transactions are null"); // TODO: return error message? 
-}
-  }
+  };
 
   const fetchLoopingTxn = async (props: {
-    marginfiClient: MarginfiClient,
-    marginfiAccount: MarginfiAccountWrapper,
-    depositBank: ExtendedBankInfo,
-    borrowBank: ExtendedBankInfo,
-    targetLeverage: number,
-    depositAmount: number,
-    jupiterOptions: JupiterOptions,
-    platformFeeBps: number,
+    marginfiClient: MarginfiClient;
+    marginfiAccount: MarginfiAccountWrapper;
+    depositBank: ExtendedBankInfo;
+    borrowBank: ExtendedBankInfo;
+    targetLeverage: number;
+    depositAmount: number;
+    jupiterOptions: JupiterOptions;
+    platformFeeBps: number;
   }): Promise<{ actionTxns: LoopActionTxns | null; actionMessage: ActionMessageType | null }> => {
-try {
-  
+    try {
+      const loopingResult = await calculateLooping({
+        marginfiClient: props.marginfiClient,
+        marginfiAccount: props.marginfiAccount,
+        depositBank: props.depositBank,
+        borrowBank: props.borrowBank,
+        targetLeverage: props.targetLeverage,
+        depositAmount: props.depositAmount,
+        slippageBps: props.jupiterOptions?.slippageBps,
+        slippageMode: props.jupiterOptions?.slippageMode,
+        connection: props.marginfiClient.provider.connection,
+        platformFeeBps: props.platformFeeBps,
+      });
 
-    const loopingResult = await calculateLooping({
-      marginfiClient: props.marginfiClient,
-      marginfiAccount: props.marginfiAccount,
-      depositBank: props.depositBank,
-      borrowBank: props.borrowBank,
-      targetLeverage: props.targetLeverage,
-      depositAmount: props.depositAmount,
-      slippageBps: props.jupiterOptions?.slippageBps,
-      slippageMode: props.jupiterOptions?.slippageMode,
-      connection: props.marginfiClient.provider.connection,
-      platformFeeBps: props.platformFeeBps,
-    });
-
-    if (loopingResult && "actionQuote" in loopingResult) {
-      return {
-        actionTxns: loopingResult,
-        actionMessage: null,
-      };
-    } else {
-      const errorMessage = loopingResult ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
+      if (loopingResult && "actionQuote" in loopingResult) {
+        return {
+          actionTxns: loopingResult,
+          actionMessage: null,
+        };
+      } else {
+        const errorMessage = loopingResult ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
+        return {
+          actionTxns: null,
+          actionMessage: errorMessage,
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching looping transaction", error);
       return {
         actionTxns: null,
-        actionMessage: errorMessage,
+        actionMessage: STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED,
       };
     }
-  } catch (error) {
-    console.error("Error fetching looping transaction", error);
-    return {
-      actionTxns: null,
-      actionMessage: STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED,
-    };
-  }
-  }
+  };
 
-
-const handleSimulation = React.useCallback(async (amount: number, leverage: number) => {
-  try {
-    
-  
-  if ( !selectedAccount ||
-    !marginfiClient ||
-    !selectedBank ||
-    !selectedSecondaryBank ||
-    amount === 0 ||
-    leverage === 0 ||
-    !jupiterOptions) {
-      console.error('Missing params')
-      setActionTxns({
-        transactions: [],
-        actionQuote: null,
-        lastValidBlockHeight: undefined,
-        actualDepositAmount: 0,
-        borrowAmount: new BigNumber(0),
-      });
-      setSimulationResult(null);
-      return;
-    }
-
-    setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
-
-    const props = {
-      marginfiClient: marginfiClient,
-      marginfiAccount: selectedAccount,
-      depositBank: selectedBank,
-      borrowBank: selectedSecondaryBank,
-      targetLeverage: leverage,
-      depositAmount: amount,
-      jupiterOptions: jupiterOptions,
-      platformFeeBps: platformFeeBps,
-    }
-
-    const loopActionTxns = await fetchLoopingTxn(props);
-
-    if (loopActionTxns.actionMessage || loopActionTxns.actionTxns === null) {
-      handleError(loopActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
-        setErrorMessage,
-        setSimulationResult,
-        setActionTxns,
-        setIsLoading,
-      });
-      return 
-    }
-
-    const simulationResult = await simulationAction(loopActionTxns.actionTxns, selectedAccount, selectedBank);
-
-    if (simulationResult.actionMessage || simulationResult.simulationResult === null) {
-      handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
-        setErrorMessage,
-        setSimulationResult,
-        setActionTxns,
-        setIsLoading,
-      });
-      return;
-    } else if (simulationResult.simulationResult) {
-      setActionTxns(loopActionTxns.actionTxns);
-      setSimulationResult(simulationResult.simulationResult);
-    } else {
-      throw new Error("Unknown error"); // TODO: return error message? 
-    } } catch (error) {
-      console.error("Error simulating transaction", error);
+  const handleSimulation = React.useCallback(
+    async (amount: number, leverage: number) => {
+      try {
+        if (
+          !selectedAccount ||
+          !marginfiClient ||
+          !selectedBank ||
+          !selectedSecondaryBank ||
+          amount === 0 ||
+          leverage === 0 ||
+          !jupiterOptions
+        ) {
+          console.error("Missing params");
+          setActionTxns({
+            transactions: [],
+            actionQuote: null,
+            lastValidBlockHeight: undefined,
+            actualDepositAmount: 0,
+            borrowAmount: new BigNumber(0),
+          });
           setSimulationResult(null);
-    }finally {
-      setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
+          return;
+        }
+
+        setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
+
+        const props = {
+          marginfiClient: marginfiClient,
+          marginfiAccount: selectedAccount,
+          depositBank: selectedBank,
+          borrowBank: selectedSecondaryBank,
+          targetLeverage: leverage,
+          depositAmount: amount,
+          jupiterOptions: jupiterOptions,
+          platformFeeBps: platformFeeBps,
+        };
+
+        const loopActionTxns = await fetchLoopingTxn(props);
+
+        if (loopActionTxns.actionMessage || loopActionTxns.actionTxns === null) {
+          handleError(loopActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
+          return;
+        }
+
+        const simulationResult = await simulationAction(loopActionTxns.actionTxns, selectedAccount, selectedBank);
+
+        if (simulationResult.actionMessage || simulationResult.simulationResult === null) {
+          handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
+          return;
+        } else if (simulationResult.simulationResult) {
+          setActionTxns(loopActionTxns.actionTxns);
+          setSimulationResult(simulationResult.simulationResult);
+        } else {
+          throw new Error("Unknown error"); // TODO: return error message?
+        }
+      } catch (error) {
+        console.error("Error simulating transaction", error);
+        setSimulationResult(null);
+      } finally {
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
+      }
+    },
+    [
+      jupiterOptions,
+      marginfiClient,
+      platformFeeBps,
+      selectedAccount,
+      selectedBank,
+      selectedSecondaryBank,
+      setActionTxns,
+      setErrorMessage,
+      setIsLoading,
+      setSimulationResult,
+    ]
+  );
+
+  React.useEffect(() => {
+    const isDisabled = actionMessages.some((message) => !message.isEnabled);
+
+    if ((prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) && !isDisabled) {
+      handleSimulation(debouncedAmount, debouncedLeverage);
     }
-}, [jupiterOptions, marginfiClient, platformFeeBps, selectedAccount, selectedBank, selectedSecondaryBank, setActionTxns, setErrorMessage, setIsLoading, setSimulationResult])
 
-React.useEffect(() => {
-  const isDisabled = actionMessages.some((message) => !message.isEnabled);
-
-  if ((prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) && !isDisabled) {
-    handleSimulation(debouncedAmount, debouncedLeverage);
-  }
-
-  if (isRefreshTxn) {
-    handleSimulation(debouncedAmount, debouncedLeverage);
-  }
-}, [actionMessages, actionTxns, debouncedAmount, debouncedLeverage, handleSimulation, isRefreshTxn, prevDebouncedAmount, prevDebouncedLeverage]);
+    if (isRefreshTxn) {
+      handleSimulation(debouncedAmount, debouncedLeverage);
+    }
+  }, [
+    actionMessages,
+    actionTxns,
+    debouncedAmount,
+    debouncedLeverage,
+    handleSimulation,
+    isRefreshTxn,
+    prevDebouncedAmount,
+    prevDebouncedLeverage,
+  ]);
   ///////////////////////
 
   ///////////////////////
@@ -311,16 +328,16 @@ React.useEffect(() => {
   const actionSummary = React.useMemo(() => {
     return handleActionSummary(accountSummary, simulationResult ?? undefined);
   }, [accountSummary, simulationResult, handleActionSummary]);
-   ///////////////////////
+  ///////////////////////
 
- ///////////////////////
+  ///////////////////////
   // Refresh simulation
-   const refreshSimulation = React.useCallback(async () => {
-    if ((prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) ) {
+  const refreshSimulation = React.useCallback(async () => {
+    if (debouncedAmount > 0) {
       await handleSimulation(debouncedAmount, debouncedLeverage);
     }
-  }, [handleSimulation, debouncedAmount, debouncedLeverage, prevDebouncedAmount, prevDebouncedLeverage]);
- ///////////////////////
+  }, [handleSimulation, debouncedAmount, debouncedLeverage]);
+  ///////////////////////
 
   return {
     actionSummary,

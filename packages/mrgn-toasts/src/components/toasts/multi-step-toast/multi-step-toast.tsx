@@ -30,16 +30,16 @@ export function MultiStepToast({ title, steps }: MultiStepToastProps) {
   const allSuccessful = steps.every((step) => step.status === ToastStatus.SUCCESS);
 
   return (
-    <div className="relative w-full h-full rounded-md z-50 md:min-w-[340px] font-light">
+    <div className="relative w-full h-full rounded-md z-50 md:min-w-[340px] font-light pr-4">
       <h2 className="flex items-center gap-1.5 text-lg mb-5 font-normal">
         {allSuccessful ? (
           <>
-            <IconCircleCheckFilled className="text-success flex-shrink-0" />
+            <IconCheck className="text-success flex-shrink-0" />
             Transaction confirmed
           </>
         ) : anyFailed ? (
           <>
-            <IconCircleXFilled className="text-mrgn-error flex-shrink-0" />
+            <IconX className="text-mrgn-error flex-shrink-0" />
             Transaction failed
           </>
         ) : (
@@ -151,11 +151,11 @@ const ErrorStep = ({ label, message, onRetry }: { label: string; message?: strin
       <IconX size={16} className="flex-shrink-0 text-mrgn-error" />
       <span>{label}</span>
     </div>
-    <div className="flex justify-between space-x-2 w-full px-6">
+    <div className="flex space-x-2 w-full px-6">
       {message && <div className="py-1 text-xs text-muted-foreground">{message}</div>}
       {onRetry && (
         <button
-          className="ml-2 inline-flex gap-2 items-center justify-center text-[10px] font-medium rounded-md bg-accent text-primary px-2 py-0.5 shadow-sm hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-600"
+          className="ml-2 w-16 h-max py-2 inline-flex gap-2 items-center justify-center text-[10px] font-medium rounded-md bg-accent text-primary px-2 py-0.5 shadow-sm hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-600"
           onClick={onRetry}
         >
           Retry

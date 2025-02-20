@@ -219,7 +219,6 @@ export const LoopBox = ({
 
   React.useEffect(() => {
     if (errorMessage?.description) {
-      toastManager.showErrorToast(errorMessage.description);
       setAdditionalActionMessages((prevMessages) => [...prevMessages, errorMessage]);
     } else {
       setAdditionalActionMessages([]);
