@@ -418,8 +418,8 @@ export const LendingPortfolio = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-muted-foreground flex gap-1">
-                  No lending positions found.
+                <div className="text-muted-foreground flex flex-wrap items-center gap-1">
+                  <span>No lending positions found.</span>
                   <span
                     className="border-b border-primary/50 transition-colors hover:border-primary cursor-pointer"
                     onClick={() => {
@@ -431,15 +431,15 @@ export const LendingPortfolio = () => {
                     }}
                   >
                     Search the pools
-                  </span>{" "}
-                  to lend assets.
+                  </span>
+                  <span>to lend assets.</span>
                 </div>
               )
             ) : (
               <PortfolioAssetCardSkeleton />
             )}
           </div>
-          <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
+          <div className="flex flex-wrap flex-col flex-1 gap-4 md:min-w-[340px]">
             <dl className="flex justify-between items-center gap-2 text-xl font-medium">
               <dt>Borrowed</dt>
               <dd className="text-lg">{accountBorrowed}</dd>
@@ -457,8 +457,8 @@ export const LendingPortfolio = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-muted-foreground flex gap-1">
-                  No borrow positions found.{" "}
+                <div className="text-muted-foreground flex flex-wrap items-center gap-1">
+                  <span>No borrow positions found.</span>
                   <span
                     className="border-b border-primary/50 transition-colors hover:border-primary cursor-pointer"
                     onClick={() => {
@@ -467,7 +467,7 @@ export const LendingPortfolio = () => {
                   >
                     Search the pools
                   </span>{" "}
-                  and open a new borrow.
+                  <span>and open a new borrow.</span>
                 </div>
               )
             ) : (
