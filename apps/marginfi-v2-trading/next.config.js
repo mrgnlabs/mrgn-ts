@@ -28,7 +28,7 @@ let config = withBundleAnalyzer({
   //     },
   //   ];
   // },
-  transpilePackages: ["@mrgnlabs/marginfi-client-v2", "@mrgnlabs/mrgn-common", "@mrgnlabs/lip-client"],
+  transpilePackages: ["@mrgnlabs/marginfi-client-v2", "@mrgnlabs/mrgn-common"],
   reactStrictMode: true,
   webpack: (config) => {
     config.resolve.alias["@solana/spl-token-0.4"] = require.resolve("@solana/spl-token");

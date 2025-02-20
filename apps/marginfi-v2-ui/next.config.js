@@ -33,7 +33,6 @@ let config = withBundleAnalyzer({
   transpilePackages: [
     "@mrgnlabs/marginfi-client-v2",
     "@mrgnlabs/mrgn-common",
-    "@mrgnlabs/lip-client",
     "@mrgnlabs/mrgn-utils",
     "@mrgnlabs/mrgn-ui",
   ],

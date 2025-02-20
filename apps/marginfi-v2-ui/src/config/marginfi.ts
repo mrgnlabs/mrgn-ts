@@ -1,12 +1,11 @@
 import { PublicKey } from "@solana/web3.js";
 import { getConfig } from "@mrgnlabs/marginfi-client-v2";
-import { getConfig as getLipConfig } from "@mrgnlabs/lip-client";
 
 // ================
 // MAIN APP CONFIG
 // ================
 
-let mfiConfig, devFaucetAddress, lipConfig;
+let mfiConfig, devFaucetAddress;
 let campaignWhitelist: { icon: string; size: number; publicKey: string }[];
 
 const environment = process.env.NEXT_PUBLIC_MARGINFI_ENVIRONMENT;
@@ -16,7 +15,6 @@ const programOverride = process.env.NEXT_PUBLIC_MARGINFI_PROGRAM_OVERRIDE;
 switch (environment) {
   case "production":
     mfiConfig = getConfig(environment);
-    lipConfig = getLipConfig(environment);
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
@@ -33,7 +31,6 @@ switch (environment) {
     break;
   case "alpha":
     mfiConfig = getConfig(environment);
-    lipConfig = getLipConfig(environment);
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
@@ -41,7 +38,6 @@ switch (environment) {
     break;
   case "staging":
     mfiConfig = getConfig(environment);
-    lipConfig = getLipConfig(environment);
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
@@ -49,7 +45,6 @@ switch (environment) {
     break;
   case "dev":
     mfiConfig = getConfig(environment);
-    lipConfig = getLipConfig(environment);
     if (groupOverride) {
       mfiConfig.groupPk = new PublicKey(groupOverride);
     }
@@ -58,7 +53,6 @@ switch (environment) {
     break;
   default:
     mfiConfig = getConfig("dev");
-    lipConfig = getLipConfig("dev");
     devFaucetAddress = new PublicKey("57hG7dDLXUg6GYDzAw892V4qLm6FhKxd86vMLazyFL98");
     campaignWhitelist = [
       {
@@ -77,7 +71,6 @@ switch (environment) {
 const config = {
   mfiConfig,
   devFaucetAddress,
-  lipConfig,
   campaignWhitelist,
 };
 
