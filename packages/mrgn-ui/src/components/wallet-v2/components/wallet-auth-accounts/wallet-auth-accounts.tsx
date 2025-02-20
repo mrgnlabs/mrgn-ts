@@ -34,6 +34,7 @@ type WalletAuthAccountsProps = {
   fetchMrgnlendState: () => void;
   processOpts?: ProcessTransactionsClientOpts;
   closeOnSwitch?: boolean;
+  fullHeight?: boolean;
   popoverContentAlign?: "start" | "end" | "center";
   showAddAccountButton?: boolean;
   accountLabels?: Record<string, string>;
@@ -48,6 +49,7 @@ export const WalletAuthAccounts = ({
   selectedAccount,
   fetchMrgnlendState,
   closeOnSwitch = false,
+  fullHeight = false,
   popoverContentAlign = "center",
   showAddAccountButton = true,
   processOpts,
@@ -275,7 +277,8 @@ export const WalletAuthAccounts = ({
               </div>
               <div
                 className={cn(
-                  "grid gap-2",
+                  "grid gap-2 max-h-[246px] overflow-y-auto relative",
+                  fullHeight && "max-h-[calc(100vh-340px)]",
                   isActivatingAccount !== null && "pointer-events-none animate-pulsate"
                 )}
               >
