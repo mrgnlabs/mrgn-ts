@@ -89,14 +89,14 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
   [TransactionType.LONG]: {
     label: ({ depositToken, depositAmount, borrowToken } = {}) =>
       depositToken && depositAmount && borrowToken
-        ? `Longing ${depositToken} with ${depositAmount} ${borrowToken}`
-        : "Opening Long position",
+        ? `Long ${depositToken} with ${depositAmount} ${borrowToken}`
+        : "Open long position",
   },
   [TransactionType.SHORT]: {
     label: ({ borrowToken, depositAmount, depositToken } = {}) =>
       borrowToken && depositAmount && depositToken
-        ? `Shorting ${borrowToken} with ${depositAmount} ${depositToken}`
-        : "Opening Short position",
+        ? `Short ${borrowToken} with ${depositAmount} ${depositToken}`
+        : "Open short position",
   },
 
   // SWB

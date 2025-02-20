@@ -134,7 +134,9 @@ export async function createPermissionlessBank({
   seed?: Keypair;
   processOpts?: ProcessTransactionsClientOpts;
 }) {
-  const multiStepToast = toastManager.createMultiStepToast("Bank Creation", [{ label: `Creating permissionless bank` }]);
+  const multiStepToast = toastManager.createMultiStepToast("Bank Creation", [
+    { label: `Creating permissionless bank` },
+  ]);
   multiStepToast.start();
 
   try {
@@ -195,17 +197,17 @@ export async function executeLeverageAction({
   }
 
   let toastSteps: { label: string }[] = [];
-  const tradeActionLabel = tradeState === "long" ? "longing" : "shorting";
+  const tradeActionLabel = tradeState === "long" ? "Open long position" : "Open short position";
 
   if (!_marginfiAccount) {
-    toastSteps.push(...[{ label: "Creating account" }]);
+    toastSteps.push(...[{ label: "Create account" }]);
   }
 
   if (!loopActionTxns.transactions.length) {
-    toastSteps.push(...[{ label: `Generating transaction` }]);
+    toastSteps.push(...[{ label: `Generate transaction` }]);
   }
 
-  toastSteps.push({ label: `Executing ${tradeState.slice(0, 1).toUpperCase() + tradeState.slice(1)} position` });
+  toastSteps.push({ label: `Execute ${tradeState.slice(0, 1).toUpperCase() + tradeState.slice(1)} position` });
 
   const multiStepToast = toastManager.createMultiStepToast(
     `${tradeState.slice(0, 1).toUpperCase() + tradeState.slice(1)} 
