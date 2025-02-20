@@ -115,7 +115,7 @@ class ToastManager {
 
           updateToast();
 
-          setTimeout(() => toast.dismiss(toastId), 5000);
+          setTimeout(() => toast.dismiss(toastId), 7500);
         } else {
           for (let i = currentIndex + 1; i <= nextStepIndex; i++) {
             if (stepsWithStatus[i]) {
