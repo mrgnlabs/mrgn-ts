@@ -111,7 +111,11 @@ class MarginfiAccountWrapper {
   /**
    * @internal
    */
-  constructor(marginfiAccountPk: PublicKey, private readonly client: MarginfiClient, marginfiAccount: MarginfiAccount) {
+  constructor(
+    marginfiAccountPk: PublicKey,
+    private readonly client: MarginfiClient,
+    marginfiAccount: MarginfiAccount
+  ) {
     this.address = marginfiAccountPk;
     this._marginfiAccount = marginfiAccount;
   }
@@ -495,19 +499,19 @@ class MarginfiAccountWrapper {
   }
 
   /**
-   * Repays a loan using collateral from another bank by:
-   * 1. Withdrawing collateral from one bank
-   * 2. Swapping it to the repayment asset
-   * 3. Repaying the loan in another bank
+   * The `repayWithCollateral` method allows users to repay a borrowed asset using collateral from another asset. It performs the following steps:
+   * 1. Withdraws the specified amount (or all) of the collateral asset.
+   * 2. Swaps the withdrawn collateral for the borrowed asset.
+   * 3. Repays the specified amount (or all) of the borrowed asset.
    *
    * @param {RepayWithCollateralProps} props - Parameters for the repay with collateral transaction
-   * @param {Amount} props.repayAmount - Amount to repay
-   * @param {Amount} props.withdrawAmount - Amount of collateral to withdraw
+   * @param {Amount} props.repayAmount - The amount to repay of the borrowed asset
+   * @param {Amount} props.withdrawAmount - The amount of collateral to withdraw.
    * @param {PublicKey} props.borrowBankAddress - Bank address where the loan is being repaid
    * @param {PublicKey} props.depositBankAddress - Bank address where collateral is being withdrawn from
-   * @param {boolean} [props.withdrawAll=false] - Whether to withdraw all collateral from deposit bank
-   * @param {boolean} [props.repayAll=false] - Whether to repay entire loan amount
-   * @param {Object} props.swap - Swap configuration with instructions and lookup tables
+   * @param {boolean} props.withdrawAll - Whether to withdraw all collateral from deposit bank
+   * @param {boolean} props.repayAll - Whether to repay entire loan amount
+   * @param {Object} props.swap - Configuration for the swap, including instructions and lookup tables.
    * @param {ProcessTransactionsClientOpts} [props.processOpts] - Optional transaction processing configuration
    * @param {TransactionOptions} [props.txOpts] - Optional transaction options
    * @returns {Promise<TransactionSignature[]>} Array of transaction signatures
@@ -533,23 +537,22 @@ class MarginfiAccountWrapper {
   }
 
   /**
-   * Creates a transaction to repay a loan using collateral by:
-   * 1. Withdrawing collateral from one bank
-   * 2. Swapping it to the repayment asset
-   * 3. Repaying the loan in another bank
+   * The `makeRepayWithCollatTx` method creates a transaction for repaying a borrowed asset using collateral from another asset.
+   * It builds a complete transaction including setup instructions, compute budget instructions, priority fee instructions,
+   * withdrawal instructions, swap instructions, and deposit instructions.
    *
-   * @param {RepayWithCollateralProps} params - Parameters for the repay with collateral transaction
-   * @param {Amount} params.repayAmount - Amount to repay
-   * @param {Amount} params.withdrawAmount - Amount of collateral to withdraw
-   * @param {PublicKey} params.borrowBankAddress - Bank address where the loan is being repaid
-   * @param {PublicKey} params.depositBankAddress - Bank address where collateral is being withdrawn from
-   * @param {boolean} [params.withdrawAll=false] - Whether to withdraw all collateral from deposit bank
-   * @param {boolean} [params.repayAll=false] - Whether to repay entire loan amount
-   * @param {Object} params.swap - Swap configuration with instructions and lookup tables
-   * @param {string} [params.blockhash] - Optional recent blockhash
-   * @param {MakeWithdrawIxOpts} [params.withdrawOpts] - Optional withdraw configuration
-   * @param {MakeRepayIxOpts} [params.repayOpts] - Optional repay configuration
-   * @returns {Promise<RepayWithCollateralResult>} Result containing feed crank and flashloan transactions
+   * @param {RepayWithCollateralProps} params - The parameters required for executing the repay with collateral transaction.
+   * @param {Amount} params.repayAmount - The amount to repay of the borrowed asset.
+   * @param {Amount} params.withdrawAmount - The amount of collateral to withdraw.
+   * @param {PublicKey} params.borrowBankAddress - The address of the bank where the asset was borrowed from.
+   * @param {PublicKey} params.depositBankAddress - The address of the bank where the collateral is deposited.
+   * @param {boolean} [params.withdrawAll=false] - If true, withdraws all available collateral. Automatically assigns this based on the amount if not overridden.
+   * @param {boolean} [params.repayAll=false] - If true, repays the entire borrowed amount. Automatically assigns this based on the amount if not overridden.
+   * @param {Object} params.swap - Configuration for the swap, including instructions and lookup tables.
+   * @param {string} [params.blockhash] - An optional parameter for a recent blockhash.
+   * @param {MakeWithdrawIxOpts} [params.withdrawOpts] - Optional configuration for the withdrawal process.
+   * @param {MakeRepayIxOpts} [params.repayOpts] - Optional configuration for the repayment process.
+   * @returns {Promise<RepayWithCollateralResult>} A promise that resolves to a result containing additional and flashloan transactions.
    */
   async makeRepayWithCollatTxV2({
     repayAmount,

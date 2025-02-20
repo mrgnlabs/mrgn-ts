@@ -161,36 +161,35 @@ const client = await MarginfiClient.fetch(config, wallet, connection);
     3. Repays the specified amount (or all) of the borrowed asset.
 
     Parameters:
-    - `repayAmount` (`Amount`): The amount to repay of the borrowed asset.
-    - `withdrawAmount` (`Amount`): The amount of collateral to withdraw.
-    - `borrowBankAddress` (`PublicKey`): The address of the bank where the asset was borrowed from.
-    - `depositBankAddress` (`PublicKey`): The address of the bank where the collateral is deposited.
-    - `withdrawAll` (`boolean`): (Optional) If true, withdraws all available collateral.
-    - `repayAll` (`boolean`): (Optional) If true, repays the entire borrowed amount.
-    - `swapIxs` (`TransactionInstruction[]`): An array of swap instructions for converting the collateral to the repayment asset.
-    - `swapLookupTables` (`AddressLookupTableAccount[]`): Address lookup tables for the swap.
-    - `priorityFeeUi` (`number`): (Optional) Priority fee for the transaction.
+    - `props.repayAmount` (`Amount`): The amount to repay of the borrowed asset
+    - `props.withdrawAmount` (`Amount`): The amount of collateral to withdraw
+    - `props.borrowBankAddress` (`PublicKey`): The address of the bank where the asset was borrowed from.
+    - `props.depositBankAddress` (`PublicKey`): The address of the bank where the collateral is deposited.
+    - `props.withdrawAll` (`boolean`): If true, withdraws all available collateral. Automatically assigns this based on the amount if not overridden.
+    - `props.repayAll` (`boolean`): If true, repays the entire borrowed amount. Automatically assigns this based on the amount if not overridden. 
+    - `props.swap` (`Object`): Configuration for the swap, including instructions and lookup tables.
+    - `props.processOpts` (`ProcessTransactionsClientOpts`): Optional transaction processing configuration
+    - `props.txOpts` (`TransactionOptions`): Optional transaction options
 
-    Returns a `Promise` that resolves to the transaction signature as a `string`.
+    Returns a `Promise` that resolves to an array of transaction signatures as `TransactionSignature[]`.
   </Property>
 
 <Property name="makeRepayWithCollatTx" type="">
     The `makeRepayWithCollatTx` method creates a transaction for repaying a borrowed asset using collateral from another asset. It builds a complete transaction including setup instructions, compute budget instructions, priority fee instructions, withdrawal instructions, swap instructions, and deposit instructions.
 
     Parameters:
-    - `repayAmount` (`Amount`): The amount to repay of the borrowed asset.
-    - `withdrawAmount` (`Amount`): The amount of collateral to withdraw.
-    - `borrowBankAddress` (`PublicKey`): The address of the bank where the asset was borrowed from.
-    - `depositBankAddress` (`PublicKey`): The address of the bank where the collateral is deposited.
-    - `withdrawAll` (`boolean`): (Optional) If true, withdraws all available collateral.
-    - `repayAll` (`boolean`): (Optional) If true, repays the entire borrowed amount.
-    - `swapIxs` (`TransactionInstruction[]`): An array of swap instructions for converting the collateral to the repayment asset.
-    - `swapLookupTables` (`AddressLookupTableAccount[]`): Address lookup tables for the swap.
-    - `priorityFeeUi` (`number`): (Optional) Priority fee for the transaction.
+    - `props.repayAmount` (`Amount`): The amount to repay of the borrowed asset.
+    - `props.withdrawAmount` (`Amount`): The amount of collateral to withdraw.
+    - `props.borrowBankAddress` (`PublicKey`): The address of the bank where the asset was borrowed from.
+    - `props.depositBankAddress` (`PublicKey`): The address of the bank where the collateral is deposited.
+    - `props.withdrawAll` (`boolean`): If true, withdraws all available collateral. Automatically assigns this based on the amount if not overridden.
+    - `props.repayAll` (`boolean`): If true, repays the entire borrowed amount. Automatically assigns this based on the amount if not overridden.
+    - `props.swap` (`Object`): Configuration for the swap, including instructions and lookup tables.
+    - `props.blockhash` (`string`): An optional parameter for a recent blockhash.
+    - `props.withdrawOpts` (`MakeWithdrawIxOpts`): Optional configuration for the withdrawal process.
+    - `props.repayOpts` (`MakeRepayIxOpts`): Optional configuration for the repayment process.
 
-    Returns a `Promise` that resolves to an object containing:
-    - `transaction` (`VersionedTransaction`): The built transaction.
-    - `addressLookupTableAccounts` (`AddressLookupTableAccount[]`): The address lookup table accounts used in the transaction.
+    Returns a `Promise` that resolves to a `RepayWithCollateralResult` object containing additional and flashloan transactions.
   </Property>
 
 <Property name="loop" type="">
