@@ -163,8 +163,8 @@ const ErrorStep = ({ label, message, onRetry }: { label: string; message?: strin
 );
 
 const PendingStep = ({ label }: { label: string }) => (
-  <div className="flex items-center space-x-2">
-    <IconLoader2 size={16} className="animate-spin flex-shrink-0" />
+  <div className="flex items-start space-x-2">
+    <IconLoader2 size={16} className="animate-spin flex-shrink-0 relative top-0.5" />
     <span>{label}</span>
   </div>
 );
