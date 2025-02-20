@@ -113,14 +113,14 @@ export function getLiquidationStat(bank: ActiveBankInfo, isLoading: boolean, sim
 
   const computeLiquidation = isNaN(simulationLiq)
     ? bank.position.liquidationPrice
-    : simulationLiq ?? bank.position.liquidationPrice;
+    : (simulationLiq ?? bank.position.liquidationPrice);
 
   const healthColor = computeLiquidation
-    ? computeLiquidation / price >= 0.5
+    ? computeLiquidation < 0.5 * price
       ? "SUCCESS"
-      : computeLiquidation / price >= 0.25
-      ? "ALERT"
-      : "DESTRUCTIVE"
+      : computeLiquidation < 0.3 * price
+        ? "ALERT"
+        : "DESTRUCTIVE"
     : undefined;
 
   return {
