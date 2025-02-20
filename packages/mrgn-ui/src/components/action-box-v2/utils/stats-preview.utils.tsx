@@ -116,12 +116,16 @@ export function getLiquidationStat(bank: ActiveBankInfo, isLoading: boolean, sim
     : (simulationLiq ?? bank.position.liquidationPrice);
 
   const healthColor = computeLiquidation
-    ? computeLiquidation < 0.5 * price
+    ? computeLiquidation > 0.5 * price
       ? "SUCCESS"
-      : computeLiquidation < 0.3 * price
+      : computeLiquidation > 0.3 * price
         ? "ALERT"
         : "DESTRUCTIVE"
     : undefined;
+
+  console.log("healthColor", healthColor);
+  console.log("computeLiquidation", computeLiquidation);
+  console.log("price", price);
 
   return {
     label: "Liquidation price",
