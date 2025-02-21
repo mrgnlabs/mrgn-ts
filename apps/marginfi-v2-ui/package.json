@@ -23,7 +23,6 @@
     "@meso-network/meso-js": "^0.1.2",
     "@moongate/moongate-adapter": "^0.6.2",
     "@moonpay/moonpay-js": "^0.1.0",
-    "@mrgnlabs/lip-client": "workspace:*",
     "@mrgnlabs/marginfi-client-v2": "workspace:*",
     "@mrgnlabs/marginfi-v2-ui-state": "workspace:*",
     "@mrgnlabs/mrgn-common": "workspace:*",

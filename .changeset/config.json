@@ -7,9 +7,7 @@
     "@mrgnlabs/marginfi-v2-trading",
     "@mrgnlabs/marginfi-v2-ui",
     "@mrgnlabs/mrgn-utils",
-    "@mrgnlabs/lip-client",
     "@mrgnlabs/scripts",
-    "@mrgnlabs/health-notifier",
     "@mrgnlabs/marginfi-landing-page",
     "@mrgnlabs/marginfi-v2-ui-state"
   ],
@@ -19,9 +17,7 @@
       "@mrgnlabs/marginfi-v2-trading",
       "@mrgnlabs/marginfi-v2-ui",
       "@mrgnlabs/mrgn-utils",
-      "@mrgnlabs/lip-client",
       "@mrgnlabs/scripts",
-      "@mrgnlabs/health-notifier",
       "@mrgnlabs/marginfi-landing-page",
       "@mrgnlabs/marginfi-v2-ui-state"
     ]
