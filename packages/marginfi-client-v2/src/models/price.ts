@@ -2,7 +2,7 @@ import { parsePriceData } from "../vendor/pyth_legacy";
 import BigNumber from "bignumber.js";
 import { AggregatorAccountData, AggregatorAccount } from "../vendor/switchboard_legacy";
 import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS, MAX_CONFIDENCE_INTERVAL_RATIO } from "..";
-import { OracleSetup } from "./bank";
+import { OracleSetup } from "../services";
 import * as PythPushOracle from "../vendor/pyth_push_oracle";
 import { decodeSwitchboardPullFeedData, SWITCHBOARD_ONDEMANDE_PRICE_PRECISION } from "../vendor/switchboard_pull";
 

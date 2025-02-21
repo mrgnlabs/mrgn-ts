@@ -1,9 +1,10 @@
 import { PublicKey } from "@solana/web3.js";
 import { InstructionsWrapper } from "@mrgnlabs/mrgn-common";
 
-import { OracleSetup, oracleSetupToIndex, parseOracleSetup } from "../../models/bank";
 import instructions from "../../instructions";
 import { MarginfiProgram } from "../../types";
+import { OracleSetup } from "./types";
+import { serializeOracleSetupToIndex } from "./utils";
 
 export async function addOracleToBanksIx(
   program: MarginfiProgram,
@@ -17,7 +18,7 @@ export async function addOracleToBanksIx(
       bank: bankAddress,
     },
     {
-      setup: oracleSetupToIndex(setup),
+      setup: serializeOracleSetupToIndex(setup),
       oracle,
     }
   );

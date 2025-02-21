@@ -6,7 +6,7 @@ import { AccountType, BankVaultType, MarginfiProgram } from "../types";
 import { InstructionsWrapper, SINGLE_POOL_PROGRAM_ID, TOKEN_PROGRAM_ID, getMint } from "@mrgnlabs/mrgn-common";
 import instructions from "../instructions";
 import { FLASHLOAN_ENABLED_FLAG, TRANSFER_ACCOUNT_AUTHORITY_FLAG } from "../constants";
-import { BankConfigCompactRaw, BankConfigOpt, BankConfigOptRaw, serializeBankConfigOpt } from "./bank";
+import { BankConfigCompactRaw, BankConfigOpt, BankConfigOptRaw, serializeBankConfigOpt } from "../services";
 import { BigNumber } from "bignumber.js";
 import { sha256 } from "crypto-hash";
 import { findPoolAddress, findPoolMintAddress, findPoolStakeAddress } from "../vendor";

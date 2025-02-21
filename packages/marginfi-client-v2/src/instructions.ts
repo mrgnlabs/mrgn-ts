@@ -1,7 +1,7 @@
 import { AccountMeta, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY } from "@solana/web3.js";
 import BN from "bn.js";
 import { MarginfiProgram } from "./types";
-import { BankConfigCompactRaw, BankConfigOptRaw } from "./models/bank";
+import { BankConfigCompactRaw, BankConfigOptRaw } from "./services";
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
 async function makeInitMarginfiAccountIx(
