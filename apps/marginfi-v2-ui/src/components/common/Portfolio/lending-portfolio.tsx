@@ -3,19 +3,12 @@ import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 
 import { IconInfoCircle, IconX } from "@tabler/icons-react";
-import { Id, toast } from "react-toastify";
 
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import {
-  cn,
-  ExecuteActionProps,
-  ExecuteCollectRewardsAction,
-  ExecuteLoopActionProps,
-  usePrevious,
-} from "@mrgnlabs/mrgn-utils";
-
+import { cn, ExecuteActionProps, ExecuteCollectRewardsAction, usePrevious } from "@mrgnlabs/mrgn-utils";
+import { CustomToastType, toastManager } from "@mrgnlabs/mrgn-toasts";
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
@@ -77,7 +70,7 @@ export const LendingPortfolio = () => {
   const [actionTxn, setActionTxn] = React.useState<SolanaTransaction | null>(null);
   const [rewardsLoading, setRewardsLoading] = React.useState(false);
   const [rewardsToastOpen, setRewardsToastOpen] = React.useState(false);
-  const [rewardsToastId, setRewardsToastId] = React.useState<Id | null>(null);
+  const [rewardsToast, setRewardsToast] = React.useState<CustomToastType | null>(null);
   const hasMultipleAccount = React.useMemo(() => marginfiAccounts.length > 1, [marginfiAccounts]);
 
   const { handleSimulation } = useRewardSimulation({
@@ -207,36 +200,31 @@ export const LendingPortfolio = () => {
   );
 
   React.useEffect(() => {
-    if (rewardsState.state !== "REWARDS_FETCHED" || rewardsState.totalRewardAmount === 0 || rewardsToastOpen) return;
+    if (rewardsToastOpen || rewardsState.state !== "REWARDS_FETCHED" || rewardsState.totalRewardAmount === 0) return;
 
-    if (rewardsToastId) {
-      toast.dismiss(rewardsToastId);
+    if (rewardsToast) {
+      rewardsToast.close();
     }
+
+    const newToast = toastManager.showCustomToast(
+      <div className="text-sm space-y-4">
+        <p className="md:pr-16">You have rewards available for collection.</p>
+        <Button
+          size="sm"
+          onClick={() => {
+            setRewardsDialogOpen(true);
+          }}
+        >
+          Click to collect
+        </Button>
+      </div>
+    );
+
+    console.log("newToast", newToast);
     setRewardsToastOpen(true);
 
-    const id = toast(
-      () => (
-        <div className="text-sm space-y-4">
-          <p className="md:pr-16">You have rewards available for collection.</p>
-          <Button size="sm">Click to collect</Button>
-        </div>
-      ),
-      {
-        position: "bottom-right",
-        autoClose: false,
-        hideProgressBar: true,
-        closeOnClick: true,
-        draggable: false,
-        theme: "dark",
-        closeButton: <IconX size={16} className="absolute top-3 right-3 text-muted-foreground" />,
-        className: "bg-mfi-toast-background rounded-md py-2 pl-3 pr-6",
-        onClick: () => {
-          setRewardsDialogOpen(true);
-        },
-      }
-    );
-    setRewardsToastId(id);
-  }, [rewardsState, rewardsToastOpen, rewardsToastId]);
+    setRewardsToast(newToast);
+  }, [rewardsState, rewardsToastOpen, rewardsToast]);
 
   // Introduced this useEffect to show the loader for 2 seconds after wallet connection. This is to avoid the flickering of the loader, since the isRefreshingStore isnt set immediately after the wallet connection.
   React.useEffect(() => {

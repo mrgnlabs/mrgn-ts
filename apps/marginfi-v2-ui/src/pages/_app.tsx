@@ -28,7 +28,6 @@ import { Tutorial } from "~/components/common/Tutorial";
 
 import "swiper/css";
 import "swiper/css/pagination";
-import "react-toastify/dist/ReactToastify.min.css";
 import { ToastProvider } from "@mrgnlabs/mrgn-toasts";
 
 registerMoonGateWallet({ authMode: "Google", position: "bottom-right" });

@@ -27,7 +27,6 @@ import { Tutorial } from "~/components/common/Tutorial";
 import { Header } from "~/components/common/Header";
 import { Footer } from "~/components/desktop/Footer";
 
-import "react-toastify/dist/ReactToastify.min.css";
 import { AuthDialog } from "~/components/wallet-v2";
 import { StaticArenaProps } from "~/utils";
 import { getArenaStaticProps } from "~/utils";
