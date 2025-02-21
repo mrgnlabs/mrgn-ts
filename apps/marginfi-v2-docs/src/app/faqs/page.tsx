@@ -1,12 +1,15 @@
 // app/faq/page.tsx (App Router example)
 import { client } from '@/sanity/lib/client'
-import { PortableText } from '@portabletext/react'
+import { PortableTextFaq } from '~/components/faq/PortableTextFaq'
 import { Prose } from '~/components/Prose'
+import { Note } from '~/components/mdx'
+import { Button } from '~/components/Button'
 
 async function getFaqData() {
-  return await client.fetch(/* groq */ `
+  return client.fetch(/* groq */ `
     *[_type == "faq"][0]{
       title,
+      description,
       questions[]{
         _key,
         question,
@@ -22,24 +25,30 @@ export default async function FaqPage() {
   const faq = await getFaqData()
 
   return (
-    <div className="pt-16 pb-10">
-      <h1 className="text-3xl font-bold mb-4">{faq?.title}</h1>
-      {faq?.questions?.map((item: any) => (
-        <div key={item._key} className="mb-8">
-          {item.tag && (
-            <div className="mb-1 text-sm font-mono text-zinc-400">
-              {item.tag}
+      <div className="pt-16 pb-10">
+        <h1 className="text-3xl font-bold mb-4">{faq?.title}</h1>
+        <p className="lead mb-4">{faq?.description}</p>
+        <hr className="mb-8" />
+        <Note>
+          If you do not see an answer to your question on this page, please contact marginfi support by joining at{' '}
+          <Button href="https://support.marginfi.com" variant="text">
+            support.marginfi.com
+          </Button>.
+        </Note>
+        {faq?.questions?.map((item: any) => (
+            <div key={item._key} className="mb-8">
+              {item.tag && (
+                  <div className="mb-1 text-sm font-mono text-zinc-400">
+                    {item.tag}
+                  </div>
+              )}
+              <h2 className="text-xl font-semibold mb-2">{item.question}</h2>
+              {item.label && (
+                  <p className="text-sm text-zinc-500 italic mb-2">{item.label}</p>
+              )}
+              <PortableTextFaq value={item.answer} />
             </div>
-          )}
-          <h2 className="text-xl font-semibold mb-2">{item.question}</h2>
-          {item.label && (
-            <p className="text-sm text-zinc-500 italic mb-2">{item.label}</p>
-          )}
-          <Prose>
-            <PortableText value={item.answer} />
-          </Prose>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
   )
 }

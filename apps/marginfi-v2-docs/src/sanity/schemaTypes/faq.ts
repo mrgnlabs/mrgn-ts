@@ -13,39 +13,33 @@ export const faq = defineType({
       initialValue: 'FAQs',
     }),
     defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'text',
+      initialValue:
+        'In this guide, we will answer commonly asked questions regarding the marginfi protocol.',
+    }),
+    defineField({
       name: 'questions',
       title: 'FAQ Items',
       type: 'array',
       of: [
-        defineField({
+        {
+          type: 'object',
           name: 'faqItem',
           title: 'FAQ Item',
-          type: 'object',
           fields: [
-            {
-              name: 'question',
-              title: 'Question',
-              type: 'string',
-            },
+            { name: 'question', title: 'Question', type: 'string' },
             {
               name: 'answer',
               title: 'Answer',
-              // Use a Portable Text array so you can style it with headings, paragraphs, etc.
               type: 'array',
               of: [{ type: 'block' }],
             },
-            {
-              name: 'tag',
-              title: 'Tag',
-              type: 'string',
-            },
-            {
-              name: 'label',
-              title: 'Label',
-              type: 'string',
-            },
+            { name: 'tag', title: 'Tag', type: 'string' },
+            { name: 'label', title: 'Label', type: 'string' },
           ],
-        }),
+        },
       ],
     }),
   ],
