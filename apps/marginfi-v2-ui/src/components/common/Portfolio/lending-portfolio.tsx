@@ -277,7 +277,7 @@ export const LendingPortfolio = () => {
   }
 
   return (
-    <div className="py-4 md:py-6 flex flex-col w-full mb-10 gap-2">
+    <div className="py-4 md:py-6 flex flex-col items-center md:items-start w-full mb-10 gap-2">
       {hasMultipleAccount && (
         <div className="flex w-max justify-center gap-1.5">
           <p className="text-sm text-muted-foreground">Manage accounts:</p>
