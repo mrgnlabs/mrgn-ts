@@ -512,6 +512,9 @@ class MarginfiAccountWrapper {
    * @param {boolean} props.withdrawAll - Whether to withdraw all collateral from deposit bank
    * @param {boolean} props.repayAll - Whether to repay entire loan amount
    * @param {Object} props.swap - Configuration for the swap, including instructions and lookup tables.
+   * @param {string} [props.blockhash] - Optional recent blockhash
+   * @param {MakeWithdrawIxOpts} [props.withdrawOpts] - Optional configuration for the withdrawal process
+   * @param {MakeRepayIxOpts} [props.repayOpts] - Optional configuration for the repayment process
    * @param {ProcessTransactionsClientOpts} [props.processOpts] - Optional transaction processing configuration
    * @param {TransactionOptions} [props.txOpts] - Optional transaction options
    * @returns {Promise<TransactionSignature[]>} Array of transaction signatures
@@ -686,6 +689,27 @@ class MarginfiAccountWrapper {
     return { transactions, actionTxIndex: transactions.length - 1, txOverflown };
   }
 
+  /**
+   * The `loopV2` method allows users to perform a looping operation, which involves borrowing and depositing assets to achieve a target leverage.
+   * It performs the following steps:
+   * 1. Borrows the specified amount from the borrow bank.
+   * 2. Swaps the borrowed amount for the deposit asset.
+   * 3. Deposits the swapped amount into the deposit bank.
+   *
+   * @param {LoopProps} props - Parameters for the looping transaction
+   * @param {Amount} props.depositAmount - The amount to deposit into the deposit bank
+   * @param {Amount} props.borrowAmount - The amount to borrow from the borrow bank
+   * @param {PublicKey} props.depositBankAddress - The address of the bank where the deposit is made
+   * @param {PublicKey} props.borrowBankAddress - The address of the bank where the asset was borrowed from
+   * @param {Object} props.swap - Configuration for the swap, including instructions and lookup tables
+   * @param {string} [props.blockhash] - Optional recent blockhash
+   * @param {MakeDepositIxOpts} [props.depositOpts] - Optional configuration for the deposit process
+   * @param {MakeBorrowIxOpts} [props.borrowOpts] - Optional configuration for the borrow process
+   * @param {PublicKey[]} [props.setupBankAddresses] - Optional setup banks addresses
+   * @param {ProcessTransactionsClientOpts} [props.processOpts] - Optional transaction processing configuration
+   * @param {TransactionOptions} [props.txOpts] - Optional transaction options
+   * @returns {Promise<TransactionSignature[]>} Array of transaction signatures
+   */
   async loopV2(props: LoopProps): Promise<TransactionSignature[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:repay`);
     debug(
@@ -899,11 +923,11 @@ class MarginfiAccountWrapper {
   }
 
   /**
-   * Creates instructions for depositing tokens into a marginfi bank account.
+   * Creates instructions for depositing assets into a Marginfi account.
    *
    * @param amount - The amount of tokens to deposit, can be a number or Amount object
-   * @param bankAddress - The public key of the bank to deposit into
-   * @param depositOpts - Optional deposit configuration parameters
+   * @param bankAddress - The address of the bank where the asset is being deposited
+   * @param depositOpts - Optional configuration for creating the deposit instruction
    * @returns An InstructionsWrapper containing the deposit instructions
    */
   async makeDepositIx(
@@ -1062,11 +1086,11 @@ class MarginfiAccountWrapper {
   }
 
   /**
-   * Deposits tokens into a marginfi bank account.
+   * Executes a deposit transaction, adding assets to a Marginfi account.
    *
    * @param amount - The amount of tokens to deposit, can be a number or Amount object
-   * @param bankAddress - The public key of the bank to deposit into
-   * @param depositOpts - Optional deposit configuration parameters
+   * @param bankAddress - The address of the bank where the asset is being deposited
+   * @param depositOpts - Optional configuration for creating the deposit instruction
    * @param processOpts - Optional transaction processing configuration
    * @param txOpts - Optional transaction options
    * @returns The transaction signature of the deposit
@@ -1089,11 +1113,11 @@ class MarginfiAccountWrapper {
   }
 
   /**
-   * Creates a transaction for depositing tokens into a marginfi bank account.
+   * Creates a transaction for depositing tokens into a marginfi account.
    *
    * @param amount - The amount of tokens to deposit, can be a number or Amount object
-   * @param bankAddress - The public key of the bank to deposit into
-   * @param depositOpts - Optional deposit configuration parameters
+   * @param bankAddress - The address of the bank where the asset is being deposited
+   * @param depositOpts - Optional configuration for creating the deposit instruction
    * @returns A transaction object ready to be signed and sent
    */
   async makeDepositTx(
@@ -1166,13 +1190,13 @@ class MarginfiAccountWrapper {
   }
 
   /**
-   * Creates a transaction instruction for repaying a loan.
+   * Creates transaction instructions for repaying borrowed assets in a Marginfi account.
    *
-   * @param amount - The amount to repay, can be a number or Amount object
-   * @param bankAddress - The public key of the bank to repay to
-   * @param repayAll - Whether to repay the entire loan balance, defaults to false
-   * @param repayOpts - Optional parameters for the repay instruction
-   * @returns An InstructionsWrapper containing the deposit instructions
+   * @param amount - The amount of the asset to repay, can be a number or Amount object
+   * @param bankAddress - The address of the bank where the repayment is being made
+   * @param repayAll - Whether to repay the borrowed amount, defaults to false
+   * @param repayOpts - Optional configuration for creating the repay instruction
+   * @returns An InstructionsWrapper containing the repayment instructions
    * @throws Will throw an error if the repay mint is not found
    */
   async makeRepayIx(
@@ -1198,10 +1222,10 @@ class MarginfiAccountWrapper {
   /**
    * Repays a loan in a marginfi bank account.
    *
-   * @param amount - The amount to repay, can be a number or Amount object
-   * @param bankAddress - The public key of the bank to repay to
-   * @param repayAll - Whether to repay the entire loan balance, defaults to false
-   * @param repayOpts - Optional parameters for the repay instruction
+   * @param amount - The amount of the asset to repay, can be a number or Amount object
+   * @param bankAddress - The address of the bank where the repayment is being made
+   * @param repayAll - Whether to repay the borrowed amount, defaults to false
+   * @param repayOpts - Optional configuration for creating the repay instruction
    * @param processOpts - Optional transaction processing configuration
    * @param txOpts - Optional transaction options
    * @returns The transaction signature of the repayment
@@ -1227,12 +1251,12 @@ class MarginfiAccountWrapper {
   }
 
   /**
-   * Creates a transaction for repaying a loan in a marginfi bank account.
+   * Creates a transaction for repaying a loan in a marginfi account.
    *
-   * @param amount - The amount to repay, can be a number or Amount object
-   * @param bankAddress - The public key of the bank to repay to
-   * @param repayAll - Whether to repay the entire loan balance, defaults to false
-   * @param repayOpts - Optional parameters for the repay instruction
+   * @param amount - The amount of the asset to repay, can be a number or Amount object
+   * @param bankAddress - The address of the bank where the repayment is being made
+   * @param repayAll - Whether to repay the borrowed amount, defaults to false
+   * @param repayOpts - Optional configuration for creating the repay instruction
    * @returns A transaction object containing the repay instructions
    */
   async makeRepayTx(
