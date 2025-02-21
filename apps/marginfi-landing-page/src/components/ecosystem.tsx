@@ -85,29 +85,6 @@ const CONTENT = {
       },
     },
     {
-      title: "marginfi xnft",
-      description: "The official marginfi xNFT",
-      url: "https://www.xnft.gg/app/DoXjr5LKZp9uxiwEUhffBwCQrf2xdkiDYeitGGvfcyXm",
-      github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/marginfi-v2-xnft",
-      repo: "mrgnlabs/mrgn-ts",
-      author: {
-        name: "marginfi",
-        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
-        url: "https://marginfi.com",
-      },
-    },
-    {
-      title: "marginfi liquidator",
-      description: "Example liquidator",
-      github: "https://github.com/mrgnlabs/mrgn-ts/tree/main/apps/alpha-liquidator",
-      repo: "mrgnlabs/mrgn-ts",
-      author: {
-        name: "marginfi",
-        avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mrgn_logo_192.png",
-        url: "https://marginfi.com",
-      },
-    },
-    {
       title: "dune analytics",
       description: "MarginFi Dune Analytics dashboard",
       url: "https://dune.com/man0s/marginfi/",
