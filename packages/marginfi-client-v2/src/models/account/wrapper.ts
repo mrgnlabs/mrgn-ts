@@ -63,10 +63,11 @@ import {
   LoopProps,
   TransactionBuilderResult,
   makeUnwrapSolIx,
+  computeLoopingParams,
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
-import { Bank, computeLoopingParams } from "../bank";
+import { Bank } from "../bank";
 import { Balance } from "../balance";
 import {
   createAccountIx,
