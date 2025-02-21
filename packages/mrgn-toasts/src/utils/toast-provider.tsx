@@ -8,7 +8,7 @@ export function ToastProvider(props: ToasterProps) {
       toastOptions={{
         className: "bg-mfi-toast-background h-auto",
         classNames: {
-          closeButton: "bg-mfi-toast-background",
+          closeButton: "bg-mfi-toast-background -right-5 left-auto w-6 h-6",
         },
       }}
       position="bottom-left"

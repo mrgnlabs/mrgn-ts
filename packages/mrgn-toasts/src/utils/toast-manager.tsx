@@ -38,7 +38,7 @@ export interface MultiStepToastController {
 }
 
 /*
-Singleton class that manages all toasts.
+Singleton that manages all toasts.
 */
 const toastManager = {
   showWarningToast: (title: string, message: string) => {
