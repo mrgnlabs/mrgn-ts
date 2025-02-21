@@ -21,6 +21,11 @@ export interface MultiStepToastStep {
   onRetry?: () => void;
 }
 
+export interface CustomToastType {
+  id: string | number;
+  close: () => void;
+}
+
 export interface MultiStepToastController {
   start: () => void;
   successAndNext: (stepsToAdvance?: number | undefined, explorerUrl?: string, signature?: string) => void;
@@ -55,6 +60,14 @@ const toastManager = {
     toast(<ErrorToast title={"Error"} description={description} code={code} />, {
       duration: Infinity,
     });
+  },
+
+  showCustomToast: (children: React.ReactNode): CustomToastType => {
+    const toastId = toast(children, { duration: Infinity });
+    return {
+      close: () => toast.dismiss(toastId),
+      id: toastId,
+    };
   },
 
   // Function to create a multi-step toast.

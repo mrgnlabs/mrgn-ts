@@ -19,7 +19,6 @@
     "@mrgnlabs/mrgn-common": "workspace:*"
   },
   "devDependencies": {
-    "@mrgnlabs/eslint-config-custom": "workspace:*",
     "@mrgnlabs/tsconfig": "workspace:*",
     "@types/numeral": "^2.0.5",
     "eslint": "^9.5.0",

@@ -88,7 +88,6 @@
     "react-hook-form": "^7.50.1",
     "react-hotkeys-hook": "^4.4.1",
     "react-responsive": "^9.0.2",
-    "react-toastify": "^9.1.1",
     "resend": "^3.5.0",
     "superstruct": "^1.0.3",
     "tailwind-merge": "^1.14.0",
