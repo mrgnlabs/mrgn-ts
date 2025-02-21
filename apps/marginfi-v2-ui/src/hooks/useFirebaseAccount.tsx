@@ -4,11 +4,11 @@ import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 
-import { toast } from "react-toastify";
 import { useUserProfileStore } from "~/store";
 import { useMrgnlendStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import React from "react";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 const useFirebaseAccount = () => {
   const { connected, walletAddress } = useWallet();
@@ -58,7 +58,7 @@ const useFirebaseAccount = () => {
   // Wallet disconnection/change side effect (auto-logout)
   useEffect(() => {
     signoutFirebaseUser(connected, walletAddress?.toBase58()).catch((error) =>
-      toast.error(`Error signing out: ${error}`)
+      toastManager.showErrorToast(`Error signing out: ${error}`)
     ),
       [connected, walletAddress];
   });
