@@ -1,7 +1,15 @@
 import { bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
-import { BankConfigOptRaw, RiskTierRaw, BankConfigOpt, RiskTier, OperationalState, OracleSetup } from "../types";
+import {
+  BankConfigOptRaw,
+  RiskTierRaw,
+  BankConfigOpt,
+  RiskTier,
+  OperationalState,
+  OracleSetup,
+  OracleSetupRaw,
+} from "../types";
 
 function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw {
   const toWrappedI80F48 = (value: BigNumber | null) => value && bigNumberToWrappedI80F48(value);
@@ -80,15 +88,7 @@ function serializeOracleSetupToIndex(oracleSetup: OracleSetup): number {
   }
 }
 
-function serializeOracleSetup(
-  oracleSetup: OracleSetup
-):
-  | { none: {} }
-  | { pythLegacy: {} }
-  | { switchboardV2: {} }
-  | { pythPushOracle: {} }
-  | { switchboardPull: {} }
-  | { stakedWithPythPush: {} } {
+function serializeOracleSetup(oracleSetup: OracleSetup): OracleSetupRaw {
   switch (oracleSetup) {
     case OracleSetup.None:
       return { none: {} };
