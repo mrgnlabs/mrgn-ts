@@ -117,6 +117,7 @@ type OracleSetupRaw =
   | { pythLegacy: {} }
   | { switchboardV2: {} }
   | { pythPushOracle: {} }
+  | { switchboardPull: {} }
   | { stakedWithPythPush: {} };
 
 interface OracleConfigOptRaw {
