@@ -140,7 +140,7 @@ const toastManager = {
 
         updateToast();
 
-        setTimeout(() => toast.dismiss(toastId), 5000);
+        setTimeout(() => toast.dismiss(toastId), 7500);
       },
 
       // Function to set all current steps in PENDING state to ERROR.
