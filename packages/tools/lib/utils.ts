@@ -5,6 +5,7 @@ import BigNumber from "bignumber.js";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { AccountCache } from "./types";
+import { PYTH_PUSH_ORACLE_ID, PYTH_SPONSORED_SHARD_ID, MARGINFI_SPONSORED_SHARD_ID } from "./constants";
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ export function loadKeypairFromFile(filePath: string): Keypair {
 export function formatNumber(num: number | BigNumber): string {
   const value = typeof num === "number" ? new BigNumber(num) : num;
   if (value.eq(0)) return "0";
+  if (value.lt(1)) return value.toString();
   return groupedNumberFormatterDyn.format(value.toNumber());
 }
 
@@ -29,4 +31,28 @@ export function getCachedAccounts(): PublicKey[] {
   const cache: AccountCache = JSON.parse(fs.readFileSync(CACHE_FILE, "utf-8"));
   const accounts = cache.accounts.map((addr) => new PublicKey(addr));
   return accounts.sort(() => Math.random() - 0.5);
+}
+
+function u16ToArrayBufferLE(value: number): Uint8Array {
+  // Create a buffer of 2 bytes
+  const buffer = new ArrayBuffer(2);
+  const dataView = new DataView(buffer);
+
+  // Set the Uint16 value in little-endian order
+  dataView.setUint16(0, value, true);
+
+  // Return the buffer
+  return new Uint8Array(buffer);
+}
+
+function findPythPushOracleAddress(feedId: Buffer, programId: PublicKey, shardId: number): PublicKey {
+  const shardBytes = u16ToArrayBufferLE(shardId);
+  return PublicKey.findProgramAddressSync([shardBytes, feedId], programId)[0];
+}
+
+export function getPythPushOracleAddresses(feedId: Buffer): PublicKey[] {
+  return [
+    findPythPushOracleAddress(feedId, PYTH_PUSH_ORACLE_ID, PYTH_SPONSORED_SHARD_ID),
+    findPythPushOracleAddress(feedId, PYTH_PUSH_ORACLE_ID, MARGINFI_SPONSORED_SHARD_ID),
+  ];
 }
