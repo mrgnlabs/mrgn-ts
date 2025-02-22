@@ -123,10 +123,6 @@ export function getLiquidationStat(bank: ActiveBankInfo, isLoading: boolean, sim
         : "DESTRUCTIVE"
     : undefined;
 
-  console.log("healthColor", healthColor);
-  console.log("computeLiquidation", computeLiquidation);
-  console.log("price", price);
-
   return {
     label: "Liquidation price",
     color: healthColor,
