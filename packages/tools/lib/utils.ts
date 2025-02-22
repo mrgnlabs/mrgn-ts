@@ -23,7 +23,7 @@ export function getCachedAccounts(): PublicKey[] {
   const CACHE_FILE = path.join(__dirname, "../account-cache.json");
 
   if (!fs.existsSync(CACHE_FILE)) {
-    throw new Error("Account cache not found. Please run 'yarn account:cache-all' first.");
+    throw new Error("Account cache not found. Please run 'pnpm accounts:cache' first.");
   }
 
   const cache: AccountCache = JSON.parse(fs.readFileSync(CACHE_FILE, "utf-8"));
