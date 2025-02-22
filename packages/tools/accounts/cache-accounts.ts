@@ -15,7 +15,7 @@ type AccountCache = {
   accounts: string[];
 };
 
-const CACHE_FILE = path.join(__dirname, "./account-cache.json");
+const CACHE_FILE = path.join(__dirname, "../account-cache.json");
 
 async function main() {
   const argv = getDefaultYargsOptions().parseSync();
