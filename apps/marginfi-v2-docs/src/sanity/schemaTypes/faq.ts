@@ -28,6 +28,11 @@ export const faq = defineType({
           type: 'object',
           name: 'faqItem',
           title: 'FAQ Item',
+          preview: {
+            select: {
+              title: 'question',
+            },
+          },
           fields: [
             { name: 'question', title: 'Question', type: 'string' },
             {
@@ -43,4 +48,10 @@ export const faq = defineType({
       ],
     }),
   ],
+  // Optional: If you want the doc list to show "FAQs" or whatever is in the `title` field
+  // preview: {
+  //   select: {
+  //     title: 'title',
+  //   },
+  // },
 })
