@@ -308,6 +308,12 @@ export function useRepaySimulation({
         setMaxOverflowHit(maxAmount.maxOverflowHit);
       }
     } else {
+      // If jupiter options are not defined, a bug is occurring.
+      if (!jupiterOptions) {
+        console.error(
+          "An internal configuration issue has occurred: Jupiter options are not defined. Please create a support ticket for assistance."
+        );
+      }
       setMaxAmountCollateral(0);
       setMaxOverflowHit(false);
     }
