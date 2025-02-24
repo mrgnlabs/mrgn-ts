@@ -86,7 +86,7 @@ export const PositionListItem = ({ arenaPool }: props) => {
       <TableCell>
         <PnlDisplayTooltip pool={arenaPool}>
           <div className="flex flex-row items-center gap-1">
-            <PnlLabel pnl={positionData?.pnl} positionSize={positionSizeUsd} />
+            <PnlLabel pnl={positionData?.pnl} positionSize={positionSizeUsd} showTooltip={false} />
             <InfoCircledIcon />
           </div>
         </PnlDisplayTooltip>
