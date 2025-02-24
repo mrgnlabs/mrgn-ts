@@ -3,7 +3,7 @@ import { PublicKey } from "@solana/web3.js";
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { getDefaultYargsOptions, getMarginfiProgram } from "../lib/config";
 import { Environment } from "../lib/types";
-import { formatNumber } from "../lib/utils";
+import { formatNumber, getPythPushOracleAddresses } from "../lib/utils";
 
 dotenv.config();
 
@@ -61,6 +61,11 @@ async function main() {
   });
   const oraclePriceData = await oraclePriceResponse.json();
 
+  const assetWeightInit = wrappedI80F48toBigNumber(acc.config.assetWeightInit);
+  const assetWeightMaint = wrappedI80F48toBigNumber(acc.config.assetWeightMaint);
+  const liabilityWeightInit = wrappedI80F48toBigNumber(acc.config.liabilityWeightInit);
+  const liabilityWeightMaint = wrappedI80F48toBigNumber(acc.config.liabilityWeightMaint);
+
   const totalAssetShares = wrappedI80F48toBigNumber(acc.totalAssetShares);
   const totalLiabilityShares = wrappedI80F48toBigNumber(acc.totalLiabilityShares);
   const assetShareValue = wrappedI80F48toBigNumber(acc.assetShareValue);
@@ -70,15 +75,26 @@ async function main() {
   const totalAssetQuantity = totalAssetShares.times(assetShareValue).div(scaleFactor);
   const totalLiabilityQuantity = totalLiabilityShares.times(liabilityShareValue).div(scaleFactor);
 
+  const oracleType = acc.config.oracleSetup.pythPushOracle !== undefined ? "Pyth" : "Switchboard";
+  const oracleKeys = acc.config.oracleKeys.filter((key) => !key.equals(PublicKey.default));
+  const pythOracleAddresses = oracleKeys.map((key) => getPythPushOracleAddresses(key.toBuffer()));
+
   const bankData = {
     Address: bankPubkey.toString(),
     Mint: acc.mint.toString(),
     Symbol: bankMeta?.tokenSymbol,
     Decimals: acc.mintDecimals,
     Price: `$${formatNumber(Number(oraclePriceData[0].priceRealtime.price))}`,
+    "Oracle Type": oracleType,
+    "Oracle Keys": oracleKeys.join(", "),
+    ...(oracleType === "Pyth" ? { "Pyth Oracle Addresses": pythOracleAddresses.join(", ") } : {}),
     "Asset Tag": acc.config.assetTag,
-    "Asset Share Value": formatNumber(assetShareValue),
-    "Liability Share Value": formatNumber(liabilityShareValue),
+    "Asset Weight Init": assetWeightInit.toNumber(),
+    "Asset Weight Maint": assetWeightMaint.toNumber(),
+    "Liability Weight Init": liabilityWeightInit.toNumber(),
+    "Liability Weight Maint": liabilityWeightMaint.toNumber(),
+    "Asset Share Value": assetShareValue.toNumber(),
+    "Liability Share Value": liabilityShareValue.toNumber(),
     "Asset Quantity": formatNumber(totalAssetQuantity),
     "Asset Value (USD)": `$${formatNumber(totalAssetQuantity.times(oraclePriceData[0].priceRealtime.price))}`,
     "Liability Quantity": formatNumber(totalLiabilityQuantity),
