@@ -15,28 +15,28 @@ import {
   ExecuteRepayActionProps,
   ExecuteRepayAction,
 } from "@mrgnlabs/mrgn-utils";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
-import {
-  ActionBoxContentWrapper,
-  ActionButton,
-  ActionCollateralProgressBar,
-  ActionSettingsButton,
-} from "~/components/action-box-v2/components";
-import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
-import { ActionMessage } from "~/components";
 import { CircularProgress } from "~/components/ui/circular-progress";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { TooltipProvider } from "~/components/ui/tooltip";
+import { ActionMessage } from "~/components/action-message";
 
-import { ActionSimulationStatus } from "../../components";
-import { useRepayBoxStore } from "./store";
-import { SimulationStatus } from "../../utils";
-import { useActionBoxStore } from "../../store";
-import { useRepaySimulation } from "./hooks";
-import { ActionInput, Preview } from "./components";
+import { usePollBlockHeight, useActionAmounts } from "../../hooks";
 import { useActionContext } from "../../contexts";
-import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
-import { toastManager } from "@mrgnlabs/mrgn-toasts";
+import { useActionBoxStore } from "../../store";
+import { SimulationStatus } from "../../utils";
+import {
+  ActionBoxContentWrapper,
+  ActionCollateralProgressBar,
+  ActionButton,
+  ActionSimulationStatus,
+  ActionSettingsButton,
+} from "../../components";
+
+import { ActionInput, Preview } from "./components";
+import { useRepaySimulation } from "./hooks";
+import { useRepayBoxStore } from "./store";
 
 export type RepayBoxProps = {
   nativeSolBalance: number;
@@ -122,7 +122,6 @@ export const RepayBox = ({
     state.setMaxOverflowHit,
   ]);
 
-  const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [simulationStatus, setSimulationStatus] = React.useState<{
     isLoading: boolean;
     status: SimulationStatus;
@@ -131,10 +130,7 @@ export const RepayBox = ({
     status: SimulationStatus.IDLE,
   });
 
-  const isLoading = React.useMemo(
-    () => isTransactionExecuting || simulationStatus.isLoading,
-    [isTransactionExecuting, simulationStatus.isLoading]
-  );
+  const isLoading = React.useMemo(() => simulationStatus.isLoading, [simulationStatus.isLoading]);
 
   const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
     transactionSettings: null,
