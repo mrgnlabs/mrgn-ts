@@ -6,26 +6,45 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Skeleton } from "~/components/ui/skeleton";
 
-type PnlLabelProps = {
+interface PnlLabelProps {
   type?: "$" | "%";
   pnl?: number;
   positionSize: number;
   className?: string;
-  disableClickToChangeType?: boolean;
-  loader?: React.ReactNode;
-};
+  showTooltip?: boolean;
+}
 
-const PnlLabel = ({
-  type = "$",
-  pnl,
-  positionSize,
-  className,
-  disableClickToChangeType = false,
-  loader,
-}: PnlLabelProps) => {
-  const [tooltipOpen, setTooltipOpen] = React.useState(false);
+export const PnlLabel = ({ type = "$", showTooltip = true, ...props }: PnlLabelProps) => {
   const [currentType, setCurrentType] = React.useState(type);
 
+  React.useEffect(() => {
+    setCurrentType(type);
+  }, [type]);
+
+  if (!showTooltip) {
+    return <PnlLabelContent currentType={currentType} setCurrentType={undefined} {...props} />;
+  }
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <PnlLabelContent currentType={currentType} setCurrentType={setCurrentType} {...props} />
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Toggle to show {currentType === "$" ? "%" : "$"}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+interface PnlLabelContentProps extends PnlLabelProps {
+  currentType: "$" | "%";
+  setCurrentType?: (type: "$" | "%") => void;
+}
+
+const PnlLabelContent = ({ pnl, positionSize, className, currentType, setCurrentType }: PnlLabelContentProps) => {
   const positionState = React.useMemo(() => {
     if (pnl) {
       return pnl > 0 ? "positive" : pnl < 0 ? "negative" : "neutral";
@@ -46,38 +65,22 @@ const PnlLabel = ({
     }
     return 0;
   }, [pnl, positionSize]);
-
-  React.useEffect(() => {
-    setCurrentType(type);
-  }, [type]);
-
   return (
-    <TooltipProvider>
-      <Tooltip open={disableClickToChangeType ? false : tooltipOpen} onOpenChange={setTooltipOpen}>
-        <TooltipTrigger>
-          <span
-            className={cn(
-              className,
-              disableClickToChangeType ? "cursor-default" : "cursor-pointer",
-              positionState === "positive" && "text-success",
-              positionState === "negative" && "text-error"
-            )}
-            onClick={() => {
-              if (disableClickToChangeType) return;
-              setCurrentType(currentType === "$" ? "%" : "$");
-            }}
-          >
-            {pnlSign}
-            {currentType === "$" && <span>{usdFormatter.format(pnl ?? 0)}</span>}
-            {currentType === "%" && <span>{pnlPercentage.toFixed(2)}%</span>}
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Toggle to show {currentType === "$" ? "%" : "$"}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <span
+      className={cn(
+        className,
+        setCurrentType ? "cursor-pointer" : "cursor-default",
+        positionState === "positive" && "text-success",
+        positionState === "negative" && "text-error"
+      )}
+      onClick={() => {
+        if (!setCurrentType) return;
+        setCurrentType(currentType === "$" ? "%" : "$");
+      }}
+    >
+      {pnlSign}
+      {currentType === "$" && <span>{usdFormatter.format(pnl ?? 0)}</span>}
+      {currentType === "%" && <span>{pnlPercentage.toFixed(2)}%</span>}
+    </span>
   );
 };
-
-export { PnlLabel };

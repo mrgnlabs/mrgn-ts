@@ -25,7 +25,7 @@ export const PwaSignIn = ({ isLoading, isActiveLoading, setIsActiveLoading, setI
   return (
     <>
       <OnboardHeader
-        title={process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui" ? "Sign in to marginfi" : "Enrter The Arena"}
+        title={process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui" ? "Sign in to marginfi" : "Enter The Arena"}
         description={
           process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui"
             ? "Earn yield, permissionlessly."
