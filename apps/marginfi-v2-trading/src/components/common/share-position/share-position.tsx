@@ -124,7 +124,7 @@ const SharePosition = ({ pool, triggerVariant = "ghost", triggerClassName, onOpe
                       type={shareType}
                       pnl={positionData?.pnl ?? 0}
                       positionSize={positionSizeUsd}
-                      disableClickToChangeType={true}
+                      showTooltip={false}
                       className="text-4xl"
                     />
                   </div>
