@@ -55,35 +55,21 @@ const initialState = {
 const stateCreator: StateCreator<RepayBoxState, [], []> = (set, get) => ({
   ...initialState,
 
-  refreshState(actionMode?: ActionType) {
-    if (actionMode) {
-      set({ ...initialState });
-    } else {
-      set({ ...initialState });
-    }
+  refreshState() {
+    set({ ...initialState });
   },
 
   fetchActionBoxState(args) {
-    let requestedBank: ExtendedBankInfo | null = null;
-    let requestedSecondaryBank: ExtendedBankInfo | null = null;
-
-    if (args.requestedBank) {
-      requestedBank = args.requestedBank;
-    } else {
-      requestedBank = null;
-    }
-
-    if (args.requestedSecondaryBank) {
-      requestedSecondaryBank = args.requestedSecondaryBank;
-    } else if (args.requestedBank) {
-      requestedSecondaryBank = args.requestedBank;
-    } else {
-      requestedSecondaryBank = null;
-    }
+    const requestedBank = args.requestedBank || null;
+    const requestedSecondaryBank = args.requestedSecondaryBank || args.requestedBank || null;
 
     const selectedBank = get().selectedBank;
     const selectedSecondaryBank = get().selectedSecondaryBank;
 
+    // Conditions to refresh the store
+    // 1. If selected bank or selected secondary bank is undefined
+    // 2. if requested bank is defined and not the same as the selected bank
+    // 3. if requested secondary bank is defined and not the same as the selected secondary bank
     const needRefresh =
       !selectedBank ||
       !selectedSecondaryBank ||

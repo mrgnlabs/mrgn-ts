@@ -1,21 +1,9 @@
-import { AddressLookupTableAccount, Connection, VersionedTransaction } from "@solana/web3.js";
-import BigNumber from "bignumber.js";
-import { QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
+import { AddressLookupTableAccount, VersionedTransaction } from "@solana/web3.js";
+import { QuoteGetRequest } from "@jup-ag/api";
 
-import {
-  computeLoopingParams,
-  MarginfiAccountWrapper,
-  MarginfiClient,
-  PriorityFees,
-} from "@mrgnlabs/marginfi-client-v2";
-import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import {
-  ExtendedV0Transaction,
-  nativeToUi,
-  SolanaTransaction,
-  TransactionBroadcastType,
-  uiToNative,
-} from "@mrgnlabs/mrgn-common";
+import { computeLoopingParams, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { bpsToPercentile, nativeToUi, SolanaTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
 import { ActionMessageType, ClosePositionProps, LoopingProps, RepayWithCollatProps } from "../types";
@@ -243,44 +231,60 @@ export async function calculateMaxRepayableCollateralLegacy(
 }
 
 export async function calculateMaxRepayableCollateral(
-  borrowBank: ExtendedBankInfo, // USDC
-  depositBank: ExtendedBankInfo, // JITOSOL
+  borrowBank: ExtendedBankInfo,
+  depositBank: ExtendedBankInfo,
   slippageBps: number,
   slippageMode: "DYNAMIC" | "FIXED"
 ): Promise<{ amount: number; maxOverflowHit: boolean }> {
-  if (!depositBank.isActive || !borrowBank.isActive) return { amount: 0, maxOverflowHit: false };
+  // if the bank is not active, a bug is occurring.
+  if (!depositBank.isActive || !borrowBank.isActive) {
+    console.error(
+      "An internal configuration issue has occurred: Bank is not active. Please create a support ticket for assistance."
+    );
+    return { amount: 0, maxOverflowHit: false };
+  }
+
+  // if slippage mode is fixed and no slippage is provided, return 0
+  if (slippageMode === "FIXED" && slippageBps === 0) {
+    console.error(
+      "An internal configuration issue has occurred: Slippage mode is fixed and no slippage is provided. Please create a support ticket for assistance."
+    );
+    return { amount: 0, maxOverflowHit: false };
+  }
 
   let maxOverflowHit = false;
 
-  const depositPrice = depositBank.info.oraclePrice?.priceRealtime?.price?.toNumber();
-  const borrowPrice = borrowBank.info.oraclePrice?.priceRealtime?.price?.toNumber();
+  const depositPrice = depositBank.info.oraclePrice.priceRealtime.price.toNumber();
+  const borrowPrice = borrowBank.info.oraclePrice.priceRealtime.price.toNumber();
 
-  let depositedAmount = depositBank.position?.amount;
-  let borrowedAmount = borrowBank.position?.amount;
+  let depositedAmount = depositBank.position.amount;
+  let borrowedAmount = borrowBank.position.amount;
 
-  // deposited amount in usd
+  // Deposited amount in usd
   const depositedAmountUsd = depositedAmount * depositPrice;
-
-  // borrowed amount in usd
+  // Borrowed amount in usd
   let borrowedAmountUsd = borrowedAmount * borrowPrice;
 
-  // don't allow repaying more than 250k at once
+  // Don't allow repaying more than 250k at once
+  // Reason: jupiter routes are constrained so we don't want the user eat unnecesary slippage
   if (borrowedAmountUsd > 250_000) {
     borrowedAmount = 250_000 / borrowPrice;
     borrowedAmountUsd = 250_000;
     maxOverflowHit = true;
   }
 
-  // not enough collateral to repay entire borrow
+  // If there is not enough collateral to repay the entire borrow, return the deposited amount.
   if (depositedAmountUsd < borrowedAmountUsd) {
     return { amount: depositedAmount, maxOverflowHit };
   }
 
+  const minimalRequiredCollateral = borrowedAmountUsd / depositPrice;
+
   // Get slippage for max repay
   const quoteParams: QuoteGetRequest = {
-    amount: uiToNative(borrowedAmount, borrowBank.info.state.mintDecimals).toNumber(),
-    inputMint: borrowBank.info.state.mint.toBase58(),
-    outputMint: depositBank.info.state.mint.toBase58(),
+    amount: uiToNative(minimalRequiredCollateral, depositBank.info.state.mintDecimals).toNumber(),
+    inputMint: depositBank.info.state.mint.toBase58(),
+    outputMint: borrowBank.info.state.mint.toBase58(),
     slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
     dynamicSlippage: slippageMode === "DYNAMIC",
     maxAccounts: 40,
@@ -292,8 +296,8 @@ export async function calculateMaxRepayableCollateral(
 
     if (!swapQuote) throw new Error("Swap quote failed");
 
-    // swap amount with 0.5% buffer
-    const receivedCollateral = nativeToUi(swapQuote.outAmount, depositBank.info.state.mintDecimals) * 1.005;
+    const quoteSlippage = bpsToPercentile(swapQuote.computedAutoSlippage ?? swapQuote.slippageBps);
+    const receivedCollateral = minimalRequiredCollateral * (1 + quoteSlippage);
 
     // Ensure we never return more than what is available
     return {
