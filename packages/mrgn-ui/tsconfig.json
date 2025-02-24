@@ -10,7 +10,8 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["./src/*", "../../packages/mrgn-utils/src/*"],
-      "@mrgnlabs/mrgn-utils": ["../../packages/mrgn-utils/src/*"]
+      "@mrgnlabs/mrgn-utils": ["../../packages/mrgn-utils/src/*"],
+      "@action-box/*": ["./src/components/action-box-v2/*"]
     },
     "module": "ESNext"
   },

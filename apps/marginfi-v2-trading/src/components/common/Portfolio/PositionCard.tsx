@@ -107,9 +107,8 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
             <PnlLabel
               pnl={positionData?.pnl ?? 0}
               positionSize={positionSizeUsd}
-              disableClickToChangeType={!isMobile}
+              showTooltip={!isMobile}
               className="text-xl md:text-2xl"
-              loader={<Skeleton className="w-[120px] ml-auto h-6 animate-pulsate" />}
             />
             <PnlBadge pnl={positionData?.pnl ?? 0} positionSize={positionSizeUsd} className="hidden md:block" />
           </div>
@@ -178,12 +177,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
           </dd>
           <dt>PnL</dt>
           <dd className="text-right">
-            <PnlLabel
-              pnl={positionData?.pnl ?? 0}
-              positionSize={positionSizeUsd}
-              className="text-primary"
-              loader={<Skeleton className="w-[64px] ml-auto h-4 animate-pulsate" />}
-            />
+            <PnlLabel pnl={positionData?.pnl ?? 0} positionSize={positionSizeUsd} className="text-primary" />
           </dd>
         </dl>
       </div>
