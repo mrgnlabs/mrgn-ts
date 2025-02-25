@@ -2,7 +2,7 @@ import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { ExtendedBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
-import { ActionMessageType, handleSimulationError, isWholePosition } from "@mrgnlabs/mrgn-utils";
+import { ActionMessageType, ActionProcessingError, handleSimulationError, isWholePosition } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import {
@@ -49,37 +49,43 @@ export function calculateSummary({
   } as ActionSummary;
 }
 
-export const getSimulationResult = async (props: SimulateActionProps) => {
-  let actionMethod: ActionMessageType | undefined = undefined;
-  let simulationResult: SimulationResult | null = null;
-
+export const getLendSimulationResult = async (props: SimulateActionProps) => {
   try {
-    simulationResult = await simulateAction(props);
+    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address]);
   } catch (error: any) {
-    let actionString;
-    switch (props.actionMode) {
-      case ActionType.Deposit:
-        actionString = "Depositing";
-        break;
-      case ActionType.Withdraw:
-        actionString = "Withdrawing";
-        break;
-      case ActionType.Loop:
-        actionString = "Looping";
-        break;
-      case ActionType.Repay:
-        actionString = "Repaying";
-        break;
-      case ActionType.Borrow:
-        actionString = "Borrowing";
-        break;
-      default:
-        actionString = "The action";
+    const actionString = getActionString(props.actionMode);
+    const actionMethod = handleSimulationError(error, props.bank, false, actionString);
+    if (actionMethod) {
+      throw new ActionProcessingError(actionMethod);
+    } else {
+      throw error;
     }
-    actionMethod = handleSimulationError(error, props.bank, false, actionString);
+  }
+};
+
+export const getActionString = (actionMode: ActionType) => {
+  let actionString;
+  switch (actionMode) {
+    case ActionType.Deposit:
+      actionString = "Depositing";
+      break;
+    case ActionType.Withdraw:
+      actionString = "Withdrawing";
+      break;
+    case ActionType.Loop:
+      actionString = "Looping";
+      break;
+    case ActionType.Repay:
+      actionString = "Repaying";
+      break;
+    case ActionType.Borrow:
+      actionString = "Borrowing";
+      break;
+    default:
+      actionString = "The action";
   }
 
-  return { simulationResult, actionMethod };
+  return actionString;
 };
 
 function calculateActionPreview(
@@ -135,51 +141,4 @@ function calculateSimulatedActionPreview(
     positionAmount,
     availableCollateral,
   };
-}
-
-async function simulateAction({ actionMode, account, bank, amount, txns }: SimulateActionProps) {
-  let simulationResult: SimulationResult | null = null;
-
-  // TODO: new simulation method
-  switch (actionMode) {
-    case ActionType.Deposit:
-      if (txns.length > 0) {
-        simulationResult = await account.simulateBorrowLendTransaction(txns, [bank.address]);
-      } else {
-        console.error("descrepency in deposit simulateAction");
-        simulationResult = await account.simulateDeposit(amount, bank.address);
-      }
-      break;
-    case ActionType.Withdraw:
-      if (txns.length > 0) {
-        simulationResult = await account.simulateBorrowLendTransaction(txns, [bank.address]);
-      } else {
-        console.error("descrepency in withdraw simulateAction");
-      }
-      break;
-    case ActionType.Borrow:
-      if (txns.length > 0) {
-        simulationResult = await account.simulateBorrowLendTransaction(txns, [bank.address]);
-      } else {
-        console.error("descrepency in borrow simulateAction");
-      }
-      break;
-    case ActionType.Repay:
-      if (txns.length > 0) {
-        simulationResult = await account.simulateBorrowLendTransaction(txns, [bank.address]);
-      } else {
-        console.error("descrepency in repay simulateAction");
-        simulationResult = await account.simulateRepay(
-          amount,
-          bank.address,
-          bank.isActive && isWholePosition(bank, amount)
-        );
-      }
-
-      break;
-    default:
-      throw new Error("Unknown action mode");
-  }
-
-  return simulationResult;
 }
