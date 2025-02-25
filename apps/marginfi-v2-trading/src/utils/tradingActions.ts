@@ -29,6 +29,7 @@ import {
   extractErrorString,
   LoopActionTxns,
   ClosePositionActionTxns,
+  ActionProcessingError,
 } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -254,12 +255,8 @@ export async function executeLeverageAction({
         actualDepositAmount: loopActionTxns.actualDepositAmount,
       });
 
-      if ("transactions" in result) {
-        loopingObject = result;
-      } else {
-        multiStepToast.setFailed(result.description ?? "Something went wrong, please try again.");
-        return;
-      }
+      loopingObject = result;
+
       multiStepToast.successAndNext();
     } catch (error) {
       const msg = extractErrorString(error);
@@ -313,7 +310,7 @@ export async function calculateClosePositions({
   jupiterOptions: JupiterOptions | null;
   connection: Connection;
   platformFeeBps: number;
-}): Promise<ClosePositionActionTxns | ActionMessageType> {
+}): Promise<ClosePositionActionTxns> {
   // user is borrowing and depositing
   if (borrowBank && depositBanks.length === 1 && jupiterOptions) {
     return calculateBorrowLendPositionParams({
@@ -321,8 +318,8 @@ export async function calculateClosePositions({
       borrowBank,
       depositBank: depositBanks[0],
       connection,
-      slippageBps: jupiterOptions?.slippageBps,
-      slippageMode: jupiterOptions?.slippageMode,
+      slippageBps: jupiterOptions.slippageBps,
+      slippageMode: jupiterOptions.slippageMode,
       platformFeeBps,
     });
   }
@@ -337,9 +334,10 @@ export async function calculateClosePositions({
     );
     return {
       transactions: [txn],
+      maxAmount: 0,
       actionQuote: null,
     };
   }
 
-  return STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED;
+  throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.CLOSE_POSITION_INVALID);
 }

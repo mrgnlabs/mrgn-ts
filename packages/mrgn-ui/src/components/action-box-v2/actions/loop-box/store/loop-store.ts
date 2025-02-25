@@ -58,7 +58,6 @@ const initialState = {
   actionTxns: {
     transactions: [],
     actionQuote: null,
-    lastValidBlockHeight: undefined,
     actualDepositAmount: 0,
     borrowAmount: new BigNumber(0),
   },

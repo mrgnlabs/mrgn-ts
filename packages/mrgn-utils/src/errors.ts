@@ -88,7 +88,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     description: "This position could not be found. Please refresh and try again.",
     code: 112,
   },
-  HEALTH_LIQUIDATION_FAILED: {
+  SIMULATION_FAILED: {
     isEnabled: false,
     actionMethod: "WARNING",
     description: "Simulating transaction failed. Please try again.",
@@ -192,9 +192,10 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     code: 132,
   },
   MAX_AMOUNT_CALCULATION_FAILED: {
+    description:
+      "Maximum collateral couldn't be accurately calculated, but you can still enter an amount manually to proceed.",
     isEnabled: false,
     actionMethod: "WARNING",
-    description: "There was an issue with the max amount calculation. Please refresh and try again.",
     code: 133,
   },
   SIMULATION_NOT_READY: {
@@ -242,7 +243,68 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     actionMethod: "ERROR",
     code: 139,
   },
+  TX_BUILD_FAILED: {
+    description:
+      "There was an issue while building the transaction within the SDK. Please try again. If the problem persists, check your inputs or contact support.",
+    isEnabled: false,
+    actionMethod: "WARNING",
+    code: 144,
+  },
+  BANK_NOT_ACTIVE_CHECK: {
+    description:
+      "An internal configuration issue has occurred: Bank is not active. Please create a support ticket for assistance.",
+    isEnabled: false,
+    actionMethod: "ERROR",
+    code: 145,
+  },
+  SLIPPAGE_INVALID_CHECK: {
+    description:
+      "The slippage is currently set to 0, which prevents the transaction from completing. Please increase the slippage or enable dynamic slippage mode to proceed.",
+    isEnabled: false,
+    actionMethod: "WARNING",
+    code: 146,
+  },
+  JUP_QUOTE_FAILED: {
+    description: "Failed to fetch Jupiter qoute. Please try again.",
+    isEnabled: false,
+    retry: true,
+    actionMethod: "WARNING",
+    code: 147,
+  },
+  ACTION_TYPE_CHECK: {
+    description:
+      "Action type is undefined or incorrect within the context of the function, this error indicates a bug in the code.",
+    isEnabled: false,
+    actionMethod: "ERROR",
+    code: 148,
+  },
+  BANK_NOT_PROVIDED_CHECK: {
+    description:
+      "An internal configuration issue has occurred: Bank is not provided. Please create a support ticket for assistance.",
+    isEnabled: false,
+    actionMethod: "ERROR",
+    code: 151,
+  },
+  CLOSE_POSITION_INVALID: {
+    description:
+      "An internal configuration issue has occurred: Close position config is invalid. Please create a support ticket for assistance.",
+    isEnabled: false,
+    actionMethod: "ERROR",
+    code: 152,
+  },
 };
+
+const createProcessingTxFailedCheck = (info?: string): ActionMessageType => ({
+  description: `Error processing transaction. Please try again. ${info ? `Details: ${info}` : ""}`,
+  isEnabled: false,
+  code: 150,
+});
+
+const createSimulationFailedCheck = (info?: string): ActionMessageType => ({
+  description: `Simulating transaction failed. Please try again. ${info ? `Details: ${info}` : ""}`,
+  isEnabled: false,
+  code: 149,
+});
 
 const createInsufficientStakeBalanceCheck = (tokenName?: string): ActionMessageType => ({
   description: `You need active native stake with the ${tokenName} validator to deposit to this bank`,
@@ -432,6 +494,8 @@ export const DYNAMIC_SIMULATION_ERRORS = {
   INSUFFICIENT_STAKE_BALANCE_CHECK: createInsufficientStakeBalanceCheck,
   REPAY_COLLAT_FAILED_CHECK: createRepayCollatFailedCheck,
   TRADE_FAILED_CHECK: createTradeFailedCheck,
+  PROCESSING_TX_FAILED_CHECK: createProcessingTxFailedCheck,
+  SIMULATION_FAILED_CHECK: createSimulationFailedCheck,
 };
 
 const createCustomError = (description: string): ActionMessageType => ({
@@ -565,16 +629,12 @@ export const handleTransactionError = (
   bank: ExtendedBankInfo | null,
   isArena: boolean = false
 ): ActionMessageType | undefined => {
-  try {
-    const action = handleError(error, bank, isArena);
-    if (action) {
-      return action;
-    }
-    console.log({ error: error });
-    return STATIC_SIMULATION_ERRORS.HEALTH_LIQUIDATION_FAILED;
-  } catch (err) {
-    console.log({ error: err });
+  const action = handleError(error, bank, isArena);
+  if (action) {
+    return action;
   }
+  console.error({ error: error });
+  return DYNAMIC_SIMULATION_ERRORS.PROCESSING_TX_FAILED_CHECK(error.message);
 };
 
 export const handleSimulationError = (
@@ -583,14 +643,10 @@ export const handleSimulationError = (
   isArena: boolean = false,
   actionString?: string
 ): ActionMessageType | undefined => {
-  try {
-    const action = handleError(error, bank, isArena, actionString);
-    if (action) {
-      return action;
-    }
-    console.log({ error: error });
-    return STATIC_SIMULATION_ERRORS.HEALTH_LIQUIDATION_FAILED;
-  } catch (err) {
-    console.log({ error: err });
+  const action = handleError(error, bank, isArena, actionString);
+  if (action) {
+    return action;
   }
+  console.error({ error: error });
+  return DYNAMIC_SIMULATION_ERRORS.SIMULATION_FAILED_CHECK(error.message);
 };

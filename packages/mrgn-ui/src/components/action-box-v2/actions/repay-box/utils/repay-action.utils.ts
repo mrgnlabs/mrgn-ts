@@ -1,21 +1,16 @@
+import { Connection } from "@solana/web3.js";
+
 import {
-  ActionMessageType,
+  ActionProcessingError,
   calculateRepayCollateralParams,
-  handleSimulationError,
+  isWholePosition,
+  RepayActionTxns,
+  STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
-
-import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { isWholePosition, RepayActionTxns } from "@mrgnlabs/mrgn-utils";
-import { Connection, Transaction, VersionedTransaction } from "@solana/web3.js";
+
 import { JupiterOptions } from "~/components/settings";
-
-
-export interface SimulateActionProps {
-  txns: (VersionedTransaction | Transaction)[];
-  account: MarginfiAccountWrapper;
-  bank: ExtendedBankInfo;
-}
 
 export interface CalculateRepayTransactionsProps {
   actionType: ActionType;
@@ -28,13 +23,10 @@ export interface CalculateRepayTransactionsProps {
   repayAmount: number;
 }
 
-export async function calculateRepayTransactions(props: CalculateRepayTransactionsProps): Promise<
-  | {
-      repayCollatObject: RepayActionTxns;
-      amount: number;
-    }
-  | ActionMessageType
-> {
+export async function calculateRepayTransactions(props: CalculateRepayTransactionsProps): Promise<{
+  repayCollatObject: RepayActionTxns;
+  amount: number;
+}> {
   if (props.actionType === ActionType.Repay) {
     const repayTx = await props.marginfiAccount.makeRepayTx(
       props.repayAmount,
@@ -61,47 +53,11 @@ export async function calculateRepayTransactions(props: CalculateRepayTransactio
       withdrawAmount: props.repayAmount,
     });
 
-    if (repayCollatResult && "actionMessage" in repayCollatResult) {
-      return repayCollatResult.actionMessage as ActionMessageType;
-    } else if (repayCollatResult && "repayCollatObject" in repayCollatResult) {
-      return {
-        repayCollatObject: repayCollatResult.repayCollatObject,
-        amount: repayCollatResult.amount,
-      };
-    }
+    return {
+      repayCollatObject: repayCollatResult.repayCollatObject,
+      amount: repayCollatResult.amount,
+    };
   }
 
-  return {
-    repayCollatObject: {
-      transactions: [],
-      actionQuote: null,
-    },
-    amount: 0,
-  };
-}
-
-export const getSimulationResult = async (props: SimulateActionProps) => {
-  let actionMethod: ActionMessageType | undefined = undefined;
-  let simulationResult: SimulationResult | null = null;
-
-  try {
-    simulationResult = await simulateFlashLoan(props);
-  } catch (error: any) {
-    const actionString = "Repaying Collateral";
-    actionMethod = handleSimulationError(error, props.bank, false, actionString);
-  }
-
-  return { simulationResult, actionMethod };
-};
-
-async function simulateFlashLoan({ account, bank, txns }: SimulateActionProps) {
-  let simulationResult: SimulationResult;
-
-  if (txns.length > 0) {
-    simulationResult = await account.simulateBorrowLendTransaction(txns, [bank.address]);
-    return simulationResult;
-  } else {
-    console.error("Failed to simulate flashloan");
-    throw new Error("Failed to simulate flashloan");
-  }
+  throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.ACTION_TYPE_CHECK);
 }
