@@ -315,7 +315,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                     leaderboardSettings.orderCol === "total_deposit_points" && "text-white"
                   )}
                 >
-                  {groupedNumberFormatter.format(leaderboardRow.total_activity_deposit_points)}
+                  {groupedNumberFormatter.format(leaderboardRow.total_deposit_points)}
                 </TableCell>
                 <TableCell
                   className={cn(
@@ -323,7 +323,7 @@ export const PointsTable = ({ userPointsData }: PointsTableProps) => {
                     leaderboardSettings.orderCol === "total_borrow_points" && "text-white"
                   )}
                 >
-                  {groupedNumberFormatter.format(leaderboardRow.total_activity_borrow_points)}
+                  {groupedNumberFormatter.format(leaderboardRow.total_borrow_points)}
                 </TableCell>
                 <TableCell
                   className={cn(
