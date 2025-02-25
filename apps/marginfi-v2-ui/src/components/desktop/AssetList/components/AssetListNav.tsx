@@ -35,7 +35,7 @@ const AssetListNav = () => {
     state.tokenFilter,
     state.setTokenFilter,
   ]);
-  const [isSearchExpanded, setIsSearchExpanded] = React.useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = React.useState(assetListSearch.length > 0);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   const switchComponent = (
