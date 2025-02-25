@@ -3,7 +3,7 @@ import { PublicKey } from "@solana/web3.js";
 import { chunkedGetRawMultipleAccountInfos, chunks, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { getDefaultYargsOptions, getMarginfiProgram } from "../lib/config";
 import { Environment } from "../lib/types";
-import { formatNumber, getCachedAccounts } from "../lib/utils";
+import { formatNumber, getCachedAccounts, getBankMetadata } from "../lib/utils";
 
 dotenv.config();
 
@@ -55,9 +55,7 @@ async function main() {
     .parseSync();
 
   const program = getMarginfiProgram(argv.env as Environment);
-
-  const bankMetadataResponse = await fetch("https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache.json");
-  const bankMetadata = (await bankMetadataResponse.json()) as BankMetadata[];
+  const bankMetadata = await getBankMetadata();
 
   let bankPubkey: PublicKey;
   if (argv.address) {
