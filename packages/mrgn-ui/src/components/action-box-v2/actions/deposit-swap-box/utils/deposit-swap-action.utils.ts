@@ -124,19 +124,14 @@ export async function createSwapTx(props: GenerateDepositSwapTxnsProps) {
     dynamicSlippage: props.jupiterOptions?.slippageMode === "DYNAMIC" ? true : false,
   });
 
-  const {
-    computeBudgetInstructions,
-    swapInstruction,
-    setupInstructions,
-    cleanupInstruction,
-    addressLookupTableAddresses,
-  } = await jupiterQuoteApi.swapInstructionsPost({
-    swapRequest: {
-      quoteResponse: swapQuote,
-      userPublicKey: (props.marginfiAccount?.authority ?? props.marginfiClient.provider.publicKey).toBase58(),
-      programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
-    },
-  });
+  const { computeBudgetInstructions, swapInstruction, setupInstructions, addressLookupTableAddresses } =
+    await jupiterQuoteApi.swapInstructionsPost({
+      swapRequest: {
+        quoteResponse: swapQuote,
+        userPublicKey: (props.marginfiAccount?.authority ?? props.marginfiClient.provider.publicKey).toBase58(),
+        programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
+      },
+    });
 
   const swapIx = deserializeInstruction(swapInstruction);
   const setupInstructionsIxs = setupInstructions.map((value) => deserializeInstruction(value));
