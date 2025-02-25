@@ -71,6 +71,14 @@ async function main() {
   const assetShareValue = wrappedI80F48toBigNumber(acc.assetShareValue);
   const liabilityShareValue = wrappedI80F48toBigNumber(acc.liabilityShareValue);
 
+  const insuranceIrFee = wrappedI80F48toBigNumber(acc.config.interestRateConfig.insuranceIrFee);
+  const insiranceFixedFee = wrappedI80F48toBigNumber(acc.config.interestRateConfig.insuranceFeeFixedApr);
+  const protocolIrFee = wrappedI80F48toBigNumber(acc.config.interestRateConfig.protocolIrFee);
+  const protocolFixedFee = wrappedI80F48toBigNumber(acc.config.interestRateConfig.protocolFixedFeeApr);
+  const maxInterestRate = wrappedI80F48toBigNumber(acc.config.interestRateConfig.maxInterestRate);
+  const plateauInterestRate = wrappedI80F48toBigNumber(acc.config.interestRateConfig.plateauInterestRate);
+  const optimalUtilizationRate = wrappedI80F48toBigNumber(acc.config.interestRateConfig.optimalUtilizationRate);
+
   const scaleFactor = Math.pow(10, acc.mintDecimals);
   const totalAssetQuantity = totalAssetShares.times(assetShareValue).div(scaleFactor);
   const totalLiabilityQuantity = totalLiabilityShares.times(liabilityShareValue).div(scaleFactor);
@@ -88,11 +96,18 @@ async function main() {
     "Oracle Type": oracleType,
     "Oracle Keys": oracleKeys.join(", "),
     ...(oracleType === "Pyth" ? { "Pyth Oracle Addresses": pythOracleAddresses.join(", ") } : {}),
-    "Asset Tag": acc.config.assetTag,
+    "Bank Type": acc.config.assetTag === 2 ? "Native Stake" : acc.config.riskTier.collateral ? "Global" : "Isolated",
     "Asset Weight Init": assetWeightInit.toNumber(),
     "Asset Weight Maint": assetWeightMaint.toNumber(),
     "Liability Weight Init": liabilityWeightInit.toNumber(),
     "Liability Weight Maint": liabilityWeightMaint.toNumber(),
+    "Insurance IR Fee": insuranceIrFee.toNumber(),
+    "Insurance Fixed Fee": insiranceFixedFee.toNumber(),
+    "Protocol IR Fee": protocolIrFee.toNumber(),
+    "Protocol Fixed Fee": protocolFixedFee.toNumber(),
+    "Max Interest Rate": maxInterestRate.toNumber(),
+    "Plateau Interest Rate": plateauInterestRate.toNumber(),
+    "Optimal Utilization Rate": optimalUtilizationRate.toNumber(),
     "Asset Share Value": assetShareValue.toNumber(),
     "Liability Share Value": liabilityShareValue.toNumber(),
     "Asset Quantity": formatNumber(totalAssetQuantity),
