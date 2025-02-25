@@ -53,6 +53,12 @@ async function main() {
     totalLiabilities += Number(liabAmount);
 
     const bankMeta = bankMetadata.find((meta) => meta.bankAddress === balances[i].bankPk.toString());
+    
+    // Convert timestamp to readable date
+    const timestamp = Number(balances[i].lastUpdate.toString());
+    const readableDate = new Date(timestamp * 1000).toLocaleString('en-US', {
+      timeZone: 'EST'
+    });
 
     activeBalances.push({
       "Bank PK": balances[i].bankPk.toString(),
@@ -60,7 +66,7 @@ async function main() {
       "Liability Amount": formatNumber(liabAmount),
       "Asset Amount": formatNumber(assetAmount),
       "Emissions Outstanding": formatNumber(wrappedI80F48toBigNumber(balances[i].emissionsOutstanding)),
-      "Last Update": balances[i].lastUpdate.toString(),
+      "Last Update": readableDate + " (EST)",
     });
   }
 
