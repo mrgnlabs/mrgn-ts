@@ -1,22 +1,14 @@
-import {
-  MarginfiAccountWrapper,
-  SimulationResult,
-} from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import {
-  
-  nativeToUi,
-} from "@mrgnlabs/mrgn-common";
-import {
-  ActionMessageType,
-  handleSimulationError,
-  DepositSwapActionTxns,
-} from "@mrgnlabs/mrgn-utils";
+import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import {  Transaction,  VersionedTransaction } from "@solana/web3.js";
-import { ActionSummary, SimulatedActionPreview } from "../../lend-box/utils";
+import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { handleSimulationError, DepositSwapActionTxns, ActionProcessingError } from "@mrgnlabs/mrgn-utils";
+import { nativeToUi } from "@mrgnlabs/mrgn-common";
+
 import {
   ActionPreview,
+  ActionSummary,
+  SimulatedActionPreview,
   simulatedCollateral,
   simulatedHealthFactor,
   simulatedPositionSize,
@@ -28,7 +20,6 @@ export interface SimulateActionProps {
   account: MarginfiAccountWrapper;
 }
 
-
 export interface CalculatePreviewProps {
   actionMode: ActionType;
   simulationResult?: SimulationResult;
@@ -38,30 +29,18 @@ export interface CalculatePreviewProps {
 }
 
 export const getSimulationResult = async (props: SimulateActionProps) => {
-  let actionMethod: ActionMessageType | undefined = undefined;
-  let simulationResult: SimulationResult | null = null;
-
   try {
-    simulationResult = await simulateFlashLoan(props);
+    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address]);
   } catch (error: any) {
-    const actionString = "Looping";
-    actionMethod = handleSimulationError(error, props.bank, true, actionString);
+    const actionString = "Deposit Swapping";
+    const actionMethod = handleSimulationError(error, props.bank, false, actionString);
+    if (actionMethod) {
+      throw new ActionProcessingError(actionMethod);
+    } else {
+      throw error;
+    }
   }
-
-  return { simulationResult, actionMethod };
 };
-
-async function simulateFlashLoan({ account, bank, txns }: SimulateActionProps) {
-  let simulationResult: SimulationResult;
-
-  if (txns.length > 0) {
-    simulationResult = await account.simulateBorrowLendTransaction(txns, [bank.address]);
-    return simulationResult;
-  } else {
-    console.error("Failed to simulate flashloan");
-    throw new Error("Failed to simulate flashloan");
-  }
-}
 
 export function calculateSummary({
   simulationResult,
@@ -78,10 +57,11 @@ export function calculateSummary({
 
   const actionPreview = calculateActionPreview(bank, actionMode, accountSummary, actionTxns);
 
-  return {
+  const actionSummary: ActionSummary = {
     actionPreview,
     simulationPreview,
-  } as ActionSummary;
+  };
+  return actionSummary;
 }
 
 function calculateActionPreview(
@@ -113,15 +93,16 @@ function calculateActionPreview(
   const slippageBps = actionTxns.actionQuote?.slippageBps;
   const priceImpactPct = actionTxns.actionQuote?.priceImpactPct;
 
-  return {
+  const actionPreview: ActionPreview = {
     positionAmount,
     health,
     liquidationPrice,
     poolSize,
     bankCap,
     slippageBps,
-    priceImpactPct,
-  } as ActionPreview;
+    priceImpactPct: priceImpactPct ? Number(priceImpactPct) : undefined,
+  };
+  return actionPreview;
 }
 
 function calculateSimulatedActionPreview(

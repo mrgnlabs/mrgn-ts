@@ -1,19 +1,20 @@
 import React from "react";
 
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
-
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { WalletToken } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
-  ActionTxns,
-  DYNAMIC_SIMULATION_ERRORS,
   extractErrorString,
   STATIC_SIMULATION_ERRORS,
   DepositSwapActionTxns,
   usePrevious,
+  ActionProcessingError,
 } from "@mrgnlabs/mrgn-utils";
+
 import { SimulationStatus } from "~/components/action-box-v2/utils";
+import { JupiterOptions } from "~/components/settings/settings";
+
 import {
   calculateSummary,
   generateDepositSwapTxns,
@@ -21,8 +22,6 @@ import {
   getSimulationResult,
   SimulateActionProps,
 } from "../utils";
-import { JupiterOptions } from "~/components/settings/settings";
-import { WalletToken } from "@mrgnlabs/mrgn-common";
 
 type DepositSwapSimulationProps = {
   debouncedAmount: number;
@@ -89,53 +88,23 @@ export function useDepositSwapSimulation({
     callbacks.setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
   };
 
-  const simulationAction = async (props: SimulateActionProps) => {
-    if (props.txns.length > 0) {
-      const simulationResult = await getSimulationResult(props);
-      if (simulationResult.actionMethod) {
-        return { simulationResult: null, actionMessage: simulationResult.actionMethod };
-      } else if (simulationResult.simulationResult) {
-        return { simulationResult: simulationResult.simulationResult, actionMessage: null };
-      } else {
-        const errorMessage = DYNAMIC_SIMULATION_ERRORS.TRADE_FAILED_CHECK();
-        return { simulationResult: null, actionMessage: errorMessage };
-      }
-    } else {
-      throw new Error("account, bank or transactions are null");
-    }
-  };
-
   const fetchDepositSwapActionTxns = async (
     props: GenerateDepositSwapTxnsProps
-  ): Promise<{ actionTxns: DepositSwapActionTxns | null; actionMessage: ActionMessageType | null }> => {
-    try {
-      const depositSwapActionTxns = await generateDepositSwapTxns(props);
-      if (depositSwapActionTxns && "transactions" in depositSwapActionTxns) {
-        return {
-          actionTxns: { ...depositSwapActionTxns, actionQuote: depositSwapActionTxns.actionQuote },
-          actionMessage: null,
-        };
-      } else {
-        const errorMessage = depositSwapActionTxns ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
-        return {
-          actionTxns: null,
-          actionMessage: errorMessage,
-        };
-      }
-    } catch (error) {
-      console.error("Error fetching deposit swap action txns", error);
-      return {
-        actionTxns: null,
-        actionMessage: STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED,
-      };
-    }
+  ): Promise<{ actionTxns: DepositSwapActionTxns; account: MarginfiAccountWrapper }> => {
+    const depositSwapActionTxns = await generateDepositSwapTxns(props);
+    return {
+      actionTxns: {
+        ...depositSwapActionTxns.actionTxns,
+        actionQuote: depositSwapActionTxns.actionTxns.actionQuote ?? null,
+      },
+      account: depositSwapActionTxns.account,
+    };
   };
 
   const handleSimulation = React.useCallback(
     async (amount: number) => {
       try {
-        if (amount === 0 || !depositBank || !selectedAccount || !marginfiClient || !jupiterOptions || isDisabled) {
-          // TODO: will there be cases where the account isnt defined? In arena esp?
+        if (amount === 0 || !depositBank || !marginfiClient || !jupiterOptions || isDisabled) {
           setActionTxns({ transactions: [], actionQuote: null });
           return;
         }
@@ -143,7 +112,7 @@ export function useDepositSwapSimulation({
         setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
 
         const props: GenerateDepositSwapTxnsProps = {
-          marginfiAccount: selectedAccount ?? undefined,
+          marginfiAccount: selectedAccount ?? null,
           depositBank: depositBank,
           swapBank: swapBank,
           amount: amount,
@@ -151,42 +120,35 @@ export function useDepositSwapSimulation({
           jupiterOptions,
         };
 
-        const depositSwapActionTxns = await fetchDepositSwapActionTxns(props);
+        const { account, actionTxns } = await fetchDepositSwapActionTxns(props);
 
-        if (depositSwapActionTxns.actionMessage || depositSwapActionTxns.actionTxns === null) {
-          handleError(depositSwapActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
-            setErrorMessage,
-            setSimulationResult,
-            setActionTxns,
-            setIsLoading,
-          });
-          return;
-        }
-
-        const simulationResult = await simulationAction({
-          txns: [...(depositSwapActionTxns?.actionTxns?.transactions ?? [])],
-          account: selectedAccount,
+        const simulationResult = await getSimulationResult({
+          txns: actionTxns.transactions,
+          account: account,
           bank: depositBank,
         });
 
-        if (simulationResult.actionMessage || simulationResult.simulationResult === null) {
-          handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
+        setSimulationResult(simulationResult);
+        setActionTxns(actionTxns);
+        setErrorMessage(null);
+      } catch (error) {
+        if (error instanceof ActionProcessingError) {
+          handleError(error.details, {
             setErrorMessage,
             setSimulationResult,
             setActionTxns,
             setIsLoading,
           });
-          return;
-        } else if (simulationResult.simulationResult) {
-          setSimulationResult(simulationResult.simulationResult);
-          setActionTxns(depositSwapActionTxns.actionTxns);
-          setErrorMessage(null);
         } else {
-          throw new Error("Unknown error");
+          // TODO: ADD SENTRY LOG
+          console.error("Error simulating deposit swap action", error);
+          handleError(STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
         }
-      } catch (error) {
-        console.error("Error simulating transaction", error);
-        setSimulationResult(null);
       } finally {
         setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }

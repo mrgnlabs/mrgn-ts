@@ -6,7 +6,13 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { bpsToPercentile, nativeToUi, SolanaTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
-import { ActionMessageType, ClosePositionProps, LoopingProps, RepayWithCollatProps } from "../types";
+import {
+  ActionMessageType,
+  ActionProcessingError,
+  ClosePositionProps,
+  LoopingProps,
+  RepayWithCollatProps,
+} from "../types";
 import { closePositionBuilder, loopingBuilder, repayWithCollatBuilder } from "./builders";
 import { getSwapQuoteWithRetry } from "../helpers";
 
@@ -28,10 +34,7 @@ export async function verifyTxSizeLooping(props: LoopingProps): Promise<VerifyTx
 
     if (builder.txOverflown) {
       // transaction size is too large
-      return {
-        transactions: [],
-        error: STATIC_SIMULATION_ERRORS.TX_SIZE,
-      };
+      throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.TX_SIZE);
     } else {
       return {
         ...builder,
@@ -39,10 +42,7 @@ export async function verifyTxSizeLooping(props: LoopingProps): Promise<VerifyTx
     }
   } catch (error) {
     console.error(error);
-    return {
-      transactions: [],
-      error: STATIC_SIMULATION_ERRORS.TX_SIZE,
-    };
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.TX_BUILD_FAILED);
   }
 }
 
@@ -53,17 +53,10 @@ export async function verifyTxSizeCloseBorrowLendPosition(
   props: ClosePositionProps
 ): Promise<VerifyTxSizeFlashloanResponse> {
   try {
-    if (Number(props.quote.priceImpactPct) > 0.05) {
-      throw Error("Price impact too high");
-    }
-
     const builder = await closePositionBuilder(props);
 
     if (builder.txOverflown) {
-      return {
-        transactions: [],
-        error: STATIC_SIMULATION_ERRORS.TX_SIZE,
-      };
+      throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.TX_SIZE);
     } else {
       return {
         ...builder,
@@ -71,17 +64,12 @@ export async function verifyTxSizeCloseBorrowLendPosition(
     }
   } catch (error) {
     console.error(error);
-    return {
-      transactions: [],
-      error: STATIC_SIMULATION_ERRORS.TX_SIZE,
-    };
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.TX_BUILD_FAILED);
   }
 }
 
 type VerifyTxSizeFlashloanResponse = {
   transactions: SolanaTransaction[];
-  error?: ActionMessageType;
-  lastValidBlockHeight?: number;
 };
 
 /*
@@ -92,10 +80,7 @@ export async function verifyTxSizeCollat(props: RepayWithCollatProps): Promise<V
     const builder = await repayWithCollatBuilder(props);
 
     if (builder.txOverflown) {
-      return {
-        transactions: [],
-        error: STATIC_SIMULATION_ERRORS.TX_SIZE,
-      };
+      throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.TX_SIZE);
     } else {
       return {
         ...builder,
@@ -103,130 +88,7 @@ export async function verifyTxSizeCollat(props: RepayWithCollatProps): Promise<V
     }
   } catch (error) {
     console.error(error);
-    return {
-      transactions: [],
-      error: STATIC_SIMULATION_ERRORS.TX_SIZE,
-    };
-  }
-}
-
-/** @deprecated */
-export const verifyFlashloanTxSize = (builder: {
-  flashloanTx: VersionedTransaction;
-  feedCrankTxs: VersionedTransaction[];
-  addressLookupTableAccounts: AddressLookupTableAccount[];
-  lastValidBlockHeight?: number;
-}): {
-  flashloanTx: VersionedTransaction | null;
-  feedCrankTxs: VersionedTransaction[];
-  addressLookupTableAccounts: AddressLookupTableAccount[];
-  lastValidBlockHeight?: number;
-  error?: ActionMessageType;
-} => {
-  try {
-    const totalSize = builder.flashloanTx.message.serialize().length;
-    const totalKeys = builder.flashloanTx.message.getAccountKeys({
-      addressLookupTableAccounts: builder.addressLookupTableAccounts,
-    }).length;
-    if (totalSize > 1232 - 64 || totalKeys >= 64) {
-      // signature is roughly 64 bytes
-      if (totalKeys >= 64) {
-        return {
-          flashloanTx: null,
-          feedCrankTxs: [],
-          addressLookupTableAccounts: builder.addressLookupTableAccounts,
-          error: STATIC_SIMULATION_ERRORS.KEY_SIZE,
-        };
-      } else if (totalSize > 1232 - 64) {
-        return {
-          flashloanTx: null,
-          feedCrankTxs: [],
-          addressLookupTableAccounts: builder.addressLookupTableAccounts,
-          error: STATIC_SIMULATION_ERRORS.TX_SIZE,
-        };
-      }
-    } else {
-      return {
-        flashloanTx: builder.flashloanTx,
-        feedCrankTxs: builder.feedCrankTxs,
-        addressLookupTableAccounts: builder.addressLookupTableAccounts,
-        error: undefined,
-        lastValidBlockHeight: builder.lastValidBlockHeight,
-      };
-    }
-
-    return {
-      flashloanTx: null,
-      feedCrankTxs: [],
-      addressLookupTableAccounts: builder.addressLookupTableAccounts,
-      error: STATIC_SIMULATION_ERRORS.TX_SIZE,
-    };
-  } catch (error) {
-    return {
-      flashloanTx: null,
-      feedCrankTxs: [],
-      addressLookupTableAccounts: builder.addressLookupTableAccounts,
-      error: STATIC_SIMULATION_ERRORS.TX_SIZE,
-    };
-  }
-};
-
-export async function calculateMaxRepayableCollateralLegacy(
-  bank: ExtendedBankInfo,
-  repayBank: ExtendedBankInfo,
-  slippageBps: number,
-  slippageMode: "DYNAMIC" | "FIXED"
-) {
-  const amount = repayBank.isActive && repayBank.position.isLending ? repayBank.position.amount : 0;
-  let maxRepayAmount = bank.isActive ? bank?.position.amount : 0;
-  const maxUsdValue = 700_000;
-
-  if (maxRepayAmount * bank.info.oraclePrice.priceRealtime.price.toNumber() > maxUsdValue) {
-    maxRepayAmount = maxUsdValue / bank.info.oraclePrice.priceRealtime.price.toNumber();
-  }
-
-  if (amount !== 0) {
-    const quoteParams = {
-      amount: uiToNative(amount, repayBank.info.state.mintDecimals).toNumber(),
-      inputMint: repayBank.info.state.mint.toBase58(),
-      outputMint: bank.info.state.mint.toBase58(),
-      slippageBps: slippageMode === "FIXED" ? slippageBps : undefined,
-      dynamicSlippage: slippageMode === "DYNAMIC",
-      maxAccounts: 40,
-      swapMode: "ExactIn",
-    } as QuoteGetRequest;
-
-    try {
-      const swapQuoteInput = await getSwapQuoteWithRetry(quoteParams);
-
-      if (!swapQuoteInput) throw new Error();
-
-      const inputInOtherAmount = nativeToUi(swapQuoteInput.otherAmountThreshold, bank.info.state.mintDecimals);
-
-      if (inputInOtherAmount > maxRepayAmount) {
-        const quoteParams = {
-          amount: uiToNative(maxRepayAmount, bank.info.state.mintDecimals).toNumber(),
-          inputMint: repayBank.info.state.mint.toBase58(), // USDC
-          outputMint: bank.info.state.mint.toBase58(), // JITO
-          slippageBps: slippageBps,
-          swapMode: "ExactOut",
-        } as QuoteGetRequest;
-
-        try {
-          const swapQuoteOutput = await getSwapQuoteWithRetry(quoteParams, 2);
-          if (!swapQuoteOutput) throw new Error();
-          return nativeToUi(swapQuoteOutput.otherAmountThreshold, repayBank.info.state.mintDecimals) * 1.01;
-        } catch (error) {
-          const bankAmountUsd = maxRepayAmount * bank.info.oraclePrice.priceRealtime.price.toNumber() * 0.9998;
-          const repayAmount = bankAmountUsd / repayBank.info.oraclePrice.priceRealtime.price.toNumber();
-          return repayAmount;
-        }
-      } else {
-        return amount;
-      }
-    } catch {
-      return 0;
-    }
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.TX_BUILD_FAILED);
   }
 }
 
@@ -238,18 +100,12 @@ export async function calculateMaxRepayableCollateral(
 ): Promise<{ amount: number; maxOverflowHit: boolean }> {
   // if the bank is not active, a bug is occurring.
   if (!depositBank.isActive || !borrowBank.isActive) {
-    console.error(
-      "An internal configuration issue has occurred: Bank is not active. Please create a support ticket for assistance."
-    );
-    return { amount: 0, maxOverflowHit: false };
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.BANK_NOT_ACTIVE_CHECK);
   }
 
   // if slippage mode is fixed and no slippage is provided, return 0
   if (slippageMode === "FIXED" && slippageBps === 0) {
-    console.error(
-      "An internal configuration issue has occurred: Slippage mode is fixed and no slippage is provided. Please create a support ticket for assistance."
-    );
-    return { amount: 0, maxOverflowHit: false };
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.SLIPPAGE_INVALID_CHECK);
   }
 
   let maxOverflowHit = false;
@@ -314,8 +170,7 @@ export async function calculateMaxRepayableCollateral(
       }
     }
 
-    // Default fallback value for other errors
-    return { amount: 0, maxOverflowHit: false };
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.MAX_AMOUNT_CALCULATION_FAILED);
   }
 }
 

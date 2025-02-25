@@ -70,7 +70,6 @@ export interface ActionTxns {
 
 export interface LoopActionTxns extends ActionTxns {
   actionQuote: QuoteResponse | null;
-  lastValidBlockHeight?: number;
   actualDepositAmount: number;
   borrowAmount: BigNumber;
 }
@@ -81,6 +80,7 @@ export interface TradeActionTxns extends LoopActionTxns {
 
 export interface ClosePositionActionTxns extends ActionTxns {
   actionQuote: QuoteResponse | null;
+  maxAmount: number;
   groupKey?: PublicKey;
   closeTransactions?: SolanaTransaction[];
 }
@@ -214,6 +214,16 @@ export type LstActionParams = {
   priorityFee?: number;
   theme?: "light" | "dark";
 };
+
+export class ActionProcessingError extends Error {
+  public readonly details: ActionMessageType;
+
+  constructor(details: ActionMessageType) {
+    super(details.description || "Action processing failed");
+    this.name = "ActionProcessingError";
+    this.details = details;
+  }
+}
 
 export class IndividualFlowError extends Error {
   public readonly actionTxns?: ActionTxns;

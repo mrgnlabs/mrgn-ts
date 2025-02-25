@@ -5,34 +5,14 @@ import { nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionMessageType, handleSimulationError, isWholePosition } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
-import { simulatedHealthFactor, simulatedPositionSize, simulatedCollateral } from "~/components/action-box-v2/utils";
-
-export interface ActionSummary {
-  actionPreview: ActionPreview;
-  simulationPreview: SimulatedActionPreview | null;
-}
-
-interface ActionPreview {
-  health: number;
-  liquidationPrice: number | null;
-  positionAmount: number;
-  poolSize: number;
-  bankCap: number;
-  priceImpactPct?: number;
-  slippageBps?: number;
-}
-
-export interface SimulatedActionPreview {
-  health: number;
-  liquidationPrice: number | null;
-  depositRate: number;
-  borrowRate: number;
-  positionAmount: number;
-  availableCollateral: {
-    ratio: number;
-    amount: number;
-  };
-}
+import {
+  simulatedHealthFactor,
+  simulatedPositionSize,
+  simulatedCollateral,
+  ActionSummary,
+  ActionPreview,
+  SimulatedActionPreview,
+} from "~/components/action-box-v2/utils";
 
 export interface CalculatePreviewProps {
   actionMode: ActionType;

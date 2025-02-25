@@ -1,19 +1,10 @@
-import {
-  ActionMessageType,
-  calculateLoopingParams,
-  CalculateLoopingProps,
-  LoopActionTxns,
-} from "@mrgnlabs/mrgn-utils";
+import { calculateLoopingParams, CalculateLoopingProps, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
 
-
-export async function calculateLooping(props: CalculateLoopingProps): Promise<LoopActionTxns | ActionMessageType> {
-
+export async function calculateLooping(props: CalculateLoopingProps): Promise<LoopActionTxns> {
   const params = {
     ...props,
     setupBankAddresses: [props.depositBank.address, props.borrowBank.address],
   };
 
-  const result = await calculateLoopingParams(params);
-
-  return result;
+  return await calculateLoopingParams(params);
 }

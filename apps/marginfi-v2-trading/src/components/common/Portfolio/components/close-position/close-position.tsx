@@ -8,7 +8,6 @@ import {
   ExecuteClosePositionAction,
   extractErrorString,
   capture,
-
 } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
@@ -23,7 +22,7 @@ import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 import { usePositionsData } from "~/hooks/usePositionsData";
 
 import { ClosePositionDialog } from "./components/close-position-dialog";
-import {  simulateClosePosition } from "./utils/close-position-utils";
+import { simulateClosePosition } from "./utils/close-position-utils";
 import { MultiStepToastController, toastManager } from "@mrgnlabs/mrgn-toasts";
 
 interface ClosePositionProps {
@@ -47,14 +46,12 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
   });
   const { connection } = useConnection();
   const { wallet } = useWallet();
-  const [platformFeeBps, broadcastType, priorityFees, jupiterOptions] = useUiStore(
-    (state) => [
-      state.platformFeeBps,
-      state.broadcastType,
-      state.priorityFees,
-      state.jupiterOptions,
-    ]
-  );
+  const [platformFeeBps, broadcastType, priorityFees, jupiterOptions] = useUiStore((state) => [
+    state.platformFeeBps,
+    state.broadcastType,
+    state.priorityFees,
+    state.jupiterOptions,
+  ]);
   const [refreshGroup] = useTradeStoreV2((state) => [state.refreshGroup]);
   const { positionSizeUsd, leverage } = useLeveragedPositionDetails({
     pool: arenaPool,
@@ -75,8 +72,9 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
       },
     ]);
     multiStepToast.start();
+    setIsLoading(true);
     try {
-      const { actionTxns, actionMessage } = await simulateClosePosition({
+      const { actionTxns } = await simulateClosePosition({
         marginfiAccount: wrappedAccount,
         depositBanks: depositBanks as ActiveBankInfo[],
         borrowBank: borrowBank as ActiveBankInfo | null,
@@ -84,16 +82,10 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
         connection: connection,
         platformFeeBps: platformFeeBps,
         tradeState: arenaPool.status,
-        setIsLoading,
       });
 
-      if (actionMessage || actionTxns === null) {
-        multiStepToast.setFailed(actionMessage?.description ?? "Error simulating transaction");
-        return;
-      }
-
       multiStepToast.successAndNext();
-      multiStepToast.pause(); 
+      multiStepToast.pause();
 
       setActionTxns(actionTxns);
       setIsOpen(true);
@@ -121,13 +113,12 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
         }, 2000);
         return () => clearTimeout(timeout);
       }
-  
+
       // Reset wasActionTaken when the dialog closes
       setWasActionTaken(false);
     }
-  
   };
-  
+
   ////////////////////////////
   // Close Position Actions //
   ////////////////////////////
@@ -135,9 +126,9 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
     if (!actionTxns || !client || !multiStepToast || !arenaPool) {
       return;
     }
-  
+
     setWasActionTaken(true); // Mark that an action was taken
-  
+
     const props: ExecuteClosePositionActionProps = {
       actionTxns,
       attemptUuid: uuidv4(),
@@ -154,7 +145,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
       processOpts: { ...priorityFees, broadcastType },
       txOpts: {},
     };
-  
+
     ExecuteClosePositionAction(props);
     setIsOpen(false);
   }, [actionTxns, client, multiStepToast, arenaPool, positionSizeUsd, priorityFees, broadcastType]);

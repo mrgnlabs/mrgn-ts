@@ -3,8 +3,8 @@ import React from "react";
 import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
+  ActionProcessingError,
   calculateMaxRepayableCollateral,
-  DYNAMIC_SIMULATION_ERRORS,
   extractErrorString,
   RepayActionTxns,
   STATIC_SIMULATION_ERRORS,
@@ -12,15 +12,15 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { SimulationStatus } from "../../../utils/simulation.utils";
+import { JupiterOptions } from "~/components/settings";
+import { SimulationStatus } from "~/components/action-box-v2/utils";
+
 import {
   calculateRepayTransactions,
   CalculateRepayTransactionsProps,
   calculateSummary,
   getRepaySimulationResult,
-  SimulateRepayActionProps,
 } from "../utils";
-import { JupiterOptions } from "~/components/settings";
 
 type RepaySimulationProps = {
   debouncedAmount: number;
@@ -55,7 +55,6 @@ export function useRepaySimulation({
   actionTxns,
 
   simulationResult,
-  isRefreshTxn, // TODO: implement
 
   platformFeeBps,
   jupiterOptions,
@@ -93,52 +92,17 @@ export function useRepaySimulation({
     callbacks.setSimulationResult(null);
     callbacks.setActionTxns({ transactions: [], actionQuote: null });
     console.error(
-      "Error simulating transaction",
+      "Error simulating transaction: ",
       typeof actionMessage === "string" ? extractErrorString(actionMessage) : actionMessage
     );
     callbacks.setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
   };
 
-  const simulationAction = async (props: SimulateRepayActionProps) => {
-    if (props.txns.length > 0) {
-      const simulationResult = await getRepaySimulationResult(props);
-
-      if (simulationResult.actionMethod) {
-        return { simulationResult: null, actionMessage: simulationResult.actionMethod };
-      } else if (simulationResult.simulationResult) {
-        return { simulationResult: simulationResult.simulationResult, actionMessage: null };
-      } else {
-        const errorMessage = DYNAMIC_SIMULATION_ERRORS.TRADE_FAILED_CHECK();
-        return { simulationResult: null, actionMessage: errorMessage };
-      }
-    } else {
-      throw new Error("account, bank or transactions are null");
-    }
-  };
-
   const fetchRepayActionTxns = async (props: CalculateRepayTransactionsProps) => {
-    try {
-      const repayActionTxns = await calculateRepayTransactions(props);
-      if (repayActionTxns && "repayCollatObject" in repayActionTxns) {
-        return {
-          actionTxns: { ...repayActionTxns, actionQuote: repayActionTxns?.repayCollatObject?.actionQuote },
-          actionMessage: null,
-        };
-      } else {
-        const errorMessage =
-          repayActionTxns ?? DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(props.selectedBank?.meta.tokenSymbol);
-        return {
-          actionTxns: null,
-          actionMessage: errorMessage,
-        };
-      }
-    } catch (error) {
-      console.error("Error fetching repay action txns", error);
-      return {
-        actionTxns: null,
-        actionMessage: STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED,
-      };
-    }
+    const repayActionTxns = await calculateRepayTransactions(props);
+    return {
+      actionTxns: { ...repayActionTxns, actionQuote: repayActionTxns.repayCollatObject.actionQuote },
+    };
   };
 
   const handleSimulation = React.useCallback(
@@ -179,48 +143,35 @@ export function useRepaySimulation({
 
         const repayActionTxns = await fetchRepayActionTxns(props);
 
-        if (repayActionTxns.actionMessage || repayActionTxns.actionTxns === null) {
-          handleError(repayActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
-            setErrorMessage,
-            setSimulationResult,
-            setActionTxns,
-            setIsLoading,
-          });
-          return;
-        }
+        setRepayAmount(repayActionTxns.actionTxns.amount);
 
-        if (repayActionTxns.actionTxns.amount) {
-          setRepayAmount(repayActionTxns.actionTxns.amount);
-        }
-
-        const simulationResult = await simulationAction({
-          txns: [...(repayActionTxns?.actionTxns?.repayCollatObject?.transactions ?? [])],
+        const simulationResult = await getRepaySimulationResult({
+          txns: [...repayActionTxns.actionTxns.repayCollatObject.transactions],
           account: selectedAccount,
           bank: selectedBank,
         });
 
-        if (simulationResult.actionMessage || simulationResult.simulationResult === null) {
-          handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
+        setSimulationResult(simulationResult);
+        setActionTxns(repayActionTxns.actionTxns.repayCollatObject);
+        setErrorMessage(null);
+      } catch (error) {
+        if (error instanceof ActionProcessingError) {
+          handleError(error.details, {
             setErrorMessage,
             setSimulationResult,
             setActionTxns,
             setIsLoading,
           });
-          return;
-        } else if (simulationResult.simulationResult) {
-          setSimulationResult(simulationResult.simulationResult);
-          setActionTxns(repayActionTxns.actionTxns.repayCollatObject);
         } else {
-          throw new Error("Unknown error");
+          // TODO: ADD SENTRY LOG
+          console.error("Error simulating repay action", error);
+          handleError(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
         }
-      } catch (error) {
-        console.error("Error fetching repay action txns", error);
-        handleError(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
-          setErrorMessage,
-          setSimulationResult,
-          setActionTxns,
-          setIsLoading,
-        });
       } finally {
         setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
@@ -241,16 +192,10 @@ export function useRepaySimulation({
   );
 
   React.useEffect(() => {
-    if (debouncedAmount > 0) {
-      if (prevDebouncedAmount !== debouncedAmount) {
-        handleSimulation(debouncedAmount);
-      }
-
-      if (isRefreshTxn) {
-        handleSimulation(debouncedAmount);
-      }
+    if (debouncedAmount > 0 && prevDebouncedAmount !== debouncedAmount) {
+      handleSimulation(debouncedAmount);
     }
-  }, [debouncedAmount, handleSimulation, prevDebouncedAmount, isRefreshTxn]);
+  }, [debouncedAmount, handleSimulation, prevDebouncedAmount]);
 
   const refreshSimulation = React.useCallback(async () => {
     if (debouncedAmount > 0) {
@@ -276,13 +221,6 @@ export function useRepaySimulation({
   const actionSummary = React.useMemo(() => {
     return handleActionSummary(accountSummary, simulationResult ?? undefined);
   }, [accountSummary, simulationResult, handleActionSummary]);
-
-  // React.useEffect(() => {
-  //   if (isRefreshTxn) {
-  //     setActionTxns({ actionTxn: null, additionalTxns: [], actionQuote: null });
-  //     setSimulationResult(null);
-  //   }
-  // }, [isRefreshTxn, setActionTxns, setSimulationResult]);
 
   ////////////////////////////////
   // Fetch max repayable collat //

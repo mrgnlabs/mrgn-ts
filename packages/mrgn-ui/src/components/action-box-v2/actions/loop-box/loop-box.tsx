@@ -15,11 +15,11 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 import {
   ActionMessageType,
   checkLoopActionAvailable,
-  cn,
   usePrevious,
   ExecuteLoopActionProps,
   ExecuteLoopAction,
 } from "@mrgnlabs/mrgn-utils";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 import { WalletContextStateOverride } from "~/components/wallet-v2";
@@ -30,20 +30,17 @@ import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2
 import { ActionMessage } from "~/components";
 
 import { SimulationStatus } from "../../utils/simulation.utils";
+import { ActionSimulationStatus } from "../../components";
+import { useActionContext } from "../../contexts";
+
 import { ActionInput, Preview } from "./components";
 import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
 import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
-import { ActionSimulationStatus } from "../../components";
-import { useActionContext } from "../../contexts";
-import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
-import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
-// error handling
 export type LoopBoxProps = {
   nativeSolBalance: number;
-  // tokenAccountMap: TokenAccountMap;
   walletContextState?: WalletContextStateOverride | WalletContextState;
   connected: boolean;
 
@@ -53,7 +50,6 @@ export type LoopBoxProps = {
   requestedBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
   allBanks?: ExtendedBankInfo[];
-
   isDialog?: boolean;
 
   onComplete?: () => void;
@@ -135,11 +131,6 @@ export const LoopBox = ({
     status: SimulationStatus.IDLE,
   });
 
-  const { isRefreshTxn, blockProgress } = usePollBlockHeight(
-    marginfiClient?.provider.connection,
-    actionTxns.lastValidBlockHeight
-  );
-
   React.useEffect(() => {
     return () => {
       refreshState();
@@ -184,7 +175,6 @@ export const LoopBox = ({
     selectedSecondaryBank,
     actionTxns,
     simulationResult,
-    isRefreshTxn,
     jupiterOptions,
     setMaxLeverage,
     setSimulationResult,
@@ -305,7 +295,7 @@ export const LoopBox = ({
 
   return (
     <ActionBoxContentWrapper>
-      {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
+      {/* {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
         <div className="absolute top-0 right-4 z-50">
           <TooltipProvider>
             <Tooltip>
@@ -327,7 +317,7 @@ export const LoopBox = ({
             </Tooltip>
           </TooltipProvider>
         </div>
-      )}
+      )} */}
       <div className="mb-6">
         <ActionInput
           banks={banks}

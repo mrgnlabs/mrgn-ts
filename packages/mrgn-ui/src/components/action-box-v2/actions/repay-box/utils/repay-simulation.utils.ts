@@ -1,8 +1,9 @@
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import { QuoteResponse } from "@jup-ag/api";
 
-import { ExtendedBankInfo, AccountSummary, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
-import { ActionMessageType, ActionTxns, handleSimulationError } from "@mrgnlabs/mrgn-utils";
+import { ActionProcessingError, ActionTxns, handleSimulationError } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import {
@@ -11,7 +12,6 @@ import {
   calculateSimulatedActionPreview,
   ActionPreview,
 } from "~/components/action-box-v2/utils";
-import { QuoteResponse } from "@jup-ag/api";
 
 export interface CalculatePreviewProps {
   simulationResult?: SimulationResult;
@@ -49,17 +49,17 @@ export function calculateSummary({
 }
 
 export const getRepaySimulationResult = async (props: SimulateRepayActionProps) => {
-  let actionMethod: ActionMessageType | undefined = undefined;
-  let simulationResult: SimulationResult | null = null;
-
   try {
-    simulationResult = await simulateFlashLoan(props);
+    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address]);
   } catch (error: any) {
     const actionString = "Repaying Collateral";
-    actionMethod = handleSimulationError(error, props.bank, false, actionString);
+    const actionMethod = handleSimulationError(error, props.bank, false, actionString);
+    if (actionMethod) {
+      throw new ActionProcessingError(actionMethod);
+    } else {
+      throw error;
+    }
   }
-
-  return { simulationResult, actionMethod };
 };
 
 function calculateActionPreview(
@@ -83,24 +83,13 @@ function calculateActionPreview(
   const priceImpactPct = actionQuote?.priceImpactPct;
   const slippageBps = actionQuote?.slippageBps;
 
-  return {
+  const actionPreview: ActionPreview = {
     positionAmount,
     health,
     liquidationPrice,
     bankCap,
-    priceImpactPct,
+    priceImpactPct: priceImpactPct ? Number(priceImpactPct) : undefined,
     slippageBps,
-  } as ActionPreview;
-}
-
-async function simulateFlashLoan({ account, bank, txns }: SimulateRepayActionProps) {
-  let simulationResult: SimulationResult;
-
-  if (txns.length > 0) {
-    simulationResult = await account.simulateBorrowLendTransaction(txns, [bank.address]);
-    return simulationResult;
-  } else {
-    console.error("Failed to simulate flashloan");
-    throw new Error("Failed to simulate flashloan");
-  }
+  };
+  return actionPreview;
 }
