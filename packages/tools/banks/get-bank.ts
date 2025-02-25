@@ -87,6 +87,7 @@ async function main() {
 
   const bankData = {
     Address: bankPubkey.toString(),
+    Group: acc.group.toString(),
     Mint: acc.mint.toString(),
     Symbol: bankMeta?.tokenSymbol,
     Decimals: acc.mintDecimals,
