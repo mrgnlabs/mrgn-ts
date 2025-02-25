@@ -20,6 +20,25 @@ export const faq = defineType({
         'In this guide, we will answer commonly asked questions regarding the marginfi protocol.',
     }),
     defineField({
+      name: 'metadata',
+      title: 'Metadata',
+      type: 'object',
+      fields: [
+        {
+          name: 'title',
+          title: 'Meta Title',
+          type: 'string',
+          validation: (Rule: any) => Rule.required(),
+        },
+        {
+          name: 'description',
+          title: 'Meta Description',
+          type: 'text',
+          validation: (Rule: any) => Rule.required(),
+        },
+      ],
+    }),
+    defineField({
       name: 'questions',
       title: 'FAQ Items',
       type: 'array',

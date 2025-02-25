@@ -1,24 +1,20 @@
 // app/faq/page.tsx (App Router example)
 import { client } from '@/sanity/lib/client'
+import { getFaqQuery } from '@/sanity/queries'
 import { PortableTextFaq } from '~/components/faq/PortableTextFaq'
 import { Prose } from '~/components/Prose'
 import { Note } from '~/components/mdx'
 import { Button } from '~/components/Button'
+import { createMetadata } from '~/components/doc/Metadata'
+import { Metadata } from 'next'
 
 async function getFaqData() {
-  return client.fetch(/* groq */ `
-    *[_type == "faq"][0]{
-      title,
-      description,
-      questions[]{
-        _key,
-        question,
-        answer,
-        tag,
-        label
-      }
-    }
-  `)
+  return client.fetch(getFaqQuery)
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getFaqData()
+  return createMetadata(page)
 }
 
 export default async function FaqPage() {
