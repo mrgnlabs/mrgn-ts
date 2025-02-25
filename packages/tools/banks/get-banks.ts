@@ -2,21 +2,15 @@ import dotenv from "dotenv";
 import { PublicKey } from "@solana/web3.js";
 import { getDefaultYargsOptions, getMarginfiProgram } from "../lib/config";
 import { Environment } from "../lib/types";
+import { getBankMetadata } from "../lib/utils";
 
 dotenv.config();
-
-type BankMetadata = {
-  bankAddress: string;
-  tokenSymbol: string;
-};
 
 async function main() {
   const argv = getDefaultYargsOptions().parseSync();
   const program = getMarginfiProgram(argv.env as Environment);
 
-  const bankMetadataResponse = await fetch("https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache.json");
-  const bankMetadata = (await bankMetadataResponse.json()) as BankMetadata[];
-
+  const bankMetadata = await getBankMetadata();
   const bankAddresses = bankMetadata.map((meta) => new PublicKey(meta.bankAddress));
 
   const banks = await program.account.bank.fetchMultiple(bankAddresses);

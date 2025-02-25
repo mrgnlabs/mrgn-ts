@@ -56,3 +56,19 @@ export function getPythPushOracleAddresses(feedId: Buffer): PublicKey[] {
     findPythPushOracleAddress(feedId, PYTH_PUSH_ORACLE_ID, MARGINFI_SPONSORED_SHARD_ID),
   ];
 }
+
+export async function getBankMetadata(): Promise<BankMetadata[]> {
+  const bankMetadataResponse = await fetch("https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache.json");
+  const stakedBankMetadataResponse = await fetch(
+    "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json"
+  );
+  const bankMetadata = (await bankMetadataResponse.json()) as BankMetadata[];
+  const stakedBankMetadata = (await stakedBankMetadataResponse.json()) as BankMetadata[];
+
+  return [...bankMetadata, ...stakedBankMetadata];
+}
+
+export type BankMetadata = {
+  bankAddress: string;
+  tokenSymbol: string;
+};
