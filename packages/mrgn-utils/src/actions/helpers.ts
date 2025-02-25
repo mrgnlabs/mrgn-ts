@@ -4,7 +4,6 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "../wallet";
-import { REFERRAL_ACCOUNT_PUBKEY, REFERRAL_PROGRAM_ID } from "../jup-referral.utils";
 import { WalletToken } from "@mrgnlabs/mrgn-common";
 import { ActionProcessingError } from "./types";
 import { STATIC_SIMULATION_ERRORS } from "../errors";
