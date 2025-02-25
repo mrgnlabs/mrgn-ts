@@ -596,10 +596,7 @@ export const handleError = (
         return STATIC_SIMULATION_ERRORS.STALE_TRADING_OR_HEALTH;
       }
 
-      if (
-        isArena &&
-        (checkErrorCodeMatch(error.message, 6028) || error.message?.toLowerCase().includes("utilization ratio"))
-      ) {
+      if (checkErrorCodeMatch(error.message, 6028) || error.message?.toLowerCase().includes("utilization ratio")) {
         return STATIC_SIMULATION_ERRORS.UTILIZATION_RATIO_INVALID;
       }
 
