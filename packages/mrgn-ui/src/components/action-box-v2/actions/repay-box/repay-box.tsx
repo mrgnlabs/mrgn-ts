@@ -130,8 +130,6 @@ export const RepayBox = ({
     status: SimulationStatus.IDLE,
   });
 
-  const isLoading = React.useMemo(() => simulationStatus.isLoading, [simulationStatus.isLoading]);
-
   const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
     transactionSettings: null,
     priorityFees: null,
@@ -362,7 +360,7 @@ export const RepayBox = ({
 
       <div className="mb-3">
         <ActionButton
-          isLoading={isLoading}
+          isLoading={simulationStatus.isLoading}
           isEnabled={
             !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
           }
@@ -383,7 +381,7 @@ export const RepayBox = ({
         {setDisplaySettings && <ActionSettingsButton onClick={() => setDisplaySettings(true)} />}
       </div>
 
-      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />
+      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={simulationStatus.isLoading} />
     </ActionBoxContentWrapper>
   );
 };

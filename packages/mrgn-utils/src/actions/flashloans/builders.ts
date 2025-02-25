@@ -126,7 +126,9 @@ export async function calculateBorrowLendPositionParams({
   let firstQuote;
   const maxAccountsArr = [40, 30];
 
-  if (!closePostionProps.borrowBank.isActive) throw new Error("not active");
+  if (!closePostionProps.borrowBank.isActive)
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.BANK_NOT_ACTIVE_CHECK);
+
   const { amount: maxAmount, maxOverflowHit } = await calculateMaxRepayableCollateral(
     closePostionProps.borrowBank,
     closePostionProps.depositBank,
