@@ -1,8 +1,5 @@
 import React from "react";
 
-import { IconStarFilled } from "@tabler/icons-react";
-
-import { IconBackpackWallet } from "~/components/ui/icons";
 import { OnrampScreenProps, socialProviders } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import { useAvailableWallets } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -72,10 +69,6 @@ export const CreateSolanaAccount: React.FC<props> = ({
           />
         </ul>
       )}
-      <div className="flex items-center gap-1 justify-center text-sm">
-        <IconStarFilled className="text-yellow-400" size={16} /> 5% points boost for <IconBackpackWallet size={16} />{" "}
-        <strong className="text-white font-medium">Backpack</strong> users
-      </div>
     </ScreenWrapper>
   );
 };
