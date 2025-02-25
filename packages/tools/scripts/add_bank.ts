@@ -29,8 +29,8 @@ type Config = {
 };
 
 const config: Config = {
-  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
+  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+  GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
   ORACLE: new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"),
   SOL_ORACLE_FEED: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
   ADMIN: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
@@ -66,6 +66,7 @@ async function main() {
   const feeState = await program.account.feeState.fetch(feeStateKey);
   const feeWalletBefore = await provider.connection.getAccountInfo(feeState.globalFeeWallet);
   if (verbose) {
+    console.log("fee wallet: " + feeState.globalFeeWallet);
     console.log("flat sol init fee: " + feeState.bankInitFlatSolFee);
     console.log("fee wallet lamports before: " + feeWalletBefore.lamports);
   }
@@ -88,29 +89,21 @@ async function main() {
     assetWeightMaint: I80F48_ONE,
     liabilityWeightInit: I80F48_ONE,
     liabilityWeightMaint: I80F48_ONE,
-    depositLimit: new BN(1_000_000_000),
+    depositLimit: new BN(1000000000),
     interestRateConfig: rate,
     operationalState: {
       operational: undefined,
     },
-    oracleSetup: {
-      pythPushOracle: undefined,
-    },
-    oracleKey: config.ORACLE,
-    borrowLimit: new BN(1_000_000_000),
+    borrowLimit: new BN(1000000000),
     riskTier: {
       collateral: undefined,
     },
-    totalAssetValueInitLimit: new BN(100_000_000_000),
+    totalAssetValueInitLimit: new BN(100000000000),
     oracleMaxAge: 100,
+    assetTag: 0,
+    permissionlessBadDebtSettlement: false,
+    freezeSettings: false,
   };
-
-  const oracleMeta: AccountMeta = {
-    pubkey: config.SOL_ORACLE_FEED,
-    isSigner: false,
-    isWritable: false,
-  };
-  console.log("oracle: " + bankConfig.oracleKey);
 
   // Note: the BN used by `BankConfigCompactRaw` is different from the kind used in the anchor
   // version here which requires this stupid hack where the BN is re-declared (or just TS-ignore it)
@@ -124,8 +117,6 @@ async function main() {
         depositLimit: new BN(bankConfig.depositLimit.toString()),
         interestRateConfig: bankConfig.interestRateConfig,
         operationalState: bankConfig.operationalState,
-        oracleSetup: bankConfig.oracleSetup,
-        oracleKey: bankConfig.oracleKey,
         borrowLimit: new BN(bankConfig.borrowLimit.toString()),
         riskTier: bankConfig.riskTier,
         assetTag: 1, // ASSET TAG SOL
@@ -153,8 +144,9 @@ async function main() {
       tokenProgram: TOKEN_PROGRAM_ID,
       // systemProgram: SystemProgram.programId,
     })
-    .remainingAccounts([oracleMeta])
     .instruction();
+
+  // TODO configure oracle here...
 
   transaction.add(ix);
 
