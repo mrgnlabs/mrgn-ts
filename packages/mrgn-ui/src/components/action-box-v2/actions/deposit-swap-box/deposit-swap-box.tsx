@@ -8,34 +8,31 @@ import {
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
   checkDepositSwapActionAvailable,
   usePrevious,
-  ExecuteDepositSwapActionProps,
   ExecuteDepositSwapAction,
 } from "@mrgnlabs/mrgn-utils";
+import { dynamicNumeralFormatter, nativeToUi, WalletToken } from "@mrgnlabs/mrgn-common";
 
 import {
   ActionBoxContentWrapper,
   ActionButton,
   ActionCollateralProgressBar,
   ActionSettingsButton,
+  ActionSimulationStatus,
 } from "~/components/action-box-v2/components";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
-import { ActionMessage } from "~/components";
+import { SimulationStatus } from "~/components/action-box-v2/utils";
+import { useActionContext, HidePoolStats } from "~/components/action-box-v2/contexts";
+import { ActionMessage } from "~/components/action-message";
 
-import { ActionSimulationStatus } from "../../components";
-import { SimulationStatus } from "../../utils";
 import { useDepositSwapActionAmounts, useDepositSwapSimulation } from "./hooks";
-import { useActionContext, HidePoolStats } from "../../contexts";
-
 import { getBankByPk, getBankOrWalletTokenByPk } from "./utils";
 import { useDepositSwapBoxStore } from "./store";
 import { ActionInput, Preview } from "./components";
-import { dynamicNumeralFormatter, nativeToUi, WalletToken } from "@mrgnlabs/mrgn-common";
 
 export type DepositSwapBoxProps = {
   nativeSolBalance: number;
