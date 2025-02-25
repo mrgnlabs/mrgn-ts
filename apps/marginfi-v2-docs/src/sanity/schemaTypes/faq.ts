@@ -34,24 +34,83 @@ export const faq = defineType({
             },
           },
           fields: [
-            { name: 'question', title: 'Question', type: 'string' },
+            { 
+              name: 'question', 
+              title: 'Question', 
+              type: 'string',
+              validation: (Rule: any) => Rule.required(),
+            },
             {
               name: 'answer',
               title: 'Answer',
               type: 'array',
-              of: [{ type: 'block' }],
+              of: [
+                {
+                  type: 'block',
+                  // Add styles and marks for rich text formatting
+                  styles: [
+                    {title: 'Normal', value: 'normal'},
+                    {title: 'Lead', value: 'lead'},
+                  ],
+                  marks: {
+                    decorators: [
+                      {title: 'Strong', value: 'strong'},
+                      {title: 'Emphasis', value: 'em'},
+                      {title: 'Code', value: 'code'},
+                    ],
+                    annotations: [
+                      {
+                        name: 'link',
+                        type: 'object',
+                        title: 'Link',
+                        fields: [
+                          {
+                            name: 'href',
+                            type: 'url',
+                            title: 'URL',
+                            validation: (Rule: any) => Rule.required(),
+                          },
+                          {
+                            name: 'variant',
+                            type: 'string',
+                            initialValue: 'text',
+                            options: {
+                              list: [
+                                {title: 'Text', value: 'text'},
+                                {title: 'Primary', value: 'primary'},
+                                {title: 'Secondary', value: 'secondary'},
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                },
+              ],
+              validation: (Rule: any) => Rule.required(),
             },
-            { name: 'tag', title: 'Tag', type: 'string' },
-            { name: 'label', title: 'Label', type: 'string' },
+            { 
+              name: 'tag', 
+              title: 'Tag', 
+              type: 'string',
+              description: 'Optional tag for categorizing questions',
+            },
+            { 
+              name: 'label', 
+              title: 'Label', 
+              type: 'string',
+              description: 'Optional label for additional context',
+            },
           ],
         },
       ],
     }),
   ],
-  // Optional: If you want the doc list to show "FAQs" or whatever is in the `title` field
-  // preview: {
-  //   select: {
-  //     title: 'title',
-  //   },
-  // },
+  preview: {
+    select: {
+      title: 'title',
+      subtitle: 'description',
+    },
+  },
 })

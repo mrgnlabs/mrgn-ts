@@ -15,3 +15,5 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     faq,
   ],
 }
+
+export const schemaTypes = [faq]
