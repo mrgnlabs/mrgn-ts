@@ -21,6 +21,7 @@ TODO list of common banks and groups...
 ## STAKED SETTINGS
 
 - Staging FCP group - 8JKoTPju2r34qxmc46z8M8coY9H6YgBU1khupkMCJiAc
+- Staging Global fee wallet (ie phantom) - H4QMTHMVbJ3KrB5bz573cBBZKoYSZ2B4mSST1JKzPUrH
 
 ## MAIN GROUP BANKS
 
