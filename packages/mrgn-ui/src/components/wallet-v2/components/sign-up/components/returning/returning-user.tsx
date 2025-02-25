@@ -1,8 +1,5 @@
 import React from "react";
 
-import { IconStarFilled } from "@tabler/icons-react";
-
-import { cn } from "@mrgnlabs/mrgn-utils";
 import { useOs } from "@mrgnlabs/mrgn-utils";
 import { useBrowser } from "@mrgnlabs/mrgn-utils";
 import { getWalletConnectionMethod } from "~/components/wallet-v2/utils/wallet.utils";
@@ -17,7 +14,6 @@ import {
 } from "~/components/wallet-v2/components/sign-up/components";
 import { ExtendedWallet, useAvailableWallets } from "@mrgnlabs/mrgn-utils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
-import { IconBackpackWallet } from "~/components/ui/icons";
 
 interface props extends AuthScreenProps {}
 
@@ -131,13 +127,6 @@ export const ReturningUser = ({
                   onClick={(wallet) => onSelectWallet(wallet)}
                 />
               </ul>
-            )}
-
-            {process.env.NEXT_PUBLIC_APP_ID && process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui" && (
-              <div className="flex items-center gap-1 justify-center text-sm">
-                <IconStarFilled className="text-yellow-400" size={16} /> 5% points boost for{" "}
-                <IconBackpackWallet size={16} /> <strong className="text-white font-medium">Backpack</strong> users
-              </div>
             )}
           </AccordionContent>
         </AccordionItem>

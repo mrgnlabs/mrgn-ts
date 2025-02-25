@@ -5,31 +5,14 @@ import { IconInfoCircleFilled } from "@tabler/icons-react";
 
 import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { IconBackpackWallet } from "~/components/ui/icons";
 
 interface PointsOverviewProps {
   userPointsData: UserPointsData;
 }
 
 export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
-  const { wallet } = useWallet();
-  const [isReferralCopied, setIsReferralCopied] = React.useState(false);
-  const [lastUsedWallet, setLastUsedWallet] = React.useState<string>("");
-
-  React.useEffect(() => {
-    if (!wallet) return;
-    const getLastUsedWallet = async (wallet: string) => {
-      const response = await fetch(`/api/user/wallet-pref?wallet=${wallet}`);
-      const data = await response.json();
-      if (data.wallet) setLastUsedWallet(data.wallet);
-    };
-
-    getLastUsedWallet(wallet.publicKey.toBase58());
-  }, [wallet]);
-
   return (
     <>
       <div className="max-w-[800px] w-full mx-auto mt-4">
@@ -63,15 +46,6 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
             <h3 className="text-white font-[500] text-2xl md:text-3xl mt-1.5">
               {userPointsData && numeralFormatter(userPointsData.totalPoints)}
             </h3>
-            {lastUsedWallet === "Backpack" && (
-              <p className="flex flex-col md:flex-row items-start md:items-center gap-1 rounded-lg w-full max-w-fit text-xs mt-3 text-white">
-                <div className="flex items-center gap-1">
-                  <IconBackpackWallet size={16} />
-                  <strong className="font-medium text-white">Backpack</strong>
-                </div>{" "}
-                5% points boost active
-              </p>
-            )}
           </div>
           <div className="bg-background-gray rounded-lg py-3.5 px-4">
             <h2 className="text-base flex gap-1.5 text-muted-foreground/80">
