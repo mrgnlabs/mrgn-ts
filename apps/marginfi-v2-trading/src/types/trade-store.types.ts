@@ -1,6 +1,5 @@
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { PublicKey } from "@solana/web3.js";
-import { TokenData } from "~/types";
 
 export type ArenaBank = ExtendedBankInfo & {
   tokenData?: {
@@ -20,6 +19,20 @@ type ArenaPoolPositionBank = {
   currentUsdAmount: number;
   pnl: number;
   interest: number;
+};
+
+export type ArenaPoolPnl = {
+  groupPk: PublicKey;
+  realizedPnl: number;
+  unrealizedPnl: number;
+  totalPnl: number;
+  currentPosition: number;
+  markPrice: number;
+  quotePriceUsd: number;
+  entryPrices: number[] | null;
+  realizedPnlUsd: number;
+  unrealizedPnlUsd: number;
+  totalPnlUsd: number;
 };
 
 export type ArenaPoolPositions = {
@@ -103,4 +116,31 @@ export type PositionData = {
   entryPrice: number;
   currentPositionValue: number;
   pnl: number;
+};
+
+export enum LendingModes {
+  LEND = "lend",
+  BORROW = "borrow",
+}
+
+export enum PoolTypes {
+  ALL = "all",
+  ISOLATED = "isolated",
+  STABLE = "stable",
+  LST = "lst",
+}
+
+export type TokenData = {
+  address: string;
+  name: string;
+  symbol: string;
+  imageUrl: string;
+  decimals: number;
+  price: number;
+  priceChange24h: number;
+  volume24h: number;
+  volumeChange24h: number;
+  volume4h: number;
+  volumeChange4h: number;
+  marketcap: number;
 };

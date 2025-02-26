@@ -59,16 +59,6 @@ export type PoolListApiResponse = {
  * Returns an array of PoolListApiResponse objects containing information about marginfi pools
  */
 
-type PoolPositionsBank = {
-  address: string;
-  start_amount: number;
-  start_usd_amount: number;
-  current_amount: number;
-  current_usd_amount: number;
-  pnl: number;
-  interest: number;
-};
-
 export type PoolPositionsApiResponse = {
   group: string;
   authority: string;
@@ -133,4 +123,38 @@ export interface OraclePriceString {
 
 export type OraclePriceV2ApiResponse = {
   [key: string]: OraclePriceString;
+};
+
+/**
+ * Type definitions for the /api/pool/pnl endpoint
+ */
+export type PoolPnlMapApiResponse = {
+  pools: {
+    [key: string]: {
+      realized_pnl: number;
+      unrealized_pnl: number;
+      total_pnl: number;
+      current_position: number;
+      mark_price: number;
+      quote_price_usd: number;
+      entry_prices: number[] | null;
+      realized_pnl_usd: number;
+      unrealized_pnl_usd: number;
+      total_pnl_usd: number;
+    };
+  };
+};
+
+export type PoolPnlApiResponse = {
+  group: string;
+  realized_pnl: number;
+  unrealized_pnl: number;
+  total_pnl: number;
+  current_position: number;
+  mark_price: number;
+  quote_price_usd: number;
+  entry_prices: number[] | null;
+  realized_pnl_usd: number;
+  unrealized_pnl_usd: number;
+  total_pnl_usd: number;
 };
