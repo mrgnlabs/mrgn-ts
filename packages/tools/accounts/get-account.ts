@@ -53,12 +53,10 @@ async function main() {
     totalLiabilities += Number(liabAmount);
 
     const bankMeta = bankMetadata.find((meta) => meta.bankAddress === balances[i].bankPk.toString());
-    
+
     // Convert timestamp to readable date
     const timestamp = Number(balances[i].lastUpdate.toString());
-    const readableDate = new Date(timestamp * 1000).toLocaleString('en-US', {
-      timeZone: 'EST'
-    });
+    const readableDate = new Date(timestamp * 1000).toLocaleString("en-US");
 
     activeBalances.push({
       "Bank PK": balances[i].bankPk.toString(),
