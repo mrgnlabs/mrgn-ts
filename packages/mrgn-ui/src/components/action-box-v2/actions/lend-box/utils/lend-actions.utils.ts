@@ -1,4 +1,6 @@
 import { Keypair, PublicKey } from "@solana/web3.js";
+import { BN } from "@coral-xyz/anchor";
+import BigNumber from "bignumber.js";
 
 import {
   BalanceRaw,
@@ -9,16 +11,7 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { bigNumberToWrappedI80F48, SolanaTransaction } from "@mrgnlabs/mrgn-common";
-import {
-  ActionMessageType,
-  ActionProcessingError,
-  ActionTxns,
-  isWholePosition,
-  STATIC_SIMULATION_ERRORS,
-} from "@mrgnlabs/mrgn-utils";
-
-import { BN } from "@coral-xyz/anchor";
-import BigNumber from "bignumber.js";
+import { ActionProcessingError, isWholePosition, STATIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
 
 export async function generateActionTxns(props: {
   marginfiAccount: MarginfiAccountWrapper | null;

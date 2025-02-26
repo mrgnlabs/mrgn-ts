@@ -94,7 +94,7 @@ export const PositionActionButtons = ({
   return (
     <ActionBoxProvider
       nativeSolBalance={nativeSolBalance}
-      banks={borrowBank ? [borrowBank, depositBanks[0]] : [depositBanks[0]]}
+      banks={[arenaPool.quoteBank, arenaPool.tokenBank]}
       marginfiClient={client}
       selectedAccount={selectedAccount}
       connected={connected}
@@ -109,12 +109,12 @@ export const PositionActionButtons = ({
           depositSwapProps={{
             connected: connected,
             requestedDepositBank: depositBanks[0],
-            requestedSwapBank: arenaPool.status === GroupStatus.LONG ? borrowBank ?? undefined : undefined,
+            requestedSwapBank: arenaPool.status === GroupStatus.LONG ? (borrowBank ?? undefined) : undefined,
             showAvailableCollateral: false,
             walletTokens: null,
             captureEvent: () => {
               capture("position_add_btn_click", {
-                group: arenaPool.groupPk?.toBase58(),
+                group: arenaPool.groupPk.toBase58(),
                 token: arenaPool.tokenBank.meta.tokenSymbol,
               });
             },

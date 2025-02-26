@@ -1,7 +1,7 @@
 import React from "react";
 
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { computeBankRate, LendingModes, LendSelectionGroups } from "@mrgnlabs/mrgn-utils";
 
 import { SelectedBankItem, BankListWrapper } from "~/components/action-box-v2/components";
 
@@ -14,7 +14,7 @@ type BankSelectProps = {
   lendMode: ActionType;
   connected: boolean;
   isSelectable?: boolean;
-  showTokenSelectionGroups?: boolean;
+  selectionGroups?: LendSelectionGroups[];
   setSelectedBank: (selectedBank: ExtendedBankInfo | null) => void;
   isInitialOpen?: boolean;
   onCloseDialog?: () => void;
@@ -27,7 +27,7 @@ export const BankSelect = ({
   lendMode,
   connected,
   isSelectable = true,
-  showTokenSelectionGroups,
+  selectionGroups,
   setSelectedBank,
   isInitialOpen = false,
   onCloseDialog,
@@ -75,11 +75,11 @@ export const BankSelect = ({
               }}
               selectedBank={selectedBank}
               onSetSelectedBank={setSelectedBank}
-              lendMode={lendMode}
+              actionType={lendMode}
               banks={banks}
               nativeSolBalance={nativeSolBalance}
               connected={connected}
-              showTokenSelectionGroups={showTokenSelectionGroups}
+              selectionGroups={selectionGroups}
             />
           }
         />

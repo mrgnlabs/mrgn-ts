@@ -1,5 +1,14 @@
 import { QuoteResponse } from "@jup-ag/api";
 
+export enum LendSelectionGroups {
+  WALLET,
+  SUPPLYING,
+  BORROWING,
+  GLOBAL,
+  ISOLATED,
+  STAKED,
+}
+
 export enum LendingModes {
   LEND = "lend",
   BORROW = "borrow",

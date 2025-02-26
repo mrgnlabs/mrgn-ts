@@ -1,13 +1,12 @@
 import React from "react";
+import { IconMinus, IconPlus } from "@tabler/icons-react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { IconMinus, IconPlus } from "@tabler/icons-react";
-import { cn, capture } from "@mrgnlabs/mrgn-utils";
+import { cn, capture, LendSelectionGroups } from "@mrgnlabs/mrgn-utils";
 
 import { useConnection } from "~/hooks/use-connection";
 import { useWallet } from "~/components/wallet-v2";
 import { useTradeStoreV2, useUiStore } from "~/store";
-
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
@@ -34,7 +33,7 @@ export const LpActionButtons = ({ size = "sm", activePool }: LpActionButtonsProp
   });
 
   const lendingBank = React.useMemo(() => {
-    if (activePool?.tokenBank.isActive && activePool.tokenBank.position.isLending) {
+    if (activePool.tokenBank.isActive && activePool.tokenBank.position.isLending) {
       return activePool.tokenBank;
     }
     if (activePool.quoteBank.isActive && activePool.quoteBank.position.isLending) {
@@ -42,7 +41,11 @@ export const LpActionButtons = ({ size = "sm", activePool }: LpActionButtonsProp
     }
 
     return null;
-  }, [activePool?.tokenBank, activePool?.quoteBank]);
+  }, [activePool.tokenBank, activePool.quoteBank]);
+
+  if (!lendingBank) {
+    return <></>;
+  }
 
   return (
     <ActionBoxProvider
@@ -63,9 +66,9 @@ export const LpActionButtons = ({ size = "sm", activePool }: LpActionButtonsProp
             connected: connected,
             requestedLendType: ActionType.Deposit,
             showTokenSelection: true,
-            requestedBank: activePool.tokenBank,
-            showAvailableCollateral: false,
-            showTokenSelectionGroups: false,
+            requestedBank: lendingBank,
+            showAvailableCollateral: true,
+            selectionGroups: [LendSelectionGroups.WALLET, LendSelectionGroups.GLOBAL],
             captureEvent: () => {
               capture("position_add_btn_click", {
                 group: activePool.groupPk.toBase58(),
@@ -102,52 +105,50 @@ export const LpActionButtons = ({ size = "sm", activePool }: LpActionButtonsProp
           }}
         />
 
-        {lendingBank && (
-          <ActionBox.Lend
-            isDialog={true}
-            useProvider={true}
-            lendProps={{
-              connected: connected,
-              requestedLendType: ActionType.Withdraw,
-              showTokenSelection: true,
-              requestedBank: lendingBank,
-              showTokenSelectionGroups: false,
-              captureEvent: () => {
-                capture("position_withdraw_btn_click", {
-                  group: activePool.groupPk.toBase58(),
-                  token: lendingBank.meta.tokenSymbol,
-                });
-              },
-              onComplete: () => {
-                refreshGroup({
-                  groupPk: activePool.groupPk,
-                  banks: [activePool.tokenBank.address, activePool.quoteBank.address],
-                  connection,
-                  wallet,
-                });
-              },
-            }}
-            dialogProps={{
-              trigger: (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1 min-w-16"
-                  onClick={() => {
-                    capture("position_withdraw_btn_click", {
-                      group: activePool.groupPk.toBase58(),
-                      token: lendingBank.meta.tokenSymbol,
-                    });
-                  }}
-                >
-                  <IconMinus size={14} />
-                  Withdraw
-                </Button>
-              ),
-              title: `Withdraw ${lendingBank.meta.tokenSymbol}`,
-            }}
-          />
-        )}
+        <ActionBox.Lend
+          isDialog={true}
+          useProvider={true}
+          lendProps={{
+            connected: connected,
+            requestedLendType: ActionType.Withdraw,
+            showTokenSelection: true,
+            requestedBank: lendingBank,
+            selectionGroups: [LendSelectionGroups.SUPPLYING],
+            captureEvent: () => {
+              capture("position_withdraw_btn_click", {
+                group: activePool.groupPk.toBase58(),
+                token: lendingBank.meta.tokenSymbol,
+              });
+            },
+            onComplete: () => {
+              refreshGroup({
+                groupPk: activePool.groupPk,
+                banks: [activePool.tokenBank.address, activePool.quoteBank.address],
+                connection,
+                wallet,
+              });
+            },
+          }}
+          dialogProps={{
+            trigger: (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1 min-w-16"
+                onClick={() => {
+                  capture("position_withdraw_btn_click", {
+                    group: activePool.groupPk.toBase58(),
+                    token: lendingBank.meta.tokenSymbol,
+                  });
+                }}
+              >
+                <IconMinus size={14} />
+                Withdraw
+              </Button>
+            ),
+            title: `Withdraw ${lendingBank.meta.tokenSymbol}`,
+          }}
+        />
       </div>
     </ActionBoxProvider>
   );
