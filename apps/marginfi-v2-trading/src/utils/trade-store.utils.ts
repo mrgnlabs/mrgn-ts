@@ -4,8 +4,20 @@ import { BankMetadata, TokenMetadata } from "@mrgnlabs/mrgn-common";
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
 import { GetStaticProps, GetStaticPropsContext, NextApiRequest } from "next";
 import { TokenData } from "~/types";
-import { PoolListApiResponse, PoolPositionsApiResponse } from "~/types/api.types";
-import { ArenaBank, ArenaPoolPositions, ArenaPoolSummary, ArenaPoolV2, GroupStatus } from "~/types/trade-store.types";
+import {
+  PoolListApiResponse,
+  PoolPnlApiResponse,
+  PoolPnlMapApiResponse,
+  PoolPositionsApiResponse,
+} from "~/types/api.types";
+import {
+  ArenaBank,
+  ArenaPoolPnl,
+  ArenaPoolPositions,
+  ArenaPoolSummary,
+  ArenaPoolV2,
+  GroupStatus,
+} from "~/types/trade-store.types";
 
 /**
  * Server-Side Rendering Logic
@@ -386,6 +398,44 @@ const recompileArenaBank = (bank: ArenaBank, userData?: any) => {
     ...updatedBankInfo,
     tokenData: bank.tokenData,
   };
+};
+
+export const fetchUserPnl = async (owner: PublicKey): Promise<ArenaPoolPnl[]> => {
+  try {
+    const response = await fetch(`/api/pool/pnl?address=${owner.toBase58()}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch user pnl data: ${response.statusText}`);
+    }
+
+    const data: PoolPnlApiResponse[] = await response.json();
+
+    return parseUserPnl(data);
+  } catch (error) {
+    console.error("Error fetching user pnl data:", error);
+    return [];
+  }
+};
+
+const parseUserPnl = (data: PoolPnlApiResponse[]): ArenaPoolPnl[] => {
+  return data.map((pool) => ({
+    groupPk: new PublicKey(pool.group),
+    realizedPnl: pool.realized_pnl,
+    unrealizedPnl: pool.unrealized_pnl,
+    totalPnl: pool.total_pnl,
+    currentPosition: pool.current_position,
+    markPrice: pool.mark_price,
+    quotePriceUsd: pool.quote_price_usd,
+    entryPrices: pool.entry_prices,
+    realizedPnlUsd: pool.realized_pnl_usd,
+    unrealizedPnlUsd: pool.unrealized_pnl_usd,
+    totalPnlUsd: pool.total_pnl_usd,
+  }));
 };
 
 export const fetchUserPositions = async (owner: PublicKey): Promise<ArenaPoolPositions[]> => {
