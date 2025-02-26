@@ -1,17 +1,9 @@
 // Runs once per group, before any staked banks can be init.
-import { AccountMeta, Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
-import { Program, AnchorProvider, Wallet, BN } from "@coral-xyz/anchor";
+import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
+import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
 import { Mocks } from "./mocks";
 import mocksIdl from "./mocks.json";
-import { I80F48_ONE, loadKeypairFromFile } from "../scripts/utils";
-import {
-  bigNumberToWrappedI80F48,
-  TOKEN_PROGRAM_ID,
-  WrappedI80F48,
-  wrappedI80F48toBigNumber,
-} from "@mrgnlabs/mrgn-common";
-import { RiskTierRaw } from "@mrgnlabs/marginfi-client-v2";
-import { assertBNEqual, assertI80F48Approx, assertKeysEqual } from "../scripts/softTests";
+import { loadKeypairFromFile } from "../scripts/utils";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
 /**
