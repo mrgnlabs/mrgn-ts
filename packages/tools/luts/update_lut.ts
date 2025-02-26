@@ -17,6 +17,8 @@ import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
  */
 const sendTx = true;
 
+// TODO support deduping accross multiple LUTs and add the first non-full LUT
+
 type Config = {
   LUT: PublicKey;
   KEYS: PublicKey[];
