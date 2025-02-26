@@ -22,6 +22,7 @@ import {
   ExecuteLendingAction,
   usePrevious,
   useIsMobile,
+  LendSelectionGroups,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
@@ -56,7 +57,7 @@ export type LendBoxProps = {
   isDialog?: boolean;
   showAvailableCollateral?: boolean;
   showTokenSelection?: boolean;
-  showTokenSelectionGroups?: boolean;
+  selectionGroups?: LendSelectionGroups[];
   hidePoolStats?: HidePoolStats;
   stakeAccounts?: ValidatorStakeGroup[];
 
@@ -83,7 +84,7 @@ export const LendBox = ({
   isDialog,
   showTokenSelection,
   showAvailableCollateral = true,
-  showTokenSelectionGroups,
+  selectionGroups,
   requestedLendType,
   requestedBank,
   onComplete,
@@ -413,7 +414,7 @@ export const LendBox = ({
           lendMode={lendMode}
           isDialog={isDialog}
           showTokenSelection={showTokenSelection}
-          showTokenSelectionGroups={showTokenSelectionGroups}
+          selectionGroups={selectionGroups}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
           searchMode={searchMode}

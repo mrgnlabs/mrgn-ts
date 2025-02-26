@@ -1,7 +1,5 @@
 import React from "react";
 
-import Image from "next/image";
-
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { WalletToken } from "@mrgnlabs/mrgn-common";

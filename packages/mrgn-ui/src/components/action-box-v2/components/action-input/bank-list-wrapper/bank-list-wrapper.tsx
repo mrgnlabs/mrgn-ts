@@ -11,7 +11,6 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
-import { is } from "superstruct";
 
 type BankListWrapperProps = {
   isOpen: boolean;

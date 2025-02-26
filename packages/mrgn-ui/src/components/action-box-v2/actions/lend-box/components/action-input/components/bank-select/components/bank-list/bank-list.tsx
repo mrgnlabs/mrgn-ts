@@ -1,44 +1,53 @@
 import React from "react";
 import Link from "next/link";
+import { IconExternalLink } from "@tabler/icons-react";
+import { useRouter } from "next/router";
 
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { LendingModes, cn, computeBankRate } from "@mrgnlabs/mrgn-utils";
+import { LendSelectionGroups, LendingModes, cn, computeBankRate } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 import { BankItem, BankListCommand } from "~/components/action-box-v2/components";
 import { Button } from "~/components/ui/button";
-import { IconExternalLink } from "@tabler/icons-react";
-import { useRouter } from "next/router";
 
 type BankListProps = {
   selectedBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   isOpen: boolean;
-  lendMode: ActionType;
+  actionType: ActionType;
   connected: boolean;
-  showTokenSelectionGroups?: boolean;
+  selectionGroups?: LendSelectionGroups[];
   onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: (hasSetBank: boolean) => void;
 };
+
+const ALL_GROUPS = [
+  LendSelectionGroups.WALLET,
+  LendSelectionGroups.SUPPLYING,
+  LendSelectionGroups.BORROWING,
+  LendSelectionGroups.GLOBAL,
+  LendSelectionGroups.ISOLATED,
+  LendSelectionGroups.STAKED,
+];
 
 export const BankList = ({
   selectedBank,
   banks,
   nativeSolBalance,
-  lendMode,
+  actionType,
   connected,
-  showTokenSelectionGroups = true,
-  onSetSelectedBank,
+  selectionGroups,
   isOpen,
   onClose,
+  onSetSelectedBank,
 }: BankListProps) => {
   const router = useRouter();
   const lendingMode = React.useMemo(
     () =>
-      lendMode === ActionType.Deposit || lendMode === ActionType.Withdraw ? LendingModes.LEND : LendingModes.BORROW,
-    [lendMode]
+      actionType === ActionType.Deposit || actionType === ActionType.Withdraw ? LendingModes.LEND : LendingModes.BORROW,
+    [actionType]
   );
 
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -154,6 +163,38 @@ export const BankList = ({
     }
   }, [isOpen]);
 
+  const visibleSelectionGroups = React.useMemo(() => {
+    if (selectionGroups) return selectionGroups;
+    return ALL_GROUPS.filter((group) => {
+      switch (group) {
+        case LendSelectionGroups.WALLET:
+          return (
+            (actionType === ActionType.Deposit || actionType === ActionType.Repay) && filteredBanksUserOwns.length > 0
+          );
+        case LendSelectionGroups.SUPPLYING:
+          return (
+            (actionType === ActionType.Deposit || actionType === ActionType.Withdraw) && filteredBanksActive.length > 0
+          );
+        case LendSelectionGroups.BORROWING:
+          return lendingMode === LendingModes.BORROW && filteredBanksActive.length > 0;
+        case LendSelectionGroups.GLOBAL:
+          return globalBanks.length > 0;
+        case LendSelectionGroups.ISOLATED:
+          return isolatedBanks.length > 0;
+        case LendSelectionGroups.STAKED:
+          return lendingMode === LendingModes.LEND;
+      }
+    });
+  }, [
+    actionType,
+    filteredBanksActive.length,
+    filteredBanksUserOwns.length,
+    globalBanks.length,
+    isolatedBanks.length,
+    lendingMode,
+    selectionGroups,
+  ]);
+
   return (
     <>
       <BankListCommand selectedBank={selectedBank} onClose={() => onClose(false)} onSetSearchQuery={setSearchQuery}>
@@ -165,7 +206,7 @@ export const BankList = ({
         <CommandEmpty>No tokens found.</CommandEmpty>
 
         {/* LENDING */}
-        {lendingMode === LendingModes.LEND && connected && filteredBanksUserOwns.length > 0 && onSetSelectedBank && (
+        {visibleSelectionGroups.includes(LendSelectionGroups.WALLET) && (
           <CommandGroup heading="Available in your wallet">
             {filteredBanksUserOwns
               .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
@@ -194,91 +235,87 @@ export const BankList = ({
                   </CommandItem>
                 );
               })}
-            <div className="space-y-2 text-center w-full pt-5 pb-4">
-              <p className="text-xs text-muted-foreground">Don&apos;t hold supported tokens?</p>
-              <Button
-                variant="outline"
-                className="mx-auto font-normal text-[11px]"
-                size="sm"
-                onClick={() => {
-                  onClose(false);
-                  router.push("/deposit-swap");
-                }}
-              >
-                <span>Try deposit swap</span>
-              </Button>
-            </div>
+            {actionType === ActionType.Deposit && (
+              <div className="space-y-2 text-center w-full pt-5 pb-4">
+                <p className="text-xs text-muted-foreground">Don&apos;t hold supported tokens?</p>
+                <Button
+                  variant="outline"
+                  className="mx-auto font-normal text-[11px]"
+                  size="sm"
+                  onClick={() => {
+                    onClose(false);
+                    router.push("/deposit-swap");
+                  }}
+                >
+                  <span>Try deposit swap</span>
+                </Button>
+              </div>
+            )}
           </CommandGroup>
         )}
-        {lendingMode === LendingModes.LEND &&
-          filteredBanksActive.length > 0 &&
-          onSetSelectedBank &&
-          showTokenSelectionGroups && (
-            <CommandGroup heading="Currently supplying">
-              {filteredBanksActive.map((bank, index) => (
-                <CommandItem
-                  key={index}
-                  value={bank.address?.toString().toLowerCase()}
-                  // disabled={!ownedBanksPk.includes(bank.address)}
-                  onSelect={(currentValue) => {
-                    onSetSelectedBank(
-                      banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
-                    );
-                    onClose(true);
-                  }}
-                  className={cn(
-                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground py-2"
-                  )}
-                >
-                  <BankItem
-                    rate={calculateRate(bank)}
-                    lendingMode={lendingMode}
-                    bank={bank}
-                    showBalanceOverride={false}
-                    nativeSolBalance={nativeSolBalance}
-                    showStakedAssetLabel={true}
-                    solPrice={solPrice}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
+        {visibleSelectionGroups.includes(LendSelectionGroups.SUPPLYING) && (
+          <CommandGroup heading="Currently supplying">
+            {filteredBanksActive.map((bank, index) => (
+              <CommandItem
+                key={index}
+                value={bank.address?.toString().toLowerCase()}
+                // disabled={!ownedBanksPk.includes(bank.address)}
+                onSelect={(currentValue) => {
+                  onSetSelectedBank(
+                    banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
+                  );
+                  onClose(true);
+                }}
+                className={cn(
+                  "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground py-2"
+                )}
+              >
+                <BankItem
+                  rate={calculateRate(bank)}
+                  lendingMode={lendingMode}
+                  bank={bank}
+                  showBalanceOverride={false}
+                  nativeSolBalance={nativeSolBalance}
+                  showStakedAssetLabel={true}
+                  solPrice={solPrice}
+                />
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
 
         {/* BORROWING */}
-        {lendingMode === LendingModes.BORROW &&
-          filteredBanksActive.length > 0 &&
-          onSetSelectedBank &&
-          showTokenSelectionGroups && (
-            <CommandGroup heading="Currently borrowing">
-              {filteredBanksActive.map((bank, index) => (
-                <CommandItem
-                  key={index}
-                  value={bank.address?.toString().toLowerCase()}
-                  onSelect={(currentValue) => {
-                    onSetSelectedBank(
-                      banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
-                    );
-                    onClose(true);
-                  }}
-                  className={cn(
-                    "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground"
-                  )}
-                >
-                  <BankItem
-                    rate={calculateRate(bank)}
-                    lendingMode={lendingMode}
-                    bank={bank}
-                    showBalanceOverride={false}
-                    nativeSolBalance={nativeSolBalance}
-                    solPrice={solPrice}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
+        {visibleSelectionGroups.includes(LendSelectionGroups.BORROWING) && (
+          <CommandGroup heading="Currently borrowing">
+            {filteredBanksActive.map((bank, index) => (
+              <CommandItem
+                key={index}
+                value={bank.address?.toString().toLowerCase()}
+                onSelect={(currentValue) => {
+                  onSetSelectedBank(
+                    banks.find((bankInfo) => bankInfo.address.toString().toLowerCase() === currentValue) ?? null
+                  );
+                  onClose(true);
+                }}
+                className={cn(
+                  "cursor-pointer font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground"
+                )}
+              >
+                <BankItem
+                  rate={calculateRate(bank)}
+                  lendingMode={lendingMode}
+                  bank={bank}
+                  showBalanceOverride={false}
+                  nativeSolBalance={nativeSolBalance}
+                  solPrice={solPrice}
+                />
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
 
         {/* GLOBAL & ISOLATED */}
-        {globalBanks.length > 0 && onSetSelectedBank && showTokenSelectionGroups && (
+        {visibleSelectionGroups.includes(LendSelectionGroups.GLOBAL) && (
           <CommandGroup heading="Global pools">
             {globalBanks.map((bank, index) => {
               return (
@@ -310,7 +347,7 @@ export const BankList = ({
             })}
           </CommandGroup>
         )}
-        {isolatedBanks.length > 0 && onSetSelectedBank && showTokenSelectionGroups && (
+        {visibleSelectionGroups.includes(LendSelectionGroups.ISOLATED) && (
           <CommandGroup heading="Isolated pools">
             {isolatedBanks.map((bank, index) => {
               return (
@@ -343,7 +380,7 @@ export const BankList = ({
           </CommandGroup>
         )}
         {/* STAKED ASSETS */}
-        {lendingMode === LendingModes.LEND && onSetSelectedBank && showTokenSelectionGroups && (
+        {visibleSelectionGroups.includes(LendSelectionGroups.STAKED) && (
           <>
             {stakedAssetBanks.length > 0 && (
               <CommandGroup heading="Staked asset pools">
