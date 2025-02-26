@@ -1,6 +1,6 @@
 import cookie from "cookie";
 import { NextApiRequest, NextApiResponse } from "next";
-import { PoolListApiResponse } from "~/types/api.types";
+import { PoolListApiResponse, PoolListApiResponseRaw } from "~/types/api.types";
 import { fetchAuthToken } from "~/utils";
 
 // Cache times in seconds
@@ -37,12 +37,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error(`API responded with status: ${response.status}`);
     }
 
-    const data: PoolListApiResponse[] = await response.json();
+    const poolListData: PoolListApiResponseRaw = await response.json();
+    const poolList: PoolListApiResponse[] = poolListData.data;
 
     // Set cache headers
     res.setHeader("Cache-Control", `s-maxage=${S_MAXAGE_TIME}, stale-while-revalidate=${STALE_WHILE_REVALIDATE_TIME}`);
 
-    return res.status(200).json(data);
+    return res.status(200).json(poolList);
   } catch (error) {
     console.error("Error fetching pool data:", error);
     return res.status(500).json({

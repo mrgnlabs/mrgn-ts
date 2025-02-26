@@ -32,6 +32,18 @@ type PoolListBank = {
   details: PoolListBankDetails;
 };
 
+export type PoolListApiResponseRaw = {
+  data: PoolListApiResponse[];
+  metadata: {
+    total_items: number;
+    total_pages: number;
+    current_page: number;
+    page_size: number;
+    has_next_page: boolean;
+    has_previous_page: boolean;
+  };
+};
+
 export type PoolListApiResponse = {
   group: string;
   quote_bank: PoolListBank;
