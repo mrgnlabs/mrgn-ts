@@ -99,7 +99,24 @@ async function fetchTokenAccounts(
   }); // We allow off curve addresses here to support Fuse.
 
   // Fetch relevant accounts
-  const accountsAiList = await connection.getMultipleAccountsInfo([walletAddress, ...ataAddresses]);
+
+  // temporary logic
+  const maxAccounts = 100;
+  const totalArray: PublicKey[] = [walletAddress, ...ataAddresses];
+
+  function chunkArray<T>(arr: T[], chunkSize: number): T[][] {
+    const result: T[][] = [];
+    for (let i = 0; i < arr.length; i += chunkSize) {
+      result.push(arr.slice(i, i + chunkSize));
+    }
+    return result;
+  }
+
+  const chunkedArrays = chunkArray(totalArray, maxAccounts);
+
+  const accountsAiList = (
+    await Promise.all(chunkedArrays.map((chunk) => connection.getMultipleAccountsInfo(chunk)))
+  ).flat();
 
   // Decode account buffers
   const [walletAi, ...ataAiList] = accountsAiList;
