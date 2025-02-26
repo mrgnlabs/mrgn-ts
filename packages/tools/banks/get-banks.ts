@@ -9,20 +9,11 @@ dotenv.config();
 
 async function main() {
   const argv = getDefaultYargsOptions()
-    // sort by asset value
     .option("sort-by-asset-value", {
       alias: "sav",
       type: "string",
       description: "Sort by asset value",
       choices: ["greatest", "least"],
-      default: "greatest",
-    })
-    .option("sort-by-symbol", {
-      alias: "ss",
-      type: "string",
-      description: "Sort by symbol",
-      choices: ["ascending", "descending"],
-      default: "ascending",
     })
     .parseSync();
   const program = getMarginfiProgram(argv.env as Environment);
@@ -65,22 +56,20 @@ async function main() {
     })
     .filter(Boolean));
 
-    const sortFunctions = {
-      assetValue: (a: any, b: any) => {
-        const valueA = Number(a["Asset Value (USD)"].replace(/[$,]/g, ''));
-        const valueB = Number(b["Asset Value (USD)"].replace(/[$,]/g, ''));
-        return valueB - valueA;
-      },
-      symbol: (a: any, b: any) => a.Symbol.localeCompare(b.Symbol),
-    };
+  const sortFunctions = {
+    assetValue: (a: any, b: any) => {
+      const valueA = Number(a["Asset Value (USD)"].replace(/[$,]/g, ''));
+      const valueB = Number(b["Asset Value (USD)"].replace(/[$,]/g, ''));
+      return valueB - valueA;
+    },
+    symbol: (a: any, b: any) => a.Symbol.localeCompare(b.Symbol),
+  };
 
   const sortedBanksData = [...banksData];
   if (argv.sortByAssetValue) {
     argv.sortByAssetValue === "greatest" 
       ? sortedBanksData.sort(sortFunctions.assetValue)
       : sortedBanksData.sort((a, b) => sortFunctions.assetValue(b, a));
-  } else if (argv.sortBySymbol) {
-    sortedBanksData.sort(sortFunctions.symbol);
   }
 
   console.log(`\r\nFound ${sortedBanksData.length} banks in group ${argv.group}`);
