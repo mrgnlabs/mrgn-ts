@@ -17,11 +17,10 @@ TODO list of common banks and groups...
 
 - Main group - 4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8
 - Staging - FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo
-
+`
 ## STAKED SETTINGS
 
 - Staging FCP group - 8JKoTPju2r34qxmc46z8M8coY9H6YgBU1khupkMCJiAc
-- Staging Global fee wallet (ie phantom) - H4QMTHMVbJ3KrB5bz573cBBZKoYSZ2B4mSST1JKzPUrH
 
 ## MAIN GROUP BANKS
 
@@ -42,11 +41,17 @@ TODO list of common banks and groups...
 - Staked Settings Staging Pyth Oracle - H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG
 - Staked Settings Staging Pyth Oracle Feed (Jup's Sol feed)- 7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE
 
+## GLOBAL FEE STATE
+- Main - HoMNdUF3RDZDPKAARYK1mxcPFfUnPjLmpKYibZzAijev
+- Main State Wallet (may update!) - JAnRanMrsn5vxWmSpU5ndvtvQLAyzGJEenNzgVC1vNMC
+- Staging Global fee wallet (ie phantom) - H4QMTHMVbJ3KrB5bz573cBBZKoYSZ2B4mSST1JKzPUrH
+
 ## MINTS
 
 - UXD - 7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT
 - USDT - Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB
 - SOL - So11111111111111111111111111111111111111112
+- ezSOL (an LRT) - ezSoL6fY1PVdJcJsUpe5CM3xkfmy3zoVCABybm5WtiC
 
 ## VALIDATORS
 
@@ -57,6 +62,12 @@ TODO list of common banks and groups...
 
 - Phantom wallet (H4QMTHMVbJ3KrB5bz573cBBZKoYSZ2B4mSST1JKzPUrH) account - E3uJyxW232EQAVZ9P9V6CFkxzjqqVdbh8XvUmxtZdGUt
 - Staging deploy wallet (mfC1LoEk4mpM5yx1LjwR9QLZQ49AitxxWkK5Aciw7ZC) - F12SjiKaksVMJs7EQ2GBaWHLr5shFRei1seDDwFA2pek
+
+## LUTS
+These are test LUTs to be used for any purpose, they contain a variety of accounts with no
+particular organization.
+- CQ8omkUwDtsszuJLo9grtXCeEyDU4QqBLRv9AjRDaUZ3 (owned by Phantom wallet H4QMTHMVbJ3KrB5bz573cBBZKoYSZ2B4mSST1JKzPUrH)
+
 
 ## DESTROYED ACCOUNTS
 

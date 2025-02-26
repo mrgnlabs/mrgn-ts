@@ -29,8 +29,8 @@ type Config = {
 };
 
 const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
+  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
   ORACLE: new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"),
   SOL_ORACLE_FEED: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
   ADMIN: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
@@ -66,6 +66,7 @@ async function main() {
   const feeState = await program.account.feeState.fetch(feeStateKey);
   const feeWalletBefore = await provider.connection.getAccountInfo(feeState.globalFeeWallet);
   if (verbose) {
+    console.log("fee state: " + feeState.key);
     console.log("fee wallet: " + feeState.globalFeeWallet);
     console.log("flat sol init fee: " + feeState.bankInitFlatSolFee);
     console.log("fee wallet lamports before: " + feeWalletBefore.lamports);
