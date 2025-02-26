@@ -8,11 +8,11 @@ dotenv.config();
 
 async function main() {
   const argv = getDefaultYargsOptions()
-    .option("sort-by-asset-value", {
-      alias: "sav",
+    .option("sort", {
+      alias: "sort",
       type: "string",
-      description: "Sort by asset value",
-      choices: ["asc", "desc"],
+      description: "Sort banks",
+      choices: ["symbol-asc", "symbol-desc", "price-asc", "price-desc"],
     })
     .parseSync();
   const program = getMarginfiProgram(argv.env as Environment);
@@ -50,14 +50,14 @@ async function main() {
       Address: bankAddress,
       Mint: item.mint.toString(),
       Type: item.config.riskTier.isolated ? "Isolated" : "Collateral",
-      "Asset Value (USD)": `$${formatNumber(Number(price.priceRealtime.price))}`,
+      Price: `$${formatNumber(Number(price.priceRealtime.price))}`,
     };
   });
 
   const sortFunctions = {
-    assetValue: (a: any, b: any) => {
-      const valueA = Number(a["Asset Value (USD)"].replace(/[$,]/g, ""));
-      const valueB = Number(b["Asset Value (USD)"].replace(/[$,]/g, ""));
+    price: (a: any, b: any) => {
+      const valueA = Number(a["Price"].replace(/[$,]/g, ""));
+      const valueB = Number(b["Price"].replace(/[$,]/g, ""));
       return valueB - valueA;
     },
     symbol: (a: any, b: any) => {
@@ -69,13 +69,20 @@ async function main() {
 
   const sortedBanksData = [...banksData];
 
-  if (argv.sortByAssetValue) {
-    // Sort by asset value when --sav is provided
-    argv.sortByAssetValue === "desc"
-      ? sortedBanksData.sort(sortFunctions.assetValue)
-      : sortedBanksData.sort((a, b) => sortFunctions.assetValue(b, a));
+  if (argv.sort) {
+    const [field, direction] = argv.sort.split("-");
+
+    if (field === "price") {
+      direction === "desc"
+        ? sortedBanksData.sort(sortFunctions.price)
+        : sortedBanksData.sort((a, b) => sortFunctions.price(b, a));
+    } else if (field === "symbol") {
+      direction === "asc"
+        ? sortedBanksData.sort(sortFunctions.symbol)
+        : sortedBanksData.sort((a, b) => sortFunctions.symbol(b, a));
+    }
   } else {
-    // Default to sorting by symbol when --sav is not provided
+    // Default to sorting by symbol ascending when no sort option is provided
     sortedBanksData.sort(sortFunctions.symbol);
   }
 
