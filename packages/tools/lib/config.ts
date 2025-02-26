@@ -51,5 +51,6 @@ export const getDefaultYargsOptions = () => {
     .option("group", {
       type: "string",
       description: "Marginfi group address",
+      default: "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",
     });
 };
