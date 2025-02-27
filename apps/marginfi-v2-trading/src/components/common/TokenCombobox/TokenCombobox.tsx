@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { IconChevronDown } from "@tabler/icons-react";
 
 import { percentFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
@@ -6,10 +7,9 @@ import { Desktop, Mobile, cn } from "@mrgnlabs/mrgn-utils";
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "~/components/ui/command";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
-
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 
 type TokenComboboxProps = {
   selected: ArenaPoolV2Extended | null;
@@ -68,16 +68,14 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                         }}
                       >
                         <div className="flex items-center gap-2 relative">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
+                          <Image
                             src={pool.tokenBank.meta.tokenLogoUri}
                             width={32}
                             height={32}
                             alt={pool.tokenBank.meta.tokenName}
                             className="rounded-full w-[32px] h-[32px] object-cover"
                           />
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
+                          <Image
                             src={pool.quoteBank.meta.tokenLogoUri}
                             width={16}
                             height={16}
@@ -139,16 +137,14 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                       }}
                     >
                       <div className="flex items-center gap-2 relative">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <Image
                           src={pool.tokenBank.meta.tokenLogoUri}
                           width={32}
                           height={32}
                           alt={pool.tokenBank.meta.tokenName}
                           className="rounded-full w-[32px] h-[32px] object-cover"
                         />
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <Image
                           src={pool.quoteBank.meta.tokenLogoUri}
                           width={16}
                           height={16}
@@ -191,8 +187,7 @@ type TokenTriggerProps = {
 const TokenTrigger = ({ selected, open }: TokenTriggerProps) => {
   return (
     <div className="flex items-center px-2 py-1 justify-center font-medium text-base hover:bg-accent transition-colors cursor-pointer rounded-md  gap-2">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={selected?.tokenBank.meta.tokenLogoUri ?? ""}
         alt={selected?.tokenBank.meta.tokenSymbol ?? ""}
         width={28}

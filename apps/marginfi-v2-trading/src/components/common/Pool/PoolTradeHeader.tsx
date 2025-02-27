@@ -1,6 +1,7 @@
 import React from "react";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/router";
 
 import {
@@ -78,16 +79,14 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="flex flex-col items-center px-8 w-full lg:w-1/4 xl:w-1/2">
             <div className="relative flex items-center justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={extendedPool.tokenBank.meta.tokenLogoUri}
                 alt={extendedPool.tokenBank.meta.tokenSymbol}
                 width={72}
                 height={72}
                 className="bg-background border rounded-full h-[72px] w-[72px] object-cover"
               />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={extendedPool.quoteBank.meta.tokenLogoUri}
                 alt={extendedPool.quoteBank.meta.tokenSymbol}
                 width={32}
@@ -198,8 +197,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
               <div className="border-y border-border py-6 lg:border-b-0 flex flex-col gap-4 w-full lg:py-0 lg:border-t-0">
                 <div className="flex flex-row justify-between space-y-2 lg:block">
                   <div className="flex items-start gap-2 translate-y-0.5">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={extendedPool.tokenBank.meta.tokenLogoUri}
                       alt={extendedPool.tokenBank.meta.tokenSymbol}
                       width={32}
@@ -439,8 +437,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
               </div>
               <div className="flex flex-row justify-between space-y-2 lg:block">
                 <div className="flex items-start gap-2">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={extendedPool.quoteBank.meta.tokenLogoUri}
                     alt={extendedPool.quoteBank.meta.tokenSymbol}
                     width={32}

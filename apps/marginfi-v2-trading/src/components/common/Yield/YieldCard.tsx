@@ -1,9 +1,9 @@
 import React from "react";
-
 import Link from "next/link";
-
+import Image from "next/image";
 import { IconArrowRight } from "@tabler/icons-react";
 import { Connection, PublicKey } from "@solana/web3.js";
+
 import {
   aprToApy,
   numeralFormatter,
@@ -11,20 +11,18 @@ import {
   usdFormatter,
   USDC_MINT,
   dynamicNumeralFormatter,
+  Wallet,
 } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
-import { Wallet } from "@mrgnlabs/mrgn-common";
-import { minidenticon } from "minidenticons";
 
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
+import { ArenaPoolV2Extended, GroupStatus } from "~/types";
+import { useActionBoxProps } from "~/hooks/useActionBoxProps";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
-import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
-import { useActionBoxProps } from "~/hooks/useActionBoxProps";
 
 interface YieldCardProps {
   pool: ArenaPoolV2Extended;
@@ -48,16 +46,14 @@ export const YieldCard = ({ pool }: YieldCardProps) => {
         className="group bg-background border rounded-xl absolute -top-5 left-3.5 px-2 py-1.5 flex items-center gap-2 transition-colors hover:bg-accent"
       >
         <div className="flex items-center -space-x-2.5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={pool.tokenBank.meta.tokenLogoUri}
             alt={pool.tokenBank.meta.tokenSymbol}
             width={24}
             height={24}
             className="rounded-full bg-background z-10 w-[24px] h-[24px] object-cover"
           />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={pool.quoteBank.meta.tokenLogoUri}
             alt={pool.quoteBank.meta.tokenSymbol}
             width={24}
@@ -139,8 +135,7 @@ const YieldItem = ({
   return (
     <div className={cn("items-center", className)}>
       <div className="flex items-center gap-2">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={bank.meta.tokenLogoUri}
           alt={bank.meta.tokenSymbol}
           width={24}
