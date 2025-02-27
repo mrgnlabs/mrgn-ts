@@ -1115,7 +1115,10 @@ function fillMissingPositions(
       const sizeUsd = depositValue - borrowValue;
 
       if (pnlPositionData) {
-        const properEntryPrice = pnlPositionData.entryPrices?.[0] ?? 0;
+        let properEntryPrice: number = 0;
+        if (Array.isArray(properEntryPrice) && properEntryPrice.length > 1) {
+          properEntryPrice = properEntryPrice[0] / properEntryPrice[1];
+        }
 
         positionData[pool.groupPk.toBase58()] = {
           groupPk: pool.groupPk,
