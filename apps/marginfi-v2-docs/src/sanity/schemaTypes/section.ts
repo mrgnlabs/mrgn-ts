@@ -31,6 +31,11 @@ export const section = defineType({
           styles: [
             {title: 'Normal', value: 'normal'},
             {title: 'Lead', value: 'lead'},
+            {title: 'H3', value: 'h3'},
+          ],
+          lists: [
+            {title: 'Bullet', value: 'bullet'},
+            {title: 'Number', value: 'number'},
           ],
           marks: {
             decorators: [
