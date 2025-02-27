@@ -1,3 +1,4 @@
+// src/components/doc/DocPage.tsx
 import { Prose } from '~/components/Prose'
 import { Note, Properties, Property } from '~/components/mdx'
 import { ImageComponent } from '~/components/ImageComponent'
@@ -7,15 +8,13 @@ import { Button } from '~/components/Button'
 
 const components = {
   types: {
-    note: ({value}: any) => (
+    note: ({ value }: any) => (
       <Note>
         <PortableText value={value.content} components={components} />
       </Note>
     ),
-    mathBlock: ({value}: any) => (
-      <Math>{value.formula}</Math>
-    ),
-    imageWithCaption: ({value}: any) => (
+    mathBlock: ({ value }: any) => <Math>{value.formula}</Math>,
+    imageWithCaption: ({ value }: any) => (
       <ImageComponent
         src={value.image.asset.url}
         alt={value.alt || ''}
@@ -24,28 +23,32 @@ const components = {
     ),
   },
   block: {
-    normal: ({children}: any) => <p>{children}</p>,
-    h1: ({children}: any) => <h1>{children}</h1>,
-    h2: ({children}: any) => <h2>{children}</h2>,
-    h3: ({children}: any) => <h3>{children}</h3>,
+    // Provide a custom renderer for 'lead' style
+    lead: ({ children }: any) => <p className="lead">{children}</p>,
+    normal: ({ children }: any) => <p>{children}</p>,
+    h1: ({ children }: any) => <h1>{children}</h1>,
+    h2: ({ children }: any) => <h2>{children}</h2>,
+    h3: ({ children }: any) => <h3>{children}</h3>,
   },
   marks: {
-    strong: ({children}: any) => <strong>{children}</strong>,
-    em: ({children}: any) => <em>{children}</em>,
-    code: ({children}: any) => <code>{children}</code>,
-    link: ({value, children}: any) => (
+    strong: ({ children }: any) => <strong>{children}</strong>,
+    em: ({ children }: any) => <em>{children}</em>,
+    code: ({ children }: any) => <code>{children}</code>,
+    link: ({ value, children }: any) => (
       <Button href={value?.href} variant={value?.variant || 'text'}>
         {children}
       </Button>
     ),
   },
   list: {
-    bullet: ({children}: any) => <ul className="list-disc pl-4">{children}</ul>,
-    number: ({children}: any) => <ol className="list-decimal pl-4">{children}</ol>,
+    bullet: ({ children }: any) => <ul className="list-disc pl-4">{children}</ul>,
+    number: ({ children }: any) => (
+      <ol className="list-decimal pl-4">{children}</ol>
+    ),
   },
   listItem: {
-    bullet: ({children}: any) => <li>{children}</li>,
-    number: ({children}: any) => <li>{children}</li>,
+    bullet: ({ children }: any) => <li>{children}</li>,
+    number: ({ children }: any) => <li>{children}</li>,
   },
 }
 
@@ -56,10 +59,16 @@ export function DocPage({ page }: { page: any }) {
 
   return (
     <Prose className="pt-16 pb-10">
+      {/* Page Title */}
       <h1>{page.title}</h1>
-      <p className="lead">{page.leadText}</p>
+
+      {/* Render leadText as PortableText instead of a plain paragraph */}
+      {page.leadText && (
+        <PortableText value={page.leadText} components={components} />
+      )}
+
       <hr className="my-8" />
-      
+
       {page.content?.map((section: any) => {
         if (section._type === 'section') {
           return (
@@ -75,10 +84,7 @@ export function DocPage({ page }: { page: any }) {
                   {section.label}
                 </p>
               )}
-              <PortableText 
-                value={section.content} 
-                components={components}
-              />
+              <PortableText value={section.content} components={components} />
             </div>
           )
         }
@@ -100,16 +106,14 @@ export function DocPage({ page }: { page: any }) {
             </div>
           )
         }
-        
+
+        // Everything else (note, mathBlock, etc.) 
         return (
           <div key={section._key} className="my-8">
-            <PortableText 
-              value={[section]} 
-              components={components}
-            />
+            <PortableText value={[section]} components={components} />
           </div>
         )
       })}
     </Prose>
   )
-} 
+}

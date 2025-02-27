@@ -1,3 +1,4 @@
+// src/sanity/schema/docPage.ts
 import { defineType, defineField } from 'sanity'
 
 export const docPage = defineType({
@@ -9,7 +10,7 @@ export const docPage = defineType({
       name: 'title',
       title: 'Page Title',
       type: 'string',
-      validation: (Rule: any) => Rule.required(),
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'slug',
@@ -18,17 +19,65 @@ export const docPage = defineType({
       options: {
         source: 'title',
       },
-      validation: (Rule: any) => Rule.required(),
+      validation: (Rule) => Rule.required(),
     }),
+    // defineField({
+    //   name: 'description',
+    //   title: 'Description',
+    //   type: 'text',
+    // }),
     defineField({
-      name: 'description',
-      title: 'Description',
-      type: 'text',
-    }),
-    defineField({
+      // CHANGE #1: Make leadText a Portable Text array
       name: 'leadText',
       title: 'Lead Text',
-      type: 'text',
+      type: 'array',
+      of: [
+        {
+          type: 'block',
+          // Optionally define styles (including a 'lead' style)
+          styles: [
+            { title: 'Normal', value: 'normal' },
+            { title: 'Lead', value: 'lead' },
+            { title: 'H2', value: 'h2' },
+            { title: 'H3', value: 'h3' },
+          ],
+          marks: {
+            // You can replicate your existing link annotation for inline buttons
+            decorators: [
+              { title: 'Strong', value: 'strong' },
+              { title: 'Emphasis', value: 'em' },
+              { title: 'Code', value: 'code' },
+            ],
+            annotations: [
+              {
+                name: 'link',
+                type: 'object',
+                title: 'Link',
+                fields: [
+                  {
+                    name: 'href',
+                    type: 'url',
+                    title: 'URL',
+                  },
+                  {
+                    name: 'variant',
+                    type: 'string',
+                    title: 'Button Variant',
+                    initialValue: 'text',
+                    options: {
+                      list: [
+                        { title: 'Text', value: 'text' },
+                        { title: 'Primary', value: 'primary' },
+                        { title: 'Secondary', value: 'secondary' },
+                      ],
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      ],
     }),
     defineField({
       name: 'content',
@@ -50,15 +99,15 @@ export const docPage = defineType({
           name: 'title',
           title: 'Meta Title',
           type: 'string',
-          validation: (Rule: any) => Rule.required(),
+          validation: (Rule) => Rule.required(),
         },
         {
           name: 'description',
           title: 'Meta Description',
           type: 'text',
-          validation: (Rule: any) => Rule.required(),
+          validation: (Rule) => Rule.required(),
         },
       ],
     }),
   ],
-}) 
+})
