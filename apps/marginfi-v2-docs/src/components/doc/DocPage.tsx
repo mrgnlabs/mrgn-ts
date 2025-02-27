@@ -3,6 +3,7 @@ import { Note } from '~/components/mdx'
 import { ImageComponent } from '~/components/ImageComponent'
 import { Math } from '~/components/Math'
 import { PortableText } from '@portabletext/react'
+import { Button } from '~/components/Button'
 
 const components = {
   types: {
@@ -26,6 +27,25 @@ const components = {
     normal: ({children}: any) => <p>{children}</p>,
     h1: ({children}: any) => <h1>{children}</h1>,
     h2: ({children}: any) => <h2>{children}</h2>,
+    h3: ({children}: any) => <h3>{children}</h3>,
+  },
+  marks: {
+    strong: ({children}: any) => <strong>{children}</strong>,
+    em: ({children}: any) => <em>{children}</em>,
+    code: ({children}: any) => <code>{children}</code>,
+    link: ({value, children}: any) => (
+      <Button href={value?.href} variant={value?.variant || 'text'}>
+        {children}
+      </Button>
+    ),
+  },
+  list: {
+    bullet: ({children}: any) => <ul className="list-disc pl-4">{children}</ul>,
+    number: ({children}: any) => <ol className="list-decimal pl-4">{children}</ol>,
+  },
+  listItem: {
+    bullet: ({children}: any) => <li>{children}</li>,
+    number: ({children}: any) => <li>{children}</li>,
   },
 }
 
