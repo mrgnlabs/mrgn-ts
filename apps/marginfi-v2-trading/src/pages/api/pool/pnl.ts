@@ -7,9 +7,6 @@ import { fetchAuthToken } from "~/utils";
 const S_MAXAGE_TIME = 60 * 0.5; // 30 seconds
 const STALE_WHILE_REVALIDATE_TIME = 60 * 1; // 1 minute
 
-/**
- * @deprecated This API route is deprecated and may be removed in future versions.
- */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!process.env.MARGINFI_API_URL) {
     return res.status(500).json({ error: "API URL is not set" });
@@ -43,8 +40,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const data: PoolPnlMapApiResponse = (await response.json()).data;
-
-    console.log("data", data);
 
     const poolsArray: PoolPnlApiResponse[] = Object.entries(data.pools).map(([group, poolData]) => ({
       group,

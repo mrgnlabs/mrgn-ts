@@ -1116,8 +1116,8 @@ function fillMissingPositions(
 
       if (pnlPositionData) {
         let properEntryPrice: number = 0;
-        if (Array.isArray(properEntryPrice) && properEntryPrice.length > 1) {
-          properEntryPrice = properEntryPrice[0] / properEntryPrice[1];
+        if (Array.isArray(pnlPositionData.entryPrices) && pnlPositionData.entryPrices.length > 1) {
+          properEntryPrice = pnlPositionData.entryPrices[0] / pnlPositionData.entryPrices[1];
         }
 
         positionData[pool.groupPk.toBase58()] = {
