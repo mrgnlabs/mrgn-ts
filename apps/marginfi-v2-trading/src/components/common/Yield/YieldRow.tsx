@@ -45,16 +45,14 @@ export const YieldRow = ({ pool }: props) => {
         className="group bg-background border rounded-xl absolute -top-5 left-3.5 px-2 py-1.5 flex items-center gap-2 transition-colors hover:bg-accent"
       >
         <div className="flex items-center -space-x-2.5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={pool.tokenBank.meta.tokenLogoUri}
             alt={pool.tokenBank.meta.tokenSymbol}
             width={24}
             height={24}
             className="rounded-full bg-background z-10 w-[24px] h-[24px] object-cover"
           />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={pool.quoteBank.meta.tokenLogoUri}
             alt={pool.quoteBank.meta.tokenSymbol}
             width={24}
@@ -156,8 +154,7 @@ const YieldItem = ({
   return (
     <div className={cn("grid gap-4items-center", className, connected ? "grid-cols-7" : "grid-cols-6")}>
       <div className="flex items-center gap-2">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={bank.meta.tokenLogoUri}
           alt={bank.meta.tokenSymbol}
           width={24}
@@ -200,7 +197,7 @@ const YieldItem = ({
                 </Link>
               ) : (
                 <div className="w-[20px] h-[20px] rounded-full object-cover bg-muted">
-                  <img
+                  <Image
                     src={"data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(groupData.admin.toBase58()))}
                     alt="minidenticon"
                     width={20}

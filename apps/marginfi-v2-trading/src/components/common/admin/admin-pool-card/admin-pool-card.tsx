@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { IconExternalLink } from "@tabler/icons-react";
 
 import { numeralFormatter, tokenPriceFormatter, percentFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
@@ -22,14 +23,14 @@ export const AdminPoolCard = ({ pool, last }: AdminPoolCardProps) => {
     >
       <div className="flex items-center md:col-span-2">
         <div className="flex items-end">
-          <img
+          <Image
             src={extendedPool.tokenBank.meta.tokenLogoUri}
             alt={extendedPool.tokenBank.meta.tokenSymbol}
             width={38}
             height={38}
             className="rounded-full bg-background"
           />
-          <img
+          <Image
             src={extendedPool.quoteBank.meta.tokenLogoUri}
             alt={extendedPool.quoteBank.meta.tokenSymbol}
             width={24}

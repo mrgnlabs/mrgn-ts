@@ -1,15 +1,12 @@
+import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
+import { GetStaticProps, NextApiRequest } from "next";
+
 import { Bank, BankRaw, MarginfiAccount, MarginfiProgram, MintData, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import { fetchTokenAccounts, makeExtendedBankInfo, TokenAccount, UserDataProps } from "@mrgnlabs/marginfi-v2-ui-state";
 import { BankMetadata, TokenMetadata } from "@mrgnlabs/mrgn-common";
-import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
-import { GetStaticProps, GetStaticPropsContext, NextApiRequest } from "next";
-import { TokenData } from "~/types";
-import {
-  PoolListApiResponse,
-  PoolPnlApiResponse,
-  PoolPnlMapApiResponse,
-  PoolPositionsApiResponse,
-} from "~/types/api.types";
+
+import { TOKEN_ICON_BASE_URL } from "~/config/trade";
+import { PoolListApiResponse, PoolPnlApiResponse, PoolPositionsApiResponse } from "~/types/api.types";
 import {
   ArenaBank,
   ArenaPoolPnl,
@@ -17,6 +14,7 @@ import {
   ArenaPoolSummary,
   ArenaPoolV2,
   GroupStatus,
+  TokenVolumeData,
 } from "~/types/trade-store.types";
 
 /**
@@ -27,7 +25,7 @@ import {
  */
 
 export type InitialArenaState = {
-  tokenDetails: TokenData[];
+  tokenVolumeData: TokenVolumeData[];
   poolData: PoolListApiResponse[];
 };
 
@@ -43,7 +41,7 @@ export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async (cont
 
   const emptyState: InitialArenaState = {
     poolData: [],
-    tokenDetails: [],
+    tokenVolumeData: [],
   };
 
   let groupPk: string | null = null;
@@ -75,17 +73,15 @@ export const getArenaStaticProps: GetStaticProps<StaticArenaProps> = async (cont
 
     if (groupPk) {
       const poolData = initialData.poolData.find((pool) => pool.group === groupPk);
-      const tokenDetails = initialData.tokenDetails.find(
-        (token) => token.address === poolData?.base_bank?.mint.address.toString()
-      );
-      const quoteTokenDetails = initialData.tokenDetails.find(
-        (token) => token.address === poolData?.quote_bank?.mint.address.toString()
-      );
 
-      if (poolData && tokenDetails && quoteTokenDetails) {
-        metadata.title = `Trade ${tokenDetails.symbol}/${quoteTokenDetails.symbol} with leverage in The Arena.`;
-        metadata.description = `Trade ${tokenDetails.symbol} / ${quoteTokenDetails.symbol} with leverage in The Arena.`;
-        metadata.image = `${baseUrl}/api/share-image/generate?tokenSymbol=${tokenDetails.symbol}&tokenImageUrl=${tokenDetails.imageUrl}&quoteTokenSymbol=${quoteTokenDetails.symbol}&quoteTokenImageUrl=${quoteTokenDetails.imageUrl}`;
+      if (poolData) {
+        const tokenSymbol = poolData.base_bank.mint.symbol;
+        const quoteSymbol = poolData.quote_bank.mint.symbol;
+        const tokenImageUrl = `${TOKEN_ICON_BASE_URL}${poolData.base_bank.mint.address}.png`;
+        const quoteImageUrl = `${TOKEN_ICON_BASE_URL}${poolData.quote_bank.mint.address}.png`;
+        metadata.title = `Trade ${tokenSymbol}/${quoteSymbol} with leverage in The Arena.`;
+        metadata.description = `Trade ${tokenSymbol} / ${quoteSymbol} with leverage in The Arena.`;
+        metadata.image = `${baseUrl}/api/share-image/generate?tokenSymbol=${tokenSymbol}&tokenImageUrl=${tokenImageUrl}&quoteTokenSymbol=${quoteSymbol}&quoteTokenImageUrl=${quoteImageUrl}`;
       }
     }
 
@@ -116,7 +112,7 @@ export const fetchInitialArenaState = async (baseUrl?: string): Promise<InitialA
 
   try {
     // Fetch all data in parallel using Promise.all
-    const [poolData, tokenDetailsData] = await Promise.all([
+    const [poolData, tokenVolumeData] = await Promise.all([
       fetch(`${baseUrl}/api/pool/list`).then((res) => res.json() as Promise<PoolListApiResponse[]>),
       fetch(`${baseUrl}/api/token/arenaTokens`, {
         headers: {
@@ -128,7 +124,7 @@ export const fetchInitialArenaState = async (baseUrl?: string): Promise<InitialA
 
     arenaState = {
       poolData,
-      tokenDetails: tokenDetailsData,
+      tokenVolumeData,
     };
 
     return arenaState;
@@ -272,24 +268,24 @@ export const compileExtendedArenaBank = (
     oraclePrice: OraclePrice;
     tokenMetadata: TokenMetadata;
   }[],
-  tokenDataByMint: Record<string, TokenData>
+  tokenVolumeDataByMint: Record<string, TokenVolumeData>
 ): ArenaBank[] => {
   return banksWithPriceAndToken.map(({ bank, oraclePrice, tokenMetadata }) => {
     const extendedBankInfo = makeExtendedBankInfo(tokenMetadata, bank, oraclePrice, undefined, undefined, true);
     const mintAddress = bank.mint.toBase58();
-    const tokenData = tokenDataByMint[mintAddress];
-    if (!tokenData) {
+    const tokenVolumeData = tokenVolumeDataByMint[mintAddress];
+    if (!tokenVolumeData) {
       console.error("Failed to parse token data");
     }
 
     const extendedArenaBank = {
       ...extendedBankInfo,
       tokenData: {
-        price: tokenData.price,
-        priceChange24hr: tokenData.priceChange24h,
-        volume24hr: tokenData.volume24h,
-        volumeChange24hr: tokenData.volumeChange24h,
-        marketCap: tokenData.marketcap,
+        price: tokenVolumeData.price,
+        priceChange24hr: tokenVolumeData.priceChange24h,
+        volume24hr: tokenVolumeData.volume24h,
+        volumeChange24hr: tokenVolumeData.volumeChange24h,
+        marketCap: tokenVolumeData.marketcap,
       },
     } as ArenaBank;
 

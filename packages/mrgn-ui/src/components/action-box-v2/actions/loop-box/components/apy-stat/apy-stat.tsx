@@ -1,12 +1,11 @@
 import React from "react";
-import Image from "next/image";
+import { IconChevronDown } from "@tabler/icons-react";
 
 import { calcNetLoopingApy, cn } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
+
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
-import { IconChevronDown } from "@tabler/icons-react";
 
 type ApyStatProps = {
   selectedBank: ExtendedBankInfo | null;
@@ -86,6 +85,7 @@ export const ApyStat = ({
                         <React.Fragment key={bank.meta.tokenSymbol}>
                           <li key={bank.meta.tokenSymbol} className="flex items-center gap-8 justify-between text-xs">
                             <div className="flex items-center gap-2">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={bank.meta.tokenLogoUri}
                                 width={16}
@@ -105,6 +105,7 @@ export const ApyStat = ({
                           {isDepositBank && depositLstApy && (
                             <li className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={bank.meta.tokenLogoUri}
                                   width={16}
@@ -125,7 +126,8 @@ export const ApyStat = ({
                           {!isDepositBank && borrowLstApy && (
                             <li className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <Image
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
                                   src={bank.meta.tokenLogoUri}
                                   width={16}
                                   height={16}

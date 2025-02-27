@@ -1,19 +1,15 @@
 import React from "react";
 import type { FuseResult } from "fuse.js";
-
-import {
-  tokenPriceFormatter,
-  numeralFormatter,
-  percentFormatter,
-  dynamicNumeralFormatter,
-} from "@mrgnlabs/mrgn-common";
-import { cn } from "@mrgnlabs/mrgn-utils";
+import Image from "next/image";
 import { IconCommand, IconX } from "@tabler/icons-react";
+
+import { percentFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { Button } from "~/components/ui/button";
 
-import { ArenaPoolSummary, ArenaPoolV2 } from "~/types/trade-store.types";
+import { ArenaPoolSummary } from "~/types";
 import { useTradeStoreV2 } from "~/store";
 
 type PoolSearchDefaultProps = {
@@ -133,14 +129,14 @@ export const PoolSearchDefault = ({
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2 relative">
-                        <img
+                        <Image
                           src={tokenBank.meta.tokenLogoUri}
                           width={size === "sm" ? 28 : 32}
                           height={size === "sm" ? 28 : 32}
                           alt={tokenBank.meta.tokenSymbol}
                           className="rounded-full sm:w-[32px] sm:h-[32px] w-[28px] h-[28px] object-cover"
                         />
-                        <img
+                        <Image
                           src={quoteBank.meta.tokenLogoUri}
                           width={size === "sm" ? 12 : 16}
                           height={size === "sm" ? 12 : 16}

@@ -12,6 +12,8 @@ import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useTradeStoreV2 } from "~/store";
 import { ArenaPoolSummary } from "~/types/trade-store.types";
+import { TOKEN_ICON_BASE_URL } from "~/config/trade";
+
 import type { PoolMintData } from "../types";
 
 type CreatePoolMintProps = {
@@ -152,7 +154,7 @@ export const CreatePoolQuote = ({ tokenData, isSearchingToken, setIsOpen, fetchT
           <div className="flex flex-col justify-center items-center w-full max-w-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={getTokenImageURL(new PublicKey(poolExists.tokenSummary.mint))}
+              src={getTokenImageURL(new PublicKey(poolExists.tokenSummary.mint), TOKEN_ICON_BASE_URL)}
               className="rounded-full"
               width={48}
               height={48}
