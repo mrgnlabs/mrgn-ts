@@ -1,5 +1,5 @@
 import { Prose } from '~/components/Prose'
-import { Note } from '~/components/mdx'
+import { Note, Properties, Property } from '~/components/mdx'
 import { ImageComponent } from '~/components/ImageComponent'
 import { Math } from '~/components/Math'
 import { PortableText } from '@portabletext/react'
@@ -79,6 +79,24 @@ export function DocPage({ page }: { page: any }) {
                 value={section.content} 
                 components={components}
               />
+            </div>
+          )
+        }
+
+        // Handle "properties" blocks
+        if (section._type === 'properties') {
+          return (
+            <div key={section._key} className="my-8">
+              <Properties>
+                {section.items?.map((item: any, i: number) => (
+                  <Property key={i} name={item.name} type={item.type}>
+                    <PortableText
+                      value={item.description}
+                      components={components}
+                    />
+                  </Property>
+                ))}
+              </Properties>
             </div>
           )
         }
