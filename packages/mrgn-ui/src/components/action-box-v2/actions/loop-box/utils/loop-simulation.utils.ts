@@ -2,7 +2,7 @@ import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
-import { ActionMessageType, handleSimulationError, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
+import { ActionProcessingError, handleSimulationError, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import {
@@ -46,17 +46,17 @@ export function calculateSummary({
 }
 
 export const getSimulationResult = async (props: SimulateActionProps) => {
-  let actionMethod: ActionMessageType | undefined = undefined;
-  let simulationResult: SimulationResult | null = null;
-
   try {
-    simulationResult = await simulateFlashLoan(props);
+    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address]);
   } catch (error: any) {
     const actionString = "Looping";
-    actionMethod = handleSimulationError(error, props.bank, false, actionString);
+    const actionMethod = handleSimulationError(error, props.bank, false, actionString);
+    if (actionMethod) {
+      throw new ActionProcessingError(actionMethod);
+    } else {
+      throw error;
+    }
   }
-
-  return { simulationResult, actionMethod };
 };
 
 function calculateActionPreview(
@@ -79,25 +79,13 @@ function calculateActionPreview(
   const priceImpactPct = actionTxns.actionQuote?.priceImpactPct;
   const slippageBps = actionTxns.actionQuote?.slippageBps;
 
-  return {
+  const actionPreview: ActionPreview = {
     positionAmount,
     health,
     liquidationPrice,
     bankCap,
-    priceImpactPct,
+    priceImpactPct: priceImpactPct ? Number(priceImpactPct) : undefined,
     slippageBps,
-  } as ActionPreview;
-}
-
-async function simulateFlashLoan({ account, bank, txns }: SimulateActionProps) {
-  let simulationResult: SimulationResult;
-
-  if (txns.length > 0) {
-    // todo: should we not inspect multiple banks?
-    simulationResult = await account.simulateBorrowLendTransaction(txns, [bank.address]);
-    return simulationResult;
-  } else {
-    console.error("Failed to simulate flashloan");
-    throw new Error("Failed to simulate flashloan");
-  }
+  };
+  return actionPreview;
 }

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Connection, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
@@ -10,9 +10,10 @@ import {
   STATIC_SIMULATION_ERRORS,
   ActionTxns,
   extractErrorString,
+  ActionProcessingError,
 } from "@mrgnlabs/mrgn-utils";
 
-import { calculateSummary, generateActionTxns, getSimulationResult } from "../utils";
+import { calculateSummary, generateActionTxns, getLendSimulationResult } from "../utils";
 import { SimulationStatus } from "~/components/action-box-v2/utils";
 
 type LendSimulationProps = {
@@ -75,71 +76,25 @@ export function useLendSimulation({
     callbacks.setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
   };
 
-  const simulationAction = async (props: {
-    txns: ActionTxns;
-    lendMode: ActionType;
-    account: MarginfiAccountWrapper;
-    bank: ExtendedBankInfo;
-    amount: number;
-  }) => {
-    if (props.txns.transactions.length > 0) {
-      const simulationResult = await getSimulationResult({
-        actionMode: props.lendMode,
-        account: props.account,
-        bank: props.bank,
-        amount: props.amount,
-        txns: props.txns.transactions,
-      });
-
-      if (simulationResult.actionMethod) {
-        return { simulationResult: null, actionMessage: simulationResult.actionMethod };
-      } else if (simulationResult.simulationResult) {
-        return { simulationResult: simulationResult.simulationResult, actionMessage: null };
-      } else {
-        const errorMessage = STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
-        return { simulationResult: null, actionMessage: errorMessage };
-      }
-    } else {
-      throw new Error("account, bank or transactions are null"); // TODO: return error message?
-    }
-  };
-
   const fetchActionTxns = async (props: {
     marginfiAccount: MarginfiAccountWrapper | null;
     marginfiClient: MarginfiClient;
     bank: ExtendedBankInfo;
     lendMode: ActionType;
-    stakeAccount?: PublicKey;
     amount: number;
+    stakeAccount?: PublicKey;
   }): Promise<{
-    txns: { actionTxns: ActionTxns; finalAccount: MarginfiAccountWrapper } | null;
-    actionMessage: ActionMessageType | null;
+    actionTxns: ActionTxns;
+    finalAccount: MarginfiAccountWrapper;
   }> => {
-    try {
-      const _actionTxns = await generateActionTxns(props);
+    const actionTxns = await generateActionTxns(props);
 
-      if (_actionTxns && "transactions" in _actionTxns) {
-        return {
-          txns: {
-            actionTxns: _actionTxns.transactions,
-            finalAccount: _actionTxns.finalAccount,
-          },
-          actionMessage: null,
-        };
-      } else {
-        const errorMessage = _actionTxns ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
-        return {
-          txns: null,
-          actionMessage: errorMessage,
-        };
-      }
-    } catch (error) {
-      console.error("Error fetching deposit swap action txns", error);
-      return {
-        txns: null,
-        actionMessage: STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED,
-      };
-    }
+    return {
+      actionTxns: {
+        transactions: actionTxns.transactions,
+      },
+      finalAccount: actionTxns.finalAccount,
+    };
   };
 
   const handleSimulation = React.useCallback(
@@ -163,44 +118,41 @@ export function useLendSimulation({
           amount: amount,
         };
 
-        const _actionTxns = await fetchActionTxns(props);
+        const actionTxns = await fetchActionTxns(props);
 
-        if (_actionTxns.actionMessage || _actionTxns.txns?.actionTxns === undefined) {
-          handleError(_actionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
-            setErrorMessage,
-            setSimulationResult,
-            setActionTxns,
-            setIsLoading,
-          });
-          return;
+        if (actionTxns.finalAccount === null) {
+          throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED);
         }
 
-        const simulationResult = await simulationAction({
-          txns: _actionTxns.txns?.actionTxns,
-          lendMode: lendMode,
-          account: _actionTxns.txns?.finalAccount,
+        const simulationResult = await getLendSimulationResult({
+          txns: actionTxns.actionTxns.transactions,
+          account: actionTxns.finalAccount,
           bank: selectedBank,
+          actionMode: lendMode,
           amount: amount,
         });
 
-        if (simulationResult.actionMessage || simulationResult.simulationResult === null) {
-          handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
+        setSimulationResult(simulationResult);
+        setActionTxns(actionTxns.actionTxns);
+        setErrorMessage(null);
+      } catch (error) {
+        if (error instanceof ActionProcessingError) {
+          handleError(error.details, {
             setErrorMessage,
             setSimulationResult,
             setActionTxns,
             setIsLoading,
           });
-          return;
-        } else if (simulationResult.simulationResult) {
-          setSimulationResult(simulationResult.simulationResult);
-          setActionTxns(_actionTxns.txns?.actionTxns);
-          setErrorMessage(null);
         } else {
-          throw new Error("Unknown error"); // TODO: return error message?
+          // TODO: ADD SENTRY LOG
+          console.error("Error simulating lending action", error);
+          handleError(STATIC_SIMULATION_ERRORS.SIMULATION_FAILED, {
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
         }
-      } catch (error) {
-        console.error("Error simulating transaction", error);
-        setSimulationResult(null);
       } finally {
         setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }

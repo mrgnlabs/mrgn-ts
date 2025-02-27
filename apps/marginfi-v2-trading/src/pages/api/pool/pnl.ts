@@ -1,15 +1,12 @@
 import cookie from "cookie";
 import { NextApiRequest, NextApiResponse } from "next";
-import { PoolPositionsApiResponse } from "~/types/api.types";
+import { PoolPnlApiResponse, PoolPnlMapApiResponse } from "~/types/api.types";
 import { fetchAuthToken } from "~/utils";
 
 // Cache times in seconds
 const S_MAXAGE_TIME = 60 * 0.5; // 30 seconds
 const STALE_WHILE_REVALIDATE_TIME = 60 * 1; // 1 minute
 
-/**
- * @deprecated This API route is deprecated and may be removed in future versions.
- */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!process.env.MARGINFI_API_URL) {
     return res.status(500).json({ error: "API URL is not set" });
@@ -31,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { address } = req.query;
 
   try {
-    const response = await fetch(`${process.env.MARGINFI_API_URL}/arena/positions/${address}`, {
+    const response = await fetch(`${process.env.MARGINFI_API_URL}/arena/pnl/${address}`, {
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
@@ -42,12 +39,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error(`API responded with status: ${response.status}`);
     }
 
-    const data: PoolPositionsApiResponse[] = await response.json();
+    const data: PoolPnlMapApiResponse = (await response.json()).data;
+
+    const poolsArray: PoolPnlApiResponse[] = Object.entries(data.pools).map(([group, poolData]) => ({
+      group,
+      ...poolData,
+    }));
 
     // Set cache headers
     res.setHeader("Cache-Control", `s-maxage=${S_MAXAGE_TIME}, stale-while-revalidate=${STALE_WHILE_REVALIDATE_TIME}`);
 
-    return res.status(200).json(data);
+    return res.status(200).json(poolsArray);
   } catch (error) {
     console.error("Error fetching pool data:", error);
     return res.status(500).json({

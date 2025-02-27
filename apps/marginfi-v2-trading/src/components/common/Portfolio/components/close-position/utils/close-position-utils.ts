@@ -12,7 +12,8 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import {
   ActionMessageType,
-  calculateMaxRepayableCollateralLegacy,
+  ActionProcessingError,
+  calculateMaxRepayableCollateral,
   ClosePositionActionTxns,
   deserializeInstruction,
   extractErrorString,
@@ -34,7 +35,6 @@ export const simulateClosePosition = async ({
   jupiterOptions,
   connection,
   platformFeeBps,
-  setIsLoading,
   tradeState,
 }: {
   marginfiAccount: MarginfiAccountWrapper;
@@ -43,54 +43,29 @@ export const simulateClosePosition = async ({
   jupiterOptions: JupiterOptions | null;
   connection: Connection;
   platformFeeBps: number;
-  setIsLoading: (loading: boolean) => void;
   tradeState: GroupStatus;
-}): Promise<{ actionTxns: ClosePositionActionTxns | null; actionMessage: ActionMessageType | null }> => {
-  try {
-    if (!marginfiAccount) {
-      return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED };
-    }
-    if (depositBanks.length === 0 || !borrowBank) {
-      return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.BANK_NOT_INITIALIZED };
-    }
-    if (!jupiterOptions) {
-      return { actionTxns: null, actionMessage: STATIC_SIMULATION_ERRORS.JUPITER_OPTIONS_NOT_INITIALIZED };
-    }
-
-    setIsLoading(true);
-
-    const { actionTxns, actionMessage } = await fetchClosePositionTxns({
-      marginfiAccount,
-      depositBank: depositBanks[0],
-      borrowBank: borrowBank,
-      jupiterOptions,
-      connection: connection,
-      platformFeeBps,
-      tradeState,
-    });
-
-    if (actionMessage || actionTxns === null) {
-      return { actionTxns: null, actionMessage: actionMessage ?? STATIC_SIMULATION_ERRORS.TRADE_FAILED };
-    }
-
-    return { actionTxns, actionMessage };
-  } catch (error) {
-    const msg = extractErrorString(error);
-    let actionMethod: ActionMessageType = STATIC_SIMULATION_ERRORS.TRADE_FAILED;
-    if (msg) {
-      actionMethod = {
-        isEnabled: false,
-        actionMethod: "WARNING",
-        description: msg,
-        code: 101,
-      };
-    }
-    console.error("Error simulating transaction", error);
-
-    return { actionTxns: null, actionMessage: actionMethod };
-  } finally {
-    setIsLoading(false);
+}): Promise<{ actionTxns: ClosePositionActionTxns }> => {
+  if (!marginfiAccount) {
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED);
   }
+  if (depositBanks.length === 0 || !borrowBank) {
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.BANK_NOT_INITIALIZED);
+  }
+  if (!jupiterOptions) {
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.JUPITER_OPTIONS_NOT_INITIALIZED);
+  }
+
+  const { actionTxns } = await fetchClosePositionTxns({
+    marginfiAccount,
+    depositBank: depositBanks[0],
+    borrowBank: borrowBank,
+    jupiterOptions,
+    connection: connection,
+    platformFeeBps,
+    tradeState,
+  });
+
+  return { actionTxns };
 };
 
 const fetchClosePositionTxns = async (props: {
@@ -101,68 +76,42 @@ const fetchClosePositionTxns = async (props: {
   connection: Connection;
   platformFeeBps: number;
   tradeState: GroupStatus;
-}): Promise<{ actionTxns: ClosePositionActionTxns | null; actionMessage: ActionMessageType | null }> => {
-  try {
-    let txns: ClosePositionActionTxns | ActionMessageType;
+}): Promise<{ actionTxns: ClosePositionActionTxns }> => {
+  let txns: ClosePositionActionTxns;
 
-    txns = await calculateClosePositions({
-      marginfiAccount: props.marginfiAccount,
-      depositBanks: [props.depositBank],
-      borrowBank: props.borrowBank,
+  txns = await calculateClosePositions({
+    marginfiAccount: props.marginfiAccount,
+    depositBanks: [props.depositBank],
+    borrowBank: props.borrowBank,
+    jupiterOptions: props.jupiterOptions,
+    connection: props.connection,
+    platformFeeBps: props.platformFeeBps,
+  });
+
+  // if the trade state is long, we need to swap to the Quote token again
+  if (props.tradeState === GroupStatus.LONG) {
+    const swapTx = await getSwapTx({
+      ...props,
+      authority: props.marginfiAccount.authority,
       jupiterOptions: props.jupiterOptions,
-      connection: props.connection,
-      platformFeeBps: props.platformFeeBps,
+      maxAmount: txns.maxAmount,
     });
-
-    // if the actionTxn is not present, we need to return an error
-    if (!("transactions" in txns)) {
-      return { actionTxns: null, actionMessage: txns };
-    }
-
-    // if the trade state is long, we need to swap to the Quote token again
-    if (props.tradeState === GroupStatus.LONG) {
-      const swapTx = await getSwapTx({
-        ...props,
-        authority: props.marginfiAccount.authority,
-        jupiterOptions: props.jupiterOptions,
-      });
-
-      if ("tx" in swapTx) {
-        txns = {
-          ...txns,
-          closeTransactions: swapTx.tx ? [swapTx.tx] : [],
-        };
-      } else {
-        return { actionTxns: null, actionMessage: swapTx };
-      }
-    }
-
-    // close marginfi account
-    const closeAccountTx = await getCloseAccountTx(props.marginfiAccount);
-
     txns = {
       ...txns,
-      closeTransactions: [...(txns.closeTransactions ?? []), closeAccountTx],
+      closeTransactions: swapTx.tx ? [swapTx.tx] : [],
     };
-
-    return { actionTxns: txns, actionMessage: null };
-  } catch (error) {
-    const msg = extractErrorString(error);
-    let actionMethod: ActionMessageType = STATIC_SIMULATION_ERRORS.TRADE_FAILED;
-    if (msg) {
-      actionMethod = {
-        isEnabled: false,
-        actionMethod: "WARNING",
-        description: msg,
-        code: 101,
-      };
-    }
-    console.error("Error simulating transaction", error);
-
-    return { actionTxns: null, actionMessage: actionMethod };
   }
-};
 
+  // close marginfi account
+  const closeAccountTx = await getCloseAccountTx(props.marginfiAccount);
+
+  txns = {
+    ...txns,
+    closeTransactions: [...(txns.closeTransactions ?? []), closeAccountTx],
+  };
+
+  return { actionTxns: txns };
+};
 
 /**
  * Creates a transaction to close a marginfi account
@@ -189,13 +138,10 @@ type SwapTxProps = {
   connection: Connection;
   jupiterOptions: JupiterOptions;
   platformFeeBps: number;
+  maxAmount: number;
 };
 interface CreateSwapTxProps extends SwapTxProps {
   swapAmount: number;
-}
-
-interface GetSwapTxProps extends SwapTxProps {
-  depositBank: ActiveBankInfo;
 }
 
 type CreateSwapTxResponse = { tx: SolanaTransaction; quote: QuoteResponse };
@@ -203,20 +149,9 @@ type CreateSwapTxResponse = { tx: SolanaTransaction; quote: QuoteResponse };
 /**
  * Gets a Jupiter swap transaction for swapping the maximum repayable collateral amount to the Quote token
  */
-async function getSwapTx({ ...props }: SwapTxProps): Promise<CreateSwapTxResponse | ActionMessageType> {
-  const maxAmount = await calculateMaxRepayableCollateralLegacy(
-    props.borrowBank,
-    props.depositBank,
-    props.jupiterOptions?.slippageBps,
-    props.jupiterOptions?.slippageMode
-  ); // TODO: confirm this is still working
-  if (!maxAmount) {
-    return STATIC_SIMULATION_ERRORS.MAX_AMOUNT_CALCULATION_FAILED;
-  }
-  const amount = props.depositBank.position.amount - maxAmount;
-
+async function getSwapTx({ ...props }: SwapTxProps): Promise<CreateSwapTxResponse> {
+  const amount = props.depositBank.position.amount - props.maxAmount;
   const swapTx = await createSwapTx({ ...props, swapAmount: amount });
-
   return swapTx;
 }
 

@@ -1,16 +1,15 @@
 import React from "react";
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
 import {
   computeMaxLeverage,
   MarginfiAccountWrapper,
   MarginfiClient,
-  PriorityFees,
   SimulationResult,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
+  ActionProcessingError,
   DYNAMIC_SIMULATION_ERRORS,
   extractErrorString,
   LoopActionTxns,
@@ -19,10 +18,11 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useActionBoxStore } from "../../../store";
-import { SimulationStatus } from "../../../utils/simulation.utils";
-import { calculateLooping, calculateSummary, getSimulationResult } from "../utils";
+import { useActionBoxStore } from "~/components/action-box-v2/store";
+import { SimulationStatus } from "~/components/action-box-v2/utils";
 import { JupiterOptions } from "~/components/settings/settings";
+
+import { calculateLooping, calculateSummary, getSimulationResult } from "../utils";
 
 type LoopSimulationProps = {
   debouncedAmount: number;
@@ -34,15 +34,14 @@ type LoopSimulationProps = {
   selectedSecondaryBank: ExtendedBankInfo | null;
   actionTxns: LoopActionTxns;
   simulationResult: SimulationResult | null;
-  isRefreshTxn: boolean;
   jupiterOptions: JupiterOptions | null;
+  actionMessages: ActionMessageType[];
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setActionTxns: (actionTxns: LoopActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
   setMaxLeverage: (maxLeverage: number) => void;
   setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
-  actionMessages: ActionMessageType[];
 };
 
 export function useLoopSimulation({
@@ -55,7 +54,6 @@ export function useLoopSimulation({
   selectedSecondaryBank,
   actionTxns,
   simulationResult,
-  isRefreshTxn,
   jupiterOptions,
   actionMessages,
   setSimulationResult,
@@ -69,7 +67,6 @@ export function useLoopSimulation({
   const prevDebouncedAmount = usePrevious(debouncedAmount);
   const prevDebouncedLeverage = usePrevious(debouncedLeverage);
   const prevSelectedSecondaryBank = usePrevious(selectedSecondaryBank);
-  const prevActionTxn = usePrevious(actionTxns?.transactions);
 
   ///////////////////////
   // Handle simulation //
@@ -96,7 +93,6 @@ export function useLoopSimulation({
     callbacks.setActionTxns({
       transactions: [],
       actionQuote: null,
-      lastValidBlockHeight: undefined,
       actualDepositAmount: 0,
       borrowAmount: new BigNumber(0),
     });
@@ -105,27 +101,6 @@ export function useLoopSimulation({
       typeof actionMessage === "string" ? extractErrorString(actionMessage) : actionMessage.description
     );
     callbacks.setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
-  };
-
-  const simulationAction = async (txns: LoopActionTxns, account: MarginfiAccountWrapper, bank: ExtendedBankInfo) => {
-    if (txns.transactions.length > 0) {
-      const simulationResult = await getSimulationResult({
-        account,
-        bank,
-        txns: txns.transactions,
-      });
-
-      if (simulationResult.actionMethod) {
-        return { simulationResult: null, actionMessage: simulationResult.actionMethod };
-      } else if (simulationResult.simulationResult) {
-        return { simulationResult: simulationResult.simulationResult, actionMessage: null };
-      } else {
-        const errorMessage = STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
-        return { simulationResult: null, actionMessage: errorMessage };
-      }
-    } else {
-      throw new Error("account, bank or transactions are null"); // TODO: return error message?
-    }
   };
 
   const fetchLoopingTxn = async (props: {
@@ -137,40 +112,22 @@ export function useLoopSimulation({
     depositAmount: number;
     jupiterOptions: JupiterOptions;
     platformFeeBps: number;
-  }): Promise<{ actionTxns: LoopActionTxns | null; actionMessage: ActionMessageType | null }> => {
-    try {
-      const loopingResult = await calculateLooping({
-        marginfiClient: props.marginfiClient,
-        marginfiAccount: props.marginfiAccount,
-        depositBank: props.depositBank,
-        borrowBank: props.borrowBank,
-        targetLeverage: props.targetLeverage,
-        depositAmount: props.depositAmount,
-        slippageBps: props.jupiterOptions?.slippageBps,
-        slippageMode: props.jupiterOptions?.slippageMode,
-        connection: props.marginfiClient.provider.connection,
-        platformFeeBps: props.platformFeeBps,
-      });
-
-      if (loopingResult && "actionQuote" in loopingResult) {
-        return {
-          actionTxns: loopingResult,
-          actionMessage: null,
-        };
-      } else {
-        const errorMessage = loopingResult ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
-        return {
-          actionTxns: null,
-          actionMessage: errorMessage,
-        };
-      }
-    } catch (error) {
-      console.error("Error fetching looping transaction", error);
-      return {
-        actionTxns: null,
-        actionMessage: STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED,
-      };
-    }
+  }): Promise<{ actionTxns: LoopActionTxns }> => {
+    const loopingResult = await calculateLooping({
+      marginfiClient: props.marginfiClient,
+      marginfiAccount: props.marginfiAccount,
+      depositBank: props.depositBank,
+      borrowBank: props.borrowBank,
+      targetLeverage: props.targetLeverage,
+      depositAmount: props.depositAmount,
+      slippageBps: props.jupiterOptions?.slippageBps,
+      slippageMode: props.jupiterOptions?.slippageMode,
+      connection: props.marginfiClient.provider.connection,
+      platformFeeBps: props.platformFeeBps,
+    });
+    return {
+      actionTxns: loopingResult,
+    };
   };
 
   const handleSimulation = React.useCallback(
@@ -189,7 +146,6 @@ export function useLoopSimulation({
           setActionTxns({
             transactions: [],
             actionQuote: null,
-            lastValidBlockHeight: undefined,
             actualDepositAmount: 0,
             borrowAmount: new BigNumber(0),
           });
@@ -212,35 +168,33 @@ export function useLoopSimulation({
 
         const loopActionTxns = await fetchLoopingTxn(props);
 
-        if (loopActionTxns.actionMessage || loopActionTxns.actionTxns === null) {
-          handleError(loopActionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
-            setErrorMessage,
-            setSimulationResult,
-            setActionTxns,
-            setIsLoading,
-          });
-          return;
-        }
+        const simulationResult = await getSimulationResult({
+          txns: loopActionTxns.actionTxns.transactions,
+          account: selectedAccount,
+          bank: selectedBank,
+        });
 
-        const simulationResult = await simulationAction(loopActionTxns.actionTxns, selectedAccount, selectedBank);
-
-        if (simulationResult.actionMessage || simulationResult.simulationResult === null) {
-          handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
-            setErrorMessage,
-            setSimulationResult,
-            setActionTxns,
-            setIsLoading,
-          });
-          return;
-        } else if (simulationResult.simulationResult) {
-          setActionTxns(loopActionTxns.actionTxns);
-          setSimulationResult(simulationResult.simulationResult);
-        } else {
-          throw new Error("Unknown error"); // TODO: return error message?
-        }
+        setActionTxns(loopActionTxns.actionTxns);
+        setSimulationResult(simulationResult);
+        setErrorMessage(null);
       } catch (error) {
-        console.error("Error simulating transaction", error);
-        setSimulationResult(null);
+        if (error instanceof ActionProcessingError) {
+          handleError(error.details, {
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
+        } else {
+          // TODO: ADD SENTRY LOG
+          console.error("Error simulating repay action", error);
+          handleError(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
+        }
       } finally {
         setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
       }
@@ -265,17 +219,12 @@ export function useLoopSimulation({
     if ((prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) && !isDisabled) {
       handleSimulation(debouncedAmount, debouncedLeverage);
     }
-
-    if (isRefreshTxn) {
-      handleSimulation(debouncedAmount, debouncedLeverage);
-    }
   }, [
     actionMessages,
     actionTxns,
     debouncedAmount,
     debouncedLeverage,
     handleSimulation,
-    isRefreshTxn,
     prevDebouncedAmount,
     prevDebouncedLeverage,
   ]);

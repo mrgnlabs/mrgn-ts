@@ -7,11 +7,11 @@ import { ArenaBank } from "~/types/trade-store.types";
 import {
   ActionPreview,
   ActionSummary,
+  SimulatedActionPreview,
   simulatedCollateral,
   simulatedHealthFactor,
   simulatedPositionSize,
 } from "~/components/action-box-v2/utils";
-import { SimulatedActionPreview } from "~/components/action-box-v2/actions/lend-box/utils";
 
 import { SimulateActionProps } from "./trade-box.consts";
 

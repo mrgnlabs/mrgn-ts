@@ -1,16 +1,12 @@
-import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
-import { AccountInfo, AddressLookupTableAccount, Connection, PublicKey, VersionedTransaction } from "@solana/web3.js";
+import { createJupiterApiClient, QuoteGetRequest } from "@jup-ag/api";
+import { AccountInfo, AddressLookupTableAccount, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
-import { MarginfiAccountWrapper, MarginfiClient, PriorityFees } from "@mrgnlabs/marginfi-client-v2";
-import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   addTransactionMetadata,
-  ExtendedV0Transaction,
   LUT_PROGRAM_AUTHORITY_INDEX,
   nativeToUi,
   SolanaTransaction,
-  TransactionBroadcastType,
   TransactionType,
   uiToNative,
   WSOL_MINT,
@@ -20,13 +16,13 @@ import { deserializeInstruction, getAdressLookupTableAccounts, getSwapQuoteWithR
 import { isWholePosition } from "../../mrgnUtils";
 import {
   ActionMessageType,
+  ActionProcessingError,
   CalculateClosePositionProps,
   CalculateLoopingProps,
   CalculateRepayCollateralProps,
   ClosePositionActionTxns,
   ClosePositionProps,
   LoopActionTxns,
-  LoopingObject,
   LoopingProps,
   RepayActionTxns,
   RepayWithCollatProps,
@@ -35,7 +31,7 @@ import { STATIC_SIMULATION_ERRORS } from "../../errors";
 import { TOKEN_2022_MINTS, getFeeAccount } from "../../jup-referral.utils";
 
 import {
-  calculateMaxRepayableCollateralLegacy,
+  calculateMaxRepayableCollateral,
   getLoopingParamsForAccount,
   getLoopingParamsForClient,
   verifyTxSizeCloseBorrowLendPosition,
@@ -61,13 +57,10 @@ export async function calculateRepayCollateralParams({
   platformFeeBps,
   slippageMode,
   ...repayProps
-}: CalculateRepayCollateralProps): Promise<
-  | {
-      repayCollatObject: RepayActionTxns;
-      amount: number;
-    }
-  | ActionMessageType
-> {
+}: CalculateRepayCollateralProps): Promise<{
+  repayCollatObject: RepayActionTxns;
+  amount: number;
+}> {
   const maxRepayAmount = repayProps.borrowBank.isActive ? repayProps.borrowBank?.position.amount : 0;
 
   // decreased maxAccounts from [undefined, 50, 40, 30] to [50, 40, 30]
@@ -87,49 +80,38 @@ export async function calculateRepayCollateralParams({
       platformFeeBps,
       dynamicSlippage: slippageMode === "DYNAMIC" ? true : false,
     } as QuoteGetRequest;
-    try {
-      const swapQuote = await getSwapQuoteWithRetry(quoteParams, 2, 1000);
 
-      if (!maxAccounts) {
-        firstQuote = swapQuote;
-      }
+    const swapQuote = await getSwapQuoteWithRetry(quoteParams, 2, 1000);
 
-      if (swapQuote) {
-        const outAmount = nativeToUi(swapQuote.outAmount, repayProps.borrowBank.info.state.mintDecimals);
-        const outAmountThreshold = nativeToUi(
-          swapQuote.otherAmountThreshold,
-          repayProps.borrowBank.info.state.mintDecimals
-        );
+    if (!maxAccounts) {
+      firstQuote = swapQuote;
+    }
 
-        const amountToRepay = outAmount > maxRepayAmount ? maxRepayAmount : outAmountThreshold;
+    const outAmount = nativeToUi(swapQuote.outAmount, repayProps.borrowBank.info.state.mintDecimals);
+    const outAmountThreshold = nativeToUi(
+      swapQuote.otherAmountThreshold,
+      repayProps.borrowBank.info.state.mintDecimals
+    );
 
-        const txn = await verifyTxSizeCollat({
-          ...repayProps,
-          quote: swapQuote,
-          repayAmount: amountToRepay,
-        });
+    const amountToRepay = outAmount > maxRepayAmount ? maxRepayAmount : outAmountThreshold;
 
-        if (txn.transactions.length) {
-          return {
-            repayCollatObject: {
-              transactions: txn.transactions,
-              actionQuote: swapQuote,
-              lastValidBlockHeight: txn.lastValidBlockHeight,
-            },
-            amount: amountToRepay,
-          };
-        } else if (txn.error && maxAccounts === maxAccountsArr[maxAccountsArr.length - 1]) {
-          return txn.error;
-        }
-      } else {
-        throw new Error("Swap quote failed");
-      }
-    } catch (error) {
-      console.error(error);
-      return STATIC_SIMULATION_ERRORS.FL_FAILED;
+    const txn = await verifyTxSizeCollat({
+      ...repayProps,
+      quote: swapQuote,
+      repayAmount: amountToRepay,
+    });
+
+    if (txn.transactions.length) {
+      return {
+        repayCollatObject: {
+          transactions: txn.transactions,
+          actionQuote: swapQuote,
+        },
+        amount: amountToRepay,
+      };
     }
   }
-  return STATIC_SIMULATION_ERRORS.FL_FAILED;
+  throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.FL_FAILED);
 }
 
 /*
@@ -140,23 +122,31 @@ export async function calculateBorrowLendPositionParams({
   slippageMode,
   platformFeeBps,
   ...closePostionProps
-}: CalculateClosePositionProps): Promise<ClosePositionActionTxns | ActionMessageType> {
+}: CalculateClosePositionProps): Promise<ClosePositionActionTxns> {
   let firstQuote;
   const maxAccountsArr = [40, 30];
 
-  if (!closePostionProps.borrowBank.isActive) throw new Error("not active");
+  if (!closePostionProps.borrowBank.isActive)
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.BANK_NOT_ACTIVE_CHECK);
 
-  const maxAmount = await calculateMaxRepayableCollateralLegacy(
+  const { amount: maxAmount, maxOverflowHit } = await calculateMaxRepayableCollateral(
     closePostionProps.borrowBank,
     closePostionProps.depositBank,
     slippageBps,
     slippageMode
-  ); // TODO: confirm this is still working
+  ).catch((error) => {
+    if (error instanceof ActionProcessingError) {
+      if (error.details.code === STATIC_SIMULATION_ERRORS.MAX_AMOUNT_CALCULATION_FAILED.code) {
+        throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED);
+      }
+    }
+    throw error;
+  });
 
-  if (!maxAmount) return STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED;
+  if (!maxAmount) throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED);
 
   for (const maxAccounts of maxAccountsArr) {
-    const quoteParams = {
+    const quoteParams: QuoteGetRequest = {
       amount: uiToNative(maxAmount, closePostionProps.depositBank.info.state.mintDecimals).toNumber(),
       inputMint: closePostionProps.depositBank.info.state.mint.toBase58(),
       outputMint: closePostionProps.borrowBank.info.state.mint.toBase58(),
@@ -165,37 +155,28 @@ export async function calculateBorrowLendPositionParams({
       platformFeeBps: platformFeeBps,
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",
-    } as QuoteGetRequest;
-    try {
-      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+    };
 
-      if (!maxAccounts) {
-        firstQuote = swapQuote;
-      }
+    const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
-      if (swapQuote) {
-        const txn = await verifyTxSizeCloseBorrowLendPosition({
-          ...closePostionProps,
-          quote: swapQuote,
-        });
+    if (!maxAccounts) {
+      firstQuote = swapQuote;
+    }
 
-        if (txn.transactions.length) {
-          return {
-            transactions: txn.transactions,
-            actionQuote: swapQuote,
-          };
-        } else if (txn.error && maxAccounts === maxAccountsArr[maxAccountsArr.length - 1]) {
-          return txn.error;
-        }
-      } else {
-        throw new Error("Swap quote failed");
-      }
-    } catch (error) {
-      console.error(error);
-      return STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED;
+    const txn = await verifyTxSizeCloseBorrowLendPosition({
+      ...closePostionProps,
+      quote: swapQuote,
+    });
+
+    if (txn.transactions.length) {
+      return {
+        transactions: txn.transactions,
+        actionQuote: swapQuote,
+        maxAmount,
+      };
     }
   }
-  return STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED;
+  throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.CLOSE_POSITIONS_FL_FAILED);
 }
 
 /*
@@ -209,9 +190,9 @@ export async function calculateLoopingParams({
   platformFeeBps,
   setupBankAddresses,
   ...loopingProps
-}: CalculateLoopingProps): Promise<LoopActionTxns | ActionMessageType> {
+}: CalculateLoopingProps): Promise<LoopActionTxns> {
   if (!loopingProps.marginfiAccount && !marginfiClient) {
-    return STATIC_SIMULATION_ERRORS.NOT_INITIALIZED;
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.NOT_INITIALIZED);
   }
 
   let borrowAmount: BigNumber, depositAmount: BigNumber, borrowAmountNative: number;
@@ -258,78 +239,60 @@ export async function calculateLoopingParams({
       maxAccounts: maxAccounts,
       swapMode: "ExactIn",
     };
-    try {
-      const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
-      if (!maxAccounts) {
-        firstQuote = swapQuote;
-      }
+    const swapQuote = await getSwapQuoteWithRetry(quoteParams);
 
-      if (swapQuote) {
-        const minSwapAmountOutUi = nativeToUi(
-          swapQuote.otherAmountThreshold,
-          loopingProps.depositBank.info.state.mintDecimals
-        );
-        const actualDepositAmountUi = minSwapAmountOutUi + loopingProps.depositAmount;
-        let txn: {
-          transactions: SolanaTransaction[];
-          error?: ActionMessageType;
-          lastValidBlockHeight?: number;
-        } = {
-          transactions: [],
-        };
-
-        if (loopingProps.marginfiAccount) {
-          txn = await verifyTxSizeLooping({
-            ...loopingProps,
-            quote: swapQuote,
-            borrowAmount: borrowAmount,
-            actualDepositAmount: actualDepositAmountUi,
-            setupBankAddresses,
-          });
-        }
-        if (txn.transactions.length || !loopingProps.marginfiAccount) {
-          return {
-            transactions: txn.transactions,
-            actionQuote: swapQuote,
-            lastValidBlockHeight: txn.lastValidBlockHeight,
-            actualDepositAmount: actualDepositAmountUi,
-            borrowAmount: new BigNumber(borrowAmount),
-          };
-        } else if (txn.error && maxAccounts === maxAccountsArr[maxAccountsArr.length - 1]) {
-          return txn.error;
-        }
-      } else {
-        throw new Error("Swap quote failed");
-      }
-    } catch (error) {
-      console.error(error);
-      return STATIC_SIMULATION_ERRORS.FL_FAILED;
+    if (!maxAccounts) {
+      firstQuote = swapQuote;
     }
-  }
 
-  return STATIC_SIMULATION_ERRORS.FL_FAILED;
-}
+    if (swapQuote) {
+      const minSwapAmountOutUi = nativeToUi(
+        swapQuote.otherAmountThreshold,
+        loopingProps.depositBank.info.state.mintDecimals
+      );
+      const actualDepositAmountUi = minSwapAmountOutUi + loopingProps.depositAmount;
+      let txn: {
+        transactions: SolanaTransaction[];
+        error?: ActionMessageType;
+        lastValidBlockHeight?: number;
+      } = {
+        transactions: [],
+      };
 
-export async function calculateLoopingTransaction(props: LoopingProps): Promise<LoopActionTxns | ActionMessageType> {
-  if (props.marginfiAccount) {
-    const txn = await verifyTxSizeLooping(props);
-
-    if (!txn) {
-      return STATIC_SIMULATION_ERRORS.FL_FAILED;
-    } else if (txn.error) {
-      return txn.error;
-    } else {
+      if (loopingProps.marginfiAccount) {
+        txn = await verifyTxSizeLooping({
+          ...loopingProps,
+          quote: swapQuote,
+          borrowAmount: borrowAmount,
+          actualDepositAmount: actualDepositAmountUi,
+          setupBankAddresses,
+        });
+      }
       return {
         transactions: txn.transactions,
-        actionQuote: props.quote,
-        lastValidBlockHeight: txn.lastValidBlockHeight,
-        actualDepositAmount: props.actualDepositAmount,
-        borrowAmount: props.borrowAmount,
+        actionQuote: swapQuote,
+        actualDepositAmount: actualDepositAmountUi,
+        borrowAmount: new BigNumber(borrowAmount),
       };
     }
   }
-  return STATIC_SIMULATION_ERRORS.FL_FAILED;
+
+  throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.FL_FAILED);
+}
+
+export async function calculateLoopingTransaction(props: LoopingProps): Promise<LoopActionTxns> {
+  if (props.marginfiAccount) {
+    const txn = await verifyTxSizeLooping(props);
+
+    return {
+      transactions: txn.transactions,
+      actionQuote: props.quote,
+      actualDepositAmount: props.actualDepositAmount,
+      borrowAmount: props.borrowAmount,
+    };
+  }
+  throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.FL_FAILED);
 }
 
 /*

@@ -2,6 +2,8 @@ import { create, StateCreator } from "zustand";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import Fuse, { FuseResult } from "fuse.js";
+import BigNumber from "bignumber.js";
+
 import { TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   getConfig,
@@ -24,30 +26,29 @@ import {
 } from "@mrgnlabs/mrgn-common";
 
 import { POOLS_PER_PAGE } from "~/config/trade";
-import { TokenData } from "~/types";
-import BigNumber from "bignumber.js";
+import {
+  ArenaBank,
+  ArenaPoolPnl,
+  ArenaPoolPositions,
+  ArenaPoolSummary,
+  ArenaPoolV2,
+  BankData,
+  GroupStatus,
+  TokenData,
+} from "~/types/trade-store.types";
+import { OraclePriceV2ApiResponse } from "~/types/api.types";
 import {
   compileBankAndTokenMetadata,
   compileExtendedArenaBank,
   fetchBankDataMap,
   fetchInitialArenaState,
+  fetchUserPnl,
   fetchUserPositions,
   getPoolPositionStatus,
   InitialArenaState,
   resetArenaBank,
   updateArenaBankWithUserData,
-} from "~/utils/trade-store.utils";
-import { PositionData } from "@mrgnlabs/mrgn-utils";
-import {
-  ArenaBank,
-  ArenaPoolPositions,
-  ArenaPoolSummary,
-  ArenaPoolV2,
-  ArenaPoolV2Extended,
-  BankData,
-  GroupStatus,
-} from "~/types/trade-store.types";
-import { OraclePriceV2ApiResponse } from "~/types/api.types";
+} from "~/utils";
 
 export enum TradePoolFilterStates {
   TIMESTAMP = "timestamp",
@@ -222,62 +223,68 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
           throw new Error("Failed to fetch arena state");
         }
 
-        const tokenDetailsByMint = arenaState.tokenDetails.reduce((acc, detail, index) => {
-          acc[detail.address] = detail;
-          return acc;
-        }, {} as Record<string, TokenData>);
+        const tokenDetailsByMint = arenaState.tokenDetails.reduce(
+          (acc, detail, index) => {
+            acc[detail.address] = detail;
+            return acc;
+          },
+          {} as Record<string, TokenData>
+        );
 
-        const groupSummaryByGroup: Record<string, ArenaPoolSummary> = arenaState.poolData.reduce((acc, pool) => {
-          const { address: quoteBankPk, mint: quoteMint, details: quoteBankData } = pool.quote_bank;
-          const { address: tokenBankPk, mint: tokenMint, details: tokenBankDetails } = pool.base_bank;
-          const tokenDetailsQuote = tokenDetailsByMint[quoteMint.address];
-          const tokenDetailsToken = tokenDetailsByMint[tokenMint.address];
+        const groupSummaryByGroup: Record<string, ArenaPoolSummary> = arenaState.poolData.reduce(
+          (acc, pool) => {
+            const { address: quoteBankPk, mint: quoteMint, details: quoteBankData } = pool.quote_bank;
+            const { address: tokenBankPk, mint: tokenMint, details: tokenBankDetails } = pool.base_bank;
+            const tokenDetailsQuote = tokenDetailsByMint[quoteMint.address];
+            const tokenDetailsToken = tokenDetailsByMint[tokenMint.address];
 
-          acc[pool.group] = {
-            groupPk: new PublicKey(pool.group),
-            luts: pool.lookup_tables.map((lut) => new PublicKey(lut)),
-            tokenSummary: {
-              bankPk: new PublicKey(tokenBankPk),
-              mint: new PublicKey(tokenMint.address),
-              tokenName: tokenDetailsToken.name,
-              tokenSymbol: tokenDetailsToken.symbol,
-              bankData: {
-                totalDeposits: tokenBankDetails.total_deposits,
-                totalBorrows: tokenBankDetails.total_borrows,
-                totalDepositsUsd: tokenBankDetails.total_deposits_usd,
-                totalBorrowsUsd: tokenBankDetails.total_borrows_usd,
-                depositRate: tokenBankDetails.deposit_rate,
-                borrowRate: tokenBankDetails.borrow_rate,
-                availableLiquidity: 0,
-              } as BankData,
-              tokenData: tokenDetailsToken,
-              tokenLogoUri: tokenDetailsToken.imageUrl, // `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${tokenMint.address}.png`,
-              tokenProgram: new PublicKey(tokenMint.token_program),
-            },
-            quoteSummary: {
-              bankPk: new PublicKey(quoteBankPk),
-              mint: new PublicKey(quoteMint.address),
-              tokenName: tokenDetailsQuote.name,
-              tokenSymbol: tokenDetailsQuote.symbol,
-              bankData: {
-                totalDeposits: quoteBankData.total_deposits,
-                totalBorrows: quoteBankData.total_borrows,
-                totalDepositsUsd: quoteBankData.total_deposits_usd,
-                totalBorrowsUsd: quoteBankData.total_borrows_usd,
-                depositRate: quoteBankData.deposit_rate,
-                borrowRate: quoteBankData.borrow_rate,
-                availableLiquidity: 0,
-              } as BankData,
-              tokenData: tokenDetailsQuote,
-              tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${quoteMint.address}.png`,
-              tokenProgram: new PublicKey(quoteMint.token_program),
-            },
-            createdAt: pool.created_at,
-            createdBy: pool.created_by,
-            featured: pool.featured,
-          };
-          return acc;
-        }, {} as Record<string, ArenaPoolSummary>);
+            acc[pool.group] = {
+              groupPk: new PublicKey(pool.group),
+              luts: pool.lookup_tables.map((lut) => new PublicKey(lut)),
+              tokenSummary: {
+                bankPk: new PublicKey(tokenBankPk),
+                mint: new PublicKey(tokenMint.address),
+                tokenName: tokenDetailsToken.name,
+                tokenSymbol: tokenDetailsToken.symbol,
+                bankData: {
+                  totalDeposits: tokenBankDetails.total_deposits,
+                  totalBorrows: tokenBankDetails.total_borrows,
+                  totalDepositsUsd: tokenBankDetails.total_deposits_usd,
+                  totalBorrowsUsd: tokenBankDetails.total_borrows_usd,
+                  depositRate: tokenBankDetails.deposit_rate,
+                  borrowRate: tokenBankDetails.borrow_rate,
+                  availableLiquidity: 0,
+                } as BankData,
+                tokenData: tokenDetailsToken,
+                tokenLogoUri: tokenDetailsToken.imageUrl, // `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${tokenMint.address}.png`,
+                tokenProgram: new PublicKey(tokenMint.token_program),
+              },
+              quoteSummary: {
+                bankPk: new PublicKey(quoteBankPk),
+                mint: new PublicKey(quoteMint.address),
+                tokenName: tokenDetailsQuote.name,
+                tokenSymbol: tokenDetailsQuote.symbol,
+                bankData: {
+                  totalDeposits: quoteBankData.total_deposits,
+                  totalBorrows: quoteBankData.total_borrows,
+                  totalDepositsUsd: quoteBankData.total_deposits_usd,
+                  totalBorrowsUsd: quoteBankData.total_borrows_usd,
+                  depositRate: quoteBankData.deposit_rate,
+                  borrowRate: quoteBankData.borrow_rate,
+                  availableLiquidity: 0,
+                } as BankData,
+                tokenData: tokenDetailsQuote,
+                tokenLogoUri: `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${quoteMint.address}.png`,
+                tokenProgram: new PublicKey(quoteMint.token_program),
+              },
+              createdAt: pool.created_at,
+              createdBy: pool.created_by,
+              featured: pool.featured,
+            };
+            return acc;
+          },
+          {} as Record<string, ArenaPoolSummary>
+        );
 
         const sortedGroups = sortSummaryPools(groupSummaryByGroup, tokenDetailsByMint, get().sortBy);
 
@@ -385,16 +392,10 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     let tokenAccountMap: TokenAccountMap | null = null;
     let marginfiAccountByGroupPk: Record<string, MarginfiAccount> = {};
     let isWalletFetched = false;
-    let positionsByGroupPk: Record<string, ArenaPoolPositions> = {};
+
     const isWalletConnected = wallet.publicKey && !wallet.publicKey.equals(PublicKey.default);
 
     if (isWalletConnected) {
-      const userPositions = await fetchUserPositions(wallet.publicKey);
-      positionsByGroupPk = userPositions.reduce((acc, position) => {
-        acc[position.groupPk.toBase58()] = position;
-        return acc;
-      }, {} as Record<string, ArenaPoolPositions>);
-
       const updatedData = await updateArenaBankWithUserData(
         connection,
         wallet.publicKey,
@@ -425,24 +426,21 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       arenaPools[groupPk] = arenaPool;
     });
 
-    const extendedBanksByBankPk = extendedBankInfos.reduce((acc, bank) => {
-      acc[bank.info.rawBank.address.toBase58()] = bank;
-      return acc;
-    }, {} as Record<string, ArenaBank>);
+    const extendedBanksByBankPk = extendedBankInfos.reduce(
+      (acc, bank) => {
+        acc[bank.info.rawBank.address.toBase58()] = bank;
+        return acc;
+      },
+      {} as Record<string, ArenaBank>
+    );
 
-    const groupsByGroupPk = marginfiGroups.reduce((acc, group) => {
-      acc[group.address.toBase58()] = group;
-      return acc;
-    }, {} as Record<string, MarginfiGroup>);
-
-    if (isWalletConnected) {
-      positionsByGroupPk = fillMissingPositions(
-        arenaPools,
-        extendedBanksByBankPk,
-        marginfiAccountByGroupPk,
-        positionsByGroupPk
-      );
-    }
+    const groupsByGroupPk = marginfiGroups.reduce(
+      (acc, group) => {
+        acc[group.address.toBase58()] = group;
+        return acc;
+      },
+      {} as Record<string, MarginfiGroup>
+    );
 
     // if (!lutByGroupPk || Object.keys(lutByGroupPk).length === 0) {
     //   const lutResults: Record<string, Promise<RpcResponseAndContext<AddressLookupTableAccount | null>> | null> = {};
@@ -479,8 +477,29 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       pythFeedIdMap: feedIdMap,
       oraclePrices,
       userDataFetched: isWalletFetched,
-      positionsByGroupPk,
     });
+
+    if (isWalletConnected) {
+      const userPnl = await fetchUserPnl(wallet.publicKey);
+      const pnlDataByGroupPk = userPnl.reduce(
+        (acc, position) => {
+          acc[position.groupPk.toBase58()] = position;
+          return acc;
+        },
+        {} as Record<string, ArenaPoolPnl>
+      );
+
+      const positionData = fillMissingPositions(
+        arenaPools,
+        extendedBanksByBankPk,
+        marginfiAccountByGroupPk,
+        pnlDataByGroupPk
+      );
+
+      set({
+        positionsByGroupPk: positionData,
+      });
+    }
   },
 
   fetchUserData: async (args) => {
@@ -528,10 +547,13 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
         rawBanksByBankPk
       );
 
-    const extendedBanksByBankPk = updatedArenaBanks.reduce((acc, bank) => {
-      acc[bank.info.rawBank.address.toBase58()] = bank;
-      return acc;
-    }, {} as Record<string, ArenaBank>);
+    const extendedBanksByBankPk = updatedArenaBanks.reduce(
+      (acc, bank) => {
+        acc[bank.info.rawBank.address.toBase58()] = bank;
+        return acc;
+      },
+      {} as Record<string, ArenaBank>
+    );
 
     set({
       banksByBankPk: extendedBanksByBankPk,
@@ -586,7 +608,6 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     let nativeSolBalance = 0;
     let tokenAccountMap: TokenAccountMap | null = null;
     let marginfiAccount: MarginfiAccount | null = null;
-    let positionsByGroupPk: Record<string, ArenaPoolPositions> = {};
     const isWalletConnected = wallet.publicKey && !wallet.publicKey.equals(PublicKey.default);
 
     const {
@@ -598,11 +619,6 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     const newStoreBanksByBankPk = { ...storeBanksByBankPk };
 
     if (isWalletConnected) {
-      const userPositions = await fetchUserPositions(wallet.publicKey);
-      positionsByGroupPk = userPositions.reduce((acc, position) => {
-        acc[position.groupPk.toBase58()] = position;
-        return acc;
-      }, {} as Record<string, ArenaPoolPositions>);
       const updatedData = await updateArenaBankWithUserData(
         connection,
         wallet.publicKey,
@@ -624,13 +640,6 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       } else {
         delete storeMarginfiAccountByGroupPk[args.groupPk.toBase58()];
       }
-
-      positionsByGroupPk = fillMissingPositions(
-        get().arenaPools,
-        newStoreBanksByBankPk,
-        storeMarginfiAccountByGroupPk,
-        positionsByGroupPk
-      );
     }
 
     // update store
@@ -649,8 +658,28 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
       marginfiAccountByGroupPk: storeMarginfiAccountByGroupPk,
       banksByBankPk: newStoreBanksByBankPk,
       tokenAccountMap: newTokenAccountMap,
-      positionsByGroupPk,
     });
+
+    if (isWalletConnected) {
+      const userPositions = await fetchUserPnl(wallet.publicKey);
+      const pnlDataByGroupPk = userPositions.reduce(
+        (acc, position) => {
+          acc[position.groupPk.toBase58()] = position;
+          return acc;
+        },
+        {} as Record<string, ArenaPoolPnl>
+      );
+      const positionsByGroupPk = fillMissingPositions(
+        get().arenaPools,
+        newStoreBanksByBankPk,
+        storeMarginfiAccountByGroupPk,
+        pnlDataByGroupPk
+      );
+
+      set({
+        positionsByGroupPk,
+      });
+    }
   },
 
   searchSummaryPools: (searchQuery: string) => {
@@ -705,10 +734,13 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
     });
 
     // Convert array back to Record<string, ArenaBank>
-    const updatedBanksByBankPk = updatedArenaBanks.reduce((acc, bank) => {
-      acc[bank.address.toBase58()] = bank;
-      return acc;
-    }, {} as Record<string, ArenaBank>);
+    const updatedBanksByBankPk = updatedArenaBanks.reduce(
+      (acc, bank) => {
+        acc[bank.address.toBase58()] = bank;
+        return acc;
+      },
+      {} as Record<string, ArenaBank>
+    );
 
     set({
       banksByBankPk: updatedBanksByBankPk,
@@ -1044,9 +1076,9 @@ function fillMissingPositions(
   arenaPools: Record<string, ArenaPoolV2>,
   banksByBankPk: Record<string, ArenaBank>,
   accountByGroupPk: Record<string, MarginfiAccount>,
-  positions: Record<string, ArenaPoolPositions>
-) {
-  const newPositions: Record<string, ArenaPoolPositions> = positions;
+  pnlData: Record<string, ArenaPoolPnl>
+): Record<string, ArenaPoolPositions> {
+  const positionData: Record<string, ArenaPoolPositions> = {};
 
   Object.values(arenaPools).map((pool) => {
     const tokenBank = banksByBankPk[pool.tokenBankPk.toBase58()];
@@ -1056,11 +1088,11 @@ function fillMissingPositions(
     const status = getPoolPositionStatus(pool, tokenBank, quoteBank);
 
     if (status === GroupStatus.EMPTY || !tokenBank || !quoteBank) {
-      delete newPositions[pool.groupPk.toBase58()];
+      delete pnlData[pool.groupPk.toBase58()];
     }
 
-    if ((status === GroupStatus.LONG || status === GroupStatus.SHORT) && Object.keys(newPositions).length > 0) {
-      const positionApiData = positions[pool.groupPk.toBase58()];
+    if (status === GroupStatus.LONG || status === GroupStatus.SHORT) {
+      const pnlPositionData = pnlData[pool.groupPk.toBase58()];
 
       const positionQuoteData = quoteBank.isActive && quoteBank.position;
       const positionTokenData = tokenBank.isActive && tokenBank.position;
@@ -1082,19 +1114,23 @@ function fillMissingPositions(
 
       const sizeUsd = depositValue - borrowValue;
 
-      if (positionApiData) {
-        const priceChange =
-          status === GroupStatus.LONG
-            ? tokenBank.info.oraclePrice.priceRealtime.price.toNumber() - positionApiData.entryPrice
-            : positionApiData.entryPrice - tokenBank.info.oraclePrice.priceRealtime.price.toNumber();
+      if (pnlPositionData) {
+        let properEntryPrice: number = 0;
+        if (Array.isArray(pnlPositionData.entryPrices) && pnlPositionData.entryPrices.length > 1) {
+          properEntryPrice = pnlPositionData.entryPrices[0] / pnlPositionData.entryPrices[1];
+        }
 
-        const pnl = sizeUsd * (priceChange / positionApiData.entryPrice);
-        newPositions[pool.groupPk.toBase58()] = {
-          ...positionApiData,
-          pnl,
+        positionData[pool.groupPk.toBase58()] = {
+          groupPk: pool.groupPk,
+          accountPk: account?.address ?? PublicKey.default,
+          authorityPk: account?.authority ?? PublicKey.default,
+          direction: status === GroupStatus.LONG ? "long" : "short",
+          entryPrice: properEntryPrice,
+          currentPositionValue: sizeUsd,
+          pnl: pnlPositionData.totalPnlUsd,
         };
       } else {
-        newPositions[pool.groupPk.toBase58()] = {
+        positionData[pool.groupPk.toBase58()] = {
           groupPk: pool.groupPk,
           accountPk: account?.address ?? PublicKey.default,
           authorityPk: account?.authority ?? PublicKey.default,
@@ -1107,5 +1143,5 @@ function fillMissingPositions(
     }
   });
 
-  return newPositions;
+  return positionData;
 }

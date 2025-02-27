@@ -1,7 +1,7 @@
 import React from "react";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { formatAmount, useIsMobile } from "@mrgnlabs/mrgn-utils";
+import { formatAmount, LendSelectionGroups, useIsMobile } from "@mrgnlabs/mrgn-utils";
 import { tokenPriceFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { Input } from "~/components/ui/input";
@@ -20,7 +20,7 @@ type ActionInputProps = {
   showCloseBalance?: boolean;
   isDialog?: boolean;
   showTokenSelection?: boolean;
-  showTokenSelectionGroups?: boolean;
+  selectionGroups?: LendSelectionGroups[];
   isMini?: boolean;
 
   searchMode?: boolean;
@@ -39,7 +39,7 @@ export const ActionInput = ({
   connected,
   isDialog,
   showTokenSelection,
-  showTokenSelectionGroups,
+  selectionGroups,
   amountRaw,
   amount,
   selectedBank,
@@ -104,7 +104,7 @@ export const ActionInput = ({
               setSelectedBank(bank);
             }}
             isSelectable={isTokenSelectionAvailable}
-            showTokenSelectionGroups={showTokenSelectionGroups}
+            selectionGroups={selectionGroups}
             banks={banks}
             nativeSolBalance={nativeSolBalance}
             lendMode={lendMode}

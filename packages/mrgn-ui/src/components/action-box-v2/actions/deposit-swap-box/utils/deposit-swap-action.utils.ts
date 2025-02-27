@@ -1,15 +1,16 @@
 import { BN } from "@coral-xyz/anchor";
 import BigNumber from "bignumber.js";
 import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
+import { Keypair, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+
 import {
   BalanceRaw,
   MarginfiAccount,
   MarginfiAccountRaw,
   MarginfiAccountWrapper,
   MarginfiClient,
-  SimulationResult,
 } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   addTransactionMetadata,
   bigNumberToWrappedI80F48,
@@ -21,175 +22,140 @@ import {
   WalletToken,
 } from "@mrgnlabs/mrgn-common";
 import {
-  ActionMessageType,
-  ActionTxns,
   deserializeInstruction,
   getAdressLookupTableAccounts,
   getSwapQuoteWithRetry,
-  handleSimulationError,
-  IndividualFlowError,
-  MarginfiActionParams,
   STATIC_SIMULATION_ERRORS,
   DepositSwapActionTxns,
+  ActionProcessingError,
 } from "@mrgnlabs/mrgn-utils";
 
-import { Keypair, PublicKey, Transaction, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
-import { ActionSummary, SimulatedActionPreview } from "../../lend-box/utils";
-import {
-  ActionPreview,
-  simulatedCollateral,
-  simulatedHealthFactor,
-  simulatedPositionSize,
-} from "~/components/action-box-v2/utils";
 import { JupiterOptions } from "~/components/settings";
 
-
 export interface GenerateDepositSwapTxnsProps {
-  marginfiAccount: MarginfiAccountWrapper;
+  marginfiAccount: MarginfiAccountWrapper | null;
   depositBank: ExtendedBankInfo;
-  swapBank?: ExtendedBankInfo | WalletToken | null;
+  swapBank: ExtendedBankInfo | WalletToken | null;
   amount: number;
   marginfiClient: MarginfiClient;
   jupiterOptions: JupiterOptions | null;
 }
 
+function isExtendedBankInfo(bank: ExtendedBankInfo | WalletToken | null): bank is ExtendedBankInfo {
+  return bank !== null && "info" in bank;
+}
+
 export async function generateDepositSwapTxns(
   props: GenerateDepositSwapTxnsProps
-): Promise<DepositSwapActionTxns | ActionMessageType> {
-  let swapTx: { quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType } | undefined;
+): Promise<{ actionTxns: DepositSwapActionTxns; account: MarginfiAccountWrapper }> {
+  let transactions: SolanaTransaction[] = [];
+  let swapQuote: QuoteResponse | undefined;
 
-  if (
-    props.swapBank &&
-    ("info" in props.swapBank ? props.swapBank.info.state.mint.toBase58() : props.swapBank.address.toBase58()) !==
-      props.depositBank.info.state.mint.toBase58()
-  ) {
-    try {
-      swapTx = await createSwapTx(props);
-      if (swapTx.error) {
-        console.error("Error creating swap transaction:", swapTx.error);
-        return swapTx.error;
-      } else {
-        if (!swapTx.tx || !swapTx.quote) {
-          return STATIC_SIMULATION_ERRORS.CREATE_SWAP_FAILED;
-        }
-      }
-    } catch (error) {
-      console.error("Error creating swap transaction:", error);
-      return STATIC_SIMULATION_ERRORS.CREATE_SWAP_FAILED;
-    }
+  const swapBankMint = isExtendedBankInfo(props.swapBank)
+    ? props.swapBank.info.state.mint.toBase58()
+    : props.swapBank?.address.toBase58();
+
+  if (swapBankMint !== props.depositBank.info.state.mint.toBase58()) {
+    const { tx, quote } = await createSwapTx(props);
+    transactions.push(tx);
+    swapQuote = quote;
   }
 
   // Marginfi Account
   let hasMarginfiAccount = !!props.marginfiAccount;
-  const hasBalances = props.marginfiAccount?.activeBalances?.length ?? 0 > 0;
+  const hasBalances = props.marginfiAccount?.activeBalances.length ?? 0 > 0;
 
-  if (hasMarginfiAccount && !hasBalances && props.marginfiAccount) {
-    const accountInfo = await props.marginfiClient.provider.connection.getAccountInfo(props.marginfiAccount.address);
+  if (!hasBalances) {
+    const accountInfo = await props.marginfiClient.provider.connection.getAccountInfo(
+      props.marginfiAccount?.authority ?? props.marginfiClient.provider.publicKey
+    );
     hasMarginfiAccount = accountInfo !== null;
   }
 
-  let accountCreationTx: SolanaTransaction[] = [];
   let finalAccount: MarginfiAccountWrapper | null = props.marginfiAccount;
   if (!hasMarginfiAccount) {
     const { account, tx } = await createMarginfiAccountTx(props);
     finalAccount = account;
-    accountCreationTx.push(tx);
+    transactions.push(tx);
+  }
+
+  if (!finalAccount) {
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED);
   }
 
   let finalDepositAmount = props.amount;
 
-  if (
-    props.swapBank &&
-    ("info" in props.swapBank ? props.swapBank.info.state.mint.toBase58() : props.swapBank.address.toBase58()) !==
-      props.depositBank.info.state.mint.toBase58() &&
-    !swapTx?.quote
-  ) {
-    return STATIC_SIMULATION_ERRORS.CREATE_SWAP_FAILED;
-  } else if (props.swapBank && swapTx?.quote) {
+  if (props.swapBank && swapQuote) {
     finalDepositAmount = Number(
-      nativeToUi(
-        swapTx?.quote?.otherAmountThreshold ?? swapTx?.quote?.outAmount,
-        props.depositBank.info.state.mintDecimals
-      )
+      nativeToUi(swapQuote?.otherAmountThreshold ?? swapQuote?.outAmount, props.depositBank.info.state.mintDecimals)
     );
   }
 
-  const depositTx = await props.marginfiAccount.makeDepositTx(finalDepositAmount, props.depositBank.address);
+  transactions.push(await finalAccount.makeDepositTx(finalDepositAmount, props.depositBank.address));
 
   return {
-    transactions: [...(swapTx?.tx ? [swapTx.tx] : []), depositTx],
-    actionQuote: swapTx?.quote ?? null,
+    actionTxns: {
+      transactions,
+      actionQuote: swapQuote ?? null,
+    },
+    account: finalAccount,
   };
 }
 
 export async function createSwapTx(props: GenerateDepositSwapTxnsProps) {
   if (!props.swapBank) {
-    console.error("Swap bank is required");
-    throw new Error("Swap bank is required");
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.BANK_NOT_PROVIDED_CHECK);
   }
 
-  try {
-    const jupiterQuoteApi = createJupiterApiClient();
-    const mintDecimals =
-      "info" in props.swapBank ? props.swapBank.info.state.mintDecimals : props.swapBank.mintDecimals;
-    const inputMint =
-      "info" in props.swapBank ? props.swapBank.info.state.mint.toBase58() : props.swapBank.address.toBase58();
+  const jupiterQuoteApi = createJupiterApiClient();
+  const mintDecimals = isExtendedBankInfo(props.swapBank)
+    ? props.swapBank.info.state.mintDecimals
+    : props.swapBank.mintDecimals;
+  const inputMint = isExtendedBankInfo(props.swapBank)
+    ? props.swapBank.info.state.mint.toBase58()
+    : props.swapBank.address.toBase58();
 
-    const swapQuote = await getSwapQuoteWithRetry({
-      swapMode: "ExactIn",
-      amount: uiToNative(props.amount, mintDecimals).toNumber(),
-      inputMint: inputMint,
-      outputMint: props.depositBank.info.state.mint.toBase58(),
-      slippageBps: props.jupiterOptions?.slippageMode === "FIXED" ? props.jupiterOptions?.slippageBps : undefined,
-      dynamicSlippage: props.jupiterOptions?.slippageMode === "DYNAMIC" ? true : false,
-    });
+  const swapQuote = await getSwapQuoteWithRetry({
+    swapMode: "ExactIn",
+    amount: uiToNative(props.amount, mintDecimals).toNumber(),
+    inputMint: inputMint,
+    outputMint: props.depositBank.info.state.mint.toBase58(),
+    slippageBps: props.jupiterOptions?.slippageMode === "FIXED" ? props.jupiterOptions?.slippageBps : undefined,
+    dynamicSlippage: props.jupiterOptions?.slippageMode === "DYNAMIC" ? true : false,
+  });
 
-    if (!swapQuote) {
-      return { error: STATIC_SIMULATION_ERRORS.CREATE_SWAP_FAILED };
-    }
-
-    const {
-      computeBudgetInstructions,
-      swapInstruction,
-      setupInstructions,
-      cleanupInstruction,
-      addressLookupTableAddresses,
-    } = await jupiterQuoteApi.swapInstructionsPost({
+  const { computeBudgetInstructions, swapInstruction, setupInstructions, addressLookupTableAddresses } =
+    await jupiterQuoteApi.swapInstructionsPost({
       swapRequest: {
         quoteResponse: swapQuote,
-        userPublicKey: props.marginfiAccount.authority.toBase58(),
+        userPublicKey: (props.marginfiAccount?.authority ?? props.marginfiClient.provider.publicKey).toBase58(),
         programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
       },
     });
 
-    const swapIx = deserializeInstruction(swapInstruction);
-    const setupInstructionsIxs = setupInstructions.map((value) => deserializeInstruction(value));
-    const cuInstructionsIxs = computeBudgetInstructions.map((value) => deserializeInstruction(value));
-    // const cleanupInstructionIx = deserializeInstruction(cleanupInstruction);
-    const addressLookupAccounts = await getAdressLookupTableAccounts(
-      props.marginfiClient.provider.connection,
-      addressLookupTableAddresses
-    );
-    const finalBlockhash = (await props.marginfiClient.provider.connection.getLatestBlockhash()).blockhash;
+  const swapIx = deserializeInstruction(swapInstruction);
+  const setupInstructionsIxs = setupInstructions.map((value) => deserializeInstruction(value));
+  const cuInstructionsIxs = computeBudgetInstructions.map((value) => deserializeInstruction(value));
+  const addressLookupAccounts = await getAdressLookupTableAccounts(
+    props.marginfiClient.provider.connection,
+    addressLookupTableAddresses
+  );
+  const finalBlockhash = (await props.marginfiClient.provider.connection.getLatestBlockhash()).blockhash;
 
-    const swapMessage = new TransactionMessage({
-      payerKey: props.marginfiAccount.authority,
-      recentBlockhash: finalBlockhash,
-      instructions: [...cuInstructionsIxs, ...setupInstructionsIxs, swapIx],
-    });
-    const swapTx = addTransactionMetadata(
-      new VersionedTransaction(swapMessage.compileToV0Message(addressLookupAccounts)),
-      {
-        addressLookupTables: addressLookupAccounts,
-        type: TransactionType.JUPITER_SWAP,
-      }
-    );
+  const swapMessage = new TransactionMessage({
+    payerKey: props.marginfiAccount?.authority ?? props.marginfiClient.provider.publicKey,
+    recentBlockhash: finalBlockhash,
+    instructions: [...cuInstructionsIxs, ...setupInstructionsIxs, swapIx],
+  });
+  const swapTx = addTransactionMetadata(
+    new VersionedTransaction(swapMessage.compileToV0Message(addressLookupAccounts)),
+    {
+      addressLookupTables: addressLookupAccounts,
+      type: TransactionType.JUPITER_SWAP,
+    }
+  );
 
-    return { quote: swapQuote, tx: swapTx };
-  } catch (error) {
-    console.error("Error creating swap transaction:", error);
-    return { error: STATIC_SIMULATION_ERRORS.CREATE_SWAP_FAILED };
-  }
+  return { quote: swapQuote, tx: swapTx };
 }
 
 async function createMarginfiAccountTx(
@@ -228,4 +194,3 @@ async function createMarginfiAccountTx(
     tx: await props.marginfiClient.createMarginfiAccountTx({ accountKeypair: marginfiAccountKeypair }),
   };
 }
-

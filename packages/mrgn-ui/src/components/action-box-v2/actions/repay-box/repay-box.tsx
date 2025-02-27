@@ -22,17 +22,17 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip
 import { TooltipProvider } from "~/components/ui/tooltip";
 import { ActionMessage } from "~/components/action-message";
 
-import { usePollBlockHeight, useActionAmounts } from "../../hooks";
-import { useActionContext } from "../../contexts";
-import { useActionBoxStore } from "../../store";
-import { SimulationStatus } from "../../utils";
+import { usePollBlockHeight, useActionAmounts } from "~/components/action-box-v2/hooks";
+import { useActionContext } from "~/components/action-box-v2/contexts";
+import { useActionBoxStore } from "~/components/action-box-v2/store";
+import { SimulationStatus } from "~/components/action-box-v2/utils";
 import {
   ActionBoxContentWrapper,
   ActionCollateralProgressBar,
   ActionButton,
   ActionSimulationStatus,
   ActionSettingsButton,
-} from "../../components";
+} from "~/components/action-box-v2/components";
 
 import { ActionInput, Preview } from "./components";
 import { useRepaySimulation } from "./hooks";
@@ -129,8 +129,6 @@ export const RepayBox = ({
     isLoading: false,
     status: SimulationStatus.IDLE,
   });
-
-  const isLoading = React.useMemo(() => simulationStatus.isLoading, [simulationStatus.isLoading]);
 
   const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
     transactionSettings: null,
@@ -362,7 +360,7 @@ export const RepayBox = ({
 
       <div className="mb-3">
         <ActionButton
-          isLoading={isLoading}
+          isLoading={simulationStatus.isLoading}
           isEnabled={
             !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
           }
@@ -383,7 +381,7 @@ export const RepayBox = ({
         {setDisplaySettings && <ActionSettingsButton onClick={() => setDisplaySettings(true)} />}
       </div>
 
-      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={isLoading} />
+      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={simulationStatus.isLoading} />
     </ActionBoxContentWrapper>
   );
 };

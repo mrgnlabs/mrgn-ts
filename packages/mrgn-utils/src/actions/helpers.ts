@@ -1,11 +1,12 @@
 import { PublicKey, TransactionInstruction, Connection, AddressLookupTableAccount } from "@solana/web3.js";
-import { createJupiterApiClient, QuoteGetRequest } from "@jup-ag/api";
+import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "../wallet";
-import { REFERRAL_ACCOUNT_PUBKEY, REFERRAL_PROGRAM_ID } from "../jup-referral.utils";
 import { WalletToken } from "@mrgnlabs/mrgn-common";
+import { ActionProcessingError } from "./types";
+import { STATIC_SIMULATION_ERRORS } from "../errors";
 
 // ------------------------------------------------------------------//
 // Helpers //
@@ -95,7 +96,11 @@ export const formatAmount = (
   }
 };
 
-export async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRetries = 5, timeout = 1500) {
+export async function getSwapQuoteWithRetry(
+  quoteParams: QuoteGetRequest,
+  maxRetries = 5,
+  timeout = 1500
+): Promise<QuoteResponse> {
   const jupiterQuoteApi = createJupiterApiClient();
   let attempt = 0;
   while (attempt < maxRetries) {
@@ -106,11 +111,13 @@ export async function getSwapQuoteWithRetry(quoteParams: QuoteGetRequest, maxRet
       console.error(`Attempt ${attempt + 1} failed`);
       attempt++;
       if (attempt === maxRetries) {
-        throw new Error(`Failed to get to quote after ${maxRetries} attempts`);
+        console.error(`Failed to get to quote after ${maxRetries} attempts`);
+        throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.JUP_QUOTE_FAILED);
       }
       await new Promise((resolve) => setTimeout(resolve, timeout));
     }
   }
+  throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.JUP_QUOTE_FAILED);
 }
 
 export const debounceFn = (fn: Function, ms = 300) => {
