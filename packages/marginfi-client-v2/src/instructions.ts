@@ -341,6 +341,8 @@ async function makeLendingPoolConfigureBankOracleIx(
   mfProgram: MarginfiProgram,
   accounts: {
     bank: PublicKey;
+    group?: PublicKey;
+    admin?: PublicKey;
   },
   args: {
     setup: number;
@@ -349,8 +351,10 @@ async function makeLendingPoolConfigureBankOracleIx(
 ) {
   return mfProgram.methods
     .lendingPoolConfigureBankOracle(args.setup, args.oracle)
-    .accounts({
+    .accountsPartial({
       bank: accounts.bank,
+      group: accounts.group,
+      admin: accounts.admin,
     })
     .instruction();
 }
