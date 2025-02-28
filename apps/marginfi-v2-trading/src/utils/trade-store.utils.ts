@@ -318,7 +318,7 @@ export const updateArenaBankWithUserData = async (
   }));
 
   // fetch
-  const [tokenAccounts] = await Promise.all([fetchTokenAccounts(connection, owner, bankInfos, tokenDatas)]);
+  const [tokenAccounts] = await Promise.all([fetchTokenAccounts(connection, owner, bankInfos, tokenDatas, false)]);
 
   const nativeSolBalance = tokenAccounts.nativeSolBalance;
   const tokenAccountMap = tokenAccounts.tokenAccountMap;
