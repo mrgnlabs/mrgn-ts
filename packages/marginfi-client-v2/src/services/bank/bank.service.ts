@@ -10,12 +10,16 @@ export async function addOracleToBanksIx(
   program: MarginfiProgram,
   bankAddress: PublicKey,
   oracle: PublicKey,
-  setup: OracleSetup
+  setup: OracleSetup,
+  groupAddress?: PublicKey,
+  adminAddress?: PublicKey
 ): Promise<InstructionsWrapper> {
   const ix = await instructions.makeLendingPoolConfigureBankOracleIx(
     program,
     {
       bank: bankAddress,
+      group: groupAddress,
+      admin: adminAddress,
     },
     {
       setup: serializeOracleSetupToIndex(setup),

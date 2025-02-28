@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    const { base_bank, created_by, featured, group, lookup_tables, quote_banks } = req.body;
+    const { base_bank, created_by, group, lookup_tables, quote_bank } = req.body;
 
     const response = await fetch(ARENA_URL, {
       method: "POST",
@@ -30,10 +30,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       body: JSON.stringify({
         base_bank,
         created_by,
-        featured,
         group,
         lookup_tables,
-        quote_banks,
+        quote_bank,
       }),
     });
 
