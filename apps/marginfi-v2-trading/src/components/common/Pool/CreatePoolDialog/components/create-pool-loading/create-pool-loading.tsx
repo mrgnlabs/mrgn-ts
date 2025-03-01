@@ -148,10 +148,9 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       let updatedTokenOracleConfig = { ...tokenConfig.oracleConfig };
       let updatedQuoteOracleConfig = { ...quoteConfig.oracleConfig };
 
-      if (updatedTokenOracleConfig?.keys?.length === 0) {
+      if (!updatedTokenOracleConfig?.keys || updatedTokenOracleConfig?.keys?.length === 0) {
         const oracleCreationToken = await initializeOracle(tokenMint, tokenSymbol);
         if (!oracleCreationToken) throw new Error("Oracle creation failed");
-
         updatedTokenOracleConfig = {
           setup: OracleSetup.SwitchboardPull,
           keys: [oracleCreationToken.feedPubkey],
@@ -159,10 +158,9 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         pullFeedIx.push(oracleCreationToken);
       }
 
-      if (updatedQuoteOracleConfig?.keys?.length === 0) {
+      if (!updatedQuoteOracleConfig?.keys || updatedQuoteOracleConfig?.keys?.length === 0) {
         const oracleCreationQuote = await initializeOracle(quoteMint, quoteSymbol);
         if (!oracleCreationQuote) throw new Error("Oracle creation failed");
-
         updatedQuoteOracleConfig = {
           setup: OracleSetup.SwitchboardPull,
           keys: [oracleCreationQuote.feedPubkey],
@@ -217,7 +215,6 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       );
 
       // add oracle to banks
-
       if (
         !updatedTokenOracleConfig.setup ||
         !updatedTokenOracleConfig.keys ||
@@ -284,10 +281,10 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         )
       );
 
-      // create quote bank & referal token account transaction
+      // create quote bank & referal token account transaction  ...referralTokenAccountIxs
       transactions.push(
         createTransaction(
-          [...quoteBankIxWrapper.instructions, ...addOracleToQuoteBankIx.instructions, ...referralTokenAccountIxs],
+          [...quoteBankIxWrapper.instructions, ...addOracleToQuoteBankIx.instructions],
           wallet.publicKey,
           [seeds.stableBankSeed, ...quoteBankIxWrapper.keys, ...addOracleToQuoteBankIx.keys],
           blockhash
@@ -299,7 +296,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         createTransaction(
           [...tokenBankIxWrapper.instructions, ...addOracleToTokenBankIx.instructions],
           wallet.publicKey,
-          [seeds.tokenBankSeed, ...tokenBankIxWrapper.keys, ...addOracleToTokenBankIx.keys],
+          [seeds.tokenBankSeed, ...tokenBankIxWrapper.keys],
           blockhash
         )
       );
