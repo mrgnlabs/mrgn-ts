@@ -30,7 +30,18 @@ export const getDocPageBySlug = /* groq */ `
         },
       },
       alt,
-      caption
+      caption,
+      items[] {
+        name,
+        type,
+        description[] {
+          ...,
+          _type == "image" => {
+            "url": asset->url,
+            "dimensions": asset->metadata.dimensions
+          }
+        }
+      }
     }
   }
 ` 

@@ -85,6 +85,7 @@ export const docPage = defineType({
         { type: 'note' },
         { type: 'mathBlock' },
         { type: 'imageWithCaption' },
+        { type: 'properties' }
       ],
     }),
     defineField({

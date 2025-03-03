@@ -3,20 +3,70 @@ import { Prose } from '~/components/Prose'
 import { Note, Properties, Property } from '~/components/mdx'
 import { ImageComponent } from '~/components/ImageComponent'
 import { Math } from '~/components/Math'
-import { PortableText } from '@portabletext/react'
+import { PortableText, PortableTextComponents } from '@portabletext/react'
 import { Button } from '~/components/Button'
 import { Heading } from '~/components/Heading'
 import { Feedback } from '~/components/Feedback'
 
-const components = {
+interface SanityImage {
+  asset: {
+    url: string;
+  };
+}
+
+interface ImageWithCaption {
+  _type: 'imageWithCaption';
+  image: SanityImage;
+  alt?: string;
+}
+
+interface MathBlock {
+  _type: 'mathBlock';
+  formula: string;
+}
+
+interface NoteBlock {
+  _type: 'note';
+  content: any[];
+}
+
+interface Section {
+  _type: 'section';
+  _key: string;
+  title?: string;
+  label?: string;
+  content: any[];
+}
+
+interface Properties {
+  _type: 'properties';
+  _key: string;
+  items?: Array<{
+    name: string;
+    type: string;
+    description: any[];
+  }>;
+}
+
+interface DocPage {
+  title: string;
+  leadText?: any[];
+  content?: Array<Section | NoteBlock | MathBlock | ImageWithCaption | Properties>;
+}
+
+const components: PortableTextComponents = {
   types: {
-    note: ({ value }: any) => (
+    note: ({ value }: { value: NoteBlock }) => (
       <Note>
-        <PortableText value={value.content} components={components} />
+        <div className="[&>:first-child]:mt-0 [&>:last-child]:mb-0">
+          <PortableText value={value.content} components={components} />
+        </div>
       </Note>
     ),
-    mathBlock: ({ value }: any) => <Math display={true}>{value.formula}</Math>,
-    imageWithCaption: ({ value }: any) => (
+    mathBlock: ({ value }: { value: MathBlock }) => (
+      <Math display={true}>{value.formula}</Math>
+    ),
+    imageWithCaption: ({ value }: { value: ImageWithCaption }) => (
       <ImageComponent
         src={value.image.asset.url}
         alt={value.alt || ''}
@@ -25,41 +75,41 @@ const components = {
     ),
   },
   block: {
-    h1: ({ children }: any) => <h1>{children}</h1>,
-    h2: ({ children }: any) => {
+    h1: ({ children }) => <h1>{children}</h1>,
+    h2: ({ children }) => {
       const id = typeof children === 'string' ? children.toLowerCase().replace(/\s+/g, '-') : ''
       return <Heading level={2} id={id}>{children}</Heading>
     },
-    h3: ({ children }: any) => {
+    h3: ({ children }) => {
       const id = typeof children === 'string' ? children.toLowerCase().replace(/\s+/g, '-') : ''
       return <Heading level={3} id={id}>{children}</Heading>
     },
-    normal: ({ children }: any) => <p>{children}</p>,
-    lead: ({ children }: any) => <p className="lead">{children}</p>,
+    normal: ({ children }) => <p>{children}</p>,
+    lead: ({ children }) => <p className="lead">{children}</p>,
   },
   marks: {
-    strong: ({ children }: any) => <strong>{children}</strong>,
-    em: ({ children }: any) => <em>{children}</em>,
-    code: ({ children }: any) => <code>{children}</code>,
-    link: ({ value, children }: any) => (
+    strong: ({ children }) => <strong>{children}</strong>,
+    em: ({ children }) => <em>{children}</em>,
+    code: ({ children }) => <code>{children}</code>,
+    link: ({ value, children }) => (
       <Button href={value?.href} variant={value?.variant || 'text'}>
         {children}
       </Button>
     ),
   },
   list: {
-    bullet: ({ children }: any) => <ul className="list-disc pl-4">{children}</ul>,
-    number: ({ children }: any) => (
+    bullet: ({ children }) => <ul className="list-disc pl-4">{children}</ul>,
+    number: ({ children }) => (
       <ol className="list-decimal pl-4">{children}</ol>
     ),
   },
   listItem: {
-    bullet: ({ children }: any) => <li>{children}</li>,
-    number: ({ children }: any) => <li>{children}</li>,
+    bullet: ({ children }) => <li>{children}</li>,
+    number: ({ children }) => <li>{children}</li>,
   },
 }
 
-export function DocPage({ page }: { page: any }) {
+export function DocPage({ page }: { page: DocPage }) {
   if (!page) {
     return <div>Loading...</div>
   }
@@ -105,7 +155,7 @@ export function DocPage({ page }: { page: any }) {
             return (
               <div key={section._key}>
                 {index > 0 && <hr className="my-8" />}
-                <div className="my-8">
+                <div className="my-6">
                   <Properties>
                     {section.items?.map((item: any, i: number) => (
                       <Property key={i} name={item.name} type={item.type}>

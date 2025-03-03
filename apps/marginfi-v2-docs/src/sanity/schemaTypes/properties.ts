@@ -32,4 +32,14 @@ export const properties = defineType({
       }],
     }),
   ],
-}) 
+})
+
+interface Properties {
+  _type: 'properties';
+  _key: string;
+  items?: Array<{
+    name: string;
+    type: string;
+    description: any[];
+  }>;
+} 
