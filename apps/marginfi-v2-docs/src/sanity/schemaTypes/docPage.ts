@@ -27,26 +27,23 @@ export const docPage = defineType({
     //   type: 'text',
     // }),
     defineField({
-      // CHANGE #1: Make leadText a Portable Text array
       name: 'leadText',
       title: 'Lead Text',
       type: 'array',
       of: [
         {
           type: 'block',
-          // Optionally define styles (including a 'lead' style)
           styles: [
-            { title: 'Normal', value: 'normal' },
-            { title: 'Lead', value: 'lead' },
-            { title: 'H2', value: 'h2' },
-            { title: 'H3', value: 'h3' },
+            {title: 'Normal', value: 'normal'},
+            {title: 'Lead', value: 'lead'},
+            {title: 'H2', value: 'h2'},
+            {title: 'H3', value: 'h3'},
           ],
           marks: {
-            // You can replicate your existing link annotation for inline buttons
             decorators: [
-              { title: 'Strong', value: 'strong' },
-              { title: 'Emphasis', value: 'em' },
-              { title: 'Code', value: 'code' },
+              {title: 'Strong', value: 'strong'},
+              {title: 'Emphasis', value: 'em'},
+              {title: 'Code', value: 'code'},
             ],
             annotations: [
               {
@@ -66,9 +63,9 @@ export const docPage = defineType({
                     initialValue: 'text',
                     options: {
                       list: [
-                        { title: 'Text', value: 'text' },
-                        { title: 'Primary', value: 'primary' },
-                        { title: 'Secondary', value: 'secondary' },
+                        {title: 'Text', value: 'text'},
+                        {title: 'Primary', value: 'primary'},
+                        {title: 'Secondary', value: 'secondary'},
                       ],
                     },
                   },
