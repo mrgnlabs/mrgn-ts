@@ -142,7 +142,6 @@ export function useLoopSimulation({
           leverage === 0 ||
           !jupiterOptions
         ) {
-          console.error("Missing params");
           setActionTxns({
             transactions: [],
             actionQuote: null,
