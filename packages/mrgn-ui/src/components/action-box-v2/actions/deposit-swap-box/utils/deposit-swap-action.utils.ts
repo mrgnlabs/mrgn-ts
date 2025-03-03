@@ -1,19 +1,10 @@
-import { BN } from "@coral-xyz/anchor";
-import BigNumber from "bignumber.js";
 import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
-import { Keypair, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
-import {
-  BalanceRaw,
-  MarginfiAccount,
-  MarginfiAccountRaw,
-  MarginfiAccountWrapper,
-  MarginfiClient,
-} from "@mrgnlabs/marginfi-client-v2";
+import { createMarginfiAccountTx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   addTransactionMetadata,
-  bigNumberToWrappedI80F48,
   LUT_PROGRAM_AUTHORITY_INDEX,
   nativeToUi,
   SolanaTransaction,
@@ -28,9 +19,8 @@ import {
   STATIC_SIMULATION_ERRORS,
   DepositSwapActionTxns,
   ActionProcessingError,
+  JupiterOptions,
 } from "@mrgnlabs/mrgn-utils";
-
-import { JupiterOptions } from "~/components/settings";
 
 export interface GenerateDepositSwapTxnsProps {
   marginfiAccount: MarginfiAccountWrapper | null;
@@ -74,7 +64,10 @@ export async function generateDepositSwapTxns(
 
   let finalAccount: MarginfiAccountWrapper | null = props.marginfiAccount;
   if (!hasMarginfiAccount) {
-    const { account, tx } = await createMarginfiAccountTx(props);
+    const { account, tx } = await createMarginfiAccountTx({
+      marginfiAccount: props.marginfiAccount,
+      marginfiClient: props.marginfiClient,
+    });
     finalAccount = account;
     transactions.push(tx);
   }
@@ -156,41 +149,4 @@ export async function createSwapTx(props: GenerateDepositSwapTxnsProps) {
   );
 
   return { quote: swapQuote, tx: swapTx };
-}
-
-async function createMarginfiAccountTx(
-  props: GenerateDepositSwapTxnsProps
-): Promise<{ account: MarginfiAccountWrapper; tx: SolanaTransaction }> {
-  // if no marginfi account, we need to create one
-  console.log("Creating new marginfi account transaction...");
-  const authority = props.marginfiAccount?.authority ?? props.marginfiClient.provider.publicKey;
-
-  const marginfiAccountKeypair = Keypair.generate();
-
-  const dummyWrappedI80F48 = bigNumberToWrappedI80F48(new BigNumber(0));
-
-  const dummyBalances: BalanceRaw[] = Array(15).fill({
-    active: false,
-    bankPk: new PublicKey("11111111111111111111111111111111"),
-    assetShares: dummyWrappedI80F48,
-    liabilityShares: dummyWrappedI80F48,
-    emissionsOutstanding: dummyWrappedI80F48,
-    lastUpdate: new BN(0),
-  });
-
-  const rawAccount: MarginfiAccountRaw = {
-    group: props.marginfiClient.group.address,
-    authority: authority,
-    lendingAccount: { balances: dummyBalances },
-    accountFlags: new BN([0, 0, 0]),
-  };
-
-  const account = new MarginfiAccount(marginfiAccountKeypair.publicKey, rawAccount);
-
-  const wrappedAccount = new MarginfiAccountWrapper(marginfiAccountKeypair.publicKey, props.marginfiClient, account);
-
-  return {
-    account: wrappedAccount,
-    tx: await props.marginfiClient.createMarginfiAccountTx({ accountKeypair: marginfiAccountKeypair }),
-  };
 }

@@ -7,6 +7,8 @@ import {
   slippageOptions,
   MAX_SLIPPAGE_PERCENTAGE,
   STATIC_SIMULATION_ERRORS,
+  JupiterOptions,
+  SlippageModes,
 } from "@mrgnlabs/mrgn-utils";
 import {
   MaxCapType,
@@ -20,14 +22,6 @@ import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
-
-export type slippageModes = "DYNAMIC" | "FIXED";
-
-export type JupiterOptions = {
-  slippageMode: slippageModes;
-  slippageBps: number;
-  directRoutesOnly: boolean;
-};
 
 export const defaultJupiterOptions: JupiterOptions = {
   slippageMode: "DYNAMIC",
@@ -52,7 +46,7 @@ const priorityTypes: { type: TransactionPriorityType; label: string }[] = [
   { type: "MAMAS", label: "Mamas" },
 ];
 
-const slippageModes: { type: slippageModes; label: string }[] = [
+const slippageModes: { type: SlippageModes; label: string }[] = [
   { type: "DYNAMIC", label: "Dynamic" },
   { type: "FIXED", label: "Fixed" },
 ];

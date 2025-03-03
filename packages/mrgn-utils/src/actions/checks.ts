@@ -10,6 +10,7 @@ import {
 import { ExtendedBankInfo, ActiveBankInfo, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
 import { PublicKey } from "@solana/web3.js";
 import { DYNAMIC_SIMULATION_ERRORS, STATIC_SIMULATION_ERRORS } from "../errors";
+import { ArenaGroupStatus } from "../types";
 
 type QuoteResponseMeta = {
   quoteResponse: QuoteResponse;
@@ -31,6 +32,7 @@ export {
   canBeLent,
   canBeLstStaked,
   canBeDepositSwapped,
+  getTradeSpecificChecks,
 };
 
 function canBeWithdrawn(
@@ -88,15 +90,35 @@ function canBeRepaid(targetBankInfo: ExtendedBankInfo, repayCollatAction: boolea
 function canBeRepaidCollat(
   targetBankInfo: ExtendedBankInfo,
   repayBankInfo: ExtendedBankInfo | null,
-  blacklistRoutes: PublicKey[] | null,
   swapQuote: QuoteResponse | null,
   maxOverflowHit?: boolean
 ): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
-  const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
+  const isTargetBankPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
+  const isRepayBankPaused = repayBankInfo?.info.rawBank.config.operationalState === OperationalState.Paused;
 
-  if (isPaused) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.BANK_PAUSED_CHECK(targetBankInfo.info.rawBank.tokenSymbol));
+  if (!swapQuote) {
+    checks.push({ isEnabled: false });
+  }
+
+  if (!repayBankInfo) {
+    checks.push({ isEnabled: false });
+  }
+
+  if (isTargetBankPaused || isRepayBankPaused) {
+    checks.push(
+      DYNAMIC_SIMULATION_ERRORS.BANK_PAUSED_CHECK(
+        isTargetBankPaused ? targetBankInfo.info.rawBank.tokenSymbol : repayBankInfo?.info.rawBank.tokenSymbol
+      )
+    );
+  }
+
+  if (swapQuote?.priceImpactPct && Number(swapQuote.priceImpactPct) > 0.01) {
+    if (swapQuote?.priceImpactPct && Number(swapQuote.priceImpactPct) > 0.05) {
+      checks.push(DYNAMIC_SIMULATION_ERRORS.PRICE_IMPACT_ERROR_CHECK(Number(swapQuote.priceImpactPct)));
+    } else {
+      checks.push(DYNAMIC_SIMULATION_ERRORS.PRICE_IMPACT_WARNING_CHECK(Number(swapQuote.priceImpactPct)));
+    }
   }
 
   if (!targetBankInfo.isActive) {
@@ -116,13 +138,10 @@ function canBeRepaidCollat(
     }
   }
 
-  if (!swapQuote) {
-    checks.push({ isEnabled: false });
-  }
-
-  if ((repayBankInfo && isBankOracleStale(repayBankInfo)) || (targetBankInfo && isBankOracleStale(targetBankInfo))) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Repayments"));
-  }
+  // improve this check so it ignores swb oracles
+  // if ((repayBankInfo && isBankOracleStale(repayBankInfo)) || (targetBankInfo && isBankOracleStale(targetBankInfo))) {
+  //   checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Repayments"));
+  // }
 
   if (targetBankInfo.userInfo.tokenAccount.balance > 0) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.WALLET_REPAY_CHECK(targetBankInfo.meta.tokenSymbol));
@@ -138,6 +157,45 @@ function canBeRepaidCollat(
   return checks;
 }
 
+function getTradeSpecificChecks(
+  groupStatus: ArenaGroupStatus, // status of the pool
+  tradeState: "long" | "short", // intended action by the user
+  borrowBank: ExtendedBankInfo | null,
+  depositBank: ExtendedBankInfo | null
+): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
+
+  if (groupStatus === ArenaGroupStatus.LP) {
+    const providingLpBorrowBank = borrowBank?.isActive && borrowBank?.position.isLending;
+
+    if (providingLpBorrowBank) {
+      checks.push({
+        isEnabled: false,
+        description: `You cannot ${tradeState} while you're providing liquidity for ${borrowBank?.info.rawBank.tokenSymbol}. To proceed, remove your liquidity position for this asset.`,
+      });
+    } else {
+      checks.push({
+        isEnabled: true,
+        actionMethod: "INFO",
+        description: `You're providing liquidity for ${depositBank?.info.rawBank.tokenSymbol}. Keep this in mind when managing your positions.`,
+      });
+    }
+  }
+
+  if (groupStatus === ArenaGroupStatus.LONG || groupStatus === ArenaGroupStatus.SHORT) {
+    if (borrowBank?.isActive && borrowBank?.position.isLending) {
+      checks.push({
+        isEnabled: false,
+        description: `You cannot ${tradeState} while you have an active ${
+          tradeState === "long" ? "short" : "long"
+        } position for this token.`,
+      });
+    }
+  }
+
+  return checks;
+}
+
 function canBeLooped(
   targetBankInfo: ExtendedBankInfo,
   repayBankInfo: ExtendedBankInfo | null,
@@ -148,6 +206,13 @@ function canBeLooped(
   const isTargetBankPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   const isRepayBankPaused = repayBankInfo?.info.rawBank.config.operationalState === OperationalState.Paused;
 
+  if (!swapQuote) {
+    checks.push({ isEnabled: false });
+  }
+  if (!repayBankInfo) {
+    checks.push({ isEnabled: false });
+  }
+
   if (isTargetBankPaused || isRepayBankPaused) {
     checks.push(
       DYNAMIC_SIMULATION_ERRORS.BANK_PAUSED_CHECK(
@@ -157,7 +222,6 @@ function canBeLooped(
   }
 
   if (swapQuote?.priceImpactPct && Number(swapQuote.priceImpactPct) > 0.01) {
-    //invert
     if (swapQuote?.priceImpactPct && Number(swapQuote.priceImpactPct) > 0.05) {
       checks.push(DYNAMIC_SIMULATION_ERRORS.PRICE_IMPACT_ERROR_CHECK(Number(swapQuote.priceImpactPct)));
     } else {
@@ -165,9 +229,10 @@ function canBeLooped(
     }
   }
 
-  if ((repayBankInfo && isBankOracleStale(repayBankInfo)) || (targetBankInfo && isBankOracleStale(targetBankInfo))) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Looping"));
-  }
+  // improve this check so it ignores swb oracles
+  // if ((repayBankInfo && isBankOracleStale(repayBankInfo)) || (targetBankInfo && isBankOracleStale(targetBankInfo))) {
+  //   checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Looping"));
+  // }
 
   if (extendedBankInfos && extendedBankInfos.some((bank) => bank.isActive && bank.info.rawBank.config.assetTag === 2)) {
     checks.push(STATIC_SIMULATION_ERRORS.STAKED_ONLY_SOL_CHECK);

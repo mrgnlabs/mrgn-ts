@@ -13,7 +13,7 @@ import {
   dynamicNumeralFormatter,
 } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Desktop, Mobile, cn, capture } from "@mrgnlabs/mrgn-utils";
+import { Desktop, Mobile, cn, capture, ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 import { IconChevronDown, IconExternalLink } from "@tabler/icons-react";
 
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -31,7 +31,7 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
-import { ArenaPoolV2, GroupStatus } from "~/types/trade-store.types";
+import { ArenaPoolV2 } from "~/types/trade-store.types";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { useArenaClient } from "~/hooks/useArenaClient";
 
@@ -212,7 +212,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                       <p className="text-mrgn-success">
                         {percentFormatter.format(aprToApy(extendedPool.tokenBank.info.state.lendingRate))} APY
                       </p>
-                      {extendedPool.status === GroupStatus.LP && <p className="mt-2 lg:hidden">Supplied</p>}
+                      {extendedPool.status === ArenaGroupStatus.LP && <p className="mt-2 lg:hidden">Supplied</p>}
                     </div>
                   </div>
                   <div className="flex flex-col gap-2 lg:items-start lg:justify-start">
@@ -222,13 +222,13 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                           extendedPool.tokenBank.info.oraclePrice.priceRealtime.price.toNumber()
                       )}
                     </p>
-                    {extendedPool.status === GroupStatus.LP && extendedPool.tokenBank.isActive && (
+                    {extendedPool.status === ArenaGroupStatus.LP && extendedPool.tokenBank.isActive && (
                       <p className="mt-5 text-right lg:text-left lg:hidden">
                         {usdFormatter.format(extendedPool.tokenBank.position.amount)}
                       </p>
                     )}
                     <Desktop>
-                      {extendedPool.status === GroupStatus.LP && extendedPool.tokenBank.isActive ? (
+                      {extendedPool.status === ArenaGroupStatus.LP && extendedPool.tokenBank.isActive ? (
                         <DropdownMenu>
                           <DropdownMenuTrigger
                             className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -301,8 +301,8 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                           </DropdownMenuContent>
                         </DropdownMenu>
                       ) : (
-                        extendedPool.status !== GroupStatus.LONG &&
-                        extendedPool.status !== GroupStatus.SHORT && (
+                        extendedPool.status !== ArenaGroupStatus.LONG &&
+                        extendedPool.status !== ArenaGroupStatus.SHORT && (
                           <ActionBox.Lend
                             isDialog={true}
                             useProvider={true}
@@ -339,7 +339,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                   </div>
                 </div>
                 <Mobile>
-                  {extendedPool.status === GroupStatus.LP && extendedPool.tokenBank.isActive ? (
+                  {extendedPool.status === ArenaGroupStatus.LP && extendedPool.tokenBank.isActive ? (
                     <>
                       <ActionBox.Lend
                         isDialog={true}
@@ -399,8 +399,8 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                       />
                     </>
                   ) : (
-                    extendedPool.status !== GroupStatus.LONG &&
-                    extendedPool.status !== GroupStatus.SHORT && (
+                    extendedPool.status !== ArenaGroupStatus.LONG &&
+                    extendedPool.status !== ArenaGroupStatus.SHORT && (
                       <ActionBox.Lend
                         isDialog={true}
                         useProvider={true}
@@ -452,7 +452,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                     <p className="text-mrgn-success">
                       {percentFormatter.format(aprToApy(extendedPool.quoteBank.info.state.lendingRate))}
                     </p>
-                    {extendedPool.status === GroupStatus.LP && extendedPool.tokenBank.isActive && (
+                    {extendedPool.status === ArenaGroupStatus.LP && extendedPool.tokenBank.isActive && (
                       <p className="mt-2 lg:hidden">Supplied</p>
                     )}
                   </div>
@@ -464,13 +464,13 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                         extendedPool.quoteBank.info.oraclePrice.priceRealtime.price.toNumber()
                     )}
                   </p>
-                  {extendedPool.status === GroupStatus.LP && extendedPool.tokenBank.isActive && (
+                  {extendedPool.status === ArenaGroupStatus.LP && extendedPool.tokenBank.isActive && (
                     <p className="mt-5 text-right lg:text-left lg:hidden">
                       {usdFormatter.format(extendedPool.tokenBank.position.amount)}
                     </p>
                   )}
                   <Desktop>
-                    {extendedPool.status === GroupStatus.LP && extendedPool.tokenBank.isActive ? (
+                    {extendedPool.status === ArenaGroupStatus.LP && extendedPool.tokenBank.isActive ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger className="focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0">
                           <Button size="sm" variant="outline" className="px-2 py-1.5 h-auto lg:px-4 lg:py-2">
@@ -540,8 +540,8 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                         </DropdownMenuContent>
                       </DropdownMenu>
                     ) : (
-                      extendedPool.status !== GroupStatus.LONG &&
-                      extendedPool.status !== GroupStatus.SHORT && (
+                      extendedPool.status !== ArenaGroupStatus.LONG &&
+                      extendedPool.status !== ArenaGroupStatus.SHORT && (
                         <ActionBox.Lend
                           isDialog={true}
                           useProvider={true}
@@ -585,7 +585,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                 </div>
               </Desktop>
               <Mobile>
-                {extendedPool.status === GroupStatus.LP ? (
+                {extendedPool.status === ArenaGroupStatus.LP ? (
                   <div>
                     <div className="flex gap-4">
                       <ActionBox.Lend
@@ -653,8 +653,8 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                     </div>
                   </div>
                 ) : (
-                  extendedPool.status !== GroupStatus.LONG &&
-                  extendedPool.status !== GroupStatus.SHORT && (
+                  extendedPool.status !== ArenaGroupStatus.LONG &&
+                  extendedPool.status !== ArenaGroupStatus.SHORT && (
                     <ActionBox.Lend
                       isDialog={true}
                       useProvider={true}

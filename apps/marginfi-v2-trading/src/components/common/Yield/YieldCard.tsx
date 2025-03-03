@@ -14,11 +14,11 @@ import {
   Wallet,
 } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { cn, capture } from "@mrgnlabs/mrgn-utils";
+import { cn, capture, ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
-import { ArenaPoolV2Extended, GroupStatus } from "~/types";
+import { ArenaPoolV2Extended } from "~/types";
 import { useActionBoxProps } from "~/hooks/useActionBoxProps";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
@@ -128,7 +128,7 @@ const YieldItem = ({
   const bank = React.useMemo(() => (bankType === "COLLATERAL" ? pool.quoteBank : pool.tokenBank), [bankType, pool]);
 
   const isProvidingLiquidity = React.useMemo(
-    () => bank.isActive && bank.position.isLending && pool.status === GroupStatus.LP,
+    () => bank.isActive && bank.position.isLending && pool.status === ArenaGroupStatus.LP,
     [bank, pool]
   );
 
@@ -233,7 +233,7 @@ const YieldItem = ({
             </>
           )}
 
-          {pool.status === GroupStatus.LONG || pool.status === GroupStatus.SHORT ? (
+          {pool.status === ArenaGroupStatus.LONG || pool.status === ArenaGroupStatus.SHORT ? (
             <div>
               <p className="text-xs text-muted-foreground mb-2">
                 You cannot provide liquidity with an open trade.{" "}

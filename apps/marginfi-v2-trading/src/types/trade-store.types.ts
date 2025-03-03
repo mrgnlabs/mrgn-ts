@@ -1,4 +1,6 @@
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
+
 import { PublicKey } from "@solana/web3.js";
 
 export type ArenaBank = ExtendedBankInfo & {
@@ -77,13 +79,6 @@ export type ArenaPoolSummary = {
   featured: boolean;
 };
 
-export enum GroupStatus {
-  LP = "lp",
-  LONG = "long",
-  SHORT = "short",
-  EMPTY = "empty",
-}
-
 export type ArenaPoolV2 = {
   groupPk: PublicKey;
   tokenBankPk: PublicKey;
@@ -95,7 +90,7 @@ export type ArenaPoolV2Extended = {
   groupPk: PublicKey;
   tokenBank: ArenaBank;
   quoteBank: ArenaBank;
-  status: GroupStatus;
+  status: ArenaGroupStatus;
 };
 
 export type PositionBankData = {

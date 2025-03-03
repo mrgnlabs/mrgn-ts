@@ -4,6 +4,7 @@ import { GetStaticProps, NextApiRequest } from "next";
 import { Bank, BankRaw, MarginfiAccount, MarginfiProgram, MintData, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import { fetchTokenAccounts, makeExtendedBankInfo, TokenAccount, UserDataProps } from "@mrgnlabs/marginfi-v2-ui-state";
 import { BankMetadata, TokenMetadata } from "@mrgnlabs/mrgn-common";
+import { ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 
 import { TOKEN_ICON_BASE_URL } from "~/config/trade";
 import { PoolListApiResponse, PoolPnlApiResponse, PoolPositionsApiResponse } from "~/types/api.types";
@@ -13,7 +14,6 @@ import {
   ArenaPoolPositions,
   ArenaPoolSummary,
   ArenaPoolV2,
-  GroupStatus,
   TokenVolumeData,
 } from "~/types/trade-store.types";
 
@@ -467,7 +467,7 @@ const parseUserPositions = (data: PoolPositionsApiResponse[]): ArenaPoolPosition
   }));
 };
 
-export function getPoolPositionStatus(pool: ArenaPoolV2, tokenBank: ArenaBank, quoteBank: ArenaBank): GroupStatus {
+export function getPoolPositionStatus(pool: ArenaPoolV2, tokenBank: ArenaBank, quoteBank: ArenaBank): ArenaGroupStatus {
   let isLpPosition = true;
   let hasAnyPosition = false;
   let isLendingInAny = false;
@@ -496,15 +496,15 @@ export function getPoolPositionStatus(pool: ArenaPoolV2, tokenBank: ArenaBank, q
     }
   }
 
-  let status = GroupStatus.EMPTY;
+  let status = ArenaGroupStatus.EMPTY;
 
   if (hasAnyPosition) {
     if (isLpPosition && isLendingInAny) {
-      status = GroupStatus.LP;
+      status = ArenaGroupStatus.LP;
     } else if (isLong) {
-      status = GroupStatus.LONG;
+      status = ArenaGroupStatus.LONG;
     } else if (isShort) {
-      status = GroupStatus.SHORT;
+      status = ArenaGroupStatus.SHORT;
     }
   }
 

@@ -44,11 +44,10 @@ export type RepayBoxProps = {
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
   banks: ExtendedBankInfo[];
-  requestedBank?: ExtendedBankInfo;
+  requestedBank: ExtendedBankInfo;
   requestedSecondaryBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
-
   showAvailableCollateral?: boolean;
 
   onComplete?: () => void;

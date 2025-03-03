@@ -41,9 +41,7 @@ import { ApyStat } from "./components/apy-stat";
 
 export type LoopBoxProps = {
   nativeSolBalance: number;
-  walletContextState?: WalletContextStateOverride | WalletContextState;
   connected: boolean;
-
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
   banks: ExtendedBankInfo[];

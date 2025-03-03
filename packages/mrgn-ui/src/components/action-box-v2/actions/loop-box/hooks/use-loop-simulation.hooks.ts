@@ -15,12 +15,12 @@ import {
   LoopActionTxns,
   STATIC_SIMULATION_ERRORS,
   usePrevious,
+  JupiterOptions,
 } from "@mrgnlabs/mrgn-utils";
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { SimulationStatus } from "~/components/action-box-v2/utils";
-import { JupiterOptions } from "~/components/settings/settings";
 
 import { calculateLooping, calculateSummary, getSimulationResult } from "../utils";
 

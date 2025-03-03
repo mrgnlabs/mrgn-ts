@@ -4,8 +4,9 @@ import Image from "next/image";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 
-import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 import { useArenaClient } from "~/hooks/useArenaClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
@@ -36,7 +37,7 @@ export const PositionListItem = ({ arenaPool }: props) => {
   return (
     <TableRow className="transition-colors hover:bg-accent/75">
       <TableCell>
-        {arenaPool.status === GroupStatus.LONG ? (
+        {arenaPool.status === ArenaGroupStatus.LONG ? (
           <Badge className="w-14 bg-success uppercase font-medium justify-center">long</Badge>
         ) : (
           <Badge className="w-14 bg-error uppercase font-medium justify-center">short</Badge>
@@ -95,7 +96,7 @@ export const PositionListItem = ({ arenaPool }: props) => {
         {client && accountSummary && arenaPool && (
           <PositionActionButtons
             arenaPool={arenaPool}
-            isBorrowing={arenaPool.status === GroupStatus.SHORT || arenaPool.status === GroupStatus.LONG}
+            isBorrowing={arenaPool.status === ArenaGroupStatus.SHORT || arenaPool.status === ArenaGroupStatus.LONG}
             accountSummary={accountSummary}
             client={client}
             selectedAccount={wrappedAccount}

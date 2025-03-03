@@ -22,6 +22,7 @@ import {
   getAssetWeightData,
   getUtilizationData,
   useConnection,
+  ArenaGroupStatus,
 } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStoreV2, useUiStore } from "~/store";
@@ -30,7 +31,7 @@ import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ActionBox, ActionBoxProvider } from "@mrgnlabs/mrgn-ui";
 
-import { ArenaBank, ArenaPoolV2, ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
+import { ArenaBank, ArenaPoolV2, ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
 import { useArenaClient } from "~/hooks/useArenaClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
@@ -77,13 +78,13 @@ export const AdminPoolDetailCard = ({ activePool }: AdminPoolDetailCardProps) =>
         <YieldItem
           pool={extendedPool}
           bank={extendedPool.tokenBank}
-          isLPPosition={extendedPool.status === GroupStatus.LP}
+          isLPPosition={extendedPool.status === ArenaGroupStatus.LP}
           className="flex-1"
         />
         <YieldItem
           pool={extendedPool}
           bank={extendedPool.quoteBank}
-          isLPPosition={extendedPool.status === GroupStatus.LP}
+          isLPPosition={extendedPool.status === ArenaGroupStatus.LP}
           className="flex-1"
         />
       </div>

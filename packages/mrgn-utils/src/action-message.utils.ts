@@ -11,6 +11,8 @@ import {
   LstData,
   canBeDepositSwapped,
   STATIC_SIMULATION_ERRORS,
+  getTradeSpecificChecks,
+  ArenaGroupStatus,
 } from ".";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
@@ -100,6 +102,7 @@ interface CheckLoopActionAvailableProps {
   connected: boolean;
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
+  actionQuote: QuoteResponse | null;
   banks?: ExtendedBankInfo[];
 }
 
@@ -109,6 +112,7 @@ export function checkLoopActionAvailable({
   selectedBank,
   selectedSecondaryBank,
   banks,
+  actionQuote,
 }: CheckLoopActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
@@ -118,40 +122,11 @@ export function checkLoopActionAvailable({
   const generalChecks = getGeneralChecks(amount ?? 0);
   if (generalChecks) checks.push(...generalChecks);
 
-  // allert checks
+  // alert checks
   if (selectedBank) {
-    const loopChecks = canBeLooped(selectedBank, selectedSecondaryBank, undefined, banks);
+    const loopChecks = canBeLooped(selectedBank, selectedSecondaryBank, actionQuote, banks);
     if (loopChecks.length) checks.push(...loopChecks);
   }
-
-  if (checks.length === 0)
-    checks.push({
-      isEnabled: true,
-    });
-
-  return checks;
-}
-
-export function checkRepayCollatActionAvailable({
-  amount,
-  connected,
-  selectedBank,
-  selectedSecondaryBank,
-  actionQuote,
-}: CheckActionAvailableProps): ActionMessageType[] {
-  let checks: ActionMessageType[] = [];
-
-  const requiredCheck = getRequiredCheck(connected, selectedBank);
-  if (requiredCheck) return [requiredCheck];
-
-  const generalChecks = getGeneralChecks(amount ?? 0);
-  if (generalChecks) checks.push(...generalChecks);
-
-  // allert checks
-  // if (selectedBank) {
-  //   const repayChecks = canBeRepaidCollat(selectedBank, selectedSecondaryBank, [], actionQuote);
-  //   if (repayChecks) checks.push(...repayChecks);
-  // } // TODO: update & fix
 
   if (checks.length === 0)
     checks.push({
@@ -185,7 +160,7 @@ export function checkRepayActionAvailable({
   ) {
     repayChecks = canBeRepaid(selectedBank, true);
   } else if (selectedBank && selectedSecondaryBank) {
-    repayChecks = canBeRepaidCollat(selectedBank, selectedSecondaryBank, [], actionQuote, maxOverflowHit);
+    repayChecks = canBeRepaidCollat(selectedBank, selectedSecondaryBank, actionQuote, maxOverflowHit);
   }
   if (repayChecks) checks.push(...repayChecks);
 
@@ -208,13 +183,17 @@ function getRequiredCheck(connected: boolean, selectedBank: ExtendedBankInfo | n
   return null;
 }
 
-function getGeneralChecks(amount: number = 0, showCloseBalance?: boolean): ActionMessageType[] {
+function getGeneralChecks(amount: number = 0, showCloseBalance?: boolean, leverage?: number): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
   if (showCloseBalance) {
     checks.push({ actionMethod: "INFO", description: "Close lending balance.", isEnabled: true });
   } // TODO: only for lend and withdraw
 
   if (amount === 0) {
+    checks.push({ isEnabled: false });
+  }
+
+  if (leverage !== undefined && leverage === 0) {
     checks.push({ isEnabled: false });
   }
 
@@ -317,6 +296,51 @@ export function checkDepositSwapActionAvailable({
     const depositChecks = canBeDepositSwapped(depositBank, swapBank, nativeSolBalance);
     if (depositChecks.length) checks.push(...depositChecks);
   }
+  if (checks.length === 0)
+    checks.push({
+      isEnabled: true,
+    });
+
+  return checks;
+}
+
+interface CheckTradeActionAvailableProps {
+  amount: number | null;
+  connected: boolean;
+  depositBank: ExtendedBankInfo | null;
+  borrowBank: ExtendedBankInfo | null;
+  actionQuote: QuoteResponse | null;
+  tradeState: "long" | "short";
+  leverage: number;
+  groupStatus: ArenaGroupStatus;
+}
+
+export function checkTradeActionAvailable({
+  amount,
+  connected,
+  depositBank,
+  borrowBank,
+  actionQuote,
+  tradeState,
+  groupStatus,
+  leverage,
+}: CheckTradeActionAvailableProps): ActionMessageType[] {
+  let checks: ActionMessageType[] = [];
+
+  const requiredCheck = getRequiredCheck(connected, depositBank);
+  if (requiredCheck) return [requiredCheck];
+
+  const generalChecks = getGeneralChecks(amount ?? 0, false, leverage);
+  if (generalChecks) checks.push(...generalChecks);
+
+  const tradeSpecificChecks = getTradeSpecificChecks(groupStatus, tradeState, borrowBank, depositBank);
+  if (tradeSpecificChecks) checks.push(...tradeSpecificChecks);
+
+  if (depositBank) {
+    const tradeChecks = canBeLooped(depositBank, borrowBank, actionQuote);
+    if (tradeChecks.length) checks.push(...tradeChecks);
+  }
+
   if (checks.length === 0)
     checks.push({
       isEnabled: true,
