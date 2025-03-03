@@ -77,6 +77,7 @@ export const section = defineType({
         { type: 'mathBlock' },
         { type: 'imageWithCaption' },
         { type: 'properties' },
+        { type: 'codeBlock' },
       ],
     }),
   ],

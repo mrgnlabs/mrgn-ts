@@ -7,6 +7,8 @@ import { PortableText, PortableTextComponents } from '@portabletext/react'
 import { Button } from '~/components/Button'
 import { Heading } from '~/components/Heading'
 import { Feedback } from '~/components/Feedback'
+import { CodeGroup } from '~/components/Code'
+import { CodeBlockComponent } from './CodeBlockComponent'
 
 interface SanityImage {
   asset: {
@@ -30,6 +32,13 @@ interface NoteBlock {
   content: any[];
 }
 
+interface CodeBlock {
+  _type: 'codeBlock';
+  code: string;
+  language?: string;
+  title?: string;
+}
+
 interface Section {
   _type: 'section';
   _key: string;
@@ -51,7 +60,7 @@ interface Properties {
 interface DocPage {
   title: string;
   leadText?: any[];
-  content?: Array<Section | NoteBlock | MathBlock | ImageWithCaption | Properties>;
+  content?: Array<Section | NoteBlock | MathBlock | ImageWithCaption | Properties | CodeBlock>;
 }
 
 const components: PortableTextComponents = {
@@ -71,6 +80,13 @@ const components: PortableTextComponents = {
         src={value.image.asset.url}
         alt={value.alt || ''}
         isBig={true}
+      />
+    ),
+    codeBlock: ({ value }: { value: CodeBlock }) => (
+      <CodeBlockComponent
+        code={value.code}
+        language={value.language}
+        title={value.title}
       />
     ),
   },

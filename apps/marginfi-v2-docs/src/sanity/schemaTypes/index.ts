@@ -6,6 +6,7 @@ import { mathBlock } from './mathBlock'
 import { imageWithCaption } from './imageWithCaption'
 import { properties } from './properties'
 import { faq } from './faq'
+import { codeBlock } from './codeBlock'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -16,7 +17,8 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     imageWithCaption,
     properties,
     faq,
+    codeBlock,
   ],
 }
 
-export const schemaTypes = [docPage, section, note, mathBlock, imageWithCaption, properties, faq]
+export const schemaTypes = [docPage, section, note, mathBlock, imageWithCaption, properties, faq, codeBlock]
