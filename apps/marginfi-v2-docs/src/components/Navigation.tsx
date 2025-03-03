@@ -69,8 +69,10 @@ function NavLink({
       aria-current={active ? 'page' : undefined}
       className={clsx(
         'flex justify-between gap-2 py-1 text-sm transition relative',
-        isAnchorLink ? 'pl-7' : 'pl-4',
-        'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white'
+        isAnchorLink ? 'pl-8' : 'pl-4',
+        isParentActive 
+          ? 'text-zinc-100 dark:text-white'
+          : 'text-zinc-400 hover:text-zinc-100 dark:text-zinc-500 dark:hover:text-zinc-300'
       )}
     >
       <span className="truncate">{children}</span>
@@ -98,21 +100,26 @@ function VisibleSectionHighlight({
   const activeLink = group.links.find(link => pathname.startsWith(link.href))
   if (!activeLink) return null
 
-  // Calculate which sections are currently visible
-  const visibleChildren = activeLink.children?.filter(child => {
-    const sectionId = child.href.split('#')[1]
-    return visibleSections.includes(sectionId)
-  }) ?? []
+  // For Sanity sections, we need to handle both predefined children and dynamic sections
+  const visibleChildren = activeLink.children 
+    ? activeLink.children.filter(child => {
+        const sectionId = child.href.split('#')[1]
+        return visibleSections.includes(sectionId)
+      })
+    : visibleSections.map(section => ({
+        title: section,
+        href: `${pathname}#${section}`
+      }))
 
   if (visibleChildren.length === 0) return null
 
   // Calculate position and height
-  let itemHeight = remToPx(2)
-  let height = Math.max(1, visibleChildren.length) * itemHeight
-  let firstVisibleChildIndex = activeLink.children?.findIndex(child => 
-    child.href.split('#')[1] === visibleSections[0]
-  ) ?? 0
-  let top = firstVisibleChildIndex * itemHeight
+  let itemHeight = remToPx(2) // 2rem for each item
+  let height = visibleChildren.length * itemHeight
+  let offset = remToPx(2) // Offset for the first item
+  let top = offset + (activeLink.children?.findIndex(child => 
+    visibleSections.includes(child.href.split('#')[1])
+  ) || 0) * itemHeight
 
   return (
     <motion.div
@@ -120,13 +127,13 @@ function VisibleSectionHighlight({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: { delay: 0.2 } }}
       exit={{ opacity: 0 }}
-      className="absolute inset-x-0 bg-zinc-800/2.5 will-change-transform dark:bg-white/2.5"
+      className="absolute inset-x-0 bg-zinc-800/5 will-change-transform dark:bg-white/5"
       style={{ 
-        borderRadius: 8, 
-        height, 
+        borderRadius: 8,
+        height: `${height}px`,
         top: `${top}px`,
-        left: '0.5rem',
-        right: '0.5rem'
+        left: '0.75rem',
+        right: '0.75rem'
       }}
     />
   )
@@ -234,13 +241,14 @@ function NavigationGroup({
                     >
                       {link.children.map((child) => {
                         const sectionId = child.href.split('#')[1]
+                        const isVisible = visibleSections.includes(sectionId)
                         return (
                           <li key={child.href}>
                             <NavLink
                               href={child.href}
-                              active={false}
+                              active={isVisible}
                               isAnchorLink
-                              isParentActive={false}
+                              isParentActive={isVisible}
                             >
                               {child.title}
                             </NavLink>
@@ -251,47 +259,47 @@ function NavigationGroup({
                   </div>
                 )}
 
-                {/* Render section anchors */}
-                <AnimatePresence mode="popLayout" initial={false}>
-                  {link.href === pathname && sections.length > 0 && !link.children && (
-                    <div className="relative">
-                      <AnimatePresence>
-                        {isActiveGroup && (
-                          <VisibleSectionHighlight 
-                            group={group} 
-                            pathname={pathname}
-                            visibleSections={visibleSections}
-                          />
-                        )}
-                      </AnimatePresence>
-                      <motion.ul
-                        role="list"
-                        initial={{ opacity: 0 }}
-                        animate={{
-                          opacity: 1,
-                          transition: { delay: 0.1 },
-                        }}
-                        exit={{
-                          opacity: 0,
-                          transition: { duration: 0.15 },
-                        }}
-                      >
-                        {sections.map((section) => (
-                          <li key={section.id}>
-                            <NavLink
-                              href={`${link.href}#${section.id}`}
-                              tag={section.tag}
-                              isAnchorLink
-                              isParentActive={false}
-                            >
-                              {section.title}
-                            </NavLink>
-                          </li>
-                        ))}
-                      </motion.ul>
-                    </div>
-                  )}
-                </AnimatePresence>
+                {/* Render dynamic sections if no predefined children */}
+                {!link.children && link.href === pathname && sections.length > 0 && (
+                  <div className="relative">
+                    <AnimatePresence>
+                      {isActiveGroup && (
+                        <VisibleSectionHighlight 
+                          group={group} 
+                          pathname={pathname}
+                          visibleSections={visibleSections}
+                        />
+                      )}
+                    </AnimatePresence>
+                    <motion.ul
+                      role="list"
+                      initial={{ opacity: 0 }}
+                      animate={{
+                        opacity: 1,
+                        transition: { delay: 0.1 },
+                      }}
+                      exit={{
+                        opacity: 0,
+                        transition: { duration: 0.15 },
+                      }}
+                      className="mt-2"
+                    >
+                      {sections.map((section) => (
+                        <li key={section.id}>
+                          <NavLink
+                            href={`${link.href}#${section.id}`}
+                            tag={section.tag}
+                            active={visibleSections.includes(section.id)}
+                            isAnchorLink
+                            isParentActive={visibleSections.includes(section.id)}
+                          >
+                            {section.title}
+                          </NavLink>
+                        </li>
+                      ))}
+                    </motion.ul>
+                  </div>
+                )}
               </motion.li>
             )
           })}

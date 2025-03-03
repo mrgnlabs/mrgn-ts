@@ -1,3 +1,5 @@
+'use client'
+
 // src/components/doc/DocPage.tsx
 import { Prose } from '~/components/Prose'
 import { Note, Properties, Property } from '~/components/mdx'
@@ -9,6 +11,8 @@ import { Heading } from '~/components/Heading'
 import { Feedback } from '~/components/Feedback'
 import { CodeGroup } from '~/components/Code'
 import { CodeBlockComponent } from './CodeBlockComponent'
+import { useSectionStore } from '~/components/SectionProvider'
+import { useEffect } from 'react'
 
 interface SanityImage {
   asset: {
@@ -45,6 +49,12 @@ interface Section {
   title?: string;
   label?: string;
   content: any[];
+}
+
+interface SectionInfo {
+  id: string;
+  title: string;
+  tag?: string;
 }
 
 interface Properties {
@@ -125,13 +135,63 @@ const components: PortableTextComponents = {
   },
 }
 
+function SectionTracker({ sections }: { sections: SectionInfo[] }) {
+  const registerHeading = useSectionStore((state) => state.registerHeading)
+
+  useEffect(() => {
+    // Wait for next frame to ensure elements are in the DOM
+    const registerSections = () => {
+      sections.forEach((section) => {
+        if (section && section.id) {
+          const element = document.getElementById(section.id) as HTMLHeadingElement | null
+          if (element) {
+            registerHeading({
+              id: section.id,
+              ref: { current: element },
+              offsetRem: 0,
+              title: section.title || '',
+              tag: section.tag,
+            })
+          }
+        }
+      })
+    }
+
+    // Initial registration
+    requestAnimationFrame(registerSections)
+
+    // Re-register on scroll to ensure all sections are captured
+    const handleScroll = () => {
+      requestAnimationFrame(registerSections)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [sections, registerHeading])
+
+  return null
+}
+
 export function DocPage({ page }: { page: DocPage }) {
   if (!page) {
     return <div>Loading...</div>
   }
 
+  // Get sections from the page content
+  const sections = page.content?.map((section: any): SectionInfo | null => {
+    if (section._type === 'section') {
+      return {
+        id: section.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '',
+        title: section.title || '',
+        tag: section.label || undefined,
+      }
+    }
+    return null
+  }).filter((section): section is SectionInfo => section !== null) || []
+
   return (
     <article className="flex h-full flex-col pb-10 pt-16">
+      <SectionTracker sections={sections} />
       <Prose className="flex-auto">
         {/* Page Title */}
         <h1>{page.title}</h1>
