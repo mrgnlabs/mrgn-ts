@@ -23,14 +23,14 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   TX_SIZE: {
     isEnabled: false,
     actionMethod: "WARNING",
-    description: "Unable to find Jupiter swap routes for this pair. Please try again.",
+    description: "Unable to find a Jupiter quote for this pairing, please try again.",
     retry: true,
     code: 103,
   },
   FL_FAILED: {
     isEnabled: false,
     actionMethod: "WARNING",
-    description: "Failed to fetch Jupiter qoute for this swap. Please try again.",
+    description: "Unable to find a Jupiter quote for this pairing, please try again.",
     retry: true,
     code: 104,
   },
@@ -157,7 +157,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     code: 123,
   },
   STAKE_SWAP_SIMULATION_FAILED: {
-    description: "Failed to fetch Jupiter qoute. Please try again",
+    description: "Unable to find a Jupiter quote for this pairing, please try again.",
     isEnabled: false,
     actionMethod: "WARNING",
     code: 124,
@@ -215,7 +215,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   CREATE_SWAP_FAILED: {
     isEnabled: false,
     actionMethod: "WARNING",
-    description: "Failed to fetch Jupiter quote. Please try again.",
+    description: "Unable to find a Jupiter quote for this pairing, please try again.",
     retry: true,
     code: 136,
   },
@@ -244,8 +244,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     code: 139,
   },
   TX_BUILD_FAILED: {
-    description:
-      "There was an issue while building the transaction within the SDK. Please try again. If the problem persists, check your inputs or contact support.",
+    description: "There was an unexpected error building the transaction, please contact support.",
     isEnabled: false,
     actionMethod: "WARNING",
     code: 144,
@@ -265,7 +264,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     code: 146,
   },
   JUP_QUOTE_FAILED: {
-    description: "Failed to fetch Jupiter qoute. Please try again.",
+    description: "Unable to find a Jupiter quote for this pairing, please try again.",
     isEnabled: false,
     retry: true,
     actionMethod: "WARNING",
