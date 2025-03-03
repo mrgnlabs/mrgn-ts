@@ -30,7 +30,7 @@ export function MultiStepToast({ title, steps }: MultiStepToastProps) {
   const allSuccessful = steps.every((step) => step.status === ToastStatus.SUCCESS);
 
   return (
-    <div className="relative w-full h-full rounded-md z-50 md:min-w-[340px] font-light pr-4">
+    <div className="relative w-full h-full rounded-md z-50 md:max-w-[340px] w-full font-light pr-4">
       <h2 className="flex items-center gap-1.5 text-lg mb-5 font-normal">
         {allSuccessful ? (
           <>
