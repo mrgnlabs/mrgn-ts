@@ -18,8 +18,6 @@ import { SimulationStatus } from "../../../utils/simulation.utils";
 import { useActionBoxStore } from "../../../store";
 import { JupiterOptions } from "~/components/settings";
 
-
-
 type StakeSimulationProps = {
   debouncedAmount: number;
   lstData: LstData | null;
@@ -76,7 +74,7 @@ export function useStakeSimulation({
     callbacks.setActionTxns({
       transactions: [],
       actionQuote: null,
-    })
+    });
     console.error(
       "Error simulating transaction",
       typeof actionMessage === "string" ? extractErrorString(actionMessage) : actionMessage.description
@@ -85,159 +83,163 @@ export function useStakeSimulation({
   };
 
   const simulationAction = async (props: {
-    txns: StakeActionTxns,
-    marginfiClient: MarginfiClient,
-    bank: ExtendedBankInfo,
-  }) : Promise<{ simulationSuccess: boolean, actionMessage: ActionMessageType | null }> => {
-  
+    txns: StakeActionTxns;
+    marginfiClient: MarginfiClient;
+    bank: ExtendedBankInfo;
+  }): Promise<{ simulationSuccess: boolean; actionMessage: ActionMessageType | null }> => {
     if (props.txns.transactions.length > 0) {
-      const { actionMethod, simulationSucceeded  } = await getSimulationResult({
+      const { actionMethod, simulationSucceeded } = await getSimulationResult({
         marginfiClient: props.marginfiClient,
         txns: props.txns.transactions,
         selectedBank: props.bank,
       });
-  
-    if (actionMethod) {
-      return { simulationSuccess: false, actionMessage: actionMethod };
-    } else if (simulationSucceeded) {
-      return { simulationSuccess: true, actionMessage: null };
+
+      if (actionMethod) {
+        return { simulationSuccess: false, actionMessage: actionMethod };
+      } else if (simulationSucceeded) {
+        return { simulationSuccess: true, actionMessage: null };
+      } else {
+        const errorMessage = STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
+        return { simulationSuccess: false, actionMessage: errorMessage };
+      }
     } else {
-      const errorMessage = STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED; 
-      return { simulationSuccess: false, actionMessage: errorMessage };
+      throw new Error("account, bank or transactions are null"); // TODO: return error message?
     }
-  }
-  else {
-    throw new Error("account, bank or transactions are null"); // TODO: return error message? 
-  }
-  }
+  };
 
   const fetchStakeActionTxns = async (props: {
-    actionMode: ActionType,
-    amount: number,
-    marginfiClient: MarginfiClient,
-    connection: Connection,
-    jupiterOptions: JupiterOptions,
-    platformFeeBps: number,
-    lstData: LstData,
-    selectedBank: ExtendedBankInfo,
-  }) : Promise<{ txns: StakeActionTxns | null,  actionMessage: ActionMessageType | null }> => {
+    actionMode: ActionType;
+    amount: number;
+    marginfiClient: MarginfiClient;
+    connection: Connection;
+    jupiterOptions: JupiterOptions;
+    platformFeeBps: number;
+    lstData: LstData;
+    selectedBank: ExtendedBankInfo;
+  }): Promise<{ txns: StakeActionTxns | null; actionMessage: ActionMessageType | null }> => {
     try {
-      
-    
-    let _actionTxns: StakeActionTxns | ActionMessageType;
+      let _actionTxns: StakeActionTxns | ActionMessageType;
 
-    if (props.actionMode === ActionType.UnstakeLST) {
-      _actionTxns = await createUnstakeLstTx({
-        amount: props.amount,
-        feepayer: props.marginfiClient.wallet.publicKey,
-        connection: props.connection,
-        jupiterOptions: props.jupiterOptions,
-        platformFeeBps: props.platformFeeBps,
-      });
-      
-      
-    } else {
-      _actionTxns = await createStakeLstTx({
-        amount: props.amount,
-        selectedBank: props.selectedBank,
-        feepayer: props.marginfiClient.wallet.publicKey,
-        connection: props.connection,
-        lstData: props.lstData,
-        jupiterOptions: props.jupiterOptions,
-        platformFeeBps: props.platformFeeBps,
-      });
-
-     
-    }
-
-    if (_actionTxns && "transactions" in _actionTxns) {
-      return {
-        txns: _actionTxns,
-        actionMessage: null,
+      if (props.actionMode === ActionType.UnstakeLST) {
+        _actionTxns = await createUnstakeLstTx({
+          amount: props.amount,
+          feepayer: props.marginfiClient.wallet.publicKey,
+          connection: props.connection,
+          jupiterOptions: props.jupiterOptions,
+          platformFeeBps: props.platformFeeBps,
+        });
+      } else {
+        _actionTxns = await createStakeLstTx({
+          amount: props.amount,
+          selectedBank: props.selectedBank,
+          feepayer: props.marginfiClient.wallet.publicKey,
+          connection: props.connection,
+          lstData: props.lstData,
+          jupiterOptions: props.jupiterOptions,
+          platformFeeBps: props.platformFeeBps,
+        });
       }
-    } else {
-      const errorMessage = _actionTxns ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
+
+      if (_actionTxns && "transactions" in _actionTxns) {
+        return {
+          txns: _actionTxns,
+          actionMessage: null,
+        };
+      } else {
+        const errorMessage = _actionTxns ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
+        return {
+          txns: null,
+          actionMessage: errorMessage,
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching deposit swap action txns", error);
       return {
         txns: null,
-        actionMessage: errorMessage,
-      }
+        actionMessage: STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED,
+      };
     }
-  } catch (error) {
-    console.error("Error fetching deposit swap action txns", error);
-    return {
-      txns: null,
-      actionMessage: STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED,
-    };
-  }
-  }
+  };
 
-  const handleSimulation = React.useCallback(async (amount: number, actionMode: ActionType) => {
-try {
-  const connection = marginfiClient?.provider.connection;
+  const handleSimulation = React.useCallback(
+    async (amount: number, actionMode: ActionType) => {
+      try {
+        const connection = marginfiClient?.provider.connection;
 
-  if (amount === 0 || !selectedBank || !connection || !lstData || !jupiterOptions) { // Selected account can be undefined, we'll make a tx for this if so
-    console.error('Missing params')
-    setActionTxns({
-      transactions: [],
-      actionQuote: null,
-    });    return;
-  }
+        if (amount === 0 || !selectedBank || !connection || !lstData || !jupiterOptions) {
+          // Selected account can be undefined, we'll make a tx for this if so
+          setActionTxns({
+            transactions: [],
+            actionQuote: null,
+          });
+          return;
+        }
 
-  setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
+        setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
 
-  const props = {
-    actionMode,
-    amount,
-    marginfiClient,
-    connection,
-    jupiterOptions,
-    platformFeeBps,
-    lstData,
-    selectedBank,
-  }
+        const props = {
+          actionMode,
+          amount,
+          marginfiClient,
+          connection,
+          jupiterOptions,
+          platformFeeBps,
+          lstData,
+          selectedBank,
+        };
 
-  const _actionTxns = await fetchStakeActionTxns(props);
+        const _actionTxns = await fetchStakeActionTxns(props);
 
-  if (_actionTxns.actionMessage || _actionTxns.txns === null) {
-    handleError(_actionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
-      setErrorMessage,
-      setSimulationResult,
+        if (_actionTxns.actionMessage || _actionTxns.txns === null) {
+          handleError(_actionTxns.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
+          return;
+        }
+
+        const simulationResult = await simulationAction({
+          txns: _actionTxns.txns,
+          marginfiClient,
+          bank: selectedBank,
+        });
+
+        if (simulationResult.actionMessage || simulationResult.simulationSuccess === false) {
+          handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
+            setErrorMessage,
+            setSimulationResult,
+            setActionTxns,
+            setIsLoading,
+          });
+          return;
+        } else if (simulationResult.simulationSuccess === true) {
+          setSimulationResult(simulationResult);
+          setActionTxns(_actionTxns.txns);
+          setErrorMessage(null);
+        } else {
+          throw new Error("Unknown error"); // TODO: return error message?
+        }
+      } catch (error) {
+        console.error("Error simulating transaction", error);
+        setSimulationResult(null);
+      } finally {
+        setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
+      }
+    },
+    [
+      jupiterOptions,
+      lstData,
+      marginfiClient,
+      platformFeeBps,
+      selectedBank,
       setActionTxns,
-      setIsLoading,
-    });
-    return 
-  }
-
-  const simulationResult = await simulationAction({
-    txns: _actionTxns.txns,
-    marginfiClient,
-    bank: selectedBank,
-  })
-
-  if (simulationResult.actionMessage || simulationResult.simulationSuccess === false) {
-    handleError(simulationResult.actionMessage ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED, {
       setErrorMessage,
-      setSimulationResult,
-      setActionTxns,
       setIsLoading,
-    });
-    return 
-  } else if (simulationResult.simulationSuccess === true) {
-    setSimulationResult(simulationResult);
-    setActionTxns(_actionTxns.txns);
-    setErrorMessage(null);
-  } else {
-    throw new Error("Unknown error"); // TODO: return error message? 
-  }
-} catch (error) {
-  console.error("Error simulating transaction", error);
-  setSimulationResult(null);
-} finally{
-  setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
-}
-     
-  }, [jupiterOptions, lstData, marginfiClient, platformFeeBps, selectedBank, setActionTxns, setErrorMessage, setIsLoading, setSimulationResult])
-
+      setSimulationResult,
+    ]
+  );
 
   const refreshSimulation = React.useCallback(async () => {
     if (debouncedAmount > 0) {
@@ -245,19 +247,15 @@ try {
     }
   }, [debouncedAmount, handleSimulation, actionMode]);
 
-
   React.useEffect(() => {
-    if (
-      prevDebouncedAmount !== debouncedAmount 
-    ) {
+    if (prevDebouncedAmount !== debouncedAmount) {
       if (debouncedAmount > 0) {
         handleSimulation(debouncedAmount, actionMode);
       }
     }
-    }, [debouncedAmount, handleSimulation, prevDebouncedAmount, actionMode]);
-
+  }, [debouncedAmount, handleSimulation, prevDebouncedAmount, actionMode]);
 
   return {
-    refreshSimulation
+    refreshSimulation,
   };
 }

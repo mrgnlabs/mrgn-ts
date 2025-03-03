@@ -102,7 +102,6 @@ export function useLendSimulation({
       try {
         if (amount === 0 || !selectedBank || !marginfiClient) {
           // Selected account can be undefined, we'll make a tx for this if so
-          console.error("Missing params");
           setActionTxns({ transactions: [] });
           return;
         }
