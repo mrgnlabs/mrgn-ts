@@ -4,10 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { dynamicNumeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { cn } from "@mrgnlabs/mrgn-utils";
+import { cn, ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStoreV2 } from "~/store";
-import { GroupStatus } from "~/types";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 
 import { PageHeading } from "~/components/common/PageHeading";
@@ -40,15 +39,15 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
   }, [initialData, fetchArenaGroups, setHydrationComplete]);
 
   const shortPositions = React.useMemo(
-    () => extendedPools.filter((pool) => pool.status === GroupStatus.SHORT),
+    () => extendedPools.filter((pool) => pool.status === ArenaGroupStatus.SHORT),
     [extendedPools]
   );
   const longPositions = React.useMemo(
-    () => extendedPools.filter((pool) => pool.status === GroupStatus.LONG),
+    () => extendedPools.filter((pool) => pool.status === ArenaGroupStatus.LONG),
     [extendedPools]
   );
   const lpPositions = React.useMemo(
-    () => extendedPools.filter((pool) => pool.status === GroupStatus.LP),
+    () => extendedPools.filter((pool) => pool.status === ArenaGroupStatus.LP),
     [extendedPools]
   );
 

@@ -1,8 +1,8 @@
 import React from "react";
 
-import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
+import { useIsMobile, cn, ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 
-import { ArenaPoolV2, ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
+import { ArenaPoolV2, ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
 import { usePositionsData } from "~/hooks/usePositionsData";
 
@@ -21,8 +21,8 @@ export const PositionList = ({ activePool }: { activePool: ArenaPoolV2 }) => {
     if (!extendedPools) return [];
     const isActiveGroupPosition = (item: ArenaPoolV2Extended) => item.groupPk.equals(activePool.groupPk);
 
-    const longPositions = extendedPools.filter((pool) => pool.status === GroupStatus.LONG);
-    const shortPositions = extendedPools.filter((pool) => pool.status === GroupStatus.SHORT);
+    const longPositions = extendedPools.filter((pool) => pool.status === ArenaGroupStatus.LONG);
+    const shortPositions = extendedPools.filter((pool) => pool.status === ArenaGroupStatus.SHORT);
 
     const activeGroupPosition = [...longPositions, ...shortPositions].find(isActiveGroupPosition);
 

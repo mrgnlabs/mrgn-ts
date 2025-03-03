@@ -4,6 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { IconArrowRight } from "@tabler/icons-react";
 import { Connection } from "@solana/web3.js";
+import { minidenticon } from "minidenticons";
+
 import {
   aprToApy,
   dynamicNumeralFormatter,
@@ -13,9 +15,8 @@ import {
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { cn, capture } from "@mrgnlabs/mrgn-utils";
+import { cn, capture, ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 import { Wallet } from "@mrgnlabs/mrgn-common";
-import { minidenticon } from "minidenticons";
 
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
@@ -26,7 +27,6 @@ import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
-import { GroupStatus } from "~/types/trade-store.types";
 import { useActionBoxProps } from "~/hooks/useActionBoxProps";
 
 interface props {
@@ -140,7 +140,7 @@ const YieldItem = ({
   const bank = React.useMemo(() => (bankType === "COLLATERAL" ? pool.quoteBank : pool.tokenBank), [bankType, pool]);
 
   const isProvidingLiquidity = React.useMemo(
-    () => bank.isActive && bank.position.isLending && pool.status === GroupStatus.LP,
+    () => bank.isActive && bank.position.isLending && pool.status === ArenaGroupStatus.LP,
     [bank, pool]
   );
 
@@ -296,7 +296,7 @@ const YieldItem = ({
                 />
               </>
             )}
-            {pool.status === GroupStatus.LONG || pool.status === GroupStatus.SHORT ? (
+            {pool.status === ArenaGroupStatus.LONG || pool.status === ArenaGroupStatus.SHORT ? (
               <Tooltip>
                 <TooltipTrigger className="cursor-default" asChild>
                   <Button disabled className="bg-background border text-foreground hover:bg-accent">

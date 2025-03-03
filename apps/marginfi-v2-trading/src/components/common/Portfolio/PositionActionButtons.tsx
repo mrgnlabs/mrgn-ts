@@ -1,7 +1,7 @@
 import React from "react";
 
 import { IconMinus, IconPlus } from "@tabler/icons-react";
-import { cn, capture } from "@mrgnlabs/mrgn-utils";
+import { cn, capture, ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useConnection } from "~/hooks/use-connection";
@@ -12,7 +12,7 @@ import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { ClosePosition } from "./components";
 
 type PositionActionButtonsProps = {
@@ -109,7 +109,7 @@ export const PositionActionButtons = ({
           depositSwapProps={{
             connected: connected,
             requestedDepositBank: depositBanks[0],
-            requestedSwapBank: arenaPool.status === GroupStatus.LONG ? (borrowBank ?? undefined) : undefined,
+            requestedSwapBank: arenaPool.status === ArenaGroupStatus.LONG ? (borrowBank ?? undefined) : undefined,
             showAvailableCollateral: false,
             walletTokens: null,
             captureEvent: () => {

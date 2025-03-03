@@ -3,12 +3,11 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+import { Desktop, Mobile, ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 
 import { LpActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
-import { GroupStatus } from "~/types/trade-store.types";
 import { Button } from "~/components/ui/button";
 import { IconExternalLink } from "@tabler/icons-react";
 
@@ -16,7 +15,7 @@ export const LpPositionList = () => {
   const extendedPools = useExtendedPools();
 
   const lpPositions = React.useMemo(() => {
-    return extendedPools.filter((pool) => pool.status === GroupStatus.LP);
+    return extendedPools.filter((pool) => pool.status === ArenaGroupStatus.LP);
   }, [extendedPools]);
 
   if (!lpPositions.length) {

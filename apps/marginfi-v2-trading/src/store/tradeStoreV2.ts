@@ -24,6 +24,7 @@ import {
   nativeToUi,
   unpackAccount,
 } from "@mrgnlabs/mrgn-common";
+import { ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 
 import { POOLS_PER_PAGE, TOKEN_ICON_BASE_URL } from "~/config/trade";
 import {
@@ -33,7 +34,6 @@ import {
   ArenaPoolSummary,
   ArenaPoolV2,
   BankData,
-  GroupStatus,
   TokenVolumeData,
 } from "~/types/trade-store.types";
 import { OraclePriceV2ApiResponse } from "~/types/api.types";
@@ -1081,11 +1081,11 @@ function fillMissingPositions(
 
     const status = getPoolPositionStatus(pool, tokenBank, quoteBank);
 
-    if (status === GroupStatus.EMPTY || !tokenBank || !quoteBank) {
+    if (status === ArenaGroupStatus.EMPTY || !tokenBank || !quoteBank) {
       delete pnlData[pool.groupPk.toBase58()];
     }
 
-    if (status === GroupStatus.LONG || status === GroupStatus.SHORT) {
+    if (status === ArenaGroupStatus.LONG || status === ArenaGroupStatus.SHORT) {
       const pnlPositionData = pnlData[pool.groupPk.toBase58()];
 
       const positionQuoteData = quoteBank.isActive && quoteBank.position;
@@ -1096,11 +1096,11 @@ function fillMissingPositions(
         depositSize = 0,
         borrowSize = 0;
 
-      if (status === GroupStatus.SHORT) {
+      if (status === ArenaGroupStatus.SHORT) {
         depositValue = positionQuoteData ? positionQuoteData.usdValue : 0;
         borrowValue = positionTokenData ? positionTokenData.usdValue : 0;
         depositSize = positionQuoteData ? positionQuoteData.amount : 0;
-      } else if (status === GroupStatus.LONG) {
+      } else if (status === ArenaGroupStatus.LONG) {
         depositValue = positionTokenData ? positionTokenData.usdValue : 0;
         borrowValue = positionQuoteData ? positionQuoteData.usdValue : 0;
         depositSize = positionTokenData ? positionTokenData.amount : 0;
@@ -1118,7 +1118,7 @@ function fillMissingPositions(
           groupPk: pool.groupPk,
           accountPk: account?.address ?? PublicKey.default,
           authorityPk: account?.authority ?? PublicKey.default,
-          direction: status === GroupStatus.LONG ? "long" : "short",
+          direction: status === ArenaGroupStatus.LONG ? "long" : "short",
           entryPrice: properEntryPrice,
           currentPositionValue: sizeUsd,
           pnl: pnlPositionData.totalPnlUsd,
@@ -1128,7 +1128,7 @@ function fillMissingPositions(
           groupPk: pool.groupPk,
           accountPk: account?.address ?? PublicKey.default,
           authorityPk: account?.authority ?? PublicKey.default,
-          direction: status === GroupStatus.LONG ? "long" : "short",
+          direction: status === ArenaGroupStatus.LONG ? "long" : "short",
           entryPrice: tokenBank.info.oraclePrice.priceRealtime.price.toNumber(),
           currentPositionValue: sizeUsd,
           pnl: 0,
