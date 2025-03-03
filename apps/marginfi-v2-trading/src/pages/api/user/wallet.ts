@@ -45,7 +45,7 @@ export default async function handler(req: NextApiRequest<WalletRequest>, res: N
 
     const tokens: WalletToken[] = (
       await Promise.all(
-        data.items.slice(0, 20).map(async (item: any) => {
+        data.items.filter((item: any) => item.name !== null && item.symbol !== null).slice(0, 20).map(async (item: any) => {
           const mint = new PublicKey(item.address);
           const owner = new PublicKey(ownerAddress);
           const ata = getAssociatedTokenAddressSync(mint, owner);
