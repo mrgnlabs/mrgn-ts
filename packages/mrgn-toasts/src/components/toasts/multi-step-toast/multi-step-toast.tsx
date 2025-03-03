@@ -152,11 +152,11 @@ const ErrorStep = ({
       <IconX size={16} className="flex-shrink-0 text-mrgn-error" />
       <span>{label}</span>
     </div>
-    <div className="flex items-center space-x-2 w-full px-6">
-      {isLastFailed && message && <div className="py-1 text-xs text-muted-foreground">{message}</div>}
+    <div className="flex items-center space-x-2 w-full pl-6">
+      {isLastFailed && message && <div className="py-1 text-xs text-muted-foreground flex-1 min-w-0">{message}</div>}
       {isLastFailed && onRetry && (
         <button
-          className="ml-2 w-16 h-max py-2 inline-flex gap-2 items-center justify-center text-[10px] font-medium rounded-md bg-accent text-primary px-2 py-0.5 shadow-sm hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-600"
+          className="w-16 flex-shrink-0 h-max py-2 inline-flex gap-2 items-center justify-center text-[10px] font-medium rounded-md bg-accent text-primary px-2 py-0.5 shadow-sm hover:bg-accent/80 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-600"
           onClick={onRetry}
         >
           Retry
