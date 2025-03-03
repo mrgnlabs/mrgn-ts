@@ -19,3 +19,5 @@ export * from "./rpc.utils";
 export * from "./transaction.utils";
 export * from "./slippage.consts";
 export * from "./validation";
+export * from "./jup-swap.utils";
+export * from "./trade.utils";

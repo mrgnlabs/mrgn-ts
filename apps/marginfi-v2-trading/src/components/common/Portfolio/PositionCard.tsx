@@ -4,13 +4,13 @@ import Image from "next/image";
 import { IconInfoCircle, IconSwitchHorizontal } from "@tabler/icons-react";
 
 import { tokenPriceFormatter, percentFormatter, usdFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
-import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
+import { useIsMobile, cn, ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 import { useArenaClient } from "~/hooks/useArenaClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { usePositionsData } from "~/hooks/usePositionsData";
-import { ArenaPoolV2Extended, GroupStatus } from "~/types";
+import { ArenaPoolV2Extended } from "~/types";
 import { PositionActionButtons } from "~/components/common/Portfolio";
 import { PnlBadge, PnlLabel } from "~/components/common/pnl-display";
 import { SharePosition } from "~/components/common/share-position";
@@ -181,7 +181,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
         {client && accountSummary && arenaPool && (
           <PositionActionButtons
             arenaPool={arenaPool}
-            isBorrowing={arenaPool.status === GroupStatus.SHORT || arenaPool.status === GroupStatus.LONG}
+            isBorrowing={arenaPool.status === ArenaGroupStatus.SHORT || arenaPool.status === ArenaGroupStatus.LONG}
             accountSummary={accountSummary}
             client={client}
             selectedAccount={wrappedAccount}
