@@ -211,8 +211,9 @@ function CodeGroupHeader({
 
 function CodeGroupPanels({
   children,
+  code,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CodePanel>) {
+}: React.ComponentPropsWithoutRef<typeof CodePanel> & { code?: string }) {
   let hasTabs = Children.count(children) > 1
 
   if (hasTabs) {
@@ -309,8 +310,9 @@ const CodeGroupContext = createContext(false)
 export function CodeGroup({
   children,
   title,
+  code,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CodeGroupPanels> & { title: string }) {
+}: React.ComponentPropsWithoutRef<typeof CodeGroupPanels> & { title: string; code?: string }) {
   let languages =
     Children.map(children, (child) =>
       getPanelTitle(isValidElement(child) ? child.props : {}),
@@ -325,7 +327,7 @@ export function CodeGroup({
       {children}
     </CodeGroupHeader>
   )
-  let panels = <CodeGroupPanels {...props}>{children}</CodeGroupPanels>
+  let panels = <CodeGroupPanels code={code} {...props}>{children}</CodeGroupPanels>
 
   return (
     <CodeGroupContext.Provider value={true}>

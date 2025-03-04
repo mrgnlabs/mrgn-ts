@@ -9,8 +9,7 @@ import { PortableText, PortableTextComponents } from '@portabletext/react'
 import { Button } from '~/components/Button'
 import { Heading } from '~/components/Heading'
 import { Feedback } from '~/components/Feedback'
-import { CodeGroup } from '~/components/Code'
-import { CodeBlockComponent } from './CodeBlockComponent'
+import { CodeGroup, Code } from '~/components/Code'
 import { useSectionStore } from '~/components/SectionProvider'
 import { useEffect } from 'react'
 
@@ -102,13 +101,39 @@ const components: PortableTextComponents = {
         isBig={true}
       />
     ),
-    codeBlock: ({ value }: { value: CodeBlock }) => (
-      <CodeBlockComponent
-        code={value.code}
-        language={value.language}
-        title={value.title}
-      />
-    ),
+    codeBlock: ({ value }: { value: CodeBlock }) => {
+      // Debug log
+      console.log('Code block value:', value);
+      
+      // Validate required props
+      if (!value?.code) {
+        console.error('Code block is missing required code property:', value);
+        return null;
+      }
+
+      return (
+        <div className="my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10">
+          <div className="not-prose">
+            {value.title && (
+              <div className="flex min-h-[calc(theme(spacing.12)+1px)] flex-wrap items-start gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
+                <h3 className="mr-auto pt-3 text-xs font-semibold text-white">
+                  {value.title}
+                </h3>
+              </div>
+            )}
+            <div className="group dark:bg-white/2.5">
+              <div className="relative">
+                <pre className="overflow-x-auto p-4 text-xs text-white">
+                  <code className={value.language ? `language-${value.language}` : undefined}>
+                    {value.code}
+                  </code>
+                </pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    },
     properties: ({ value }: { value: Properties }) => (
       <Properties>
         {value.items?.map((item, i) => (
