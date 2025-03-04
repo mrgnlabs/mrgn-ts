@@ -66,6 +66,12 @@ export const useAuth = () => {
       try {
         const supabase = createBrowserSupabaseClient();
         await supabase.auth.signOut();
+
+        // Also call our logout endpoint to clear the cookie
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          credentials: "include",
+        });
       } catch (error) {
         toastManager.showErrorToast(`Error signing out: ${error}`);
       }
