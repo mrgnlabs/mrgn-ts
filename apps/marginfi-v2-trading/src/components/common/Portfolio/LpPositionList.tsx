@@ -2,13 +2,15 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { aprToApy, numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
 import { LpActionButtons } from "~/components/common/Portfolio";
 import { Table, TableBody, TableHead, TableCell, TableHeader, TableRow } from "~/components/ui/table";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
 import { GroupStatus } from "~/types/trade-store.types";
+import { Button } from "~/components/ui/button";
+import { IconExternalLink } from "@tabler/icons-react";
 
 export const LpPositionList = () => {
   const extendedPools = useExtendedPools();
@@ -23,17 +25,33 @@ export const LpPositionList = () => {
 
   return (
     <>
-      <h2 className="font-medium text-2xl mt-10 mb-4">LP Positions</h2>
+      <div className="flex items-center justify-between pt-4 pb-6">
+        <div className="space-y-2">
+          <h2 className="font-medium text-2xl">Providing Liquidity</h2>
+          <p className="text-muted-foreground text-sm">
+            Provide liquidity to trading pools and earn yield.{" "}
+            <Link href="https://docs.mrgn.xyz" className="border-b">
+              <IconExternalLink size={14} className="inline-block mr-0.5 relative -translate-y-[1px]" />
+              Learn more
+            </Link>
+          </p>
+        </div>
+        <Link href="/yield">
+          <Button variant="secondary" size="sm">
+            View all pools
+          </Button>
+        </Link>
+      </div>
       <Desktop>
         <div className="rounded-xl">
           <Table className="min-w-[600px] overflow-auto">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[20%]">Pool</TableHead>
-                <TableHead className="w-[20%]">Token Size</TableHead>
-                <TableHead className="w-[20%]">Quote Size</TableHead>
-                <TableHead className="w-[20%]">Total (USD)</TableHead>
-                <TableHead className="w-[20%]"></TableHead>
+                <TableHead>Pool</TableHead>
+                <TableHead>Base Token</TableHead>
+                <TableHead>Quote Token</TableHead>
+                <TableHead>Total Size (USD)</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -65,20 +83,30 @@ export const LpPositionList = () => {
                       </Link>
                     </TableCell>
                     <TableCell>
-                      {pool.tokenBank.isActive
-                        ? pool.tokenBank.position.amount < 0.01
-                          ? "0.01"
-                          : numeralFormatter(pool.tokenBank.position.amount)
-                        : 0}
-                      {" " + pool.tokenBank.meta.tokenSymbol}
+                      <div className="flex items-center gap-2">
+                        {pool.tokenBank.isActive
+                          ? pool.tokenBank.position.amount < 0.01
+                            ? "0.01"
+                            : numeralFormatter(pool.tokenBank.position.amount)
+                          : 0}
+                        {" " + pool.tokenBank.meta.tokenSymbol}
+                        <div className="text-xs text-mrgn-green">
+                          {percentFormatter.format(aprToApy(pool.tokenBank.info.state.lendingRate))}
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {pool.quoteBank.isActive
-                        ? pool.quoteBank.position.amount < 0.01
-                          ? "0.01"
-                          : numeralFormatter(pool.quoteBank.position.amount)
-                        : 0}
-                      {" " + pool.quoteBank.meta.tokenSymbol}
+                      <div className="flex items-center gap-2">
+                        {pool.quoteBank.isActive
+                          ? pool.quoteBank.position.amount < 0.01
+                            ? "0.01"
+                            : numeralFormatter(pool.quoteBank.position.amount)
+                          : 0}
+                        {" " + pool.quoteBank.meta.tokenSymbol}
+                        <div className="text-xs text-mrgn-green">
+                          {percentFormatter.format(aprToApy(pool.quoteBank.info.state.lendingRate))}
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell>
                       {(pool.tokenBank.isActive || pool.quoteBank.isActive) &&
@@ -88,7 +116,7 @@ export const LpPositionList = () => {
                         )}
                     </TableCell>
 
-                    <TableCell className="text-right">
+                    <TableCell>
                       <LpActionButtons activePool={pool} />
                     </TableCell>
                   </TableRow>
