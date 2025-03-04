@@ -70,8 +70,8 @@ const PnlLabelContent = ({ pnl, positionSize, className, currentType, setCurrent
       className={cn(
         className,
         setCurrentType ? "cursor-pointer" : "cursor-default",
-        positionState === "positive" && "text-success",
-        positionState === "negative" && "text-error"
+        positionState === "positive" && "text-mrgn-success",
+        positionState === "negative" && "text-mrgn-error"
       )}
       onClick={() => {
         if (!setCurrentType) return;

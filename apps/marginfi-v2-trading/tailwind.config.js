@@ -99,14 +99,16 @@ module.exports = {
         },
         mrgn: {
           green: "hsl(var(--mrgn-green))",
+          "green-foreground": "hsl(var(--mrgn-green-foreground))",
           red: "hsl(var(--mrgn-red))",
+          "red-foreground": "hsl(var(--mrgn-red-foreground))",
           yellow: "hsl(var(--mrgn-yellow))",
+          success: "hsl(var(--mrgn-green))",
+          warning: "hsl(var(--mrgn-yellow))",
+          error: "hsl(var(--mrgn-red))",
           chartreuse: "hsl(var(--mrgn-chartreuse))",
           gold: "hsl(var(--mrgn-gold))",
           slate: "hsl(var(--mrgn-slate))",
-          success: "#75ba80",
-          warning: "#daa204",
-          error: "#e07d6f",
         },
         mfi: {
           "action-box": {

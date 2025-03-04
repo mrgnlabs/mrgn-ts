@@ -247,7 +247,7 @@ export const CreatePoolConfigure = ({ poolData, setPoolData, setCreatePoolState 
                     Warning: The group fee is very high. Consider reducing it to attract more users.
                   </p>
                 ) : WARNING_THRESHOLD < groupFee ? (
-                  <p className="text-sm font-normal text-warning">
+                  <p className="text-sm font-normal text-mrgn-warning">
                     The group fee is higher than recommended. A lower fee may increase activity.
                   </p>
                 ) : null}
