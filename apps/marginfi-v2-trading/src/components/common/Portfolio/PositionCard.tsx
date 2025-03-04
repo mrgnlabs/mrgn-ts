@@ -78,7 +78,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
   if (!arenaPool.tokenBank.isActive) return null;
 
   return (
-    <div className={cn("space-y-4", size === "lg" && "bg-background border p-4 rounded-2xl")}>
+    <div className={cn("space-y-4", size === "lg" && "bg-background/35 border p-4 rounded-2xl")}>
       {size === "lg" && (
         <div className="flex items-center gap-4 justify-between">
           <Link
@@ -113,10 +113,6 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
       )}
       <div className="bg-accent/50 rounded-xl p-4">
         <dl className="w-full grid grid-cols-2 text-sm text-muted-foreground gap-1">
-          {/* <dt>Token</dt>
-          <dd className="text-right text-primary">
-            {dynamicNumeralFormatter(arenaPool.tokenBank.position.amount)} {arenaPool.tokenBank.meta.tokenSymbol}
-          </dd> */}
           <dt>Value</dt>
           <dd className="text-right text-primary">{usdFormatter.format(totalUsdValue)}</dd>
           <dt>Leverage</dt>

@@ -194,7 +194,7 @@ type StatProps = {
 };
 
 const StatBlock = ({ label, value, subValue }: StatProps) => (
-  <Card>
+  <Card className="bg-background/35">
     <CardHeader className="p-4 md:p-6 pb-0 md:pb-0">
       <CardTitle className="text-base text-muted-foreground font-normal">{label}</CardTitle>
     </CardHeader>
