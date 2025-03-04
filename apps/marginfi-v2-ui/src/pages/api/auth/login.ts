@@ -3,7 +3,6 @@ import { createServerSupabaseClient } from "~/auth/auth-server";
 import { verifySignature } from "~/auth/utils/auth-crypto.utils";
 import { generateToken, verifyToken } from "~/auth/utils/auth-jwt.utils";
 import { LoginPayload, AuthPayload } from "~/auth/types/auth.types";
-import jwt from "jsonwebtoken";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
