@@ -17,10 +17,6 @@ interface NavGroup {
   links: Array<{
     title: string
     href: string
-    children?: Array<{
-      title: string
-      href: string
-    }>
   }>
 }
 
@@ -54,25 +50,23 @@ function NavLink({
   tag,
   active = false,
   isAnchorLink = false,
-  isParentActive = false,
 }: {
   href: string
   children: React.ReactNode
   tag?: string
   active?: boolean
   isAnchorLink?: boolean
-  isParentActive?: boolean
 }) {
   return (
     <Link
       href={href}
       aria-current={active ? 'page' : undefined}
       className={clsx(
-        'flex justify-between gap-2 py-1 text-sm transition relative',
-        isAnchorLink ? 'pl-8' : 'pl-4',
-        isParentActive 
-          ? 'text-zinc-100 dark:text-white'
-          : 'text-zinc-400 hover:text-zinc-100 dark:text-zinc-500 dark:hover:text-zinc-300'
+        'flex justify-between gap-2 py-1 pr-3 text-sm transition',
+        isAnchorLink ? 'pl-7' : 'pl-4',
+        active
+          ? 'text-zinc-900 dark:text-white'
+          : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white',
       )}
     >
       <span className="truncate">{children}</span>
@@ -88,38 +82,32 @@ function NavLink({
 function VisibleSectionHighlight({
   group,
   pathname,
-  visibleSections,
 }: {
   group: NavGroup
   pathname: string
-  visibleSections: string[]
 }) {
+  let [sections, visibleSections] = useInitialValue(
+    [
+      useSectionStore((s) => s.sections),
+      useSectionStore((s) => s.visibleSections),
+    ],
+    useIsInsideMobileNavigation(),
+  )
+
   let isPresent = useIsPresent()
-  
-  // Find the active link and its children
-  const activeLink = group.links.find(link => pathname.startsWith(link.href))
-  if (!activeLink) return null
-
-  // For Sanity sections, we need to handle both predefined children and dynamic sections
-  const visibleChildren = activeLink.children 
-    ? activeLink.children.filter(child => {
-        const sectionId = child.href.split('#')[1]
-        return visibleSections.includes(sectionId)
-      })
-    : visibleSections.map(section => ({
-        title: section,
-        href: `${pathname}#${section}`
-      }))
-
-  if (visibleChildren.length === 0) return null
-
-  // Calculate position and height
-  let itemHeight = remToPx(2) // 2rem for each item
-  let height = visibleChildren.length * itemHeight
-  let offset = remToPx(2) // Offset for the first item
-  let top = offset + (activeLink.children?.findIndex(child => 
-    visibleSections.includes(child.href.split('#')[1])
-  ) || 0) * itemHeight
+  let firstVisibleSectionIndex = Math.max(
+    0,
+    [{ id: '_top' }, ...sections].findIndex(
+      (section) => section.id === visibleSections[0],
+    ),
+  )
+  let itemHeight = remToPx(2)
+  let height = isPresent
+    ? Math.max(1, visibleSections.length) * itemHeight
+    : itemHeight
+  let top =
+    group.links.findIndex((link) => link.href === pathname) * itemHeight +
+    firstVisibleSectionIndex * itemHeight
 
   return (
     <motion.div
@@ -127,14 +115,8 @@ function VisibleSectionHighlight({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: { delay: 0.2 } }}
       exit={{ opacity: 0 }}
-      className="absolute inset-x-0 bg-zinc-800/5 will-change-transform dark:bg-white/5"
-      style={{ 
-        borderRadius: 8,
-        height: `${height}px`,
-        top: `${top}px`,
-        left: '0.75rem',
-        right: '0.75rem'
-      }}
+      className="absolute inset-x-0 top-0 bg-zinc-800/2.5 will-change-transform dark:bg-white/2.5"
+      style={{ borderRadius: 8, height, top }}
     />
   )
 }
@@ -171,19 +153,13 @@ function NavigationGroup({
   className?: string
 }) {
   let isInsideMobileNavigation = useIsInsideMobileNavigation()
-  let [pathname, sections, visibleSections] = useInitialValue(
-    [
-      usePathname(), 
-      useSectionStore((s) => s.sections),
-      useSectionStore((s) => s.visibleSections)
-    ],
+  let [pathname, sections] = useInitialValue(
+    [usePathname(), useSectionStore((s) => s.sections)],
     isInsideMobileNavigation,
   )
 
   let isActiveGroup =
-    group.links.findIndex((link) => 
-      pathname.startsWith(link.href)
-    ) !== -1
+    group.links.findIndex((link) => link.href === pathname) !== -1
 
   return (
     <li className={clsx('relative mt-6', className)}>
@@ -191,118 +167,63 @@ function NavigationGroup({
         layout="position"
         className="text-xs font-semibold text-zinc-900 dark:text-white"
       >
-        {group.title}
+        {group.title} {/* Main Section */}
       </motion.h2>
 
       <div className="relative mt-3 pl-2">
+        <AnimatePresence initial={!isInsideMobileNavigation}>
+          {isActiveGroup && (
+            <VisibleSectionHighlight group={group} pathname={pathname} />
+          )}
+        </AnimatePresence>
         <motion.div
           layout
           className="absolute inset-y-0 left-2 w-px bg-zinc-900/10 dark:bg-white/5"
         />
-        <ul role="list">
-          {group.links.map((link) => {
-            const isParentActive = pathname.startsWith(link.href)
-            const shouldShowChildren = link.children && isParentActive
+        <AnimatePresence initial={false}>
+          {isActiveGroup && (
+            <ActivePageMarker group={group} pathname={pathname} />
+          )}
+        </AnimatePresence>
 
-            return (
-              <motion.li key={link.href} layout="position" className="relative">
-                <NavLink 
-                  href={link.href} 
-                  active={link.href === pathname}
-                  isParentActive={isParentActive}
-                >
-                  {link.title}
-                </NavLink>
+        <ul role="list" className="border-l border-transparent">
+          {group.links.map((link) => (
+            <motion.li key={link.href} layout="position" className="relative">
+              <NavLink href={link.href} active={link.href === pathname}>
+                {link.title} {/* Sub section */}
+              </NavLink>
 
-                {/* Render child links if they exist */}
-                {shouldShowChildren && link.children && (
-                  <div className="relative">
-                    <AnimatePresence>
-                      {isActiveGroup && (
-                        <VisibleSectionHighlight 
-                          group={group} 
-                          pathname={pathname}
-                          visibleSections={visibleSections}
-                        />
-                      )}
-                    </AnimatePresence>
-                    <motion.ul
-                      role="list"
-                      initial={{ opacity: 0 }}
-                      animate={{
-                        opacity: 1,
-                        transition: { delay: 0.1 },
-                      }}
-                      exit={{
-                        opacity: 0,
-                        transition: { duration: 0.15 },
-                      }}
-                      className="mt-2"
-                    >
-                      {link.children.map((child) => {
-                        const sectionId = child.href.split('#')[1]
-                        const isVisible = visibleSections.includes(sectionId)
-                        return (
-                          <li key={child.href}>
-                            <NavLink
-                              href={child.href}
-                              active={isVisible}
-                              isAnchorLink
-                              isParentActive={isVisible}
-                            >
-                              {child.title}
-                            </NavLink>
-                          </li>
-                        )
-                      })}
-                    </motion.ul>
-                  </div>
+              <AnimatePresence mode="popLayout" initial={false}>
+                {link.href === pathname && sections.length > 0 && (
+                  <motion.ul
+                    role="list"
+                    initial={{ opacity: 0 }}
+                    animate={{
+                      opacity: 1,
+                      transition: { delay: 0.1 },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      transition: { duration: 0.15 },
+                    }}
+                  >
+                    {sections.map((section) => (
+                      <li key={section.id}>
+                        <NavLink
+                          href={`${link.href}#${section.id}`}
+                          tag={section.tag}
+                          isAnchorLink
+                        >
+                          {section.title} {/* Topic within sub section */}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </motion.ul>
                 )}
+              </AnimatePresence>
 
-                {/* Render dynamic sections if no predefined children */}
-                {!link.children && link.href === pathname && sections.length > 0 && (
-                  <div className="relative">
-                    <AnimatePresence>
-                      {isActiveGroup && (
-                        <VisibleSectionHighlight 
-                          group={group} 
-                          pathname={pathname}
-                          visibleSections={visibleSections}
-                        />
-                      )}
-                    </AnimatePresence>
-                    <motion.ul
-                      role="list"
-                      initial={{ opacity: 0 }}
-                      animate={{
-                        opacity: 1,
-                        transition: { delay: 0.1 },
-                      }}
-                      exit={{
-                        opacity: 0,
-                        transition: { duration: 0.15 },
-                      }}
-                      className="mt-2"
-                    >
-                      {sections.map((section) => (
-                        <li key={section.id}>
-                          <NavLink
-                            href={`${link.href}#${section.id}`}
-                            tag={section.tag}
-                            active={visibleSections.includes(section.id)}
-                            isAnchorLink
-                            isParentActive={visibleSections.includes(section.id)}
-                          >
-                            {section.title}
-                          </NavLink>
-                        </li>
-                      ))}
-                    </motion.ul>
-                  </div>
-                )}
-              </motion.li>
-            )
-          })}
+            </motion.li>
+          ))}
         </ul>
       </div>
     </li>
@@ -313,27 +234,11 @@ export const navigation: Array<NavGroup> = [
   {
     title: 'Getting Started',
     links: [
-      { 
-        title: 'Introduction', 
-        href: '/introduction',
-        children: [
-          { title: 'Lending and Borrowing', href: '/introduction#lending-and-borrowing' },
-          { title: 'Fees and Yield', href: '/introduction#fees-and-yield' },
-          { title: 'Account Health', href: '/introduction#account-health' }
-        ]
-      },
-      { 
-        title: 'Protocol Design', 
-        href: '/protocol-design',
-        children: [
-          { title: 'Oracle Usage', href: '/protocol-design#oracle-usage' },
-          { title: 'Interest Rate Mechanism', href: '/protocol-design#interest-rate-mechanism' },
-          { title: 'Risk Management', href: '/protocol-design#risk-management' }
-        ]
-      },
+      { title: 'Introduction', href: '/introduction' }, // lending and borrowing, fees and yield, account health
+      { title: 'Protocol Design', href: '/protocol-design' }, // oracle usage, interest rate mechanism, risk management
       { title: 'Listing Criteria', href: '/listing-criteria' },
-      { title: 'Use Cases', href: '/use-cases' },
-      { title: 'FAQs', href: '/faqs' },
+      { title: 'Use Cases', href: '/use-cases' }, // INCLUDE STALE ORACLE ISSUE
+      { title: 'FAQs', href: '/faqs' }, // INCLUDE STALE ORACLE ISSUE
     ],
   },
   {

@@ -31,6 +31,11 @@ interface MathBlock {
   formula: string;
 }
 
+interface MathInline {
+  _type: 'mathInline';
+  formula: string;
+}
+
 interface NoteBlock {
   _type: 'note';
   content: any[];
@@ -83,7 +88,12 @@ const components: PortableTextComponents = {
       </Note>
     ),
     mathBlock: ({ value }: { value: MathBlock }) => (
-      <Math display={true}>{value.formula}</Math>
+      <div className="my-6 flex justify-center">
+        <Math display={true} className="text-lg">{value.formula}</Math>
+      </div>
+    ),
+    mathInline: ({ value }: { value: MathInline }) => (
+      <Math display={false}>{value.formula}</Math>
     ),
     imageWithCaption: ({ value }: { value: ImageWithCaption }) => (
       <ImageComponent
@@ -99,6 +109,27 @@ const components: PortableTextComponents = {
         title={value.title}
       />
     ),
+    properties: ({ value }: { value: Properties }) => (
+      <Properties>
+        {value.items?.map((item, i) => (
+          <Property key={i} name={item.name} type={item.type}>
+            {item.description && (
+              <PortableText
+                value={item.description}
+                components={components}
+              />
+            )}
+          </Property>
+        ))}
+      </Properties>
+    ),
+    section: ({ value }: { value: Section }) => (
+      <div>
+        {value.title && <Heading level={2} id={value.title.toLowerCase().replace(/\s+/g, '-')}>{value.title}</Heading>}
+        {value.label && <p className="text-sm text-zinc-500 italic -mt-4 mb-4">{value.label}</p>}
+        <PortableText value={value.content} components={components} />
+      </div>
+    ),
   },
   block: {
     h1: ({ children }) => <h1>{children}</h1>,
@@ -110,8 +141,9 @@ const components: PortableTextComponents = {
       const id = typeof children === 'string' ? children.toLowerCase().replace(/\s+/g, '-') : ''
       return <Heading level={3} id={id}>{children}</Heading>
     },
-    normal: ({ children }) => <p>{children}</p>,
-    lead: ({ children }) => <p className="lead">{children}</p>,
+    normal: ({ children }) => <div className="my-4">{children}</div>,
+    lead: ({ children }) => <div className="lead my-4">{children}</div>,
+    blockquote: ({ children }) => <blockquote>{children}</blockquote>,
   },
   marks: {
     strong: ({ children }) => <strong>{children}</strong>,
@@ -121,6 +153,11 @@ const components: PortableTextComponents = {
       <Button href={value?.href} variant={value?.variant || 'text'}>
         {children}
       </Button>
+    ),
+    mathInline: ({ value, children }) => (
+      <span className="inline-flex items-baseline">
+        <Math display={false}>{value.formula}</Math>
+      </span>
     ),
   },
   list: {

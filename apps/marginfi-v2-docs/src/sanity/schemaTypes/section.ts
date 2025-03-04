@@ -1,4 +1,5 @@
 import { defineType, defineField } from 'sanity'
+import { LatexInput } from '~/components/sanity/LatexInput'
 
 export const section = defineType({
   name: 'section',
@@ -70,9 +71,27 @@ export const section = defineType({
                   },
                 ],
               },
+              {
+                title: 'Inline Math',
+                name: 'mathInline',
+                type: 'object',
+                fields: [
+                  {
+                    name: 'formula',
+                    type: 'text',
+                    title: 'Formula',
+                    validation: (Rule: any) => Rule.required(),
+                  }
+                ],
+                components: {
+                  annotation: (props: any) => props.children,
+                  preview: (props: any) => props.children,
+                }
+              }
             ],
           },
         },
+        { type: 'latexContent' },
         { type: 'note' },
         { type: 'mathBlock' },
         { type: 'imageWithCaption' },

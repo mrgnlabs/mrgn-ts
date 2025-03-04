@@ -83,12 +83,17 @@ export function Col({
 export function Properties({ children }: { children: React.ReactNode }) {
   return (
     <div className="my-6">
-      <ul
-        role="list"
-        className="m-0 max-w-[calc(theme(maxWidth.lg)-theme(spacing.8))] list-none divide-y divide-zinc-900/5 p-0 dark:divide-white/5"
-      >
-        {children}
-      </ul>
+      <div className="overflow-hidden rounded-lg bg-zinc-900 shadow dark:ring-1 dark:ring-white/10">
+        {/* Header Row */}
+        <div className="grid grid-cols-2 gap-4 border-b border-zinc-700/40 bg-zinc-800/40 px-4 py-3 dark:border-zinc-800">
+          <div className="text-sm font-semibold text-zinc-200">Contract Name</div>
+          <div className="text-sm font-semibold text-zinc-200">Address</div>
+        </div>
+        {/* Content */}
+        <ul role="list" className="divide-y divide-zinc-700/40 dark:divide-zinc-800">
+          {children}
+        </ul>
+      </div>
     </div>
   )
 }
@@ -103,25 +108,11 @@ export function Property({
   type?: string
 }) {
   return (
-    <li className="m-0 px-0 py-4 first:pt-0 last:pb-0">
-      <dl className="m-0 flex flex-wrap items-center gap-x-3 gap-y-2">
-        <dt className="sr-only">Name</dt>
-        <dd>
-          <code>{name}</code>
-        </dd>
-        {type && (
-          <>
-            <dt className="sr-only">Type</dt>
-            <dd className="font-mono text-xs text-zinc-400 dark:text-zinc-500">
-              {type}
-            </dd>
-          </>
-        )}
-        <dt className="sr-only">Description</dt>
-        <dd className="w-full flex-none [&>:first-child]:mt-0 [&>:last-child]:mb-0">
-          {children}
-        </dd>
-      </dl>
+    <li className="grid grid-cols-2 gap-4 px-4 py-3">
+      <div className="text-sm text-zinc-300">{name}</div>
+      <div className="font-mono text-sm text-zinc-400">
+        {type || children}
+      </div>
     </li>
   )
 }
