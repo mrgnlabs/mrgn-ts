@@ -59,13 +59,13 @@ const ActionSimulationStatus = ({
       )}
 
       {simulationCompleteStatus === SimulationCompleteStatus.SUCCESS && (
-        <p className="text-xs flex items-center gap-1 mr-auto text-success">
+        <p className="text-xs flex items-center gap-1 mr-auto text-mrgn-success">
           <IconCheck size={14} /> Simulation complete!
         </p>
       )}
 
       {simulationCompleteStatus === SimulationCompleteStatus.ERROR && (
-        <p className="text-xs flex items-center gap-1 mr-auto text-error">
+        <p className="text-xs flex items-center gap-1 mr-auto text-mrgn-error">
           <IconX size={14} /> Simulation failed
         </p>
       )}

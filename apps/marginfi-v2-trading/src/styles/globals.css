@@ -38,7 +38,9 @@
 
     /* brand vars */
     --mrgn-green: 147 49% 66%;
+    --mrgn-green-foreground: 147 49% 25%;
     --mrgn-red: 6 78% 73%;
+    --mrgn-red-foreground: 6 78% 25%;
     --mrgn-yellow: 43.66 100% 50%;
     --mrgn-chartreuse: 66 75% 64%;
     --mrgn-gold: 33 16% 67%;

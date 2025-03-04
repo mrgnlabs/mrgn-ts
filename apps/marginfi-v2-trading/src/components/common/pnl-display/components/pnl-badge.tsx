@@ -37,7 +37,7 @@ const PnlBadge = ({ pnl, positionSize, className }: PnlBadgeProps) => {
       className={cn(
         "bg-muted shadow-none text-muted-foreground text-[11px] px-1",
         className,
-        positionState === "positive" && "bg-success/20 text-success",
+        positionState === "positive" && "bg-success/20 text-mrgn-success",
         positionState === "negative" && "bg-destructive text-destructive-foreground"
       )}
     >
