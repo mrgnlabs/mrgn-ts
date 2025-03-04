@@ -10,8 +10,10 @@ module.exports = {
     "./src/components/**/*.{js,ts,jsx,tsx}",
     "../../packages/mrgn-ui/src/**/*.{js,ts,jsx,tsx}",
     "../../packages/mrgn-utils/src/**/*.{js,ts,jsx,tsx}",
+    "../../packages/mrgn-toasts/src/**/*.{js,ts,jsx,tsx}",
     "!../../packages/mrgn-ui/node_modules/**/*", // Exclude node_modules
     "!../../packages/mrgn-utils/node_modules/**/*", // Exclude node_modules,
+    "!../../packages/mrgn-toasts/node_modules/**/*", // Exclude node_modules
   ],
   theme: {
     container: {
