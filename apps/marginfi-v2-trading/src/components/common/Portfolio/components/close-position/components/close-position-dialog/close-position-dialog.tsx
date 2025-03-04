@@ -109,10 +109,10 @@ export const ClosePositionDialog = ({
               <dd
                 className={cn(
                   Number(actionTransaction.actionQuote.priceImpactPct) > 0.05
-                    ? "text-error"
+                    ? "text-mrgn-error"
                     : Number(actionTransaction.actionQuote.priceImpactPct) > 0.01
                       ? "text-alert"
-                      : "text-success",
+                      : "text-mrgn-success",
                   "text-right"
                 )}
               >
@@ -126,7 +126,7 @@ export const ClosePositionDialog = ({
               <dt>Slippage</dt>
               <dd
                 className={cn(
-                  actionTransaction.actionQuote.slippageBps > 500 ? "text-error" : "text-success",
+                  actionTransaction.actionQuote.slippageBps > 500 ? "text-mrgn-error" : "text-mrgn-success",
                   "text-right"
                 )}
               >

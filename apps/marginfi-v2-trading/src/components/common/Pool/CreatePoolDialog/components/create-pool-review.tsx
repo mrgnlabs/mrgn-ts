@@ -184,7 +184,11 @@ const TokenSummary = ({
         <p
           className={cn(
             "text-sm",
-            protocolFeeStatus === "ALERT" ? "text-destructive" : protocolFeeStatus === "WARNING" ? "text-warning" : ""
+            protocolFeeStatus === "ALERT"
+              ? "text-destructive"
+              : protocolFeeStatus === "WARNING"
+                ? "text-mrgn-warning"
+                : ""
           )}
         >
           {percentFormatter.format(bankConfig.interestRateConfig?.protocolIrFee.toNumber() ?? 0)}
