@@ -22,6 +22,7 @@ export type SignMessagePayload = {
   nonce: string;
   walletAddress: string;
   timestamp: number;
+  formattedMessage?: string;
 };
 
 export type AuthPayload = {

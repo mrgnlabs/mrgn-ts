@@ -1,7 +1,7 @@
 import { Wallet } from "@mrgnlabs/mrgn-common";
 
 import { AuthUser, SignupPayload, AuthPayload } from "../types/auth.types";
-import { generateSignMessage } from "../utils/auth-crypto.utils";
+import { generateSignMessage, createSignatureMessage } from "../utils/auth-crypto.utils";
 import { createBrowserSupabaseClient } from "../auth-client";
 
 export async function loginOrSignup(
@@ -31,9 +31,14 @@ export async function loginOrSignup(
 
   // If login failed with requiresSignature, we need to sign a message
   if (loginResult.requiresSignature && wallet.signMessage) {
-    // Get signature for authentication
+    // Get signature payload
     const signMessage = await generateSignMessage(walletAddress);
-    const rawSignature = await wallet.signMessage(new TextEncoder().encode(JSON.stringify(signMessage)));
+
+    // Create the user-friendly message string
+    const messageToSign = createSignatureMessage(walletAddress);
+
+    // Sign the user-friendly message
+    const rawSignature = await wallet.signMessage(new TextEncoder().encode(messageToSign));
 
     // Handle both Phantom and standard wallet adapter signature formats
     const signatureBytes = ("signature" in rawSignature ? rawSignature.signature : rawSignature) as Uint8Array;
