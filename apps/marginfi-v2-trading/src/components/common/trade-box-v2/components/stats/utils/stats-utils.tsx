@@ -98,8 +98,9 @@ export function generateTradeStats(props: generateTradeStatsProps) {
     label: "Oracle",
     value: () => (
       <>
-        <Link href={oracle.link} target="_blank">
+        <Link href={oracle.link} target="_blank" className="flex items-center gap-1 text-[11px]">
           {oracle.name === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}
+          {oracle.name}
         </Link>
       </>
     ),

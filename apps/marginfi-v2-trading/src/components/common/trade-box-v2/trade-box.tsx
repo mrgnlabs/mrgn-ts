@@ -378,9 +378,9 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
               <div className="flex justify-end gap-2 ml-auto">
                 <button
                   onClick={() => setDisplaySettings(true)}
-                  className="text-xs gap-1 h-6 px-2 flex items-center rounded-full bg-mfi-action-box-accent hover:bg-mfi-action-box-accent/80 "
+                  className="text-xs gap-1 py-1 pr-2 pl-2.5 flex items-center rounded-full text-foreground/75 bg-mfi-action-box-accent hover:bg-mfi-action-box-accent/80 "
                 >
-                  Settings <IconSettings size={20} />
+                  Settings <IconSettings size={16} />
                 </button>
               </div>
             )}
