@@ -1,8 +1,8 @@
 import React from "react";
 import Script from "next/script";
 
-import {  capture, generateEndpoint } from "@mrgnlabs/mrgn-utils";
-import { toastManager } from "@mrgnlabs/mrgn-toasts";
+import { capture, generateEndpoint } from "@mrgnlabs/mrgn-utils";
+import { MultiStepToastController, toastManager } from "@mrgnlabs/mrgn-toasts";
 
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
@@ -92,7 +92,7 @@ export const Mayan = ({ onLoad }: MayanProps) => {
   }, [walletContextState, setIsWalletSignUpOpen]);
 
   const handleLoadMayanWidget = React.useCallback(() => {
-    const multiStepToast = toastManager.createMultiStepToast("Bridge", [{ label: `Cross-chain swap/bridge in progress` }]);
+    let multiStepToast: MultiStepToastController | null = null;
     const config: MayanWidgetConfigType = {
       ...mayanWidgetConfig,
       // With current useWalletContext it's impossible to make pass through work
@@ -100,21 +100,26 @@ export const Mayan = ({ onLoad }: MayanProps) => {
     };
     window.MayanSwap.init("swap_widget", config);
     window.MayanSwap.setSwapInitiateListener((data) => {
+      multiStepToast = toastManager.createMultiStepToast("Bridge", [{ label: `Cross-chain swap/bridge in progress` }]);
       multiStepToast.start();
     });
     window.MayanSwap.setSwapCompleteListener((data) => {
-      multiStepToast.successAndNext();
-      capture("user_swap", {
-        txn: data.hash,
-        fromChain: data.fromChain,
-        toChain: data.toChain,
-        fromToken: data.fromToken,
-        toToken: data.toToken,
-        fromAmount: data.fromAmount,
-      });
+      if (multiStepToast) {
+        multiStepToast.successAndNext();
+        capture("user_swap", {
+          txn: data.hash,
+          fromChain: data.fromChain,
+          toChain: data.toChain,
+          fromToken: data.fromToken,
+          toToken: data.toToken,
+          fromAmount: data.fromAmount,
+        });
+      }
     });
     window.MayanSwap.setSwapRefundListener((data) => {
-      multiStepToast.setFailed("Cross-chain swap/bridge refunded");
+      if (multiStepToast) {
+        multiStepToast.setFailed("Cross-chain swap/bridge refunded");
+      }
     });
 
     const currentTime = Date.now();
