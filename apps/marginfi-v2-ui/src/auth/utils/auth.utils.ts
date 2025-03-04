@@ -31,8 +31,6 @@ export async function loginOrSignup(
 
   // If login failed with requiresSignature, we need to sign a message
   if (loginResult.requiresSignature && wallet.signMessage) {
-    console.log("Signature required for authentication");
-
     // Get signature for authentication
     const signMessage = await generateSignMessage(walletAddress);
     const rawSignature = await wallet.signMessage(new TextEncoder().encode(JSON.stringify(signMessage)));
@@ -129,8 +127,6 @@ export async function logout(): Promise<void> {
     method: "POST",
     credentials: "include", // Important: include cookies in the request
   });
-
-  console.log("Logged out");
 
   const supabase = createBrowserSupabaseClient();
   await supabase.auth.signOut();

@@ -105,8 +105,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsAuthenticated(false);
       setUser(null);
 
-      console.log("Logging out due to wallet disconnection");
-
       logout().catch((error) => {
         toastManager.showErrorToast(`Logout error: ${error}`);
       });
