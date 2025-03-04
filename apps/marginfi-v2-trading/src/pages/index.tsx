@@ -108,7 +108,7 @@ export default function HomePage({ initialData }: StaticArenaProps) {
                   className="search flex flex-col items-center gap-4 md:gap-6"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 1.2 }}
+                  transition={{ duration: 0.5, delay: 0.5 }}
                 >
                   <PoolSearch showNoResults={false} />
 
@@ -129,7 +129,7 @@ export default function HomePage({ initialData }: StaticArenaProps) {
                   className="flex items-center justify-between"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 1.2 }}
+                  transition={{ duration: 0.5, delay: 0.75 }}
                 >
                   <ToggleGroup
                     type="single"
@@ -176,7 +176,7 @@ export default function HomePage({ initialData }: StaticArenaProps) {
                       visible: {
                         transition: {
                           staggerChildren: 0.15,
-                          delayChildren: 1.5,
+                          delayChildren: 1,
                         },
                       },
                     }}
