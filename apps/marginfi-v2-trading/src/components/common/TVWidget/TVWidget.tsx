@@ -55,6 +55,12 @@ export const TVWidget = ({ activePool }: props) => {
         overrides: {
           "paneProperties.background": "#ffffff",
           "paneProperties.backgroundType": "solid",
+          "mainSeriesProperties.candleStyle.downColor": "#f08f84",
+          "mainSeriesProperties.candleStyle.upColor": "#7ed3a4",
+          "mainSeriesProperties.candleStyle.borderUpColor": "#7ed3a4",
+          "mainSeriesProperties.candleStyle.borderDownColor": "#f08f84",
+          "mainSeriesProperties.candleStyle.wickUpColor": "#7ed3a4",
+          "mainSeriesProperties.candleStyle.wickDownColor": "#f08f84",
         },
         height: isMobile ? 400 : 600,
         width: container.current?.offsetWidth || 900,
