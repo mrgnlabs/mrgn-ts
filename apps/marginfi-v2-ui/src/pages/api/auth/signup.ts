@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Verify the signature
     const signatureBytes = Buffer.from(signature, "base64");
-    const isValidSignature = verifySignature(walletAddress, signatureBytes, signedMessage);
+    const isValidSignature = verifySignature(walletAddress, signatureBytes);
 
     if (!isValidSignature) {
       return res.status(401).json({ error: "Invalid signature" });

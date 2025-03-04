@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Verify the signature
       const signatureBytes = Buffer.from(signature, "base64");
-      const isValidSignature = verifySignature(walletAddress, signatureBytes, signedMessage);
+      const isValidSignature = verifySignature(walletAddress, signatureBytes);
 
       if (!isValidSignature) {
         return res.status(401).json({ error: "Invalid signature" });
@@ -80,8 +80,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .eq("wallet_address", walletAddress)
         .single();
 
-      if (userError || !user) {
-        return res.status(404).json({ error: "User not found" });
+      if (userError) {
+        // User not found - this is a new user, require signature for signup
+        return res.status(401).json({
+          error: "User not found",
+          requiresSignature: true,
+        });
       }
 
       // Check for token in cookies
