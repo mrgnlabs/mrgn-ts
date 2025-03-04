@@ -162,7 +162,7 @@ const YieldItem = ({
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-muted-foreground text-sm">Lending Rate (APY)</span>
-          <span className="text-mrgn-success">{percentFormatter.format(aprToApy(bank.info.state.lendingRate))}</span>
+          <span className="text-mrgn-green">{percentFormatter.format(aprToApy(bank.info.state.lendingRate))}</span>
         </div>
       </div>
       {bank.isActive && isProvidingLiquidity && (
@@ -224,7 +224,7 @@ const YieldItem = ({
                         });
                       }}
                     >
-                      Withdraw ${bank.meta.tokenSymbol}
+                      Withdraw {bank.meta.tokenSymbol}
                     </Button>
                   ),
                   title: `Withdraw ${bank.meta.tokenSymbol}`,

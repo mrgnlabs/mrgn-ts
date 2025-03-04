@@ -58,6 +58,10 @@ export enum TradePoolFilterStates {
   MARKET_CAP_DESC = "market-cap-desc",
   LIQUIDITY_ASC = "liquidity-asc",
   LIQUIDITY_DESC = "liquidity-desc",
+  DEPOSITS_ASC = "deposits-asc",
+  DEPOSITS_DESC = "deposits-desc",
+  BORROWS_ASC = "borrows-asc",
+  BORROWS_DESC = "borrows-desc",
   APY_ASC = "apy-asc",
   APY_DESC = "apy-desc",
 }
@@ -882,6 +886,10 @@ const sortPools = (
       return bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber();
     };
 
+    const borrowsUsdValue = (bank: ArenaBank) => {
+      return bank.info.state.totalBorrows * bank.info.oraclePrice.priceRealtime.price.toNumber();
+    };
+
     if (sortBy === TradePoolFilterStates.TIMESTAMP) {
       const aIndex = timestampOrder.indexOf(a.groupPk.toBase58());
       const bIndex = timestampOrder.indexOf(b.groupPk.toBase58());
@@ -894,9 +902,17 @@ const sortPools = (
       const aMarketCap = aTokenData?.marketcap ?? 0;
       const bMarketCap = bTokenData?.marketcap ?? 0;
       return sortBy === TradePoolFilterStates.MARKET_CAP_ASC ? aMarketCap - bMarketCap : bMarketCap - aMarketCap;
-    } else if (sortBy.startsWith("liquidity")) {
+    } else if (sortBy.startsWith("deposits")) {
       const aLiquidity = depositsUsdValue(aBankData) + depositsUsdValue(aQuoteBankData);
       const bLiquidity = depositsUsdValue(bBankData) + depositsUsdValue(bQuoteBankData);
+      return sortBy === TradePoolFilterStates.DEPOSITS_ASC ? aLiquidity - bLiquidity : bLiquidity - aLiquidity;
+    } else if (sortBy.startsWith("borrows")) {
+      const aLiquidity = borrowsUsdValue(aBankData) + borrowsUsdValue(aQuoteBankData);
+      const bLiquidity = borrowsUsdValue(bBankData) + borrowsUsdValue(bQuoteBankData);
+      return sortBy === TradePoolFilterStates.BORROWS_ASC ? aLiquidity - bLiquidity : bLiquidity - aLiquidity;
+    } else if (sortBy.startsWith("liquidity")) {
+      const aLiquidity = depositsUsdValue(aBankData) - borrowsUsdValue(aBankData);
+      const bLiquidity = depositsUsdValue(bBankData) - borrowsUsdValue(bBankData);
       return sortBy === TradePoolFilterStates.LIQUIDITY_ASC ? aLiquidity - bLiquidity : bLiquidity - aLiquidity;
     } else if (sortBy.startsWith("apy")) {
       // todo add apy filter
