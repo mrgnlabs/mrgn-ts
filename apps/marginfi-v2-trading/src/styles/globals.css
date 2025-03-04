@@ -37,7 +37,8 @@
     --chart-5: 27 87% 67%;
 
     /* brand vars */
-    --mrgn-green: 78 100% 43%;
+    --mrgn-green: 147 49% 66%;
+    --mrgn-red: 6 78% 73%;
     --mrgn-chartreuse: 66 75% 64%;
     --mrgn-gold: 33 16% 67%;
     --mrgn-slate: 72 3% 32%;
@@ -90,22 +91,6 @@ body {
 body {
   font-family: "Aeonik Pro";
   font-weight: 400;
-}
-
-.mrgn-bg-gradient {
-  background: radial-gradient(circle at 50% 50%, rgba(255, 249, 146, 0.15) 30%, #ffffff 70%);
-  background-attachment: fixed;
-  width: 100vw;
-  height: 100%;
-  background-size: cover;
-  background-repeat: no-repeat;
-}
-
-@media (min-width: 768px) {
-  .mrgn-bg-gradient {
-    background-size: 65%;
-    background-position: center;
-  }
 }
 
 @keyframes pulse {

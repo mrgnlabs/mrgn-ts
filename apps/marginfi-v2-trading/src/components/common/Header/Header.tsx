@@ -4,7 +4,7 @@ import React from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { motion, useAnimate } from "framer-motion";
+import { motion, useAnimate, useScroll, useTransform } from "framer-motion";
 import { IconPlus, IconCopy, IconCheck, IconSettings, IconLayoutDashboard } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { cn } from "@mrgnlabs/mrgn-utils";
@@ -65,6 +65,21 @@ export const Header = () => {
   const isMobile = useIsMobile();
   const [scope, animate] = useAnimate();
 
+  // Add scroll animation
+  const { scrollY } = useScroll();
+  const headerBgOpacity = useTransform(scrollY, [0, 200], [0, 0.8]);
+
+  // Convert the MotionValue to a regular state value for use in inline styles
+  const [opacity, setOpacity] = React.useState(0);
+
+  React.useEffect(() => {
+    const unsubscribe = headerBgOpacity.onChange((latest) => {
+      setOpacity(latest);
+    });
+
+    return () => unsubscribe();
+  }, [headerBgOpacity]);
+
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
   const extendedBankInfos = React.useMemo(() => {
     const banks = Object.values(banksByBankPk);
@@ -88,8 +103,12 @@ export const Header = () => {
     <div ref={scope} className="relative h-[64px]">
       <motion.header
         data-header
-        className="fixed w-full flex items-center justify-between gap-8 py-3.5 px-4 bg-background z-50"
+        className="fixed w-full flex items-center justify-between gap-8 py-3.5 px-4 z-50"
         initial={{ opacity: 0, y: -64 }}
+        style={{
+          backgroundColor: `hsl(var(--background) / ${opacity})`,
+          backdropFilter: "blur(2px)",
+        }}
       >
         <Link href="/">
           {/* <IconArena size={isMobile ? 40 : 48} className="opacity-90" /> */}
