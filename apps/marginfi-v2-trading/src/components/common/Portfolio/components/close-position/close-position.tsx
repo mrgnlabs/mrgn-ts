@@ -154,7 +154,7 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
       <Button
         onClick={handleSimulation}
         disabled={false}
-        variant="destructive"
+        variant="short"
         size="sm"
         className="gap-1 min-w-16 bg-mrgn-red"
       >
