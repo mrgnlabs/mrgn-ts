@@ -37,11 +37,11 @@ export const PositionListItem = ({ arenaPool }: props) => {
     <TableRow className="transition-colors hover:bg-accent/75">
       <TableCell>
         {arenaPool.status === GroupStatus.LONG ? (
-          <Badge variant="long" className="w-14 uppercase font-medium justify-center py-1">
+          <Badge variant="long" className="w-14 uppercase font-medium justify-center py-0.5 text-[11px]">
             long
           </Badge>
         ) : (
-          <Badge variant="short" className="w-14 uppercase font-medium justify-center py-1">
+          <Badge variant="short" className="w-14 uppercase font-medium justify-center py-0.5 text-[11px]">
             short
           </Badge>
         )}
