@@ -47,11 +47,11 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
       let color: string;
 
       if (accountSummary.healthFactor >= 0.5) {
-        color = "#75BA80";
+        color = "#7ed3a4";
       } else if (accountSummary.healthFactor >= 0.25) {
-        color = "#B8B45F";
+        color = "#ffba00";
       } else {
-        color = "#CF6F6F";
+        color = "#f08f84";
       }
 
       return color;
