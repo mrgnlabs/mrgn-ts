@@ -75,7 +75,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
       hidePoolStats={["type"]}
       setDisplaySettings={setDisplaySettings}
     >
-      <div className="px-4 pb-10 lg:px-8 lg:py-10 lg:bg-background lg:border lg:rounded-xl">
+      <div className="px-4 pb-10 lg:px-8 lg:py-10 lg:bg-background/25 lg:border lg:rounded-xl">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="flex flex-col items-center px-8 w-full lg:w-1/4 xl:w-1/2">
             <div className="relative flex items-center justify-center">
