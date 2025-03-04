@@ -106,6 +106,7 @@ module.exports = {
           success: "hsl(var(--mrgn-green))",
           warning: "hsl(var(--mrgn-yellow))",
           error: "hsl(var(--mrgn-red))",
+          yellow: "hsl(var(--mrgn-yellow))",
           chartreuse: "hsl(var(--mrgn-chartreuse))",
           gold: "hsl(var(--mrgn-gold))",
           slate: "hsl(var(--mrgn-slate))",
