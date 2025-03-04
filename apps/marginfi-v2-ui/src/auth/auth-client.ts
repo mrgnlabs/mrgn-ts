@@ -7,9 +7,7 @@ export function createBrowserSupabaseClient() {
       persistSession: false,
     },
     global: {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`, // Use our JWT token
-      },
+      // No need to manually set headers, cookies will be sent automatically
     },
   });
 

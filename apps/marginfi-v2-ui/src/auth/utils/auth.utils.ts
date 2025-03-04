@@ -1,6 +1,6 @@
 import { Wallet } from "@mrgnlabs/mrgn-common";
 
-import { AuthUser, SignupPayload, LoginPayload } from "../types/auth.types";
+import { AuthUser, SignupPayload, AuthPayload } from "../types/auth.types";
 import { generateSignMessage } from "../utils/auth-crypto.utils";
 import { createBrowserSupabaseClient } from "../auth-client";
 
@@ -14,38 +14,67 @@ export async function loginOrSignup(
     throw new Error("Wallet not connected");
   }
 
-  // Check if user exists first
-  const user = await getUser(walletAddress);
+  // First, try to login without signature
+  const loginResponse = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ walletAddress, walletId }),
+    credentials: "include",
+  });
 
-  if (!user && wallet.signMessage) {
-    // Only get signature for new users
+  const loginResult = await loginResponse.json();
+
+  // If login succeeded, return the result
+  if (loginResponse.ok && loginResult.user) {
+    return loginResult;
+  }
+
+  // If login failed with requiresSignature, we need to sign a message
+  if (loginResult.requiresSignature && wallet.signMessage) {
+    console.log("Signature required for authentication");
+
+    // Get signature for authentication
     const signMessage = await generateSignMessage(walletAddress);
     const rawSignature = await wallet.signMessage(new TextEncoder().encode(JSON.stringify(signMessage)));
 
     // Handle both Phantom and standard wallet adapter signature formats
-    // phantom returns { signature: Uint8Array }
-    // wallet adapter returns Uint8Array
     const signatureBytes = ("signature" in rawSignature ? rawSignature.signature : rawSignature) as Uint8Array;
     const signature = Buffer.from(signatureBytes).toString("base64");
 
-    return signup({
-      walletAddress,
-      signature,
-      signedMessage: signMessage,
-      walletId,
-      referralCode,
-    });
-  } else {
-    return login({ walletAddress, walletId });
+    // Check if user exists
+    const user = await getUser(walletAddress);
+
+    if (!user) {
+      // New user - signup
+      return signup({
+        walletAddress,
+        signature,
+        signedMessage: signMessage,
+        walletId,
+        referralCode,
+      });
+    } else {
+      // Existing user - login with signature
+      return login({
+        walletAddress,
+        walletId,
+        signature,
+        signedMessage: signMessage,
+      });
+    }
   }
+
+  // If we get here, something else went wrong
+  return { user: null, error: loginResult.error || "Authentication failed" };
 }
 
-export async function login(payload: LoginPayload) {
+export async function login(payload: AuthPayload) {
   try {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      credentials: "include", // Include cookies in the request
     });
 
     const data = await response.json();
@@ -69,6 +98,7 @@ export async function signup(payload: SignupPayload) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      credentials: "include", // Include cookies in the request
     });
 
     const data = await response.json();
@@ -94,7 +124,14 @@ export async function getUser(walletAddress: string) {
 }
 
 export async function logout(): Promise<void> {
-  localStorage.removeItem("token"); // Clear token on logout
+  // Clear the auth cookie by making a request to the logout endpoint
+  await fetch("/api/auth/logout", {
+    method: "POST",
+    credentials: "include", // Important: include cookies in the request
+  });
+
+  console.log("Logged out");
+
   const supabase = createBrowserSupabaseClient();
   await supabase.auth.signOut();
 }
