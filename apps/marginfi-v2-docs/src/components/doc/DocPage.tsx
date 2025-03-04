@@ -12,6 +12,7 @@ import { Feedback } from '~/components/Feedback'
 import { CodeGroup, Code } from '~/components/Code'
 import { useSectionStore } from '~/components/SectionProvider'
 import { useEffect } from 'react'
+import { urlFor } from '~/sanity/lib/image'
 
 interface SanityImage {
   asset: {
@@ -96,7 +97,7 @@ const components: PortableTextComponents = {
     ),
     imageWithCaption: ({ value }: { value: ImageWithCaption }) => (
       <ImageComponent
-        src={value.image.asset.url}
+        src={urlFor(value.image).url()}
         alt={value.alt || ''}
         isBig={true}
       />
