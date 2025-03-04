@@ -158,9 +158,9 @@ export default function HomePage({ initialData }: StaticArenaProps) {
                       {dir === "asc" && <IconSortAscending size={16} />}
                       <SelectValue placeholder="Sort pools" />
                     </SelectTrigger>
-                    <SelectContent className="bg-background">
+                    <SelectContent>
                       {sortOptions.map((option, i) => (
-                        <SelectItem key={i} value={option.value} className="focus:bg-accent">
+                        <SelectItem key={i} value={option.value}>
                           {option.label}
                         </SelectItem>
                       ))}

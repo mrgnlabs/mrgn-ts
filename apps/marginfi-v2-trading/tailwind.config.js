@@ -100,6 +100,7 @@ module.exports = {
         mrgn: {
           green: "hsl(var(--mrgn-green))",
           red: "hsl(var(--mrgn-red))",
+          yellow: "hsl(var(--mrgn-yellow))",
           chartreuse: "hsl(var(--mrgn-chartreuse))",
           gold: "hsl(var(--mrgn-gold))",
           slate: "hsl(var(--mrgn-slate))",

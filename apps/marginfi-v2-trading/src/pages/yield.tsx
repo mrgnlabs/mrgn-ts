@@ -21,6 +21,9 @@ import { useExtendedPools } from "~/hooks/useExtendedPools";
 import { GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
+import { GroupStatus } from "~/types";
+import { Switch } from "~/components/ui/switch";
+import { Label } from "~/components/ui/label";
 
 const sortOptions: {
   value: TradePoolFilterStates;
@@ -45,18 +48,20 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
     state.fetchArenaGroups,
     state.setHydrationComplete,
   ]);
-
-  React.useEffect(() => {
-    if (initialData) {
-      fetchArenaGroups(initialData);
-      setHydrationComplete();
-    }
-  }, [initialData, fetchArenaGroups, setHydrationComplete]);
+  const [showActivePositions, setShowActivePositions] = React.useState(false);
 
   const extendedPools = useExtendedPools();
 
+  const availablePools = React.useMemo(() => {
+    const pools = extendedPools.filter((pool) => pool.status === GroupStatus.EMPTY || pool.status === GroupStatus.LP);
+    if (showActivePositions) {
+      return pools.filter((pool) => pool.status === GroupStatus.LP);
+    }
+    return pools;
+  }, [extendedPools, showActivePositions]);
+
   const fuse = React.useMemo(() => {
-    return new Fuse(extendedPools, {
+    return new Fuse(availablePools, {
       includeScore: true,
       threshold: 0.2,
       keys: [
@@ -86,7 +91,7 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
         },
       ],
     });
-  }, [extendedPools]);
+  }, [availablePools]);
 
   const isMobile = useIsMobile();
   const { connected } = useWallet();
@@ -100,15 +105,22 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
   }, [sortBy]);
 
   const filteredPools = React.useMemo(() => {
-    if (!fuse) return extendedPools;
+    if (!fuse) return availablePools;
     const results = fuse.search(search).map((result) => result.item);
     if (!results.length && !search) {
-      return extendedPools;
+      return availablePools;
     } else if (!results) {
       return [];
     }
     return results;
-  }, [extendedPools, fuse, search]);
+  }, [availablePools, fuse, search]);
+
+  React.useEffect(() => {
+    if (initialData) {
+      fetchArenaGroups(initialData);
+      setHydrationComplete();
+    }
+  }, [initialData, fetchArenaGroups, setHydrationComplete]);
 
   React.useEffect(() => {
     setSortBy(TradePoolFilterStates.APY_DESC);
@@ -175,28 +187,48 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
                     )}
                   >
                     <div className="pl-4">Pool</div>
+                    <div className="text-center">Pool owner</div>
                     <div
                       className={cn(
-                        "pl-3 flex items-center gap-1 cursor-pointer transition-colors hover:text-foreground",
-                        (sortBy === TradePoolFilterStates.LIQUIDITY_ASC ||
-                          sortBy === TradePoolFilterStates.LIQUIDITY_DESC) &&
+                        "flex items-center gap-1 cursor-pointer transition-colors hover:text-foreground",
+                        (sortBy === TradePoolFilterStates.DEPOSITS_ASC ||
+                          sortBy === TradePoolFilterStates.DEPOSITS_DESC) &&
                           "text-foreground"
                       )}
                       onClick={() => {
                         setSortBy(
-                          sortBy === TradePoolFilterStates.LIQUIDITY_DESC
-                            ? TradePoolFilterStates.LIQUIDITY_ASC
-                            : TradePoolFilterStates.LIQUIDITY_DESC
+                          sortBy === TradePoolFilterStates.DEPOSITS_DESC
+                            ? TradePoolFilterStates.DEPOSITS_ASC
+                            : TradePoolFilterStates.DEPOSITS_DESC
                         );
                       }}
                     >
-                      {sortBy === TradePoolFilterStates.LIQUIDITY_ASC && <IconSortAscending size={16} />}
-                      {sortBy === TradePoolFilterStates.LIQUIDITY_DESC && <IconSortDescending size={16} />}
+                      {sortBy === TradePoolFilterStates.DEPOSITS_ASC && <IconSortAscending size={16} />}
+                      {sortBy === TradePoolFilterStates.DEPOSITS_DESC && <IconSortDescending size={16} />}
                       Total Deposits
+                    </div>
+                    <div
+                      className={cn(
+                        "flex items-center gap-1 cursor-pointer transition-colors hover:text-foreground",
+                        (sortBy === TradePoolFilterStates.BORROWS_ASC ||
+                          sortBy === TradePoolFilterStates.BORROWS_DESC) &&
+                          "text-foreground"
+                      )}
+                      onClick={() => {
+                        setSortBy(
+                          sortBy === TradePoolFilterStates.BORROWS_DESC
+                            ? TradePoolFilterStates.BORROWS_ASC
+                            : TradePoolFilterStates.BORROWS_DESC
+                        );
+                      }}
+                    >
+                      {sortBy === TradePoolFilterStates.BORROWS_ASC && <IconSortAscending size={16} />}
+                      {sortBy === TradePoolFilterStates.BORROWS_DESC && <IconSortDescending size={16} />}
+                      Total Borrows
                     </div>
                     <button
                       className={cn(
-                        "flex items-center gap-1 justify-end cursor-pointer transition-colors xl:justify-center xl:pr-4 hover:text-foreground",
+                        "flex items-center gap-1 cursor-pointer transition-colors hover:text-foreground",
                         (sortBy === TradePoolFilterStates.APY_ASC || sortBy === TradePoolFilterStates.APY_DESC) &&
                           "text-foreground"
                       )}
@@ -212,10 +244,21 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
                       {sortBy === TradePoolFilterStates.APY_DESC && <IconSortDescending size={16} />}
                       Lending APY
                     </button>
-                    <div className="text-right xl:text-center">Borrow APY</div>
-                    <div className="text-center">Created by</div>
-                    {connected && <div>Supplied</div>}
-                    <div />
+
+                    {connected ? (
+                      <div className="flex items-center justify-end gap-2 w-full col-span-2">
+                        <Label htmlFor="show-active-positions" className="text-muted-foreground text-xs">
+                          Show active positions
+                        </Label>
+                        <Switch
+                          id="show-active-positions"
+                          checked={showActivePositions}
+                          onCheckedChange={setShowActivePositions}
+                        />
+                      </div>
+                    ) : (
+                      <div />
+                    )}
                   </div>
                 )}
                 <div>
@@ -226,14 +269,14 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
               </Desktop>
               <Mobile>
                 <div className="space-y-12">
-                  <div className="flex flex-col items-center">
+                  <div className="flex items-center justify-between">
                     <Select
                       value={sortBy}
                       onValueChange={(value) => {
                         setSortBy(value as TradePoolFilterStates);
                       }}
                     >
-                      <SelectTrigger className="w-[190px] justify-start gap-2">
+                      <SelectTrigger className="w-[210px] justify-start gap-2 bg-background border border-border h-8">
                         {dir === "desc" && <IconSortDescending size={16} />}
                         {dir === "asc" && <IconSortAscending size={16} />}
                         <SelectValue placeholder="Sort pools" />
@@ -246,6 +289,16 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
                         ))}
                       </SelectContent>
                     </Select>
+                    <div className={cn("hidden items-center justify-end gap-2 w-full", connected && "flex")}>
+                      <Label htmlFor="show-active-positions" className="text-muted-foreground text-xs">
+                        Show active positions
+                      </Label>
+                      <Switch
+                        id="show-active-positions"
+                        checked={showActivePositions}
+                        onCheckedChange={setShowActivePositions}
+                      />
+                    </div>
                   </div>
                   {filteredPools &&
                     filteredPools.length > 0 &&

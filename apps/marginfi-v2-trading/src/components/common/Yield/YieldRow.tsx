@@ -39,7 +39,7 @@ export const YieldRow = ({ pool }: props) => {
   const [nativeSolBalance, refreshStore] = useTradeStoreV2((state) => [state.nativeSolBalance, state.refreshGroup]);
 
   return (
-    <div key={pool.groupPk.toBase58()} className="relative bg-background border rounded-xl mb-12 pt-5 pb-2 px-4">
+    <div key={pool.groupPk.toBase58()} className="relative bg-background/50 border rounded-xl mb-12 pt-5 pb-2 px-4">
       <Link
         href={`/trade/${pool.groupPk.toBase58()}`}
         className="group bg-background border rounded-xl absolute -top-5 left-3.5 px-2 py-1.5 flex items-center gap-2 transition-colors hover:bg-accent"
@@ -152,7 +152,7 @@ const YieldItem = ({
   }, [groupData]);
 
   return (
-    <div className={cn("grid gap-4items-center", className, connected ? "grid-cols-7" : "grid-cols-6")}>
+    <div className={cn("grid gap-4 items-center", className, connected ? "grid-cols-7" : "grid-cols-6")}>
       <div className="flex items-center gap-2">
         <Image
           src={bank.meta.tokenLogoUri}
@@ -163,25 +163,7 @@ const YieldItem = ({
         />
         {bank.meta.tokenSymbol}
       </div>
-      <div className="flex flex-col xl:gap-2 xl:flex-row xl:items-baseline">
-        <span className="text-xl">
-          {dynamicNumeralFormatter(bank.info.state.totalDeposits, {
-            maxDisplay: 1000,
-          })}
-        </span>
-
-        <span className="text-sm text-muted-foreground">
-          {usdFormatter.format(bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber())}
-        </span>
-      </div>
-
-      <div className="text-mrgn-success text-right w-32">
-        {percentFormatter.format(aprToApy(bank.info.state.lendingRate))}
-      </div>
-      <div className="text-mrgn-warning text-right w-32">
-        {percentFormatter.format(aprToApy(bank.info.state.borrowingRate))}
-      </div>
-      <div className="flex justify-center">
+      <div className="flex justify-center pr-4">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -227,8 +209,34 @@ const YieldItem = ({
           </Tooltip>
         </TooltipProvider>
       </div>
+      <div className="flex xl:gap-2 flex-col items-start xl:flex-row xl:items-baseline">
+        <span className="text-xl">
+          {dynamicNumeralFormatter(bank.info.state.totalDeposits, {
+            maxDisplay: 1000,
+          })}
+        </span>
+
+        <span className="text-sm text-muted-foreground">
+          {usdFormatter.format(bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber())}
+        </span>
+      </div>
+
+      <div className="flex xl:gap-2 flex-col items-start xl:flex-row xl:items-baseline">
+        <span className="text-xl">
+          {dynamicNumeralFormatter(bank.info.state.totalBorrows, {
+            maxDisplay: 1000,
+          })}
+        </span>
+
+        <span className="text-sm text-muted-foreground">
+          {usdFormatter.format(bank.info.state.totalBorrows * bank.info.oraclePrice.priceRealtime.price.toNumber())}
+        </span>
+      </div>
+
+      <div className="text-mrgn-green">{percentFormatter.format(aprToApy(bank.info.state.lendingRate))}</div>
+
       {connected && (
-        <div className="pl-2 text-lg flex flex-col xl:gap-1 xl:flex-row xl:items-baseline">
+        <div className="text-lg flex gap-1 flex-row items-center justify-center">
           {isProvidingLiquidity && bank.isActive && (
             <>
               {numeralFormatter(bank.position.amount)}
