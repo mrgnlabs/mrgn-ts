@@ -49,6 +49,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Generate JWT token
     const token = generateToken(walletAddress);
 
+    // Set the token as an HttpOnly cookie
+    res.setHeader("Set-Cookie", `auth_token=${token}; HttpOnly; Path=/; Max-Age=${60 * 60 * 24}; SameSite=Strict`);
+
     return res.status(200).json({
       user: {
         id: user.id,
@@ -56,7 +59,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         walletId,
         referralCode,
       },
-      token,
     });
   } catch (error) {
     console.error("Signup error:", error);
