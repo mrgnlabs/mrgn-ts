@@ -29,7 +29,8 @@ export const ActionButton = ({
   return (
     <Button
       disabled={isLoading || !isEnabled}
-      className={cn("w-full", tradeState === "long" && "bg-success", tradeState === "short" && "bg-error")}
+      className="w-full"
+      variant={tradeState === "long" ? "long" : "short"}
       onClick={handleAction}
     >
       {isLoading ? <IconLoader2 className="animate-spin" /> : buttonLabel}

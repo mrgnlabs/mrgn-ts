@@ -151,8 +151,13 @@ export const ClosePosition = ({ arenaPool, positionsByGroupPk, depositBanks, bor
   }, [actionTxns, client, multiStepToast, arenaPool, positionSizeUsd, priorityFees, broadcastType]);
   return (
     <>
-      <Button onClick={handleSimulation} disabled={false} variant="destructive" size="sm" className="gap-1 min-w-16">
-        <IconX size={14} />
+      <Button
+        onClick={handleSimulation}
+        disabled={false}
+        variant="destructive"
+        size="sm"
+        className="gap-1 min-w-16 bg-mrgn-red"
+      >
         Close
       </Button>
       <ClosePositionDialog
