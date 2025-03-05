@@ -1,0 +1,109 @@
+<Properties>
+<Property name="address" type="PublicKey">
+    The public key or address of the bank.
+  </Property>
+
+  <Property name="tokenSymbol" type="string | undefined">
+    The symbol or ticker of the token associated with the bank (if available).
+  </Property>
+
+  <Property name="group" type="PublicKey">
+    The public key of the group that the bank belongs to.
+  </Property>
+
+  <Property name="mint" type="PublicKey">
+    The public key of the mint associated with the bank's token.
+  </Property>
+
+  <Property name="mintDecimals" type="number">
+    The number of decimals for the bank's token.
+  </Property>
+
+  <Property name="assetShareValue" type="BigNumber">
+    The value of one asset share in the bank.
+  </Property>
+
+  <Property name="liabilityShareValue" type="BigNumber">
+    The value of one liability share in the bank.
+  </Property>
+
+  <Property name="liquidityVault" type="PublicKey">
+    The public key of the liquidity vault associated with the bank.
+  </Property>
+
+  <Property name="liquidityVaultBump" type="number">
+    The bump seed used to derive the liquidity vault authority.
+  </Property>
+
+  <Property name="liquidityVaultAuthorityBump" type="number">
+    The bump seed used to derive the liquidity vault authority.
+  </Property>
+
+  <Property name="insuranceVault" type="PublicKey">
+    The public key of the insurance vault associated with the bank.
+  </Property>
+
+  <Property name="insuranceVaultBump" type="number">
+    The bump seed used to derive the insurance vault authority.
+  </Property>
+
+  <Property name="insuranceVaultAuthorityBump" type="number">
+    The bump seed used to derive the insurance vault authority.
+  </Property>
+
+  <Property name="collectedInsuranceFeesOutstanding" type="BigNumber">
+    The amount of outstanding collected insurance fees.
+  </Property>
+
+  <Property name="feeVault" type="PublicKey">
+    The public key of the fee vault associated with the bank.
+  </Property>
+
+  <Property name="feeVaultBump" type="number">
+    The bump seed used to derive the fee vault authority.
+  </Property>
+
+  <Property name="feeVaultAuthorityBump" type="number">
+    The bump seed used to derive the fee vault authority.
+  </Property>
+
+  <Property name="collectedGroupFeesOutstanding" type="BigNumber">
+    The amount of outstanding collected group fees.
+  </Property>
+
+  <Property name="lastUpdate" type="number">
+    The timestamp of the last update to the bank.
+  </Property>
+
+  <Property name="config" type="BankConfig">
+    The configuration settings for the bank.
+  </Property>
+
+  <Property name="totalAssetShares" type="BigNumber">
+    The total number of asset shares in the bank.
+  </Property>
+
+  <Property name="totalLiabilityShares" type="BigNumber">
+    The total number of liability shares in the bank.
+  </Property>
+
+  <Property name="emissionsActiveBorrowing" type="boolean">
+    Indicates whether emissions are active for borrowing.
+  </Property>
+
+  <Property name="emissionsActiveLending" type="boolean">
+    Indicates whether emissions are active for lending.
+  </Property>
+
+  <Property name="emissionsRate" type="number">
+    The rate of emissions for the bank.
+  </Property>
+
+  <Property name="emissionsMint" type="PublicKey">
+    The public key of the mint associated with the bank's emissions.
+  </Property>
+
+  <Property name="emissionsRemaining" type="BigNumber">
+    The amount of emissions remaining for the bank.
+  </Property>
+</Properties>

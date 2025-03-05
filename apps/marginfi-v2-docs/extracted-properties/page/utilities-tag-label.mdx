@@ -1,0 +1,27 @@
+## Utilities {{ tag: '', label: '' }}
+
+<Properties>
+<Property name="getBankVaultSeeds" type="Argument(s): type">
+    Returns the seed buffer for a specific bank vault type.
+  </Property>
+
+  <Property name="getBankVaultAuthoritySeeds" type="Argument(s): type">
+    Returns the authority seed buffer for a specific bank vault type.
+  </Property>
+
+  <Property name="getBankVaultAuthority" type="Argument(s): bankVaultType, bankPk, programId">
+    Computes the authority Program Derived Address (PDA) for a specific marginfi group bank vault.
+  </Property>
+
+  <Property name="makeWrapSolIxs" type="Argument(s): walletAddress, amount">
+    Creates instructions to wrap SOL into a native token account.
+  </Property>
+
+  <Property name="makeUnwrapSolIx" type="Argument(s): walletAddress">
+    Creates an instruction to unwrap SOL from a native token account.
+  </Property>
+
+  <Property name="makeVersionedTransaction" type="Argument(s): blockhash, transaction, payer, addressLookupTables (optional)">
+    Creates a versioned transaction from a given blockhash, transaction, and payer, optionally including address lookup tables.
+  </Property>
+</Properties>

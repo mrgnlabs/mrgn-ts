@@ -1,0 +1,39 @@
+## Attributes {{ tag: '', label: '' }}
+
+<Properties>
+<Property name="getAllMarginfiAccountPubkeys" type="Argument(s): None">
+    Retrieves the public keys of all marginfi accounts in the specified group.
+  </Property>
+
+  <Property name="getMultipleMarginfiAccounts" type="Argument(s): pubkeys">
+    Fetches multiple marginfi accounts based on an array of public keys.
+  </Property>
+
+  <Property name="getAllMarginfiAccountAddresses" type="Argument(s): None">
+    Retrieves the addresses of all marginfi accounts in the underlying group.
+  </Property>
+
+  <Property name="getMarginfiAccountsForAuthority" type="Argument(s): authority (optional)">
+    Retrieves all marginfi accounts under the specified authority.
+  </Property>
+
+  <Property name="getAllProgramAccountAddresses" type="Argument(s): type">
+    Retrieves the addresses of all accounts owned by the marginfi program of a specified type.
+  </Property>
+
+  <Property name="getBankByPk" type="Argument(s): bankAddress">
+    Finds a bank by its public key address.
+  </Property>
+
+  <Property name="getBankByMint" type="Argument(s): mint">
+    Finds a bank by its mint address.
+  </Property>
+
+  <Property name="getBankByTokenSymbol" type="Argument(s): tokenSymbol">
+    Finds a bank by its token symbol.
+  </Property>
+
+  <Property name="getOraclePriceByBank" type="Argument(s): bankAddress">
+    Retrieves the oracle price for a specified bank.
+  </Property>
+</Properties>

@@ -1,0 +1,31 @@
+## Types {{ tag: '', label: '' }}
+
+<Properties>
+<Property name="Environment" type="">
+    Defines the possible configuration environments for the Marginfi protocol.
+  </Property>
+
+  <Property name="BankVaultType" type="">
+    Enum for marginfi bank vault types, which includes **`LiquidityVault`**, **`InsuranceVault`**, and **`FeeVault`**.
+  </Property>
+
+  <Property name="MarginfiConfig" type="">
+    Configuration interface for Marginfi, including environment, cluster, program ID, and group public key.
+  </Property>
+
+  <Property name="BankAddress" type="">
+    Interface representing a bank address with a label and a public key address.
+  </Property>
+
+  <Property name="AccountType" type="">
+    Enum for on-chain account types, which includes **`MarginfiGroup`**, **`MarginfiAccount`**, and **`Bank`**.
+  </Property>
+
+  <Property name="BalanceRaw" type="">
+    Represents the raw on-chain data structure for a user's balance in the Marginfi protocol.
+  </Property>
+
+  <Property name="MarginfiGroupRaw" type="">
+    Represents the raw on-chain data structure for a Marginfi group.
+  </Property>
+</Properties>

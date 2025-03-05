@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "lint-fix": "yarn lint --fix",
-    "convert-properties": "pnpm ts-node src/scripts/convert-properties.ts"
+    "convert-properties": "pnpm ts-node src/scripts/convert-properties.ts",
+    "extract-properties": "pnpm ts-node src/scripts/extract-properties-sections.ts"
   },
   "browserslist": "defaults, not ie <= 11",
   "dependencies": {
