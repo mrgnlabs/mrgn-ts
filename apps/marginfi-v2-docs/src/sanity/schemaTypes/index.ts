@@ -5,10 +5,12 @@ import { note } from './note'
 import { mathBlock } from './mathBlock'
 import { mathInline } from './mathInline'
 import { imageWithCaption } from './imageWithCaption'
-import { properties } from './properties'
 import { faq } from './faq'
 import { codeBlock } from './codeBlock'
 import { methodList } from './methodList'
+import { detailedMethod } from './detailedMethod'
+import { methodTable } from './methodTable'
+import { blockContentType } from './blockContentType'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -18,10 +20,12 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     mathBlock,
     mathInline,
     imageWithCaption,
-    properties,
     methodList,
     faq,
     codeBlock,
+    detailedMethod,
+    methodTable,
+    blockContentType
   ],
 }
 
@@ -32,8 +36,10 @@ export const schemaTypes = [
   mathBlock,
   mathInline,
   imageWithCaption,
-  properties,
   methodList,
   faq,
-  codeBlock
+  codeBlock,
+  detailedMethod,
+  methodTable,
+  blockContentType
 ]
