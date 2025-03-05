@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import clsx from 'clsx'
+import { PortableText } from '@portabletext/react'
 
 import { Feedback } from '~/components/Feedback'
 import { Heading } from '~/components/Heading'
@@ -85,9 +86,11 @@ export function Properties({ children }: { children: React.ReactNode }) {
     <div className="my-6">
       <div className="overflow-hidden rounded-lg bg-zinc-900 shadow dark:ring-1 dark:ring-white/10">
         {/* Header Row */}
-        <div className="grid grid-cols-2 gap-4 border-b border-zinc-700/40 bg-zinc-800/40 px-4 py-3 dark:border-zinc-800">
-          <div className="text-sm font-semibold text-zinc-200">Contract Name</div>
-          <div className="text-sm font-semibold text-zinc-200">Address</div>
+        <div className="grid grid-cols-4 gap-4 border-b border-zinc-700/40 bg-zinc-800/40 px-4 py-3 dark:border-zinc-800">
+          <div className="text-sm font-semibold text-zinc-200">Method Name</div>
+          <div className="text-sm font-semibold text-zinc-200">Parameters</div>
+          <div className="text-sm font-semibold text-zinc-200">Result Type(s)</div>
+          <div className="text-sm font-semibold text-zinc-200">Description</div>
         </div>
         {/* Content */}
         <ul role="list" className="divide-y divide-zinc-700/40 dark:divide-zinc-800">
@@ -102,17 +105,58 @@ export function Property({
   name,
   children,
   type,
+  parameters,
+  resultType,
 }: {
   name: string
   children: React.ReactNode
   type?: string
+  parameters?: string
+  resultType?: string
 }) {
   return (
-    <li className="grid grid-cols-2 gap-4 px-4 py-3">
+    <li className="grid grid-cols-4 gap-4 px-4 py-3">
       <div className="text-sm text-zinc-300">{name}</div>
-      <div className="font-mono text-sm text-zinc-400">
-        {type || children}
-      </div>
+      <div className="font-mono text-sm text-zinc-400">{parameters}</div>
+      <div className="font-mono text-sm text-zinc-400">{resultType}</div>
+      <div className="text-sm text-zinc-400">{children}</div>
     </li>
+  )
+}
+
+export function MethodList({ title, children }: { title: string; children: React.ReactNode }) {
+  const headingId = title ? title.toLowerCase().replace(/\s+/g, '-') : '';
+  
+  return (
+    <div className="my-6">
+      <Heading level={2} id={headingId}>{title || ''}</Heading>
+      <div className="space-y-6">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+export function Method({ 
+  name, 
+  args, 
+  children 
+}: { 
+  name: string; 
+  args: string; 
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="border-t border-zinc-700/40 pt-5">
+      <div className="flex flex-col space-y-3">
+        <div className="flex items-center">
+          <code className="text-sm font-bold text-white">{name}</code>
+          <span className="ml-4 font-mono text-xs text-zinc-400">{args}</span>
+        </div>
+        <div className="text-sm text-zinc-400 [&_strong]:text-white [&_code]:text-zinc-200 [&_code]:font-mono [&_em]:text-zinc-300">
+          {children}
+        </div>
+      </div>
+    </div>
   )
 }

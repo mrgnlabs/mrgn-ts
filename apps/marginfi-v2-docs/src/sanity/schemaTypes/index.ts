@@ -4,11 +4,11 @@ import { section } from './section'
 import { note } from './note'
 import { mathBlock } from './mathBlock'
 import { mathInline } from './mathInline'
-import { latexContent } from './latexContent'
 import { imageWithCaption } from './imageWithCaption'
 import { properties } from './properties'
 import { faq } from './faq'
 import { codeBlock } from './codeBlock'
+import { methodList } from './methodList'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -17,12 +17,23 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     note,
     mathBlock,
     mathInline,
-    latexContent,
     imageWithCaption,
     properties,
+    methodList,
     faq,
     codeBlock,
   ],
 }
 
-export const schemaTypes = [docPage, section, note, mathBlock, mathInline, latexContent, imageWithCaption, properties, faq, codeBlock]
+export const schemaTypes = [
+  docPage,
+  section,
+  note,
+  mathBlock,
+  mathInline,
+  imageWithCaption,
+  properties,
+  methodList,
+  faq,
+  codeBlock
+]

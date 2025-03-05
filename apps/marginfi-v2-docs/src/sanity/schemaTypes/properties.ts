@@ -7,19 +7,24 @@ export const properties = defineType({
   fields: [
     defineField({
       name: 'items',
-      title: 'Property Items',
+      title: 'Method Items',
       type: 'array',
       of: [{
         type: 'object',
         fields: [
           {
             name: 'name',
-            title: 'Property Name',
+            title: 'Method Name',
             type: 'string',
           },
           {
-            name: 'type',
-            title: 'Property Type',
+            name: 'parameters',
+            title: 'Parameters',
+            type: 'string',
+          },
+          {
+            name: 'resultType',
+            title: 'Result Type(s)',
             type: 'string',
           },
           {
@@ -39,7 +44,8 @@ interface Properties {
   _key: string;
   items?: Array<{
     name: string;
-    type: string;
+    parameters: string;
+    resultType: string;
     description: any[];
   }>;
 } 

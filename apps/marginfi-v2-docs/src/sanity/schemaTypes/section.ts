@@ -1,5 +1,4 @@
 import { defineType, defineField } from 'sanity'
-import { LatexInput } from '~/components/sanity/LatexInput'
 
 export const section = defineType({
   name: 'section',
@@ -91,12 +90,13 @@ export const section = defineType({
             ],
           },
         },
-        { type: 'latexContent' },
+        { type: 'section' },
         { type: 'note' },
         { type: 'mathBlock' },
         { type: 'imageWithCaption' },
         { type: 'properties' },
         { type: 'codeBlock' },
+        { type: 'methodList' }
       ],
     }),
   ],

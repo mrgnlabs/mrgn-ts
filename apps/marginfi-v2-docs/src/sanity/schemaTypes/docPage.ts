@@ -86,7 +86,8 @@ export const docPage = defineType({
         { type: 'mathBlock' },
         { type: 'imageWithCaption' },
         { type: 'properties' },
-        { type: 'codeBlock' }
+        { type: 'codeBlock' },
+        { type: 'methodList' }
       ],
     }),
     defineField({

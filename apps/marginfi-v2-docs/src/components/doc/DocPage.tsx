@@ -2,7 +2,7 @@
 
 // src/components/doc/DocPage.tsx
 import { Prose } from '~/components/Prose'
-import { Note, Properties, Property, CodeGroup } from '~/components/mdx'
+import { Note, Properties, Property, CodeGroup, MethodList, Method } from '~/components/mdx'
 import { ImageComponent } from '~/components/ImageComponent'
 import { Math } from '~/components/Math'
 import { PortableText, PortableTextComponents } from '@portabletext/react'
@@ -67,7 +67,18 @@ interface Properties {
   _key: string;
   items?: Array<{
     name: string;
-    type: string;
+    parameters: string;
+    resultType: string;
+    description: any[];
+  }>;
+}
+
+interface MethodListBlock {
+  _type: 'methodList';
+  title: string;
+  methods: Array<{
+    name: string;
+    arguments: string;
     description: any[];
   }>;
 }
@@ -75,7 +86,7 @@ interface Properties {
 interface DocPage {
   title: string;
   leadText?: any[];
-  content?: Array<Section | NoteBlock | MathBlock | ImageWithCaption | Properties | CodeBlock>;
+  content?: Array<Section | NoteBlock | MathBlock | ImageWithCaption | Properties | CodeBlock | MethodListBlock>;
 }
 
 const components: PortableTextComponents = {
@@ -119,7 +130,12 @@ const components: PortableTextComponents = {
     properties: ({ value }: { value: Properties }) => (
       <Properties>
         {value.items?.map((item, i) => (
-          <Property key={i} name={item.name} type={item.type}>
+          <Property 
+            key={i} 
+            name={item.name}
+            parameters={item.parameters}
+            resultType={item.resultType}
+          >
             {item.description && (
               <PortableText
                 value={item.description}
@@ -136,6 +152,31 @@ const components: PortableTextComponents = {
         {value.label && <p className="text-sm text-zinc-500 italic -mt-4 mb-4">{value.label}</p>}
         <PortableText value={value.content} components={components} />
       </div>
+    ),
+    methodList: ({ value }: { value: MethodListBlock }) => (
+      <MethodList title={value.title}>
+        {value.methods?.map((method, i) => (
+          <Method 
+            key={i}
+            name={method.name}
+            args={method.arguments}
+          >
+            <PortableText
+              value={method.description}
+              components={{
+                marks: {
+                  strong: ({children}) => <strong>{children}</strong>,
+                  em: ({children}) => <em>{children}</em>,
+                  code: ({children}) => <code>{children}</code>,
+                },
+                block: {
+                  normal: ({children}) => <div>{children}</div>
+                }
+              }}
+            />
+          </Method>
+        ))}
+      </MethodList>
     ),
   },
   block: {
@@ -289,7 +330,12 @@ export function DocPage({ page }: { page: DocPage }) {
                 <div className="my-6">
                   <Properties>
                     {section.items?.map((item: any, i: number) => (
-                      <Property key={i} name={item.name} type={item.type}>
+                      <Property 
+                        key={i} 
+                        name={item.name}
+                        parameters={item.parameters}
+                        resultType={item.resultType}
+                      >
                         <PortableText
                           value={item.description}
                           components={components}
@@ -302,12 +348,72 @@ export function DocPage({ page }: { page: DocPage }) {
             )
           }
 
+          // Handle "methodList" blocks
+          if (section._type === 'methodList') {
+            return (
+              <div key={section._key}>
+                {index > 0 && <hr className="my-8" />}
+                <div className="my-6">
+                  <MethodList title={section.title}>
+                    {section.methods?.map((method: any, i: number) => (
+                      <Method 
+                        key={i}
+                        name={method.name}
+                        args={method.arguments}
+                      >
+                        <PortableText
+                          value={method.description}
+                          components={{
+                            marks: {
+                              strong: ({children}) => <strong>{children}</strong>,
+                              em: ({children}) => <em>{children}</em>,
+                              code: ({children}) => <code>{children}</code>,
+                            },
+                            block: {
+                              normal: ({children}) => <div>{children}</div>
+                            }
+                          }}
+                        />
+                      </Method>
+                    ))}
+                  </MethodList>
+                </div>
+              </div>
+            )
+          }
+
           // Everything else (note, mathBlock, etc.) 
           return (
             <div key={section._key}>
               {index > 0 && <hr className="my-8" />}
               <div className="my-8">
-                <PortableText value={[section]} components={components} />
+                {section._type === 'methodList' ? (
+                  <MethodList title={section.title}>
+                    {section.methods?.map((method: any, i: number) => (
+                      <Method 
+                        key={i}
+                        name={method.name}
+                        args={method.arguments}
+                      >
+                        <PortableText
+                          value={method.description}
+                          components={{
+                            marks: {
+                              strong: ({children}) => <strong>{children}</strong>,
+                              em: ({children}) => <em>{children}</em>,
+                              code: ({children}) => <code>{children}</code>,
+                            },
+                            block: {
+                              normal: ({children}) => <div>{children}</div>
+                            }
+                          }}
+                        />
+                      </Method>
+                    ))}
+                  </MethodList>
+                ) : (
+                  <PortableText value={[section]} components={components} />
+                )}
               </div>
             </div>
           )
