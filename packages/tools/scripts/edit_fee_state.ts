@@ -29,6 +29,7 @@ type Config = {
   FIXED_FEE: number;
   RATE_FEE: number;
 };
+
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   ADMIN_PUBKEY: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
