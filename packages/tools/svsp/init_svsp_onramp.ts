@@ -9,7 +9,7 @@ import {
   Transaction,
 } from "@solana/web3.js";
 import { loadKeypairFromFile } from "../scripts/utils";
-import { createPoolOnramp, deriveOnRampPool, deriveSVSPpool } from "./stake-utils";
+import { createPoolOnramp, deriveOnRampPool, deriveSVSPpool, getStakeAccount } from "./stake-utils";
 
 type Config = {
   VOTE_ACCOUNT: PublicKey;
@@ -24,7 +24,7 @@ async function main() {
   console.log("payer: " + wallet.publicKey);
 
   const [svspPool] = deriveSVSPpool(config.VOTE_ACCOUNT);
-  // const [poolStake] = deriveStakePool(svspPool);
+  const [poolStake] = deriveStakePool(svspPool);
   // const [poolAuthority] = deriveStakeAuthority(svspPool);
   const [onRamp] = deriveOnRampPool(svspPool);
 
@@ -45,6 +45,18 @@ async function main() {
   }
 
   console.log("On ramp account: " + onRamp);
+
+  const onrampAcc = await connection.getAccountInfo(onRamp);
+  const onrampDecoded = getStakeAccount(onrampAcc.data);
+  console.log("--------On Ramp Account----");
+  console.log("stake: " + onrampDecoded.stake.delegation.stake.toString());
+  console.log("lamps: " + onrampAcc.lamports);
+
+  const stakeAcc = await connection.getAccountInfo(poolStake);
+  const stakeDecoded = getStakeAccount(stakeAcc.data);
+  console.log("--------Main stake Account----");
+  console.log("stake: " + stakeDecoded.stake.delegation.stake.toString());
+  console.log("lamps: " + stakeAcc.lamports);
 }
 
 main().catch((err) => {
