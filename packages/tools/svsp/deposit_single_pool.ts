@@ -8,41 +8,34 @@ import {
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
-import { loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
+import { loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "../scripts/utils";
 import { createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { SinglePoolInstruction } from "@solana/spl-single-pool-classic";
 /** Set to true the first time you run this script for a given wallet/pool */
-const createAta = false;
+const createAta = true;
 
 type Config = {
-  PROGRAM_ID: string;
-  /** There's probably a way to derive this... 
+  /** There's probably a way to derive this...
    *
    * Note that this must be INACTIVE if the stake pool is currently activating (like it was created
    * recently), otherwise it must ACTIVE (the vast majority of the time, this is the case)
-  */
+   *
+   * This must be a native stake account that's delegated to the validator that the STAKE_POOL is
+   * created for.
+   */
   NATIVE_STAKE_ACCOUNT: PublicKey;
   STAKE_POOL: PublicKey;
-  /** In native decimals */
-  AMOUNT: BN;
 };
 
 const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  NATIVE_STAKE_ACCOUNT: new PublicKey("CBkEBnagcbmZrmbg9yV1d1gWxi6tmuR26616XXwVwus"),
-  STAKE_POOL: new PublicKey("AvS4oXtxWdrJGCJwDbcZ7DqpSqNQtKjyXnbkDbrSk6Fq"),
-  AMOUNT: new BN(0.002 * 10 ** 9), // sol has 9 decimals
+  NATIVE_STAKE_ACCOUNT: new PublicKey("7k5fKNS1jPxuWf9cvaSiFqvpJvDgXLTwUpCi3UQC97P2"),
+  STAKE_POOL: new PublicKey("3jWfwA53i3wD55YbcngzQpe7QW39uW84YnsxN18b1Z9H"),
 };
 
 async function main() {
-  const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
-  const wallet = loadKeypairFromFile(process.env.HOME + "/keys/phantom-wallet.json");
+  const connection = new Connection("http://127.0.0.1:8899", "confirmed");
+  const wallet = loadKeypairFromFile(process.env.HOME + "/keys/staging-deploy.json");
   console.log("wallet: " + wallet.publicKey);
-
-  // @ts-ignore
-  const provider = new AnchorProvider(connection, wallet, {
-    preflightCommitment: "confirmed",
-  });
 
   // Equivalent to findPoolMintAddress
   const [lstMint] = PublicKey.findProgramAddressSync(
@@ -98,7 +91,7 @@ async function main() {
     console.error("Transaction failed:", error);
   }
 
-  //console.log("deposit: " + config.AMOUNT.toString() + " to " + config.BANK);
+  console.log("svsp deposit of " + config.NATIVE_STAKE_ACCOUNT + " done, vouchers to go ATA: " + lstAta);
 }
 
 main().catch((err) => {
