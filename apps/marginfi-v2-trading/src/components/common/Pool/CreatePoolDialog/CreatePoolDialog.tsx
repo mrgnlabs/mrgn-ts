@@ -137,7 +137,7 @@ export const CreatePoolDialog = ({ trigger }: CreatePoolDialogProps) => {
           {trigger ? (
             trigger
           ) : (
-            <Button>
+            <Button variant="outline">
               <IconPlus size={18} /> Create Pool
             </Button>
           )}

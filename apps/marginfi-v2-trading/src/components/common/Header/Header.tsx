@@ -3,7 +3,7 @@
 import React from "react";
 
 import Link from "next/link";
-import { useRouter } from "next/router";
+import router, { useRouter } from "next/router";
 import { motion, useAnimate, useScroll, useTransform } from "framer-motion";
 import { IconPlus, IconCopy, IconCheck, IconSettings, IconLayoutDashboard } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
@@ -20,6 +20,7 @@ import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Loader } from "~/components/common/Loader";
 import { ResponsiveSettingsWrapper } from "~/components";
+import { Search } from "~/components/common/search";
 
 const navItems = [
   { label: "Discover", href: "/" },
@@ -29,6 +30,7 @@ const navItems = [
 
 export const Header = () => {
   const { connection } = useConnection();
+  const router = useRouter();
   const [initialized, userDataFetched, nativeSolBalance, fetchUserData, referralCode, banksByBankPk, groupsByGroupPk] =
     useTradeStoreV2((state) => [
       state.initialized,
@@ -142,6 +144,7 @@ export const Header = () => {
           </ul>
         </nav>
         <div className={cn("flex items-center gap-4")}>
+          {router.pathname !== "/" && <Search />}
           {ownedPools.length > 0 && (
             <Link href="/admin">
               {isMobile ? (
@@ -161,7 +164,7 @@ export const Header = () => {
                 {/* <CreatePoolSoon /> */}
                 <CreatePoolDialog
                   trigger={
-                    <Button disabled={false}>
+                    <Button disabled={false} variant="outline" className="hover:bg-muted">
                       <IconPlus size={16} /> Create Pool
                     </Button>
                   }
