@@ -147,12 +147,12 @@ const components: PortableTextComponents = {
       </Properties>
     ),
     section: ({ value }: { value: Section }) => {
-      const anchor = value.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || ''
+      const sectionId = value.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || ''
       
       return (
-        <div>
+        <div className="scroll-mt-16" id={sectionId}>
           {value.title && (
-            <Heading level={2} id={anchor}>{value.title}</Heading>
+            <Heading level={2} id={sectionId}>{value.title}</Heading>
           )}
           {value.label && (
             <p className="text-sm text-zinc-500 italic -mt-4 mb-4">{value.label}</p>

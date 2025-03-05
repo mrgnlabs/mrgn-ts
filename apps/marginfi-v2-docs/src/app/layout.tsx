@@ -7,7 +7,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="h-full" suppressHydrationWarning>
+    <html
+      lang="en"
+      className="h-full scroll-smooth antialiased [font-feature-settings:'ss01']"
+      suppressHydrationWarning
+    >
       <body className="h-full">
         {/* 
           If your Providers are truly global (e.g. global Redux store, 
