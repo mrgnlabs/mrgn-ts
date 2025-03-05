@@ -2,17 +2,17 @@
 
 // src/components/doc/DocPage.tsx
 import { Prose } from '~/components/Prose'
-import { Note, Properties, Property } from '~/components/mdx'
+import { Note, Properties, Property, CodeGroup } from '~/components/mdx'
 import { ImageComponent } from '~/components/ImageComponent'
 import { Math } from '~/components/Math'
 import { PortableText, PortableTextComponents } from '@portabletext/react'
 import { Button } from '~/components/Button'
 import { Heading } from '~/components/Heading'
 import { Feedback } from '~/components/Feedback'
-import { CodeGroup, Code } from '~/components/Code'
 import { useSectionStore } from '~/components/SectionProvider'
 import { useEffect } from 'react'
 import { urlFor } from '~/sanity/lib/image'
+import React from 'react'
 
 interface SanityImage {
   asset: {
@@ -103,36 +103,17 @@ const components: PortableTextComponents = {
       />
     ),
     codeBlock: ({ value }: { value: CodeBlock }) => {
-      // Debug log
-      console.log('Code block value:', value);
-      
-      // Validate required props
       if (!value?.code) {
         console.error('Code block is missing required code property:', value);
         return null;
       }
 
       return (
-        <div className="my-6 overflow-hidden rounded-2xl bg-zinc-900 shadow-md dark:ring-1 dark:ring-white/10">
-          <div className="not-prose">
-            {value.title && (
-              <div className="flex min-h-[calc(theme(spacing.12)+1px)] flex-wrap items-start gap-x-4 border-b border-zinc-700 bg-zinc-800 px-4 dark:border-zinc-800 dark:bg-transparent">
-                <h3 className="mr-auto pt-3 text-xs font-semibold text-white">
-                  {value.title}
-                </h3>
-              </div>
-            )}
-            <div className="group dark:bg-white/2.5">
-              <div className="relative">
-                <pre className="overflow-x-auto p-4 text-xs text-white">
-                  <code className={value.language ? `language-${value.language}` : undefined}>
-                    {value.code}
-                  </code>
-                </pre>
-              </div>
-            </div>
-          </div>
-        </div>
+        <CodeGroup title={value.title || ''}>
+          <code className={value.language ? `language-${value.language}` : undefined}>
+            {value.code}
+          </code>
+        </CodeGroup>
       );
     },
     properties: ({ value }: { value: Properties }) => (
@@ -175,11 +156,22 @@ const components: PortableTextComponents = {
     strong: ({ children }) => <strong>{children}</strong>,
     em: ({ children }) => <em>{children}</em>,
     code: ({ children }) => <code>{children}</code>,
-    link: ({ value, children }) => (
-      <Button href={value?.href} variant={value?.variant || 'text'}>
-        {children}
-      </Button>
-    ),
+    link: ({ value, children }) => {
+      // Check if children already contain an anchor tag
+      const hasNestedLink = React.Children.toArray(children).some(
+        child => React.isValidElement(child) && (child.type === 'a' || child.type === Button)
+      );
+
+      if (hasNestedLink) {
+        return <span className="text-mrgn-chartreuse">{children}</span>;
+      }
+
+      return (
+        <Button href={value?.href} variant={value?.variant || 'text'}>
+          {children}
+        </Button>
+      );
+    },
     mathInline: ({ value, children }) => (
       <span className="inline-flex items-baseline">
         <Math display={false}>{value.formula}</Math>

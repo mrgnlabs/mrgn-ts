@@ -143,17 +143,17 @@ function CodePanel({
   code?: string
 }) {
   let child = Children.only(children)
+  let codeContent = code
 
   if (isValidElement(child)) {
     tag = child.props.tag ?? tag
     label = child.props.label ?? label
-    code = child.props.code ?? code
+    codeContent = child.props.code ?? code ?? (typeof child.props.children === 'string' ? child.props.children : undefined)
   }
 
-  if (!code) {
-    throw new Error(
-      '`CodePanel` requires a `code` prop, or a child with a `code` prop.',
-    )
+  if (!codeContent) {
+    console.warn('CodePanel is missing code content');
+    return null;
   }
 
   return (
@@ -161,7 +161,7 @@ function CodePanel({
       <CodePanelHeader tag={tag} label={label} />
       <div className="relative">
         <pre className="overflow-x-auto p-4 text-xs text-white">{children}</pre>
-        <CopyButton code={code} />
+        <CopyButton code={codeContent} />
       </div>
     </div>
   )
@@ -352,8 +352,10 @@ export function CodeGroup({
 
 export function Code({
   children,
+  className,
+  code: _code,
   ...props
-}: React.ComponentPropsWithoutRef<'code'>) {
+}: React.ComponentPropsWithoutRef<'code'> & { code?: string }) {
   let isGrouped = useContext(CodeGroupContext)
 
   if (isGrouped) {
@@ -362,10 +364,16 @@ export function Code({
         '`Code` children must be a string when nested inside a `CodeGroup`.',
       )
     }
-    return <code {...props} dangerouslySetInnerHTML={{ __html: children }} />
+    return (
+      <code
+        {...props}
+        className={className}
+        dangerouslySetInnerHTML={{ __html: children }}
+      />
+    )
   }
 
-  return <code {...props}>{children}</code>
+  return <code className={className} {...props}>{children}</code>
 }
 
 export function Pre({
