@@ -84,7 +84,10 @@ export function Col({
 export function Properties({ children }: { children: React.ReactNode }) {
   return (
     <div className="my-6">
-      <ul role="list" className="m-0 list-none p-0 divide-y divide-zinc-800/50">
+      <ul
+        role="list"
+        className="m-0 max-w-[calc(theme(maxWidth.lg)-theme(spacing.8))] list-none divide-y divide-zinc-900/5 p-0 dark:divide-white/5"
+      >
         {children}
       </ul>
     </div>
@@ -105,16 +108,25 @@ export function Property({
   resultType?: string
 }) {
   return (
-    <li className="m-0 px-4 py-4 first:pt-0 last:pb-0">
-      <div className="flex flex-col gap-y-1">
-        <div className="flex items-baseline gap-x-3">
-          <code className="rounded bg-[#232323] px-2 py-1 text-sm font-medium text-zinc-200">{name}</code>
-          <span className="font-mono text-xs text-zinc-500">{parameters || type}</span>
-        </div>
-        <div className="mt-1 text-sm text-zinc-400 [&>:first-child]:mt-0 [&>:last-child]:mb-0">
+    <li className="m-0 px-0 py-4 first:pt-0 last:pb-0">
+      <dl className="m-0 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <dt className="sr-only">Name</dt>
+        <dd>
+          <code>{name}</code>
+        </dd>
+        {(type || parameters) && (
+          <>
+            <dt className="sr-only">Type</dt>
+            <dd className="font-mono text-xs text-zinc-400 dark:text-zinc-500">
+              {parameters || type}
+            </dd>
+          </>
+        )}
+        <dt className="sr-only">Description</dt>
+        <dd className="w-full flex-none [&>:first-child]:mt-0 [&>:last-child]:mb-0">
           {children}
-        </div>
-      </div>
+        </dd>
+      </dl>
     </li>
   )
 }
