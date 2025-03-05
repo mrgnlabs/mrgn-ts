@@ -50,19 +50,33 @@ function createSectionStore(sections: Array<Section>) {
       ),
     registerHeading: ({ id, ref, offsetRem, title, tag }) =>
       set((state) => {
-        return {
-          sections: state.sections.map((section) => {
-            if (section.id === id) {
-              return {
-                ...section,
-                headingRef: ref,
-                offsetRem,
-                title,
-                tag,
+        // Find if section already exists
+        const existingSection = state.sections.find(s => s.id === id)
+        
+        if (existingSection) {
+          // Update existing section
+          return {
+            sections: state.sections.map((section) => {
+              if (section.id === id) {
+                return {
+                  ...section,
+                  headingRef: ref,
+                  offsetRem,
+                  title,
+                  tag,
+                }
               }
-            }
-            return section
-          }),
+              return section
+            }),
+          }
+        } else {
+          // Add new section
+          return {
+            sections: [
+              ...state.sections,
+              { id, headingRef: ref, offsetRem, title, tag }
+            ],
+          }
         }
       }),
   }))
@@ -143,6 +157,7 @@ export function SectionProvider({
   useVisibleSections(sectionStore)
 
   useIsomorphicLayoutEffect(() => {
+    console.log('Updating sections in provider:', sections)
     sectionStore.setState({ sections })
   }, [sectionStore, sections])
 
@@ -155,5 +170,8 @@ export function SectionProvider({
 
 export function useSectionStore<T>(selector: (state: SectionState) => T) {
   let store = useContext(SectionStoreContext)
-  return useStore(store!, selector)
+  if (!store) {
+    throw new Error('useSectionStore must be used within a SectionProvider')
+  }
+  return useStore(store, selector)
 }

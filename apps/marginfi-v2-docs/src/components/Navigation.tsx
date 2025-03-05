@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
+import React from 'react'
 
 import { Button } from '~/components/Button'
 import { useIsInsideMobileNavigation } from '~/components/MobileNavigation'
@@ -153,10 +154,13 @@ function NavigationGroup({
   className?: string
 }) {
   let isInsideMobileNavigation = useIsInsideMobileNavigation()
-  let [pathname, sections] = useInitialValue(
-    [usePathname(), useSectionStore((s) => s.sections)],
-    isInsideMobileNavigation,
-  )
+  let pathname = usePathname()
+  let sections = useSectionStore((s) => s.sections)
+  
+  // Debug sections
+  React.useEffect(() => {
+    console.log('Navigation sections:', sections)
+  }, [sections])
 
   let isActiveGroup =
     group.links.findIndex((link) => link.href === pathname) !== -1
@@ -167,7 +171,7 @@ function NavigationGroup({
         layout="position"
         className="text-xs font-semibold text-zinc-900 dark:text-white"
       >
-        {group.title} {/* Main Section */}
+        {group.title}
       </motion.h2>
 
       <div className="relative mt-3 pl-2">
@@ -190,7 +194,7 @@ function NavigationGroup({
           {group.links.map((link) => (
             <motion.li key={link.href} layout="position" className="relative">
               <NavLink href={link.href} active={link.href === pathname}>
-                {link.title} {/* Sub section */}
+                {link.title}
               </NavLink>
 
               <AnimatePresence mode="popLayout" initial={false}>
@@ -207,21 +211,24 @@ function NavigationGroup({
                       transition: { duration: 0.15 },
                     }}
                   >
-                    {sections.map((section) => (
-                      <li key={section.id}>
-                        <NavLink
-                          href={`${link.href}#${section.id}`}
-                          tag={section.tag}
-                          isAnchorLink
-                        >
-                          {section.title} {/* Topic within sub section */}
-                        </NavLink>
-                      </li>
-                    ))}
+                    {sections.map((section) => {
+                      if (!section.id) return null;
+                      
+                      return (
+                        <li key={section.id}>
+                          <NavLink
+                            href={`${link.href}#${section.id}`}
+                            tag={section.tag}
+                            isAnchorLink
+                          >
+                            {section.title}
+                          </NavLink>
+                        </li>
+                      );
+                    })}
                   </motion.ul>
                 )}
               </AnimatePresence>
-
             </motion.li>
           ))}
         </ul>

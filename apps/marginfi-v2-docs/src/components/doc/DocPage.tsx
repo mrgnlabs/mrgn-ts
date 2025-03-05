@@ -146,13 +146,21 @@ const components: PortableTextComponents = {
         ))}
       </Properties>
     ),
-    section: ({ value }: { value: Section }) => (
-      <div>
-        {value.title && <Heading level={2} id={value.title.toLowerCase().replace(/\s+/g, '-')}>{value.title}</Heading>}
-        {value.label && <p className="text-sm text-zinc-500 italic -mt-4 mb-4">{value.label}</p>}
-        <PortableText value={value.content} components={components} />
-      </div>
-    ),
+    section: ({ value }: { value: Section }) => {
+      const anchor = value.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || ''
+      
+      return (
+        <div>
+          {value.title && (
+            <Heading level={2} id={anchor}>{value.title}</Heading>
+          )}
+          {value.label && (
+            <p className="text-sm text-zinc-500 italic -mt-4 mb-4">{value.label}</p>
+          )}
+          <PortableText value={value.content} components={components} />
+        </div>
+      )
+    },
     methodList: ({ value }: { value: MethodListBlock }) => (
       <MethodList title={value.title}>
         {value.methods?.map((method, i) => (
@@ -235,7 +243,6 @@ function SectionTracker({ sections }: { sections: SectionInfo[] }) {
   const registerHeading = useSectionStore((state) => state.registerHeading)
 
   useEffect(() => {
-    // Wait for next frame to ensure elements are in the DOM
     const registerSections = () => {
       sections.forEach((section) => {
         if (section && section.id) {
@@ -253,171 +260,71 @@ function SectionTracker({ sections }: { sections: SectionInfo[] }) {
       })
     }
 
-    // Initial registration
-    requestAnimationFrame(registerSections)
+    // Initial registration after a short delay to ensure DOM is ready
+    const timeoutId = setTimeout(registerSections, 100)
 
-    // Re-register on scroll to ensure all sections are captured
-    const handleScroll = () => {
-      requestAnimationFrame(registerSections)
+    // Re-register on DOM changes
+    const observer = new MutationObserver(() => {
+      setTimeout(registerSections, 100)
+    })
+    
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['id']
+    })
+
+    return () => {
+      clearTimeout(timeoutId)
+      observer.disconnect()
     }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
   }, [sections, registerHeading])
 
   return null
 }
 
 export function DocPage({ page }: { page: DocPage }) {
-  if (!page) {
-    return <div>Loading...</div>
-  }
-
-  // Get sections from the page content
-  const sections = page.content?.map((section: any): SectionInfo | null => {
-    if (section._type === 'section') {
-      return {
+  // Extract sections from the content
+  const sections: SectionInfo[] = React.useMemo(() => {
+    if (!page.content) return []
+    
+    // Get all sections from content
+    const extractedSections = page.content
+      .filter((block): block is Section => block._type === 'section')
+      .map(section => ({
         id: section.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '',
         title: section.title || '',
-        tag: section.label || undefined,
-      }
-    }
-    return null
-  }).filter((section): section is SectionInfo => section !== null) || []
+        tag: section.label
+      }))
+      .filter(section => section.id !== '')
+
+    console.log('Extracted sections:', extractedSections)
+    return extractedSections
+  }, [page.content])
+
+  // Log when sections change
+  React.useEffect(() => {
+    console.log('Current sections:', sections)
+  }, [sections])
 
   return (
     <article className="flex h-full flex-col pb-10 pt-16">
       <SectionTracker sections={sections} />
       <Prose className="flex-auto">
-        {/* Page Title */}
         <h1>{page.title}</h1>
 
-        {/* Render leadText as PortableText instead of a plain paragraph */}
         {page.leadText && (
-          <PortableText value={page.leadText} components={components} />
+          <div className="lead">
+            <PortableText value={page.leadText} components={components} />
+          </div>
         )}
 
         <hr className="my-8" />
 
-        {page.content?.map((section: any, index: number) => {
-          if (section._type === 'section') {
-            // Create URL-friendly anchor from title
-            const anchor = section.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-            
-            return (
-              <div key={section._key}>
-                {index > 0 && <hr className="my-8" />}
-                <div className="mt-12">
-                  <Heading level={2} id={anchor}>
-                    {section.title}
-                  </Heading>
-                  {section.label && (
-                    <p className="text-sm text-zinc-500 italic -mt-4 mb-4">
-                      {section.label}
-                    </p>
-                  )}
-                  <PortableText value={section.content} components={components} />
-                </div>
-              </div>
-            )
-          }
-
-          // Handle "properties" blocks
-          if (section._type === 'properties') {
-            return (
-              <div key={section._key}>
-                {index > 0 && <hr className="my-8" />}
-                <div className="my-6">
-                  <Properties>
-                    {section.items?.map((item: any, i: number) => (
-                      <Property 
-                        key={i} 
-                        name={item.name}
-                        parameters={item.parameters}
-                        resultType={item.resultType}
-                      >
-                        <PortableText
-                          value={item.description}
-                          components={components}
-                        />
-                      </Property>
-                    ))}
-                  </Properties>
-                </div>
-              </div>
-            )
-          }
-
-          // Handle "methodList" blocks
-          if (section._type === 'methodList') {
-            return (
-              <div key={section._key}>
-                {index > 0 && <hr className="my-8" />}
-                <div className="my-6">
-                  <MethodList title={section.title}>
-                    {section.methods?.map((method: any, i: number) => (
-                      <Method 
-                        key={i}
-                        name={method.name}
-                        args={method.arguments}
-                      >
-                        <PortableText
-                          value={method.description}
-                          components={{
-                            marks: {
-                              strong: ({children}) => <strong>{children}</strong>,
-                              em: ({children}) => <em>{children}</em>,
-                              code: ({children}) => <code>{children}</code>,
-                            },
-                            block: {
-                              normal: ({children}) => <div>{children}</div>
-                            }
-                          }}
-                        />
-                      </Method>
-                    ))}
-                  </MethodList>
-                </div>
-              </div>
-            )
-          }
-
-          // Everything else (note, mathBlock, etc.) 
-          return (
-            <div key={section._key}>
-              {index > 0 && <hr className="my-8" />}
-              <div className="my-8">
-                {section._type === 'methodList' ? (
-                  <MethodList title={section.title}>
-                    {section.methods?.map((method: any, i: number) => (
-                      <Method 
-                        key={i}
-                        name={method.name}
-                        args={method.arguments}
-                      >
-                        <PortableText
-                          value={method.description}
-                          components={{
-                            marks: {
-                              strong: ({children}) => <strong>{children}</strong>,
-                              em: ({children}) => <em>{children}</em>,
-                              code: ({children}) => <code>{children}</code>,
-                            },
-                            block: {
-                              normal: ({children}) => <div>{children}</div>
-                            }
-                          }}
-                        />
-                      </Method>
-                    ))}
-                  </MethodList>
-                ) : (
-                  <PortableText value={[section]} components={components} />
-                )}
-              </div>
-            </div>
-          )
-        })}
+        {page.content && (
+          <PortableText value={page.content} components={components} />
+        )}
       </Prose>
       <footer className="mx-auto mt-16 w-full max-w-2xl lg:max-w-5xl">
         <Feedback />
