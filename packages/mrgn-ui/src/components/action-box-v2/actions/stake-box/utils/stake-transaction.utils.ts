@@ -23,6 +23,7 @@ import {
   ActionMessageType,
   LstData,
   StakeActionTxns,
+  JupiterOptions,
 } from "@mrgnlabs/mrgn-utils";
 import {
   Connection,
@@ -34,7 +35,6 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import { JupiterOptions, slippageModes } from "~/components/settings";
 
 type CreateUnstakeLstTxProps = {
   amount: number;

@@ -2,8 +2,7 @@ import React from "react";
 
 import { TransactionSettings } from "@mrgnlabs/mrgn-common";
 import { PriorityFees } from "@mrgnlabs/marginfi-client-v2";
-import { JupiterOptions } from "~/components/settings/settings";
-
+import { JupiterOptions } from "@mrgnlabs/mrgn-utils";
 type ActionContextType = {
   priorityFees: PriorityFees;
   jupiterOptions: JupiterOptions;

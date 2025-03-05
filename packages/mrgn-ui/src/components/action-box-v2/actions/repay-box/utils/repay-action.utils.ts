@@ -6,11 +6,10 @@ import {
   isWholePosition,
   RepayActionTxns,
   STATIC_SIMULATION_ERRORS,
+  JupiterOptions,
 } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { JupiterOptions } from "~/components/settings";
 
 export interface CalculateRepayTransactionsProps {
   actionType: ActionType;

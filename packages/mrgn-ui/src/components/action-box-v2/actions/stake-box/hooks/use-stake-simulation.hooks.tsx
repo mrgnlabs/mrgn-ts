@@ -11,12 +11,12 @@ import {
   StakeActionTxns,
   STATIC_SIMULATION_ERRORS,
   usePrevious,
+  JupiterOptions,
 } from "@mrgnlabs/mrgn-utils";
 
 import { createStakeLstTx, createUnstakeLstTx, getSimulationResult } from "../utils";
 import { SimulationStatus } from "../../../utils/simulation.utils";
 import { useActionBoxStore } from "../../../store";
-import { JupiterOptions } from "~/components/settings";
 
 type StakeSimulationProps = {
   debouncedAmount: number;
