@@ -9,7 +9,7 @@ import {
   VoteProgram,
 } from "@solana/web3.js";
 import { AnchorProvider } from "@coral-xyz/anchor";
-import { loadKeypairFromFile } from "./utils";
+import { loadKeypairFromFile } from "../scripts/utils";
 
 type Config = {
   /**
@@ -22,8 +22,8 @@ const config: Config = {
 };
 
 async function main() {
-  const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
-  const wallet = loadKeypairFromFile(process.env.HOME + "/keys/phantom-wallet.json");
+  const connection = new Connection("http://127.0.0.1:8899", "confirmed");
+  const wallet = loadKeypairFromFile(process.env.HOME + "/keys/staging-deploy.json");
   let authorizedVoter = wallet.publicKey;
   let authorizedWithdrawer = wallet.publicKey;
   console.log("payer, authorized voted and withdrawer: " + wallet.publicKey);

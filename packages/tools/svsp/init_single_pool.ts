@@ -10,28 +10,24 @@ import {
   Transaction,
 } from "@solana/web3.js";
 import { AnchorProvider } from "@coral-xyz/anchor";
-import { loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
+import { loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "../scripts/utils";
 import { findPoolAddress, findPoolStakeAddress, SinglePoolProgram } from "@solana/spl-single-pool-classic";
 
 type Config = {
   VALIDATOR_VOTE_ACC: PublicKey;
 };
 const config: Config = {
-  VALIDATOR_VOTE_ACC: new PublicKey("CooLbbZy5Xmdt7DiHPQ3ss2uRXawnTXXVgpMS8E8jDzr"),
+  VALIDATOR_VOTE_ACC: new PublicKey("9us7TgKiJSz5fqT5Eb8ghV6b2C87zxv2VbXUWbbK5GRJ"),
 };
 
 async function main() {
-  const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
+  const connection = new Connection("http://127.0.0.1:8899", "confirmed");
   const wallet = loadKeypairFromFile(process.env.HOME + "/keys/staging-deploy.json");
   console.log("payer: " + wallet.publicKey);
 
   const poolKey = await findPoolAddress(SINGLE_POOL_PROGRAM_ID, config.VALIDATOR_VOTE_ACC);
   const poolStake = await findPoolStakeAddress(SINGLE_POOL_PROGRAM_ID, poolKey);
 
-  // @ts-ignore
-  const provider = new AnchorProvider(connection, wallet, {
-    preflightCommitment: "confirmed",
-  });
   let tx = new Transaction();
   tx.add(
     SystemProgram.transfer({
@@ -47,7 +43,7 @@ async function main() {
   );
 
   tx.add(
-    ...(await SinglePoolProgram.initialize(provider.connection, config.VALIDATOR_VOTE_ACC, wallet.publicKey, true))
+    ...(await SinglePoolProgram.initialize(connection, config.VALIDATOR_VOTE_ACC, wallet.publicKey, true))
       .instructions
   );
 
