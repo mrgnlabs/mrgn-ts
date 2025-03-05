@@ -9,10 +9,10 @@ import {
   RepayActionTxns,
   STATIC_SIMULATION_ERRORS,
   usePrevious,
+  JupiterOptions,
 } from "@mrgnlabs/mrgn-utils";
 import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { JupiterOptions } from "~/components/settings";
 import { SimulationStatus } from "~/components/action-box-v2/utils";
 
 import {

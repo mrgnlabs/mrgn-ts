@@ -8,12 +8,14 @@ import {
   addArenaTxTypes,
   JupiterOptions,
   LoopActionTxns,
+  CalculateTradingProps,
+  TradeActionTxns,
 } from "@mrgnlabs/mrgn-utils";
 import { Connection } from "@solana/web3.js";
 
 type GenerateAddPositionTxnsProps = {
   marginfiClient: MarginfiClient;
-  marginfiAccount: MarginfiAccountWrapper;
+  marginfiAccount: MarginfiAccountWrapper | null;
   depositBank: ExtendedBankInfo;
   borrowBank: ExtendedBankInfo;
   amount: number;
@@ -23,8 +25,8 @@ type GenerateAddPositionTxnsProps = {
   tradeState: "long" | "short";
 };
 
-export async function generateAddPositionTxns(props: GenerateAddPositionTxnsProps): Promise<LoopActionTxns> {
-  let finalDepositAmount = props.amount;
+export async function generateAddPositionTxns(props: CalculateTradingProps): Promise<TradeActionTxns> {
+  let finalDepositAmount = props.depositAmount;
   let account = props.marginfiAccount;
   const transactions: SolanaTransaction[] = [];
 
@@ -32,10 +34,14 @@ export async function generateAddPositionTxns(props: GenerateAddPositionTxnsProp
     const { quote: swapQuote, tx: swapTx } = await createSwapTx({
       inputBank: props.borrowBank,
       outputBank: props.depositBank,
-      swapAmount: props.amount,
+      swapAmount: props.depositAmount,
       authority: props.marginfiClient.wallet.publicKey,
       connection: props.marginfiClient.provider.connection,
-      jupiterOptions: props.jupiterOptions,
+      jupiterOptions: {
+        slippageBps: props.slippageBps,
+        slippageMode: props.slippageMode,
+        directRoutesOnly: false,
+      },
       platformFeeBps: props.platformFeeBps,
     });
     transactions.push(swapTx);
@@ -56,8 +62,8 @@ export async function generateAddPositionTxns(props: GenerateAddPositionTxnsProp
     setupBankAddresses: [props.borrowBank.address],
     marginfiAccount: account,
     depositAmount: finalDepositAmount,
-    slippageBps: props.jupiterOptions.slippageBps,
-    slippageMode: props.jupiterOptions.slippageMode,
+    slippageBps: props.slippageBps,
+    slippageMode: props.slippageMode,
     connection: props.marginfiClient.provider.connection,
   });
 

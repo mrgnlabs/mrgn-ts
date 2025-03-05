@@ -20,6 +20,7 @@ import {
   ExecuteLoopAction,
   checkTradeActionAvailable,
   TradeSide,
+  ArenaGroupStatus,
 } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
@@ -34,9 +35,10 @@ import { useActionContext } from "../../contexts";
 
 import { ActionInput, Preview } from "./components";
 import { useAddPositionBoxStore } from "./store";
-import { useLoopSimulation, useActionAmounts } from "./hooks";
+import { useAddPositionSimulation, useActionAmounts } from "./hooks";
 import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
+import { useActionBoxStore } from "../../store";
 
 export type AddPositionBoxProps = {
   nativeSolBalance: number;
@@ -95,6 +97,7 @@ export const AddPositionBox = ({
     state.setMaxLeverage,
     state.setLeverage,
   ]);
+  const [platformFeeBps] = useActionBoxStore((state) => [state.platformFeeBps]);
 
   const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
     transactionSettings: null,
@@ -145,41 +148,26 @@ export const AddPositionBox = ({
       actionQuote: actionTxns.actionQuote,
       tradeState: tradeSide === TradeSide.LONG ? "long" : "short",
       leverage,
-      groupStatus: tradeSide,
+      groupStatus: tradeSide === TradeSide.LONG ? ArenaGroupStatus.LONG : ArenaGroupStatus.SHORT,
     });
   }, [amount, connected, depositBank, borrowBank, actionTxns.actionQuote, tradeSide, leverage]);
 
-  const { actionSummary, refreshSimulation } = useLoopSimulation({
+  const { refreshSimulation } = useAddPositionSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     debouncedLeverage: debouncedLeverage ?? 0,
     selectedAccount,
     marginfiClient,
-    accountSummary,
-    selectedBank,
-    selectedSecondaryBank,
-    actionTxns,
-    simulationResult,
+    depositBank,
+    borrowBank,
     jupiterOptions,
     setMaxLeverage,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
+    tradeSide,
+    platformFeeBps, // Added missing property with a default value
     setIsLoading: setSimulationStatus,
-    actionMessages: actionMessages,
   });
-
-  // Cleanup the store when the wallet disconnects
-  React.useEffect(() => {
-    if (debouncedAmount === 0 && simulationResult) {
-      setActionTxns({
-        transactions: [],
-        actionQuote: null,
-        actualDepositAmount: 0,
-        borrowAmount: new BigNumber(0),
-      });
-      setSimulationResult(null);
-    }
-  }, [simulationResult, debouncedAmount, setActionTxns, setSimulationResult]);
 
   React.useEffect(() => {
     if (!connected) {
@@ -205,73 +193,34 @@ export const AddPositionBox = ({
   /*
   Cleaing additional action messages when the bank or amount changes. This is to prevent outdated errors from being displayed.
   */
-  const prevSelectedBank = usePrevious(selectedBank);
-  const prevSecondaryBank = usePrevious(selectedSecondaryBank);
-  const prevAmount = usePrevious(amount);
+  // const prevSelectedBank = usePrevious(selectedBank);
+  // const prevSecondaryBank = usePrevious(selectedSecondaryBank);
+  // const prevAmount = usePrevious(amount);
 
-  React.useEffect(() => {
-    if (
-      prevSelectedBank &&
-      prevSecondaryBank &&
-      prevAmount &&
-      (prevSelectedBank.meta.tokenSymbol !== selectedBank?.meta.tokenSymbol ||
-        prevSecondaryBank.meta.tokenSymbol !== selectedSecondaryBank?.meta.tokenSymbol ||
-        prevAmount !== amount)
-    ) {
-      setAdditionalActionMessages([]);
-      setErrorMessage(null);
-    }
-  }, [prevSelectedBank, prevSecondaryBank, prevAmount, selectedBank, selectedSecondaryBank, amount, setErrorMessage]);
+  // React.useEffect(() => {
+  //   if (
+  //     prevSelectedBank &&
+  //     prevSecondaryBank &&
+  //     prevAmount &&
+  //     (prevSelectedBank.meta.tokenSymbol !== selectedBank?.meta.tokenSymbol ||
+  //       prevSecondaryBank.meta.tokenSymbol !== selectedSecondaryBank?.meta.tokenSymbol ||
+  //       prevAmount !== amount)
+  //   ) {
+  //     setAdditionalActionMessages([]);
+  //     setErrorMessage(null);
+  //   }
+  // }, [prevSelectedBank, prevSecondaryBank, prevAmount, selectedBank, selectedSecondaryBank, amount, setErrorMessage]);
 
   /////////////////////
   // Looping Actions //
   /////////////////////
-  const handleLoopAction = React.useCallback(async () => {
-    if (!selectedBank || !amount || !marginfiClient || !selectedSecondaryBank || !transactionSettings) {
-      return;
-    }
+  const handleLoopAction = React.useCallback(async () => {}, []);
 
-    const params: ExecuteLoopActionProps = {
-      actionTxns,
-      attemptUuid: uuidv4(),
-      marginfiClient,
-      processOpts: { ...priorityFees, broadcastType: transactionSettings.broadcastType },
-      txOpts: {},
-      callbacks: {
-        captureEvent: captureEvent,
-        onComplete: onComplete,
-      },
-      infoProps: {
-        depositAmount: dynamicNumeralFormatter(amount),
-        depositToken: selectedBank.meta.tokenSymbol,
-        borrowAmount: dynamicNumeralFormatter(actionTxns.borrowAmount.toNumber()),
-        borrowToken: selectedSecondaryBank.meta.tokenSymbol,
-      },
-      nativeSolBalance: nativeSolBalance,
-    };
-
-    ExecuteLoopAction(params);
-
-    setAmountRaw("");
-  }, [
-    actionTxns,
-    amount,
-    captureEvent,
-    marginfiClient,
-    priorityFees,
-    selectedBank,
-    selectedSecondaryBank,
-    setAmountRaw,
-    transactionSettings,
-    nativeSolBalance,
-    onComplete,
-  ]);
-
-  React.useEffect(() => {
-    if (marginfiClient) {
-      refreshSelectedBanks(banks);
-    }
-  }, [marginfiClient, banks, refreshSelectedBanks]);
+  // React.useEffect(() => {
+  //   if (marginfiClient) {
+  //     refreshSelectedBanks(banks);
+  //   }
+  // }, [marginfiClient, banks, refreshSelectedBanks]);
 
   return (
     <ActionBoxContentWrapper>
@@ -299,7 +248,7 @@ export const AddPositionBox = ({
         </div>
       )} */}
       <div className="mb-6">
-        <ActionInput
+        {/* <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
           amount={amount}
@@ -315,26 +264,26 @@ export const AddPositionBox = ({
           isLoading={simulationStatus.isLoading}
           walletAmount={walletAmount}
           actionTxns={actionTxns}
-        />
+        /> */}
       </div>
 
       <div className="px-1 space-y-6 mb-4">
-        <LeverageSlider
+        {/* <LeverageSlider
           selectedBank={selectedBank}
           selectedSecondaryBank={selectedSecondaryBank}
           amountRaw={amountRaw}
           leverageAmount={leverage}
           maxLeverage={maxLeverage}
           setLeverageAmount={setLeverage}
-        />
+        /> */}
 
-        <ApyStat
+        {/* <ApyStat
           selectedBank={selectedBank}
           selectedSecondaryBank={selectedSecondaryBank}
           leverageAmount={leverage}
           depositLstApy={depositLstApy}
           borrowLstApy={borrowLstApy}
-        />
+        /> */}
       </div>
       {additionalActionMessages
         .concat(actionMessages)
@@ -371,16 +320,16 @@ export const AddPositionBox = ({
       </div>
 
       <div className="flex items-center justify-between">
-        <ActionSimulationStatus
+        {/* <ActionSimulationStatus
           simulationStatus={simulationStatus.status}
           hasErrorMessages={additionalActionMessages.length > 0}
           isActive={selectedBank && amount > 0 ? true : false}
           actionType={ActionType.Loop}
-        />
+        /> */}
         {setDisplaySettings && <ActionSettingsButton onClick={() => setDisplaySettings(true)} />}
       </div>
 
-      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={simulationStatus.isLoading} />
+      {/* <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={simulationStatus.isLoading} /> */}
     </ActionBoxContentWrapper>
   );
 };
