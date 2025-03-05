@@ -10,10 +10,10 @@ import {
   TransactionPriorityType,
   TransactionSettings,
 } from "@mrgnlabs/mrgn-common";
-import { DEFAULT_PRIORITY_SETTINGS, fetchPriorityFee } from "@mrgnlabs/mrgn-utils";
+import { DEFAULT_PRIORITY_SETTINGS, fetchPriorityFee, JupiterOptions } from "@mrgnlabs/mrgn-utils";
 import { PriorityFees } from "@mrgnlabs/marginfi-client-v2";
 import { Connection } from "@solana/web3.js";
-import { defaultJupiterOptions, JupiterOptions } from "~/components";
+import { defaultJupiterOptions } from "~/components";
 
 export enum WalletState {
   DEFAULT = "default",

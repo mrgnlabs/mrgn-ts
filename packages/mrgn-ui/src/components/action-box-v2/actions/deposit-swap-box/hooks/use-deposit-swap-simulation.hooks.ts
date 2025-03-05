@@ -10,18 +10,12 @@ import {
   DepositSwapActionTxns,
   usePrevious,
   ActionProcessingError,
+  JupiterOptions,
 } from "@mrgnlabs/mrgn-utils";
 
 import { SimulationStatus } from "~/components/action-box-v2/utils";
-import { JupiterOptions } from "~/components/settings/settings";
 
-import {
-  calculateSummary,
-  generateDepositSwapTxns,
-  GenerateDepositSwapTxnsProps,
-  getSimulationResult,
-  SimulateActionProps,
-} from "../utils";
+import { calculateSummary, generateDepositSwapTxns, GenerateDepositSwapTxnsProps, getSimulationResult } from "../utils";
 
 type DepositSwapSimulationProps = {
   debouncedAmount: number;

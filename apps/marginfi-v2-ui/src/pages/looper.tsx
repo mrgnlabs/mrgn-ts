@@ -29,7 +29,6 @@ export default function LooperPage() {
               connected: connected,
               banks: extendedBankInfosWithoutStakedAssets,
               allBanks: extendedBankInfos,
-              walletContextState: walletContextState,
               captureEvent: (event, properties) => {
                 capture(event, properties);
               },

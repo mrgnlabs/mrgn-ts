@@ -159,9 +159,10 @@ export const LoopBox = ({
       connected,
       selectedBank,
       selectedSecondaryBank,
+      actionQuote: actionTxns.actionQuote,
       banks: allBanks ?? [],
     });
-  }, [amount, connected, selectedBank, selectedSecondaryBank, allBanks]);
+  }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote, allBanks]);
 
   const { actionSummary, refreshSimulation } = useLoopSimulation({
     debouncedAmount: debouncedAmount ?? 0,

@@ -14,22 +14,24 @@ import {
   CalculateTradingProps,
   DYNAMIC_SIMULATION_ERRORS,
   extractErrorString,
+  JupiterOptions,
   LoopActionTxns,
   STATIC_SIMULATION_ERRORS,
   TradeActionTxns,
   usePrevious,
+  TradeSide,
 } from "@mrgnlabs/mrgn-utils";
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { SimulationStatus } from "~/components/action-box-v2/utils";
-import { JupiterOptions } from "~/components/settings/settings";
 
-import { calculateLooping, calculateSummary, getSimulationResult } from "../utils";
+import { calculateSummary, generateAddPositionTxns, getSimulationResult } from "../utils";
 
 type AddPositionSimulationProps = {
   depositBank: ExtendedBankInfo | null;
   borrowBank: ExtendedBankInfo | null;
+  tradeSide: TradeSide;
 
   debouncedAmount: number;
   debouncedLeverage: number;
@@ -38,7 +40,7 @@ type AddPositionSimulationProps = {
   jupiterOptions: JupiterOptions | null;
   platformFeeBps: number;
 
-  setActionTxns: (actionTxns: LoopActionTxns) => void;
+  setActionTxns: (actionTxns: TradeActionTxns) => void;
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
   setIsLoading: ({ isLoading, status }: { isLoading: boolean; status: SimulationStatus }) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
@@ -54,6 +56,7 @@ export function useAddPositionSimulation({
   borrowBank,
   jupiterOptions,
   platformFeeBps,
+  tradeSide,
 
   setSimulationResult,
   setActionTxns,
@@ -100,37 +103,18 @@ export function useAddPositionSimulation({
     callbacks.setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
   };
 
-  const fetchAddPositionTxn = async (props: CalculateTradingProps): Promise<{ actionTxns: LoopActionTxns }> => {
-    const loopingResult = await calculateLooping({
-      marginfiClient: props.marginfiClient,
-      marginfiAccount: props.marginfiAccount,
-      depositBank: props.depositBank,
-      borrowBank: props.borrowBank,
-      targetLeverage: props.targetLeverage,
-      depositAmount: props.depositAmount,
-      slippageBps: props.jupiterOptions.slippageBps,
-      slippageMode: props.jupiterOptions.slippageMode,
-      connection: props.marginfiClient.provider.connection,
-      platformFeeBps: props.platformFeeBps,
-    });
-    return {
-      actionTxns: loopingResult,
-    };
-  };
-
   const handleSimulation = React.useCallback(
     async (amount: number, leverage: number) => {
       try {
         if (
           !selectedAccount ||
           !marginfiClient ||
-          !selectedBank ||
-          !selectedSecondaryBank ||
+          !depositBank ||
+          !borrowBank ||
           amount === 0 ||
           leverage === 0 ||
           !jupiterOptions
         ) {
-          console.error("Missing params");
           setActionTxns({
             transactions: [],
             actionQuote: null,
@@ -143,26 +127,33 @@ export function useAddPositionSimulation({
 
         setIsLoading({ isLoading: true, status: SimulationStatus.SIMULATING });
 
-        const props = {
+        const props: CalculateTradingProps = {
           marginfiClient: marginfiClient,
           marginfiAccount: selectedAccount,
-          depositBank: selectedBank,
-          borrowBank: selectedSecondaryBank,
+          depositBank: depositBank,
+          borrowBank: borrowBank,
           targetLeverage: leverage,
           depositAmount: amount,
-          jupiterOptions: jupiterOptions,
+          slippageBps: jupiterOptions.slippageBps,
+          slippageMode: jupiterOptions.slippageMode,
           platformFeeBps: platformFeeBps,
+          tradeState: tradeSide === TradeSide.LONG ? "long" : "short",
+          connection: marginfiClient.provider.connection,
         };
 
-        const loopActionTxns = await fetchLoopingTxn(props);
+        const actionTxns = await generateAddPositionTxns(props);
+
+        if (!actionTxns.marginfiAccount) {
+          throw new Error("throw");
+        }
 
         const simulationResult = await getSimulationResult({
-          txns: loopActionTxns.actionTxns.transactions,
-          account: selectedAccount,
-          bank: selectedBank,
+          txns: actionTxns.transactions,
+          account: actionTxns.marginfiAccount,
+          bank: depositBank,
         });
 
-        setActionTxns(loopActionTxns.actionTxns);
+        setActionTxns(actionTxns);
         setSimulationResult(simulationResult);
         setErrorMessage(null);
       } catch (error) {
@@ -188,83 +179,49 @@ export function useAddPositionSimulation({
       }
     },
     [
+      borrowBank,
+      depositBank,
       jupiterOptions,
       marginfiClient,
       platformFeeBps,
       selectedAccount,
-      selectedBank,
-      selectedSecondaryBank,
       setActionTxns,
       setErrorMessage,
       setIsLoading,
       setSimulationResult,
+      tradeSide,
     ]
   );
 
   React.useEffect(() => {
-    const isDisabled = actionMessages.some((message) => !message.isEnabled);
-
-    if ((prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) && !isDisabled) {
+    if (prevDebouncedAmount !== debouncedAmount || prevDebouncedLeverage !== debouncedLeverage) {
       handleSimulation(debouncedAmount, debouncedLeverage);
     }
-  }, [
-    actionMessages,
-    actionTxns,
-    debouncedAmount,
-    debouncedLeverage,
-    handleSimulation,
-    prevDebouncedAmount,
-    prevDebouncedLeverage,
-  ]);
+  }, [debouncedAmount, debouncedLeverage, handleSimulation, prevDebouncedAmount, prevDebouncedLeverage]);
   ///////////////////////
 
   ///////////////////////
   // Fetch max repayable collateral and max leverage based when the secondary bank changes
   const fetchMaxLeverage = React.useCallback(async () => {
-    if (selectedBank && selectedSecondaryBank) {
-      const { maxLeverage, ltv } = computeMaxLeverage(selectedBank.info.rawBank, selectedSecondaryBank.info.rawBank);
+    if (depositBank && borrowBank) {
+      const { maxLeverage, ltv } = computeMaxLeverage(depositBank.info.rawBank, borrowBank.info.rawBank);
 
       if (!maxLeverage) {
-        const errorMessage = DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(
-          selectedSecondaryBank.meta.tokenSymbol
-        );
+        const errorMessage = DYNAMIC_SIMULATION_ERRORS.TRADE_FAILED_CHECK();
         setErrorMessage(errorMessage);
       } else {
         setMaxLeverage(maxLeverage);
       }
     }
-  }, [selectedBank, selectedSecondaryBank, setErrorMessage, setMaxLeverage]);
+  }, [depositBank, borrowBank, setErrorMessage, setMaxLeverage]);
 
+  // Fetch max leverage based when the secondary bank changes
   React.useEffect(() => {
-    if (!selectedSecondaryBank) {
-      return;
-    }
-    const hasBankChanged = !prevSelectedSecondaryBank?.address.equals(selectedSecondaryBank.address);
-    if (hasBankChanged) {
+    if (borrowBank && prevBorrowBank?.address !== borrowBank.address) {
       fetchMaxLeverage();
     }
-  }, [selectedSecondaryBank, prevSelectedSecondaryBank, fetchMaxLeverage]);
-  ///////////////////////
+  }, [borrowBank, prevBorrowBank, fetchMaxLeverage]);
 
-  ///////////////////////
-  // Handle action summary
-  const handleActionSummary = React.useCallback(
-    (summary?: AccountSummary, result?: SimulationResult) => {
-      if (selectedAccount && summary && selectedBank) {
-        return calculateSummary({
-          simulationResult: result ?? undefined,
-          bank: selectedBank,
-          accountSummary: summary,
-          actionTxns: actionTxns,
-        });
-      }
-    },
-    [selectedAccount, selectedBank, actionTxns]
-  );
-
-  const actionSummary = React.useMemo(() => {
-    return handleActionSummary(accountSummary, simulationResult ?? undefined);
-  }, [accountSummary, simulationResult, handleActionSummary]);
   ///////////////////////
 
   ///////////////////////
@@ -277,7 +234,6 @@ export function useAddPositionSimulation({
   ///////////////////////
 
   return {
-    actionSummary,
     refreshSimulation,
   };
 }
