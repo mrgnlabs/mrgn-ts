@@ -1,0 +1,155 @@
+address    PublicKey
+The public key or address of the bank.
+
+tokenSymbol    string
+The symbol or ticker of the token associated with the bank (if available).
+
+group    PublicKey
+The public key of the group that the bank belongs to.
+
+mint    PublicKey
+The public key of the mint associated with the bank's token.
+
+mintDecimals    number
+The number of decimals for the bank's token.
+
+assetShareValue    BigNumber
+The value of one asset share in the bank.
+
+liabilityShareValue    BigNumber
+The value of one liability share in the bank.
+
+liquidityVault    PublicKey
+The public key of the liquidity vault associated with the bank.
+
+liquidityVaultBump    number
+The bump seed used to derive the liquidity vault authority.
+
+liquidityVaultAuthorityBump    number
+The bump seed used to derive the liquidity vault authority.
+
+insuranceVault    PublicKey
+The public key of the insurance vault associated with the bank.
+
+insuranceVaultBump    number
+The bump seed used to derive the insurance vault authority.
+
+insuranceVaultAuthorityBump    number
+The bump seed used to derive the insurance vault authority.
+
+collectedInsuranceFeesOutstanding    BigNumber
+The amount of outstanding collected insurance fees.
+
+feeVault    PublicKey
+The public key of the fee vault associated with the bank.
+
+feeVaultBump    number
+The bump seed used to derive the fee vault authority.
+
+feeVaultAuthorityBump    number
+The bump seed used to derive the fee vault authority.
+
+collectedGroupFeesOutstanding    BigNumber
+The amount of outstanding collected group fees.
+
+lastUpdate    number
+The timestamp of the last update to the bank.
+
+config    BankConfig
+The configuration settings for the bank.
+
+totalAssetShares    BigNumber
+The total number of asset shares in the bank.
+
+totalLiabilityShares    BigNumber
+The total number of liability shares in the bank.
+
+emissionsActiveBorrowing    boolean
+Indicates whether emissions are active for borrowing.
+
+emissionsActiveLending    boolean
+Indicates whether emissions are active for lending.
+
+emissionsRate    number
+The rate of emissions for the bank.
+
+emissionsMint    PublicKey
+The public key of the mint associated with the bank's emissions.
+
+emissionsRemaining    BigNumber
+The amount of emissions remaining for the bank.
+
+active    boolean
+Indicates whether the balance is active or not.
+
+bankPk    PublicKey
+The public key of the bank associated with the balance.
+
+assetShares    BigNumber
+The amount of asset shares held in the balance.
+
+liabilityShares    BigNumber
+The amount of liability shares held in the balance.
+
+emissionsOutstanding    BigNumber
+The amount of outstanding emissions associated with the balance.
+
+lastUpdate    number
+The timestamp of the last update to the balance.
+
+getAllMarginfiAccountPubkeys    Argument(s): None
+Retrieves the public keys of all marginfi accounts in the specified group.
+
+getMultipleMarginfiAccounts    Argument(s): pubkeys
+Fetches multiple marginfi accounts based on an array of public keys.
+
+getAllMarginfiAccountAddresses    Argument(s): None
+Retrieves the addresses of all marginfi accounts in the underlying group.
+
+getMarginfiAccountsForAuthority    Argument(s): authority (optional)
+Retrieves all marginfi accounts under the specified authority.
+
+getAllProgramAccountAddresses    Argument(s): type
+Retrieves the addresses of all accounts owned by the marginfi program of a specified type.
+
+getBankByPk    Argument(s): bankAddress
+Finds a bank by its public key address.
+
+getBankByMint    Argument(s): mint
+Finds a bank by its mint address.
+
+getBankByTokenSymbol    Argument(s): tokenSymbol
+Finds a bank by its token symbol.
+
+getOraclePriceByBank    Argument(s): bankAddress
+Retrieves the oracle price for a specified bank.
+
+makeCreateMarginfiAccountIx    Argument(s): marginfiAccountPk
+Creates a transaction instruction to create a new marginfi account under the authority of the user.
+
+createMarginfiAccount    Argument(s): opts (optional), createOpts (optional)
+Creates a new marginfi account under the authority of the user.
+
+processTransaction    Argument(s): transaction, signers (optional), opts (optional)
+Processes a transaction, signs it, and sends it to the network.
+
+simulateTransaction    Argument(s): transaction, accountsToInspect
+Simulates a transaction and inspects the provided accounts.
+
+getBankVaultSeeds    Argument(s): type
+Returns the seed buffer for a specific bank vault type.
+
+getBankVaultAuthoritySeeds    Argument(s): type
+Returns the authority seed buffer for a specific bank vault type.
+
+getBankVaultAuthority    Argument(s): bankVaultType, bankPk, programId
+Computes the authority Program Derived Address (PDA) for a specific marginfi group bank vault.
+
+makeWrapSolIxs    Argument(s): walletAddress, amount
+Creates instructions to wrap SOL into a native token account.
+
+makeUnwrapSolIx    Argument(s): walletAddress
+Creates an instruction to unwrap SOL from a native token account.
+
+makeVersionedTransaction    Argument(s): blockhash, transaction, payer, addressLookupTables (optional)
+Creates a versioned transaction from a given blockhash, transaction, and payer, optionally including address lookup tables.

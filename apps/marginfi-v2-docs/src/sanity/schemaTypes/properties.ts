@@ -1,4 +1,5 @@
 import { defineType, defineField } from 'sanity'
+import { BulkPropertiesInput } from '~/components/sanity/BulkPropertiesInput'
 
 export const properties = defineType({
   name: 'properties',
@@ -35,6 +36,9 @@ export const properties = defineType({
           },
         ],
       }],
+      components: {
+        input: BulkPropertiesInput
+      }
     }),
   ],
 })

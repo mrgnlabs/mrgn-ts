@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "lint-fix": "yarn lint --fix"
+    "lint-fix": "yarn lint --fix",
+    "convert-properties": "pnpm ts-node src/scripts/convert-properties.ts"
   },
   "browserslist": "defaults, not ie <= 11",
   "dependencies": {
@@ -48,7 +49,7 @@
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.0",
     "remark-mdx": "^3.0.0",
-    "sanity": "link:@\\sanity",
+    "sanity": "3.76.1",
     "shiki": "^0.14.7",
     "simple-functional-loader": "^1.2.1",
     "styled-components": "6",
@@ -68,6 +69,7 @@
     "eslint-config-next": "^14.0.4",
     "prettier": "^3.1.1",
     "prettier-plugin-tailwindcss": "^0.5.11",
-    "sharp": "0.33.1"
+    "sharp": "0.33.1",
+    "ts-node": "^10.9.2"
   }
 }

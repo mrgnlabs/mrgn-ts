@@ -84,19 +84,9 @@ export function Col({
 export function Properties({ children }: { children: React.ReactNode }) {
   return (
     <div className="my-6">
-      <div className="overflow-hidden rounded-lg bg-zinc-900 shadow dark:ring-1 dark:ring-white/10">
-        {/* Header Row */}
-        <div className="grid grid-cols-4 gap-4 border-b border-zinc-700/40 bg-zinc-800/40 px-4 py-3 dark:border-zinc-800">
-          <div className="text-sm font-semibold text-zinc-200">Method Name</div>
-          <div className="text-sm font-semibold text-zinc-200">Parameters</div>
-          <div className="text-sm font-semibold text-zinc-200">Result Type(s)</div>
-          <div className="text-sm font-semibold text-zinc-200">Description</div>
-        </div>
-        {/* Content */}
-        <ul role="list" className="divide-y divide-zinc-700/40 dark:divide-zinc-800">
-          {children}
-        </ul>
-      </div>
+      <ul role="list" className="m-0 list-none p-0 divide-y divide-zinc-800/50">
+        {children}
+      </ul>
     </div>
   )
 }
@@ -115,11 +105,16 @@ export function Property({
   resultType?: string
 }) {
   return (
-    <li className="grid grid-cols-4 gap-4 px-4 py-3">
-      <div className="text-sm text-zinc-300">{name}</div>
-      <div className="font-mono text-sm text-zinc-400">{parameters}</div>
-      <div className="font-mono text-sm text-zinc-400">{resultType}</div>
-      <div className="text-sm text-zinc-400">{children}</div>
+    <li className="m-0 px-4 py-4 first:pt-0 last:pb-0">
+      <div className="flex flex-col gap-y-1">
+        <div className="flex items-baseline gap-x-3">
+          <code className="rounded bg-[#232323] px-2 py-1 text-sm font-medium text-zinc-200">{name}</code>
+          <span className="font-mono text-xs text-zinc-500">{parameters || type}</span>
+        </div>
+        <div className="mt-1 text-sm text-zinc-400 [&>:first-child]:mt-0 [&>:last-child]:mb-0">
+          {children}
+        </div>
+      </div>
     </li>
   )
 }
