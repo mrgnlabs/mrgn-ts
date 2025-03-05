@@ -1,5 +1,7 @@
-import * as fs from 'fs'
-import * as path from 'path'
+// @ts-ignore
+const fs = require('fs')
+// @ts-ignore
+const path = require('path')
 
 interface Property {
   name: string;
