@@ -13,11 +13,15 @@ import {
 import { InterestRateConfigRaw, RiskTierRaw } from "@mrgnlabs/marginfi-client-v2";
 import { assertBNEqual, assertI80F48Approx, assertKeysEqual } from "./softTests";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
  */
-const sendTx = false;
+const simulate = true;
+const sendTx = true;
 const verbose = true;
 
 type Config = {
@@ -31,18 +35,18 @@ type Config = {
 };
 
 const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
-  BANK: new PublicKey("Fe5QkKPVAh629UPP5aJ8sDZu8HTfe6M26jDQkKyXVhoA"),
-  ADMIN: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
+  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  GROUP_KEY: new PublicKey("6b9vFQjfYav2tVzns2cD21xU7E4z9LDnHTv9wjCJsknf"),
+  BANK: new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB"),
+  ADMIN: new PublicKey("mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF"),
 
-  MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
+  // MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
 };
 
 async function main() {
   marginfiIdl.address = config.PROGRAM_ID;
-  const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
-  const wallet = loadKeypairFromFile(process.env.HOME + "/keys/staging-deploy.json");
+  const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT, "confirmed");
+  const wallet = loadKeypairFromFile(process.env.MARGINFI_WALLET);
 
   // @ts-ignore
   const provider = new AnchorProvider(connection, wallet, {
@@ -66,6 +70,17 @@ async function main() {
       .instruction()
   );
 
+  transaction.feePayer = config.ADMIN; // Set the fee payer to Squads wallet if using multisig
+
+  if (simulate) {
+    try {
+      const simulation = await connection.simulateTransaction(transaction);
+      console.log("Simulation results:", simulation);
+    } catch (error) {
+      console.error("Simulation failed:", error);
+    }
+  }
+
   if (sendTx) {
     try {
       const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
@@ -74,7 +89,6 @@ async function main() {
       console.error("Transaction failed:", error);
     }
   } else {
-    transaction.feePayer = config.MULTISIG_PAYER; // Set the fee payer to Squads wallet
     const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
     const serializedTransaction = transaction.serialize({
@@ -96,20 +110,16 @@ const defaultBankConfigOptRaw = () => {
     assetWeightMaint: null,
     liabilityWeightInit: null,
     liabilityWeightMaint: null,
-    depositLimit: new BN(10_000_000),
-    borrowLimit: new BN(0),
-    riskTier: {
-      collateral: undefined,
-    },
-    assetTag: ASSET_TAG_DEFAULT,
-    totalAssetValueInitLimit: new BN(1),
+    depositLimit: null,
+    borrowLimit: null,
+    riskTier: null,
+    assetTag: null,
+    totalAssetValueInitLimit: null,
     interestRateConfig: null,
-    operationalState: {
-      operational: undefined,
-    },
-    oracleMaxAge: 240,
-    permissionlessBadDebtSettlement: null,
-    freezeSettings: null,
+    operationalState: null,
+    oracleMaxAge: null,
+    permissionlessBadDebtSettlement: true,
+    freezeSettings: true,
   };
 
   return bankConfigOpt;
