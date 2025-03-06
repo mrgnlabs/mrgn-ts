@@ -20,7 +20,7 @@ const SearchDrawer = ({ pools, filter, trigger }: SearchDrawerProps) => {
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
       <DrawerContent className="max-h-[85vh]">
         <div className="px-4 py-6">
-          <Command filter={filter} className="rounded-lg border shadow-md">
+          <Command filter={filter}>
             <CommandInput placeholder="Search pools by token or mint address..." autoFocus />
             <SearchList pools={pools} setOpen={setOpen} />
           </Command>
