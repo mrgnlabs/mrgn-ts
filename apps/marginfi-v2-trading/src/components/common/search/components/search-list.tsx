@@ -37,13 +37,6 @@ type SearchItemProps = {
 
 const SearchItem = ({ pool, onClose, size = "default" }: SearchItemProps) => {
   const router = useRouter();
-  const [tokenDataByMint] = useTradeStoreV2((state) => [state.tokenDataByMint]);
-
-  const { tokenData } = React.useMemo(() => {
-    const tokenData = tokenDataByMint[pool.tokenSummary.mint.toBase58()];
-    const quoteTokenData = tokenDataByMint[pool.quoteSummary.mint.toBase58()];
-    return { tokenData, quoteTokenData };
-  }, [pool, tokenDataByMint]);
 
   return (
     <CommandItem
@@ -85,28 +78,26 @@ const SearchItem = ({ pool, onClose, size = "default" }: SearchItemProps) => {
           </span>
         </div>
 
-        {tokenData && tokenData && (
-          <p className={cn("w-2/5", size === "sm" && "w-1/3 flex flex-col text-xs")}>
-            <span className={cn(size === "sm" && "text-[11px]")}>
-              $
-              {dynamicNumeralFormatter(tokenData.price, {
-                ignoreMinDisplay: true,
-              })}{" "}
+        <p className={cn("w-2/5", size === "sm" && "w-1/3 flex flex-col text-xs")}>
+          <span className={cn(size === "sm" && "text-[11px]")}>
+            $
+            {dynamicNumeralFormatter(pool.tokenSummary.tokenVolumeData.price, {
+              ignoreMinDisplay: true,
+            })}{" "}
+          </span>
+          {pool.tokenSummary.tokenVolumeData.priceChange24h && (
+            <span
+              className={cn(
+                "text-xs ml-1",
+                pool.tokenSummary.tokenVolumeData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error",
+                size === "sm" && "ml-0 text-[10px]"
+              )}
+            >
+              {pool.tokenSummary.tokenVolumeData.priceChange24h > 0 && "+"}
+              {percentFormatter.format(pool.tokenSummary.tokenVolumeData.priceChange24h / 100)}
             </span>
-            {tokenData.priceChange24h && (
-              <span
-                className={cn(
-                  "text-xs ml-1",
-                  tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error",
-                  size === "sm" && "ml-0 text-[10px]"
-                )}
-              >
-                {tokenData.priceChange24h > 0 && "+"}
-                {percentFormatter.format(tokenData.priceChange24h / 100)}
-              </span>
-            )}
-          </p>
-        )}
+          )}
+        </p>
       </div>
     </CommandItem>
   );
