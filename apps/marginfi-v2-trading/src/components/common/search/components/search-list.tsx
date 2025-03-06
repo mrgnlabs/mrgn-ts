@@ -48,7 +48,7 @@ const SearchItem = ({ pool, onClose, size = "default" }: SearchItemProps) => {
   return (
     <CommandItem
       key={pool.groupPk.toBase58()}
-      className={cn("group even:bg-muted/50 data-[selected]:even:bg-muted/50", size === "sm" && "py-2")}
+      className={cn("group even:bg-muted/50 data-[selected]:even:bg-muted/50 py-2")}
       value={pool.groupPk.toBase58()}
       onSelect={() => {
         router.push(`/trade/${pool.groupPk.toBase58()}`);
