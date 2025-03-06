@@ -100,7 +100,7 @@ export type StakeAccount = {
   };
 };
 
-// Here's how you might use Solana's kit instead, if you are foolish enough to attempt it.
+// Here's how you might use Solana's kit instead:
 
 // // @ts-ignore
 // const authorizedCodec = getStructCodec([

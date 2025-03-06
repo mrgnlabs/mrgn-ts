@@ -23,7 +23,11 @@ solana-test-validator \
 (Note the above uses mrgnfi-v2's fixture accounts). Note that a wallet with some SOL is also
 deployed for easier testing, you may deploy other programs the same way...
 
-## Testing Steps
+## E2E Test
+
+`ts-node svsp/svsp_localnet_e2e.ts`
+
+## Individual Testing Steps
 
 - init_validator (`ts-node svsp/init_validator.ts`)
 - init_single_pool (`ts-node svsp/init_single_pool.ts`)
@@ -39,4 +43,4 @@ deployed for easier testing, you may deploy other programs the same way...
 - Someone has to call `init_svsp_onramp` for each svsp pool, just once. You don't have to pay the 1.1 SOL that's the minimum for delegation, you can just pay the rent.
 - MEV rewards can't cycle until there's at least ~1.1 SOL in free lamports
 - ts-node svsp/svsp_replenish_pool.ts should be cranked every epoch or so, but in practice there's no rush. We should, at least, crank on every deposit, on every withdraw, and roughly once a week.
-- From a marginfi pov, if you withdraw while replenish pool has not completed cycling your mev rewards into the main pool, you lose out on those mev rewards. When users withdraw, we might pop up a warning if there's a lot of free lamps before the latest replenish.
+- From a marginfi pov, if you withdraw from our bankwhile replenish pool has not completed cycling your mev rewards into the main pool, you lose out on those mev rewards. When users withdraw, we might pop up a warning if there's a lot of free lamps before the latest replenish.
