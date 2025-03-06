@@ -76,7 +76,7 @@ export type Delegation = {
  * Copied from https://github.com/solana-developers/solana-rpc-get-stake-activation/blob/main/web3js-1.0/src/stake.ts
  * */
 export type StakeAccount = {
-  discriminant: bigint;
+  discriminant: number;
   meta: {
     rentExemptReserve: bigint;
     authorized: {
@@ -100,6 +100,52 @@ export type StakeAccount = {
   };
 };
 
+// Here's how you might use Solana's kit instead, if you are foolish enough to attempt it.
+
+// // @ts-ignore
+// const authorizedCodec = getStructCodec([
+//   ['staker', fixCodecSize(getBytesCodec(), 32)],
+//   ['withdrawer', fixCodecSize(getBytesCodec(), 32)],
+// ]);
+// // @ts-ignore
+// const lockupCodec = getStructCodec([
+//   ['unixTimestamp', getU64Codec()],
+//   ['epoch', getU64Codec()],
+//   ['custodian', fixCodecSize(getBytesCodec(), 32)],
+// ]);
+// // @ts-ignore
+// const metaCodec = getStructCodec([
+//   ['rentExemptReserve', getU64Codec()],
+//   ['authorized', authorizedCodec],
+//   ['lockup', lockupCodec],
+// ]);
+// // @ts-ignore
+// const delegationCodec = getStructCodec([
+//   ['voterPubkey', fixCodecSize(getBytesCodec(), 32)],
+//   ['stake', getU64Codec()],
+//   ['activationEpoch', getU64Codec()],
+//   ['deactivationEpoch', getU64Codec()],
+//   ['unused', getU64Codec()],
+// ]);
+// // @ts-ignore
+// const stakeCodec = getStructCodec([
+//   ['delegation', delegationCodec],
+//   ['creditsObserved', getU64Codec()],
+// ]);
+// // @ts-ignore
+// export const stakeAccountCodec = getStructCodec([
+//   ['discriminant', getU32Codec()],
+//   ['meta', metaCodec],
+//   ['stake', stakeCodec],
+// ]);
+
+// export const getStakeAccountReal = async (address: Address) => {
+//   const rpc = createSolanaRpc(testnet('http://127.0.0.1:8899'));
+//   const stakeAccountEncoded = await fetchEncodedAccount(rpc, address);
+//   const stakeAccountReal = decodeAccount(stakeAccountEncoded, stakeAccountCodec);
+//   return stakeAccountReal;
+// }
+
 /**
  * Decode a StakeAccount from parsed account data.
  *
@@ -109,7 +155,7 @@ export const getStakeAccount = function (data: Buffer): StakeAccount {
   let offset = 0;
 
   // Discriminant (4 bytes)
-  const discriminant = data.readBigUInt64LE(offset);
+  const discriminant = data.readUInt32LE(offset);
   offset += 4;
 
   // Meta
