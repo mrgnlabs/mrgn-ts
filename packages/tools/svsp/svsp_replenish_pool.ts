@@ -46,6 +46,7 @@ async function main() {
     console.error("Transaction failed:", error);
   }
 
+  console.log();
   const { epoch, slot } = await getEpochAndSlot(connection);
   console.log("It's epoch: " + epoch + " slot " + slot);
   console.log();

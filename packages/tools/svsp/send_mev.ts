@@ -48,18 +48,13 @@ async function main() {
   }
 
   console.log(
-    "sent fake mev: " +
-      config.AMOUNT +
-      " to stake account: " +
-      poolStake +
-      " which belongs to pool " +
-      config.SVSP_POOL
+    "sent fake mev: " + config.AMOUNT + " to stake account: " + poolStake + " which belongs to pool " + config.SVSP_POOL
   );
 
   const stakeAcc = await connection.getAccountInfo(poolStake);
   const stakeDecoded = getStakeAccount(stakeAcc.data);
   console.log("stake: " + stakeDecoded.stake.delegation.stake.toString());
-  console.log("lamsp: " + stakeAcc.lamports);
+  console.log("lamps: " + stakeAcc.lamports);
 }
 
 main().catch((err) => {
