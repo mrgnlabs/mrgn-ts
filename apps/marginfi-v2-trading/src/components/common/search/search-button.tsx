@@ -3,6 +3,7 @@ import React from "react";
 import { IconCommand, IconSearch } from "@tabler/icons-react";
 
 import { useTradeStoreV2 } from "~/store";
+import { filter } from "./utils/search.utils";
 
 import { SearchDialog } from "./components";
 import { Input } from "~/components/ui/input";
@@ -10,6 +11,8 @@ import { Input } from "~/components/ui/input";
 const SearchButton = () => {
   const [open, setOpen] = React.useState(false);
   const [arenaPoolsSummary] = useTradeStoreV2((state) => [state.arenaPoolsSummary]);
+  const pools = React.useMemo(() => Object.values(arenaPoolsSummary), [arenaPoolsSummary]);
+
   return (
     <>
       <button className="group relative" onClick={() => setOpen(true)}>
@@ -20,8 +23,8 @@ const SearchButton = () => {
       <SearchDialog
         open={open}
         setOpen={setOpen}
-        pools={Object.values(arenaPoolsSummary)}
-        filter={(value, search) => Number(value.toLowerCase().includes(search.toLowerCase()))}
+        pools={pools}
+        filter={(value, search) => filter(value, search, pools)}
       />
     </>
   );
