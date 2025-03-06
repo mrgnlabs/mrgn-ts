@@ -25,8 +25,6 @@ export async function createReferalTokenAccountIxs(
     return [];
   }
 
-  console.log("tx", tx);
-
   return tx.instructions;
 }
 
