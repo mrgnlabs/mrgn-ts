@@ -28,8 +28,8 @@ type Config = {
 };
 
 const config: Config = {
-  NATIVE_STAKE_ACCOUNT: new PublicKey("7k5fKNS1jPxuWf9cvaSiFqvpJvDgXLTwUpCi3UQC97P2"),
-  STAKE_POOL: new PublicKey("3jWfwA53i3wD55YbcngzQpe7QW39uW84YnsxN18b1Z9H"),
+  NATIVE_STAKE_ACCOUNT: new PublicKey("4WCVmXVJNRkJDo7q1UBiR7yr2QUvExVWxWPZe3eiKW38"),
+  STAKE_POOL: new PublicKey("BUnf3SeUiGqWZWAgT4XDryqasKqx3aVf7H5VQJEAXccn"),
 };
 
 async function main() {

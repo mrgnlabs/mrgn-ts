@@ -9,7 +9,7 @@ import {
   Transaction,
 } from "@solana/web3.js";
 import { loadKeypairFromFile } from "../scripts/utils";
-import { createPoolOnramp, deriveOnRampPool, deriveSVSPpool, getStakeAccount } from "./stake-utils";
+import { createPoolOnramp, deriveOnRampPool, deriveStakePool, deriveSVSPpool, getStakeAccount } from "./stake-utils";
 
 type Config = {
   VOTE_ACCOUNT: PublicKey;
