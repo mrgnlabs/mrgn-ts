@@ -488,32 +488,26 @@ export const getEpochAndSlot = async (connection: Connection) => {
 
 /**
  * SVSP stake pool that stores MEV rewards teporarily before they are merged into the main pool
- * @param stakePool 
- * @returns 
+ * @param stakePool
+ * @returns
  */
 export const deriveOnRampPool = (stakePool: PublicKey) => {
-  return PublicKey.findProgramAddressSync(
-    [Buffer.from("onramp"), stakePool.toBuffer()],
-    SINGLE_POOL_PROGRAM_ID
-  );
+  return PublicKey.findProgramAddressSync([Buffer.from("onramp"), stakePool.toBuffer()], SINGLE_POOL_PROGRAM_ID);
 };
 
 /**
  * Copy of SVSP `findPoolStakeAddress`
- * @param stakePool 
- * @returns 
+ * @param stakePool
+ * @returns
  */
 export const deriveStakePool = (stakePool: PublicKey) => {
-  return PublicKey.findProgramAddressSync(
-    [Buffer.from("stake"), stakePool.toBuffer()],
-    SINGLE_POOL_PROGRAM_ID
-  );
+  return PublicKey.findProgramAddressSync([Buffer.from("stake"), stakePool.toBuffer()], SINGLE_POOL_PROGRAM_ID);
 };
 
 /**
  * Copy of SVSP `findPoolStakeAuthorityAddress`
- * @param stakePool 
- * @returns 
+ * @param stakePool
+ * @returns
  */
 export const deriveStakeAuthority = (stakePool: PublicKey) => {
   return PublicKey.findProgramAddressSync(
@@ -524,14 +518,20 @@ export const deriveStakeAuthority = (stakePool: PublicKey) => {
 
 /**
  * Copy of SVSP `findPoolAddress`
- * @param stakePool 
- * @returns 
+ * @param stakePool
+ * @returns
  */
 export const deriveSVSPpool = (voteAccount: PublicKey) => {
-  return PublicKey.findProgramAddressSync(
-    [Buffer.from("pool"), voteAccount.toBuffer()],
-    SINGLE_POOL_PROGRAM_ID
-  );
+  return PublicKey.findProgramAddressSync([Buffer.from("pool"), voteAccount.toBuffer()], SINGLE_POOL_PROGRAM_ID);
+};
+
+/**
+ * Copy of SVSP `findPoolMintAddress`
+ * @param stakePool
+ * @returns
+ */
+export const deriveStakeMint = (stakePool: PublicKey) => {
+  return PublicKey.findProgramAddressSync([Buffer.from("mint"), stakePool.toBuffer()], SINGLE_POOL_PROGRAM_ID);
 };
 
 /**
@@ -550,9 +550,7 @@ export const deriveSVSPpool = (voteAccount: PublicKey) => {
  *
  * @returns A TransactionInstruction
  */
-export function createPoolOnramp(
-  voteAccount: PublicKey
-): TransactionInstruction {
+export function createPoolOnramp(voteAccount: PublicKey): TransactionInstruction {
   const [poolAccount] = deriveSVSPpool(voteAccount);
   const [onRampAccount] = deriveOnRampPool(poolAccount);
   const [poolStakeAuthority] = deriveStakeAuthority(poolAccount);
@@ -622,3 +620,25 @@ export function replenishPool(voteAccount: PublicKey): TransactionInstruction {
     data,
   });
 }
+
+/**
+ * Waits until the given time
+ * @param time - in seconds (e.g. Date.now()/1000)
+ * @param silenceWarning - (optional) set to true to silence the warning if the time is in the past
+ */
+export const waitUntil = async (time: number, silenceWarning: boolean = false) => {
+  const now = Date.now() / 1000;
+  if (time > now + 500) {
+    console.error("Tried to wait a very long time, aborted");
+    return;
+  }
+  if (now > time) {
+    if (!silenceWarning) {
+      console.error("Tried to wait for a time that's in the past. You probably need to adjust test timings.");
+      console.error("now: " + now + " and tried waiting until: " + time);
+    }
+    return new Promise((r) => setTimeout(r, 1)); //waits 1 ms
+  }
+  const toWait = Math.ceil(time - now) * 1000;
+  await new Promise((r) => setTimeout(r, toWait));
+};

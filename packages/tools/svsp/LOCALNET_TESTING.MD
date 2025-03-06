@@ -12,9 +12,15 @@ Make sure the svsp program is deployed when launching the validator. First, buil
 solana-test-validator \
   --ledger .anchor/test-ledger \
   --mint FDr3iLdfyyzMmge9rN5sqQ38PgbrXY94VDW726EUN2kK \
+  --ticks-per-slot 8 \
+  --slots-per-epoch 32 \
   --bpf-program 2jGhuVUuy3umdzByFx8sNWUAaf5vaeuDm78RDPEnhrMr /home/fish/mrgn/marginfi-v2/marginfi-v2/target/deploy/marginfi.so \
   --bpf-program 5XaaR94jBubdbrRrNW7DtRvZeWvLhSHkEGU3jHTEXV3C /home/fish/mrgn/marginfi-v2/marginfi-v2/target/deploy/mocks.so \
   --bpf-program SVSPxpvHdN29nkVg9rPapPNDddN5DipNLRUFhyjFThE tests/fixtures/spl_single_pool.so \
+  --account DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM tests/fixtures/bonk_bank.json \
+  --account 4kNXetv8hSv9PzvzPZzEs1CTH6ARRRi2b8h6jk1ad1nP tests/fixtures/cloud_bank.json \
+  --account Fe5QkKPVAh629UPP5aJ8sDZu8HTfe6M26jDQkKyXVhoA tests/fixtures/pyusd_bank.json \
+  --account 8FRFC6MoGGkMFQwngccyu69VnYbzykGeez7ignHVAFSN tests/fixtures/localnet_usdc.json \
   --account mfC1LoEk4mpM5yx1LjwR9QLZQ49AitxxWkK5Aciw7ZC tests/fixtures/staging-deploy.json \
   --bind-address 0.0.0.0 \
   --rpc-port 8899
