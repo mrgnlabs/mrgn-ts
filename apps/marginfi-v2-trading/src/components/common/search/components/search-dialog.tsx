@@ -21,7 +21,9 @@ const SearchDialog = ({ open, setOpen, pools, filter }: SearchDialogProps) => {
         filter,
       }}
     >
-      <CommandInput placeholder="Search pools by token or mint address..." autoFocus />
+      <div className="px-2">
+        <CommandInput placeholder="Search pools by token or mint address..." autoFocus />
+      </div>
       <SearchList pools={pools} setOpen={setOpen} />
     </CommandDialog>
   );

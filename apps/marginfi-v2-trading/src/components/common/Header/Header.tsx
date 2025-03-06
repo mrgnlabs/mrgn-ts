@@ -164,7 +164,7 @@ export const Header = () => {
                 {/* <CreatePoolSoon /> */}
                 <CreatePoolDialog
                   trigger={
-                    <Button disabled={false} variant="outline" className="hover:bg-muted">
+                    <Button disabled={false} variant="outline" className="text-foreground/80 hover:bg-muted">
                       <IconPlus size={16} /> Create Pool
                     </Button>
                   }
