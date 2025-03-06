@@ -2,7 +2,7 @@ import React from "react";
 
 import { ArenaPoolSummary } from "~/types";
 
-import { SearchList } from "./search-list";
+import { SearchList } from "./";
 import { CommandDialog, CommandInput } from "~/components/ui/command";
 
 type SearchDialogProps = {

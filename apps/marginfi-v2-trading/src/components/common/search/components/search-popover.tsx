@@ -2,8 +2,8 @@ import React from "react";
 
 import { ArenaPoolSummary } from "~/types";
 
-import { SearchList } from "./search-list";
-import { Command, CommandDialog, CommandInput } from "~/components/ui/command";
+import { SearchList } from "./";
+import { Command, CommandInput } from "~/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 
