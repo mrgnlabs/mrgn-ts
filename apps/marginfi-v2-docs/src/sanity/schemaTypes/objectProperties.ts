@@ -1,5 +1,4 @@
 import { defineType, defineField } from 'sanity'
-import { ObjectPropertiesInput } from '~/components/sanity/ObjectPropertiesInput'
 
 export const objectProperties = defineType({
   name: 'objectProperties',
@@ -10,27 +9,20 @@ export const objectProperties = defineType({
       name: 'title',
       title: 'Section Title',
       type: 'string',
-      description: 'E.g., "Bank Properties" or "Class Properties"',
+      description: 'E.g., "Configuration" or "Settings"',
     }),
     defineField({
       name: 'items',
-      title: 'Properties',
+      title: 'Objects',
       type: 'array',
       of: [{
         type: 'object',
-        name: 'objectProperty',
         fields: [
           {
             name: 'name',
-            title: 'Property Name',
+            title: 'Object Name',
             type: 'string',
-            description: 'Name of the property',
-          },
-          {
-            name: 'type',
-            title: 'Type',
-            type: 'string',
-            description: 'Type of the property',
+            validation: (Rule) => Rule.required(),
           },
           {
             name: 'description',
@@ -39,73 +31,94 @@ export const objectProperties = defineType({
             of: [
               {
                 type: 'block',
-                styles: [
-                  {title: 'Normal', value: 'normal'},
-                ],
+                styles: [{ title: 'Normal', value: 'normal' }],
                 lists: [
-                  {title: 'Bullet', value: 'bullet'},
-                  {title: 'Number', value: 'number'},
+                  { title: 'Bullet', value: 'bullet' },
+                  { title: 'Number', value: 'number' }
                 ],
                 marks: {
                   decorators: [
-                    {title: 'Strong', value: 'strong'},
-                    {title: 'Emphasis', value: 'em'},
-                    {title: 'Code', value: 'code'},
+                    { title: 'Strong', value: 'strong' },
+                    { title: 'Emphasis', value: 'em' },
+                    { title: 'Code', value: 'code' }
                   ]
                 }
               }
-            ],
-            description: 'Description of the property',
+            ]
           },
           {
-            name: 'subProperties',
-            title: 'Sub-Properties',
+            name: 'properties',
+            title: 'Properties',
             type: 'array',
             of: [{
               type: 'object',
               fields: [
                 {
                   name: 'name',
+                  title: 'Property Name',
                   type: 'string',
-                  title: 'Sub-Property Name'
+                  validation: (Rule) => Rule.required(),
                 },
                 {
                   name: 'type',
+                  title: 'Property Type',
                   type: 'string',
-                  title: 'Sub-Property Type'
+                  validation: (Rule) => Rule.required(),
                 },
                 {
                   name: 'description',
+                  title: 'Description',
                   type: 'array',
-                  title: 'Sub-Property Description',
                   of: [
                     {
                       type: 'block',
-                      styles: [
-                        {title: 'Normal', value: 'normal'},
-                      ],
+                      styles: [{ title: 'Normal', value: 'normal' }],
                       lists: [
-                        {title: 'Bullet', value: 'bullet'},
-                        {title: 'Number', value: 'number'},
+                        { title: 'Bullet', value: 'bullet' },
+                        { title: 'Number', value: 'number' }
                       ],
                       marks: {
                         decorators: [
-                          {title: 'Strong', value: 'strong'},
-                          {title: 'Emphasis', value: 'em'},
-                          {title: 'Code', value: 'code'},
+                          { title: 'Strong', value: 'strong' },
+                          { title: 'Emphasis', value: 'em' },
+                          { title: 'Code', value: 'code' }
                         ]
                       }
                     }
                   ]
+                },
+                {
+                  name: 'optional',
+                  title: 'Optional',
+                  type: 'boolean',
+                  initialValue: false,
                 }
-              ]
+              ],
+              preview: {
+                select: {
+                  title: 'name',
+                  subtitle: 'type'
+                }
+              }
             }]
           }
-        ]
+        ],
+        preview: {
+          select: {
+            title: 'name'
+          }
+        }
       }]
     })
   ],
-  components: {
-    input: ObjectPropertiesInput
+  preview: {
+    select: {
+      title: 'title'
+    },
+    prepare({ title }) {
+      return {
+        title: title || 'Object Properties'
+      }
+    }
   }
 }) 

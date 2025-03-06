@@ -1,54 +1,72 @@
 import { defineType, defineField } from 'sanity'
-import { DocTableInput } from '~/components/sanity/DocTableInput'
 
 export const docTable = defineType({
   name: 'docTable',
-  title: 'Properties Table',
+  title: 'Method Table',
   type: 'object',
   fields: [
     defineField({
       name: 'title',
       title: 'Table Title',
       type: 'string',
-      description: 'E.g., "Properties" or "Parameters"',
+      description: 'E.g., "Methods" or "Functions"',
     }),
     defineField({
       name: 'items',
-      title: 'Properties',
+      title: 'Methods',
       type: 'array',
       of: [{
         type: 'object',
-        name: 'docTableItem',
         fields: [
           {
             name: 'name',
-            title: 'Name',
+            title: 'Method Name',
             type: 'string',
-            description: 'Property name',
+            validation: (Rule) => Rule.required(),
           },
           {
-            name: 'parameters',
+            name: 'parametersString',
             title: 'Parameters',
             type: 'string',
-            description: 'Parameter type (e.g., "string | number")',
+            description: 'Parameter list (e.g., "encoded: Buffer")',
           },
           {
             name: 'resultType',
             title: 'Result Type',
             type: 'string',
-            description: 'Return type(s) (e.g., "Promise<string>")',
+            description: 'Return type (e.g., "BankRaw")',
+            validation: (Rule) => Rule.required(),
           },
           {
             name: 'description',
             title: 'Description',
-            type: 'text',
-            description: 'Detailed description of the property',
+            type: 'array',
+            of: [
+              {
+                type: 'block',
+                styles: [{ title: 'Normal', value: 'normal' }],
+                lists: [
+                  { title: 'Bullet', value: 'bullet' },
+                  { title: 'Number', value: 'number' }
+                ],
+                marks: {
+                  decorators: [
+                    { title: 'Strong', value: 'strong' },
+                    { title: 'Emphasis', value: 'em' },
+                    { title: 'Code', value: 'code' }
+                  ]
+                }
+              }
+            ]
           }
-        ]
+        ],
+        preview: {
+          select: {
+            title: 'name',
+            subtitle: 'resultType'
+          }
+        }
       }]
     })
-  ],
-  components: {
-    input: DocTableInput
-  }
+  ]
 }) 

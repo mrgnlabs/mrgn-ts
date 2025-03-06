@@ -1,5 +1,4 @@
 import { defineType, defineField } from 'sanity'
-import { SimplePropertiesInput } from '~/components/sanity/SimplePropertiesInput'
 
 export const simpleProperties = defineType({
   name: 'simpleProperties',
@@ -10,7 +9,7 @@ export const simpleProperties = defineType({
       name: 'title',
       title: 'Section Title',
       type: 'string',
-      description: 'E.g., "Utilities" or "Constants"',
+      description: 'E.g., "Configuration" or "Settings"',
     }),
     defineField({
       name: 'items',
@@ -18,19 +17,18 @@ export const simpleProperties = defineType({
       type: 'array',
       of: [{
         type: 'object',
-        name: 'simpleProperty',
         fields: [
           {
             name: 'name',
             title: 'Property Name',
             type: 'string',
-            description: 'Name of the property',
+            validation: (Rule) => Rule.required(),
           },
           {
             name: 'type',
-            title: 'Type',
+            title: 'Property Type',
             type: 'string',
-            description: 'Type of the property',
+            validation: (Rule) => Rule.required(),
           },
           {
             name: 'description',
@@ -39,29 +37,45 @@ export const simpleProperties = defineType({
             of: [
               {
                 type: 'block',
-                styles: [
-                  {title: 'Normal', value: 'normal'},
-                ],
+                styles: [{ title: 'Normal', value: 'normal' }],
                 lists: [
-                  {title: 'Bullet', value: 'bullet'},
-                  {title: 'Number', value: 'number'},
+                  { title: 'Bullet', value: 'bullet' },
+                  { title: 'Number', value: 'number' }
                 ],
                 marks: {
                   decorators: [
-                    {title: 'Strong', value: 'strong'},
-                    {title: 'Emphasis', value: 'em'},
-                    {title: 'Code', value: 'code'},
+                    { title: 'Strong', value: 'strong' },
+                    { title: 'Emphasis', value: 'em' },
+                    { title: 'Code', value: 'code' }
                   ]
                 }
               }
-            ],
-            description: 'Description of the property',
+            ]
+          },
+          {
+            name: 'optional',
+            title: 'Optional',
+            type: 'boolean',
+            initialValue: false,
           }
-        ]
+        ],
+        preview: {
+          select: {
+            title: 'name',
+            subtitle: 'type'
+          }
+        }
       }]
     })
   ],
-  components: {
-    input: SimplePropertiesInput
+  preview: {
+    select: {
+      title: 'title'
+    },
+    prepare({ title }) {
+      return {
+        title: title || 'Simple Properties'
+      }
+    }
   }
 }) 

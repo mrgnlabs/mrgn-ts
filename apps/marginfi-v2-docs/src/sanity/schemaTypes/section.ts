@@ -95,7 +95,6 @@ export const section = defineType({
         { type: 'mathInline' },
         { type: 'imageWithCaption' },
         { type: 'detailedMethod' },
-        { type: 'methodTable' },
         { type: 'codeBlock' },
         { type: 'methodList' },
         { type: 'docTable' },

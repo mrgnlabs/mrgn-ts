@@ -82,23 +82,6 @@ export const blockContentType = defineType({
     defineArrayMember({
       type: 'detailedMethod'
     }),
-    // Add method table as a block type
-    defineArrayMember({
-      name: 'methodTable',
-      title: 'Method Table',
-      type: 'object',
-      fields: [
-        {
-          name: 'methods',
-          type: 'array',
-          title: 'Methods',
-          of: [{ type: 'detailedMethod' }],
-          options: {
-            layout: 'table'
-          }
-        }
-      ]
-    }),
     defineArrayMember({type: 'codeBlock'}),
     defineArrayMember({type: 'mathBlock'}),
     defineArrayMember({type: 'mathInline'}),

@@ -1,10 +1,12 @@
 import React from 'react'
+import { PortableText, PortableTextComponents } from '@portabletext/react'
+import clsx from 'clsx'
 
 interface DocItem {
   name?: string
   parametersString?: string
   resultType?: string
-  description?: string
+  description?: any[]
 }
 
 interface DocTableProps {
@@ -21,42 +23,68 @@ function CodePill({ children }: { children: React.ReactNode }) {
 }
 
 export function DocTable({ title, items = [] }: DocTableProps) {
+  const descriptionComponents: PortableTextComponents = {
+    marks: {
+      strong: ({children}) => <strong className="text-white">{children}</strong>,
+      em: ({children}) => <em>{children}</em>,
+      code: ({children}) => <code className="text-zinc-200 font-mono">{children}</code>,
+    },
+    list: {
+      bullet: ({children}) => <ul className="list-disc pl-4 space-y-1">{children}</ul>,
+      number: ({children}) => <ol className="list-decimal pl-4 space-y-1">{children}</ol>,
+    },
+    listItem: {
+      bullet: ({children}) => <li>{children}</li>,
+      number: ({children}) => <li>{children}</li>,
+    },
+    block: {
+      normal: ({children}) => <div className="my-2">{children}</div>,
+    }
+  };
+
   return (
     <div className="my-6">
       {/* Heading */}
       {title && (
-        <h2 className="mb-4 text-xl font-semibold text-white">
+        <h2 className="mb-6 text-xl font-semibold text-white">
           {title}
         </h2>
       )}
 
       {/* Table Layout */}
-      <div className="grid grid-cols-[auto_1fr_auto_1fr] gap-x-4 gap-y-8">
+      <div className="divide-y divide-zinc-700/40">
         {/* Header Row */}
-        <div className="col-span-4 contents text-sm font-semibold text-zinc-400">
-          <div>Name</div>
-          <div>Parameters</div>
-          <div>Result Type(s)</div>
-          <div>Description</div>
+        <div className="grid grid-cols-[auto_1fr_auto_1fr] gap-x-6 pb-4">
+          <div className="text-sm font-semibold text-zinc-400">Method Name</div>
+          <div className="text-sm font-semibold text-zinc-400">Parameters</div>
+          <div className="text-sm font-semibold text-zinc-400">Result Type(s)</div>
+          <div className="text-sm font-semibold text-zinc-400">Description</div>
         </div>
 
         {/* Content Rows */}
         {items.map((item, index) => (
-          <div key={index} className="col-span-4 contents text-sm text-zinc-400">
+          <div key={index} className="grid grid-cols-[auto_1fr_auto_1fr] gap-x-6 py-4">
             <div>
               <CodePill>{item.name || '—'}</CodePill>
             </div>
             <div>
               {item.parametersString?.split(',').map((param, i) => (
                 <div key={i} className="whitespace-pre-wrap">
-                  {param.trim()}
+                  <code className="text-zinc-200 font-mono">{param.trim()}</code>
                 </div>
               ))}
             </div>
             <div>
               <CodePill>{item.resultType || '—'}</CodePill>
             </div>
-            <div>{item.description || '—'}</div>
+            <div className="text-zinc-400">
+              {item.description ? (
+                <PortableText 
+                  value={item.description} 
+                  components={descriptionComponents}
+                />
+              ) : '—'}
+            </div>
           </div>
         ))}
       </div>

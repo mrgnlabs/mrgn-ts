@@ -117,10 +117,40 @@ interface MethodPropertiesBlock {
   items?: MethodProperty[];
 }
 
+interface SimpleProperty {
+  name: string;
+  type: string;
+  description?: any[];
+  optional?: boolean;
+}
+
+interface SimplePropertiesBlock {
+  _type: 'simpleProperties';
+  title?: string;
+  items?: SimpleProperty[];
+}
+
+interface ObjectProperty {
+  name: string;
+  description?: any[];
+  properties?: Array<{
+    name: string;
+    type: string;
+    description?: any[];
+    optional?: boolean;
+  }>;
+}
+
+interface ObjectPropertiesBlock {
+  _type: 'objectProperties';
+  title?: string;
+  items?: ObjectProperty[];
+}
+
 interface DocPage {
   title: string;
   leadText?: any[];
-  content?: Array<Section | NoteBlock | MathBlock | ImageWithCaption | Properties | CodeBlock | MethodListBlock | DocTableBlock | MethodPropertiesBlock>;
+  content?: Array<Section | NoteBlock | MathBlock | ImageWithCaption | Properties | CodeBlock | MethodListBlock | DocTableBlock | MethodPropertiesBlock | SimplePropertiesBlock | ObjectPropertiesBlock>;
 }
 
 const components: PortableTextComponents = {
@@ -316,6 +346,143 @@ const components: PortableTextComponents = {
                           </div>
                         )}
                       </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    },
+    simpleProperties: ({ value }: { value: SimplePropertiesBlock }) => {
+      const titleId = value.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '';
+      
+      const propertyDescriptionComponents: PortableTextComponents = {
+        marks: {
+          strong: ({children}) => <strong className="text-white">{children}</strong>,
+          em: ({children}) => <em>{children}</em>,
+          code: ({children}) => <code className="text-zinc-200 font-mono">{children}</code>,
+        },
+        list: {
+          bullet: ({children}) => <ul className="list-disc pl-4 space-y-1">{children}</ul>,
+          number: ({children}) => <ol className="list-decimal pl-4 space-y-1">{children}</ol>,
+        },
+        listItem: {
+          bullet: ({children}) => <li>{children}</li>,
+          number: ({children}) => <li>{children}</li>,
+        },
+        block: {
+          normal: ({children}) => <div className="my-2">{children}</div>,
+        }
+      };
+
+      return (
+        <div className="my-6">
+          {value.title && <Heading level={2} id={titleId}>{value.title}</Heading>}
+          <div className="space-y-6 mt-8">
+            {value.items?.map((property, index) => (
+              <div key={index} className={clsx(
+                "pt-6",
+                index !== 0 && "border-t border-zinc-700/40"
+              )}>
+                <div className="flex flex-col space-y-3">
+                  <div className="flex items-baseline gap-2">
+                    <code className="text-sm font-bold text-white">{property.name}</code>
+                    <span className="text-zinc-400">
+                      (<code className="text-zinc-200">{property.type}</code>)
+                    </span>
+                    {property.optional && <span className="text-zinc-400">(Optional)</span>}
+                  </div>
+                  {property.description && (
+                    <div className="text-sm text-zinc-400">
+                      <PortableText 
+                        value={property.description} 
+                        components={propertyDescriptionComponents}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    },
+    objectProperties: ({ value }: { value: ObjectPropertiesBlock }) => {
+      const titleId = value.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '';
+      
+      const propertyDescriptionComponents: PortableTextComponents = {
+        marks: {
+          strong: ({children}) => <strong className="text-white">{children}</strong>,
+          em: ({children}) => <em>{children}</em>,
+          code: ({children}) => <code className="text-zinc-200 font-mono">{children}</code>,
+        },
+        list: {
+          bullet: ({children}) => <ul className="list-disc pl-4 space-y-1">{children}</ul>,
+          number: ({children}) => <ol className="list-decimal pl-4 space-y-1">{children}</ol>,
+        },
+        listItem: {
+          bullet: ({children}) => <li>{children}</li>,
+          number: ({children}) => <li>{children}</li>,
+        },
+        block: {
+          normal: ({children}) => <div className="my-2">{children}</div>,
+        }
+      };
+
+      return (
+        <div className="my-6">
+          {value.title && <Heading level={2} id={titleId}>{value.title}</Heading>}
+          <div className="space-y-6 mt-8">
+            {value.items?.map((object, index) => (
+              <div key={index} className={clsx(
+                "pt-6",
+                index !== 0 && "border-t border-zinc-700/40"
+              )}>
+                <div className="flex flex-col space-y-3">
+                  <div className="flex items-center">
+                    <code className="text-sm font-bold text-white">{object.name}</code>
+                  </div>
+                  {object.description && (
+                    <div className="text-sm text-zinc-400">
+                      <PortableText 
+                        value={object.description} 
+                        components={propertyDescriptionComponents}
+                      />
+                    </div>
+                  )}
+                  
+                  {object.properties && object.properties.length > 0 && (
+                    <div className="mt-4">
+                      <div className="text-sm font-semibold text-zinc-400">Properties:</div>
+                      <ul className="mt-2 space-y-2">
+                        {object.properties.map((property, propertyIndex) => (
+                          <li key={propertyIndex} className="flex items-baseline">
+                            <span className="mr-3 text-zinc-600">•</span>
+                            <div className="flex items-baseline gap-2">
+                              <code className="text-sm text-white">{property.name}</code>
+                              {property.type && (
+                                <span className="text-zinc-400">
+                                  (<code className="text-zinc-200">{property.type}</code>)
+                                </span>
+                              )}
+                              {property.optional && <span className="text-zinc-400">(Optional)</span>}
+                              {property.description && (
+                                <>
+                                  <span className="text-zinc-400">:</span>
+                                  <div className="text-sm text-zinc-400 inline">
+                                    <PortableText 
+                                      value={property.description} 
+                                      components={propertyDescriptionComponents}
+                                    />
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                 </div>

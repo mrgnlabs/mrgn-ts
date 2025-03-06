@@ -9,7 +9,6 @@ import { faq } from './faq'
 import { codeBlock } from './codeBlock'
 import { methodList } from './methodList'
 import { detailedMethod } from './detailedMethod'
-import { methodTable } from './methodTable'
 import { docTable } from './docTable'
 import { docList } from './docList'
 import { methodProperties } from './methodProperties'
@@ -29,7 +28,6 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     faq,
     codeBlock,
     detailedMethod,
-    methodTable,
     docTable,
     docList,
     methodProperties,
@@ -50,7 +48,6 @@ export const schemaTypes = [
   faq,
   codeBlock,
   detailedMethod,
-  methodTable,
   docTable,
   docList,
   methodProperties,
