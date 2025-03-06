@@ -1,3 +1,7 @@
+import { IconCommand } from "@tabler/icons-react";
+
+import { Button } from "~/components/ui/button";
+
 import React from "react";
 
 import { IconSearch } from "@tabler/icons-react";
@@ -26,6 +30,13 @@ const SearchInput = () => {
         placeholder={isMobile ? "Search pools..." : "Search tokens by name, symbol, or mint address..."}
         className="py-2 h-auto bg-transparent outline-none focus-visible:ring-0 md:text-lg md:py-3 border-none pointer-events-none"
       />
+      <Button
+        size="sm"
+        variant="outline"
+        className="absolute text-[10px] right-6 top-1/2 -translate-y-1/2 gap-0.5 px-1.5 py-0.5 h-auto text-muted-foreground md:right-4 md:text-xs"
+      >
+        <IconCommand size={14} />K
+      </Button>
     </div>
   );
 
