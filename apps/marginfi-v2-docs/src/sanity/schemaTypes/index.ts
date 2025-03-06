@@ -10,6 +10,11 @@ import { codeBlock } from './codeBlock'
 import { methodList } from './methodList'
 import { detailedMethod } from './detailedMethod'
 import { methodTable } from './methodTable'
+import { docTable } from './docTable'
+import { docList } from './docList'
+import { methodProperties } from './methodProperties'
+import { simpleProperties } from './simpleProperties'
+import { objectProperties } from './objectProperties'
 import { blockContentType } from './blockContentType'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
@@ -25,6 +30,11 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     codeBlock,
     detailedMethod,
     methodTable,
+    docTable,
+    docList,
+    methodProperties,
+    simpleProperties,
+    objectProperties,
     blockContentType
   ],
 }
@@ -41,5 +51,10 @@ export const schemaTypes = [
   codeBlock,
   detailedMethod,
   methodTable,
+  docTable,
+  docList,
+  methodProperties,
+  simpleProperties,
+  objectProperties,
   blockContentType
 ]

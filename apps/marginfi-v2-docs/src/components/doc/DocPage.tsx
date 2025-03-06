@@ -13,6 +13,8 @@ import { useSectionStore } from '~/components/SectionProvider'
 import { useEffect } from 'react'
 import { urlFor } from '~/sanity/lib/image'
 import React from 'react'
+import { DocTable } from '~/components/DocTable'
+import clsx from 'clsx'
 
 interface SanityImage {
   asset: {
@@ -83,10 +85,42 @@ interface MethodListBlock {
   }>;
 }
 
+interface DocTableBlock {
+  _type: 'docTable';
+  title?: string;
+  items?: Array<{
+    name?: string;
+    parametersString?: string;
+    resultType?: string;
+    description?: string;
+  }>;
+}
+
+interface MethodProperty {
+  name: string;
+  description?: any[];
+  parameters?: Array<{
+    name: string;
+    type?: string;
+    description?: any[];
+    optional?: boolean;
+  }>;
+  returns?: {
+    type?: string;
+    description?: any[];
+  };
+}
+
+interface MethodPropertiesBlock {
+  _type: 'methodProperties';
+  title?: string;
+  items?: MethodProperty[];
+}
+
 interface DocPage {
   title: string;
   leadText?: any[];
-  content?: Array<Section | NoteBlock | MathBlock | ImageWithCaption | Properties | CodeBlock | MethodListBlock>;
+  content?: Array<Section | NoteBlock | MathBlock | ImageWithCaption | Properties | CodeBlock | MethodListBlock | DocTableBlock | MethodPropertiesBlock>;
 }
 
 const components: PortableTextComponents = {
@@ -186,6 +220,111 @@ const components: PortableTextComponents = {
         ))}
       </MethodList>
     ),
+    docTable: ({ value }: { value: DocTableBlock }) => (
+      <DocTable title={value.title} items={value.items} />
+    ),
+    methodProperties: ({ value }: { value: MethodPropertiesBlock }) => {
+      const titleId = value.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '';
+      
+      const methodDescriptionComponents: PortableTextComponents = {
+        marks: {
+          strong: ({children}) => <strong className="text-white">{children}</strong>,
+          em: ({children}) => <em>{children}</em>,
+          code: ({children}) => <code className="text-zinc-200 font-mono">{children}</code>,
+        },
+        list: {
+          bullet: ({children}) => <ul className="list-disc pl-4 space-y-1">{children}</ul>,
+          number: ({children}) => <ol className="list-decimal pl-4 space-y-1">{children}</ol>,
+        },
+        listItem: {
+          bullet: ({children}) => <li>{children}</li>,
+          number: ({children}) => <li>{children}</li>,
+        },
+        block: {
+          normal: ({children}) => <div className="my-2">{children}</div>,
+        }
+      };
+
+      return (
+        <div className="my-6">
+          {value.title && <Heading level={2} id={titleId}>{value.title}</Heading>}
+          <div className="space-y-6 mt-8">
+            {value.items?.map((method, index) => (
+              <div key={index} className={clsx(
+                "pt-6",
+                index !== 0 && "border-t border-zinc-700/40"
+              )}>
+                <div className="flex flex-col space-y-3">
+                  <div className="flex items-center">
+                    <code className="text-sm font-bold text-white">{method.name}</code>
+                  </div>
+                  {method.description && (
+                    <div className="text-sm text-zinc-400">
+                      <PortableText 
+                        value={method.description} 
+                        components={methodDescriptionComponents}
+                      />
+                    </div>
+                  )}
+                  
+                  {method.parameters && method.parameters.length > 0 && (
+                    <div className="mt-4">
+                      <div className="text-sm font-semibold text-zinc-400">Parameters:</div>
+                      <ul className="mt-2 space-y-2">
+                        {method.parameters.map((param, paramIndex) => (
+                          <li key={paramIndex} className="flex items-baseline">
+                            <span className="mr-3 text-zinc-600">•</span>
+                            <div className="flex items-baseline gap-2">
+                              <code className="text-sm text-white">{param.name}</code>
+                              {param.type && (
+                                <span className="text-zinc-400">
+                                  (<code className="text-zinc-200">{param.type}</code>)
+                                </span>
+                              )}
+                              {param.optional && <span className="text-zinc-400">(Optional)</span>}
+                              {param.description && (
+                                <>
+                                  <span className="text-zinc-400">:</span>
+                                  <div className="text-sm text-zinc-400 inline">
+                                    <PortableText 
+                                      value={param.description} 
+                                      components={methodDescriptionComponents}
+                                    />
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {method.returns && (
+                    <div className="mt-4">
+                      <div className="text-sm font-semibold text-zinc-400">Returns:</div>
+                      <div className="mt-2">
+                        {method.returns.type && (
+                          <code className="text-sm text-white">{method.returns.type}</code>
+                        )}
+                        {method.returns.description && (
+                          <div className="mt-1 text-sm text-zinc-400">
+                            <PortableText 
+                              value={method.returns.description} 
+                              components={methodDescriptionComponents}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    },
   },
   block: {
     h1: ({ children }) => <h1>{children}</h1>,

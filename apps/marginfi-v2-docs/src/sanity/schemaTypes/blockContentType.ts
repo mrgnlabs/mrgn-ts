@@ -52,6 +52,12 @@ export const blockContentType = defineType({
                 name: 'href',
                 type: 'url',
               },
+              {
+                title: 'Open in new tab',
+                name: 'blank',
+                description: 'Read https://css-tricks.com/use-target_blank/',
+                type: 'boolean',
+              },
             ],
           },
         ],
@@ -92,6 +98,12 @@ export const blockContentType = defineType({
           }
         }
       ]
-    })
+    }),
+    defineArrayMember({type: 'codeBlock'}),
+    defineArrayMember({type: 'mathBlock'}),
+    defineArrayMember({type: 'mathInline'}),
+    defineArrayMember({type: 'note'}),
+    defineArrayMember({type: 'methodList'}),
+    defineArrayMember({type: 'docTable'}),
   ],
 })

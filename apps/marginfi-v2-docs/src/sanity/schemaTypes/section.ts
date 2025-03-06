@@ -97,7 +97,12 @@ export const section = defineType({
         { type: 'detailedMethod' },
         { type: 'methodTable' },
         { type: 'codeBlock' },
-        { type: 'methodList' }
+        { type: 'methodList' },
+        { type: 'docTable' },
+        { type: 'docList' },
+        { type: 'methodProperties' },
+        { type: 'simpleProperties' },
+        { type: 'objectProperties' }
       ],
     }),
   ],

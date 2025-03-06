@@ -6,6 +6,7 @@ import { PortableText } from '@portabletext/react'
 import { Feedback } from '~/components/Feedback'
 import { Heading } from '~/components/Heading'
 import { Prose } from '~/components/Prose'
+import { DocTable } from '~/components/DocTable'
 
 export const a = Link
 export { Button } from '~/components/Button'
@@ -100,15 +101,21 @@ function CodePill({ children }: { children: React.ReactNode }) {
 
 export function Property({
   name,
+  parameters,
+  resultType,
   children
 }: {
   name: string;
+  parameters?: string;
+  resultType?: string;
   children: React.ReactNode;
 }) {
   return (
     <div>
       <div>
         <CodePill>{name}</CodePill>
+        {parameters && <span className="ml-2">({parameters})</span>}
+        {resultType && <span className="ml-2">→ {resultType}</span>}
       </div>
       {children}
     </div>
@@ -314,4 +321,8 @@ export function MethodRow({
       <div>{description}</div>
     </div>
   );
+}
+
+export function DocTableBlock({ value }: { value: { title?: string; items?: Array<{ name?: string; parametersString?: string; resultType?: string; description?: string }> } }) {
+  return <DocTable title={value.title} items={value.items} />
 }
