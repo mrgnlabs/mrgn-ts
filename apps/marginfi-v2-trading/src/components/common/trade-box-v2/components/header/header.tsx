@@ -1,10 +1,11 @@
-import { useRouter } from "next/router";
 import * as React from "react";
 
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
-import { TokenCombobox } from "~/components/common/TokenCombobox";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
+import { SearchPopover } from "~/components/common/search";
+import { IconChevronDown } from "@tabler/icons-react";
+import { Button } from "~/components/ui/button";
 
 interface HeaderProps {
   activePool: ArenaPoolV2Extended;
@@ -13,15 +14,24 @@ interface HeaderProps {
 }
 
 export const Header = ({ activePool, entryPrice, volume }: HeaderProps) => {
-  const router = useRouter();
-
   return (
-    <div className="flex items-center justify-between border-b-2 border-border mb-2 p-2">
-      <TokenCombobox
-        selected={activePool}
-        setSelected={(pool) => {
-          router.push(`/trade/${pool.groupPk.toBase58()}`);
-        }}
+    <div className="flex items-center justify-between border-b-2 border-border mb-2 py-2 px-4">
+      <SearchPopover
+        trigger={
+          <Button variant="ghost" size="sm" className="text-base h-10 px-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={activePool?.tokenBank.meta.tokenLogoUri ?? ""}
+              alt={activePool?.tokenBank.meta.tokenSymbol ?? ""}
+              width={28}
+              height={28}
+              className="bg-background border rounded-full lg:mb-0 w-[28px] h-[28px] object-cover"
+            />
+            <p className="flex items-center gap-1 ">
+              {activePool?.tokenBank.meta.tokenSymbol} <IconChevronDown size={18} />
+            </p>
+          </Button>
+        }
       />
       <div className="flex items-center gap-3 pr-2 py-1">
         <div className="flex flex-col">
