@@ -1,6 +1,7 @@
 import React from "react";
 
 import { useTradeStoreV2 } from "~/store";
+import { filter } from "./utils/search.utils";
 
 import { SearchPopover as SearchPopoverComponent } from "./components/search-popover";
 
@@ -10,7 +11,10 @@ type SearchPopoverProps = {
 
 const SearchPopover = ({ trigger }: SearchPopoverProps) => {
   const [arenaPoolsSummary] = useTradeStoreV2((state) => [state.arenaPoolsSummary]);
-  return <SearchPopoverComponent trigger={trigger} pools={Object.values(arenaPoolsSummary)} />;
+  const pools = React.useMemo(() => Object.values(arenaPoolsSummary), [arenaPoolsSummary]);
+  return (
+    <SearchPopoverComponent trigger={trigger} pools={pools} filter={(value, search) => filter(value, search, pools)} />
+  );
 };
 
 export { SearchPopover };
