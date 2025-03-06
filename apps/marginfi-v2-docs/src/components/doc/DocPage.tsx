@@ -92,7 +92,8 @@ interface DocTableBlock {
     name?: string;
     parametersString?: string;
     resultType?: string;
-    description?: string;
+    description?: any[];
+    suggestion?: string;
   }>;
 }
 
@@ -250,9 +251,46 @@ const components: PortableTextComponents = {
         ))}
       </MethodList>
     ),
-    docTable: ({ value }: { value: DocTableBlock }) => (
-      <DocTable title={value.title} items={value.items} />
-    ),
+    docTable: ({ value }: { value: DocTableBlock }) => {
+      // Default method table columns
+      const methodTableColumns = [
+        { header: 'Method Name', key: 'name', isCode: true },
+        { header: 'Parameters', key: 'parametersString', width: '1fr' },
+        { header: 'Result Type(s)', key: 'resultType', isCode: true },
+        { header: 'Description', key: 'description', width: '1fr' }
+      ];
+
+      // Constants table columns
+      const constantsColumns = [
+        { header: 'Constant Name', key: 'name', isCode: true },
+        { header: 'Description', key: 'description', width: '1fr' }
+      ];
+
+      // Errors table columns
+      const errorsColumns = [
+        { header: 'Error', key: 'name', isCode: true },
+        { header: 'Description', key: 'description', width: '1fr' },
+        { header: 'Suggestion', key: 'suggestion', width: '1fr' }
+      ];
+
+      // Determine which columns to use based on the title or a type property
+      let columns;
+      if (value.title?.toLowerCase().includes('constant')) {
+        columns = constantsColumns;
+      } else if (value.title?.toLowerCase().includes('error')) {
+        columns = errorsColumns;
+      } else {
+        columns = methodTableColumns;
+      }
+
+      return (
+        <DocTable 
+          title={value.title} 
+          items={value.items} 
+          columns={columns}
+        />
+      );
+    },
     methodProperties: ({ value }: { value: MethodPropertiesBlock }) => {
       const titleId = value.title?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || '';
       
