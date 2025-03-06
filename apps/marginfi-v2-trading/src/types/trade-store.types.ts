@@ -64,7 +64,7 @@ export type BankSummary = {
   tokenProgram: PublicKey;
 
   bankData: BankData;
-  tokenData: TokenData;
+  tokenVolumeData: TokenVolumeData;
 };
 
 export type ArenaPoolSummary = {
@@ -129,6 +129,17 @@ export enum PoolTypes {
   STABLE = "stable",
   LST = "lst",
 }
+
+export type TokenVolumeData = {
+  mint: string;
+  price: number;
+  priceChange24h: number;
+  volume24h: number;
+  volumeChange24h: number;
+  volume4h: number;
+  volumeChange4h: number;
+  marketcap: number;
+};
 
 export type TokenData = {
   address: string;

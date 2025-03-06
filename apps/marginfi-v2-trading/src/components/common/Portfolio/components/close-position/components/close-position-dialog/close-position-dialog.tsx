@@ -1,5 +1,11 @@
 import React from "react";
+import Image from "next/image";
+import { IconLoader2 } from "@tabler/icons-react";
 
+import { ClosePositionActionTxns, cn } from "@mrgnlabs/mrgn-utils";
+import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+
+import { ArenaBank, ArenaPoolPositions, ArenaPoolV2Extended } from "~/types";
 import {
   Dialog,
   DialogContent,
@@ -8,12 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-import { ArenaBank, ArenaPoolPositions, ArenaPoolV2Extended } from "~/types/trade-store.types";
-import { ClosePositionActionTxns, cn } from "@mrgnlabs/mrgn-utils";
-import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { Button } from "~/components/ui/button";
 import { SharePosition } from "~/components/common/share-position";
-import { IconLoader2 } from "@tabler/icons-react";
 
 interface ClosePositionDialogProps {
   arenaPool: ArenaPoolV2Extended;
@@ -47,8 +49,7 @@ export const ClosePositionDialog = ({
           <DialogTitle className="flex flex-col items-center gap-2 border-b border-border pb-10">
             <span className="flex items-center justify-center gap-2">
               {arenaPool.tokenBank && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   className="rounded-full w-9 h-9"
                   src={arenaPool.tokenBank.meta.tokenLogoUri}
                   alt={(arenaPool.tokenBank?.meta.tokenSymbol || "Token") + "  logo"}
@@ -110,8 +111,8 @@ export const ClosePositionDialog = ({
                   Number(actionTransaction.actionQuote.priceImpactPct) > 0.05
                     ? "text-error"
                     : Number(actionTransaction.actionQuote.priceImpactPct) > 0.01
-                    ? "text-alert"
-                    : "text-success",
+                      ? "text-alert"
+                      : "text-success",
                   "text-right"
                 )}
               >

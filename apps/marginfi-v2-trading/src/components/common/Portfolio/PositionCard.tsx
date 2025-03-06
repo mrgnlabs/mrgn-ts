@@ -1,22 +1,20 @@
 import React from "react";
 import Link from "next/link";
-
+import Image from "next/image";
 import { IconInfoCircle, IconSwitchHorizontal } from "@tabler/icons-react";
+
 import { tokenPriceFormatter, percentFormatter, usdFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
-import { useIsMobile } from "@mrgnlabs/mrgn-utils";
+import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 
-import { cn } from "@mrgnlabs/mrgn-utils";
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
-import { PositionActionButtons } from "~/components/common/Portfolio";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-
-import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
 import { useArenaClient } from "~/hooks/useArenaClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { usePositionsData } from "~/hooks/usePositionsData";
+import { ArenaPoolV2Extended, GroupStatus } from "~/types";
+import { PositionActionButtons } from "~/components/common/Portfolio";
 import { PnlBadge, PnlLabel } from "~/components/common/pnl-display";
 import { SharePosition } from "~/components/common/share-position";
-import { Skeleton } from "~/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 type PositionCardProps = {
   arenaPool: ArenaPoolV2Extended;
@@ -87,8 +85,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
             href={`/trade/${arenaPool.groupPk.toBase58()}`}
             className="flex items-center gap-3 font-medium text-muted-foreground md:gap-4"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={arenaPool.tokenBank.meta.tokenLogoUri}
               alt={arenaPool.tokenBank.meta.tokenSymbol}
               width={isMobile ? 48 : 56}

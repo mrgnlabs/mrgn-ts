@@ -1,8 +1,6 @@
-import { BankMetadata, loadBankMetadatas } from "@mrgnlabs/mrgn-common";
 import { NextApiRequest, NextApiResponse } from "next";
-import { BANK_METADATA_MAP } from "~/config/trade";
 
-import type { TokenData } from "~/types";
+import { TokenVolumeData } from "~/types";
 import { PoolListApiResponse } from "~/types/api.types";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -26,7 +24,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Fetch token volume
   let tokenVolumePromisses: Promise<Response>[] = [];
-  let tokenMetadataPromisses: Promise<Response>[] = [];
 
   tokens.forEach((tokenBatch) => {
     const addresses = tokenBatch.join(",");
@@ -48,38 +45,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         body: JSON.stringify(bodyData),
       })
     );
-
-    //A list of addresses in string separated by commas (,)
-
-    tokenMetadataPromisses.push(
-      fetch(`https://public-api.birdeye.so/defi/v3/token/meta-data/multiple?list_address=${addresses}`, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          "x-chain": "solana",
-          "X-Api-Key": process.env.BIRDEYE_API_KEY || "",
-        },
-      })
-    );
   });
 
   // Fetch from API and update cache
   try {
     const volumeResponses = await Promise.all(tokenVolumePromisses);
-    const metadataResponses = await Promise.all(tokenMetadataPromisses);
 
-    if (!volumeResponses.every((response) => response.ok) || !metadataResponses.every((response) => response.ok)) {
+    if (!volumeResponses.every((response) => response.ok)) {
       throw new Error("Network response was not ok");
     }
 
-    const volumeDataRaw = (await Promise.all(
+    const volumeDataRaw: TokenVolumeDataRawResponse[] = await Promise.all(
       volumeResponses.map((response) => response.json())
-    )) as TokenVolumeDataRaw[];
-    const metadataDataRaw = (await Promise.all(
-      metadataResponses.map((response) => response.json())
-    )) as TokenMetaDataRaw[];
+    );
 
-    if (!volumeDataRaw || !metadataDataRaw) {
+    if (!volumeDataRaw) {
       res.status(404).json({ error: "Token data not found" });
       return;
     }
@@ -92,29 +72,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }),
         {}
       ),
-    }.data as TokenVolumeData;
+    }.data as TokenVolumeDataResponse;
 
-    const metadataData = {
-      data: metadataDataRaw.reduce(
-        (acc, curr) => ({
-          ...acc,
-          ...curr.data,
-        }),
-        {}
-      ),
-    }.data as TokenMetaData;
+    const volumeDataList = Object.values(volumeData);
 
-    const metadataDataList = Object.values(metadataData);
-
-    const tokenDatas: TokenData[] = metadataDataList.map((data) => {
-      const volume = volumeData[data.address];
-
+    const tokenDatas: TokenVolumeData[] = volumeDataList.map((volume, index) => {
       return {
-        address: data.address,
-        name: data.name,
-        symbol: data.symbol,
-        imageUrl: data.logo_uri,
-        decimals: data.decimals,
+        mint: allTokens[index],
         price: volume.price,
         priceChange24h: volume.priceChangePercent,
         volume24h: volume.volumeUSD,
@@ -134,7 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-type TokenVolumeData = {
+type TokenVolumeDataResponse = {
   [address: string]: {
     price: number;
     updateUnixTime: number;
@@ -145,29 +109,8 @@ type TokenVolumeData = {
   };
 };
 
-type TokenVolumeDataRaw = {
+type TokenVolumeDataRawResponse = {
   data: TokenVolumeData;
-};
-
-type TokenMetaData = {
-  [address: string]: {
-    address: string;
-    symbol: string;
-    name: string;
-    decimals: number;
-    extensions: {
-      coingecko_id: string;
-      website: string;
-      twitter: string;
-      discord: string;
-      medium: string;
-    };
-    logo_uri: string;
-  };
-};
-
-type TokenMetaDataRaw = {
-  data: TokenMetaData;
 };
 
 function extractHost(referer: string | undefined): string | undefined {

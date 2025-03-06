@@ -11,7 +11,6 @@ import { chunkedGetRawMultipleAccountInfoOrdered, loadBankMetadatas, Wallet } fr
 import { Connection, PublicKey } from "@solana/web3.js";
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
-import { BANK_METADATA_MAP } from "~/config/trade";
 import { PoolListApiResponse } from "~/types/api.types";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

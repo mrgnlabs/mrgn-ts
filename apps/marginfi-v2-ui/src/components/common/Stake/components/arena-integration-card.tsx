@@ -2,11 +2,9 @@ import React from "react";
 import Image from "next/image";
 
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
-import { getDepositsData, getRateData, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { PublicKey } from "@solana/web3.js";
 
-import { useWallet } from "~/components/wallet-v2";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { IconArena, IconLST } from "~/components/ui/icons";
@@ -18,10 +16,6 @@ type ArenaIntegrationCardProps = {
 };
 
 const ArenaIntegrationCard = ({ lstBank, goatBank }: ArenaIntegrationCardProps) => {
-  // const lstDepositData = React.useMemo(() => getDepositsData(lstBank, true, true), [lstBank]);
-  // const goatDepositData = React.useMemo(() => getDepositsData(goatBank, true, true), [goatBank]);
-  // const rateData = React.useMemo(() => getRateData(lstBank, true), [lstBank]);
-
   return (
     <Card variant="default" className="min-w-[300px]">
       <CardHeader>

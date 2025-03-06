@@ -1,8 +1,8 @@
 import React from "react";
-
 import { useRouter } from "next/router";
-
+import Image from "next/image";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
+
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
@@ -57,8 +57,7 @@ export const PositionListItem = ({ arenaPool }: props) => {
               height={24}
               className="bg-background border rounded-full h-[24px] w-[24px] object-cover"
             />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={arenaPool.quoteBank.meta.tokenLogoUri}
               alt={arenaPool.quoteBank.meta.tokenSymbol}
               width={12}

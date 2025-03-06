@@ -1,20 +1,20 @@
 import React from "react";
-
+import { GetStaticProps } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 import { dynamicNumeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { useTradeStoreV2, useUiStore } from "~/store";
+import { useTradeStoreV2 } from "~/store";
+import { GroupStatus } from "~/types";
+import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PositionCard, LpPositionList } from "~/components/common/Portfolio";
 import { Loader } from "~/components/common/Loader";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { useExtendedPools } from "~/hooks/useExtendedPools";
-import { GroupStatus } from "~/types/trade-store.types";
-import { GetStaticProps } from "next";
-import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 import { Skeleton } from "~/components/ui/skeleton";
 import { PnlBadge, PnlLabel } from "~/components/common/pnl-display";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
@@ -132,8 +132,7 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
                               <ul className="flex items-center -space-x-2">
                                 {portfolioCombined.slice(0, 5).map((pool, index) => (
                                   <li key={index} className="rounded-full bg-white">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
+                                    <Image
                                       src={pool.tokenBank.meta.tokenLogoUri}
                                       alt={pool.tokenBank.meta.tokenSymbol}
                                       width={24}
@@ -183,7 +182,6 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
             </div>
           )}
         </div>
-
       </GeoBlockingWrapper>
     </>
   );

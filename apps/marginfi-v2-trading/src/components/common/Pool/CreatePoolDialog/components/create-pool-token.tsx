@@ -65,8 +65,6 @@ export const CreatePoolToken = ({ isSearchingToken, setIsOpen, fetchTokenInfo }:
     fetchTrendingTokens();
   }, [trendingTokens, fetchTrendingTokens, initialized]);
 
-  console.log(trendingTokens);
-
   return (
     <>
       <div className="text-center space-y-2 w-full mx-auto">

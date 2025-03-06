@@ -11,7 +11,6 @@ import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
-import type { TokenData } from "~/types";
 
 import { PoolData, PoolMintData, CreatePoolState } from "./types";
 import {
@@ -23,6 +22,7 @@ import {
   CreatePoolConfigure,
   CreatePoolReview,
 } from "./components";
+import { TokenData } from "~/types";
 
 type CreatePoolDialogProps = {
   trigger?: React.ReactNode;

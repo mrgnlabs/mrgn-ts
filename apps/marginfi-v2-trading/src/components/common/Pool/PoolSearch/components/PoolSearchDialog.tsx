@@ -1,16 +1,12 @@
 import React from "react";
 import type { FuseResult } from "fuse.js";
+import Image from "next/image";
 import { IconX, IconSearch } from "@tabler/icons-react";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
-import {
-  tokenPriceFormatter,
-  numeralFormatter,
-  percentFormatter,
-  dynamicNumeralFormatter,
-} from "@mrgnlabs/mrgn-common";
+import { percentFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
-import { Command, CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "~/components/ui/command";
 import { useTradeStoreV2 } from "~/store";
 import { ArenaPoolSummary } from "~/types/trade-store.types";
 import { Drawer, DrawerContent, DrawerTrigger } from "~/components/ui/drawer";
@@ -82,14 +78,14 @@ export const PoolSearchDialog = ({
                     <CommandItem key={address} value={address} className="py-4" onSelect={onBankSelect}>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 relative">
-                          <img
+                          <Image
                             src={tokenBank.meta.tokenLogoUri}
                             width={32}
                             height={32}
                             alt={tokenBank.meta.tokenSymbol}
                             className="rounded-full w-[32px] h-[32px] object-cover"
                           />
-                          <img
+                          <Image
                             src={quoteBank.meta.tokenLogoUri}
                             width={16}
                             height={16}

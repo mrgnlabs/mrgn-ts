@@ -56,7 +56,8 @@ async function fetchTokenAccounts(
   connection: Connection,
   walletAddress: PublicKey,
   bankInfos: { mint: PublicKey; mintDecimals: number; bankAddress: PublicKey; assetTag?: number }[],
-  mintDatas: Map<string, MintData>
+  mintDatas: Map<string, MintData>,
+  fetchStakeAccounts: boolean = true
 ): Promise<{
   nativeSolBalance: number;
   tokenAccountMap: TokenAccountMap;
@@ -88,7 +89,7 @@ async function fetchTokenAccounts(
   }
 
   // get users native stake accounts
-  const stakeAccounts = await getStakeAccountsCached(walletAddress);
+  const stakeAccounts = fetchStakeAccounts ? await getStakeAccountsCached(walletAddress) : [];
 
   const ataAddresses = mintList.map((mint) => {
     const mintData = mintDatas.get(mint.bankAddress.toBase58());

@@ -19,13 +19,16 @@ type PoolListItemProps = {
 };
 
 export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
-  const [tokenDataByMint, groupsByGroupPk] = useTradeStoreV2((state) => [state.tokenDataByMint, state.groupsByGroupPk]);
+  const [tokenVolumeDataByMint, groupsByGroupPk] = useTradeStoreV2((state) => [
+    state.tokenVolumeDataByMint,
+    state.groupsByGroupPk,
+  ]);
 
-  const { tokenData, quoteTokenData } = React.useMemo(() => {
-    const tokenData = tokenDataByMint[poolData.tokenSummary.mint.toBase58()];
-    const quoteTokenData = tokenDataByMint[poolData.quoteSummary.mint.toBase58()];
-    return { tokenData, quoteTokenData };
-  }, [poolData, tokenDataByMint]);
+  const { tokenVolumeData, quoteTokenVolumeData } = React.useMemo(() => {
+    const tokenVolumeData = tokenVolumeDataByMint[poolData.tokenSummary.mint.toBase58()];
+    const quoteTokenVolumeData = tokenVolumeDataByMint[poolData.quoteSummary.mint.toBase58()];
+    return { tokenVolumeData, quoteTokenVolumeData };
+  }, [poolData, tokenVolumeDataByMint]);
 
   const fundingRate = React.useMemo(() => {
     const fundingRateShort =
@@ -53,8 +56,7 @@ export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
   return (
     <div className={cn("grid grid-cols-7 py-2 w-full items-center", !last && "border-b pb-3 mb-2")}>
       <div className="flex items-center gap-2">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src={poolData.tokenSummary.tokenLogoUri}
           alt={poolData.tokenSummary.tokenSymbol}
           width={32}
@@ -65,31 +67,36 @@ export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
           {poolData.tokenSummary.tokenSymbol}/{poolData.quoteSummary.tokenSymbol}
         </h2>
       </div>
-      {tokenData && (
+      {tokenVolumeData && (
         <>
           <div className="flex items-center gap-2">
             <div className="flex flex-col">
               $
-              {dynamicNumeralFormatter(tokenData.price / quoteTokenData.price, {
+              {dynamicNumeralFormatter(tokenVolumeData.price / quoteTokenVolumeData.price, {
                 ignoreMinDisplay: true,
               })}
             </div>
-            <span className={cn("text-xs", tokenData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
-              {tokenData.priceChange24h > 0 && "+"}
-              {percentFormatter.format(tokenData.priceChange24h / 100)}
+            <span
+              className={cn("text-xs", tokenVolumeData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}
+            >
+              {tokenVolumeData.priceChange24h > 0 && "+"}
+              {percentFormatter.format(tokenVolumeData.priceChange24h / 100)}
             </span>
           </div>
           <div>
             $
-            {dynamicNumeralFormatter(tokenData.volume24h, {
+            {dynamicNumeralFormatter(tokenVolumeData.volume24h, {
               maxDisplay: 1000,
             })}
-            {tokenData.volumeChange24h && (
+            {tokenVolumeData.volumeChange24h && (
               <span
-                className={cn("text-xs ml-2", tokenData.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}
+                className={cn(
+                  "text-xs ml-2",
+                  tokenVolumeData.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                )}
               >
-                {tokenData.volumeChange24h > 0 && "+"}
-                {percentFormatter.format(tokenData.volumeChange24h / 100)}
+                {tokenVolumeData.volumeChange24h > 0 && "+"}
+                {percentFormatter.format(tokenVolumeData.volumeChange24h / 100)}
               </span>
             )}
           </div>

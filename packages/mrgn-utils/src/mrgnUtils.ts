@@ -45,8 +45,8 @@ export function computeBankRateRaw(bank: ExtendedBankInfo, lendingMode: LendingM
       ? bank.info.state.emissionsRate
       : 0
     : bank.info.state.emissions == Emissions.Borrowing
-    ? bank.info.state.emissionsRate
-    : 0;
+      ? bank.info.state.emissionsRate
+      : 0;
 
   const aprRate = interestRate + emissionRate;
   const apyRate = aprToApy(aprRate);
@@ -126,7 +126,10 @@ export function extractErrorString(error: any, fallback?: string): string {
   return fallback ?? "Unrecognized error";
 }
 
-export function getTokenImageURL(bank: ExtendedBankInfo | PublicKey): string {
+export function getTokenImageURL(
+  bank: ExtendedBankInfo | PublicKey,
+  baseUrl: string = "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/"
+): string {
   const verifyPublicKey = (key: ExtendedBankInfo | PublicKey) => {
     try {
       const _ = new PublicKey(key).toBytes();
@@ -139,7 +142,7 @@ export function getTokenImageURL(bank: ExtendedBankInfo | PublicKey): string {
   const isPublicKey = verifyPublicKey(bank);
 
   const mintAddress = isPublicKey ? (bank as PublicKey) : (bank as ExtendedBankInfo).info.rawBank.mint;
-  return `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${mintAddress.toBase58()}.png`;
+  return `${baseUrl}${mintAddress.toBase58()}.png`;
 }
 
 export function isBankOracleStale(bank: ExtendedBankInfo) {

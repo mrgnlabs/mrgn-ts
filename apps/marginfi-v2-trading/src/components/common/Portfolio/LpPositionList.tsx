@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
@@ -45,16 +46,14 @@ export const LpPositionList = () => {
                         className="flex items-center gap-3 transition-colors shrink-0"
                       >
                         <div className="flex shrink-0">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
+                          <Image
                             src={pool.tokenBank.meta.tokenLogoUri}
                             width={24}
                             height={24}
                             alt={pool.tokenBank.meta.tokenSymbol}
                             className="rounded-full shrink-0 z-20 bg-background w-[24px] h-[24px] object-cover"
                           />
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
+                          <Image
                             src={pool.quoteBank.meta.tokenLogoUri}
                             width={24}
                             height={24}
@@ -109,16 +108,14 @@ export const LpPositionList = () => {
                   className="flex items-center gap-3 transition-colors shrink-0"
                 >
                   <div className="flex shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={pool.tokenBank.meta.tokenLogoUri}
                       width={24}
                       height={24}
                       alt={pool.tokenBank.meta.tokenSymbol}
                       className="rounded-full shrink-0 z-20 bg-background"
                     />
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={pool.quoteBank.meta.tokenLogoUri}
                       width={24}
                       height={24}

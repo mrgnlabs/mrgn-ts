@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { percentFormatter, shortenAddress, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
-import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
+import { cn } from "@mrgnlabs/mrgn-utils";
 import { minidenticon } from "minidenticons";
 
 import { Button } from "~/components/ui/button";
@@ -21,32 +21,35 @@ type PoolCardProps = {
 };
 
 export const PoolCard = ({ poolData }: PoolCardProps) => {
-  const [tokenDataByMint, groupsByGroupPk] = useTradeStoreV2((state) => [state.tokenDataByMint, state.groupsByGroupPk]);
+  const [tokenVolumeDataByMint, groupsByGroupPk] = useTradeStoreV2((state) => [
+    state.tokenVolumeDataByMint,
+    state.groupsByGroupPk,
+  ]);
 
-  const { tokenData, quoteTokenData } = React.useMemo(() => {
-    const tokenData = tokenDataByMint[poolData.tokenSummary.mint.toBase58()];
-    const quoteTokenData = tokenDataByMint[poolData.quoteSummary.mint.toBase58()];
-    return { tokenData, quoteTokenData };
-  }, [poolData, tokenDataByMint]);
+  const { tokenVolumeData, quoteTokenVolumeData } = React.useMemo(() => {
+    const tokenVolumeData = tokenVolumeDataByMint[poolData.tokenSummary.mint.toBase58()];
+    const quoteTokenVolumeData = tokenVolumeDataByMint[poolData.quoteSummary.mint.toBase58()];
+    return { tokenVolumeData, quoteTokenVolumeData };
+  }, [poolData, tokenVolumeDataByMint]);
 
   const isStableQuote = React.useMemo(() => {
-    return 0.99 < quoteTokenData?.price && quoteTokenData?.price < 1.01;
-  }, [quoteTokenData]);
+    return 0.99 < quoteTokenVolumeData?.price && quoteTokenVolumeData?.price < 1.01;
+  }, [quoteTokenVolumeData]);
   const [showUSDPrice, setShowUSDPrice] = React.useState(false);
 
   const tokenPrice = React.useMemo(() => {
     if (showUSDPrice) {
-      return tokenData?.price;
+      return tokenVolumeData?.price;
     }
-    return tokenData?.price / quoteTokenData?.price;
-  }, [showUSDPrice, tokenData, quoteTokenData]);
+    return tokenVolumeData?.price / quoteTokenVolumeData?.price;
+  }, [showUSDPrice, tokenVolumeData, quoteTokenVolumeData]);
 
   const tokenPriceChange = React.useMemo(() => {
     if (showUSDPrice) {
-      return tokenData?.priceChange24h;
+      return tokenVolumeData?.priceChange24h;
     }
-    return tokenData?.priceChange24h - quoteTokenData?.priceChange24h;
-  }, [showUSDPrice, tokenData, quoteTokenData]);
+    return tokenVolumeData?.priceChange24h - quoteTokenVolumeData?.priceChange24h;
+  }, [showUSDPrice, tokenVolumeData, quoteTokenVolumeData]);
 
   const fundingRate = React.useMemo(() => {
     const fundingRateShort =
@@ -80,8 +83,7 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
               href={`/trade/${poolData.groupPk.toBase58()}`}
               className="flex items-center gap-2 justify-between cursor-pointer"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={poolData.tokenSummary.tokenLogoUri}
                 width={48}
                 height={48}
@@ -171,7 +173,7 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-4 pb-6">
-        {tokenData && (
+        {tokenVolumeData && (
           <dl className="grid grid-cols-2 gap-1.5 text-sm text-muted-foreground w-full mt-2">
             <dt>Price</dt>
             <dd
@@ -183,7 +185,7 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
               {dynamicNumeralFormatter(tokenPrice, {
                 ignoreMinDisplay: true,
               })}{" "}
-              {showUSDPrice ? "USD" : quoteTokenData?.symbol}
+              {showUSDPrice ? "USD" : poolData.tokenSummary.tokenSymbol}
               {!isStableQuote && <IconSwitchHorizontal size={14} className="cursor-pointer" />}
               {tokenPriceChange && (
                 <span className={cn("text-xs ml-1", tokenPriceChange > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
@@ -195,18 +197,18 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
             <dt className="">24hr vol</dt>
             <dd className="text-right text-primary tracking-wide">
               $
-              {dynamicNumeralFormatter(tokenData.volume24h, {
+              {dynamicNumeralFormatter(tokenVolumeData.volume24h, {
                 maxDisplay: 1000,
               })}
-              {tokenData.volumeChange24h && (
+              {tokenVolumeData.volumeChange24h && (
                 <span
                   className={cn(
                     "text-xs ml-2",
-                    tokenData.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                    tokenVolumeData.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
                   )}
                 >
-                  {tokenData.volumeChange24h > 0 && "+"}
-                  {percentFormatter.format(tokenData.volumeChange24h / 100)}
+                  {tokenVolumeData.volumeChange24h > 0 && "+"}
+                  {percentFormatter.format(tokenVolumeData.volumeChange24h / 100)}
                 </span>
               )}
             </dd>
