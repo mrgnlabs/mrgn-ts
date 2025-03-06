@@ -20,7 +20,7 @@ import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Loader } from "~/components/common/Loader";
 import { ResponsiveSettingsWrapper } from "~/components";
-import { Search } from "~/components/common/search";
+import { SearchButton } from "~/components/common/search";
 
 const navItems = [
   { label: "Discover", href: "/" },
@@ -144,7 +144,7 @@ export const Header = () => {
           </ul>
         </nav>
         <div className={cn("flex items-center gap-4")}>
-          {router.pathname !== "/" && <Search />}
+          <SearchButton />
           {ownedPools.length > 0 && (
             <Link href="/admin">
               {isMobile ? (
