@@ -25,10 +25,10 @@ export const LpPositionList = () => {
 
   return (
     <>
-      <div className="flex items-center justify-between pt-4 pb-6">
+      <div className="flex md:items-center justify-between pt-4 pb-6">
         <div className="space-y-2">
           <h2 className="font-medium text-2xl">Providing Liquidity</h2>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-sm w-3/4 md:w-full">
             Provide liquidity to trading pools and earn yield.{" "}
             <Link href="https://docs.mrgn.xyz" className="border-b">
               <IconExternalLink size={14} className="inline-block mr-0.5 relative -translate-y-[1px]" />
@@ -43,7 +43,7 @@ export const LpPositionList = () => {
         </Link>
       </div>
       <Desktop>
-        <div className="rounded-xl">
+        <div className="rounded-lg bg-background py-1 px-2">
           <Table className="min-w-[600px] overflow-auto">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
