@@ -20,6 +20,7 @@ import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { getArenaStaticProps, StaticArenaProps } from "~/utils/trade-store.utils";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
+import { SearchInput } from "~/components/common/search";
 
 const sortOptions: {
   value: TradePoolFilterStates;
@@ -110,7 +111,8 @@ export default function HomePage({ initialData }: StaticArenaProps) {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.5 }}
                 >
-                  <PoolSearch showNoResults={false} />
+                  <SearchInput />
+                  {/* <PoolSearch showNoResults={false} /> */}
 
                   <Button
                     variant="outline"
