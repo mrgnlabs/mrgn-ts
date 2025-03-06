@@ -9,7 +9,12 @@ const Search = () => {
   return (
     <>
       <SearchButton onClick={() => setOpen(true)} />
-      <SearchDialog open={open} setOpen={setOpen} pools={Object.values(arenaPoolsSummary)} />
+      <SearchDialog
+        open={open}
+        setOpen={setOpen}
+        pools={Object.values(arenaPoolsSummary)}
+        filter={(value, search) => Number(value.toLowerCase().includes(search.toLowerCase()))}
+      />
     </>
   );
 };
