@@ -2,7 +2,6 @@ import React from "react";
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/router";
 
 import {
   percentFormatter,
@@ -20,7 +19,6 @@ import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useTradeStoreV2, useUiStore } from "~/store";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
-import { TokenCombobox } from "~/components/common/TokenCombobox";
 import { PoolShare } from "~/components/common/Pool/PoolShare";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
@@ -34,9 +32,9 @@ import { useExtendedPool } from "~/hooks/useExtendedPools";
 import { ArenaPoolV2, GroupStatus } from "~/types/trade-store.types";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { useArenaClient } from "~/hooks/useArenaClient";
+import { SearchPopover } from "~/components/common/search";
 
 export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => {
-  const router = useRouter();
   const { connected, wallet } = useWallet();
 
   const extendedPool = useExtendedPool(activePool);
@@ -94,20 +92,14 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                 className="absolute -bottom-2 -right-2 bg-background border rounded-full h-[32px] w-[32px] object-cover"
               />
             </div>
-
-            <TokenCombobox
-              selected={extendedPool}
-              setSelected={(pool) => {
-                router.push(`/trade/${pool.groupPk.toBase58()}`);
-              }}
-            >
-              <h1 className="text-lg font-medium mt-2 flex items-center justify-center text-center gap-1 px-2 py-1 pl-3 rounded-md cursor-pointer transition-colors hover:bg-accent translate-x-1.5">
-                {extendedPool.tokenBank.meta.tokenName} <IconChevronDown size={18} />
-              </h1>
-            </TokenCombobox>
-            <p className="text-sm text-muted-foreground mt-2 lg:mt-0">
-              {extendedPool.tokenBank.meta.tokenSymbol}/{extendedPool.quoteBank.meta.tokenSymbol}
-            </p>
+            <SearchPopover
+              trigger={
+                <Button variant="ghost" size="sm" className="text-base font-medium mt-3">
+                  {extendedPool.tokenBank.meta.tokenSymbol} / {extendedPool.quoteBank.meta.tokenSymbol}
+                  <IconChevronDown size={18} />
+                </Button>
+              }
+            />
             <p className="text-sm text-muted-foreground">
               <TooltipProvider>
                 <Tooltip>
@@ -118,6 +110,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                       rel="noreferrer"
                       className="text-primary text-xs flex items-center gap-1"
                     >
+                      <span className="text-muted-foreground">Mint:</span>
                       {shortenAddress(extendedPool.tokenBank.info.state.mint.toBase58())}
                       <IconExternalLink size={12} />
                     </Link>
