@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import { PublicKey } from "@solana/web3.js";
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { getDefaultYargsOptions, getMarginfiProgram } from "../lib/config";
-import { Environment } from "../lib/types";
+import { BirdeyeTokenMetadataResponse, Environment } from "../lib/types";
 import { formatNumber, getPythPushOracleAddresses, getBankMetadata } from "../lib/utils";
 
 dotenv.config();
@@ -50,7 +50,28 @@ async function main() {
   }
 
   const acc = await program.account.bank.fetch(bankPubkey);
-  const bankMeta = bankMetadata.find((meta) => meta.bankAddress === bankPubkey.toString());
+  let bankMeta = bankMetadata.find((meta) => meta.bankAddress === bankPubkey.toString());
+
+  // if bank metadata is not found, call birdeye api to get it
+  if (!bankMeta) {
+    const birdeyeApiResponse = await fetch(
+      `https://public-api.birdeye.so/defi/v3/token/meta-data/single?address=${acc.mint.toBase58()}`,
+      {
+        headers: {
+          "x-api-key": process.env.BIRDEYE_API_KEY,
+          "x-chain": "solana",
+        },
+      }
+    );
+    const birdeyeApiJson: BirdeyeTokenMetadataResponse = await birdeyeApiResponse.json();
+
+    if (birdeyeApiResponse.ok && birdeyeApiJson.data) {
+      bankMeta = {
+        bankAddress: bankPubkey.toString(),
+        tokenSymbol: birdeyeApiJson.data.symbol,
+      };
+    }
+  }
 
   const oraclePriceResponse = await fetch(`https://app.marginfi.com/api/oracle/price?banks=${bankPubkey.toString()}`, {
     headers: {
@@ -96,6 +117,7 @@ async function main() {
     "Oracle Keys": oracleKeys.join(", "),
     ...(oracleType === "Pyth" ? { "Pyth Oracle Addresses": pythOracleAddresses.join(", ") } : {}),
     "Bank Type": acc.config.assetTag === 2 ? "Native Stake" : acc.config.riskTier.collateral ? "Global" : "Isolated",
+    Flags: acc.flags.toNumber(),
     "Asset Weight Init": assetWeightInit.toNumber(),
     "Asset Weight Maint": assetWeightMaint.toNumber(),
     "Liability Weight Init": liabilityWeightInit.toNumber(),

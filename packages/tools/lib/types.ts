@@ -14,3 +14,13 @@ export type BankMetadata = {
   bankAddress: string;
   tokenSymbol: string;
 };
+
+export type BirdeyeTokenMetadataResponse = {
+  data?: {
+    address: string;
+    name: string;
+    symbol: string;
+    decimals: number;
+    logo_uri: string;
+  };
+};
