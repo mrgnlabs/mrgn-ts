@@ -18,7 +18,7 @@ const SearchPopover = ({ pools, filter, trigger }: SearchPopoverProps) => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{trigger ? trigger : <Button variant="outline">Search</Button>}</PopoverTrigger>
-      <PopoverContent>
+      <PopoverContent className="w-96">
         <Command filter={filter}>
           <CommandInput placeholder="Search pools..." autoFocus />
           <SearchList pools={pools} setOpen={setOpen} size="sm" />
