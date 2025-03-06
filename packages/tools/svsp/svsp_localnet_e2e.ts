@@ -91,13 +91,19 @@ export async function svspReplenishPool(wallet: Keypair, voteAccount: PublicKey)
   const onrampDecoded = getStakeAccount(onrampAcc.data);
   console.log("--------On Ramp Account----");
   console.log("stake: " + onrampDecoded.stake.delegation.stake.toString());
+  /**
+   * Note: The "stake" field is INVALID if the discriminator is not 2 (Stake in the StakeStatev2 enum)
+   */
+  const discrimOnRamp = onrampDecoded.discriminant;
+  console.log("discrim: " + discrimOnRamp + " stake is valid: " + (discrimOnRamp == 2));
   console.log("lamps: " + onrampAcc.lamports);
   console.log();
 
   const stakeAcc = await connection.getAccountInfo(poolStake);
   const stakeDecoded = getStakeAccount(stakeAcc.data);
-  console.log("--------Main stake Account----");
   console.log("stake: " + stakeDecoded.stake.delegation.stake.toString());
+  const discrimStake = stakeDecoded.discriminant;
+  console.log("discrim: " + discrimStake + " stake is valid: " + (discrimStake == 2));
   console.log("lamps: " + stakeAcc.lamports);
   console.log("");
 }
