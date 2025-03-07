@@ -7,6 +7,7 @@ import {
   RepayBoxProps,
 } from "~/components/action-box-v2/actions";
 import { ActionDialogProps } from "~/components/action-box-v2/components";
+import { AddPositionBoxProps } from "../actions/add-position-box";
 
 type ActionBoxDialogProps = {
   isDialog: true;
@@ -56,6 +57,12 @@ interface RequiredDepositSwapBoxProps
     "onComplete" | "captureEvent" | "connected" | "showTokenSelection" | "requestedDepositBank" | "walletTokens"
   > {}
 
+interface RequiredAddPositionBoxProps
+  extends Pick<
+    AddPositionBoxProps,
+    "onComplete" | "captureEvent" | "connected" | "depositBank" | "borrowBank" | "tradeSide" | "isDialog"
+  > {}
+
 interface ActionBoxComponent extends React.FC<ActionBoxProps & ActionBoxComponentProps> {
   Lend: React.FC<ActionBoxProps & { lendProps: LendBoxProps | RequiredLendBoxProps; useProvider?: boolean }>;
   BorrowLend: React.FC<ActionBoxProps & { lendProps: LendBoxProps | RequiredLendBoxProps; useProvider?: boolean }>;
@@ -64,6 +71,9 @@ interface ActionBoxComponent extends React.FC<ActionBoxProps & ActionBoxComponen
   Stake: React.FC<ActionBoxProps & { stakeProps: StakeBoxProps | RequiredStakeBoxProps; useProvider?: boolean }>;
   DepositSwap: React.FC<
     ActionBoxProps & { depositSwapProps: DepositSwapBoxProps | RequiredDepositSwapBoxProps; useProvider?: boolean }
+  >;
+  AddPosition: React.FC<
+    ActionBoxProps & { addPositionProps: AddPositionBoxProps | RequiredAddPositionBoxProps; useProvider?: boolean }
   >;
 }
 
@@ -76,5 +86,6 @@ export type {
   RequiredLoopBoxProps,
   RequiredStakeBoxProps,
   RequiredDepositSwapBoxProps,
+  RequiredAddPositionBoxProps,
 };
 export { isDialogWrapperProps };

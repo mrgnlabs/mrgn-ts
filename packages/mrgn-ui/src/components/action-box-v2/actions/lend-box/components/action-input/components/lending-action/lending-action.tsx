@@ -3,6 +3,8 @@ import React from "react";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
+import { ActionInputTag } from "~/components/action-box-v2/components";
+
 type LendingActionProps = {
   walletAmount: number | undefined;
   maxAmount: number;
@@ -81,30 +83,15 @@ export const LendingAction = ({
     }
   }, [selectedBank, lendMode, walletAmount]);
 
-  // const isMaxButtonVisible = React.useMemo(() => lendMode === ActionType.Repay, [lendMode]);
-
-  // Section above the input
   return (
     <>
       {selectedBank && (
-        <ul className="flex flex-col gap-0.5 mt-4 text-xs w-full text-muted-foreground">
-          <li className="flex justify-between items-center gap-1.5">
-            <strong className="mr-auto">{maxLabel.label}</strong>
-            <div className="flex space-x-1">
-              {/* {selectedBank?.isActive && <div>{clampedNumeralFormatter(selectedBank.position.amount)}</div>}
-              {selectedBank?.isActive && <IconArrowRight width={12} height={12} />} */}
-              <div>{maxLabel.amount}</div>
-
-              <button
-                className="cursor-pointer border-b border-transparent transition text-mfi-action-box-highlight hover:border-mfi-action-box-highlight disabled:opacity-50 disabled:cursor-default disabled:hover:border-transparent"
-                disabled={maxAmount === 0 || disabled}
-                onClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
-              >
-                MAX
-              </button>
-            </div>
-          </li>
-        </ul>
+        <ActionInputTag
+          label={maxLabel.label}
+          amount={maxLabel.amount}
+          isDisabled={maxAmount === 0 || disabled}
+          handleOnClick={() => onSetAmountRaw(numberFormater.format(maxAmount))}
+        />
       )}
     </>
   );
