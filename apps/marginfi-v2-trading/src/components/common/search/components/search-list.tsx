@@ -6,7 +6,6 @@ import { useRouter } from "next/router";
 import { ArenaPoolSummary } from "~/types";
 
 import { CommandList, CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
-import { useTradeStoreV2 } from "~/store";
 import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common/dist/utils/formatters.utils";
 import { cn } from "~/theme";
 
@@ -53,10 +52,10 @@ const SearchItem = ({ pool, onClose, size = "default" }: SearchItemProps) => {
           <div className="relative">
             <Image
               src={pool.tokenSummary.tokenLogoUri}
-              width={size === "sm" ? 28 : 32}
-              height={size === "sm" ? 28 : 32}
+              width={size === "sm" ? 30 : 32}
+              height={size === "sm" ? 30 : 32}
               alt={pool.tokenSummary.tokenName}
-              className={cn("rounded-full border object-cover z-10", size === "sm" && "w-6 h-6")}
+              className={cn("rounded-full border object-cover z-10", size === "sm" && "w-[30px] h-[30px]")}
             />
             <Image
               src={pool.quoteSummary.tokenLogoUri}
@@ -68,8 +67,7 @@ const SearchItem = ({ pool, onClose, size = "default" }: SearchItemProps) => {
           </div>
           <span
             className={cn(
-              "font-normal group-data-[selected]:font-medium group-data-[selected]:border-b group-data-[selected]:border-foreground/50",
-              size === "sm" && "text-xs"
+              "font-normal group-data-[selected]:font-medium group-data-[selected]:border-b group-data-[selected]:border-foreground/50"
             )}
           >
             {pool.tokenSummary.tokenSymbol} / {pool.quoteSummary.tokenSymbol}
@@ -77,7 +75,7 @@ const SearchItem = ({ pool, onClose, size = "default" }: SearchItemProps) => {
         </div>
 
         <p className={cn("w-2/5", size === "sm" && "w-1/3 flex flex-col text-xs")}>
-          <span className={cn(size === "sm" && "text-[11px]")}>
+          <span>
             $
             {dynamicNumeralFormatter(pool.tokenSummary.tokenVolumeData.price, {
               ignoreMinDisplay: true,
@@ -88,7 +86,7 @@ const SearchItem = ({ pool, onClose, size = "default" }: SearchItemProps) => {
               className={cn(
                 "text-xs ml-1",
                 pool.tokenSummary.tokenVolumeData.priceChange24h > 0 ? "text-mrgn-green" : "text-mrgn-error",
-                size === "sm" && "ml-0 text-[10px]"
+                size === "sm" && "ml-0"
               )}
             >
               {pool.tokenSummary.tokenVolumeData.priceChange24h > 0 && "+"}
