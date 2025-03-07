@@ -51,16 +51,14 @@ const SearchItem = ({ pool, onClose, size = "default" }: SearchItemProps) => {
       <div className="flex items-center gap-2 justify-between w-full">
         <div className="flex items-center gap-3.5 justify-between cursor-pointer">
           <div className="relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={pool.tokenSummary.tokenLogoUri}
               width={size === "sm" ? 28 : 32}
               height={size === "sm" ? 28 : 32}
               alt={pool.tokenSummary.tokenName}
               className={cn("rounded-full border object-cover z-10", size === "sm" && "w-6 h-6")}
             />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={pool.quoteSummary.tokenLogoUri}
               width={size === "sm" ? 16 : 18}
               height={size === "sm" ? 16 : 18}
