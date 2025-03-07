@@ -232,7 +232,7 @@ export const Grants = ({ onSubmit, formId }: GrantsProps) => {
             {state === GrantState.SUCCESS && (
               <div className="space-y-8 pt-16 pb-4 text-sm text-center">
                 <div className="space-y-2">
-                  <p className="flex items-center justify-center gap-2 text-mrgn-success">
+                  <p className="flex items-center justify-center gap-2 text-mrgn-green">
                     <IconCheck size={18} /> Thank you for submitting your grant proposal!
                   </p>
                   <p className="text-muted-foreground">We will get back to you shortly.</p>

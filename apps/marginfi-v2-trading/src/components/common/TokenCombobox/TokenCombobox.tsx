@@ -94,7 +94,7 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                             </span>
                             <span
                               className={cn(
-                                pool.tokenBank.tokenData?.priceChange24hr > 1 ? "text-mrgn-success" : "text-mrgn-error"
+                                pool.tokenBank.tokenData?.priceChange24hr > 1 ? "text-mrgn-green" : "text-mrgn-error"
                               )}
                             >
                               {pool.tokenBank.tokenData?.priceChange24hr > 1 ? "+" : ""}
@@ -160,7 +160,7 @@ export const TokenCombobox = ({ selected, setSelected, children }: TokenCombobox
                           </span>
                           <span
                             className={cn(
-                              pool.tokenBank.tokenData?.priceChange24hr > 1 ? "text-mrgn-success" : "text-mrgn-error"
+                              pool.tokenBank.tokenData?.priceChange24hr > 1 ? "text-mrgn-green" : "text-mrgn-error"
                             )}
                           >
                             {percentFormatter.format(pool.tokenBank.tokenData?.priceChange24hr / 100)}

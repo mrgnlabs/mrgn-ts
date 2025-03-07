@@ -205,7 +205,7 @@ const YieldItem = ({
           </dd>
           <dt>Deposit/Borrow APY</dt>
           <dd className="text-right text-primary">
-            <span className="text-mrgn-success">{percentFormatter.format(lendingRate.rateAPY)}</span>
+            <span className="text-mrgn-green">{percentFormatter.format(lendingRate.rateAPY)}</span>
             {" / "}
             <span className="text-mrgn-error">{percentFormatter.format(borrowingRate.rateAPY)}</span>
           </dd>

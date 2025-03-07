@@ -76,9 +76,7 @@ export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
                 ignoreMinDisplay: true,
               })}
             </div>
-            <span
-              className={cn("text-xs", tokenVolumeData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error")}
-            >
+            <span className={cn("text-xs", tokenVolumeData.priceChange24h > 0 ? "text-mrgn-green" : "text-mrgn-error")}>
               {tokenVolumeData.priceChange24h > 0 && "+"}
               {percentFormatter.format(tokenVolumeData.priceChange24h / 100)}
             </span>
@@ -92,7 +90,7 @@ export const PoolListItem = ({ poolData, last }: PoolListItemProps) => {
               <span
                 className={cn(
                   "text-xs ml-2",
-                  tokenVolumeData.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                  tokenVolumeData.volumeChange24h > 0 ? "text-mrgn-green" : "text-mrgn-error"
                 )}
               >
                 {tokenVolumeData.volumeChange24h > 0 && "+"}

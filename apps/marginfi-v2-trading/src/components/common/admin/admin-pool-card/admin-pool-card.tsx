@@ -49,7 +49,7 @@ export const AdminPoolCard = ({ pool, last }: AdminPoolCardProps) => {
             <span
               className={cn(
                 "text-xs ml-2",
-                extendedPool.tokenBank.tokenData.priceChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                extendedPool.tokenBank.tokenData.priceChange24hr > 0 ? "text-mrgn-green" : "text-mrgn-error"
               )}
             >
               {extendedPool.tokenBank.tokenData.priceChange24hr > 0 && "+"}
@@ -62,7 +62,7 @@ export const AdminPoolCard = ({ pool, last }: AdminPoolCardProps) => {
               <span
                 className={cn(
                   "text-xs ml-2",
-                  extendedPool.tokenBank.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                  extendedPool.tokenBank.tokenData.volumeChange24hr > 0 ? "text-mrgn-green" : "text-mrgn-error"
                 )}
               >
                 {extendedPool.tokenBank.tokenData.volumeChange24hr > 0 && "+"}

@@ -70,7 +70,7 @@ export const ClosePositionDialog = ({
           {pnl ? (
             <>
               <dt>PnL</dt>
-              <dd className={cn("text-right", pnl > 0 && "text-mrgn-success", pnl < 0 && "text-mrgn-error")}>
+              <dd className={cn("text-right", pnl > 0 && "text-mrgn-green", pnl < 0 && "text-mrgn-error")}>
                 {pnl > 0 && "+"}${dynamicNumeralFormatter(pnl ?? 0)}
               </dd>
             </>
@@ -112,7 +112,7 @@ export const ClosePositionDialog = ({
                     ? "text-mrgn-error"
                     : Number(actionTransaction.actionQuote.priceImpactPct) > 0.01
                       ? "text-alert"
-                      : "text-mrgn-success",
+                      : "text-mrgn-green",
                   "text-right"
                 )}
               >
@@ -126,7 +126,7 @@ export const ClosePositionDialog = ({
               <dt>Slippage</dt>
               <dd
                 className={cn(
-                  actionTransaction.actionQuote.slippageBps > 500 ? "text-mrgn-error" : "text-mrgn-success",
+                  actionTransaction.actionQuote.slippageBps > 500 ? "text-mrgn-error" : "text-mrgn-green",
                   "text-right"
                 )}
               >

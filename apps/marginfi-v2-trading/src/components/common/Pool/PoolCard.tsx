@@ -188,7 +188,7 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
               {showUSDPrice ? "USD" : poolData.tokenSummary.tokenSymbol}
               {!isStableQuote && <IconSwitchHorizontal size={14} className="cursor-pointer" />}
               {tokenPriceChange && (
-                <span className={cn("text-xs ml-1", tokenPriceChange > 0 ? "text-mrgn-success" : "text-mrgn-error")}>
+                <span className={cn("text-xs ml-1", tokenPriceChange > 0 ? "text-mrgn-green" : "text-mrgn-error")}>
                   {tokenPriceChange > 0 && "+"}
                   {percentFormatter.format(tokenPriceChange / 100)}
                 </span>
@@ -204,7 +204,7 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
                 <span
                   className={cn(
                     "text-xs ml-2",
-                    tokenVolumeData.volumeChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                    tokenVolumeData.volumeChange24h > 0 ? "text-mrgn-green" : "text-mrgn-error"
                   )}
                 >
                   {tokenVolumeData.volumeChange24h > 0 && "+"}
