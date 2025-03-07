@@ -8,7 +8,7 @@ import {
   formatAmount,
   useConnection,
   ExecuteTradeActionProps,
-  ExecuteTradeAction,
+  executeTradeAction,
 } from "@mrgnlabs/mrgn-utils";
 import { toastManager } from "@mrgnlabs/mrgn-toasts";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
@@ -284,7 +284,7 @@ export const TradeBoxV2 = ({ activePool, side = "long" }: TradeBoxV2Props) => {
       },
     };
 
-    ExecuteTradeAction(props);
+    executeTradeAction(props);
 
     setAmountRaw("");
   }, [

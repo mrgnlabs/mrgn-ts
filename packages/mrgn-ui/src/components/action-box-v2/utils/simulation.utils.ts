@@ -80,6 +80,7 @@ export interface ActionPreview {
   bankCap?: number;
   priceImpactPct?: number;
   slippageBps?: number;
+  platformFeeBps?: number;
 }
 
 export function calculateSimulatedActionPreview(

@@ -1,3 +1,4 @@
+import { QuoteResponse } from "@jup-ag/api";
 import { createMarginfiAccountTx, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -10,8 +11,11 @@ import {
   LoopActionTxns,
   CalculateTradingProps,
   TradeActionTxns,
+  ActionProcessingError,
+  STATIC_SIMULATION_ERRORS,
 } from "@mrgnlabs/mrgn-utils";
 import { Connection } from "@solana/web3.js";
+import { BigNumber } from "bignumber.js";
 
 type GenerateAddPositionTxnsProps = {
   marginfiClient: MarginfiClient;
@@ -28,6 +32,7 @@ type GenerateAddPositionTxnsProps = {
 export async function generateAddPositionTxns(props: CalculateTradingProps): Promise<TradeActionTxns> {
   let finalDepositAmount = props.depositAmount;
   let account = props.marginfiAccount;
+  let accountQuote: QuoteResponse | null = null;
   const transactions: SolanaTransaction[] = [];
 
   if (props.tradeState === "long") {
@@ -57,19 +62,39 @@ export async function generateAddPositionTxns(props: CalculateTradingProps): Pro
     account = newAccount;
   }
 
-  const loopActionTxns = await calculateLoopingParams({
-    ...props,
-    setupBankAddresses: [props.borrowBank.address],
-    marginfiAccount: account,
-    depositAmount: finalDepositAmount,
-    slippageBps: props.slippageBps,
-    slippageMode: props.slippageMode,
-    connection: props.marginfiClient.provider.connection,
-  });
+  if (!account) {
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED);
+  }
+
+  let actualDepositAmount = 0;
+  let borrowAmount = new BigNumber(0);
+
+  if (props.targetLeverage === 1) {
+    const deposit = await account.makeDepositTx(finalDepositAmount, props.depositBank.address);
+    transactions.push(deposit);
+  } else {
+    const loopActionTxns = await calculateLoopingParams({
+      ...props,
+      setupBankAddresses: [props.borrowBank.address],
+      marginfiAccount: account,
+      depositAmount: finalDepositAmount,
+      slippageBps: props.slippageBps,
+      slippageMode: props.slippageMode,
+      connection: props.marginfiClient.provider.connection,
+    });
+
+    accountQuote = loopActionTxns.actionQuote;
+    actualDepositAmount = loopActionTxns.actualDepositAmount;
+    borrowAmount = loopActionTxns.borrowAmount;
+    transactions.push(...addArenaTxTypes(loopActionTxns.transactions, props.tradeState));
+  }
 
   return {
-    ...loopActionTxns,
-    transactions: [...transactions, ...addArenaTxTypes(loopActionTxns.transactions, props.tradeState)],
+    actionQuote: accountQuote,
+    marginfiAccount: account ?? undefined,
+    transactions,
+    actualDepositAmount: actualDepositAmount,
+    borrowAmount: borrowAmount,
   };
 }
 
