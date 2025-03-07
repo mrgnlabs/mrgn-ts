@@ -1,5 +1,6 @@
 import React, { useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { IconSettings } from "@tabler/icons-react";
 
 import {
   ActionMessageType,
@@ -9,7 +10,7 @@ import {
   ExecuteTradeActionProps,
   ExecuteTradeAction,
 } from "@mrgnlabs/mrgn-utils";
-import { IconSettings } from "@tabler/icons-react";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { ArenaPoolV2 } from "~/types/trade-store.types";
@@ -36,7 +37,7 @@ import {
 import { useTradeBoxStore } from "./store";
 import { checkTradeActionAvailable } from "./utils";
 import { useTradeSimulation, useActionAmounts } from "./hooks";
-import { toastManager } from "@mrgnlabs/mrgn-toasts";
+
 type TradeBoxV2Props = {
   activePool: ArenaPoolV2;
   side?: TradeSide;

@@ -1,44 +1,20 @@
 import React from "react";
-import { v4 as uuidv4 } from "uuid";
-import BigNumber from "bignumber.js";
 
-import {
-  ExtendedBankInfo,
-  ActionType,
-  AccountSummary,
-  computeAccountSummary,
-  DEFAULT_ACCOUNT_SUMMARY,
-} from "@mrgnlabs/marginfi-v2-ui-state";
-import { WalletContextState } from "@solana/wallet-adapter-react";
-
+import { ExtendedBankInfo, computeAccountSummary, DEFAULT_ACCOUNT_SUMMARY } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import {
-  ActionMessageType,
-  checkLoopActionAvailable,
-  usePrevious,
-  ExecuteLoopActionProps,
-  ExecuteLoopAction,
-  checkTradeActionAvailable,
-  TradeSide,
-  ArenaGroupStatus,
-} from "@mrgnlabs/mrgn-utils";
-import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { ActionMessageType, checkTradeActionAvailable, TradeSide, ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
 import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
-import { usePollBlockHeight } from "~/components/action-box-v2/hooks";
 import { ActionMessage } from "~/components";
 
 import { SimulationStatus } from "../../utils/simulation.utils";
-import { ActionSimulationStatus } from "../../components";
 import { useActionContext } from "../../contexts";
+import { useActionBoxStore } from "../../store";
 
-import { ActionInput, Preview } from "./components";
+import { ActionInput } from "./components";
 import { useAddPositionBoxStore } from "./store";
 import { useAddPositionSimulation, useActionAmounts } from "./hooks";
-import { LeverageSlider } from "./components/leverage-slider";
-import { ApyStat } from "./components/apy-stat";
-import { useActionBoxStore } from "../../store";
 
 export type AddPositionBoxProps = {
   nativeSolBalance: number;
@@ -214,13 +190,7 @@ export const AddPositionBox = ({
   /////////////////////
   // Looping Actions //
   /////////////////////
-  const handleLoopAction = React.useCallback(async () => {}, []);
-
-  // React.useEffect(() => {
-  //   if (marginfiClient) {
-  //     refreshSelectedBanks(banks);
-  //   }
-  // }, [marginfiClient, banks, refreshSelectedBanks]);
+  const handleAddPositionAction = React.useCallback(async () => {}, []);
 
   return (
     <ActionBoxContentWrapper>
@@ -248,23 +218,14 @@ export const AddPositionBox = ({
         </div>
       )} */}
       <div className="mb-6">
-        {/* <ActionInput
-          banks={banks}
-          nativeSolBalance={nativeSolBalance}
+        <ActionInput
           amount={amount}
           amountRaw={amountRaw}
           maxAmount={maxAmount}
-          selectedBank={selectedBank}
-          selectedSecondaryBank={selectedSecondaryBank}
-          setAmountRaw={setAmountRaw}
-          setSelectedBank={setSelectedBank}
-          setSelectedSecondaryBank={(bank) => {
-            setSelectedSecondaryBank(bank);
-          }}
           isLoading={simulationStatus.isLoading}
-          walletAmount={walletAmount}
-          actionTxns={actionTxns}
-        /> */}
+          quoteBank={quoteBank}
+          setAmountRaw={setAmountRaw}
+        />
       </div>
 
       <div className="px-1 space-y-6 mb-4">
@@ -312,7 +273,7 @@ export const AddPositionBox = ({
           }
           connected={connected}
           handleAction={() => {
-            handleLoopAction();
+            handleAddPositionAction();
           }}
           loaderType="INFINITE"
           buttonLabel={"Loop"}
