@@ -87,7 +87,7 @@ const SearchItem = ({ pool, onClose, size = "default" }: SearchItemProps) => {
             <span
               className={cn(
                 "text-xs ml-1",
-                pool.tokenSummary.tokenVolumeData.priceChange24h > 0 ? "text-mrgn-success" : "text-mrgn-error",
+                pool.tokenSummary.tokenVolumeData.priceChange24h > 0 ? "text-mrgn-green" : "text-mrgn-error",
                 size === "sm" && "ml-0 text-[10px]"
               )}
             >

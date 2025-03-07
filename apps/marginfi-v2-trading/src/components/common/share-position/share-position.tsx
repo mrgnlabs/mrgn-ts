@@ -195,7 +195,7 @@ const SharePosition = ({ pool, triggerVariant = "ghost", triggerClassName, onOpe
                 </Button>
               </div>
               {(isCopied || isDownloaded) && (
-                <p className="flex items-center gap-1.5 text-sm text-mrgn-success">
+                <p className="flex items-center gap-1.5 text-sm text-mrgn-green">
                   <IconCopy size={14} /> Image {isCopied ? "copied" : "downloaded"}, now share on social.
                 </p>
               )}

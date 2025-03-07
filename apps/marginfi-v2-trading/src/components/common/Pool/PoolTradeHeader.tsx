@@ -170,7 +170,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                     <span
                       className={cn(
                         "text-sm ml-1",
-                        extendedPool.tokenBank.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                        extendedPool.tokenBank.tokenData.volumeChange24hr > 0 ? "text-mrgn-green" : "text-mrgn-error"
                       )}
                     >
                       {extendedPool.tokenBank.tokenData.volumeChange24hr > 0 && "+"}
@@ -202,7 +202,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                         Total Deposits
                         <br />({extendedPool.tokenBank.meta.tokenSymbol})
                       </p>
-                      <p className="text-mrgn-success">
+                      <p className="text-mrgn-green">
                         {percentFormatter.format(aprToApy(extendedPool.tokenBank.info.state.lendingRate))} APY
                       </p>
                       {extendedPool.status === GroupStatus.LP && <p className="mt-2 lg:hidden">Supplied</p>}
@@ -442,7 +442,7 @@ export const PoolTradeHeader = ({ activePool }: { activePool: ArenaPoolV2 }) => 
                       Total Deposits
                       <br />({extendedPool.quoteBank.meta.tokenSymbol})
                     </p>
-                    <p className="text-mrgn-success">
+                    <p className="text-mrgn-green">
                       {percentFormatter.format(aprToApy(extendedPool.quoteBank.info.state.lendingRate))}
                     </p>
                     {extendedPool.status === GroupStatus.LP && extendedPool.tokenBank.isActive && (
