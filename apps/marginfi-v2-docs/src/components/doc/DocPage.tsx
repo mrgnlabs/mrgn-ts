@@ -93,7 +93,7 @@ interface DocTableBlock {
     parametersString?: string;
     resultType?: string;
     description?: any[];
-    suggestion?: string;
+    suggestion?: any[];
   }>;
 }
 

@@ -324,5 +324,19 @@ export function MethodRow({
 }
 
 export function DocTableBlock({ value }: { value: { title?: string; items?: Array<{ name?: string; parametersString?: string; resultType?: string; description?: string }> } }) {
-  return <DocTable title={value.title} items={value.items} />
+  const columns = value.title?.toLowerCase().includes('constant') ? [
+    { header: 'Constant Name', key: 'name', isCode: true },
+    { header: 'Description', key: 'description', width: '1fr' }
+  ] : value.title?.toLowerCase().includes('error') ? [
+    { header: 'Error', key: 'name', isCode: true },
+    { header: 'Description', key: 'description', width: '1fr' },
+    { header: 'Suggestion', key: 'suggestion', width: '1fr' }
+  ] : [
+    { header: 'Method Name', key: 'name', isCode: true },
+    { header: 'Parameters', key: 'parametersString', width: '1fr' },
+    { header: 'Result Type(s)', key: 'resultType', isCode: true },
+    { header: 'Description', key: 'description', width: '1fr' }
+  ];
+  
+  return <DocTable title={value.title} items={value.items} columns={columns} />
 }
