@@ -29,20 +29,18 @@ import { getSwapQuoteWithRetry } from "../helpers";
  * Builds and verifies the size of the Looping transaction.
  */
 export async function verifyTxSizeLooping(props: LoopingProps): Promise<VerifyTxSizeFlashloanResponse> {
-  try {
-    const builder = await loopingBuilder(props);
-
-    if (builder.txOverflown) {
-      // transaction size is too large
-      throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.TX_SIZE);
-    } else {
-      return {
-        ...builder,
-      };
-    }
-  } catch (error) {
+  const builder = await loopingBuilder(props).catch((error) => {
     console.error(error);
     throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.TX_BUILD_FAILED);
+  });
+
+  if (builder.txOverflown) {
+    // transaction size is too large
+    throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.TX_SIZE);
+  } else {
+    return {
+      ...builder,
+    };
   }
 }
 

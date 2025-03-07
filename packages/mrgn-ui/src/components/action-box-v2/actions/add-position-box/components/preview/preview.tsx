@@ -5,33 +5,33 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { ActionStatItem } from "~/components/action-box-v2/components";
 import {
-  getAmountStat,
   getHealthStat,
   getLiquidationStat,
-  getPoolSizeStat,
   getBankTypeStat,
   getOracleStat,
   ActionSummary,
   getPriceImpactStat,
   getSlippageStat,
+  getPlatformFeeStat,
 } from "~/components/action-box-v2/utils";
 
 interface PreviewProps {
-  selectedBank: ExtendedBankInfo | null;
+  tokenBank: ExtendedBankInfo;
+  quoteBank: ExtendedBankInfo;
   isLoading: boolean;
 
   actionSummary?: ActionSummary;
 }
 
-export const Preview = ({ actionSummary, selectedBank, isLoading }: PreviewProps) => {
+export const Preview = ({ actionSummary, tokenBank, quoteBank, isLoading }: PreviewProps) => {
   const stats = React.useMemo(
-    () => (actionSummary && selectedBank ? generateLoopStats(actionSummary, selectedBank, isLoading) : null),
-    [actionSummary, isLoading, selectedBank]
+    () => (actionSummary ? generateTradingStats(actionSummary, tokenBank, quoteBank, isLoading) : null),
+    [actionSummary, isLoading, tokenBank, quoteBank]
   );
 
   return (
     <>
-      {stats && selectedBank && (
+      {stats && (
         <dl className={cn("grid grid-cols-6 gap-y-2 pt-6 text-xs")}>
           {stats.map((stat, idx) => (
             <ActionStatItem
@@ -42,8 +42,8 @@ export const Preview = ({ actionSummary, selectedBank, isLoading }: PreviewProps
                   (stat.color === "SUCCESS"
                     ? "text-success"
                     : stat.color === "ALERT"
-                    ? "text-alert-foreground"
-                    : "text-destructive-foreground")
+                      ? "text-alert-foreground"
+                      : "text-destructive-foreground")
               )}
             >
               <stat.value />
@@ -55,19 +55,23 @@ export const Preview = ({ actionSummary, selectedBank, isLoading }: PreviewProps
   );
 };
 
-function generateLoopStats(summary: ActionSummary, bank: ExtendedBankInfo, isLoading: boolean) {
+function generateTradingStats(
+  summary: ActionSummary,
+  tokenBank: ExtendedBankInfo,
+  quoteBank: ExtendedBankInfo,
+  isLoading: boolean
+) {
   const stats = [];
+
+  const entryPrice = 0;
 
   if (summary.actionPreview.priceImpactPct) stats.push(getPriceImpactStat(summary.actionPreview.priceImpactPct));
   if (summary.actionPreview.slippageBps) stats.push(getSlippageStat(summary.actionPreview.slippageBps));
-
+  if (summary.actionPreview.platformFeeBps) stats.push(getPlatformFeeStat(summary.actionPreview.platformFeeBps));
   stats.push(getHealthStat(summary.actionPreview.health, false, summary.simulationPreview?.health));
 
-  if (summary.simulationPreview?.liquidationPrice && bank.isActive)
-    stats.push(getLiquidationStat(bank, false, summary.simulationPreview?.liquidationPrice));
-
-  stats.push(getBankTypeStat(bank));
-  stats.push(getOracleStat(bank));
+  if (summary.simulationPreview?.liquidationPrice && tokenBank.isActive)
+    stats.push(getLiquidationStat(tokenBank, false, summary.simulationPreview?.liquidationPrice));
 
   return stats;
 }

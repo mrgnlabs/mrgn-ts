@@ -206,9 +206,6 @@ function canBeLooped(
   const isTargetBankPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   const isRepayBankPaused = repayBankInfo?.info.rawBank.config.operationalState === OperationalState.Paused;
 
-  if (!swapQuote) {
-    checks.push({ isEnabled: false });
-  }
   if (!repayBankInfo) {
     checks.push({ isEnabled: false });
   }

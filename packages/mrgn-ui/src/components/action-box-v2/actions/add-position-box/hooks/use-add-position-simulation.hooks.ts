@@ -10,27 +10,24 @@ import {
 import {
   ActionMessageType,
   ActionProcessingError,
-  ActionTxns,
   CalculateTradingProps,
   DYNAMIC_SIMULATION_ERRORS,
   extractErrorString,
   JupiterOptions,
-  LoopActionTxns,
   STATIC_SIMULATION_ERRORS,
   TradeActionTxns,
   usePrevious,
   TradeSide,
 } from "@mrgnlabs/mrgn-utils";
-import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { SimulationStatus } from "~/components/action-box-v2/utils";
 
-import { calculateSummary, generateAddPositionTxns, getSimulationResult } from "../utils";
+import { generateAddPositionTxns, getSimulationResult } from "../utils";
 
 type AddPositionSimulationProps = {
-  depositBank: ExtendedBankInfo | null;
-  borrowBank: ExtendedBankInfo | null;
+  depositBank: ExtendedBankInfo;
+  borrowBank: ExtendedBankInfo;
   tradeSide: TradeSide;
 
   debouncedAmount: number;
@@ -106,6 +103,8 @@ export function useAddPositionSimulation({
   const handleSimulation = React.useCallback(
     async (amount: number, leverage: number) => {
       try {
+        console.log("leverage", leverage);
+        setErrorMessage(null);
         if (
           !selectedAccount ||
           !marginfiClient ||
@@ -144,7 +143,7 @@ export function useAddPositionSimulation({
         const actionTxns = await generateAddPositionTxns(props);
 
         if (!actionTxns.marginfiAccount) {
-          throw new Error("throw");
+          throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED);
         }
 
         const simulationResult = await getSimulationResult({
@@ -166,7 +165,7 @@ export function useAddPositionSimulation({
           });
         } else {
           // TODO: ADD SENTRY LOG
-          console.error("Error simulating repay action", error);
+          console.error("Error simulating add position action", error);
           handleError(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
             setErrorMessage,
             setSimulationResult,
