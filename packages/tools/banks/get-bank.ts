@@ -3,7 +3,7 @@ import { PublicKey } from "@solana/web3.js";
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { getDefaultYargsOptions, getMarginfiProgram } from "../lib/config";
 import { BirdeyeTokenMetadataResponse, Environment } from "../lib/types";
-import { formatNumber, getPythPushOracleAddresses, getBankMetadata } from "../lib/utils";
+import { formatNumber, getPythPushOracleAddresses, getBankMetadata, getBankMetadataFromBirdeye } from "../lib/utils";
 
 dotenv.config();
 
@@ -52,25 +52,8 @@ async function main() {
   const acc = await program.account.bank.fetch(bankPubkey);
   let bankMeta = bankMetadata.find((meta) => meta.bankAddress === bankPubkey.toString());
 
-  // if bank metadata is not found, call birdeye api to get it
   if (!bankMeta) {
-    const birdeyeApiResponse = await fetch(
-      `https://public-api.birdeye.so/defi/v3/token/meta-data/single?address=${acc.mint.toBase58()}`,
-      {
-        headers: {
-          "x-api-key": process.env.BIRDEYE_API_KEY,
-          "x-chain": "solana",
-        },
-      }
-    );
-    const birdeyeApiJson: BirdeyeTokenMetadataResponse = await birdeyeApiResponse.json();
-
-    if (birdeyeApiResponse.ok && birdeyeApiJson.data) {
-      bankMeta = {
-        bankAddress: bankPubkey.toString(),
-        tokenSymbol: birdeyeApiJson.data.symbol,
-      };
-    }
+    bankMeta = await getBankMetadataFromBirdeye(bankPubkey, acc.mint);
   }
 
   const oraclePriceResponse = await fetch(`https://app.marginfi.com/api/oracle/price?banks=${bankPubkey.toString()}`, {
