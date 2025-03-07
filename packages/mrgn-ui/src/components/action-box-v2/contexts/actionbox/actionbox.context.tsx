@@ -6,8 +6,6 @@ import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-clien
 
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
-import { useActionBoxStore } from "../../store";
-
 export type HidePoolStats = Array<"amount" | "health" | "size" | "type" | "oracle" | "liquidation">;
 
 type ActionBoxContextType = {
@@ -28,13 +26,7 @@ export const ActionBoxProvider: React.FC<ActionBoxContextType & { children: Reac
   children,
   ...props
 }) => {
-
-
-  return (
-    <ActionBoxContext.Provider value={props}>
-      {children}
-    </ActionBoxContext.Provider>
-  );
+  return <ActionBoxContext.Provider value={props}>{children}</ActionBoxContext.Provider>;
 };
 
 export const useActionBoxContext = () => {

@@ -12,6 +12,8 @@ import {
   StakeBoxProps,
   DepositSwapBoxProps,
   DepositSwapBox,
+  AddPositionBox,
+  AddPositionBoxProps,
 } from "./actions";
 import { ActionDialogWrapper, ActionBoxWrapper, ActionBoxNavigator } from "./components";
 import { useActionBoxContext, useStakeBoxContext } from "./contexts";
@@ -25,6 +27,7 @@ import {
   RequiredRepayBoxProps,
   RequiredLoopBoxProps,
   RequiredDepositSwapBoxProps,
+  RequiredAddPositionBoxProps,
 } from "./types";
 
 const ActionBox: ActionBoxComponent = (props) => {
@@ -104,6 +107,36 @@ const DepositSwap = (
   );
 };
 ActionBox.DepositSwap = DepositSwap;
+
+const AddPosition = (
+  props: ActionBoxProps & { addPositionProps: RequiredAddPositionBoxProps | AddPositionBoxProps; useProvider?: boolean }
+) => {
+  const contextProps = useActionBoxContext();
+  const { addPositionProps, useProvider, ...actionBoxProps } = props;
+
+  let combinedProps: AddPositionBoxProps;
+
+  if (useProvider && contextProps) {
+    combinedProps = {
+      ...contextProps,
+      ...(addPositionProps as RequiredAddPositionBoxProps),
+    };
+  } else {
+    combinedProps = addPositionProps as AddPositionBoxProps;
+  }
+
+  return (
+    <ActionBox {...actionBoxProps}>
+      <ActionBoxWrapper showSettings={false} isDialog={props.isDialog} actionMode={ActionType.Deposit}>
+        <ActionBoxNavigator selectedAction={ActionType.Deposit}>
+          <AddPositionBox {...combinedProps} isDialog={props.isDialog} />
+        </ActionBoxNavigator>
+      </ActionBoxWrapper>
+    </ActionBox>
+  );
+};
+
+ActionBox.AddPosition = AddPosition;
 
 // const AddReduce = (
 //   props: ActionBoxProps & { lendProps: RequiredLoopBoxProps | LendBoxProps; useProvider?: boolean }
