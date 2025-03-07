@@ -31,7 +31,7 @@ function createAddPositionBoxStore() {
 
 const initialState = {
   amountRaw: "",
-  leverage: 0,
+  leverage: 1,
   maxLeverage: 0,
   selectedBank: null,
   simulationResult: null,

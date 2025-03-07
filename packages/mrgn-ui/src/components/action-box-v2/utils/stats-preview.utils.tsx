@@ -18,6 +18,7 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 import { Skeleton } from "~/components/ui/skeleton";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
 import { IconLoader, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { QuoteResponse } from "@jup-ag/api";
 
 export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 
@@ -27,10 +28,10 @@ export interface PreviewStat {
   value: () => React.JSX.Element;
 }
 
-export function getJupFeeStat(platformFee: number): PreviewStat {
+export function getPlatformFeeStat(platformFeeBps: number): PreviewStat {
   return {
     label: "Platform fee",
-    value: () => <>0.25%</>,
+    value: () => <>{percentFormatter.format(platformFeeBps / 10000)}</>,
   };
 }
 
@@ -247,15 +248,21 @@ export function getBankTypeStat(bank: ExtendedBankInfo): PreviewStat {
 
 export function getOracleStat(bank: ExtendedBankInfo): PreviewStat {
   let oracle = "";
+  let oracleIcon = <></>;
   switch (bank?.info.rawBank.config.oracleSetup) {
     case "PythLegacy":
       oracle = "Pyth";
       break;
     case "PythPushOracle":
       oracle = "Pyth";
+      oracleIcon = <IconPyth size={14} />;
       break;
     case "SwitchboardV2":
       oracle = "Switchboard";
+      oracleIcon = <IconSwitchboard size={14} />;
+      break;
+    default:
+      oracle = "Unknown";
       break;
   }
 
@@ -264,7 +271,7 @@ export function getOracleStat(bank: ExtendedBankInfo): PreviewStat {
     value: () => (
       <>
         {oracle}
-        {oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}
+        {oracleIcon}
       </>
     ),
   };

@@ -78,6 +78,7 @@ function calculateActionPreview(
 
   const priceImpactPct = actionTxns.actionQuote?.priceImpactPct;
   const slippageBps = actionTxns.actionQuote?.slippageBps;
+  const platformFeeBps = actionTxns.actionQuote?.platformFee?.feeBps;
 
   const actionPreview: ActionPreview = {
     positionAmount,
@@ -86,6 +87,7 @@ function calculateActionPreview(
     bankCap,
     priceImpactPct: priceImpactPct ? Number(priceImpactPct) : undefined,
     slippageBps,
+    platformFeeBps,
   };
   return actionPreview;
 }

@@ -9,24 +9,19 @@ import {
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { WalletContextState } from "@solana/wallet-adapter-react";
-
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
   checkLoopActionAvailable,
   usePrevious,
   ExecuteLoopActionProps,
-  ExecuteLoopAction,
+  executeLoopAction,
 } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
-import { WalletContextStateOverride } from "~/components/wallet-v2";
-import { CircularProgress } from "~/components/ui/circular-progress";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
-import { useActionAmounts, usePollBlockHeight } from "~/components/action-box-v2/hooks";
+import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { ActionMessage } from "~/components";
 
 import { SimulationStatus } from "../../utils/simulation.utils";
@@ -269,7 +264,7 @@ export const LoopBox = ({
       nativeSolBalance: nativeSolBalance,
     };
 
-    ExecuteLoopAction(params);
+    executeLoopAction(params);
 
     setAmountRaw("");
   }, [
@@ -394,7 +389,7 @@ export const LoopBox = ({
           simulationStatus={simulationStatus.status}
           hasErrorMessages={additionalActionMessages.length > 0}
           isActive={selectedBank && amount > 0 ? true : false}
-          actionType={ActionType.Loop}
+          spinnerType="loop"
         />
         {setDisplaySettings && <ActionSettingsButton onClick={() => setDisplaySettings(true)} />}
       </div>

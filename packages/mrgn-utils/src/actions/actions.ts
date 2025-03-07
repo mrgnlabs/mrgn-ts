@@ -172,7 +172,7 @@ export interface ExecuteLendingActionProps extends ExecuteActionProps {
   };
 }
 
-export async function ExecuteLendingAction(props: ExecuteLendingActionProps) {
+export async function executeLendingAction(props: ExecuteLendingActionProps) {
   const steps = getSteps(props.actionTxns, {
     amount: props.infoProps.amount,
     token: props.infoProps.token,
@@ -221,7 +221,7 @@ export interface ExecuteLoopActionProps extends ExecuteActionProps {
   };
 }
 
-export async function ExecuteLoopAction(props: ExecuteLoopActionProps) {
+export async function executeLoopAction(props: ExecuteLoopActionProps) {
   const steps = getSteps(props.actionTxns, {
     depositAmount: props.infoProps.depositAmount,
     depositToken: props.infoProps.depositToken,
@@ -378,7 +378,7 @@ export interface ExecuteTradeActionProps extends ExecuteActionProps {
   };
 }
 
-export async function ExecuteTradeAction(props: ExecuteTradeActionProps) {
+export async function executeTradeAction(props: ExecuteTradeActionProps) {
   const steps = getSteps(props.actionTxns, {
     depositAmount: props.infoProps.depositAmount,
     depositToken: props.infoProps.depositToken,

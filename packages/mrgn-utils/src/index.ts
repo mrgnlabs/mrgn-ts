@@ -1,4 +1,6 @@
 export * from "./types";
+export * from "./types/lend.types";
+export * from "./types/arena.types";
 export * from "./actions";
 export * from "./errors";
 export * from "./theme";

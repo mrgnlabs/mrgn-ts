@@ -4,11 +4,13 @@ import React from "react";
 import { WalletButton } from "~/components/wallet-v2";
 import { Button } from "~/components/ui/button";
 import { IconInfiniteLoader } from "~/components/ui/icons";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 type ActionButtonProps = {
   isLoading: boolean;
   isEnabled: boolean;
   buttonLabel: string;
+  className?: string;
   loaderType?: "INFINITE" | "DEFAULT";
   connected?: boolean;
   handleAction: () => void;
@@ -18,6 +20,7 @@ export const ActionButton = ({
   isLoading,
   isEnabled,
   buttonLabel,
+  className,
   loaderType = "DEFAULT",
   connected = false,
   handleAction,
@@ -38,7 +41,7 @@ export const ActionButton = ({
   }
 
   return (
-    <Button disabled={isLoading || !isEnabled} className="w-full py-5" onClick={handleAction}>
+    <Button disabled={isLoading || !isEnabled} className={cn("w-full py-5", className)} onClick={handleAction}>
       {isLoading ? <Loader className={`${loaderType === "DEFAULT" && "animate-spin"}`} /> : buttonLabel}
     </Button>
   );

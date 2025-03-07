@@ -19,7 +19,7 @@ import {
   ActionMessageType,
   checkLendActionAvailable,
   ExecuteLendingActionProps,
-  ExecuteLendingAction,
+  executeLendingAction,
   usePrevious,
   useIsMobile,
   LendSelectionGroups,
@@ -316,7 +316,7 @@ export const LendBox = ({
       actionType: lendMode,
     };
 
-    ExecuteLendingAction(props);
+    executeLendingAction(props);
 
     setAmountRaw("");
   }, [
