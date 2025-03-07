@@ -59,7 +59,7 @@ const ActionSimulationStatus = ({
       )}
 
       {simulationCompleteStatus === SimulationCompleteStatus.SUCCESS && (
-        <p className="text-xs flex items-center gap-1 mr-auto text-mrgn-success">
+        <p className="text-xs flex items-center gap-1 mr-auto text-mrgn-green">
           <IconCheck size={14} /> Simulation complete!
         </p>
       )}

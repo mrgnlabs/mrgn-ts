@@ -171,7 +171,7 @@ export const PoolSearchDefault = ({
                                 className={cn(
                                   "text-xs ml-1",
                                   tokenBank.tokenData.priceChange24hr - quoteBank.tokenData.priceChange24hr > 0
-                                    ? "text-mrgn-success"
+                                    ? "text-mrgn-green"
                                     : "text-mrgn-error"
                                 )}
                               >
@@ -190,7 +190,7 @@ export const PoolSearchDefault = ({
                             <span
                               className={cn(
                                 "text-xs",
-                                tokenBank.tokenData.volumeChange24hr > 0 ? "text-mrgn-success" : "text-mrgn-error"
+                                tokenBank.tokenData.volumeChange24hr > 0 ? "text-mrgn-green" : "text-mrgn-error"
                               )}
                             >
                               {tokenBank.tokenData.volumeChange24hr > 0 && "+"}
