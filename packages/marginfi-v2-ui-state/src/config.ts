@@ -1,5 +1,5 @@
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBPAKOn7YKvEHg6iXTRbyZws3G4kPhWjtQ",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: "marginfi-dev.firebaseapp.com",
   projectId: "marginfi-dev",
   storageBucket: "marginfi-dev.appspot.com",
