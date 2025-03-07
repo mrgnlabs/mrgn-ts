@@ -4,8 +4,9 @@ import dotenv from "dotenv";
 import BigNumber from "bignumber.js";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { AccountCache } from "./types";
+import { AccountCache, BankMetadata, BirdeyeTokenMetadataResponse } from "./types";
 import { PYTH_PUSH_ORACLE_ID, PYTH_SPONSORED_SHARD_ID, MARGINFI_SPONSORED_SHARD_ID } from "./constants";
+import { Bank } from "@mrgnlabs/marginfi-client-v2";
 
 dotenv.config();
 
@@ -68,7 +69,24 @@ export async function getBankMetadata(): Promise<BankMetadata[]> {
   return [...bankMetadata, ...stakedBankMetadata];
 }
 
-export type BankMetadata = {
-  bankAddress: string;
-  tokenSymbol: string;
-};
+export async function getBankMetadataFromBirdeye(bank: PublicKey, mint: PublicKey) {
+  const birdeyeApiResponse = await fetch(
+    `https://public-api.birdeye.so/defi/v3/token/meta-data/single?address=${mint.toBase58()}`,
+    {
+      headers: {
+        "x-api-key": process.env.BIRDEYE_API_KEY,
+        "x-chain": "solana",
+      },
+    }
+  );
+  const birdeyeApiJson: BirdeyeTokenMetadataResponse = await birdeyeApiResponse.json();
+
+  if (birdeyeApiResponse.ok && birdeyeApiJson.data) {
+    return {
+      bankAddress: bank.toString(),
+      tokenSymbol: birdeyeApiJson.data.symbol,
+    };
+  }
+
+  return null;
+}

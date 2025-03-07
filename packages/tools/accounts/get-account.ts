@@ -3,7 +3,7 @@ import { PublicKey } from "@solana/web3.js";
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { getDefaultYargsOptions, getMarginfiProgram } from "../lib/config";
 import { Environment } from "../lib/types";
-import { formatNumber, getBankMetadata } from "../lib/utils";
+import { formatNumber, getBankMetadata, getBankMetadataFromBirdeye } from "../lib/utils";
 
 dotenv.config();
 
@@ -52,7 +52,11 @@ async function main() {
     totalDeposits += Number(assetAmount);
     totalLiabilities += Number(liabAmount);
 
-    const bankMeta = bankMetadata.find((meta) => meta.bankAddress === balances[i].bankPk.toString());
+    let bankMeta = bankMetadata.find((meta) => meta.bankAddress === balances[i].bankPk.toString());
+
+    if (!bankMeta) {
+      bankMeta = await getBankMetadataFromBirdeye(balances[i].bankPk, bank.mint);
+    }
 
     // Convert timestamp to readable date
     const timestamp = Number(balances[i].lastUpdate.toString());
