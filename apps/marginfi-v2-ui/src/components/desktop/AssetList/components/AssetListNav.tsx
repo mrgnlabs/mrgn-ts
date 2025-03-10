@@ -99,11 +99,14 @@ const AssetListNav = () => {
           )}
           <Label
             className={cn(
-              "text-muted-foreground/60 hover:text-foreground/50 cursor-pointer transition-colors",
-              lendingMode === LendingModes.BORROW && "text-foreground"
+              "text-muted-foreground/60 ",
+              lendingMode === LendingModes.BORROW && "text-foreground",
+              poolFilter === PoolTypes.NATIVE_STAKE
+                ? "cursor-not-allowed"
+                : "hover:text-foreground/50 cursor-pointer transition-colors"
             )}
             onClick={() => {
-              setLendingMode(LendingModes.BORROW);
+              poolFilter !== PoolTypes.NATIVE_STAKE && setLendingMode(LendingModes.BORROW);
             }}
           >
             Borrow
