@@ -28,7 +28,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const poolListData: PoolListApiResponseRaw = await response.json();
-    const poolList: PoolListApiResponse[] = poolListData.data;
+    let poolList: PoolListApiResponse[] = poolListData.data;
+
+    // temporary fix for the pool list
+    poolList = poolList.filter((pool) => pool.group && pool.quote_bank.mint.address && pool.base_bank.mint.symbol);
 
     // Set cache headers
     res.setHeader("Cache-Control", `s-maxage=${S_MAXAGE_TIME}, stale-while-revalidate=${STALE_WHILE_REVALIDATE_TIME}`);
