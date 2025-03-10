@@ -2,7 +2,7 @@ import React from "react";
 import { IconArrowRight, IconFlame, IconLoader2 } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
-import { cn, getBearerToken, useIsMobile } from "@mrgnlabs/mrgn-utils";
+import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";
 import { useTradeStoreV2 } from "~/store";
 
 import { Button } from "~/components/ui/button";

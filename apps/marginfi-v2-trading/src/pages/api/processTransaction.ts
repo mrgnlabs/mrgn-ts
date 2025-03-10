@@ -1,23 +1,12 @@
-import cookie from "cookie";
 import { NextApiRequest, NextApiResponse } from "next";
-import { fetchAuthToken } from "~/utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!process.env.MARGINFI_API_URL) {
     return res.status(500).json({ error: "API URL is not set" });
   }
 
-  const cookies = cookie.parse(req.headers.cookie || "");
-  let token = cookies.jwt;
-
-  // If the token is missing, fetch a new one
-  if (!token) {
-    try {
-      token = await fetchAuthToken(req);
-    } catch (error) {
-      console.error("Error fetching new JWT:", error);
-      return res.status(401).json({ error: "Unauthorized: Unable to fetch token" });
-    }
+  if (!process.env.MRGN_ARENA_API_KEY) {
+    return res.status(500).json({ error: "API Key is not set" });
   }
 
   try {
@@ -25,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        "X-API-Key": process.env.MRGN_ARENA_API_KEY,
       },
       body: JSON.stringify({}),
     });
