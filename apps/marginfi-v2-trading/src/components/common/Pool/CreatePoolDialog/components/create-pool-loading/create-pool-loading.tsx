@@ -16,9 +16,8 @@ import {
   OracleSetup,
   addOracleToBanksIx,
   getConfig,
-  instructions,
 } from "@mrgnlabs/marginfi-client-v2";
-import { cn, getBearerToken, getFeeAccount, createReferalTokenAccountIxs } from "@mrgnlabs/mrgn-utils";
+import { cn, getFeeAccount, createReferalTokenAccountIxs } from "@mrgnlabs/mrgn-utils";
 import { addTransactionMetadata, SolanaTransaction, TransactionType } from "@mrgnlabs/mrgn-common";
 
 import { Button } from "~/components/ui/button";

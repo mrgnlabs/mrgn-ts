@@ -1,31 +1,22 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import cookie from "cookie";
-import { fetchAuthToken } from "~/utils";
-
-const ARENA_URL = `${process.env.MARGINFI_API_URL}/arena/register`;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const cookies = cookie.parse(req.headers.cookie || "");
-    let token = cookies.jwt;
+    if (!process.env.MARGINFI_API_URL) {
+      return res.status(500).json({ error: "API URL is not set" });
+    }
 
-    // If the token is missing, fetch a new one
-    if (!token) {
-      try {
-        token = await fetchAuthToken(req);
-      } catch (error) {
-        console.error("Error fetching new JWT:", error);
-        return res.status(401).json({ error: "Unauthorized: Unable to fetch token" });
-      }
+    if (!process.env.MRGN_ARENA_API_KEY) {
+      return res.status(500).json({ error: "API Key is not set" });
     }
 
     const { base_bank, created_by, group, lookup_tables, quote_bank } = req.body;
 
-    const response = await fetch(ARENA_URL, {
+    const response = await fetch(`${process.env.MARGINFI_API_URL}/arena/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        "X-API-Key": process.env.MRGN_ARENA_API_KEY,
       },
       body: JSON.stringify({
         base_bank,
