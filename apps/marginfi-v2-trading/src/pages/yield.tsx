@@ -3,7 +3,7 @@ import React from "react";
 import Fuse from "fuse.js";
 import { IconSortDescending, IconSortAscending, IconSearch } from "@tabler/icons-react";
 
-import { Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+import { ArenaGroupStatus, Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
 
 import { useTradeStoreV2 } from "~/store";
 import { TradePoolFilterStates } from "~/store/tradeStoreV2";
@@ -21,7 +21,6 @@ import { useExtendedPools } from "~/hooks/useExtendedPools";
 import { GetStaticProps } from "next";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
-import { GroupStatus } from "~/types";
 import { Switch } from "~/components/ui/switch";
 import { Label } from "~/components/ui/label";
 
@@ -53,9 +52,11 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
   const extendedPools = useExtendedPools();
 
   const availablePools = React.useMemo(() => {
-    const pools = extendedPools.filter((pool) => pool.status === GroupStatus.EMPTY || pool.status === GroupStatus.LP);
+    const pools = extendedPools.filter(
+      (pool) => pool.status === ArenaGroupStatus.EMPTY || pool.status === ArenaGroupStatus.LP
+    );
     if (showActivePositions) {
-      return pools.filter((pool) => pool.status === GroupStatus.LP);
+      return pools.filter((pool) => pool.status === ArenaGroupStatus.LP);
     }
     return pools;
   }, [extendedPools, showActivePositions]);
