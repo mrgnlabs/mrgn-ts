@@ -1,7 +1,6 @@
 import cookie from "cookie";
 import { NextApiRequest, NextApiResponse } from "next";
 import { PoolPnlApiResponse, PoolPnlMapApiResponse } from "~/types/api.types";
-import { fetchAuthToken } from "~/utils";
 
 // Cache times in seconds
 const S_MAXAGE_TIME = 60 * 0.5; // 30 seconds
@@ -12,17 +11,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: "API URL is not set" });
   }
 
-  const cookies = cookie.parse(req.headers.cookie || "");
-  let token = cookies.jwt;
-
-  // If the token is missing, fetch a new one
-  if (!token) {
-    try {
-      token = await fetchAuthToken(req);
-    } catch (error) {
-      console.error("Error fetching new JWT:", error);
-      return res.status(401).json({ error: "Unauthorized: Unable to fetch token" });
-    }
+  if (!process.env.MRGN_ARENA_API_KEY) {
+    return res.status(500).json({ error: "API Key is not set" });
   }
 
   const { address } = req.query;
@@ -31,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const response = await fetch(`${process.env.MARGINFI_API_URL}/arena/pnl/${address}`, {
       headers: {
         Accept: "application/json",
-        Authorization: `Bearer ${token}`,
+        "X-API-Key": process.env.MRGN_ARENA_API_KEY,
       },
     });
 

@@ -510,29 +510,3 @@ export function getPoolPositionStatus(pool: ArenaPoolV2, tokenBank: ArenaBank, q
 
   return status;
 }
-
-//Helper function to fetch a new token from auth.ts
-export async function fetchAuthToken(req: NextApiRequest): Promise<string> {
-  const protocol = req.headers["x-forwarded-proto"] || "http";
-  const host = req.headers.host;
-  const baseUrl = `${protocol}://${host}`;
-
-  const authResponse = await fetch(`${baseUrl}/api/pool/auth`, {
-    method: "GET",
-    headers: {
-      cookie: req.headers.cookie || "",
-    },
-  });
-
-  if (!authResponse.ok) {
-    throw new Error("Failed to fetch new JWT from auth endpoint");
-  }
-
-  const { success, token } = await authResponse.json();
-
-  if (!success || !token) {
-    throw new Error("Auth endpoint did not return a valid token");
-  }
-
-  return token;
-}
