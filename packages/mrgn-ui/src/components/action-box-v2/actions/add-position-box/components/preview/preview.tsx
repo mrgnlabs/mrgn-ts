@@ -13,20 +13,33 @@ import {
   getPriceImpactStat,
   getSlippageStat,
   getPlatformFeeStat,
+  getLeverageStat,
+  getPositionSizeStat,
 } from "~/components/action-box-v2/utils";
 
 interface PreviewProps {
   tokenBank: ExtendedBankInfo;
   quoteBank: ExtendedBankInfo;
-  isLoading: boolean;
-
+  depositAmount: number;
+  borrowAmount: number;
   actionSummary?: ActionSummary;
+  isLoading: boolean;
 }
 
-export const Preview = ({ actionSummary, tokenBank, quoteBank, isLoading }: PreviewProps) => {
+export const Preview = ({
+  actionSummary,
+  tokenBank,
+  quoteBank,
+  depositAmount,
+  borrowAmount,
+  isLoading,
+}: PreviewProps) => {
   const stats = React.useMemo(
-    () => (actionSummary ? generateTradingStats(actionSummary, tokenBank, quoteBank, isLoading) : null),
-    [actionSummary, isLoading, tokenBank, quoteBank]
+    () =>
+      actionSummary
+        ? generateTradingStats(actionSummary, tokenBank, quoteBank, depositAmount, borrowAmount, isLoading)
+        : null,
+    [actionSummary, tokenBank, quoteBank, depositAmount, borrowAmount, isLoading]
   );
 
   return (
@@ -59,17 +72,18 @@ function generateTradingStats(
   summary: ActionSummary,
   tokenBank: ExtendedBankInfo,
   quoteBank: ExtendedBankInfo,
+  depositAmount: number,
+  borrowAmount: number,
   isLoading: boolean
 ) {
   const stats = [];
 
-  const entryPrice = 0;
-
+  stats.push(getHealthStat(summary.actionPreview.health, false, summary.simulationPreview?.health));
+  stats.push(getLeverageStat(tokenBank, quoteBank, depositAmount, borrowAmount, isLoading));
+  stats.push(getPositionSizeStat(tokenBank, quoteBank, depositAmount, borrowAmount, isLoading));
   if (summary.actionPreview.priceImpactPct) stats.push(getPriceImpactStat(summary.actionPreview.priceImpactPct));
   if (summary.actionPreview.slippageBps) stats.push(getSlippageStat(summary.actionPreview.slippageBps));
   if (summary.actionPreview.platformFeeBps) stats.push(getPlatformFeeStat(summary.actionPreview.platformFeeBps));
-  stats.push(getHealthStat(summary.actionPreview.health, false, summary.simulationPreview?.health));
-
   if (summary.simulationPreview?.liquidationPrice && tokenBank.isActive)
     stats.push(getLiquidationStat(tokenBank, false, summary.simulationPreview?.liquidationPrice));
 

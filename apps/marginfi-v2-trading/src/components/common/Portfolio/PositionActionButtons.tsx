@@ -156,7 +156,9 @@ export const PositionActionButtons = ({
               requestedSecondaryBank: depositBanks[0],
               banks: borrowBank ? [borrowBank, depositBanks[0]] : [depositBanks[0]],
               connected: connected,
-              showAvailableCollateral: false,
+              additionalSettings: {
+                showAvailableCollateral: false,
+              },
               captureEvent: (event, properties) => {
                 capture("position_reduce_btn_click", {
                   group: arenaPool.groupPk?.toBase58(),
