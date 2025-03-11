@@ -37,7 +37,8 @@ export function getLeverageStat(
   borrowBank: ExtendedBankInfo,
   depositAmount: number,
   borrowAmount: number,
-  isLoading: boolean
+  isLoading: boolean,
+  isSimulated: boolean
 ): PreviewStat {
   const depositValue = depositBank.isActive ? depositBank.position.usdValue : 0;
   const borrowValue = borrowBank.isActive ? borrowBank.position.usdValue : 0;
@@ -58,8 +59,14 @@ export function getLeverageStat(
     value: () => (
       <>
         {currentLeverage}x
-        <IconArrowRight width={12} height={12} />
-        {isLoading ? <Skeleton className="h-4 w-[45px] bg-muted" /> : <>{newleverage}x</>}
+        {isSimulated || isLoading ? (
+          <>
+            <IconArrowRight width={12} height={12} />
+            {isLoading ? <Skeleton className="h-4 w-[45px] bg-muted" /> : <>{newleverage}x</>}
+          </>
+        ) : (
+          <></>
+        )}
       </>
     ),
   };
@@ -70,7 +77,8 @@ export function getPositionSizeStat(
   borrowBank: ExtendedBankInfo,
   depositAmount: number,
   borrowAmount: number,
-  isLoading: boolean
+  isLoading: boolean,
+  isSimulated: boolean
 ): PreviewStat {
   const depositValue = depositBank.isActive ? depositBank.position.usdValue : 0;
   const borrowValue = borrowBank.isActive ? borrowBank.position.usdValue : 0;
@@ -78,16 +86,22 @@ export function getPositionSizeStat(
   const newDepositValue = depositValue + depositAmount * depositBank.info.oraclePrice.priceRealtime.price.toNumber();
   const newBorrowValue = borrowValue + borrowAmount * borrowBank.info.oraclePrice.priceRealtime.price.toNumber();
 
-  const positionSize = depositValue - borrowValue;
-  const newPositionSize = newDepositValue - newBorrowValue;
+  const positionSize = depositValue;
+  const newPositionSize = newDepositValue;
 
   return {
     label: "Position size",
     value: () => (
       <>
         {usdFormatter.format(positionSize)}
-        <IconArrowRight width={12} height={12} />
-        {isLoading ? <Skeleton className="h-4 w-[45px] bg-muted" /> : <>{usdFormatter.format(newPositionSize)}</>}
+        {isSimulated || isLoading ? (
+          <>
+            <IconArrowRight width={12} height={12} />
+            {isLoading ? <Skeleton className="h-4 w-[45px] bg-muted" /> : <>{usdFormatter.format(newPositionSize)}</>}
+          </>
+        ) : (
+          <></>
+        )}
       </>
     ),
   };
@@ -145,34 +159,40 @@ export function getSlippageStat(slippageBps: number): PreviewStat {
 }
 
 export function getHealthStat(health: number, isLoading: boolean, simulationHealth?: number): PreviewStat {
-  let computeHealth = simulationHealth ? (isNaN(simulationHealth) ? health : simulationHealth) : health;
+  const computeHealth = simulationHealth !== undefined && !isNaN(simulationHealth) ? simulationHealth : health;
   const healthColor = computeHealth >= 0.5 ? "SUCCESS" : computeHealth >= 0.25 ? "ALERT" : "DESTRUCTIVE";
+
+  const isSimulated = simulationHealth !== undefined;
 
   return {
     label: "Health",
     color: healthColor,
     value: () => (
       <>
-        {health && percentFormatter.format(health)}
-        {simulationHealth ? <IconArrowRight width={12} height={12} /> : ""}
-        {isLoading ? (
-          <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
-        ) : simulationHealth ? (
-          percentFormatter.format(simulationHealth)
-        ) : (
-          ""
+        {percentFormatter.format(health)}
+        {(isSimulated || isLoading) && (
+          <>
+            <IconArrowRight width={12} height={12} />
+            {isLoading ? (
+              <Skeleton className="h-4 w-[45px] bg-muted" />
+            ) : (
+              percentFormatter.format(simulationHealth ?? 0)
+            )}
+          </>
         )}
       </>
     ),
   };
 }
 
-export function getLiquidationStat(bank: ActiveBankInfo, isLoading: boolean, simulationLiq: number): PreviewStat {
+export function getLiquidationStat(bank: ActiveBankInfo, isLoading: boolean, simulationLiq?: number): PreviewStat {
   const price = bank ? getPriceWithConfidence(bank.info.oraclePrice, false).price.toNumber() : 0;
 
-  const computeLiquidation = isNaN(simulationLiq)
+  const computeLiquidation = isNaN(simulationLiq ?? 0)
     ? bank.position.liquidationPrice
     : (simulationLiq ?? bank.position.liquidationPrice);
+
+  const isSimulated = simulationLiq !== undefined;
 
   const healthColor = computeLiquidation
     ? computeLiquidation > 0.5 * price
@@ -182,21 +202,30 @@ export function getLiquidationStat(bank: ActiveBankInfo, isLoading: boolean, sim
         : "DESTRUCTIVE"
     : undefined;
 
+  const liquidationPrice =
+    bank.position.liquidationPrice &&
+    bank.position.liquidationPrice > 0.01 &&
+    usdFormatter.format(bank.position.liquidationPrice);
+
   return {
     label: "Liquidation price",
     color: healthColor,
     value: () => (
       <>
-        {bank.position.liquidationPrice &&
-          bank.position.liquidationPrice > 0.01 &&
-          usdFormatter.format(bank.position.liquidationPrice)}
-        {bank.position.liquidationPrice && simulationLiq && <IconArrowRight width={12} height={12} />}
-        {isLoading ? (
-          <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
-        ) : simulationLiq ? (
-          usdFormatter.format(simulationLiq)
+        {liquidationPrice}
+        {isSimulated || isLoading ? (
+          <>
+            {<IconArrowRight width={12} height={12} />}
+            {isLoading ? (
+              <Skeleton className="h-4 w-[45px] bg-muted" />
+            ) : simulationLiq ? (
+              usdFormatter.format(simulationLiq)
+            ) : (
+              ""
+            )}{" "}
+          </>
         ) : (
-          ""
+          <></>
         )}
       </>
     ),
@@ -341,13 +370,13 @@ export function getSupplyStat(supply: number, isLoading: boolean, simulationSupp
     value: () => (
       <>
         {supply && numeralFormatter(supply)}
-        {simulationSupply ? <IconArrowRight width={12} height={12} /> : ""}
-        {isLoading ? (
-          <Skeleton className="h-4 w-[45px] bg-[#373F45]" />
-        ) : simulationSupply ? (
-          numeralFormatter(simulationSupply)
+        {simulationSupply ? (
+          <>
+            <IconArrowRight width={12} height={12} />
+            {isLoading ? <Skeleton className="h-4 w-[45px] bg-[#373F45]" /> : numeralFormatter(simulationSupply)}
+          </>
         ) : (
-          ""
+          <></>
         )}
       </>
     ),

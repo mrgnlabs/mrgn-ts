@@ -34,15 +34,15 @@ import {
   ActionSettingsButton,
 } from "~/components/action-box-v2/components";
 
-import { ActionInput, Preview } from "./components";
+import { ActionInput, Preview, PreviewProps } from "./components";
 import { useRepaySimulation } from "./hooks";
 import { useRepayBoxStore } from "./store";
 
 type AdditionalSettings = {
   showAvailableCollateral?: boolean;
-  selectableInput?: boolean;
+  isInputSelectable?: boolean;
   overrideButtonLabel?: string;
-  overrideStats?: (summary: ActionSummary, bank: ExtendedBankInfo) => PreviewStat[];
+  overrideStats?: (props: PreviewProps) => PreviewStat[];
 };
 
 export type RepayBoxProps = {
@@ -342,6 +342,7 @@ export const RepayBox = ({
           setSelectedSecondaryBank={setSelectedSecondaryBank}
           maxAmountCollateral={maxAmountCollateral}
           actionMethod={actionMode}
+          isInputSelectable={additionalSettings?.isInputSelectable}
         />
       </div>
 
@@ -387,11 +388,17 @@ export const RepayBox = ({
         {setDisplaySettings && <ActionSettingsButton onClick={() => setDisplaySettings(true)} />}
       </div>
 
-      <Preview
-        actionSummary={actionSummary}
-        selectedBank={selectedBank}
-        overrideStats={additionalSettings?.overrideStats}
-      />
+      {actionSummary && selectedBank && (
+        <Preview
+          actionSummary={actionSummary}
+          depositBank={selectedBank}
+          borrowBank={selectedSecondaryBank}
+          depositAmount={amount}
+          borrowAmount={repayAmount}
+          isLoading={simulationStatus.isLoading}
+          overrideStats={additionalSettings?.overrideStats}
+        />
+      )}
     </ActionBoxContentWrapper>
   );
 };

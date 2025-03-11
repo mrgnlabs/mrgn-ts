@@ -18,26 +18,38 @@ import {
   PreviewStat,
 } from "~/components/action-box-v2/utils";
 
-interface PreviewProps {
-  selectedBank: ExtendedBankInfo | null;
-  actionSummary?: ActionSummary;
-  overrideStats?: (summary: ActionSummary, bank: ExtendedBankInfo) => PreviewStat[];
-}
+export type PreviewProps = {
+  actionSummary: ActionSummary;
+  depositBank: ExtendedBankInfo;
+  borrowBank: ExtendedBankInfo | null;
+  depositAmount: number;
+  borrowAmount: number;
+  isLoading: boolean;
+  overrideStats?: (props: PreviewProps) => PreviewStat[];
+};
 
-export const Preview = ({ actionSummary, selectedBank, overrideStats }: PreviewProps) => {
+export const Preview = ({
+  actionSummary,
+  depositBank,
+  borrowBank,
+  depositAmount,
+  borrowAmount,
+  isLoading,
+  overrideStats,
+}: PreviewProps) => {
   const stats = React.useMemo(
     () =>
-      actionSummary && selectedBank
+      actionSummary && depositBank && borrowBank
         ? overrideStats
-          ? overrideStats(actionSummary, selectedBank)
-          : generateRepayCollatStats(actionSummary, selectedBank)
+          ? overrideStats({ actionSummary, depositBank, borrowBank, depositAmount, borrowAmount, isLoading })
+          : generateRepayCollatStats(actionSummary, depositBank)
         : null,
-    [actionSummary, selectedBank, overrideStats]
+    [actionSummary, depositBank, borrowBank, overrideStats, depositAmount, borrowAmount, isLoading]
   );
 
   return (
     <>
-      {stats && selectedBank && (
+      {stats && depositBank && borrowBank && (
         <dl className={cn("grid grid-cols-6 gap-y-2 pt-6 text-xs")}>
           {stats.map((stat, idx) => (
             <ActionStatItem

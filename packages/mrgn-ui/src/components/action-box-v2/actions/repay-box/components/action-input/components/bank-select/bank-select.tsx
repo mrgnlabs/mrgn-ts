@@ -12,6 +12,7 @@ interface BankSelectProps {
   selectedSecondaryBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
+  isInputSelectable?: boolean;
 
   setTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   setSecondaryTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
@@ -22,11 +23,12 @@ export const BankSelect = ({
   selectedSecondaryBank,
   banks,
   nativeSolBalance,
+  isInputSelectable,
 
   setSecondaryTokenBank,
 }: BankSelectProps) => {
   // idea check list if banks[] == 1 make it unselectable
-  const isSelectable = React.useMemo(() => true, []);
+
   const [isOpen, setIsOpen] = React.useState(false);
 
   const calculateRate = React.useCallback((bank: ExtendedBankInfo) => {
@@ -35,19 +37,19 @@ export const BankSelect = ({
 
   return (
     <>
-      {!isSelectable && (
+      {isInputSelectable === false && (
         <div className="flex gap-3 w-full items-center">
           {selectedBank && (
             <SelectedBankItem
-              bank={selectedBank}
+              bank={selectedSecondaryBank || selectedBank}
               lendingMode={LendingModes.BORROW}
-              rate={calculateRate(selectedBank)}
+              rate={calculateRate(selectedSecondaryBank || selectedBank)}
             />
           )}
         </div>
       )}
 
-      {isSelectable && (
+      {(isInputSelectable === true || isInputSelectable === undefined) && (
         <BankListWrapper
           isOpen={isOpen}
           setIsOpen={setIsOpen}

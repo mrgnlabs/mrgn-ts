@@ -166,7 +166,7 @@ export function useAddPositionSimulation({
         } else {
           // TODO: ADD SENTRY LOG
           console.error("Error simulating add position action", error);
-          handleError(STATIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED, {
+          handleError(STATIC_SIMULATION_ERRORS.ADD_POSITION_FAILED, {
             setErrorMessage,
             setSimulationResult,
             setActionTxns,

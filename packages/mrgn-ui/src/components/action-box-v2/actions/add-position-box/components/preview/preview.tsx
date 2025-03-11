@@ -4,22 +4,11 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { ActionStatItem } from "~/components/action-box-v2/components";
-import {
-  getHealthStat,
-  getLiquidationStat,
-  getBankTypeStat,
-  getOracleStat,
-  ActionSummary,
-  getPriceImpactStat,
-  getSlippageStat,
-  getPlatformFeeStat,
-  getLeverageStat,
-  getPositionSizeStat,
-} from "~/components/action-box-v2/utils";
+import { ActionSummary, generateTradingStats } from "~/components/action-box-v2/utils";
 
 interface PreviewProps {
-  tokenBank: ExtendedBankInfo;
-  quoteBank: ExtendedBankInfo;
+  depositBank: ExtendedBankInfo;
+  borrowBank: ExtendedBankInfo;
   depositAmount: number;
   borrowAmount: number;
   actionSummary?: ActionSummary;
@@ -28,8 +17,8 @@ interface PreviewProps {
 
 export const Preview = ({
   actionSummary,
-  tokenBank,
-  quoteBank,
+  depositBank,
+  borrowBank,
   depositAmount,
   borrowAmount,
   isLoading,
@@ -37,9 +26,9 @@ export const Preview = ({
   const stats = React.useMemo(
     () =>
       actionSummary
-        ? generateTradingStats(actionSummary, tokenBank, quoteBank, depositAmount, borrowAmount, isLoading)
+        ? generateTradingStats({ actionSummary, depositBank, borrowBank, depositAmount, borrowAmount, isLoading })
         : null,
-    [actionSummary, tokenBank, quoteBank, depositAmount, borrowAmount, isLoading]
+    [actionSummary, depositBank, borrowBank, depositAmount, borrowAmount, isLoading]
   );
 
   return (
@@ -67,25 +56,3 @@ export const Preview = ({
     </>
   );
 };
-
-function generateTradingStats(
-  summary: ActionSummary,
-  tokenBank: ExtendedBankInfo,
-  quoteBank: ExtendedBankInfo,
-  depositAmount: number,
-  borrowAmount: number,
-  isLoading: boolean
-) {
-  const stats = [];
-
-  stats.push(getHealthStat(summary.actionPreview.health, false, summary.simulationPreview?.health));
-  stats.push(getLeverageStat(tokenBank, quoteBank, depositAmount, borrowAmount, isLoading));
-  stats.push(getPositionSizeStat(tokenBank, quoteBank, depositAmount, borrowAmount, isLoading));
-  if (summary.actionPreview.priceImpactPct) stats.push(getPriceImpactStat(summary.actionPreview.priceImpactPct));
-  if (summary.actionPreview.slippageBps) stats.push(getSlippageStat(summary.actionPreview.slippageBps));
-  if (summary.actionPreview.platformFeeBps) stats.push(getPlatformFeeStat(summary.actionPreview.platformFeeBps));
-  if (summary.simulationPreview?.liquidationPrice && tokenBank.isActive)
-    stats.push(getLiquidationStat(tokenBank, false, summary.simulationPreview?.liquidationPrice));
-
-  return stats;
-}

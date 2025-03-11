@@ -291,6 +291,11 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     actionMethod: "ERROR",
     code: 152,
   },
+  ADD_POSITION_FAILED: {
+    description: "Unable to add position, please try again.",
+    isEnabled: false,
+    code: 153,
+  },
 };
 
 const createProcessingTxFailedCheck = (info?: string): ActionMessageType => ({
