@@ -13,7 +13,6 @@ import { useIsMobile } from "~/hooks/use-is-mobile";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { PoolCard, PoolListItem } from "~/components/common/Pool";
-import { PoolSearch } from "~/components/common/Pool";
 import { Button } from "~/components/ui/button";
 import { Loader } from "~/components/common/Loader";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
