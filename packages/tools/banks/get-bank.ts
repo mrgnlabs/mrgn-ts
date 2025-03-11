@@ -77,6 +77,7 @@ async function main() {
   const insiranceFixedFee = wrappedI80F48toBigNumber(acc.config.interestRateConfig.insuranceFeeFixedApr);
   const protocolIrFee = wrappedI80F48toBigNumber(acc.config.interestRateConfig.protocolIrFee);
   const protocolFixedFee = wrappedI80F48toBigNumber(acc.config.interestRateConfig.protocolFixedFeeApr);
+  const protocolOriginationFee = wrappedI80F48toBigNumber(acc.config.interestRateConfig.protocolOriginationFee);
   const maxInterestRate = wrappedI80F48toBigNumber(acc.config.interestRateConfig.maxInterestRate);
   const plateauInterestRate = wrappedI80F48toBigNumber(acc.config.interestRateConfig.plateauInterestRate);
   const optimalUtilizationRate = wrappedI80F48toBigNumber(acc.config.interestRateConfig.optimalUtilizationRate);
@@ -110,6 +111,7 @@ async function main() {
     "Protocol IR Fee": protocolIrFee.toNumber(),
     "Protocol Fixed Fee": protocolFixedFee.toNumber(),
     "Max Interest Rate": maxInterestRate.toNumber(),
+    "Protocol Origination Fee": protocolOriginationFee.toNumber(),
     "Plateau Interest Rate": plateauInterestRate.toNumber(),
     "Optimal Utilization Rate": optimalUtilizationRate.toNumber(),
     "Asset Share Value": assetShareValue.toNumber(),
