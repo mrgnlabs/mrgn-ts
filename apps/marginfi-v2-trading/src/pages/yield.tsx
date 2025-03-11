@@ -1,6 +1,5 @@
 import React from "react";
 
-import Fuse from "fuse.js";
 import { IconSortDescending, IconSortAscending, IconSearch } from "@tabler/icons-react";
 
 import { ArenaGroupStatus, Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
@@ -61,39 +60,6 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
     return pools;
   }, [extendedPools, showActivePositions]);
 
-  const fuse = React.useMemo(() => {
-    return new Fuse(availablePools, {
-      includeScore: true,
-      threshold: 0.2,
-      keys: [
-        {
-          name: "tokenBank.meta.tokenSymbol",
-          weight: 0.7,
-        },
-        {
-          name: "quoteBank.meta.tokenSymbol",
-          weight: 0.7,
-        },
-        {
-          name: "tokenBank.meta.tokenName",
-          weight: 0.3,
-        },
-        {
-          name: "quoteBank.meta.tokenName",
-          weight: 0.3,
-        },
-        {
-          name: "tokenBank.info.state.mint.toBase58()",
-          weight: 0.1,
-        },
-        {
-          name: "quoteBank.info.state.mint.toBase58()",
-          weight: 0.1,
-        },
-      ],
-    });
-  }, [availablePools]);
-
   const isMobile = useIsMobile();
   const { connected } = useWallet();
   const [search, setSearch] = React.useState("");
@@ -106,15 +72,22 @@ export default function YieldPage({ initialData }: StaticArenaProps) {
   }, [sortBy]);
 
   const filteredPools = React.useMemo(() => {
-    if (!fuse) return availablePools;
-    const results = fuse.search(search).map((result) => result.item);
+    if (!search) return availablePools;
+    const results = availablePools.filter((pool) => {
+      return (
+        pool.tokenBank.meta.tokenSymbol.toLowerCase().includes(search.toLowerCase()) ||
+        pool.tokenBank.meta.tokenName.toLowerCase().includes(search.toLowerCase()) ||
+        pool.quoteBank.meta.tokenSymbol.toLowerCase().includes(search.toLowerCase()) ||
+        pool.quoteBank.meta.tokenName.toLowerCase().includes(search.toLowerCase())
+      );
+    });
     if (!results.length && !search) {
       return availablePools;
     } else if (!results) {
       return [];
     }
     return results;
-  }, [availablePools, fuse, search]);
+  }, [availablePools, search]);
 
   React.useEffect(() => {
     if (initialData) {
