@@ -1,7 +1,6 @@
 import { create, StateCreator } from "zustand";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
-import Fuse, { FuseResult } from "fuse.js";
 import BigNumber from "bignumber.js";
 
 import { TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -89,14 +88,6 @@ type TradeStoreV2State = {
   // user token account map
   tokenAccountMap: TokenAccountMap;
 
-  // fuse
-  arenaPoolsSummaryFuse: Fuse<ArenaPoolSummary> | null;
-  arenaPoolsFuse: Fuse<ArenaPoolV2> | null;
-
-  // array of banks filtered by search query
-  searchPoolSummaryResults: FuseResult<ArenaPoolSummary>[];
-  searchPoolResults: FuseResult<ArenaPoolV2>[];
-
   // pagination and sorting
   currentPage: number;
   totalPages: number;
@@ -143,9 +134,6 @@ type TradeStoreV2State = {
     wallet?: Wallet;
   }) => Promise<void>;
   setIsRefreshingStore: (isRefreshing: boolean) => void;
-  searchSummaryPools: (searchQuery: string) => void;
-  searchPools: (searchQuery: string) => void;
-  resetSearchResults: () => void;
   setCurrentPage: (page: number) => void;
   setSortBy: (sortBy: TradePoolFilterStates) => void;
   resetUserData: () => void;
@@ -157,8 +145,6 @@ type TradeStoreV2State = {
 
 const { programId } = getConfig();
 
-// let fuse: Fuse<ArenaPoolSummary> | null = null;
-
 function createTradeStoreV2() {
   return create<TradeStoreV2State>(stateCreator);
 }
@@ -168,7 +154,6 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   poolsFetched: false,
   userDataFetched: false,
   isRefreshingStore: false,
-  searchResults: [],
   currentPage: 1,
   totalPages: 0,
   sortBy: TradePoolFilterStates.PRICE_MOVEMENT_DESC,
@@ -193,10 +178,6 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
   marginfiAccountByGroupPk: {},
   tokenVolumeDataByMint: {},
   mintDataByMint: new Map(),
-  arenaPoolsSummaryFuse: null,
-  arenaPoolsFuse: null,
-  searchPoolSummaryResults: [],
-  searchPoolResults: [],
   pythFeedIdMap: new Map(),
   oraclePrices: {},
   positionsByGroupPk: {},
@@ -294,29 +275,9 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
         const totalPages = Math.ceil(Object.keys(sortedGroups).length / POOLS_PER_PAGE);
         const currentPage = get().currentPage || 1;
 
-        const fuse = new Fuse([...Object.values(sortedGroups)], {
-          includeScore: true,
-          threshold: 0.2,
-          keys: [
-            {
-              name: "tokenSummary.tokenSymbol",
-              weight: 0.7,
-            },
-            {
-              name: "tokenSummary.tokenName",
-              weight: 0.3,
-            },
-            {
-              name: "tokenSummary.mint.toBase58()",
-              weight: 0.1,
-            },
-          ],
-        });
-
         set({
           arenaPoolsSummary: sortedGroups,
           tokenVolumeDataByMint: tokenVolumeDataByMint,
-          arenaPoolsSummaryFuse: fuse,
           initialized: true,
           totalPages,
           currentPage,
@@ -662,31 +623,6 @@ const stateCreator: StateCreator<TradeStoreV2State, [], []> = (set, get) => ({
         positionsByGroupPk,
       });
     }
-  },
-
-  searchSummaryPools: (searchQuery: string) => {
-    const fuse = get().arenaPoolsSummaryFuse;
-    if (!fuse) return;
-    const searchResults = fuse.search(searchQuery);
-
-    set({ searchPoolSummaryResults: searchResults });
-  },
-
-  searchPools: (searchQuery: string) => {
-    const fuse = get().arenaPoolsFuse;
-    if (!fuse) return;
-    const searchResults = fuse.search(searchQuery);
-
-    set({ searchPoolResults: searchResults });
-  },
-
-  resetSearchResults: () => {
-    set((state) => {
-      return {
-        ...state,
-        searchResults: [],
-      };
-    });
   },
 
   setCurrentPage: (page: number) => {
