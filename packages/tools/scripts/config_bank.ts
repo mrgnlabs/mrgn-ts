@@ -14,6 +14,7 @@ import { InterestRateConfigRaw, RiskTierRaw } from "@mrgnlabs/marginfi-client-v2
 import { assertBNEqual, assertI80F48Approx, assertKeysEqual } from "./softTests";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import dotenv from "dotenv";
+import { BigNumber } from "bignumber.js";
 
 dotenv.config();
 
@@ -36,8 +37,8 @@ type Config = {
 
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  GROUP_KEY: new PublicKey("6b9vFQjfYav2tVzns2cD21xU7E4z9LDnHTv9wjCJsknf"),
-  BANK: new PublicKey("CoikF9aDXU7xJheN7WePZAboe67wEW1h1ygjbLbQzZbe"),
+  GROUP_KEY: new PublicKey("2v4DXmmnhqrERUYpZaScrXC1jdJoUYhzMjuEcytqsLeh"),
+  BANK: new PublicKey("14pCPReiear5V7viGVtdafwm6yCfBoz7pTkigGzcrdQm"),
   ADMIN: new PublicKey("mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF"),
 
   // MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
@@ -115,11 +116,20 @@ const defaultBankConfigOptRaw = () => {
     riskTier: null,
     assetTag: null,
     totalAssetValueInitLimit: null,
-    interestRateConfig: null,
+    interestRateConfig: {
+      protocolOriginationFee: bigNumberToWrappedI80F48(new BigNumber(0.1)),
+      protocolIrFee: null,
+      protocolFixedFeeApr: null,
+      insuranceIrFee: null,
+      insuranceFeeFixedApr: null,
+      maxInterestRate: null,
+      optimalUtilizationRate: null,
+      plateauInterestRate: null,
+    },
     operationalState: null,
     oracleMaxAge: null,
-    permissionlessBadDebtSettlement: true,
-    freezeSettings: true,
+    permissionlessBadDebtSettlement: null,
+    freezeSettings: null,
   };
 
   return bankConfigOpt;
