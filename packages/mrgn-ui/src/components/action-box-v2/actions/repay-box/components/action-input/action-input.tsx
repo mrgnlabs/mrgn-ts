@@ -22,7 +22,7 @@ type ActionInputProps = {
   actionMethod: ActionType;
   isDialog?: boolean;
   isMini?: boolean;
-
+  isInputSelectable?: boolean;
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setSelectedSecondaryBank: (bank: ExtendedBankInfo | null) => void;
@@ -39,6 +39,7 @@ export const ActionInput = ({
   selectedSecondaryBank,
   maxAmountCollateral,
   actionMethod,
+  isInputSelectable,
   setAmountRaw,
   setSelectedBank,
   setSelectedSecondaryBank,
@@ -81,6 +82,7 @@ export const ActionInput = ({
               banks={banks}
               nativeSolBalance={nativeSolBalance}
               setTokenBank={(bank) => setSelectedBank(bank)}
+              isInputSelectable={isInputSelectable}
             />
           </div>
           <div className="flex-auto flex flex-col gap-0 items-end">

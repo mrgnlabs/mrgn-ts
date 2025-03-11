@@ -14,6 +14,7 @@ import { Button } from "~/components/ui/button";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { ClosePosition } from "./components";
+import { generateTradingStats } from "~/components/action-box-v2/utils";
 
 type PositionActionButtonsProps = {
   isBorrowing: boolean;
@@ -153,11 +154,16 @@ export const PositionActionButtons = ({
             useProvider={true}
             repayProps={{
               requestedBank: borrowBank,
-              requestedSecondaryBank: depositBanks[0],
+              requestedSecondaryBank: arenaPool.status === ArenaGroupStatus.SHORT ? depositBanks[0] : undefined,
               banks: borrowBank ? [borrowBank, depositBanks[0]] : [depositBanks[0]],
               connected: connected,
               additionalSettings: {
                 showAvailableCollateral: false,
+                overrideButtonLabel: `Reduce ${arenaPool.tokenBank.meta.tokenSymbol} ${
+                  arenaPool.status === ArenaGroupStatus.LONG ? "long" : "short"
+                } position`,
+                isInputSelectable: false,
+                overrideStats: generateTradingStats,
               },
               captureEvent: (event, properties) => {
                 capture("position_reduce_btn_click", {
