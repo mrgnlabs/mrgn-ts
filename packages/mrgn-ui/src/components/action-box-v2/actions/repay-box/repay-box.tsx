@@ -25,7 +25,7 @@ import { ActionMessage } from "~/components/action-message";
 import { usePollBlockHeight, useActionAmounts } from "~/components/action-box-v2/hooks";
 import { useActionContext } from "~/components/action-box-v2/contexts";
 import { useActionBoxStore } from "~/components/action-box-v2/store";
-import { SimulationStatus } from "~/components/action-box-v2/utils";
+import { ActionSummary, PreviewStat, SimulationStatus } from "~/components/action-box-v2/utils";
 import {
   ActionBoxContentWrapper,
   ActionCollateralProgressBar,
@@ -38,18 +38,24 @@ import { ActionInput, Preview } from "./components";
 import { useRepaySimulation } from "./hooks";
 import { useRepayBoxStore } from "./store";
 
+type AdditionalSettings = {
+  showAvailableCollateral?: boolean;
+  selectableInput?: boolean;
+  overrideButtonLabel?: string;
+  overrideStats?: (summary: ActionSummary, bank: ExtendedBankInfo) => PreviewStat[];
+};
+
 export type RepayBoxProps = {
   nativeSolBalance: number;
   connected: boolean;
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
   banks: ExtendedBankInfo[];
-  requestedBank?: ExtendedBankInfo;
+  requestedBank: ExtendedBankInfo;
   requestedSecondaryBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
-
-  showAvailableCollateral?: boolean;
+  additionalSettings?: AdditionalSettings;
 
   onComplete?: () => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -66,7 +72,7 @@ export const RepayBox = ({
   requestedSecondaryBank,
   accountSummaryArg,
   isDialog,
-  showAvailableCollateral,
+  additionalSettings,
   onComplete,
   captureEvent,
   setDisplaySettings,
@@ -352,7 +358,7 @@ export const RepayBox = ({
           )
       )}
 
-      {showAvailableCollateral && (
+      {additionalSettings?.showAvailableCollateral && (
         <div className="mb-6">
           <ActionCollateralProgressBar selectedAccount={selectedAccount} actionSummary={actionSummary} />
         </div>
@@ -368,7 +374,7 @@ export const RepayBox = ({
           handleAction={() => {
             handleRepayAction();
           }}
-          buttonLabel={buttonLabel}
+          buttonLabel={additionalSettings?.overrideButtonLabel ?? buttonLabel}
         />
       </div>
 
@@ -381,7 +387,11 @@ export const RepayBox = ({
         {setDisplaySettings && <ActionSettingsButton onClick={() => setDisplaySettings(true)} />}
       </div>
 
-      <Preview actionSummary={actionSummary} selectedBank={selectedBank} isLoading={simulationStatus.isLoading} />
+      <Preview
+        actionSummary={actionSummary}
+        selectedBank={selectedBank}
+        overrideStats={additionalSettings?.overrideStats}
+      />
     </ActionBoxContentWrapper>
   );
 };

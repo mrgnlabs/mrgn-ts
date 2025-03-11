@@ -4,20 +4,18 @@ import { IconArrowRight, IconAlertTriangle } from "@tabler/icons-react";
 import { getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
 import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
-  clampedNumeralFormatter,
   dynamicNumeralFormatter,
   numeralFormatter,
   percentFormatter,
   percentFormatterDyn,
   tokenPriceFormatter,
   usdFormatter,
-  usdFormatterDyn,
 } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Skeleton } from "~/components/ui/skeleton";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
-import { IconLoader, IconPyth, IconSwitchboard } from "~/components/ui/icons";
+import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 
 export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 
@@ -27,10 +25,71 @@ export interface PreviewStat {
   value: () => React.JSX.Element;
 }
 
-export function getJupFeeStat(platformFee: number): PreviewStat {
+export function getPlatformFeeStat(platformFeeBps: number): PreviewStat {
   return {
     label: "Platform fee",
-    value: () => <>0.25%</>,
+    value: () => <>{percentFormatter.format(platformFeeBps / 10000)}</>,
+  };
+}
+
+export function getLeverageStat(
+  depositBank: ExtendedBankInfo,
+  borrowBank: ExtendedBankInfo,
+  depositAmount: number,
+  borrowAmount: number,
+  isLoading: boolean
+): PreviewStat {
+  const depositValue = depositBank.isActive ? depositBank.position.usdValue : 0;
+  const borrowValue = borrowBank.isActive ? borrowBank.position.usdValue : 0;
+
+  const newDepositValue = depositValue + depositAmount * depositBank.info.oraclePrice.priceRealtime.price.toNumber();
+  const newBorrowValue = borrowValue + borrowAmount * borrowBank.info.oraclePrice.priceRealtime.price.toNumber();
+
+  const currentLeverage = numeralFormatter(
+    Math.round((depositValue / (depositValue - borrowValue) + Number.EPSILON) * 100) / 100
+  );
+
+  const newleverage = numeralFormatter(
+    Math.round((newDepositValue / (newDepositValue - newBorrowValue) + Number.EPSILON) * 100) / 100
+  );
+
+  return {
+    label: "Leverage",
+    value: () => (
+      <>
+        {currentLeverage}x
+        <IconArrowRight width={12} height={12} />
+        {isLoading ? <Skeleton className="h-4 w-[45px] bg-muted" /> : <>{newleverage}x</>}
+      </>
+    ),
+  };
+}
+
+export function getPositionSizeStat(
+  depositBank: ExtendedBankInfo,
+  borrowBank: ExtendedBankInfo,
+  depositAmount: number,
+  borrowAmount: number,
+  isLoading: boolean
+): PreviewStat {
+  const depositValue = depositBank.isActive ? depositBank.position.usdValue : 0;
+  const borrowValue = borrowBank.isActive ? borrowBank.position.usdValue : 0;
+
+  const newDepositValue = depositValue + depositAmount * depositBank.info.oraclePrice.priceRealtime.price.toNumber();
+  const newBorrowValue = borrowValue + borrowAmount * borrowBank.info.oraclePrice.priceRealtime.price.toNumber();
+
+  const positionSize = depositValue - borrowValue;
+  const newPositionSize = newDepositValue - newBorrowValue;
+
+  return {
+    label: "Position size",
+    value: () => (
+      <>
+        {usdFormatter.format(positionSize)}
+        <IconArrowRight width={12} height={12} />
+        {isLoading ? <Skeleton className="h-4 w-[45px] bg-muted" /> : <>{usdFormatter.format(newPositionSize)}</>}
+      </>
+    ),
   };
 }
 
@@ -247,15 +306,21 @@ export function getBankTypeStat(bank: ExtendedBankInfo): PreviewStat {
 
 export function getOracleStat(bank: ExtendedBankInfo): PreviewStat {
   let oracle = "";
+  let oracleIcon = <></>;
   switch (bank?.info.rawBank.config.oracleSetup) {
     case "PythLegacy":
       oracle = "Pyth";
       break;
     case "PythPushOracle":
       oracle = "Pyth";
+      oracleIcon = <IconPyth size={14} />;
       break;
     case "SwitchboardV2":
       oracle = "Switchboard";
+      oracleIcon = <IconSwitchboard size={14} />;
+      break;
+    default:
+      oracle = "Unknown";
       break;
   }
 
@@ -264,7 +329,7 @@ export function getOracleStat(bank: ExtendedBankInfo): PreviewStat {
     value: () => (
       <>
         {oracle}
-        {oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}
+        {oracleIcon}
       </>
     ),
   };

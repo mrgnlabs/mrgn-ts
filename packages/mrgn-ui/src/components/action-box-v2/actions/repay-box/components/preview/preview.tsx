@@ -15,19 +15,24 @@ import {
   ActionSummary,
   getPriceImpactStat,
   getSlippageStat,
+  PreviewStat,
 } from "~/components/action-box-v2/utils";
 
 interface PreviewProps {
   selectedBank: ExtendedBankInfo | null;
-  isLoading: boolean;
-
   actionSummary?: ActionSummary;
+  overrideStats?: (summary: ActionSummary, bank: ExtendedBankInfo) => PreviewStat[];
 }
 
-export const Preview = ({ actionSummary, selectedBank, isLoading }: PreviewProps) => {
+export const Preview = ({ actionSummary, selectedBank, overrideStats }: PreviewProps) => {
   const stats = React.useMemo(
-    () => (actionSummary && selectedBank ? generateRepayCollatStats(actionSummary, selectedBank, isLoading) : null),
-    [actionSummary, isLoading, selectedBank]
+    () =>
+      actionSummary && selectedBank
+        ? overrideStats
+          ? overrideStats(actionSummary, selectedBank)
+          : generateRepayCollatStats(actionSummary, selectedBank)
+        : null,
+    [actionSummary, selectedBank, overrideStats]
   );
 
   return (
@@ -43,8 +48,8 @@ export const Preview = ({ actionSummary, selectedBank, isLoading }: PreviewProps
                   (stat.color === "SUCCESS"
                     ? "text-success"
                     : stat.color === "ALERT"
-                    ? "text-alert-foreground"
-                    : "text-destructive-foreground")
+                      ? "text-alert-foreground"
+                      : "text-destructive-foreground")
               )}
             >
               <stat.value />
@@ -56,7 +61,7 @@ export const Preview = ({ actionSummary, selectedBank, isLoading }: PreviewProps
   );
 };
 
-function generateRepayCollatStats(summary: ActionSummary, bank: ExtendedBankInfo, isLoading: boolean) {
+function generateRepayCollatStats(summary: ActionSummary, bank: ExtendedBankInfo): PreviewStat[] {
   const stats = [];
 
   stats.push(

@@ -16,12 +16,12 @@ import {
   STATIC_SIMULATION_ERRORS,
   usePrevious,
   CalculateTradingProps,
+  JupiterOptions,
 } from "@mrgnlabs/mrgn-utils";
 
 import { SimulationStatus } from "~/components/action-box-v2/utils";
 import { ArenaBank } from "~/types/trade-store.types";
 import { generateTradeTx, getSimulationResult } from "../utils";
-import { JupiterOptions } from "~/components";
 
 export type TradeSimulationProps = {
   debouncedAmount: number;

@@ -280,7 +280,7 @@ const PortfolioAction = ({
   requestedAction,
   buttonVariant = "default",
 }: {
-  requestedBank: ExtendedBankInfo | null;
+  requestedBank: ExtendedBankInfo;
   requestedAction: ActionType;
   buttonVariant?: "default" | "outline" | "outline-dark";
 }) => {
@@ -339,7 +339,7 @@ const PortfolioAction = ({
       <ActionBox.Repay
         useProvider={true}
         repayProps={{
-          requestedBank: requestedBank ?? undefined,
+          requestedBank: requestedBank,
           requestedSecondaryBank: undefined,
           connected: connected,
           captureEvent: (event, properties) => {

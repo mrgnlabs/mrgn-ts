@@ -1,7 +1,7 @@
 import React from "react";
 
 import { IconMinus, IconPlus } from "@tabler/icons-react";
-import { cn, capture } from "@mrgnlabs/mrgn-utils";
+import { cn, capture, ArenaGroupStatus, TradeSide } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useConnection } from "~/hooks/use-connection";
@@ -12,7 +12,7 @@ import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ArenaPoolV2Extended, GroupStatus } from "~/types/trade-store.types";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { ClosePosition } from "./components";
 
 type PositionActionButtonsProps = {
@@ -103,50 +103,51 @@ export const PositionActionButtons = ({
       setDisplaySettings={setDisplaySettings}
     >
       <div className={cn("flex gap-3 w-full", className)}>
-        <ActionBox.DepositSwap
-          isDialog={true}
-          useProvider={true}
-          depositSwapProps={{
-            connected: connected,
-            requestedDepositBank: depositBanks[0],
-            requestedSwapBank: arenaPool.status === GroupStatus.LONG ? (borrowBank ?? undefined) : undefined,
-            showAvailableCollateral: false,
-            walletTokens: null,
-            captureEvent: () => {
-              capture("position_add_btn_click", {
-                group: arenaPool.groupPk.toBase58(),
-                token: arenaPool.tokenBank.meta.tokenSymbol,
-              });
-            },
-            onComplete: () => {
-              refreshGroup({
-                connection,
-                wallet,
-                groupPk: arenaPool.groupPk,
-                banks: [arenaPool.tokenBank.address, arenaPool.quoteBank.address],
-              });
-            },
-          }}
-          dialogProps={{
-            trigger: (
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1 min-w-16"
-                onClick={() => {
-                  capture("position_add_btn_click", {
-                    group: arenaPool.groupPk?.toBase58(),
-                    token: arenaPool.tokenBank.meta.tokenSymbol,
-                  });
-                }}
-              >
-                <IconPlus size={14} />
-                Add
-              </Button>
-            ),
-            title: `Supply ${arenaPool.tokenBank.meta.tokenSymbol}`,
-          }}
-        />
+        {borrowBank && (
+          <ActionBox.AddPosition
+            isDialog={true}
+            useProvider={true}
+            addPositionProps={{
+              connected: connected,
+              depositBank: depositBanks[0],
+              borrowBank: borrowBank,
+              tradeSide: arenaPool.status === ArenaGroupStatus.LONG ? TradeSide.LONG : TradeSide.SHORT,
+              captureEvent: () => {
+                capture("position_add_btn_click", {
+                  group: arenaPool.groupPk.toBase58(),
+                  token: arenaPool.tokenBank.meta.tokenSymbol,
+                });
+              },
+              onComplete: () => {
+                refreshGroup({
+                  connection,
+                  wallet,
+                  groupPk: arenaPool.groupPk,
+                  banks: [arenaPool.tokenBank.address, arenaPool.quoteBank.address],
+                });
+              },
+            }}
+            dialogProps={{
+              trigger: (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 min-w-16"
+                  onClick={() => {
+                    capture("position_add_btn_click", {
+                      group: arenaPool.groupPk?.toBase58(),
+                      token: arenaPool.tokenBank.meta.tokenSymbol,
+                    });
+                  }}
+                >
+                  <IconPlus size={14} />
+                  Add
+                </Button>
+              ),
+              title: `Supply ${arenaPool.tokenBank.meta.tokenSymbol}`,
+            }}
+          />
+        )}
         {borrowBank && isBorrowing && (
           <ActionBox.Repay
             useProvider={true}
@@ -155,7 +156,9 @@ export const PositionActionButtons = ({
               requestedSecondaryBank: depositBanks[0],
               banks: borrowBank ? [borrowBank, depositBanks[0]] : [depositBanks[0]],
               connected: connected,
-              showAvailableCollateral: false,
+              additionalSettings: {
+                showAvailableCollateral: false,
+              },
               captureEvent: (event, properties) => {
                 capture("position_reduce_btn_click", {
                   group: arenaPool.groupPk?.toBase58(),
