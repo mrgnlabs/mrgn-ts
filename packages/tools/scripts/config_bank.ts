@@ -25,7 +25,7 @@ const simulate = true;
 const sendTx = true;
 const verbose = true;
 
-type Config = {
+export type Config = {
   PROGRAM_ID: string;
   GROUP_KEY: PublicKey;
   BANK: PublicKey;
@@ -35,7 +35,7 @@ type Config = {
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
 };
 
-const config: Config = {
+export const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("2v4DXmmnhqrERUYpZaScrXC1jdJoUYhzMjuEcytqsLeh"),
   BANK: new PublicKey("14pCPReiear5V7viGVtdafwm6yCfBoz7pTkigGzcrdQm"),
@@ -45,6 +45,11 @@ const config: Config = {
 };
 
 async function main() {
+  let bankConfig = defaultBankConfigOptRaw();
+  await updateBankConfig(bankConfig, config);
+}
+
+export async function updateBankConfig(bankConfig: BankConfigOptRaw, config: Config) {
   marginfiIdl.address = config.PROGRAM_ID;
   const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT, "confirmed");
   const wallet = loadKeypairFromFile(process.env.MARGINFI_WALLET);
@@ -57,9 +62,6 @@ async function main() {
   const program = new Program<Marginfi>(marginfiIdl as Marginfi, provider);
 
   const transaction = new Transaction();
-
-  let bankConfig = defaultBankConfigOptRaw();
-
   transaction.add(
     await program.methods
       .lendingPoolConfigureBank(bankConfig)
@@ -101,11 +103,11 @@ async function main() {
   }
 }
 
-const ASSET_TAG_DEFAULT = 0;
-const ASSET_TAG_SOL = 1;
-const ASSET_TAG_STAKED = 2;
+export const ASSET_TAG_DEFAULT = 0;
+export const ASSET_TAG_SOL = 1;
+export const ASSET_TAG_STAKED = 2;
 
-const defaultBankConfigOptRaw = () => {
+export const defaultBankConfigOptRaw = () => {
   let bankConfigOpt: BankConfigOptRaw = {
     assetWeightInit: null,
     assetWeightMaint: null,
@@ -135,11 +137,11 @@ const defaultBankConfigOptRaw = () => {
   return bankConfigOpt;
 };
 
-type InterestRateConfigRawWithOrigination = InterestRateConfigRaw & {
+export type InterestRateConfigRawWithOrigination = InterestRateConfigRaw & {
   protocolOriginationFee: WrappedI80F48;
 };
 
-type BankConfigOptRaw = {
+export type BankConfigOptRaw = {
   assetWeightInit: WrappedI80F48 | null;
   assetWeightMaint: WrappedI80F48 | null;
 
