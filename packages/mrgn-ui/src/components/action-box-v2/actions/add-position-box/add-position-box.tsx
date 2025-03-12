@@ -376,8 +376,8 @@ export const AddPositionBox = ({
 
       <Preview
         actionSummary={actionSummary}
-        tokenBank={tokenBank}
-        quoteBank={quoteBank}
+        depositBank={depositBank}
+        borrowBank={borrowBank}
         depositAmount={actionTxns.actualDepositAmount}
         borrowAmount={actionTxns.borrowAmount.toNumber()}
         isLoading={simulationStatus.isLoading}

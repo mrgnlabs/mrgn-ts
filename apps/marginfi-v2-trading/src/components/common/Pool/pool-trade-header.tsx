@@ -19,7 +19,7 @@ import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useTradeStoreV2, useUiStore } from "~/store";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
-import { PoolShare } from "~/components/common/Pool/PoolShare";
+import { PoolShare } from "~/components/common/Pool/pool-share";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import {
   DropdownMenu,

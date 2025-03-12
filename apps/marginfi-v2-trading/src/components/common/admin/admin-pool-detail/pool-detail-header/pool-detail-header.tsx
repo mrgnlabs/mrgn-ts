@@ -6,7 +6,7 @@ import Image from "next/image";
 import { percentFormatter, numeralFormatter, tokenPriceFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { PoolShare } from "~/components/common/Pool/PoolShare";
+import { PoolShare } from "~/components/common/Pool/pool-share";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 import { useExtendedPool } from "~/hooks/useExtendedPools";
