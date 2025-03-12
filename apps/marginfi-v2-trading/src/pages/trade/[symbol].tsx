@@ -3,13 +3,13 @@ import React from "react";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 
-import { useTradeStoreV2, useUiStore } from "~/store";
+import { useTradeStoreV2 } from "~/store";
 import { ArenaPoolV2 } from "~/types/trade-store.types";
 import { StaticArenaProps, getArenaStaticProps } from "~/utils";
 
 import { TVWidget } from "~/components/common/TVWidget";
 import { PositionList } from "~/components/common/Portfolio";
-import { PoolTradeHeader } from "~/components/common/Pool/PoolTradeHeader";
+import { PoolTradeHeader } from "~/components/common/Pool/pool-trade-header";
 import { Loader } from "~/components/common/Loader";
 import { TradeBoxV2 } from "~/components/common/trade-box-v2";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";

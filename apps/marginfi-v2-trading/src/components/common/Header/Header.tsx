@@ -14,13 +14,13 @@ import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 import { useConnection } from "~/hooks/use-connection";
 
-import { CreatePoolDialog } from "../Pool/CreatePoolDialog";
 import { Wallet } from "~/components/wallet-v2";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Loader } from "~/components/common/Loader";
 import { ResponsiveSettingsWrapper } from "~/components";
 import { SearchButton } from "~/components/common/search";
+import { CreatePoolDialog } from "../Pool";
 
 const navItems = [
   { label: "Discover", href: "/" },

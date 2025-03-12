@@ -1,14 +1,11 @@
 import React from "react";
 import { IconChevronLeft, IconSettings } from "@tabler/icons-react";
 
-import { CreatePoolState, SUPPORTED_QUOTE_BANKS } from "~/components/common/Pool/CreatePoolDialog";
-
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Loader } from "~/components/ui/loader";
 import { Label } from "~/components/ui/label";
 
-import type { PoolData } from "../types";
+import { CreatePoolState, PoolData } from "../types";
 
 type CreatePoolFormProps = {
   isTokenFetchingError: boolean;

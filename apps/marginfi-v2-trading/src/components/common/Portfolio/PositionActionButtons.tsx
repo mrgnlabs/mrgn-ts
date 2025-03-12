@@ -1,20 +1,19 @@
 import React from "react";
-
 import { IconMinus, IconPlus } from "@tabler/icons-react";
+
 import { cn, capture, ArenaGroupStatus, TradeSide } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
 import { useConnection } from "~/hooks/use-connection";
 import { useTradeStoreV2, useUiStore } from "~/store";
+import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
-
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ArenaPoolV2Extended } from "~/types/trade-store.types";
-import { ClosePosition } from "./components";
 import { generateTradingStats } from "~/components/action-box-v2/utils";
+
+import { ClosePosition } from "./components";
 
 type PositionActionButtonsProps = {
   isBorrowing: boolean;

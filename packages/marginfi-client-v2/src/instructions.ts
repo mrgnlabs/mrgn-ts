@@ -346,16 +346,22 @@ async function makeLendingPoolConfigureBankOracleIx(
   },
   args: {
     setup: number;
-    oracle: PublicKey;
+    feedId: PublicKey;
+  },
+  remainingAccounts: {
+    oracleKey?: PublicKey;
   }
 ) {
   return mfProgram.methods
-    .lendingPoolConfigureBankOracle(args.setup, args.oracle)
+    .lendingPoolConfigureBankOracle(args.setup, args.feedId)
     .accountsPartial({
       bank: accounts.bank,
       group: accounts.group,
       admin: accounts.admin,
     })
+    .remainingAccounts(
+      remainingAccounts.oracleKey ? [{ isSigner: false, isWritable: false, pubkey: remainingAccounts.oracleKey }] : []
+    )
     .instruction();
 }
 
