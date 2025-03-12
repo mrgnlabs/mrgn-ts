@@ -1,344 +1,345 @@
 {
     "PROGRAM_ID": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+    "root_wallet_path": "/Users/fenrir/",
     "config": [
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "4F7KP1gGeJGSFjQaTD54Zfd6o5UhLKYQUZGxapTszkGV",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "2b27K6FRU1NPTyBBZBhbGpb5wP7jwzQfumYXFZDgHBiz"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "4dUia8ru6fazJJr6xjpiH8VTbuMmtqTLKcQEQKw2YHPN",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "CKSTEW68MkS9HUGeAv8qAFNMzFvweW5gKkraVAzhBNz1"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "7wms3cjYBE761HHSwNbybER3uC63pXsoeZ911vCLp4mR",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "59JndxfMsstwzvuWFBntJBsR31JPEjFxUpYR6CEN6MxR"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "ChEisF8AkfpYED5aPgC9Aangx6CXfjqGPzuyg7CyjayQ",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "GfTZJTDoaNhsCuwPpRdbfhk2MQYvpsjZFhLs797HeofY"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "HWza7EWdQZSvZhRPsN2uSVieYZRNCTKtDj8niCEAgVaD",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "9E6gR17HTuFgF37pGXquFZ4mbwAyiGGWpNfnbxNDQT67"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "9yNnhJ8c1vGbu3DMf6eeeUi6TDJ2ddGgaRA88rL2R3rP",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "DESG67cExEcw7d6MmENLEzaocR8pLrhfiw9VrNtGWUKD"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "7M1YiL5R822qMQjtEDreGCrXwJAAnPcw7LYnZXfq24Gs",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "7xcQfTMSWbxhMoCEU6u2ocmfEEMkDUYUaYaWtC47Jrqr"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "59yr2vuW1qv3UVQx9HC6Q8mxns5S6g7fjS8YWgRgaLA7",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "6FDHo1Z3W1GvurvAZhDAuPpMYbUR3jgq9VuCBmFDx2wM"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "5tAgDoSxJBW995stfnvphtquP8JHn11xD3V3FvtLpxNQ",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "66btxK2CRD4wjyQ7ec4yFrmAnsvFY3YvJNHSJ1evHH43"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "CFyznshAA978t6HCm4xprQpnN62c2qFSQrsCWN8q5UDB",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "FXA3RRXZyujyaz1wWWnyxmgJ91SG8NVderuTgnSfeFUw"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "3J5rKmCi7JXG6qmiobFJyAidVTnnNAMGj4jomfBxKGRM",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "EpzY5EYF1A5eFDRfjtsPXSYMPmEx1FXKaXPnouTMF4dm"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "9RaajEmUyg9CkMKzqw6iGeSENo5QYCSdqMXMPLTBLuuN",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "61TVS2cuinP2CHqLRoVkABCX1Lw4ok4LbT1h95eHjLQs"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "EFSqtDRH4yg2EhcT2zxNAubGBCPg5hRSaPSfC4o4ETkk",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "7G9uKwt4eJDGNJSPHeHdgqerHtKSG1PP5qBqgGvUg2EE"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "9zSRNNU4oDE3CmaQcjZwnfrhUzxUuBP3o1grryu1oMan",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "HHHdxUHHn88XgvADzbkU9gJ1uxAfnhMoH22HKRNQBMLp"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "845oEvt1oduoBj5zQxTr21cWWaUVnRjGerJuW3yMo2nn",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "DQ2jqDJw9uzTwttf6h6r217BQ7kws3jZbJXDkfbCJa1q"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "6cgYhBFWCc5sNHxkvSRhd5H9AdAHR41zKwuF37HmLry5",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "EpzY5EYF1A5eFDRfjtsPXSYMPmEx1FXKaXPnouTMF4dm"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "2Byn5sVRox8vKC6ndY7zQZm4N1i9afEE7kubP1UfSqap",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "Ac32THLH6zcWQuyKYh73EQKhH9XvdkG8ciwQUTDsRGEV"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "6YAVn7cEwiKBPiCXMFVY9cv5oWRj56WuPhNFjJyXWFad",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "FXA3RRXZyujyaz1wWWnyxmgJ91SG8NVderuTgnSfeFUw"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "AKEg31GR9rDD36Px5iwJpseve9FD34pGiSUgNqnri7Tw",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "66btxK2CRD4wjyQ7ec4yFrmAnsvFY3YvJNHSJ1evHH43"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "A7vBgCowCYeja7GTc3pyqUBdC9Gkue2gWaMjGZW38meM",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "G1rt3EpQ43K3bY457rhukQGRAo2QxydFAGRKqnjKzyr5"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "C5sidFUZ8cqZSBxaK8seBW1k3g3For8NHMSo64SYe98n",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "BagdC73FqyxfDBvN7FGWQuQtPsJ34DvVEgSsbH9syvGa"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "CESW47a4scrro6Jrv7dvjNkmDJHNdHVKwHi6Rb9dqmeK",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "2b27K6FRU1NPTyBBZBhbGpb5wP7jwzQfumYXFZDgHBiz"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "4jSd6HMz32o187jvhiyaA1sAhejQJSjTr1MVEW8evisR",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "BPsns2PYPNqhBTmT4mzUcQ3KPCo8HuNNyrzwAbTjS4eF"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "H74n2jNaQkgworPbs3qc6kBAosmtz4odZRbKQVjv94kn",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "9E6gR17HTuFgF37pGXquFZ4mbwAyiGGWpNfnbxNDQT67"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "9qw3SryJCQKXckJwSiHWxaibGrR9iXHr2JkusTW7J1Ye",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "6FDHo1Z3W1GvurvAZhDAuPpMYbUR3jgq9VuCBmFDx2wM"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "8AJqtD4LSwFhZ91nNCRiEfXTv3DqvSvZzZh42h7KKUsY",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "BagdC73FqyxfDBvN7FGWQuQtPsJ34DvVEgSsbH9syvGa"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "AWiMcY6NZyNzsAKrJJ24ywF38FqMmZQeReXNXXCn7Gt9",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "5t49wKo5yHedvLCkYEFhTwe1V8tUXGBWKvhBbhqW7NdJ"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "DhphS53vjik85NmNoPaRgwwTaE6tFZvn2HypA9Deswu8",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "59JndxfMsstwzvuWFBntJBsR31JPEjFxUpYR6CEN6MxR"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "Fkz3sRcPEwcDfFXRkyoV5asEXresfJHzadXm4gKuq5oQ",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "3cezwW6cAvZzEVGJi2A3w5amdZjgbPRkLEKTgVnvxp97"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "34haqTJQS8gXEuRxPyzwEPQ1w3C7J9mdWjkgCpkD87YN",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "7xcQfTMSWbxhMoCEU6u2ocmfEEMkDUYUaYaWtC47Jrqr"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "KiQZJtxt3tb2Dm4GG3Rt6wEZtCG4k1TZUj4YJVNskrK",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "9bHMSmVFRY39rJ5xrH1KUsHUkCdQJetB2eX4c4oS4sqq"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "9ARcMWiwN5mJdALVmrjBT8A3XkSF6tqqrhiqHvUTXmmU",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "61TVS2cuinP2CHqLRoVkABCX1Lw4ok4LbT1h95eHjLQs"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "AWQwjMeG9KVJuDMwX9pdG5f1PtzqDDGk2urxmAXKV3yg",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "3cezwW6cAvZzEVGJi2A3w5amdZjgbPRkLEKTgVnvxp97"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "6ti7He1Mq9SapnAGFXnurZ9xeMB6MaF7vgEnZoqmkPGb",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "HHHdxUHHn88XgvADzbkU9gJ1uxAfnhMoH22HKRNQBMLp"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "4KVgqboBYPMCmXxWTw3TopTAoVDym9hVDEL8FjXu1Rcr",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "9bHMSmVFRY39rJ5xrH1KUsHUkCdQJetB2eX4c4oS4sqq"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "4Bobu53fz6oeeezNax8gpXCgapNDYARqJ1L9DyMh2wYv",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "5t49wKo5yHedvLCkYEFhTwe1V8tUXGBWKvhBbhqW7NdJ"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "EXrnNVfLagt3j4hCHSD9WqK75o6dkZBtjpnrSrSC78MA",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "DQ2jqDJw9uzTwttf6h6r217BQ7kws3jZbJXDkfbCJa1q"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "DFzg5hDZ55Nuc7TVSd2CcdHogbwdN8KAcN7KL3J7DCCd",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "3cezwW6cAvZzEVGJi2A3w5amdZjgbPRkLEKTgVnvxp97"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "Dj3PndQ3j1vuga5ApiFWWAfQ4h3wBtgS2SeLZBT2LD4g",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "G1rt3EpQ43K3bY457rhukQGRAo2QxydFAGRKqnjKzyr5"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "ATePKG1xadGgLFS9d4aR8PbQTDxsiuw1gzeiHVpwpgTS",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "CKSTEW68MkS9HUGeAv8qAFNMzFvweW5gKkraVAzhBNz1"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "Br3yzg2WSb81RaFWK9UsKtq8fD5viwooZG34mKqQWxdM",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "DESG67cExEcw7d6MmENLEzaocR8pLrhfiw9VrNtGWUKD"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "3mcAAcVnWXwLth6EKVpjd2XtFkPmyDL6o29ahPxAvnkz",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "Ac32THLH6zcWQuyKYh73EQKhH9XvdkG8ciwQUTDsRGEV"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "BMLVKrJGEr91RdbLxxPFRVnUq8bwo3KpSECvEcjP6hoq",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "GfTZJTDoaNhsCuwPpRdbfhk2MQYvpsjZFhLs797HeofY"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "HKHvcCZKJzWPycqQdgCCT5oxt7GWdbPHrg9HSdxpdsEL",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "7G9uKwt4eJDGNJSPHeHdgqerHtKSG1PP5qBqgGvUg2EE"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "3PEVT4PWfpLdetLnhhzr6K5h5q9PgDX4YLBwGbQgGhUG",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "EGAotcSMXygJBsWXe4rJuHm7D33s7c3NNsBBQcD49Y8C"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "D8b2RSTVbTjQ8cwzh1Y5LPSvFFiQ8xRCpKmNB9ftj5zT",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "EGAotcSMXygJBsWXe4rJuHm7D33s7c3NNsBBQcD49Y8C"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet-1.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet-1.json",
             "BANK": "4EpDJVX1XkwwLrhG9bQQ5vt5mUhexD3cW4Sx98VZh3yB",
             "ADMIN": "9bzQQGkii8DKyZ3WQZt8WTW2zXgNkYuNwMj8agqpd3Lu",
             "GROUP_KEY": "BPsns2PYPNqhBTmT4mzUcQ3KPCo8HuNNyrzwAbTjS4eF"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet.json",
             "BANK": "FKJcCspYB1CrTdLvd6C3FCmss6VRwBVdrZDw5a1RBUvS",
             "ADMIN": "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF",
             "GROUP_KEY": "27NNeZvdxH5MXDfk8hmQRNcwpTedrpkQGdPQw4tK7X6N"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet.json",
             "BANK": "w5P29p51KzMV4uxR6KnyLxXCt3thBNhgm2sQSyrAwMK",
             "ADMIN": "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF",
             "GROUP_KEY": "6b9vFQjfYav2tVzns2cD21xU7E4z9LDnHTv9wjCJsknf"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet.json",
             "BANK": "8jQWURri78mbp7k5PXR4sbA5vgPxMqLGqW9FsJSLYsjf",
             "ADMIN": "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF",
             "GROUP_KEY": "C2qdk3vJFyBqs8jvVueeRSoEi7EZvW1bBxuVeMu7JB9J"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet.json",
             "BANK": "14pCPReiear5V7viGVtdafwm6yCfBoz7pTkigGzcrdQm",
             "ADMIN": "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF",
             "GROUP_KEY": "2v4DXmmnhqrERUYpZaScrXC1jdJoUYhzMjuEcytqsLeh"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet.json",
             "BANK": "D6aQjirasrJEHxrEnoGizDyJ1ZzdobFAv3a3QRC6iacn",
             "ADMIN": "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF",
             "GROUP_KEY": "27NNeZvdxH5MXDfk8hmQRNcwpTedrpkQGdPQw4tK7X6N"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet.json",
             "BANK": "A3RCgnfVEpLmYmQUZLhuKzyTKf6MquAwRrPbA2WxFvEH",
             "ADMIN": "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF",
             "GROUP_KEY": "2v4DXmmnhqrERUYpZaScrXC1jdJoUYhzMjuEcytqsLeh"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet.json",
             "BANK": "BjirVS6eYJs9W8KZUcABtdrZmehVTAzbAFrLAyXhqbk2",
             "ADMIN": "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF",
             "GROUP_KEY": "C2qdk3vJFyBqs8jvVueeRSoEi7EZvW1bBxuVeMu7JB9J"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet.json",
             "BANK": "5P8jACcfEzgvZg2RqPC5Ff5QKwHXvceuhWVaURaobZgX",
             "ADMIN": "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF",
             "GROUP_KEY": "CWZ6rjb7JUkUfVrToKY8PvCdTw5nW3Kq9HNQxywR9d3t"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet.json",
             "BANK": "CoikF9aDXU7xJheN7WePZAboe67wEW1h1ygjbLbQzZbe",
             "ADMIN": "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF",
             "GROUP_KEY": "6b9vFQjfYav2tVzns2cD21xU7E4z9LDnHTv9wjCJsknf"
         },
         {
-            "wallet_path": "/Users/fenrir/.config/solana/keys/phantom-wallet.json",
+            "wallet_path": ".config/solana/keys/phantom-wallet.json",
             "BANK": "FZXCmkJ1DqMs6uRYVQpQJoQ8qLtZGor3q4ntXet1N8u5",
             "ADMIN": "mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF",
             "GROUP_KEY": "CWZ6rjb7JUkUfVrToKY8PvCdTw5nW3Kq9HNQxywR9d3t"

@@ -15,12 +15,14 @@ interface BankConfigurationInput {
         BANK: string;
         ADMIN: string;
         MULTISIG_PAYER?: string;
+        root_wallet_path: string;
         wallet_path: string;
     };
 }
 
 interface ConfigurationFile {
     PROGRAM_ID: string;
+    root_wallet_path
     config: Array<{
         wallet_path: string;
         BANK: string;
@@ -49,7 +51,7 @@ async function processConfiguration(
     const parsedConfig = parseConfig(bankInput.config);
     const defaultBankConfig = defaultBankConfigOptRaw();
 
-    await updateBankConfig(defaultBankConfig, bankInput.config.wallet_path, parsedConfig, {
+    await updateBankConfig(defaultBankConfig, bankInput.config.root_wallet_path + bankInput.config.wallet_path, parsedConfig, {
         simulate: true,
         sendTx: false
     });
@@ -68,6 +70,7 @@ async function main() {
         const bankInput: BankConfigurationInput = {
             config: {
                 PROGRAM_ID: configFile.PROGRAM_ID,
+                root_wallet_path: configFile.root_wallet_path,
                 ...bankConfig
             },
         };
