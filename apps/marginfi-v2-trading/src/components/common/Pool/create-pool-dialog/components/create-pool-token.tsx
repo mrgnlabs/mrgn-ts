@@ -36,7 +36,7 @@ export const CreatePoolToken = ({ isSearchingToken, setIsOpen, fetchTokenInfo }:
       .slice(0, isMobile ? 3 : 5);
 
     setTrendingTokens(filteredData);
-  }, [arenaPoolsSummary, isMobile, isMobile]);
+  }, [arenaPoolsSummary, isMobile]);
 
   const verifyPublickey = (key: string, allowPDA: boolean = false) => {
     try {

@@ -39,7 +39,7 @@ function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw 
     operationalState: bankConfigOpt.operationalState && serializeOperationalState(bankConfigOpt.operationalState),
     oracleMaxAge: bankConfigOpt.oracleMaxAge,
     permissionlessBadDebtSettlement: bankConfigOpt.permissionlessBadDebtSettlement,
-    freezeSettings: bankConfigOpt.freezeSettings,
+    freezeSettings: null,
   };
 }
 

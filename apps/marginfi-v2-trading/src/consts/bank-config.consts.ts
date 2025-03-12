@@ -1,6 +1,5 @@
-import { BankConfigOpt, RiskTier, OperationalState, OracleSetup } from "@mrgnlabs/marginfi-client-v2";
-import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
+import { BankConfigOpt, RiskTier, OperationalState } from "@mrgnlabs/marginfi-client-v2";
 
 /**
  * ┌────────────────────────────--─────────────────┐
@@ -40,7 +39,6 @@ export const DEFAULT_STABLE_BANK_CONFIG: BankConfigOpt = {
 
   oracleMaxAge: 300, // 5 mins
   permissionlessBadDebtSettlement: true,
-  freezeSettings: true,
   assetTag: null,
 };
 
@@ -75,7 +73,6 @@ export const DEFAULT_TOKEN_BANK_CONFIG: BankConfigOpt = {
   operationalState: OperationalState.Operational,
   oracleMaxAge: 60, // 1 mins
   permissionlessBadDebtSettlement: true,
-  freezeSettings: true,
   assetTag: null,
 };
 

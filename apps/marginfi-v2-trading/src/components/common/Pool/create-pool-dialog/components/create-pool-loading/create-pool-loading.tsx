@@ -16,6 +16,8 @@ import {
   OracleSetup,
   addOracleToBanksIx,
   getConfig,
+  freezeBankConfigIx,
+  Bank,
 } from "@mrgnlabs/marginfi-client-v2";
 import { cn, getFeeAccount, createReferalTokenAccountIxs } from "@mrgnlabs/mrgn-utils";
 import { addTransactionMetadata, SolanaTransaction, TransactionType } from "@mrgnlabs/mrgn-common";
@@ -47,7 +49,6 @@ interface CreatePoolLoadingProps {
 export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }: CreatePoolLoadingProps) => {
   const { wallet } = useWallet();
   const { connection } = useConnection();
-  // const [fetchTradeState] = useTradeStore((state) => [state.fetchTradeState]);
   const [activeStep, setActiveStep] = React.useState<number>(0);
   const [status, setStatus] = React.useState<StepperStatus>("default");
 
@@ -137,10 +138,11 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       // create seeds
       const seeds = createSeeds();
       // create oracle ix
-      const pullFeedIx: {
+      const pullFeedIxs: {
         pullFeedIx: TransactionInstruction;
         feedSeed: Keypair;
       }[] = [];
+
       const updatedTokenBankConfig = { ...tokenConfig.bankConfig };
       const updatedQuoteBankConfig = { ...quoteConfig.bankConfig };
 
@@ -154,7 +156,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
           setup: OracleSetup.SwitchboardPull,
           keys: [oracleCreationToken.feedPubkey],
         };
-        pullFeedIx.push(oracleCreationToken);
+        pullFeedIxs.push(oracleCreationToken);
       }
 
       if (!updatedQuoteOracleConfig?.keys || updatedQuoteOracleConfig?.keys?.length === 0) {
@@ -164,7 +166,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
           setup: OracleSetup.SwitchboardPull,
           keys: [oracleCreationQuote.feedPubkey],
         };
-        pullFeedIx.push(oracleCreationQuote);
+        pullFeedIxs.push(oracleCreationQuote);
       }
 
       setActiveStep(1);
@@ -188,8 +190,8 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
 
       // create group ix
       const groupIxWrapped = await client.makeCreateMarginfiGroupIx(seeds.marginfiGroupSeed.publicKey);
-      // create bank ix wrapper (quote)
 
+      // create bank ix wrapper (quote)
       const quoteBankIxWrapper = await client.group.makePoolAddBankIx(
         client.program,
         seeds.stableBankSeed.publicKey,
@@ -227,6 +229,7 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         client.program,
         seeds.stableBankSeed.publicKey,
         updatedQuoteOracleConfig.keys[0],
+        updatedQuoteOracleConfig.keys[1],
         updatedQuoteOracleConfig.setup,
         seeds.marginfiGroupSeed.publicKey,
         wallet.publicKey
@@ -236,9 +239,27 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         client.program,
         seeds.tokenBankSeed.publicKey,
         updatedTokenOracleConfig.keys[0],
+        updatedTokenOracleConfig.keys[1],
         updatedTokenOracleConfig.setup,
         seeds.marginfiGroupSeed.publicKey,
         wallet.publicKey
+      );
+
+      // freeze banks
+      const freezeStableBankIx = await freezeBankConfigIx(
+        client.program,
+        seeds.stableBankSeed.publicKey,
+        seeds.marginfiGroupSeed.publicKey,
+        wallet.publicKey,
+        updatedQuoteBankConfig
+      );
+
+      const freezeTokenBankIx = await freezeBankConfigIx(
+        client.program,
+        seeds.tokenBankSeed.publicKey,
+        seeds.marginfiGroupSeed.publicKey,
+        wallet.publicKey,
+        updatedTokenBankConfig
       );
 
       // create lut ix
@@ -265,20 +286,39 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         value: { blockhash },
       } = await connection.getLatestBlockhashAndContext();
 
-      // create oracle transaction
-      pullFeedIx.forEach((ix) => {
-        transactions.push(createTransaction([ix.pullFeedIx], wallet.publicKey, [ix.feedSeed], blockhash));
-      });
-
-      // create lut & create group transaction
-      transactions.push(
-        createTransaction(
-          [createLutIx, extendLutIx, ...groupIxWrapped.instructions],
-          wallet.publicKey,
-          [seeds.marginfiGroupSeed],
-          blockhash
-        )
-      );
+      if (pullFeedIxs.length <= 1) {
+        // create lut & create group transaction
+        // create oracle transaction
+        pullFeedIxs.forEach((ix) => {
+          transactions.push(createTransaction([ix.pullFeedIx], wallet.publicKey, [ix.feedSeed], blockhash));
+        });
+        transactions.push(
+          createTransaction(
+            [createLutIx, extendLutIx, ...groupIxWrapped.instructions],
+            wallet.publicKey,
+            [seeds.marginfiGroupSeed],
+            blockhash
+          )
+        );
+      } else {
+        // this means there are 2 oracles that need to be created
+        transactions.push(
+          createTransaction(
+            [pullFeedIxs[0].pullFeedIx, createLutIx, extendLutIx],
+            wallet.publicKey,
+            [pullFeedIxs[0].feedSeed],
+            blockhash
+          )
+        );
+        transactions.push(
+          createTransaction(
+            [pullFeedIxs[1].pullFeedIx, ...groupIxWrapped.instructions],
+            wallet.publicKey,
+            [pullFeedIxs[1].feedSeed, seeds.marginfiGroupSeed],
+            blockhash
+          )
+        );
+      }
 
       // create quote bank & referal token account transaction  ...referralTokenAccountIxs
       transactions.push(
@@ -295,7 +335,16 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         createTransaction(
           [...tokenBankIxWrapper.instructions, ...addOracleToTokenBankIx.instructions],
           wallet.publicKey,
-          [seeds.tokenBankSeed, ...tokenBankIxWrapper.keys],
+          [seeds.tokenBankSeed, ...tokenBankIxWrapper.keys, ...addOracleToTokenBankIx.keys],
+          blockhash
+        )
+      );
+
+      transactions.push(
+        createTransaction(
+          [...freezeStableBankIx.instructions, ...freezeTokenBankIx.instructions],
+          wallet.publicKey,
+          [],
           blockhash
         )
       );
@@ -320,10 +369,13 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       setActiveStep(4);
 
       // transaction execution
-      const sigs = await client.processTransactions(transactions, {
-        broadcastType: "BUNDLE",
-        bundleTipUi: 0.005, // 0.005 SOL fixed bundle tip
-      });
+      const sigs = await client.processTransactions(
+        [createTransaction([...freezeTokenBankIx.instructions], wallet.publicKey, [], blockhash)],
+        {
+          broadcastType: "BUNDLE",
+          bundleTipUi: 0.005, // 0.005 SOL fixed bundle tip
+        }
+      );
 
       if (!sigs) throw new Error("Transaction execution failed");
 
