@@ -95,12 +95,10 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="text-muted-foreground text-sm">
-                        {shortenAddress(poolData.tokenSummary.mint)}
-                      </span>
+                      <span className="text-muted-foreground text-sm">{shortenAddress(poolData.groupPk)}</span>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{poolData.tokenSummary.mint.toBase58()}</p>
+                      <p>{poolData.groupPk.toBase58()}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
