@@ -57,15 +57,25 @@ export async function freezeBankConfigIx(
   };
 }
 
-export async function addOracleToBanksIx(
-  program: MarginfiProgram,
-  bankAddress: PublicKey,
-  feedId: PublicKey,
-  oracleKey: PublicKey,
-  setup: OracleSetup,
-  groupAddress?: PublicKey,
-  adminAddress?: PublicKey
-): Promise<InstructionsWrapper> {
+type AddOracleToBanksIxArgs = {
+  program: MarginfiProgram;
+  bankAddress: PublicKey;
+  feedId: PublicKey;
+  oracleKey?: PublicKey;
+  setup: OracleSetup;
+  groupAddress?: PublicKey;
+  adminAddress?: PublicKey;
+};
+
+export async function addOracleToBanksIx({
+  program,
+  bankAddress,
+  feedId,
+  oracleKey,
+  setup,
+  groupAddress,
+  adminAddress,
+}: AddOracleToBanksIxArgs): Promise<InstructionsWrapper> {
   const ix = await instructions.makeLendingPoolConfigureBankOracleIx(
     program,
     {

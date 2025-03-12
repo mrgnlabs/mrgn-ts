@@ -225,25 +225,25 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
         throw new Error("Oracle setup or keys not found");
       }
 
-      const addOracleToQuoteBankIx = await addOracleToBanksIx(
-        client.program,
-        seeds.stableBankSeed.publicKey,
-        updatedQuoteOracleConfig.keys[0],
-        updatedQuoteOracleConfig.keys[1],
-        updatedQuoteOracleConfig.setup,
-        seeds.marginfiGroupSeed.publicKey,
-        wallet.publicKey
-      );
+      const addOracleToQuoteBankIx = await addOracleToBanksIx({
+        program: client.program,
+        bankAddress: seeds.stableBankSeed.publicKey,
+        feedId: updatedQuoteOracleConfig.keys[0],
+        oracleKey: updatedQuoteOracleConfig.keys.length > 1 ? updatedQuoteOracleConfig.keys[1] : undefined,
+        setup: updatedQuoteOracleConfig.setup,
+        groupAddress: seeds.marginfiGroupSeed.publicKey,
+        adminAddress: wallet.publicKey,
+      });
 
-      const addOracleToTokenBankIx = await addOracleToBanksIx(
-        client.program,
-        seeds.tokenBankSeed.publicKey,
-        updatedTokenOracleConfig.keys[0],
-        updatedTokenOracleConfig.keys[1],
-        updatedTokenOracleConfig.setup,
-        seeds.marginfiGroupSeed.publicKey,
-        wallet.publicKey
-      );
+      const addOracleToTokenBankIx = await addOracleToBanksIx({
+        program: client.program,
+        bankAddress: seeds.tokenBankSeed.publicKey,
+        feedId: updatedTokenOracleConfig.keys[0],
+        oracleKey: updatedTokenOracleConfig.keys.length > 1 ? updatedTokenOracleConfig.keys[1] : undefined,
+        setup: updatedTokenOracleConfig.setup,
+        groupAddress: seeds.marginfiGroupSeed.publicKey,
+        adminAddress: wallet.publicKey,
+      });
 
       // freeze banks
       const freezeStableBankIx = await freezeBankConfigIx(
@@ -369,13 +369,10 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       setActiveStep(4);
 
       // transaction execution
-      const sigs = await client.processTransactions(
-        [createTransaction([...freezeTokenBankIx.instructions], wallet.publicKey, [], blockhash)],
-        {
-          broadcastType: "BUNDLE",
-          bundleTipUi: 0.005, // 0.005 SOL fixed bundle tip
-        }
-      );
+      const sigs = await client.processTransactions(transactions, {
+        broadcastType: "BUNDLE",
+        bundleTipUi: 0.005, // 0.005 SOL fixed bundle tip
+      });
 
       if (!sigs) throw new Error("Transaction execution failed");
 
