@@ -25,7 +25,7 @@ const simulate = true;
 const sendTx = true;
 const verbose = true;
 
-type Config = {
+export type Config = {
   PROGRAM_ID: string;
   GROUP_KEY: PublicKey;
   BANK: PublicKey;
@@ -45,9 +45,14 @@ const config: Config = {
 };
 
 async function main() {
+  let bankConfig = defaultBankConfigOptRaw();
+  await updateBankConfig(bankConfig, process.env.MARGINFI_WALLET, config, { simulate, sendTx });
+}
+
+export async function updateBankConfig(bankConfig: BankConfigOptRaw, walletPath: string, config: Config, options?: { simulate?: boolean; sendTx?: boolean }) {
   marginfiIdl.address = config.PROGRAM_ID;
   const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT, "confirmed");
-  const wallet = loadKeypairFromFile(process.env.MARGINFI_WALLET);
+  const wallet = loadKeypairFromFile(walletPath);
 
   // @ts-ignore
   const provider = new AnchorProvider(connection, wallet, {
@@ -57,9 +62,6 @@ async function main() {
   const program = new Program<Marginfi>(marginfiIdl as Marginfi, provider);
 
   const transaction = new Transaction();
-
-  let bankConfig = defaultBankConfigOptRaw();
-
   transaction.add(
     await program.methods
       .lendingPoolConfigureBank(bankConfig)
@@ -73,7 +75,7 @@ async function main() {
 
   transaction.feePayer = config.ADMIN; // Set the fee payer to Squads wallet if using multisig
 
-  if (simulate) {
+  if (options?.simulate) {
     try {
       const simulation = await connection.simulateTransaction(transaction);
       console.log("Simulation results:", simulation);
@@ -82,7 +84,7 @@ async function main() {
     }
   }
 
-  if (sendTx) {
+  if (options?.sendTx) {
     try {
       const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
       console.log("Transaction signature:", signature);
@@ -101,11 +103,11 @@ async function main() {
   }
 }
 
-const ASSET_TAG_DEFAULT = 0;
-const ASSET_TAG_SOL = 1;
-const ASSET_TAG_STAKED = 2;
+export const ASSET_TAG_DEFAULT = 0;
+export const ASSET_TAG_SOL = 1;
+export const ASSET_TAG_STAKED = 2;
 
-const defaultBankConfigOptRaw = () => {
+export const defaultBankConfigOptRaw = () => {
   let bankConfigOpt: BankConfigOptRaw = {
     assetWeightInit: null,
     assetWeightMaint: null,
@@ -113,11 +115,11 @@ const defaultBankConfigOptRaw = () => {
     liabilityWeightMaint: null,
     depositLimit: null,
     borrowLimit: null,
-    riskTier: null,
+    riskTier: { collateral: {} },
     assetTag: null,
     totalAssetValueInitLimit: null,
     interestRateConfig: {
-      protocolOriginationFee: bigNumberToWrappedI80F48(new BigNumber(0.1)),
+      protocolOriginationFee: bigNumberToWrappedI80F48(new BigNumber(0.005)),
       protocolIrFee: null,
       protocolFixedFeeApr: null,
       insuranceIrFee: null,
@@ -127,19 +129,19 @@ const defaultBankConfigOptRaw = () => {
       plateauInterestRate: null,
     },
     operationalState: null,
-    oracleMaxAge: null,
-    permissionlessBadDebtSettlement: null,
+    oracleMaxAge: 300,
+    permissionlessBadDebtSettlement: true,
     freezeSettings: null,
   };
 
   return bankConfigOpt;
 };
 
-type InterestRateConfigRawWithOrigination = InterestRateConfigRaw & {
+export type InterestRateConfigRawWithOrigination = InterestRateConfigRaw & {
   protocolOriginationFee: WrappedI80F48;
 };
 
-type BankConfigOptRaw = {
+export type BankConfigOptRaw = {
   assetWeightInit: WrappedI80F48 | null;
   assetWeightMaint: WrappedI80F48 | null;
 
