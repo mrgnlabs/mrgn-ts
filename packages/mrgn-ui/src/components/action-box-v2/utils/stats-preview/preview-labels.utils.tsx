@@ -336,15 +336,22 @@ export function getBankTypeStat(bank: ExtendedBankInfo): PreviewStat {
 export function getOracleStat(bank: ExtendedBankInfo): PreviewStat {
   let oracle = "";
   let oracleIcon = <></>;
+
+  console.log("oracle", bank?.info.rawBank.config.oracleSetup);
   switch (bank?.info.rawBank.config.oracleSetup) {
     case "PythLegacy":
       oracle = "Pyth";
+      oracleIcon = <IconPyth size={14} />;
       break;
     case "PythPushOracle":
       oracle = "Pyth";
       oracleIcon = <IconPyth size={14} />;
       break;
     case "SwitchboardV2":
+      oracle = "Switchboard";
+      oracleIcon = <IconSwitchboard size={14} />;
+      break;
+    case "SwitchboardPull":
       oracle = "Switchboard";
       oracleIcon = <IconSwitchboard size={14} />;
       break;
