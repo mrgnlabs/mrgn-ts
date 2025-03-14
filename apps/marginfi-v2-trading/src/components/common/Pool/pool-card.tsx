@@ -172,50 +172,54 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
       </CardHeader>
       <CardContent className="pt-4 pb-6">
         {tokenVolumeData && (
-          <dl className="grid grid-cols-2 gap-1.5 text-sm text-muted-foreground w-full mt-2">
-            <dt>Price</dt>
-            <dd
-              className={`text-right text-primary tracking-wide flex items-center justify-end gap-1 ${
-                !isStableQuote && "cursor-pointer"
-              }`}
-              onClick={() => !isStableQuote && setShowUSDPrice(!showUSDPrice)}
-            >
-              {dynamicNumeralFormatter(tokenPrice, {
-                ignoreMinDisplay: true,
-              })}{" "}
-              {showUSDPrice ? "USD" : poolData.tokenSummary.tokenSymbol}
-              {!isStableQuote && <IconSwitchHorizontal size={14} className="cursor-pointer" />}
-              {tokenPriceChange && (
-                <span className={cn("text-xs ml-1", tokenPriceChange > 0 ? "text-mrgn-green" : "text-mrgn-error")}>
-                  {tokenPriceChange > 0 && "+"}
-                  {percentFormatter.format(tokenPriceChange / 100)}
-                </span>
-              )}
-            </dd>
-            <dt className="">24hr vol</dt>
-            <dd className="text-right text-primary tracking-wide">
-              $
-              {dynamicNumeralFormatter(tokenVolumeData.volume24h, {
-                maxDisplay: 1000,
-              })}
-              {tokenVolumeData.volumeChange24h && (
-                <span
-                  className={cn(
-                    "text-xs ml-2",
-                    tokenVolumeData.volumeChange24h > 0 ? "text-mrgn-green" : "text-mrgn-error"
-                  )}
-                >
-                  {tokenVolumeData.volumeChange24h > 0 && "+"}
-                  {percentFormatter.format(tokenVolumeData.volumeChange24h / 100)}
-                </span>
-              )}
-            </dd>
-            <dt>Funding rate (long/short)</dt>
-            <dd className="text-right text-primary tracking-wide">{fundingRate}</dd>
+          <dl className="flex flex-col gap-1.5 text-sm text-muted-foreground w-full mt-2">
+            <div className="flex justify-between items-center">
+              <dt>Price</dt>
+              <dd
+                className={`text-primary tracking-wide flex items-center gap-1 ${!isStableQuote && "cursor-pointer"}`}
+                onClick={() => !isStableQuote && setShowUSDPrice(!showUSDPrice)}
+              >
+                {dynamicNumeralFormatter(tokenPrice, {
+                  ignoreMinDisplay: true,
+                })}{" "}
+                {showUSDPrice ? "USD" : poolData.tokenSummary.tokenSymbol}
+                {!isStableQuote && <IconSwitchHorizontal size={14} className="cursor-pointer" />}
+                {tokenPriceChange && (
+                  <span className={cn("text-xs ml-1", tokenPriceChange > 0 ? "text-mrgn-green" : "text-mrgn-error")}>
+                    {tokenPriceChange > 0 && "+"}
+                    {percentFormatter.format(tokenPriceChange / 100)}
+                  </span>
+                )}
+              </dd>
+            </div>
+            <div className="flex justify-between items-center">
+              <dt>24hr vol</dt>
+              <dd className="text-primary tracking-wide">
+                $
+                {dynamicNumeralFormatter(tokenVolumeData.volume24h, {
+                  maxDisplay: 1000,
+                })}
+                {tokenVolumeData.volumeChange24h && (
+                  <span
+                    className={cn(
+                      "text-xs ml-2",
+                      tokenVolumeData.volumeChange24h > 0 ? "text-mrgn-green" : "text-mrgn-error"
+                    )}
+                  >
+                    {tokenVolumeData.volumeChange24h > 0 && "+"}
+                    {percentFormatter.format(tokenVolumeData.volumeChange24h / 100)}
+                  </span>
+                )}
+              </dd>
+            </div>
+            <div className="flex justify-between items-center">
+              <dt>Funding rate (long/short)</dt>
+              <dd className="text-primary tracking-wide">{fundingRate}</dd>
+            </div>
             {poolData.tokenSummary.bankData && (
-              <>
+              <div className="flex justify-between items-center">
                 <dt>Pool liquidity</dt>
-                <dd className="text-right text-primary tracking-wide">
+                <dd className="text-primary tracking-wide">
                   $
                   {dynamicNumeralFormatter(
                     poolData.quoteSummary.bankData.totalDepositsUsd + poolData.tokenSummary.bankData.totalDepositsUsd,
@@ -224,7 +228,7 @@ export const PoolCard = ({ poolData }: PoolCardProps) => {
                     }
                   )}
                 </dd>
-              </>
+              </div>
             )}
           </dl>
         )}
