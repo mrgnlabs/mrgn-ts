@@ -72,25 +72,6 @@ export const PositionActionButtons = ({
     return borrowBank;
   }, [arenaPool]);
 
-  const extendedBankInfos = React.useMemo(() => {
-    const banks = Object.values(banksByBankPk);
-    const uniqueBanksMap = new Map(banks.map((bank) => [bank.info.state.mint.toBase58(), bank]));
-    const uniqueBanks = Array.from(uniqueBanksMap.values());
-    return uniqueBanks;
-  }, [banksByBankPk]);
-
-  React.useEffect(() => {
-    if (
-      wallet &&
-      extendedBankInfos &&
-      extendedBankInfos.length > 0 &&
-      (walletTokens === null || walletTokens.length === 0)
-    ) {
-      fetchWalletTokens(wallet, extendedBankInfos);
-    }
-  }, [fetchWalletTokens, wallet, walletTokens, extendedBankInfos]);
-  // TODO: confirm this isnt fetching too often
-
   return (
     <ActionBoxProvider
       nativeSolBalance={nativeSolBalance}
