@@ -32,7 +32,7 @@ export const PositionList = ({ activePool }: { activePool: ArenaPoolV2 }) => {
     return [...(activeGroupPosition ? [activeGroupPosition] : []), ...sortedLongs, ...sortedShorts];
   }, [extendedPools, activePool]);
 
-  if (isMobile && positionsData && activePoolExtended) {
+  if (isMobile && positionsData && activePoolExtended?.tokenBank.isActive) {
     return (
       <div className="space-y-2 px-2">
         <p className="flex items-center text-sm">

@@ -298,29 +298,6 @@ export const AddPositionBox = ({
 
   return (
     <ActionBoxContentWrapper>
-      {/* {actionTxns.lastValidBlockHeight && blockProgress !== 0 && (
-        <div className="absolute top-0 right-4 z-50">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <CircularProgress
-                  size={18}
-                  strokeWidth={3}
-                  value={blockProgress * 100}
-                  strokeColor="stroke-mfi-action-box-accent-foreground/50"
-                  backgroundColor="stroke-mfi-action-box-background-dark"
-                />
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                <div className="space-y-2">
-                  <p>Your transaction is ready for execution.</p>
-                  <p>Once the spinner reaches 100%, if not processed, it will refresh to fetch updated quotes.</p>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      )} */}
       <div className="mb-6">
         <ActionInput
           amount={amount}
@@ -358,7 +335,6 @@ export const AddPositionBox = ({
           handleAction={() => {
             handleAddPositionAction();
           }}
-          className={tradeSide === TradeSide.LONG ? "bg-success" : "bg-destructive"}
           loaderType="DEFAULT"
           buttonLabel={`Increase ${tokenBank.meta.tokenSymbol} ${tradeSide === TradeSide.LONG ? "long" : "short"} position`}
         />
@@ -378,7 +354,7 @@ export const AddPositionBox = ({
         actionSummary={actionSummary}
         depositBank={depositBank}
         borrowBank={borrowBank}
-        depositAmount={actionTxns.actualDepositAmount}
+        depositAmount={actionTxns.actualDepositAmount || amount}
         borrowAmount={actionTxns.borrowAmount.toNumber()}
         isLoading={simulationStatus.isLoading}
       />

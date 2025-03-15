@@ -7,6 +7,7 @@ import { ArenaPoolSummary } from "~/types";
 
 import { CommandList, CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common/dist/utils/formatters.utils";
+import { shortenAddress } from "@mrgnlabs/mrgn-common/dist/utils/conversion.utils";
 import { cn } from "~/theme";
 
 type SearchListProps = {
@@ -65,13 +66,16 @@ const SearchItem = ({ pool, onClose, size = "default" }: SearchItemProps) => {
               className={cn("rounded-full object-cover absolute -bottom-1 -right-1", size === "sm" && "w-4 h-4")}
             />
           </div>
-          <span
-            className={cn(
-              "font-normal group-data-[selected]:font-medium group-data-[selected]:border-b group-data-[selected]:border-foreground/50"
-            )}
-          >
-            {pool.tokenSummary.tokenSymbol} / {pool.quoteSummary.tokenSymbol}
-          </span>
+          <div className="flex flex-col justify-center">
+            <span
+              className={cn(
+                "font-normal group-data-[selected]:font-medium group-data-[selected]:border-b group-data-[selected]:border-foreground/50"
+              )}
+            >
+              {pool.tokenSummary.tokenSymbol} / {pool.quoteSummary.tokenSymbol}
+            </span>
+            <span className="text-xs text-muted-foreground">{shortenAddress(pool.groupPk)}</span>
+          </div>
         </div>
 
         <p className={cn("w-2/5", size === "sm" && "w-1/3 flex flex-col text-xs")}>
