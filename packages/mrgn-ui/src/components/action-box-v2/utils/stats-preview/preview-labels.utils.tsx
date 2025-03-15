@@ -175,11 +175,7 @@ export function getHealthStat(health: number, isLoading: boolean, simulationHeal
         {(isSimulated || isLoading) && (
           <>
             <IconArrowRight width={12} height={12} />
-            {isLoading ? (
-              <Skeleton className="h-4 w-[45px] bg-muted" />
-            ) : (
-              percentFormatter.format(simulationHealth ?? 0)
-            )}
+            {isLoading ? <Skeleton className="h-4 w-[45px] bg-muted" /> : percentFormatter.format(computeHealth ?? 0)}
           </>
         )}
       </>
