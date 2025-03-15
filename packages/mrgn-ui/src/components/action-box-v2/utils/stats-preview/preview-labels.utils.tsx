@@ -40,6 +40,8 @@ export function getLeverageStat(
   isLoading: boolean,
   isSimulated: boolean
 ): PreviewStat {
+  console.log("depositBank", depositBank.meta.tokenSymbol);
+  console.log("borrowBank", borrowBank.meta.tokenSymbol);
   const depositValue = depositBank.isActive ? depositBank.position.usdValue : 0;
   const borrowValue = borrowBank.isActive ? borrowBank.position.usdValue : 0;
 
