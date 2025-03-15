@@ -14,7 +14,7 @@ import {
 
 type PreviewProps = {
   actionSummary: ActionSummary;
-  depositBank: ExtendedBankInfo;
+  depositBank: ExtendedBankInfo | null;
   borrowBank: ExtendedBankInfo | null;
   depositAmount: number;
   borrowAmount: number;
@@ -31,27 +31,35 @@ export function generateTradingStats({
 }: PreviewProps): PreviewStat[] {
   const stats: PreviewStat[] = [];
 
-  if (!borrowBank) return stats;
+  const hasBanks = !!borrowBank && !!depositBank;
 
   stats.push(getHealthStat(actionSummary.actionPreview.health, isLoading, actionSummary.simulationPreview?.health));
-  stats.push(
-    getLeverageStat(depositBank, borrowBank, depositAmount, borrowAmount, isLoading, !!actionSummary.simulationPreview)
-  );
-  stats.push(
-    getPositionSizeStat(
-      depositBank,
-      borrowBank,
-      depositAmount,
-      borrowAmount,
-      isLoading,
-      !!actionSummary.simulationPreview
-    )
-  );
-  if (depositBank.isActive)
+  if (hasBanks) {
     stats.push(
-      getLiquidationStat(depositBank, isLoading, actionSummary.simulationPreview?.liquidationPrice ?? undefined)
+      getLeverageStat(
+        depositBank,
+        borrowBank,
+        depositAmount,
+        borrowAmount,
+        isLoading,
+        !!actionSummary.simulationPreview
+      )
     );
-
+    stats.push(
+      getPositionSizeStat(
+        depositBank,
+        borrowBank,
+        depositAmount,
+        borrowAmount,
+        isLoading,
+        !!actionSummary.simulationPreview
+      )
+    );
+    if (depositBank.isActive)
+      stats.push(
+        getLiquidationStat(depositBank, isLoading, actionSummary.simulationPreview?.liquidationPrice ?? undefined)
+      );
+  }
   if (actionSummary.actionPreview.priceImpactPct)
     stats.push(getPriceImpactStat(actionSummary.actionPreview.priceImpactPct));
   if (actionSummary.actionPreview.slippageBps) stats.push(getSlippageStat(actionSummary.actionPreview.slippageBps));

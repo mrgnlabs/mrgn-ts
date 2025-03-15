@@ -391,8 +391,8 @@ export const RepayBox = ({
       {actionSummary && selectedBank && (
         <Preview
           actionSummary={actionSummary}
-          depositBank={selectedBank}
-          borrowBank={selectedSecondaryBank}
+          borrowBank={selectedBank}
+          depositBank={selectedSecondaryBank}
           depositAmount={amount}
           borrowAmount={repayAmount}
           isLoading={simulationStatus.isLoading}

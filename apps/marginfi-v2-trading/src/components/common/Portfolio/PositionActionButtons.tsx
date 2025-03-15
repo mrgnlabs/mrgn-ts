@@ -134,7 +134,7 @@ export const PositionActionButtons = ({
             useProvider={true}
             repayProps={{
               requestedBank: borrowBank,
-              requestedSecondaryBank: arenaPool.status === ArenaGroupStatus.SHORT ? depositBanks[0] : undefined,
+              requestedSecondaryBank: depositBanks[0],
               banks: borrowBank ? [borrowBank, depositBanks[0]] : [depositBanks[0]],
               connected: connected,
               additionalSettings: {
