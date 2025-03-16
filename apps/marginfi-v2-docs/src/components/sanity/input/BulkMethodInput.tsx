@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { TextArea } from '@sanity/ui'
 import { set, unset } from 'sanity'

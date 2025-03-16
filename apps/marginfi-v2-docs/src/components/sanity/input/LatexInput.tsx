@@ -1,3 +1,5 @@
+'use client'
+
 import { preprocessLatex } from '~/utils/latexPreprocessor'
 
 export function LatexInput(props: any) {

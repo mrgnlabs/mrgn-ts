@@ -5,7 +5,7 @@ import { PortableTextFaq } from '~/components/faq/PortableTextFaq'
 import { Prose } from '~/components/Prose'
 import { Note } from '~/components/mdx'
 import { Button } from '~/components/Button'
-import { createMetadata } from '~/components/doc/Metadata'
+import { createMetadata } from '~/components/sanity'
 import { Metadata } from 'next'
 
 async function getFaqData() {

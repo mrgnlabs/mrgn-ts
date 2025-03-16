@@ -5,7 +5,7 @@ This directory contains the Sanity.io configuration and schema definitions for t
 ## Directory Structure
 
 ```
-sanity/
+apps/marginfi-v2-docs/src/sanity/
 ├── lib/           # Utility functions and Sanity client configuration
 ├── schemaTypes/   # Content type definitions
 └── schemas.ts     # Schema registration
@@ -159,9 +159,9 @@ sanity/
 ## Development Workflow
 
 1. **Adding New Content Types**
-   - Create schema in `schemaTypes/`
-   - Register in `schemas.ts`
-   - Add corresponding React component in `components/`
+   - Create schema in `apps/marginfi-v2-docs/src/sanity/schemaTypes/`
+   - Register in `apps/marginfi-v2-docs/src/sanity/schemas.ts`
+   - Add corresponding React component in `apps/marginfi-v2-docs/src/components/sanity/`
 
 2. **Modifying Existing Types**
    - Update schema definition
@@ -177,12 +177,14 @@ sanity/
 
 1. Install dependencies:
    ```bash
-   npm install
+   cd mrgn-ts
+   pnpm install
    ```
 
 2. Start the development server:
    ```bash
-   npm run dev
+   cd mrgn-ts
+   pnpm dev
    ```
 
 3. Access the Sanity Studio:

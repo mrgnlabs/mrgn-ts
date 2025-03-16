@@ -1,7 +1,7 @@
 import { client } from '@/sanity/lib/client'
 import { getDocPageBySlug } from '@/sanity/queries'
-import { DocPage } from '~/components/doc/DocPage'
-import { createMetadata } from '~/components/doc/Metadata'
+import { DocPage } from '~/components/sanity'
+import { createMetadata } from '~/components/sanity'
 import { Metadata } from 'next'
 
 async function getMfiV2Data() {

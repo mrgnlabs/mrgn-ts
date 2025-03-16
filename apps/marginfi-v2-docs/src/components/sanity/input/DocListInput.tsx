@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { ObjectInputProps, set, unset } from 'sanity'
 import { Stack, Text, Card, Button, Box, TextInput, TextArea } from '@sanity/ui'

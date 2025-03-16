@@ -8,10 +8,6 @@ export const structure: StructureResolver = (S: StructureBuilder) => {
     .items([
       // Documentation pages
       S.documentTypeListItem('docPage')
-        .title('Documentation Pages'),
-      
-      // FAQs
-      S.documentTypeListItem('faq')
-        .title('FAQs'),
+        .title('Documentation Pages')
     ])
 }
