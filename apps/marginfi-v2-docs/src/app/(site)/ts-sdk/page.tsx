@@ -18,4 +18,4 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function TsSdkPage() {
   const page = await getTsSdkData()
   return <DocPage page={page} />
-} 
+}

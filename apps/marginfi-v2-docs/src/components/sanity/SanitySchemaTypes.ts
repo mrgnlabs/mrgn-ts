@@ -19,7 +19,7 @@ export interface ImageWithCaption {
 }
 
 export interface MathBlock {
-  _type: 'math';
+  _type: 'math' | 'mathBlock';
   formula: string;
 }
 

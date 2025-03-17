@@ -26,7 +26,21 @@ export function wrapper({ children }: { children: React.ReactNode }) {
 export const h2 = function H2(
   props: Omit<React.ComponentPropsWithoutRef<typeof Heading>, 'level'>,
 ) {
-  return <Heading level={2} {...props} />
+  const propsWithDefaultId = {
+    ...props,
+    id: props.id || 'section-' + Math.random().toString(36).substring(2, 9)
+  };
+  return <Heading level={2} {...propsWithDefaultId} />
+}
+
+export const h3 = function H3(
+  props: Omit<React.ComponentPropsWithoutRef<typeof Heading>, 'level'>,
+) {
+  const propsWithDefaultId = {
+    ...props,
+    id: props.id || 'subsection-' + Math.random().toString(36).substring(2, 9)
+  };
+  return <Heading level={3} {...propsWithDefaultId} />
 }
 
 function InfoIcon(props: React.ComponentPropsWithoutRef<'svg'>) {

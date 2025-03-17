@@ -1,118 +1,125 @@
 # marginfi Documentation Maintenance Scripts
 
-This directory contains scripts for maintaining and migrating content in the marginfi documentation site.
-
-## Prerequisites
-
-Before running any scripts, make sure you have the following environment variables set in your `.env.local` file:
-
-```
-NEXT_PUBLIC_SANITY_PROJECT_ID=your-project-id
-NEXT_PUBLIC_SANITY_DATASET=your-dataset
-SANITY_API_WRITE_TOKEN=your-write-token
-```
+This directory contains scripts for maintaining and fixing the marginfi documentation site.
 
 ## Available Scripts
 
-### Content Structure Fixing
+### `fix-use-cases.js`
 
-- **fix-all-pages.ts**: Fixes the content structure for all documentation pages
-  ```
-  cd mrgn-ts
-  npx ts-node apps/marginfi-v2-docs/scripts/fix-all-pages.ts
-  ```
+Fixes the content structure of the "Use Cases" page in the Sanity database.
 
-- **fix-faq.ts**: Fixes the content structure specifically for the FAQ page
-  ```
-  cd mrgn-ts
-  npx ts-node apps/marginfi-v2-docs/scripts/fix-faq.ts
-  ```
+```bash
+cd apps/marginfi-v2-docs && node scripts/fix-use-cases.js
+```
 
-- **fix-use-cases.ts**: Fixes the content structure specifically for the Use Cases page
-  ```
-  cd mrgn-ts
-  npx ts-node apps/marginfi-v2-docs/scripts/fix-use-cases.ts
-  ```
+### `fix-all-pages.js`
 
-### Content Migration
+Fixes the content structure of all docPage documents in the Sanity database.
 
-- **migrate-content.ts**: Migrates content from old schema to new schema
-  ```
-  cd mrgn-ts
-  npx ts-node apps/marginfi-v2-docs/scripts/migrate-content.ts
-  ```
+```bash
+cd apps/marginfi-v2-docs && node scripts/fix-all-pages.js
+```
 
-- **migrate-faq.ts**: Migrates FAQ content from old schema to new schema
-  ```
-  cd mrgn-ts
-  npx ts-node apps/marginfi-v2-docs/scripts/migrate-faq.ts
-  ```
+### `list-doc-pages.js`
 
-- **migrate.ts**: Migrates method-related content to the new method format
-  ```
-  cd mrgn-ts
-  npx ts-node apps/marginfi-v2-docs/scripts/migrate.ts
-  ```
+Lists all docPage documents in the Sanity database, including their IDs, titles, and slugs.
 
-- **migrate-metadata.ts**: Migrates metadata fields
-  ```
-  cd mrgn-ts
-  npx ts-node apps/marginfi-v2-docs/scripts/migrate-metadata.ts
-  ```
+```bash
+cd apps/marginfi-v2-docs && node scripts/list-doc-pages.js
+```
 
-### Content Cleanup
+### `convert-mdx-to-sanity.js`
 
-- **clean-duplicates.ts**: Removes duplicate content
-  ```
-  cd mrgn-ts
-  npx ts-node apps/marginfi-v2-docs/scripts/clean-duplicates.ts
-  ```
+Converts MDX pages from the `_dep` directories to Sanity documents. This script is useful for migrating content from the old MDX-based documentation to the new Sanity-based system.
 
-- **flatten-content.ts**: Flattens nested content structures
-  ```
-  cd mrgn-ts
-  npx ts-node apps/marginfi-v2-docs/scripts/flatten-content.ts
-  ```
+```bash
+cd apps/marginfi-v2-docs && node scripts/convert-mdx-to-sanity.js
+```
+
+### `update-page-components.js`
+
+Updates all page components to use the Sanity components. This script ensures that all page components are using the Sanity client and DocPage component.
+
+```bash
+cd apps/marginfi-v2-docs && node scripts/update-page-components.js
+```
+
+### `kill-port.js`
+
+Kills any process running on port 3007. This script is useful for resolving the EADDRINUSE error when starting the development server.
+
+```bash
+cd apps/marginfi-v2-docs && node scripts/kill-port.js
+```
 
 ## Common Issues and Solutions
 
-### Content Not Rendering
+### Missing `_key` Properties
 
-If content is not rendering properly on the site but appears correctly in Sanity Studio, run the fix-all-pages script:
-
-```
-cd mrgn-ts
-npx ts-node apps/marginfi-v2-docs/scripts/fix-all-pages.ts
-```
-
-This script ensures that all content blocks have the proper structure required by the PortableText renderer.
+Some Sanity documents may have content blocks with missing `_key` properties, which can cause rendering errors. The `fix-use-cases.js` and `fix-all-pages.js` scripts address this issue by ensuring that all content blocks, children, and content items have valid `_key` properties.
 
 ### "Unknown block type" Errors
 
-If you see "Unknown block type 'block'" errors in the console, it means the PortableText renderer doesn't know how to handle basic block types. This has been fixed in the DocPage component by:
+If you encounter "Unknown block type" errors in the console, it may be due to content blocks with incorrect structure or missing handlers in the rendering components. The `fix-all-pages.js` script helps ensure that all content blocks have the correct structure.
 
-1. Manually rendering block content instead of relying on the PortableText renderer for basic blocks
-2. Using PortableText only for complex block types
+### Content Not Rendering Correctly
 
-If you still encounter these errors, check that:
-1. The DocPage component is correctly handling all block types
-2. The content structure is valid (run fix-all-pages.ts)
-3. All block types have corresponding renderers in the components object
+If content is not rendering correctly after migration from MDX to Sanity, you can use the `convert-mdx-to-sanity.js` script to re-convert the MDX content to Sanity format. This script handles special cases like the "Use Cases" page and ensures that the content structure matches what the rendering components expect.
+
+### EADDRINUSE Error
+
+If you encounter an EADDRINUSE error when starting the development server, it means that port 3007 is already in use. You can use the `kill-port.js` script to kill any process running on port 3007.
+
+```bash
+cd apps/marginfi-v2-docs && node scripts/kill-port.js
+```
 
 ### Schema Errors
 
-If you encounter schema errors in Sanity Studio, check that:
+If you encounter schema errors, make sure that:
 
-1. All referenced types are properly defined in the schema
-2. All content blocks have the required fields and proper structure
-3. The schema types are properly exported in `apps/marginfi-v2-docs/src/sanity/schemaTypes/index.ts`
+1. The schema definitions in the Sanity Studio match the expected structure in the rendering components.
+2. All required fields are present in the content.
+3. The content structure follows the expected format.
+
+## Environment Setup
+
+These scripts require the following environment variables to be set in the `.env.local` file:
+
+```
+NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id
+NEXT_PUBLIC_SANITY_DATASET=production
+SANITY_API_WRITE_TOKEN=your_write_token
+```
+
+Make sure these variables are correctly set before running the scripts.
 
 ## Adding New Content Types
 
-When adding new content types:
+When adding new content types to the Sanity schema, make sure to:
 
-1. Create a new schema file in `apps/marginfi-v2-docs/src/sanity/schemaTypes/`
-2. Add the type to `apps/marginfi-v2-docs/src/sanity/schemaTypes/index.ts`
-3. Add a renderer for the type in `apps/marginfi-v2-docs/src/components/sanity/SanityDocPage.tsx`
-4. Update the `DocPage` interface to include the new type
-5. Update the rendering logic in the SanityDocPage component to handle the new type 
+1. Define the schema in the appropriate schema file.
+2. Update the schema index to include the new schema.
+3. Add appropriate handlers in the rendering components to handle the new content type.
+4. Test the rendering of the new content type to ensure it displays correctly.
+
+## Content Migration Process
+
+When migrating content from MDX to Sanity:
+
+1. Make sure all MDX files are in the correct `_dep` directories.
+2. Run the `convert-mdx-to-sanity.js` script to convert the content.
+3. Run the `update-page-components.js` script to update all page components to use the Sanity components.
+4. Check the rendering of the converted content to ensure it looks correct.
+5. If there are any issues, fix the content structure using the `fix-all-pages.js` script.
+6. For special cases like the "Use Cases" page, you may need to manually adjust the content structure.
+
+## Troubleshooting
+
+If you encounter issues with the scripts:
+
+1. Check that the environment variables are correctly set.
+2. Verify that the Sanity API tokens have the necessary permissions.
+3. Check the console output for error messages that may provide more information about the issue.
+4. Ensure that the content structure in the Sanity database matches the expected structure in the rendering components.
+5. If you encounter an EADDRINUSE error, use the `kill-port.js` script to kill any process running on port 3007. 

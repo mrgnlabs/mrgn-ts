@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: '.env.local' });
 const { createClient } = require('@sanity/client');
 
 // Initialize the Sanity client
@@ -6,25 +6,25 @@ const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '',
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   useCdn: false,
-  token: process.env.SANITY_API_TOKEN,
+  token: process.env.SANITY_API_WRITE_TOKEN,
   apiVersion: '2023-05-03',
 });
 
 /**
- * Fix the content structure of Use Cases documents
+ * Fix the content structure of all docPage documents
  */
-async function fixUseCasesContent() {
+async function fixAllPagesContent() {
   try {
-    // Fetch all Use Cases documents
-    const query = `*[_type == "docPage" && _id == "use-cases"]`;
+    // Fetch all docPage documents
+    const query = `*[_type == "docPage"]`;
     const docs = await client.fetch(query);
 
     if (!docs || docs.length === 0) {
-      console.log('No Use Cases documents found');
+      console.log('No docPage documents found');
       return;
     }
 
-    console.log(`Found ${docs.length} Use Cases documents`);
+    console.log(`Found ${docs.length} docPage documents`);
 
     // Process each document
     for (const doc of docs) {
@@ -93,11 +93,11 @@ async function fixUseCasesContent() {
       console.log(`Updated document: ${result.title}`);
     }
 
-    console.log('Done fixing Use Cases content');
+    console.log('Done fixing all docPage content');
   } catch (error) {
-    console.error('Error fixing Use Cases content:', error);
+    console.error('Error fixing docPage content:', error);
   }
 }
 
 // Run the function
-fixUseCasesContent(); 
+fixAllPagesContent(); 
