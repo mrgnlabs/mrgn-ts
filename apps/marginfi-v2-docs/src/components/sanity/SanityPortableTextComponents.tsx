@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 import { PortableTextComponents, PortableText } from '@portabletext/react'
 import * as mdx from '~/components/mdx'
 import { Math as MathComponent } from '~/components/Math'
@@ -16,13 +17,15 @@ import {
   ContentBlock,
   Section
 } from './SanitySchemaTypes'
+import { Button } from '~/components/Button'
+import { Note } from '~/components/mdx'
 
 /**
  * Helper function to generate a unique ID for headings
  */
 function generateId(prefix: string): string {
   // Use a simpler approach that works on both client and server
-  return `${prefix}-${Math.random().toString(36).substring(2, 10)}`;
+  return `${prefix}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
 /**
@@ -32,6 +35,85 @@ function extractTextFromChildren(children: any[]): string {
   if (!children || !Array.isArray(children)) return '';
   return children.map(child => child.text || '').join('');
 }
+
+/**
+ * Helper to extract HTML-like tags and replace them with actual components
+ */
+const processMarkdownTags = (content: string) => {
+  // Process Button tags
+  const buttonRegex = /<Button[^>]*href="([^"]*)"[^>]*><>([^<]*)<\/><\/Button>/g;
+  content = content.replace(buttonRegex, (_, href, text) => {
+    return `__BUTTON_COMPONENT_START__${href}__BUTTON_TEXT__${text}__BUTTON_COMPONENT_END__`;
+  });
+
+  // Process simpler Button tags
+  const simpleButtonRegex = /<Button[^>]*href="([^"]*)"[^>]*>([^<]*)<\/Button>/g;
+  content = content.replace(simpleButtonRegex, (_, href, text) => {
+    return `__BUTTON_COMPONENT_START__${href}__BUTTON_TEXT__${text}__BUTTON_COMPONENT_END__`;
+  });
+
+  // Process Note tags
+  const noteStartRegex = /<Note>/g;
+  const noteEndRegex = /<\/Note>/g;
+  content = content.replace(noteStartRegex, '__NOTE_COMPONENT_START__');
+  content = content.replace(noteEndRegex, '__NOTE_COMPONENT_END__');
+
+  // Process empty tags
+  const emptyTagsRegex = /<>([^<]*)<\/>/g;
+  content = content.replace(emptyTagsRegex, '$1');
+
+  return content;
+};
+
+// Handler for rendering components from placeholders
+const renderProcessedContent = (content: string) => {
+  if (!content) return null;
+
+  const parts = [];
+  let currentIndex = 0;
+  
+  // Handle buttons
+  const buttonRegex = /__BUTTON_COMPONENT_START__([^_]*)__BUTTON_TEXT__([^_]*)__BUTTON_COMPONENT_END__/g;
+  let match;
+  
+  while ((match = buttonRegex.exec(content)) !== null) {
+    // Add text before the component
+    if (match.index > currentIndex) {
+      parts.push(content.substring(currentIndex, match.index));
+    }
+    
+    // Add the button component
+    const href = match[1];
+    const text = match[2];
+    parts.push(
+      <Button key={`button-${parts.length}`} href={href} variant="text">
+        {text}
+      </Button>
+    );
+    
+    currentIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining content
+  if (currentIndex < content.length) {
+    parts.push(content.substring(currentIndex));
+  }
+  
+  // Process notes
+  return parts.map((part, index) => {
+    if (typeof part !== 'string') {
+      return part;
+    }
+    
+    // Handle Note components
+    if (part.includes('__NOTE_COMPONENT_START__')) {
+      const noteContent = part.split('__NOTE_COMPONENT_START__')[1].split('__NOTE_COMPONENT_END__')[0];
+      return <Note key={`note-${index}`}>{noteContent}</Note>;
+    }
+    
+    return part;
+  });
+};
 
 /**
  * PortableText components for rendering Sanity content
@@ -54,16 +136,12 @@ export const components: PortableTextComponents = {
     h5: ({ children }) => <h5 className="font-semibold text-base mt-6 mb-2">{children}</h5>,
     h6: ({ children }) => <h6 className="font-semibold text-sm mt-4 mb-2">{children}</h6>,
     normal: ({ children }) => {
-      // Clean up HTML-like tags if it's a string
+      // If it's a string, process any HTML-like tags
       if (typeof children === 'string') {
-        const cleanText = children
-          .replace(/<Button[^>]*href="([^"]*)"[^>]*><>([^<]*)<\/><\/Button>/g, '$2')
-          .replace(/<Button[^>]*>([^<]*)<\/Button>/g, '$1')
-          .replace(/<>([^<]*)<\/>/g, '$1')
-          .replace(/<Note>/g, '')
-          .replace(/<\/Note>/g, '');
+        const processedText = processMarkdownTags(children);
+        const renderedContent = renderProcessedContent(processedText);
         
-        return <p className="mt-6">{cleanText}</p>;
+        return <p className="mt-6">{renderedContent}</p>;
       }
       
       // If it's not a simple string (e.g., it contains React elements)
@@ -74,32 +152,27 @@ export const components: PortableTextComponents = {
   },
   types: {
     section: ({ value }: { value: Section }) => {
-      // Extract the title, removing any tag/label info if present
       let title = value.title || '';
       let tag = '';
       let label = '';
+
+      // Extract tag and label if present in the title
+      const tagLabelMatch = title.match(/(.+?)\s*{{\s*tag:\s*['"]([^'"]*)['"]\s*,\s*label:\s*['"]([^'"]*)['"]\s*}}/);
       
-      // Parse title if it contains tag/label info in the format "Title {{ tag: 'x', label: 'y' }}"
-      if (title.includes('{{')) {
-        const titleParts = title.split('{{');
-        title = titleParts[0].trim();
-        
-        // Try to extract tag and label from the second part
-        const tagLabelPart = titleParts[1].replace('}}', '').trim();
-        const tagMatch = tagLabelPart.match(/tag:\s*['"]([^'"]*)['"]/);
-        const labelMatch = tagLabelPart.match(/label:\s*['"]([^'"]*)['"]/);
-        
-        if (tagMatch && tagMatch[1]) tag = tagMatch[1];
-        if (labelMatch && labelMatch[1]) label = labelMatch[1];
+      if (tagLabelMatch) {
+        title = tagLabelMatch[1].trim();
+        tag = tagLabelMatch[2];
+        label = tagLabelMatch[3];
       }
-      
-      const sectionId = title ? title.toLowerCase().replace(/\s+/g, '-') : generateId('section');
+
+      const id = generateId('section');
       
       return (
-        <div id={sectionId} className="my-12">
-          {title && <mdx.h2 id={sectionId}>{title}</mdx.h2>}
-          {(label || value.label) && <p className="text-sm text-zinc-500 italic -mt-4 mb-4">{label || value.label}</p>}
-          {value.content && <PortableText value={value.content} components={components} />}
+        <div className="my-16" id={id}>
+          <mdx.h2 id={id}>{title}</mdx.h2>
+          {value.content && (
+            <PortableText value={value.content} components={components} />
+          )}
         </div>
       );
     },
@@ -166,18 +239,16 @@ export const components: PortableTextComponents = {
         </div>
       );
     },
-    note: ({ value }: { value: NoteBlock }) => {
+    note: ({ value }: { value: any }) => {
+      // Extract the content from the note value
+      if (!value || !value.content) {
+        return null;
+      }
+      
       return (
-        <div className="my-6 flex gap-2.5 rounded-2xl border border-emerald-500/20 bg-emerald-50/50 p-4 leading-6 text-emerald-900 dark:border-green-500/30 dark:bg-green-500/5 dark:text-green-200">
-          <svg viewBox="0 0 16 16" className="mt-1 h-4 w-4 flex-none fill-emerald-500 stroke-white dark:fill-green-500/20 dark:stroke-green-500" aria-hidden="true">
-            <circle cx="8" cy="8" r="8" strokeWidth="0" />
-            <path fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M6.75 7.75h1.5v3.5" />
-            <circle cx="8" cy="4" r=".5" fill="none" />
-          </svg>
-          <div className="[&>:first-child]:mt-0 [&>:last-child]:mb-0">
-            {value.content ? <PortableText value={value.content} components={components} /> : null}
-          </div>
-        </div>
+        <Note>
+          <PortableText value={value.content} components={components} />
+        </Note>
       );
     },
     math: ({ value }: { value: MathBlock }) => (
@@ -207,26 +278,18 @@ export const components: PortableTextComponents = {
         </figure>
       );
     },
-    code: ({ value }: { value: CodeBlock }) => {
-      console.log("Rendering code block via PortableText:", value);
-      
-      // Check if value.code exists before rendering
+    code: ({ value }: { value: any }) => {
       if (!value || !value.code) {
-        console.warn("Code block is missing code property:", value);
-        return (
-          <div className="my-6 p-4 bg-red-100 dark:bg-red-900/20 rounded-lg">
-            <p className="text-red-600 dark:text-red-400">Error: Code block is missing content</p>
-          </div>
-        );
+        return null;
       }
       
-      // Extract just the language part, remove any title or other metadata
-      let language = value.language;
-      if (language && language.includes("{{")) {
-        language = language.split("{{")[0].trim();
+      // Extract the base language without any metadata
+      let language = value.language || 'typescript';
+      if (language && language.includes('{{')) {
+        language = language.split('{{')[0].trim();
       }
       
-      // Use basic pre/code elements instead of the more complex CodeGroup component
+      // Using basic pre/code elements with custom styling
       return (
         <div className="my-6">
           {value.filename && (
