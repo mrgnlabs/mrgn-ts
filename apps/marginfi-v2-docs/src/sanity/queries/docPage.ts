@@ -10,35 +10,122 @@ export const getDocPageBySlug = /* groq */ `
     content[] {
       _type,
       _key,
-      title,
-      tag,
-      label,
-      content[] {
-        ...,
-        _type == "image" => {
-          "url": asset->url,
-          "dimensions": asset->metadata.dimensions
+      _type == "code" => {
+        title,
+        tag,
+        label,
+        code,
+        language,
+        filename,
+        highlightedLines
+      },
+      _type == "note" => {
+        content[] {
+          ...,
+          _type == "image" => {
+            "url": asset->url,
+            "dimensions": asset->metadata.dimensions
+          }
         }
       },
-      formula,
-      image {
+      _type == "section" => {
+        title,
+        tag,
+        label,
+        content[] {
+          ...,
+          _type == "image" => {
+            "url": asset->url,
+            "dimensions": asset->metadata.dimensions
+          }
+        }
+      },
+      _type == "contentBlock" => {
+        title,
+        tag,
+        label,
+        content[] {
+          ...,
+          _type == "image" => {
+            "url": asset->url,
+            "dimensions": asset->metadata.dimensions
+          }
+        }
+      },
+      _type == "block" => {
+        style,
+        children,
+        listItem,
+        markDefs
+      },
+      _type == "math" => {
+        formula
+      },
+      _type == "image" => {
         asset->{
           url,
           metadata {
             dimensions
           }
         },
+        alt,
+        caption
       },
-      alt,
-      caption,
-      items[] {
-        name,
-        type,
-        description[] {
-          ...,
-          _type == "image" => {
-            "url": asset->url,
-            "dimensions": asset->metadata.dimensions
+      _type == "docTable" => {
+        title,
+        items[] {
+          name,
+          type,
+          parametersString,
+          resultType,
+          description[] {
+            ...,
+            _type == "image" => {
+              "url": asset->url,
+              "dimensions": asset->metadata.dimensions
+            }
+          }
+        }
+      },
+      _type == "properties" => {
+        title,
+        items[] {
+          name,
+          type,
+          description[] {
+            ...,
+            _type == "image" => {
+              "url": asset->url,
+              "dimensions": asset->metadata.dimensions
+            }
+          }
+        }
+      },
+      _type == "method" => {
+        title,
+        format,
+        items[] {
+          name,
+          parametersString,
+          resultType,
+          description[] {
+            ...,
+            _type == "image" => {
+              "url": asset->url,
+              "dimensions": asset->metadata.dimensions
+            }
+          },
+          parameters[] {
+            name,
+            type,
+            description[] {
+              ...,
+              _type == "image" => {
+                "url": asset->url,
+                "dimensions": asset->metadata.dimensions
+              }
+            },
+            optional
           }
         }
       }

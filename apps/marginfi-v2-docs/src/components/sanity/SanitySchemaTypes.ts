@@ -16,6 +16,7 @@ export interface ImageWithCaption {
     _ref: string;
   };
   alt?: string;
+  caption?: string;
 }
 
 export interface MathBlock {
@@ -30,6 +31,7 @@ export interface NoteBlock {
 
 export interface CodeBlock {
   _type: 'code';
+  _key: string;
   code: string;
   language?: string;
   filename?: string;
