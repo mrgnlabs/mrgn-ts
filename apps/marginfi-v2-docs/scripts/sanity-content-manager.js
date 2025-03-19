@@ -1066,12 +1066,90 @@ async function fixExistingDocumentsTags() {
   
   try {
     // Get specific documents that need fixing (ts-sdk and any others with HTML tags)
-    const documents = await client.fetch(`*[_type == "docPage" && (slug.current == "ts-sdk" || slug.current == "typescript-sdk" || slug.current == "sdks")]`);
+    const documents = await client.fetch(`*[_type == "docPage" && (slug.current == "ts-sdk")]`);
     
     console.log(`Found ${documents.length} documents to fix`);
     
     for (const doc of documents) {
       console.log(`\nFixing document: ${doc.title} (${doc.slug.current})`);
+      
+      // Special handling for ts-sdk Note with GitHub link
+      if (doc.slug.current === "ts-sdk") {
+        console.log("Applying special fix for ts-sdk GitHub link in Note...");
+        
+        // Find the Note block that contains "Access the TypeScript SDK"
+        if (doc.content && Array.isArray(doc.content)) {
+          for (let i = 0; i < doc.content.length; i++) {
+            const block = doc.content[i];
+            
+            if (block._type === "note" && block.content && Array.isArray(block.content)) {
+              // Check if this is the note we're looking for
+              const isTargetNote = block.content.some(contentBlock => 
+                contentBlock._type === 'block' && 
+                contentBlock.children && 
+                contentBlock.children.some(child => 
+                  child._type === 'span' && 
+                  typeof child.text === 'string' && 
+                  child.text.includes('Access the TypeScript SDK')
+                )
+              );
+              
+              if (isTargetNote) {
+                console.log("Found the target Note block!");
+                
+                // Update the content of the Note to include the GitHub link properly
+                const updatedNoteContent = block.content.map(contentBlock => {
+                  if (contentBlock._type === 'block' && contentBlock.children) {
+                    // Find the specific text span
+                    const updatedChildren = contentBlock.children.map(child => {
+                      if (child._type === 'span' && 
+                          typeof child.text === 'string' && 
+                          child.text.includes('this link')) {
+                        
+                        // Create a link child with proper attributes
+                        return {
+                          _key: generateKey(),
+                          _type: 'span',
+                          text: 'this link',
+                          marks: ['link'],
+                          markDefs: [{
+                            _key: generateKey(),
+                            _type: 'link',
+                            href: 'https://github.com/mrgnlabs/mrgn-ts/tree/main/packages/marginfi-client-v2',
+                            isButton: true,
+                            variant: 'text'
+                          }]
+                        };
+                      }
+                      return child;
+                    });
+                    
+                    return {
+                      ...contentBlock,
+                      children: updatedChildren
+                    };
+                  }
+                  return contentBlock;
+                });
+                
+                // Update the Note block with fixed content
+                doc.content[i] = {
+                  ...block,
+                  content: updatedNoteContent
+                };
+                
+                // Save the updated document
+                const result = await client.patch(doc._id)
+                  .set({ content: doc.content })
+                  .commit();
+                
+                console.log(`Updated document with fixed GitHub link: ${result.title}`);
+                break;
+              }
+            }
+          }
+        }
+      }
       
       // Process the content blocks
       if (doc.content && Array.isArray(doc.content)) {

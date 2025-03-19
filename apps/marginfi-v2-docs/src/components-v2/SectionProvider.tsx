@@ -1,0 +1,195 @@
+'use client'
+
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from 'react'
+import { type StoreApi, createStore, useStore } from 'zustand'
+
+import { remToPx } from '~/lib/remToPx'
+
+export interface Section {
+  id: string
+  title: string
+  offsetRem?: number
+  tag?: string
+  headingRef?: React.RefObject<HTMLHeadingElement>
+}
+
+interface SectionState {
+  sections: Array<Section>
+  visibleSections: Array<string>
+  setVisibleSections: (visibleSections: Array<string>) => void
+  registerHeading: ({
+    id,
+    ref,
+    offsetRem,
+    title,
+    tag,
+  }: {
+    id: string
+    ref: React.RefObject<HTMLHeadingElement>
+    offsetRem: number
+    title: string
+    tag?: string
+  }) => void
+}
+
+function createSectionStore(sections: Array<Section>) {
+  return createStore<SectionState>()((set) => ({
+    sections,
+    visibleSections: [],
+    setVisibleSections: (visibleSections) =>
+      set((state) =>
+        state.visibleSections.join() === visibleSections.join()
+          ? {}
+          : { visibleSections },
+      ),
+    registerHeading: ({ id, ref, offsetRem, title, tag }) =>
+      set((state) => {
+        // Find if section already exists
+        const existingSection = state.sections.find(s => s.id === id)
+        
+        if (existingSection) {
+          // Update existing section
+          return {
+            sections: state.sections.map((section) => {
+              if (section.id === id) {
+                return {
+                  ...section,
+                  headingRef: ref,
+                  offsetRem,
+                  title,
+                  tag,
+                }
+              }
+              return section
+            }),
+          }
+        } else {
+          // Add new section
+          return {
+            sections: [
+              ...state.sections,
+              { id, headingRef: ref, offsetRem, title, tag }
+            ],
+          }
+        }
+      }),
+  }))
+}
+
+function useVisibleSections(sectionStore: StoreApi<SectionState>) {
+  let setVisibleSections = useStore(sectionStore, (s) => s.setVisibleSections)
+  let sections = useStore(sectionStore, (s) => s.sections)
+
+  useEffect(() => {
+    let isScrolling: number | null = null
+    
+    function checkVisibleSections() {
+      let { innerHeight, scrollY } = window
+      let newVisibleSections = []
+
+      // Add a small buffer to prevent rapid switching
+      const buffer = 50
+
+      for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
+        let { id, headingRef, offsetRem = 0 } = sections[sectionIndex]
+
+        if (!headingRef?.current) {
+          continue
+        }
+
+        let offset = remToPx(offsetRem)
+        let rect = headingRef.current.getBoundingClientRect()
+        let top = rect.top + scrollY
+
+        // Add _top section if we're above the first section
+        if (sectionIndex === 0 && top - offset > scrollY) {
+          newVisibleSections.push('_top')
+        }
+
+        let nextSection = sections[sectionIndex + 1]
+        let bottom = nextSection?.headingRef?.current
+          ? nextSection.headingRef.current.getBoundingClientRect().top + scrollY - remToPx(nextSection.offsetRem ?? 0)
+          : Infinity
+
+        // Check if section is visible with buffer
+        if (
+          (top > scrollY - buffer && top < scrollY + innerHeight + buffer) ||
+          (bottom > scrollY - buffer && bottom < scrollY + innerHeight + buffer) ||
+          (top <= scrollY && bottom >= scrollY + innerHeight)
+        ) {
+          newVisibleSections.push(id)
+        }
+      }
+
+      setVisibleSections(newVisibleSections)
+    }
+
+    // Debounced scroll handler
+    function handleScroll() {
+      if (isScrolling !== null) {
+        window.cancelAnimationFrame(isScrolling)
+      }
+      isScrolling = window.requestAnimationFrame(() => {
+        checkVisibleSections()
+        isScrolling = null
+      })
+    }
+
+    // Initial check
+    checkVisibleSections()
+
+    // Add event listeners with debouncing
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', handleScroll)
+
+    return () => {
+      if (isScrolling !== null) {
+        window.cancelAnimationFrame(isScrolling)
+      }
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+    }
+  }, [setVisibleSections, sections])
+}
+
+const SectionStoreContext = createContext<StoreApi<SectionState> | null>(null)
+
+const useIsomorphicLayoutEffect =
+  typeof window === 'undefined' ? useEffect : useLayoutEffect
+
+export function SectionProvider({
+  sections,
+  children,
+}: {
+  sections: Array<Section>
+  children: React.ReactNode
+}) {
+  let [sectionStore] = useState(() => createSectionStore(sections))
+
+  useVisibleSections(sectionStore)
+
+  useIsomorphicLayoutEffect(() => {
+    console.log('Updating sections in provider:', sections)
+    sectionStore.setState({ sections })
+  }, [sectionStore, sections])
+
+  return (
+    <SectionStoreContext.Provider value={sectionStore}>
+      {children}
+    </SectionStoreContext.Provider>
+  )
+}
+
+export function useSectionStore<T>(selector: (state: SectionState) => T) {
+  let store = useContext(SectionStoreContext)
+  if (!store) {
+    throw new Error('useSectionStore must be used within a SectionProvider')
+  }
+  return useStore(store, selector)
+}

@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
-import React from 'react'
 
 import { Button } from '~/components/Button'
 import { useIsInsideMobileNavigation } from '~/components/MobileNavigation'
@@ -154,83 +153,33 @@ function NavigationGroup({
   className?: string
 }) {
   let isInsideMobileNavigation = useIsInsideMobileNavigation()
-  let pathname = usePathname()
-  let sections = useSectionStore(React.useCallback((s) => s.sections, []))
-  
-  let isActiveGroup = group.links.findIndex((link) => link.href === pathname) !== -1
-  let activeLink = group.links.find((link) => link.href === pathname)
+  let [pathname, sections] = useInitialValue(
+    [usePathname(), useSectionStore((s) => s.sections)],
+    isInsideMobileNavigation,
+  )
 
-  // Memoize the submenu to prevent re-renders
-  const submenu = React.useMemo(() => {
-    if (!activeLink || !sections.length) return null;
-    
-    return (
-      <motion.ul
-        role="list"
-        initial={false}
-        animate={{
-          opacity: 1,
-          height: 'auto',
-          transition: {
-            duration: 0.15,
-            ease: 'easeOut'
-          }
-        }}
-        exit={{
-          opacity: 0,
-          height: 0,
-          transition: {
-            duration: 0.15,
-            ease: 'easeIn'
-          }
-        }}
-        className="overflow-hidden"
-      >
-        {sections.map((section) => {
-          if (!section.id) return null;
-          
-          return (
-            <motion.li
-              key={section.id}
-              initial={{ opacity: 0, x: -4 }}
-              animate={{ 
-                opacity: 1, 
-                x: 0,
-                transition: {
-                  duration: 0.15,
-                  ease: 'easeOut'
-                }
-              }}
-            >
-              <NavLink
-                href={`${activeLink.href}#${section.id}`}
-                tag={section.tag}
-                isAnchorLink
-              >
-                {section.title}
-              </NavLink>
-            </motion.li>
-          );
-        })}
-      </motion.ul>
-    );
-  }, [activeLink, sections]);
+  let isActiveGroup =
+    group.links.findIndex((link) => link.href === pathname) !== -1
 
   return (
     <li className={clsx('relative mt-6', className)}>
-      <h2 className="text-xs font-semibold text-zinc-900 dark:text-white">
-        {group.title}
-      </h2>
+      <motion.h2
+        layout="position"
+        className="text-xs font-semibold text-zinc-900 dark:text-white"
+      >
+        {group.title} {/* Main Section */}
+      </motion.h2>
 
       <div className="relative mt-3 pl-2">
-        <AnimatePresence initial={false}>
+        <AnimatePresence initial={!isInsideMobileNavigation}>
           {isActiveGroup && (
             <VisibleSectionHighlight group={group} pathname={pathname} />
           )}
         </AnimatePresence>
-        
-        <div className="absolute inset-y-0 left-2 w-px bg-zinc-900/10 dark:bg-white/5" />
-        
+        <motion.div
+          layout
+          className="absolute inset-y-0 left-2 w-px bg-zinc-900/10 dark:bg-white/5"
+        />
         <AnimatePresence initial={false}>
           {isActiveGroup && (
             <ActivePageMarker group={group} pathname={pathname} />
@@ -239,18 +188,40 @@ function NavigationGroup({
 
         <ul role="list" className="border-l border-transparent">
           {group.links.map((link) => (
-            <motion.li
-              key={link.href}
-              initial={false}
-              className="relative"
-            >
+            <motion.li key={link.href} layout="position" className="relative">
               <NavLink href={link.href} active={link.href === pathname}>
-                {link.title}
+                {link.title} {/* Sub section */}
               </NavLink>
 
-              <AnimatePresence initial={false}>
-                {link.href === pathname && submenu}
+              <AnimatePresence mode="popLayout" initial={false}>
+                {link.href === pathname && sections.length > 0 && (
+                  <motion.ul
+                    role="list"
+                    initial={{ opacity: 0 }}
+                    animate={{
+                      opacity: 1,
+                      transition: { delay: 0.1 },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      transition: { duration: 0.15 },
+                    }}
+                  >
+                    {sections.map((section) => (
+                      <li key={section.id}>
+                        <NavLink
+                          href={`${link.href}#${section.id}`}
+                          tag={section.tag}
+                          isAnchorLink
+                        >
+                          {section.title} {/* Topic within sub section */}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </motion.ul>
+                )}
               </AnimatePresence>
+
             </motion.li>
           ))}
         </ul>

@@ -143,17 +143,17 @@ function CodePanel({
   code?: string
 }) {
   let child = Children.only(children)
-  let codeContent = code
 
   if (isValidElement(child)) {
     tag = child.props.tag ?? tag
     label = child.props.label ?? label
-    codeContent = child.props.code ?? code ?? (typeof child.props.children === 'string' ? child.props.children : undefined)
+    code = child.props.code ?? code
   }
 
-  if (!codeContent) {
-    console.warn('CodePanel is missing code content');
-    return null;
+  if (!code) {
+    throw new Error(
+      '`CodePanel` requires a `code` prop, or a child with a `code` prop.',
+    )
   }
 
   return (
@@ -161,7 +161,7 @@ function CodePanel({
       <CodePanelHeader tag={tag} label={label} />
       <div className="relative">
         <pre className="overflow-x-auto p-4 text-xs text-white">{children}</pre>
-        <CopyButton code={codeContent} />
+        <CopyButton code={code} />
       </div>
     </div>
   )
@@ -211,9 +211,8 @@ function CodeGroupHeader({
 
 function CodeGroupPanels({
   children,
-  code,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CodePanel> & { code?: string }) {
+}: React.ComponentPropsWithoutRef<typeof CodePanel>) {
   let hasTabs = Children.count(children) > 1
 
   if (hasTabs) {
@@ -310,9 +309,8 @@ const CodeGroupContext = createContext(false)
 export function CodeGroup({
   children,
   title,
-  code,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CodeGroupPanels> & { title: string; code?: string }) {
+}: React.ComponentPropsWithoutRef<typeof CodeGroupPanels> & { title: string }) {
   let languages =
     Children.map(children, (child) =>
       getPanelTitle(isValidElement(child) ? child.props : {}),
@@ -327,7 +325,7 @@ export function CodeGroup({
       {children}
     </CodeGroupHeader>
   )
-  let panels = <CodeGroupPanels code={code} {...props}>{children}</CodeGroupPanels>
+  let panels = <CodeGroupPanels {...props}>{children}</CodeGroupPanels>
 
   return (
     <CodeGroupContext.Provider value={true}>
@@ -352,10 +350,8 @@ export function CodeGroup({
 
 export function Code({
   children,
-  className,
-  code: _code,
   ...props
-}: React.ComponentPropsWithoutRef<'code'> & { code?: string }) {
+}: React.ComponentPropsWithoutRef<'code'>) {
   let isGrouped = useContext(CodeGroupContext)
 
   if (isGrouped) {
@@ -364,16 +360,10 @@ export function Code({
         '`Code` children must be a string when nested inside a `CodeGroup`.',
       )
     }
-    return (
-      <code
-        {...props}
-        className={className}
-        dangerouslySetInnerHTML={{ __html: children }}
-      />
-    )
+    return <code {...props} dangerouslySetInnerHTML={{ __html: children }} />
   }
 
-  return <code className={className} {...props}>{children}</code>
+  return <code {...props}>{children}</code>
 }
 
 export function Pre({

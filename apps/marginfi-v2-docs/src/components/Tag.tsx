@@ -1,63 +1,46 @@
-import clsx from 'clsx'
+import { useEffect, useState } from 'react'
+import { useTheme } from 'next-themes'
 
-const variantStyles = {
-  small: '',
-  medium: 'rounded-lg px-1.5 ring-1 ring-inset',
-}
-
-const colorStyles = {
-  emerald: {
-    small: 'text-emerald-500 dark:text-emerald-400',
-    medium:
-      'ring-emerald-300 dark:ring-emerald-400/30 bg-emerald-400/10 text-emerald-500 dark:text-emerald-400',
-  },
-  sky: {
-    small: 'text-sky-500',
-    medium:
-      'ring-sky-300 bg-sky-400/10 text-sky-500 dark:ring-sky-400/30 dark:bg-sky-400/10 dark:text-sky-400',
-  },
-  amber: {
-    small: 'text-amber-500',
-    medium:
-      'ring-amber-300 bg-amber-400/10 text-amber-500 dark:ring-amber-400/30 dark:bg-amber-400/10 dark:text-amber-400',
-  },
-  rose: {
-    small: 'text-red-500 dark:text-rose-500',
-    medium:
-      'ring-rose-200 bg-rose-50 text-red-500 dark:ring-rose-500/20 dark:bg-rose-400/10 dark:text-rose-400',
-  },
-  zinc: {
-    small: 'text-zinc-400 dark:text-zinc-500',
-    medium:
-      'ring-zinc-200 bg-zinc-50 text-zinc-500 dark:ring-zinc-500/20 dark:bg-zinc-400/10 dark:text-zinc-400',
-  },
-}
-
-const valueColorMap = {
-  GET: 'emerald',
-  POST: 'sky',
-  PUT: 'amber',
-  DELETE: 'rose',
-} as Record<string, keyof typeof colorStyles>
-
-export function Tag({
-  children,
-  variant = 'medium',
-  color = valueColorMap[children] ?? 'emerald',
-}: {
-  children: keyof typeof valueColorMap & (string | {})
-  variant?: keyof typeof variantStyles
-  color?: keyof typeof colorStyles
-}) {
+function SunIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
-    <span
-      className={clsx(
-        'font-mono text-[0.625rem] font-semibold leading-6',
-        variantStyles[variant],
-        colorStyles[color][variant],
-      )}
-    >
-      {children}
-    </span>
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" {...props}>
+      <path d="M12.5 10a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" />
+      <path
+        strokeLinecap="round"
+        d="M10 5.5v-1M13.182 6.818l.707-.707M14.5 10h1M13.182 13.182l.707.707M10 15.5v-1M6.11 13.889l.708-.707M4.5 10h1M6.11 6.111l.708.707"
+      />
+    </svg>
+  )
+}
+
+function MoonIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" {...props}>
+      <path d="M15.224 11.724a5.5 5.5 0 0 1-6.949-6.949 5.5 5.5 0 1 0 6.949 6.949Z" />
+    </svg>
+  )
+}
+
+export function ThemeToggle() {
+  let { resolvedTheme, setTheme } = useTheme()
+  // let otherTheme = resolvedTheme === 'dark' ? 'light' : 'dark'
+  let otherTheme = resolvedTheme === 'dark' ? 'dark' : 'dark'
+  let [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  return (
+    // <button
+    //   type="button"
+    //   className="flex h-6 w-6 items-center justify-center rounded-md transition hover:bg-zinc-900/5 dark:hover:bg-white/5"
+    //   aria-label={mounted ? `Switch to ${otherTheme} theme` : 'Toggle theme'}
+    //   onClick={() => setTheme(otherTheme)}
+    // >
+    //   <SunIcon className="h-5 w-5 stroke-zinc-900 dark:hidden" />
+    //   <MoonIcon className="hidden h-5 w-5 stroke-white dark:block" />
+    // </button>
+    <></>
   )
 }
