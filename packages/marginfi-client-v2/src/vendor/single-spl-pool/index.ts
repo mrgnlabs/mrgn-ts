@@ -252,6 +252,7 @@ const findPoolStakeAddress = (poolAddress: PublicKey): PublicKey => findPda(pool
 const findPoolStakeAuthorityAddress = (poolAddress: PublicKey): PublicKey => findPda(poolAddress, "stake_authority");
 const findPoolMintAuthorityAddress = (poolAddress: PublicKey): PublicKey => findPda(poolAddress, "mint_authority");
 const findPoolMplAuthorityAddress = (poolAddress: PublicKey): PublicKey => findPda(poolAddress, "mpl_authority");
+const findPoolOnRampAddress = (poolAddress: PublicKey): PublicKey => findPda(poolAddress, "onramp");
 
 const findMplMetadataAddress = async (poolMintAddress: PublicKey): Promise<PublicKey> => {
   const [pda] = PublicKey.findProgramAddressSync(
@@ -340,6 +341,7 @@ export {
   findPoolMintAuthorityAddress,
   findPoolMplAuthorityAddress,
   findMplMetadataAddress,
+  findPoolOnRampAddress,
   findPoolMintAddressByVoteAccount,
   createAccountIx,
 };
