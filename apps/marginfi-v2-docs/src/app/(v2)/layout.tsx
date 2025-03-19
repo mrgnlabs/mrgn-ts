@@ -1,8 +1,8 @@
 import { type Metadata } from 'next'
 import glob from 'fast-glob'
 
-import { V2Layout } from './_components/Layout'
-import { type Section } from '~/components/SectionProvider'
+import { Layout } from '~/components-v2/Layout'
+import { type Section } from '~/components-v2/SectionProvider'
 
 import '~/styles/tailwind.css'
 import 'katex/dist/katex.min.css'
@@ -32,7 +32,7 @@ export default async function V2SiteLayout({
   return (
     <div className="flex min-h-full bg-background antialiased">
       <div className="w-full">
-        <V2Layout allSections={allSections}>{children}</V2Layout>
+        <Layout allSections={allSections}>{children}</Layout>
       </div>
     </div>
   )

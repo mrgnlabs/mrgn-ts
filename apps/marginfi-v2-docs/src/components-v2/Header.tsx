@@ -3,14 +3,14 @@ import Link from 'next/link'
 import clsx from 'clsx'
 import { motion, useScroll, useTransform } from 'framer-motion'
 
-import { Button } from '~/components/Button'
-import { Logo } from '~/components/Logo'
+import { Button } from '~/components-v2/Button'
+import { Logo } from '~/components-v2/Logo'
 import {
   MobileNavigation,
   useIsInsideMobileNavigation,
-} from '~/components/MobileNavigation'
-import { useMobileNavigationStore } from '~/components/MobileNavigation'
-import { MobileSearch, Search } from '~/components/Search'
+} from '~/components-v2/MobileNavigation'
+import { useMobileNavigationStore } from '~/components-v2/MobileNavigation'
+import { MobileSearch, Search } from '~/components-v2/Search'
 
 function TopLevelNavItem({
   href,

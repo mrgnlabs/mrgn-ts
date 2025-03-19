@@ -7,10 +7,10 @@ import clsx from 'clsx'
 import { AnimatePresence, motion, useIsPresent } from 'framer-motion'
 import React from 'react'
 
-import { Button } from '~/components/Button'
-import { useIsInsideMobileNavigation } from '~/components/MobileNavigation'
-import { useSectionStore } from '~/components/SectionProvider'
-import { Tag } from '~/components/Tag'
+import { Button } from '~/components-v2/Button'
+import { useIsInsideMobileNavigation } from '~/components-v2/MobileNavigation'
+import { useSectionStore } from '~/components-v2/SectionProvider'
+import { Tag } from '~/components-v2/Tag'
 import { remToPx } from '~/lib/remToPx'
 
 interface NavGroup {
@@ -263,37 +263,37 @@ export const navigation: Array<NavGroup> = [
   {
     title: 'Getting Started',
     links: [
-      { title: 'Introduction', href: '/introduction' },
-      { title: 'Protocol Design', href: '/protocol-design' },
-      { title: 'Listing Criteria', href: '/listing-criteria' },
-      { title: 'Use Cases', href: '/use-cases' },
-      { title: 'FAQs', href: '/faqs' },
+      { title: 'Introduction', href: '/v2/introduction' },
+      { title: 'Protocol Design', href: '/v2/protocol-design' },
+      { title: 'Listing Criteria', href: '/v2/listing-criteria' },
+      { title: 'Use Cases', href: '/v2/use-cases' },
+      { title: 'FAQs', href: '/v2/faqs' },
     ],
   },
   {
     title: 'SDKs',
     links: [
-      { title: 'Overview', href: '/sdks' },
-      { title: 'TypeScript SDK', href: '/ts-sdk' },
-      { title: 'Rust (CLI) SDK', href: '/rust-sdk' },
+      { title: 'Overview', href: '/v2/sdks' },
+      { title: 'TypeScript SDK', href: '/v2/ts-sdk' },
+      { title: 'Rust (CLI) SDK', href: '/v2/rust-sdk' },
     ],
   },
   {
     title: 'Programs',
     links: [
-      { title: 'marginfi-v2', href: '/mfi-v2' },
-      { title: 'Liquidity Incentive Program', href: '/lip' },
+      { title: 'marginfi-v2', href: '/v2/mfi-v2' },
+      { title: 'Liquidity Incentive Program', href: '/v2/lip' },
     ],
   },
   {
     title: 'Guides',
     links: [
-      { title: 'Staked Collateral', href: '/staked-collateral' },
-      { title: 'The Arena', href: '/the-arena' },
-      { title: 'mrgnloop', href: '/mrgnloop' },
-      { title: 'mrgnlend', href: '/mrgnlend' },
-      { title: 'Liquid Staking Token', href: '/lst' },
-      { title: 'Progressive Web App', href: '/pwa' },
+      { title: 'Staked Collateral', href: '/v2/staked-collateral' },
+      { title: 'The Arena', href: '/v2/the-arena' },
+      { title: 'mrgnloop', href: '/v2/mrgnloop' },
+      { title: 'mrgnlend', href: '/v2/mrgnlend' },
+      { title: 'Liquid Staking Token', href: '/v2/lst' },
+      { title: 'Progressive Web App', href: '/v2/pwa' },
     ],
   },
 ]
@@ -302,9 +302,9 @@ export function Navigation(props: React.ComponentPropsWithoutRef<'nav'>) {
   return (
     <nav {...props}>
       <ul role="list">
-        <TopLevelNavItem href="/">API</TopLevelNavItem>
-        <TopLevelNavItem href="#">Documentation</TopLevelNavItem>
-        <TopLevelNavItem href="#">Support</TopLevelNavItem>
+        <TopLevelNavItem href="/v2">Documentation</TopLevelNavItem>
+        <TopLevelNavItem href="/v2/api">API</TopLevelNavItem>
+        <TopLevelNavItem href="/v2/support">Support</TopLevelNavItem>
         {navigation.map((group, groupIndex) => (
           <NavigationGroup
             key={group.title}
@@ -314,7 +314,7 @@ export function Navigation(props: React.ComponentPropsWithoutRef<'nav'>) {
         ))}
 
         <li className="sticky bottom-0 z-10 mt-6 min-[416px]:hidden">
-          <Button href="#" className="w-full">
+          <Button href="https://app.marginfi.com" className="w-full">
             Launch App
           </Button>
         </li>

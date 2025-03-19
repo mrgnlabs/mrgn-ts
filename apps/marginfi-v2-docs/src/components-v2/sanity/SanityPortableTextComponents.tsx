@@ -3,10 +3,10 @@
 import React from 'react'
 import Link from 'next/link'
 import { PortableTextComponents, PortableText, PortableTextMarkComponentProps } from '@portabletext/react'
-import * as mdx from '~/components/mdx'
-import { Math as MathComponent } from '~/components/Math'
-import { ImageComponent } from '~/components/ImageComponent'
-import { DocTable } from '~/components/DocTable'
+import * as mdx from '~/components-v2/mdx'
+import { Math as MathComponent } from '~/components-v2/Math'
+import { ImageComponent } from '~/components-v2/ImageComponent'
+import { DocTable } from '~/components-v2/DocTable'
 import { 
   NoteBlock, 
   MathBlock, 
@@ -17,8 +17,8 @@ import {
   ContentBlock,
   Section
 } from './SanitySchemaTypes'
-import { Button } from '~/components/Button'
-import { Note } from '~/components/mdx'
+import { Button } from '~/components-v2/Button'
+import { Note } from '~/components-v2/mdx'
 
 /**
  * Helper function to generate a unique ID for headings

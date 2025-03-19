@@ -26,7 +26,7 @@ import {
 } from '@headlessui/react'
 import clsx from 'clsx'
 
-import { navigation } from '~/components/Navigation'
+import { navigation } from '~/components-v2/Navigation'
 import { type Result } from '~/mdx/search.mjs'
 
 type EmptyObject = Record<string, never>

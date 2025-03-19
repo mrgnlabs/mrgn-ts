@@ -3,14 +3,14 @@ import Link from 'next/link'
 import clsx from 'clsx'
 import { PortableText } from '@portabletext/react'
 
-import { Feedback } from '~/components/Feedback'
-import { Heading } from '~/components/Heading'
-import { Prose } from '~/components/Prose'
-import { DocTable } from '~/components/DocTable'
+import { Feedback } from '~/components-v2/Feedback'
+import { Heading } from '~/components-v2/Heading'
+import { Prose } from '~/components-v2/Prose'
+import { DocTable } from '~/components-v2/DocTable'
 
 export const a = Link
-export { Button } from '~/components/Button'
-export { CodeGroup, Code as code, Pre as pre } from '~/components/Code'
+export { Button } from '~/components-v2/Button'
+export { CodeGroup, Code as code, Pre as pre } from '~/components-v2/Code'
 
 export function wrapper({ children }: { children: React.ReactNode }) {
   return (

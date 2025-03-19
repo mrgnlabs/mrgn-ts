@@ -1,5 +1,5 @@
-import { Button } from '~/components/Button'
-import { Heading } from '~/components/Heading'
+import { Button } from '~/components-v2/Button'
+import { Heading } from '~/components-v2/Heading'
 
 const guides = [
   {

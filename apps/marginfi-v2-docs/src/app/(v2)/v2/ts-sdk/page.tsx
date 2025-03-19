@@ -1,6 +1,7 @@
 import { client } from '@/sanity/lib/client'
 import { getDocPageBySlug } from '@/sanity/queries'
-import { DocPage, createMetadata } from '~/components/sanity'
+import { DocPage } from '~/components-v2/sanity'
+import { createMetadata } from '~/components-v2/sanity'
 import { Metadata } from 'next'
 
 async function getTsSdkData() {

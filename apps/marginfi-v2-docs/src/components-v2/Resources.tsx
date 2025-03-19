@@ -8,8 +8,8 @@ import {
   useMotionValue,
 } from 'framer-motion'
 
-import { GridPattern } from '~/components/GridPattern'
-import { Heading } from '~/components/Heading'
+import { GridPattern } from '~/components-v2/GridPattern'
+import { Heading } from '~/components-v2/Heading'
 
 interface Resource {
   href: string
