@@ -1,24 +1,26 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { createBrowserSupabaseClient } from "~/auth/auth-client";
 import { toastManager } from "@mrgnlabs/mrgn-toasts";
 import type { WalletInfo } from "~/components/wallet-v2/";
 import { useMrgnlendStore } from "~/store";
-import { loginOrSignup, logout } from "~/auth/utils/auth.utils";
+import { authenticate, logout, getCurrentUser } from "~/auth/utils/auth.utils";
 import { AuthUser } from "../types/auth.types";
+import { Wallet } from "@mrgnlabs/mrgn-common";
+
+type AuthState = "loading" | "authenticated" | "unauthenticated" | undefined;
 
 interface AuthContextType {
-  isAuthenticated: boolean;
-  isLoading: boolean;
+  authState: AuthState;
   error: Error | null;
   user: AuthUser | null;
+  authenticateUser: (args: { wallet: Wallet; walletId?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
-  isAuthenticated: false,
-  isLoading: true,
+  authState: undefined,
   error: null,
   user: null,
+  authenticateUser: async () => {},
 });
 
 export const useAuth = () => {
@@ -36,88 +38,123 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const { connected, wallet, walletAddress } = useWallet();
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authState, setAuthState] = useState<AuthState>(undefined);
   const [error, setError] = useState<Error | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const walletInfo = JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo;
   const walletId = walletInfo?.name || "";
 
+  const authenticateUser = useCallback(
+    async (args: { wallet: Wallet; walletId?: string }) => {
+      console.log("Authenticating...");
+      setAuthState("loading");
+
+      try {
+        const authResult = await authenticate(args.wallet, args.walletId);
+
+        if (authResult.user && !authResult.error) {
+          console.log("Authenticated user:", authResult.user);
+          setUser(authResult.user);
+          setAuthState("authenticated");
+        } else if (authResult.error) {
+          console.log("Authentication error:", authResult.error);
+          setError(new Error(String(authResult.error)));
+          setAuthState("unauthenticated");
+        } else {
+          // Handle case where both user and error are null
+          setError(new Error("Unknown authentication error"));
+          setAuthState("unauthenticated");
+        }
+      } catch (err) {
+        console.log("Authentication error:", err);
+        setError(err instanceof Error ? err : new Error(String(err)));
+        toastManager.showErrorToast(`Auth error: ${err}`);
+        setAuthState("unauthenticated");
+      }
+    },
+    [setUser, setAuthState, setError]
+  );
+
   // Check for existing session and authenticate if needed
   useEffect(() => {
-    if (!initialized || !connected || !walletAddress) {
-      setIsLoading(false);
+    if (!initialized || !connected || !walletAddress || !wallet || authState || isAuthenticating) {
       return;
     }
 
-    const authenticate = async () => {
-      setIsLoading(true);
-
+    let isMounted = true;
+    
+    const _auth = async () => {
+      setIsAuthenticating(true);
+      
       try {
-        // Try to authenticate with the wallet address
-        // If we have a valid cookie, this will succeed without requiring a signature
-        const response = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            walletAddress: walletAddress.toBase58(),
-            walletId,
-          }),
-          credentials: "include", // Critical: include cookies in the request
-        });
+        // First try to get the current user from the session
+        const { user, error } = await getCurrentUser();
 
-        const data = await response.json();
+        // Only update state if component is still mounted
+        if (!isMounted) return;
 
-        if (response.ok && data.user) {
-          // Authentication successful with existing cookie
-          setUser(data.user);
-          setIsAuthenticated(true);
-          setIsLoading(false);
-          return;
-        }
-
-        // No valid cookie or user not found, need to go through the full auth flow
-        if (wallet) {
-          const authResult = await loginOrSignup(wallet, walletId);
-          if (authResult.user && !authResult.error) {
-            setUser(authResult.user);
-            setIsAuthenticated(true);
-          } else if (authResult.error) {
-            setError(new Error(authResult.error));
-          }
+        if (user) {
+          setUser(user);
+          setAuthState("authenticated");
+        } else {
+          // No existing session, try to authenticate with wallet
+          await authenticateUser({ wallet, walletId });
         }
       } catch (err) {
+        // Only update state if component is still mounted
+        if (!isMounted) return;
+        
+        console.error("Authentication error:", err);
         setError(err instanceof Error ? err : new Error(String(err)));
-        toastManager.showErrorToast(`Auth error: ${err}`);
+        setAuthState("unauthenticated");
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsAuthenticating(false);
+        }
       }
     };
 
-    authenticate();
-  }, [initialized, connected, wallet, walletAddress, walletId]);
+    _auth();
+    
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+    };
+  }, [initialized, connected, wallet, walletAddress, walletId, authState, authenticateUser, isAuthenticating]);
 
   // Wallet disconnection - handle logout
   useEffect(() => {
     // Only logout if we were previously connected and now we're not
-    if ((!connected || !walletAddress) && isAuthenticated) {
-      setIsAuthenticated(false);
-      setUser(null);
-
-      logout().catch((error) => {
-        toastManager.showErrorToast(`Logout error: ${error}`);
-      });
+    if ((!connected || !walletAddress) && authState === "authenticated") {
+      const handleLogout = async () => {
+        try {
+          setAuthState("unauthenticated");
+          setUser(null);
+          const logoutResult = await logout();
+          
+          if (!logoutResult.success && logoutResult.error) {
+            console.error("Logout error:", logoutResult.error);
+            toastManager.showErrorToast(`Logout error: ${logoutResult.error}`);
+          }
+        } catch (error) {
+          console.error("Logout error:", error);
+          toastManager.showErrorToast(`Logout error: ${error}`);
+        }
+      };
+      
+      handleLogout();
     }
-  }, [connected, walletAddress, isAuthenticated]);
+  }, [connected, walletAddress, authState]);
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated,
-        isLoading,
+        authState,
         error,
         user,
+        authenticateUser,
       }}
     >
       {children}
