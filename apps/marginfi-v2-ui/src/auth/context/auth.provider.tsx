@@ -41,7 +41,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [authState, setAuthState] = useState<AuthState>(undefined);
   const [error, setError] = useState<Error | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   const walletInfo = JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo;
   const walletId = walletInfo?.name || "";
@@ -79,21 +78,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Check for existing session and authenticate if needed
   useEffect(() => {
-    if (!initialized || !connected || !walletAddress || !wallet || authState || isAuthenticating) {
+    if (!initialized || !connected || !walletAddress || !wallet || authState) {
       return;
     }
 
-    let isMounted = true;
-    
     const _auth = async () => {
-      setIsAuthenticating(true);
-      
       try {
         // First try to get the current user from the session
         const { user, error } = await getCurrentUser();
-
-        // Only update state if component is still mounted
-        if (!isMounted) return;
 
         if (user) {
           setUser(user);
@@ -103,26 +95,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           await authenticateUser({ wallet, walletId });
         }
       } catch (err) {
-        // Only update state if component is still mounted
-        if (!isMounted) return;
-        
         console.error("Authentication error:", err);
         setError(err instanceof Error ? err : new Error(String(err)));
         setAuthState("unauthenticated");
-      } finally {
-        if (isMounted) {
-          setIsAuthenticating(false);
-        }
       }
     };
 
     _auth();
-    
-    // Cleanup function to prevent state updates after unmount
-    return () => {
-      isMounted = false;
-    };
-  }, [initialized, connected, wallet, walletAddress, walletId, authState, authenticateUser, isAuthenticating]);
+  }, [initialized, connected, wallet, walletAddress, walletId, authState, authenticateUser]);
 
   // Wallet disconnection - handle logout
   useEffect(() => {
@@ -133,7 +113,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setAuthState("unauthenticated");
           setUser(null);
           const logoutResult = await logout();
-          
+
           if (!logoutResult.success && logoutResult.error) {
             console.error("Logout error:", logoutResult.error);
             toastManager.showErrorToast(`Logout error: ${logoutResult.error}`);
@@ -143,7 +123,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           toastManager.showErrorToast(`Logout error: ${error}`);
         }
       };
-      
+
       handleLogout();
     }
   }, [connected, walletAddress, authState]);
