@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react'
 import { PortableText } from '@portabletext/react'
-import { portableTextComponents } from './SanityPortableTextComponents'
+import { portableTextComponents, debugPortableTextContent } from './SanityPortableTextComponents'
 
 /**
  * SanityToMdx component
@@ -17,19 +17,43 @@ export function SanityToMdx({ content }: { content: any }) {
 
   // Debug the content structure
   React.useEffect(() => {
-    console.log('SanityToMdx content:', content);
+    console.log('=== SANITY MDX CONTENT DEBUGGING ===');
+    console.log('Content is Array:', Array.isArray(content));
+    console.log('Content length:', Array.isArray(content) ? content.length : 'N/A');
     
-    // Check for propertyList and table items
-    const propertyLists = content.filter((item: any) => item._type === 'propertyList');
-    const tables = content.filter((item: any) => item._type === 'table');
+    // Use our detailed debug function
+    debugPortableTextContent(content);
     
-    if (propertyLists.length > 0) {
-      console.log('PropertyList items:', propertyLists);
+    // Check specific blocks we're interested in
+    if (Array.isArray(content)) {
+      // Find all blocks by type 
+      const blockTypeCount = content.reduce((acc: Record<string, number>, item: any) => {
+        const type = item._type || 'unknown';
+        acc[type] = (acc[type] || 0) + 1;
+        return acc;
+      }, {});
+      
+      console.log('Block type counts:', blockTypeCount);
+      
+      // Check if we have headings to understand document structure
+      const headings = content.filter((item: any) => 
+        item._type === 'block' && 
+        item.style && 
+        ['h1', 'h2', 'h3', 'h4'].includes(item.style)
+      );
+      
+      if (headings.length > 0) {
+        console.log('Document structure (headings):');
+        headings.forEach((heading: any) => {
+          const text = heading.children && 
+                      heading.children[0] && 
+                      heading.children[0].text || '[empty heading]';
+          console.log(`${heading.style}: ${text}`);
+        });
+      }
     }
     
-    if (tables.length > 0) {
-      console.log('Table items:', tables);
-    }
+    console.log('=== END SANITY MDX CONTENT DEBUGGING ===');
   }, [content]);
 
   return (

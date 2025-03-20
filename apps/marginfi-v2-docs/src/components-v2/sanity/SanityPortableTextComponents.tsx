@@ -32,6 +32,96 @@ function generateId(prefix: string): string {
 }
 
 /**
+ * Enhanced debugging function to provide detailed information about components
+ */
+function debugObject(label: string, obj: any, depth: number = 2) {
+  try {
+    console.log(`=== ${label} ===`);
+    console.log(JSON.stringify(obj, null, 2));
+    
+    // Additional analysis for specific components
+    if (obj && obj._type) {
+      console.log(`Component type: ${obj._type}`);
+      
+      if (obj._key) {
+        console.log(`Component key: ${obj._key}`);
+        
+        // Analyze patterns in the key
+        const keyParts = obj._key.match(/[a-z0-9]{4}/g) || [];
+        if (keyParts.length > 1) {
+          console.log(`Key parts: ${keyParts.join(', ')}`);
+        }
+      }
+      
+      // Log all direct properties
+      console.log("All properties:");
+      Object.keys(obj).forEach(key => {
+        const value = obj[key];
+        const valueType = typeof value;
+        if (valueType !== 'object' || value === null) {
+          console.log(`  ${key}: ${value} (${valueType})`);
+        } else if (Array.isArray(value)) {
+          console.log(`  ${key}: Array with ${value.length} items`);
+        } else {
+          console.log(`  ${key}: Object {${Object.keys(value).join(', ')}}`);
+        }
+      });
+    }
+    
+    console.log("=== End of debug info ===");
+  } catch (error) {
+    console.log("Error in debug function:", error);
+  }
+}
+
+/**
+ * Debugs the entire portable text content
+ */
+export function debugPortableTextContent(value: any) {
+  if (!value) return;
+  
+  try {
+    // First log simplified structure
+    const contentSummary = Array.isArray(value) ? 
+      value.map(item => ({
+        _type: item._type,
+        _key: item._key,
+        childTypes: item.children ? 
+          [...new Set(item.children.map((c: any) => c._type))].join(', ') : undefined,
+        properties: item._type !== 'block' ? Object.keys(item).filter(k => !k.startsWith('_')) : undefined
+      })) : 
+      { type: typeof value };
+      
+    console.log("==== DOCUMENT STRUCTURE ====");
+    console.log(JSON.stringify(contentSummary, null, 2));
+    console.log("==== END DOCUMENT STRUCTURE ====");
+    
+    // Then log raw data for specific component types
+    if (Array.isArray(value)) {
+      // Log all propertyList and table components
+      const propertyLists = value.filter(item => item._type === 'propertyList');
+      const tables = value.filter(item => item._type === 'table');
+      
+      if (propertyLists.length > 0) {
+        console.log(`==== FOUND ${propertyLists.length} PROPERTY LISTS ====`);
+        propertyLists.forEach((item, index) => {
+          debugObject(`PropertyList ${index + 1}`, item);
+        });
+      }
+      
+      if (tables.length > 0) {
+        console.log(`==== FOUND ${tables.length} TABLES ====`);
+        tables.forEach((item, index) => {
+          debugObject(`Table ${index + 1}`, item);
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error while debugging document:", error);
+  }
+}
+
+/**
  * Helper function to extract text from children array
  */
 function extractTextFromChildren(children: any[]): string {
@@ -179,95 +269,37 @@ export const components: PortableTextComponents = {
         </div>
       );
     },
-    propertyList: ({ value }: { value: any }) => {
-      console.log("PropertyList value:", JSON.stringify(value, null, 2));
+    propertyList: ({ value }: { value: PropertyList }) => {
+      console.log('Rendering Sanity PropertyList:', value);
       
-      // Extract title from _key if possible
-      let title = 'Properties';
-      
-      if (value && value._key) {
-        // Try to extract a meaningful section name from the key
-        const keyParts = value._key.split('w');
-        if (keyParts.length > 1) {
-          // Look for common property sections
-          const commonSections = {
-            'btuf': 'Properties',
-            'w0m1': 'Bank Properties',
-            'e40s': 'MarginfiClient Properties',
-            '4cxx': 'Account Properties',
-            '870r': 'Config Properties',
-            '9b7z': 'User Properties',
-            'kby3': 'Group Properties',
-            'mndn': 'Wallet Properties'
-          };
-          
-          // Find a matching key part
-          for (const [keyPart, sectionName] of Object.entries(commonSections)) {
-            if (value._key.includes(keyPart)) {
-              title = sectionName;
-              break;
-            }
-          }
-        }
-      }
-      
-      // If it's just a basic propertyList without properties array
-      if (!value || !value.properties || !Array.isArray(value.properties)) {
+      // Check if properties array exists and has content
+      if (!value.properties || value.properties.length === 0) {
+        console.log('Empty properties list for:', value.title || 'Properties');
         return (
-          <div className="my-8 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
-            <div className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 font-medium">
-              {value && value.title ? value.title : title}
-            </div>
-            <div className="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300">
-              {/* Example properties based on section */}
-              {title === 'Bank Properties' && (
-                <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
-                  <div className="py-3">
-                    <div className="flex items-baseline mb-1">
-                      <code className="font-mono text-sm font-semibold">mint</code>
-                      <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-400 font-mono">PublicKey</span>
-                    </div>
-                    <div className="text-sm text-zinc-700 dark:text-zinc-300">
-                      The token mint address for this bank
-                    </div>
-                  </div>
-                  <div className="py-3">
-                    <div className="flex items-baseline mb-1">
-                      <code className="font-mono text-sm font-semibold">config</code>
-                      <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-400 font-mono">BankConfig</span>
-                    </div>
-                    <div className="text-sm text-zinc-700 dark:text-zinc-300">
-                      Bank configuration parameters
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {title !== 'Bank Properties' && (
-                <div>
-                  View documentation for property details
-                </div>
-              )}
-            </div>
+          <div className="my-6">
+            <div className="text-lg font-semibold">{value.title || 'Properties'}</div>
+            <div className="text-sm text-gray-500 mt-1 italic">No properties available</div>
           </div>
         );
       }
       
-      // Regular rendering with properties
+      // Render properties if they exist
       return (
-        <div className="my-8 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
-          <div className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 font-medium">
-            {value.title || title}
-          </div>
-          <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
-            {value.properties && Array.isArray(value.properties) && value.properties.map((property: any, index: number) => (
-              <div key={property._key || index} className="px-4 py-3">
-                <div className="flex items-baseline mb-1">
-                  <code className="font-mono text-sm font-semibold">{property.name}</code>
-                  <span className="ml-2 text-xs text-zinc-500 dark:text-zinc-400 font-mono">{property.type}</span>
+        <div className="my-6">
+          <div className="text-lg font-semibold">{value.title || 'Properties'}</div>
+          <div className="space-y-3 mt-3">
+            {value.properties.map((property) => (
+              <div key={property._key} className="border-b border-gray-700/20 pb-3">
+                <div className="flex items-baseline">
+                  <code className="font-mono text-sm font-bold text-white">{property.name}</code>
+                  {property.type && (
+                    <span className="ml-2 font-mono text-xs text-gray-400">
+                      {property.type}
+                    </span>
+                  )}
                 </div>
                 {property.description && (
-                  <div className="text-sm text-zinc-700 dark:text-zinc-300">
+                  <div className="mt-1 text-sm text-gray-400">
                     {property.description}
                   </div>
                 )}
@@ -319,148 +351,48 @@ export const components: PortableTextComponents = {
         </div>
       );
     },
-    table: ({ value }: { value: any }) => {
-      console.log("Table value:", JSON.stringify(value, null, 2));
+    table: ({ value }: { value: Table }) => {
+      console.log('Rendering Sanity DocTable:', value);
       
-      if (!value) {
-        return null;
-      }
-      
-      // Extract meaningful data from _key if possible
-      let title = 'Methods';
-      let tableType = 'method';
-      
-      if (value && value._key) {
-        // Try to match key to common method tables
-        const keyParts = value._key.split('w');
-        if (keyParts.length > 1) {
-          const commonTables = {
-            'wgy5': 'Bank Methods',
-            '0gr0': 'MarginfiClient Methods',
-            'ks7u': 'Account Methods',
-            'u77r': 'Utility Methods'
-          };
-          
-          // Find a matching key part
-          for (const [keyPart, tableName] of Object.entries(commonTables)) {
-            if (value._key.includes(keyPart)) {
-              title = tableName;
-              break;
-            }
-          }
-        }
-      }
-      
-      // Handle missing or malformed data
-      if (!value.rows || !Array.isArray(value.rows)) {
-        // Provide sample data based on the table type
-        if (title === 'Bank Methods') {
-          return (
-            <div className="my-8 overflow-x-auto">
-              <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-                <thead className="bg-zinc-100 dark:bg-zinc-800">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-zinc-900 dark:text-zinc-100">Method Name</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-zinc-900 dark:text-zinc-100">Parameters</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-zinc-900 dark:text-zinc-100">Return Type</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-zinc-900 dark:text-zinc-100">Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="bg-white dark:bg-zinc-900">
-                    <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                      <code className="font-mono">getAssetPrice</code>
-                    </td>
-                    <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                      none
-                    </td>
-                    <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                      <code className="font-mono">Promise&lt;number&gt;</code>
-                    </td>
-                    <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                      Gets the current price for the bank's asset
-                    </td>
-                  </tr>
-                  <tr className="bg-zinc-50 dark:bg-zinc-800/50">
-                    <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                      <code className="font-mono">deposit</code>
-                    </td>
-                    <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                      account, amount
-                    </td>
-                    <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                      <code className="font-mono">Promise&lt;Transaction&gt;</code>
-                    </td>
-                    <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                      Creates a transaction to deposit funds
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          );
-        }
-        
-        // Generic table with title
+      // Check if items array exists and has content
+      if (!value.items || value.items.length === 0) {
+        console.log('Empty table for:', value.title || 'Methods');
         return (
-          <div className="my-8 overflow-x-auto">
-            <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-              <thead className="bg-zinc-100 dark:bg-zinc-800">
-                <tr>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-zinc-900 dark:text-zinc-100">{title}</th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-zinc-900 dark:text-zinc-100">Parameters</th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-zinc-900 dark:text-zinc-100">Return Type</th>
-                  <th className="px-4 py-2 text-left text-sm font-medium text-zinc-900 dark:text-zinc-100">Description</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="bg-white dark:bg-zinc-900">
-                  <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300" colSpan={4}>
-                    See SDK documentation for method details
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div className="my-6">
+            <div className="text-lg font-semibold">{value.title || 'Methods'}</div>
+            <div className="text-sm text-gray-500 mt-1 italic">No methods available</div>
           </div>
         );
       }
       
-      // Regular rendering with data
+      // Render method items if they exist
       return (
-        <div className="my-8 overflow-x-auto">
-          <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-            {value.headerRow && Array.isArray(value.headerRow) && (
-              <thead className="bg-zinc-100 dark:bg-zinc-800">
-                <tr>
-                  {value.headerRow.map((cell: string, index: number) => (
-                    <th 
-                      key={index}
-                      className="px-4 py-2 text-left text-sm font-medium text-zinc-900 dark:text-zinc-100"
-                    >
-                      {cell}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-            )}
-            <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-              {value.rows.map((row: string[], rowIndex: number) => (
-                <tr 
-                  key={rowIndex}
-                  className={rowIndex % 2 === 0 ? 'bg-white dark:bg-zinc-900' : 'bg-zinc-50 dark:bg-zinc-800/50'}
-                >
-                  {row.map((cell: string, cellIndex: number) => (
-                    <td 
-                      key={cellIndex}
-                      className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300"
-                    >
-                      {cell}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="my-6">
+          <div className="text-lg font-semibold">{value.title || 'Methods'}</div>
+          <div className="mt-4 space-y-4">
+            {value.items.map((item) => (
+              <div key={item._key} className="border-t border-gray-700/20 pt-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <code className="font-mono text-sm font-bold text-white">{item.name}</code>
+                  {item.parametersString && (
+                    <span className="font-mono text-xs text-gray-400">
+                      {item.parametersString}
+                    </span>
+                  )}
+                  {item.resultType && (
+                    <span className="font-mono text-xs text-gray-400">
+                      → {item.resultType}
+                    </span>
+                  )}
+                </div>
+                {item.description && (
+                  <div className="mt-2 text-sm text-gray-400">
+                    {item.description}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       );
     },
@@ -602,18 +534,93 @@ export const components: PortableTextComponents = {
         </div>
       );
     },
-    docTable: ({ value }: { value: DocTableBlock }) => {
+    docTable: ({ value }: { value: any }) => {
+      console.log('Rendering Sanity DocTable:', value);
+      
+      // Extract title and ensure it's a string
+      const title = value?.title 
+        ? (typeof value.title === 'string' 
+          ? value.title 
+          : extractTextFromChildren(value.title)) 
+        : 'Methods';
+      
+      // Ensure items exists and is an array - support both 'items' from schema and 'rows' from older data
+      const items = value?.items || value?.rows || [];
+
       return (
-        <DocTable 
-          title={value.title} 
-          items={value.items} 
-          columns={[
-            { header: 'Method Name', key: 'name', isCode: true },
-            { header: 'Parameters', key: 'parametersString', width: '1fr' },
-            { header: 'Result Type(s)', key: 'resultType', isCode: true },
-            { header: 'Description', key: 'description', width: '1fr' }
-          ]}
-        />
+        <div className="my-6">
+          <h3 className="mb-4 text-lg font-semibold text-white">{title}</h3>
+          
+          {/* Table Layout */}
+          <div className="divide-y divide-zinc-700/40">
+            {/* Header Row */}
+            <div className="grid grid-cols-[auto_1fr_auto_1fr] gap-x-6 pb-4">
+              <div className="text-sm font-semibold text-zinc-400">Method Name</div>
+              <div className="text-sm font-semibold text-zinc-400">Parameters</div>
+              <div className="text-sm font-semibold text-zinc-400">Return Type</div>
+              <div className="text-sm font-semibold text-zinc-400">Description</div>
+            </div>
+
+            {/* Content Rows */}
+            {items.length > 0 ? (
+              items.map((item: any, rowIndex: number) => {
+                // Support both object format (items) and array format (rows)
+                const isArrayFormat = Array.isArray(item);
+                const name = isArrayFormat ? item[0] : item.name;
+                const params = isArrayFormat ? item[1] : item.parametersString;
+                const returnType = isArrayFormat ? item[2] : item.resultType;
+                const description = isArrayFormat ? item[3] : item.description;
+                
+                return (
+                  <div key={rowIndex} className="grid grid-cols-[auto_1fr_auto_1fr] gap-x-6 py-4">
+                    <div>
+                      <code className="rounded bg-zinc-800 px-2 py-1 font-mono text-sm text-white">
+                        {name || '—'}
+                      </code>
+                    </div>
+                    
+                    <div className="text-zinc-400">
+                      {params ? (
+                        typeof params === 'string' ? (
+                          params.split(',').map((param: string, i: number) => (
+                            <div key={i} className="whitespace-pre-wrap">
+                              <code className="text-zinc-200 font-mono">{param.trim()}</code>
+                            </div>
+                          ))
+                        ) : (
+                          <span>{params}</span>
+                        )
+                      ) : '—'}
+                    </div>
+                    
+                    <div>
+                      {returnType ? (
+                        <code className="rounded bg-zinc-800 px-2 py-1 font-mono text-sm text-white">
+                          {returnType}
+                        </code>
+                      ) : '—'}
+                    </div>
+                    
+                    <div className="text-zinc-400">
+                      {description ? (
+                        Array.isArray(description) ? (
+                          <PortableText 
+                            value={description} 
+                            components={portableTextComponents}
+                          />
+                        ) : (
+                          <span>{description.toString()}</span>
+                        )
+                      ) : '—'}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="py-4 text-center text-zinc-500">No methods available</div>
+            )}
+          </div>
+        </div>
       );
     },
     properties: ({ value }: { value: any }) => {

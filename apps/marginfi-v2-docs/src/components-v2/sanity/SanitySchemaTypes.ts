@@ -135,8 +135,16 @@ export interface ParameterList {
 export interface Table {
   _type: 'table';
   _key: string;
+  title?: string;
   headerRow?: string[];
-  rows: string[][];
+  rows?: string[][];
+  items?: Array<{
+    _key: string;
+    name: string;
+    parametersString?: string;
+    resultType?: string;
+    description?: string;
+  }>;
 }
 
 export interface DocPage {

@@ -101,6 +101,27 @@ export const getDocPageBySlug = /* groq */ `
           }
         }
       },
+      _type == "propertyList" => {
+        title,
+        properties[] {
+          _key,
+          name,
+          type,
+          description
+        }
+      },
+      _type == "table" => {
+        title,
+        items[] {
+          _key,
+          name,
+          parametersString,
+          resultType,
+          description
+        },
+        rows,
+        headerRow
+      },
       _type == "method" => {
         title,
         format,
