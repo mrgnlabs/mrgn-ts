@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from "~/auth/auth-server";
 import { verifySignature } from "~/auth/utils/auth-crypto.utils";
 import { generateToken } from "~/auth/utils/auth-jwt.utils";
 import { SignupPayload } from "~/auth/types/auth.types";
+import { generateDummyCredentials } from "~/auth/utils/auth.utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -21,29 +22,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const supabase = createServerSupabaseClient();
+    const { email, password } = generateDummyCredentials(walletAddress);
 
-    // Check if user exists
-    const { data: existingUser } = await supabase.from("users").select().eq("wallet_address", walletAddress).single();
+    // Check if user exists in Supabase Auth
+    const { data: userList, error: listError } = await supabase.auth.admin.listUsers();
+    if (listError) {
+      console.error("Error fetching users:", listError);
+      return res.status(500).json({ error: "Failed to check existing users" });
+    }
+
+    const existingUser = userList.users.find((u) => u.user_metadata?.wallet_address === walletAddress);
 
     if (existingUser) {
       return res.status(400).json({ error: "User already exists" });
     }
 
-    // Create user in users table
-    const { data: user, error: createError } = await supabase
-      .from("users")
-      .insert({
+    // Create the user in Supabase Auth
+    const { data: userData, error: createError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true, // Auto-confirm email
+      user_metadata: {
         wallet_address: walletAddress,
         wallet_id: walletId,
         referral_code: referralCode,
         last_login: new Date().toISOString(),
-      })
-      .select()
-      .single();
+      },
+    });
 
-    if (createError) {
+    if (createError || !userData.user) {
       console.error("Signup error:", createError);
-      return res.status(400).json({ error: createError.message });
+      return res.status(400).json({ error: createError?.message || "Failed to create user" });
+    }
+
+    // Authenticate the user
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError || !authData.session) {
+      console.error("Error authenticating user:", authError);
+      return res.status(500).json({ error: "Failed to authenticate user" });
     }
 
     // Generate JWT token
@@ -54,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({
       user: {
-        id: user.id,
+        id: userData.user.id,
         walletAddress,
         walletId,
         referralCode,
