@@ -261,13 +261,252 @@ async function fixAllDocuments() {
 }
 
 /**
+ * Extract and handle imports from MDX file
+ * @param {string} content - The MDX content
+ * @returns {object} - Object containing cleaned content and import information
+ */
+function extractImportsFromMdx(content) {
+  // Split content by lines
+  const lines = content.split('\n');
+  const imports = [];
+  let contentStartIndex = 0;
+  
+  // Look for import statements at the top of the file
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    if (line.startsWith('import ')) {
+      imports.push(line);
+      contentStartIndex = i + 1;
+    } else if (line !== '' && !line.startsWith('export const metadata')) {
+      // First non-empty, non-import, non-metadata line marks the start of content
+      break;
+    }
+  }
+  
+  // Extract metadata if it exists
+  let metadata = null;
+  for (let i = contentStartIndex; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    if (line.startsWith('export const metadata')) {
+      let metadataStartIndex = i;
+      let metadataEndIndex = i;
+      let braceCount = 0;
+      let inMetadata = false;
+      
+      // Find the end of the metadata object
+      for (let j = i; j < lines.length; j++) {
+        const metadataLine = lines[j];
+        
+        // Count braces to find the complete object
+        for (let k = 0; k < metadataLine.length; k++) {
+          if (metadataLine[k] === '{') {
+            braceCount++;
+            inMetadata = true;
+          } else if (metadataLine[k] === '}') {
+            braceCount--;
+          }
+        }
+        
+        metadataEndIndex = j;
+        
+        if (inMetadata && braceCount === 0) {
+          break;
+        }
+      }
+      
+      // Extract the metadata lines
+      const metadataLines = lines.slice(metadataStartIndex, metadataEndIndex + 1);
+      metadata = metadataLines.join('\n');
+      
+      // Skip these lines in the content
+      contentStartIndex = metadataEndIndex + 1;
+      break;
+    }
+  }
+  
+  // Return the cleaned content (without imports and metadata) and the extracted information
+  return {
+    content: lines.slice(contentStartIndex).join('\n'),
+    imports,
+    metadata
+  };
+}
+
+/**
+ * Parse image imports to extract image paths
+ * @param {Array} imports - Array of import statements
+ * @returns {Object} - Mapping of imported names to image paths
+ */
+function parseImageImports(imports) {
+  const imageMap = {};
+  
+  for (const importStr of imports) {
+    // Match patterns like: import ImageName from '~/images/path/to/image.png'
+    const imageMatch = importStr.match(/import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/);
+    
+    if (imageMatch && imageMatch[2].includes('/images/')) {
+      const imageName = imageMatch[1];
+      const imagePath = imageMatch[2].replace('~/images/', '/images/');
+      imageMap[imageName] = imagePath;
+    }
+  }
+  
+  return imageMap;
+}
+
+/**
+ * Parse component imports to track which components are available
+ * @param {Array} imports - Array of import statements
+ * @returns {Object} - Set of available component names
+ */
+function parseComponentImports(imports) {
+  const components = new Set();
+  
+  for (const importStr of imports) {
+    // Match named exports: import { ComponentA, ComponentB } from '~/components/...'
+    const namedMatch = importStr.match(/import\s+\{\s*([^}]+)\s*\}\s+from\s+['"][^'"]+['"]/);
+    
+    if (namedMatch) {
+      const componentNames = namedMatch[1].split(',').map(name => name.trim());
+      componentNames.forEach(name => components.add(name));
+    }
+    
+    // Match default imports: import ComponentName from '~/components/...'
+    const defaultMatch = importStr.match(/import\s+(\w+)\s+from\s+['"][^'"]+['"]/);
+    
+    if (defaultMatch && !importStr.includes('/images/')) {
+      components.add(defaultMatch[1]);
+    }
+  }
+  
+  return components;
+}
+
+/**
+ * Process property components inside MDX
+ * @param {string} content - The content to process
+ * @returns {Array} - Array of property objects
+ */
+function processPropertyComponents(content) {
+  const properties = [];
+  
+  // Match Property components with various formats:
+  // 1. Simple format: <Property name="x" type="string">Description</Property>
+  // 2. Extended format with nested content: <Property name="x" type="string"><p>Description with <code>markup</code></p></Property>
+  const propertiesRegex = /<Property\s+name=["']([^"']*)["']\s+type=["']([^"']*)["']>([\s\S]*?)<\/Property>/g;
+  
+  let match;
+  while ((match = propertiesRegex.exec(content)) !== null) {
+    const name = match[1];
+    const type = match[2];
+    let description = match[3].trim();
+    
+    // Process description content to handle HTML markup
+    // For now, we'll just strip HTML tags for simplicity
+    // In a more advanced version, you could convert HTML to Sanity blocks
+    description = description
+      .replace(/<p>([\s\S]*?)<\/p>/g, '$1\n\n') // Convert paragraphs to newlines
+      .replace(/<code>([\s\S]*?)<\/code>/g, '`$1`') // Convert code to backticks
+      .replace(/<\/?[^>]+(>|$)/g, '') // Strip remaining HTML tags
+      .trim();
+    
+    properties.push({
+      _type: 'property',
+      _key: generateKey(),
+      name,
+      type,
+      description
+    });
+  }
+  
+  return properties;
+}
+
+/**
+ * Process method documentation components inside MDX
+ * @param {string} content - The content to process
+ * @returns {Object} - Method documentation object
+ */
+function processMethodDocComponent(content) {
+  // Extract method name, parameters, and return type
+  const nameMatch = content.match(/<MethodDoc\s+name=["']([^"']*)["']/);
+  const paramsMatch = content.match(/parameters=["']([^"']*)["']/);
+  const returnsMatch = content.match(/returns=["']([^"']*)["']/);
+  
+  // Extract description from the content between opening and closing tags
+  const descriptionMatch = content.match(/<MethodDoc[^>]*>([\s\S]*?)<\/MethodDoc>/);
+  
+  return {
+    _type: 'method',
+    _key: generateKey(),
+    name: nameMatch ? nameMatch[1] : '',
+    parametersString: paramsMatch ? paramsMatch[1] : '',
+    resultType: returnsMatch ? returnsMatch[1] : '',
+    description: descriptionMatch ? 
+      // Clean up the description content
+      descriptionMatch[1]
+        .replace(/<p>([\s\S]*?)<\/p>/g, '$1\n\n')
+        .replace(/<code>([\s\S]*?)<\/code>/g, '`$1`')
+        .replace(/<\/?[^>]+(>|$)/g, '')
+        .trim() : ''
+  };
+}
+
+/**
+ * Process parameter list components inside MDX
+ * @param {string} content - The content to process
+ * @returns {Array} - Array of parameter objects
+ */
+function processParameterListComponent(content) {
+  const parameters = [];
+  // Match each Parameter component
+  const paramRegex = /<Parameter\s+name=["']([^"']*)["']\s+type=["']([^"']*)["']>([\s\S]*?)<\/Parameter>/g;
+  
+  let match;
+  while ((match = paramRegex.exec(content)) !== null) {
+    const name = match[1];
+    const type = match[2];
+    let description = match[3].trim();
+    
+    // Clean up description
+    description = description
+      .replace(/<p>([\s\S]*?)<\/p>/g, '$1\n\n')
+      .replace(/<code>([\s\S]*?)<\/code>/g, '`$1`')
+      .replace(/<\/?[^>]+(>|$)/g, '')
+      .trim();
+    
+    parameters.push({
+      _type: 'parameter',
+      _key: generateKey(),
+      name,
+      type,
+      description
+    });
+  }
+  
+  return parameters;
+}
+
+/**
  * Convert MDX content to Sanity blocks with proper structure
  * @param {string} content - The MDX content
  * @returns {Array} - The Sanity blocks
  */
 function mdxToSanityBlocks(content) {
+  // First extract imports and metadata to handle them specially
+  const { content: cleanedContent, imports, metadata } = extractImportsFromMdx(content);
+  
+  // Parse imports to extract images and components
+  const imageMap = parseImageImports(imports);
+  const availableComponents = parseComponentImports(imports);
+  
+  console.log('Detected images:', Object.keys(imageMap));
+  console.log('Detected components:', Array.from(availableComponents));
+  
   // Split content by lines
-  const lines = content.split('\n');
+  const lines = cleanedContent.split('\n');
   const blocks = [];
   
   let currentBlock = null;
@@ -280,18 +519,134 @@ function mdxToSanityBlocks(content) {
   let inNoteBlock = false;
   let noteContent = [];
   
+  // Table handling
+  let inTable = false;
+  let tableRows = [];
+  let tableHeaders = [];
+  
+  // Properties handling
+  let inPropertiesBlock = false;
+  let propertiesContent = '';
+  let propertiesTitle = '';
+  
+  // Property/Parameter list handling
+  let inPropertyList = false;
+  let propertyItems = [];
+  
+  // MethodDoc handling
+  let inMethodDoc = false;
+  let methodDocContent = '';
+  
+  // ParameterList handling
+  let inParameterList = false;
+  let parameterListContent = '';
+  
   // Process each line
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    const trimmedLine = line.trim();
+
+    // Handle Properties components
+    if (trimmedLine === '<Properties>' || trimmedLine.startsWith('<Properties ')) {
+      inPropertiesBlock = true;
+      propertiesContent = '';
+      
+      // Extract title if available
+      const titleMatch = trimmedLine.match(/<Properties\s+title=["']([^"']*)["']/);
+      propertiesTitle = titleMatch ? titleMatch[1] : 'Properties';
+      
+      continue;
+    }
+    
+    if (trimmedLine === '</Properties>') {
+      inPropertiesBlock = false;
+      
+      // Process all Property components inside Properties
+      const properties = processPropertyComponents(propertiesContent);
+      
+      // Only create a propertyList block if we found properties
+      if (properties.length > 0) {
+        blocks.push({
+          _type: 'propertyList',
+          _key: generateKey(),
+          title: propertiesTitle,
+          properties: properties
+        });
+      } else {
+        // If no properties were found but we were in a Properties block,
+        // create a minimal propertyList with just the title
+        blocks.push({
+          _type: 'propertyList',
+          _key: generateKey(),
+          title: propertiesTitle
+        });
+      }
+      
+      continue;
+    }
+    
+    // Collect all content inside Properties tags
+    if (inPropertiesBlock) {
+      propertiesContent += line + '\n';
+      continue;
+    }
+
+    // Handle Component tags like <ImageComponent>, <Math>, etc.
+    const componentMatch = trimmedLine.match(/<(\w+)([^>]*)>(.*?)<\/\1>/);
+    if (componentMatch && availableComponents.has(componentMatch[1])) {
+      const componentName = componentMatch[1];
+      const componentProps = componentMatch[2];
+      const componentContent = componentMatch[3];
+      
+      if (componentName === 'ImageComponent') {
+        // Extract src, width, height, alt from props
+        const srcMatch = componentProps.match(/src=\{([^}]+)\}/);
+        const widthMatch = componentProps.match(/width=\{(\d+)\}/);
+        const heightMatch = componentProps.match(/height=\{(\d+)\}/);
+        const altMatch = componentProps.match(/alt=["']([^"']+)["']/);
+        
+        if (srcMatch && imageMap[srcMatch[1]]) {
+          blocks.push({
+            _type: 'image',
+            _key: generateKey(),
+            asset: {
+              _type: 'reference',
+              _ref: `image-${imageMap[srcMatch[1]]}-sanity` // This is a placeholder, you'll need to handle image references properly
+            },
+            alt: altMatch ? altMatch[1] : '',
+            width: widthMatch ? parseInt(widthMatch[1]) : null,
+            height: heightMatch ? parseInt(heightMatch[1]) : null
+          });
+        }
+      } else if (componentName === 'Math') {
+        // Handle math component
+        blocks.push({
+          _type: 'math',
+          _key: generateKey(),
+          latex: componentContent
+        });
+      } else {
+        // Generic component handling
+        blocks.push({
+          _type: 'component',
+          _key: generateKey(),
+          name: componentName,
+          props: componentProps.trim(),
+          content: componentContent
+        });
+      }
+      
+      continue;
+    }
 
     // Check for Note blocks
-    if (line.trim() === '<Note>' || line.trim().startsWith('<Note>')) {
+    if (trimmedLine === '<Note>' || trimmedLine.startsWith('<Note>')) {
       inNoteBlock = true;
       noteContent = [];
       
       // Extract any content after the opening tag
-      if (line.trim() !== '<Note>') {
-        const parts = line.split('<Note>');
+      if (trimmedLine !== '<Note>') {
+        const parts = trimmedLine.split('<Note>');
         if (parts[1] && parts[1].trim()) {
           noteContent.push({
             _type: 'block',
@@ -310,12 +665,12 @@ function mdxToSanityBlocks(content) {
       continue;
     }
 
-    if (line.trim() === '</Note>' || line.trim().endsWith('</Note>')) {
+    if (trimmedLine === '</Note>' || trimmedLine.endsWith('</Note>')) {
       inNoteBlock = false;
       
       // Extract any content before the closing tag
-      if (line.trim() !== '</Note>') {
-        const parts = line.split('</Note>');
+      if (trimmedLine !== '</Note>') {
+        const parts = trimmedLine.split('</Note>');
         if (parts[0] && parts[0].trim()) {
           noteContent.push({
             _type: 'block',
@@ -336,7 +691,20 @@ function mdxToSanityBlocks(content) {
       blocks.push({
         _type: 'note',
         _key: generateKey(),
-        content: noteContent
+        content: noteContent.length > 0 ? noteContent : [
+          {
+            _type: 'block',
+            _key: generateKey(),
+            style: 'normal',
+            children: [
+              {
+                _type: 'span',
+                _key: generateKey(),
+                text: ''
+              }
+            ]
+          }
+        ]
       });
       
       continue;
@@ -344,115 +712,24 @@ function mdxToSanityBlocks(content) {
 
     if (inNoteBlock) {
       // Process the line for any Button tags or empty <> tags
-      if (line.trim()) {
-        let processedLine = line;
+      if (trimmedLine) {
+        let processedLine = trimmedLine;
         
         // Process Button tags
-        const buttonRegex = /<Button\s+href="([^"]+)"(?:\s+variant="([^"]+)")?>(.*?)<\/Button>/g;
-        let result;
-        
-        if (buttonRegex.test(processedLine)) {
-          let lastIndex = 0;
-          let processedParts = [];
-          buttonRegex.lastIndex = 0; // Reset regex state
-          
-          while ((result = buttonRegex.exec(processedLine)) !== null) {
-            // Add text before the button
-            if (result.index > lastIndex) {
-              processedParts.push(processedLine.substring(lastIndex, result.index));
-            }
-            
-            // Extract button info
-            const href = result[1];
-            const variant = result[2] || 'text';
-            let content = result[3];
-            
-            // If content has <> tags, clean them up
-            if (content.startsWith('<>') && content.endsWith('</>')) {
-              content = content.replace(/<>|<\/>/g, '');
-            }
-            
-            // Create a special link marker
-            processedParts.push(`__LINK[${href}|${variant}|${content}]__`);
-            
-            lastIndex = result.index + result[0].length;
-          }
-          
-          // Add any remaining text
-          if (lastIndex < processedLine.length) {
-            processedParts.push(processedLine.substring(lastIndex));
-          }
-          
-          processedLine = processedParts.join('');
-        }
+        processedLine = processButtonTags(processedLine);
         
         // Clean up any empty <> tags
         processedLine = processedLine.replace(/<>([^<]*)<\/>/g, '$1');
         
         // Add to note content
         if (processedLine.trim()) {
-          const children = [];
-          
-          // Check for link markers and convert them to spans with link marks
-          if (processedLine.includes('__LINK[')) {
-            const linkRegex = /__LINK\[([^|]+)\|([^|]+)\|([^\]]+)\]__/g;
-            let lastLinkIndex = 0;
-            let linkResult;
-            
-            while ((linkResult = linkRegex.exec(processedLine)) !== null) {
-              // Add text before the link
-              if (linkResult.index > lastLinkIndex) {
-                children.push({
-                  _type: 'span',
-                  _key: generateKey(),
-                  text: processedLine.substring(lastLinkIndex, linkResult.index)
-                });
-              }
-              
-              // Create link span
-              const href = linkResult[1];
-              const variant = linkResult[2];
-              const text = linkResult[3];
-              
-              children.push({
-                _type: 'span',
-                _key: generateKey(),
-                text: text,
-                marks: ['link'],
-                markDefs: [{
-                  _type: 'link',
-                  _key: generateKey(),
-                  href: href,
-                  isButton: true,
-                  variant: variant
-                }]
-              });
-              
-              lastLinkIndex = linkResult.index + linkResult[0].length;
-            }
-            
-            // Add any remaining text
-            if (lastLinkIndex < processedLine.length) {
-              children.push({
-                _type: 'span',
-                _key: generateKey(),
-                text: processedLine.substring(lastLinkIndex)
-              });
-            }
-          } else {
-            // No links, just add the text
-            children.push({
-              _type: 'span',
-              _key: generateKey(),
-              text: processedLine
-            });
-          }
+          const spans = processTextWithMarks(processedLine);
           
           noteContent.push({
             _type: 'block',
             _key: generateKey(),
             style: 'normal',
-            children: children
+            children: spans
           });
         }
       }
@@ -460,14 +737,14 @@ function mdxToSanityBlocks(content) {
     }
     
     // Handle code blocks
-    if (line.startsWith('```')) {
+    if (trimmedLine.startsWith('```')) {
       if (!inCodeBlock) {
         // Start of code block
         inCodeBlock = true;
         codeBlockContent = '';
         
         // Extract language and title information
-        const codeBlockInfo = line.slice(3).trim();
+        const codeBlockInfo = trimmedLine.slice(3).trim();
         const titleMatch = codeBlockInfo.match(/{{[ ]*title:[ ]*['"](.+?)['"][ ]*}}/);
         
         if (titleMatch) {
@@ -477,8 +754,6 @@ function mdxToSanityBlocks(content) {
           codeBlockTitle = '';
           codeBlockLanguage = codeBlockInfo;
         }
-        
-        console.log(`Processing code block: language=${codeBlockLanguage}, title=${codeBlockTitle || 'none'}`);
       } else {
         // End of code block
         inCodeBlock = false;
@@ -489,8 +764,6 @@ function mdxToSanityBlocks(content) {
           code: codeBlockContent.trim(),
           filename: codeBlockTitle || ''
         });
-        
-        console.log(`Added code block: ${codeBlockContent.length} chars, language=${codeBlockLanguage}, filename=${codeBlockTitle || 'none'}`);
       }
       continue;
     }
@@ -500,125 +773,171 @@ function mdxToSanityBlocks(content) {
       continue;
     }
     
-    // Handle regular content lines
-    if (line.trim()) {
-      // Process line for Button tags and <> tags
-      let processedLine = line;
-      
-      // Process Button tags
-      const buttonRegex = /<Button\s+href="([^"]+)"(?:\s+variant="([^"]+)")?>(.*?)<\/Button>/g;
-      let buttonMatch;
-      
-      if (buttonRegex.test(processedLine)) {
-        let lastIndex = 0;
-        let processedParts = [];
-        buttonRegex.lastIndex = 0; // Reset regex state
+    // Handle table - detect start of table with | character
+    if (trimmedLine.startsWith('|') && trimmedLine.endsWith('|')) {
+      if (!inTable) {
+        // Start of table
+        inTable = true;
+        tableRows = [];
+        tableHeaders = [];
         
-        while ((buttonMatch = buttonRegex.exec(processedLine)) !== null) {
-          // Add text before the button
-          if (buttonMatch.index > lastIndex) {
-            processedParts.push(processedLine.substring(lastIndex, buttonMatch.index));
-          }
-          
-          // Extract button info
-          const href = buttonMatch[1];
-          const variant = buttonMatch[2] || 'text';
-          let content = buttonMatch[3];
-          
-          // If content has <> tags, clean them up
-          if (content.startsWith('<>') && content.endsWith('</>')) {
-            content = content.replace(/<>|<\/>/g, '');
-          }
-          
-          // Create a special link marker
-          processedParts.push(`__LINK[${href}|${variant}|${content}]__`);
-          
-          lastIndex = buttonMatch.index + buttonMatch[0].length;
-        }
+        // Parse header row
+        const headerCells = trimmedLine
+          .split('|')
+          .filter(cell => cell.trim() !== '')
+          .map(cell => cell.trim());
         
-        // Add any remaining text
-        if (lastIndex < processedLine.length) {
-          processedParts.push(processedLine.substring(lastIndex));
-        }
+        tableHeaders = headerCells;
+      } else if (trimmedLine.startsWith('|') && trimmedLine.includes('-')) {
+        // This is the separator row, ignore it
+        continue;
+      } else {
+        // Table data row
+        const cells = trimmedLine
+          .split('|')
+          .filter(cell => cell.trim() !== '')
+          .map(cell => cell.trim());
         
-        processedLine = processedParts.join('');
+        tableRows.push(cells);
       }
+      continue;
+    } else if (inTable) {
+      // End of table
+      inTable = false;
+      
+      // Create a more robust table object
+      const tableBlock = {
+        _type: 'table',
+        _key: generateKey()
+      };
+      
+      // Add headerRow if we have headers
+      if (tableHeaders.length > 0) {
+        tableBlock.headerRow = tableHeaders;
+      }
+      
+      // Add rows
+      if (tableRows.length > 0) {
+        tableBlock.rows = tableRows;
+      } else {
+        // If no rows, create at least an empty array
+        tableBlock.rows = [];
+      }
+      
+      blocks.push(tableBlock);
+    }
+    
+    // Handle MethodDoc components
+    if (trimmedLine.startsWith('<MethodDoc ')) {
+      inMethodDoc = true;
+      methodDocContent = trimmedLine + '\n';
+      continue;
+    }
+    
+    if (trimmedLine === '</MethodDoc>') {
+      inMethodDoc = false;
+      methodDocContent += trimmedLine;
+      
+      // Process MethodDoc component
+      const methodDoc = processMethodDocComponent(methodDocContent);
+      
+      // Create a method block
+      blocks.push({
+        _type: 'docTable',
+        _key: generateKey(),
+        title: 'Method',
+        tableType: 'method',
+        items: [{
+          name: methodDoc.name,
+          parametersString: methodDoc.parametersString,
+          resultType: methodDoc.resultType,
+          description: [{
+            _type: 'block',
+            _key: generateKey(),
+            style: 'normal',
+            children: [{
+              _type: 'span',
+              _key: generateKey(),
+              text: methodDoc.description
+            }]
+          }]
+        }]
+      });
+      
+      continue;
+    }
+    
+    if (inMethodDoc) {
+      methodDocContent += line + '\n';
+      continue;
+    }
+    
+    // Handle ParameterList components
+    if (trimmedLine === '<ParameterList>' || trimmedLine.startsWith('<ParameterList ')) {
+      inParameterList = true;
+      parameterListContent = '';
+      
+      // Extract title if available
+      const titleMatch = trimmedLine.match(/<ParameterList\s+title=["']([^"']*)["']/);
+      const parameterListTitle = titleMatch ? titleMatch[1] : 'Parameters';
+      
+      continue;
+    }
+    
+    if (trimmedLine === '</ParameterList>') {
+      inParameterList = false;
+      
+      // Process ParameterList component
+      const parameters = processParameterListComponent(parameterListContent);
+      
+      // Create a parameterList block only if we have parameters
+      if (parameters.length > 0) {
+        blocks.push({
+          _type: 'parameterList',
+          _key: generateKey(),
+          title: parameterListTitle,
+          parameters: parameters
+        });
+      } else {
+        // If no parameters were found but we were in a ParameterList block,
+        // create a minimal parameterList with just the title
+        blocks.push({
+          _type: 'parameterList',
+          _key: generateKey(),
+          title: parameterListTitle
+        });
+      }
+      
+      continue;
+    }
+    
+    if (inParameterList) {
+      parameterListContent += line + '\n';
+      continue;
+    }
+    
+    // Handle regular content lines
+    if (trimmedLine) {
+      // Process line for Button tags and <> tags
+      let processedLine = processButtonTags(trimmedLine);
       
       // Clean up any empty <> tags
       processedLine = processedLine.replace(/<>([^<]*)<\/>/g, '$1');
       
-      // Continue with handling different types of content
-      // ... rest of your existing line handling code ...
-      
-      // Create span children for the block, handling link markers
-      const children = [];
-      
-      // Check for link markers and convert them to spans with link marks
-      if (processedLine.includes('__LINK[')) {
-        const linkRegex = /__LINK\[([^|]+)\|([^|]+)\|([^\]]+)\]__/g;
-        let lastLinkIndex = 0;
-        let linkResult;
-        
-        while ((linkResult = linkRegex.exec(processedLine)) !== null) {
-          // Add text before the link
-          if (linkResult.index > lastLinkIndex) {
-            children.push({
-              _type: 'span',
-              _key: generateKey(),
-              text: processedLine.substring(lastLinkIndex, linkResult.index)
-            });
-          }
-          
-          // Create link span
-          const href = linkResult[1];
-          const variant = linkResult[2];
-          const text = linkResult[3];
-          
-          children.push({
-            _type: 'span',
-            _key: generateKey(),
-            text: text,
-            marks: ['link'],
-            markDefs: [{
-              _type: 'link',
-              _key: generateKey(),
-              href: href,
-              isButton: true,
-              variant: variant
-            }]
-          });
-          
-          lastLinkIndex = linkResult.index + linkResult[0].length;
-        }
-        
-        // Add any remaining text
-        if (lastLinkIndex < processedLine.length) {
-          children.push({
-            _type: 'span',
-            _key: generateKey(),
-            text: processedLine.substring(lastLinkIndex)
-          });
-        }
-      } else {
-        // No links, just add the text
-        children.push({
-          _type: 'span',
-          _key: generateKey(),
-          text: processedLine
-        });
-      }
+      // Create spans with proper marks
+      const spans = processTextWithMarks(processedLine);
       
       // Handle different line types (headings, lists, etc.)
-      if (line.startsWith('# ')) {
+      if (trimmedLine.startsWith('# ')) {
         blocks.push({
           _type: 'block',
           _key: generateKey(),
           style: 'h1',
-          children: children
+          children: spans
         });
-      } else if (line.startsWith('## ')) {
+      } else if (trimmedLine.startsWith('## ')) {
         // Check for tags and labels in h2
-        const h2Content = line.slice(3).trim();
+        const h2Content = trimmedLine.slice(3).trim();
         const tagMatch = h2Content.match(/{{[ ]*tag:[ ]*['"](.+?)['"][ ]*,[ ]*label:[ ]*['"](.+?)['"][ ]*}}/);
         const anchorMatch = h2Content.match(/{{[ ]*anchor:[ ]*['"]?(.+?)['"]?[ ]*}}/);
         
@@ -629,7 +948,8 @@ function mdxToSanityBlocks(content) {
             _type: 'section',
             _key: generateKey(),
             title: title,
-            label: `${tagMatch[1]} - ${tagMatch[2]}`,
+            tag: tagMatch[1],
+            label: tagMatch[2],
             content: [
               {
                 _type: 'block',
@@ -657,65 +977,51 @@ function mdxToSanityBlocks(content) {
                 _key: generateKey(),
                 text: title
               }
-            ]
+            ],
+            anchor: anchorMatch[1]
           });
         } else {
           blocks.push({
             _type: 'block',
             _key: generateKey(),
             style: 'h2',
-            children: [
-              {
-                _type: 'span',
-                _key: generateKey(),
-                text: h2Content
-              }
-            ]
+            children: spans
           });
         }
-      } else if (line.startsWith('### ')) {
+      } else if (trimmedLine.startsWith('### ')) {
         blocks.push({
           _type: 'block',
           _key: generateKey(),
           style: 'h3',
-          children: [
-            {
-              _type: 'span',
-              _key: generateKey(),
-              text: line.slice(4).trim()
-            }
-          ]
+          children: spans
         });
-      } else if (line.startsWith('- ')) {
+      } else if (trimmedLine.startsWith('- ')) {
         // Handle list items
         blocks.push({
           _type: 'block',
           _key: generateKey(),
           style: 'normal',
           listItem: 'bullet',
-          children: [
-            {
-              _type: 'span',
-              _key: generateKey(),
-              text: line.slice(2).trim()
-            }
-          ]
+          children: spans
         });
-      } else if (line.startsWith('> ')) {
+      } else if (trimmedLine.startsWith('1. ')) {
+        // Handle numbered list items
+        blocks.push({
+          _type: 'block',
+          _key: generateKey(),
+          style: 'normal',
+          listItem: 'number',
+          children: spans
+        });
+      } else if (trimmedLine.startsWith('> ')) {
         // Handle blockquotes
         blocks.push({
           _type: 'block',
           _key: generateKey(),
           style: 'blockquote',
-          children: [
-            {
-              _type: 'span',
-              _key: generateKey(),
-              text: line.slice(2).trim()
-            }
-          ]
+          children: spans
         });
-      } else if (line.trim() === '---') {
+      } else if (trimmedLine === '---') {
         // Handle horizontal rules - we'll just add a paragraph with a line
         blocks.push({
           _type: 'block',
@@ -729,13 +1035,13 @@ function mdxToSanityBlocks(content) {
             }
           ]
         });
-      } else if (line.trim() === '') {
+      } else if (trimmedLine === '') {
         // Skip empty lines
         continue;
       } else {
         // Handle regular paragraphs
         // Check for lead text
-        const leadMatch = line.match(/{{[ ]*className:[ ]*['"]lead['"][ ]*}}/);
+        const leadMatch = trimmedLine.match(/{{[ ]*className:[ ]*['"]lead['"][ ]*}}/);
         if (leadMatch) {
           blocks.push({
             _type: 'block',
@@ -745,57 +1051,11 @@ function mdxToSanityBlocks(content) {
               {
                 _type: 'span',
                 _key: generateKey(),
-                text: line.replace(leadMatch[0], '').trim()
+                text: trimmedLine.replace(leadMatch[0], '').trim()
               }
             ]
           });
         } else {
-          // Check for bold text
-          let text = line.trim();
-          const boldRegex = /\*\*([^*]+)\*\*/g;
-          const spans = [];
-          let lastIndex = 0;
-          let match;
-          
-          while ((match = boldRegex.exec(text)) !== null) {
-            // Add text before the bold part
-            if (match.index > lastIndex) {
-              spans.push({
-                _type: 'span',
-                _key: generateKey(),
-                text: text.substring(lastIndex, match.index)
-              });
-            }
-            
-            // Add the bold part
-            spans.push({
-              _type: 'span',
-              _key: generateKey(),
-              text: match[1],
-              marks: ['strong']
-            });
-            
-            lastIndex = match.index + match[0].length;
-          }
-          
-          // Add any remaining text
-          if (lastIndex < text.length) {
-            spans.push({
-              _type: 'span',
-              _key: generateKey(),
-              text: text.substring(lastIndex)
-            });
-          }
-          
-          // If no bold text was found, just add the whole line
-          if (spans.length === 0) {
-            spans.push({
-              _type: 'span',
-              _key: generateKey(),
-              text: text
-            });
-          }
-          
           blocks.push({
             _type: 'block',
             _key: generateKey(),
@@ -807,7 +1067,196 @@ function mdxToSanityBlocks(content) {
     }
   }
   
+  // Handle any table that might be at the end of the content
+  if (inTable) {
+    blocks.push({
+      _type: 'table',
+      _key: generateKey(),
+      headers: tableHeaders,
+      rows: tableRows
+    });
+  }
+  
   return blocks;
+}
+
+/**
+ * Process button tags in text
+ * @param {string} text - The text to process
+ * @returns {string} - Processed text with button markers
+ */
+function processButtonTags(text) {
+  if (!text.includes('<Button')) {
+    return text;
+  }
+  
+  let processedText = text;
+  // Process Button tags
+  const buttonRegex = /<Button\s+href="([^"]+)"(?:\s+variant="([^"]+)")?>(.*?)<\/Button>/g;
+  let result;
+  
+  if (buttonRegex.test(processedText)) {
+    let lastIndex = 0;
+    let processedParts = [];
+    buttonRegex.lastIndex = 0; // Reset regex state
+    
+    while ((result = buttonRegex.exec(processedText)) !== null) {
+      // Add text before the button
+      if (result.index > lastIndex) {
+        processedParts.push(processedText.substring(lastIndex, result.index));
+      }
+      
+      // Extract button info
+      const href = result[1];
+      const variant = result[2] || 'text';
+      let content = result[3];
+      
+      // If content has <> tags, clean them up
+      if (content.startsWith('<>') && content.endsWith('</>')) {
+        content = content.replace(/<>|<\/>/g, '');
+      }
+      
+      // Create a special link marker
+      processedParts.push(`__LINK[${href}|${variant}|${content}]__`);
+      
+      lastIndex = result.index + result[0].length;
+    }
+    
+    // Add any remaining text
+    if (lastIndex < processedText.length) {
+      processedParts.push(processedText.substring(lastIndex));
+    }
+    
+    processedText = processedParts.join('');
+  }
+  
+  return processedText;
+}
+
+/**
+ * Process text content to create spans with proper marks
+ * @param {string} text - Text to process
+ * @returns {Array} - Array of span objects with appropriate marks
+ */
+function processTextWithMarks(text) {
+  const spans = [];
+  
+  // Check for link markers and convert them to spans with link marks
+  if (text.includes('__LINK[')) {
+    const linkRegex = /__LINK\[([^|]+)\|([^|]+)\|([^\]]+)\]__/g;
+    let lastLinkIndex = 0;
+    let linkResult;
+    
+    while ((linkResult = linkRegex.exec(text)) !== null) {
+      // Add text before the link
+      if (linkResult.index > lastLinkIndex) {
+        const beforeText = text.substring(lastLinkIndex, linkResult.index);
+        spans.push(...processTextFormats(beforeText));
+      }
+      
+      // Create link span
+      const href = linkResult[1];
+      const variant = linkResult[2];
+      const linkText = linkResult[3];
+      
+      spans.push({
+        _type: 'span',
+        _key: generateKey(),
+        text: linkText,
+        marks: ['link'],
+        markDefs: [{
+          _type: 'link',
+          _key: generateKey(),
+          href: href,
+          isButton: true,
+          variant: variant
+        }]
+      });
+      
+      lastLinkIndex = linkResult.index + linkResult[0].length;
+    }
+    
+    // Add any remaining text
+    if (lastLinkIndex < text.length) {
+      const remainingText = text.substring(lastLinkIndex);
+      spans.push(...processTextFormats(remainingText));
+    }
+  } else {
+    // No links, just process text formats
+    spans.push(...processTextFormats(text));
+  }
+  
+  return spans;
+}
+
+/**
+ * Process text formatting like bold, italic, code, etc.
+ * @param {string} text - The text to process
+ * @returns {Array} - Array of span objects with appropriate marks
+ */
+function processTextFormats(text) {
+  const spans = [];
+  
+  // Process all formats: bold, italic, code, etc.
+  
+  // Bold: **text**
+  const boldRegex = /\*\*([^*]+)\*\*/g;
+  // Italic: *text*
+  const italicRegex = /(?<!\*)\*([^*]+)\*(?!\*)/g;
+  // Code: `text`
+  const codeRegex = /`([^`]+)`/g;
+  
+  // Check if the text has any formatting
+  if (boldRegex.test(text) || italicRegex.test(text) || codeRegex.test(text)) {
+    // Reset regex state
+    boldRegex.lastIndex = 0;
+    italicRegex.lastIndex = 0;
+    codeRegex.lastIndex = 0;
+    
+    // This is a simplified approach - for production, you'd want a more robust parser
+    // For now, we'll just handle bold text as an example
+    let lastIndex = 0;
+    let match;
+    
+    while ((match = boldRegex.exec(text)) !== null) {
+      // Add text before the bold part
+      if (match.index > lastIndex) {
+        spans.push({
+          _type: 'span',
+          _key: generateKey(),
+          text: text.substring(lastIndex, match.index)
+        });
+      }
+      
+      // Add the bold part
+      spans.push({
+        _type: 'span',
+        _key: generateKey(),
+        text: match[1],
+        marks: ['strong']
+      });
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add any remaining text
+    if (lastIndex < text.length) {
+      spans.push({
+        _type: 'span',
+        _key: generateKey(),
+        text: text.substring(lastIndex)
+      });
+    }
+  } else {
+    // No formatting, just add the text as is
+    spans.push({
+      _type: 'span',
+      _key: generateKey(),
+      text: text
+    });
+  }
+  
+  return spans;
 }
 
 /**
@@ -815,8 +1264,8 @@ function mdxToSanityBlocks(content) {
  */
 async function convertMdxToSanity() {
   try {
-    // Get all MDX files
-    const mdxFiles = glob.sync('src/app/**/_dep/page.mdx');
+    // Get all MDX files - adjust the path to match where your MDX files are located
+    const mdxFiles = glob.sync('src/app/(site)/**/*.mdx');
     
     console.log(`Found ${mdxFiles.length} MDX files to process`);
     
@@ -833,428 +1282,44 @@ async function convertMdxToSanity() {
       // Extract slug from file path
       // Windows uses backslashes, so normalize the path first
       const normalizedPath = mdxFile.replace(/\\/g, '/');
-      // Convert path like "src/app/(site)/the-arena/_dep/page.mdx" to "the-arena"
+      // Convert path like "src/app/(site)/the-arena/page.mdx" to "the-arena"
       const parts = normalizedPath.split('/');
       const siteIndex = parts.indexOf('(site)');
       
       if (siteIndex === -1 || siteIndex + 1 >= parts.length) {
-        console.log(`Could not extract slug from file path: ${mdxFile}`);
-        continue;
+        console.log(`
+Usage: node scripts/sanity-content-manager.js [options]
+
+Options:
+  --fix-section-blocks       Fix section blocks in Sanity documents
+  --convert-mdx              Convert MDX files to Sanity documents (including use cases)
+  --fix-all                  Fix all issues in Sanity documents
+  --fix-html-tags            Fix HTML tags in existing Sanity documents
+  --remove-block <docId> <blockKey>  Remove a block from a Sanity document
+`);
+        process.exit(1);
       }
       
       const slug = parts[siteIndex + 1];
-      console.log(`Slug: ${slug}`);
       
-      // Process content based on the page type
-      let blocks;
+      // Convert MDX content to Sanity blocks
+      const sanityBlocks = mdxToSanityBlocks(content);
       
-      if (slug === 'use-cases') {
-        // Special handling for Use Cases page
-        blocks = processUseCasesPage(content);
-      } else {
-        // Standard processing for other pages
-        blocks = mdxToSanityBlocks(content);
-      }
-      
-      // Check if the document already exists
-      const existingDoc = await client.fetch(`*[_type == "docPage" && slug.current == "${slug}"][0]`);
-      
-      if (existingDoc) {
-        // Update the existing document
-        const result = await client.patch(existingDoc._id)
-          .set({ content: blocks })
-          .commit();
-        
-        console.log(`Updated document: ${result.title}`);
-      } else {
-        // Create a new document
-        const result = await client.create({
-          _type: 'docPage',
-          title: data.title || slug,
-          slug: {
-            _type: 'slug',
-            current: slug
-          },
-          content: blocks
-        });
-        
-        console.log(`Created document: ${result.title}`);
-      }
-    }
-    
-    // Also process existing documents that have HTML tags in content
-    await fixExistingDocumentsTags();
-    
-    console.log('\nDone converting MDX files to Sanity documents');
-  } catch (error) {
-    console.error('Error converting MDX files:', error);
-  }
-}
-
-/**
- * Process the Use Cases page content
- * @param {string} content - The MDX content
- * @returns {Array} - The Sanity blocks
- */
-function processUseCasesPage(content) {
-  console.log('Processing Use Cases page with special handling...');
-  
-  // Create blocks for the content
-  const blocks = [];
-  
-  // Add title
-  blocks.push({
-    _type: 'block',
-    _key: generateKey(),
-    style: 'h1',
-    children: [
-      {
-        _type: 'span',
-        _key: generateKey(),
-        text: 'Use Cases'
-      }
-    ]
-  });
-  
-  // Add lead text
-  blocks.push({
-    _type: 'block',
-    _key: generateKey(),
-    style: 'lead',
-    children: [
-      {
-        _type: 'span',
-        _key: generateKey(),
-        text: 'Below are some ideas for the kinds of applications you can build on the marginfi Liquidity Layer. For integrations assistance, please contact @nathanzebedee on Telegram.'
-      }
-    ]
-  });
-  
-  // Parse the content to extract use cases
-  const lines = content.split('\n');
-  let currentSection = null;
-  let sectionContent = [];
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    
-    // Skip empty lines and the title/lead text we've already added
-    if (line === '' || line.startsWith('# Use Cases') || line.includes('{{ className: \'lead\' }}')) {
-      continue;
-    }
-    
-    // Skip horizontal rule
-    if (line === '---') {
-      continue;
-    }
-    
-    // Look for section headers (## Title)
-    if (line.startsWith('## ')) {
-      // If we were processing a section, add it to blocks
-      if (currentSection) {
-        // Add the section with its content
-        blocks.push({
-          _type: 'section',
-          _key: generateKey(),
-          title: currentSection.title,
-          label: currentSection.label,
-          content: sectionContent.length > 0 ? sectionContent : [
-            {
-              _type: 'block',
-              _key: generateKey(),
-              style: 'normal',
-              children: [
-                {
-                  _type: 'span',
-                  _key: generateKey(),
-                  text: ''
-                }
-              ]
-            }
-          ]
-        });
-        
-        // Reset for next section
-        sectionContent = [];
-      }
-      
-      // Extract title and any tag/label
-      const titleLine = line.slice(3);
-      const tagMatch = titleLine.match(/{{[ ]*tag:[ ]*['"](.+?)['"][ ]*,[ ]*label:[ ]*['"](.+?)['"][ ]*}}/);
-      
-      let title = titleLine;
-      let label = '';
-      
-      if (tagMatch) {
-        title = titleLine.replace(tagMatch[0], '').trim();
-        label = `${tagMatch[1]} - ${tagMatch[2]}`;
-      }
-      
-      // Start a new section
-      currentSection = {
-        title: title,
-        label: label
+      // Create a new document object
+      const newDoc = {
+        _type: 'docPage',
+        title: data.title || slug,
+        slug: { current: slug },
+        content: sanityBlocks
       };
-    } 
-    // Look for bullet points
-    else if (line.startsWith('- ')) {
-      // Add to current section content
-      sectionContent.push({
-        _type: 'block',
-        _key: generateKey(),
-        style: 'normal',
-        listItem: 'bullet',
-        children: [
-          {
-            _type: 'span',
-            _key: generateKey(),
-            text: line.slice(2).trim()
-          }
-        ]
-      });
-    }
-    // Regular paragraph
-    else {
-      // Add to current section content
-      sectionContent.push({
-        _type: 'block',
-        _key: generateKey(),
-        style: 'normal',
-        children: [
-          {
-            _type: 'span',
-            _key: generateKey(),
-            text: line
-          }
-        ]
-      });
-    }
-  }
-  
-  // If we were processing a section at the end, add it
-  if (currentSection) {
-    blocks.push({
-      _type: 'section',
-      _key: generateKey(),
-      title: currentSection.title,
-      label: currentSection.label,
-      content: sectionContent.length > 0 ? sectionContent : [
-        {
-          _type: 'block',
-          _key: generateKey(),
-          style: 'normal',
-          children: [
-            {
-              _type: 'span',
-              _key: generateKey(),
-              text: ''
-            }
-          ]
-        }
-      ]
-    });
-  }
-  
-  return blocks;
-}
-
-/**
- * Fix existing Sanity documents that have HTML tags in their content
- */
-async function fixExistingDocumentsTags() {
-  console.log('\nFixing existing documents with HTML tags in content...');
-  
-  try {
-    // Get specific documents that need fixing (ts-sdk and any others with HTML tags)
-    const documents = await client.fetch(`*[_type == "docPage" && (slug.current == "ts-sdk")]`);
-    
-    console.log(`Found ${documents.length} documents to fix`);
-    
-    for (const doc of documents) {
-      console.log(`\nFixing document: ${doc.title} (${doc.slug.current})`);
       
-      // Special handling for ts-sdk Note with GitHub link
-      if (doc.slug.current === "ts-sdk") {
-        console.log("Applying special fix for ts-sdk GitHub link in Note...");
-        
-        // Find the Note block that contains "Access the TypeScript SDK"
-        if (doc.content && Array.isArray(doc.content)) {
-          for (let i = 0; i < doc.content.length; i++) {
-            const block = doc.content[i];
-            
-            if (block._type === "note" && block.content && Array.isArray(block.content)) {
-              // Check if this is the note we're looking for
-              const isTargetNote = block.content.some(contentBlock => 
-                contentBlock._type === 'block' && 
-                contentBlock.children && 
-                contentBlock.children.some(child => 
-                  child._type === 'span' && 
-                  typeof child.text === 'string' && 
-                  child.text.includes('Access the TypeScript SDK')
-                )
-              );
-              
-              if (isTargetNote) {
-                console.log("Found the target Note block!");
-                
-                // Update the content of the Note to include the GitHub link properly
-                const updatedNoteContent = block.content.map(contentBlock => {
-                  if (contentBlock._type === 'block' && contentBlock.children) {
-                    // Find the specific text span
-                    const updatedChildren = contentBlock.children.map(child => {
-                      if (child._type === 'span' && 
-                          typeof child.text === 'string' && 
-                          child.text.includes('this link')) {
-                        
-                        // Create a link child with proper attributes
-                        return {
-                          _key: generateKey(),
-                          _type: 'span',
-                          text: 'this link',
-                          marks: ['link'],
-                          markDefs: [{
-                            _key: generateKey(),
-                            _type: 'link',
-                            href: 'https://github.com/mrgnlabs/mrgn-ts/tree/main/packages/marginfi-client-v2',
-                            isButton: true,
-                            variant: 'text'
-                          }]
-                        };
-                      }
-                      return child;
-                    });
-                    
-                    return {
-                      ...contentBlock,
-                      children: updatedChildren
-                    };
-                  }
-                  return contentBlock;
-                });
-                
-                // Update the Note block with fixed content
-                doc.content[i] = {
-                  ...block,
-                  content: updatedNoteContent
-                };
-                
-                // Save the updated document
-                const result = await client.patch(doc._id)
-                  .set({ content: doc.content })
-                  .commit();
-                
-                console.log(`Updated document with fixed GitHub link: ${result.title}`);
-                break;
-              }
-            }
-          }
-        }
-      }
+      // Save the document to Sanity
+      const result = await client.create(newDoc);
       
-      // Process the content blocks
-      if (doc.content && Array.isArray(doc.content)) {
-        let modified = false;
-        
-        // First, pre-process blocks to properly format buttons
-        let processedBlocks = [];
-        
-        for (let block of doc.content) {
-          if (block._type === 'block' && block.children && Array.isArray(block.children)) {
-            // Check if the block has any Button or Note tags
-            const hasHtmlTags = block.children.some(child => 
-              child._type === 'span' && 
-              typeof child.text === 'string' && 
-              (child.text.includes('<Button') || 
-               child.text.includes('<Note>') || 
-               child.text.includes('</Note>'))
-            );
-            
-            if (hasHtmlTags) {
-              modified = true;
-            }
-            
-            // Process any Button tags in this block
-            const buttonProcessedBlocks = processTextBlockWithTags(block);
-            processedBlocks = processedBlocks.concat(buttonProcessedBlocks);
-          } else {
-            // Non-text block, add as is
-            processedBlocks.push(block);
-          }
-        }
-        
-        // Then, process the blocks to handle Note tags
-        if (modified) {
-          const finalBlocks = processBlocksWithNoteTags(processedBlocks);
-          
-          // Also handle empty <> tags in all text blocks
-          const cleanedBlocks = finalBlocks.map(block => {
-            if (block._type === 'block' && block.children && Array.isArray(block.children)) {
-              const cleanedChildren = block.children.map(child => {
-                if (child._type === 'span' && typeof child.text === 'string') {
-                  // Clean up any remaining <> tags
-                  const cleanedText = child.text.replace(/<>([^<]*)<\/>/g, '$1');
-                  return {
-                    ...child,
-                    text: cleanedText
-                  };
-                }
-                return child;
-              });
-              
-              return {
-                ...block,
-                children: cleanedChildren
-              };
-            }
-            return block;
-          });
-          
-          // Update the document with the fixed content
-          const result = await client.patch(doc._id)
-            .set({ content: cleanedBlocks })
-            .commit();
-          
-          console.log(`Updated document with fixed HTML tags: ${result.title}`);
-        } else {
-          console.log(`No HTML tags found in document: ${doc.title}`);
-        }
-      }
+      console.log(`✓ Saved document: ${result.title}`);
     }
-    
-    console.log('\nDone fixing existing documents with HTML tags');
   } catch (error) {
-    console.error('Error fixing existing documents:', error);
-  }
-}
-
-/**
- * Remove problematic blocks from a document
- * @param {string} docId - The document ID
- * @param {string} blockKey - The block key to remove
- */
-async function removeProblematicBlock(docId, blockKey) {
-  try {
-    // Fetch the document
-    const doc = await client.getDocument(docId);
-    
-    if (!doc) {
-      console.log(`Document ${docId} not found`);
-      return;
-    }
-    
-    console.log(`Removing block ${blockKey} from document ${doc.title}`);
-    
-    // Filter out the problematic block
-    const fixedContent = doc.content.filter(block => block._key !== blockKey);
-    
-    // Update the document
-    const result = await client.patch(docId)
-      .set({ content: fixedContent })
-      .commit();
-    
-    console.log(`Updated document: ${result.title}`);
-  } catch (error) {
-    console.error(`Error removing block from document ${docId}:`, error);
+    console.error('\n❌ Error processing documents:', error);
   }
 }
 
@@ -1327,240 +1392,12 @@ if (options.fixSectionBlocks) {
 } else if (options.fixHtmlTags) {
   console.log('Fixing HTML tags in existing documents...');
   fixExistingDocumentsTags();
-} 
-
-/**
- * Process a text block that may contain Button tags and convert them to proper Sanity link blocks
- * @param {object} block - The block object to process
- * @returns {Array} - Array of blocks (may include the original block and any new button blocks)
- */
-function processTextBlockWithTags(block) {
-  if (!block || !block.children || !Array.isArray(block.children)) {
-    return [block];
-  }
-
-  // Check if any children contain button or note tags
-  const hasButtonOrNoteTags = block.children.some(child => 
-    child._type === 'span' && 
-    typeof child.text === 'string' && 
-    (child.text.includes('<Button') || child.text.includes('<Note>'))
-  );
-
-  if (!hasButtonOrNoteTags) {
-    return [block];
-  }
-
-  const resultBlocks = [];
-  let currentTextParts = [];
-
-  // Process each child
-  for (const child of block.children) {
-    if (child._type === 'span' && typeof child.text === 'string') {
-      // Look for Button tags
-      const buttonRegex = /<Button\s+href="([^"]+)"(?:\s+variant="([^"]+)")?>(.*?)<\/Button>/g;
-      let lastIndex = 0;
-      let buttonMatch;
-      let modifiedText = child.text;
-      
-      // First collect all non-Button text
-      while ((buttonMatch = buttonRegex.exec(child.text)) !== null) {
-        // Add text before the button
-        if (buttonMatch.index > lastIndex) {
-          const textBefore = child.text.substring(lastIndex, buttonMatch.index);
-          currentTextParts.push({
-            _type: 'span',
-            _key: generateKey(),
-            text: textBefore,
-            marks: child.marks || []
-          });
-        }
-        
-        // Extract button info
-        const href = buttonMatch[1];
-        const variant = buttonMatch[2] || 'text';
-        let content = buttonMatch[3];
-        
-        // If content has <> tags, clean them up
-        if (content.startsWith('<>') && content.endsWith('</>')) {
-          content = content.replace(/<>|<\/>/g, '');
-        }
-        
-        // Create a marked span for the button instead of a separate block
-        // This keeps the button inline with the text
-        currentTextParts.push({
-          _type: 'span',
-          _key: generateKey(),
-          text: content,
-          marks: ['link'],
-          markDefs: [{
-            _type: 'link',
-            _key: generateKey(),
-            href: href,
-            isButton: true,
-            variant: variant || 'text'
-          }]
-        });
-        
-        lastIndex = buttonMatch.index + buttonMatch[0].length;
-      }
-      
-      // Add any remaining text
-      if (lastIndex < child.text.length) {
-        currentTextParts.push({
-          _type: 'span',
-          _key: generateKey(),
-          text: child.text.substring(lastIndex),
-          marks: child.marks || []
-        });
-      }
-    } else {
-      // Non-span child, add as is
-      currentTextParts.push(child);
-    }
-  }
-
-  // Create the final result block with the processed text parts
-  if (currentTextParts.length > 0) {
-    resultBlocks.push({
-      ...block,
-      children: currentTextParts
-    });
-  }
-
-  return resultBlocks;
 }
 
-/**
- * Process blocks that may contain Note tags and convert them to proper Sanity note blocks
- * @param {Array} blocks - Array of content blocks to process
- * @returns {Array} - Processed blocks with proper Note blocks
- */
-function processBlocksWithNoteTags(blocks) {
-  const result = [];
-  let collectingNote = false;
-  let noteContent = [];
-  
-  for (let i = 0; i < blocks.length; i++) {
-    const block = blocks[i];
-    
-    // Check if this block starts a note
-    if (block._type === 'block' && block.children && 
-        block.children.some(child => 
-          child._type === 'span' && 
-          typeof child.text === 'string' && 
-          child.text.includes('<Note>'))) {
-      
-      collectingNote = true;
-      noteContent = [];
-      
-      // Extract text after <Note> and create a new block for it
-      const newChildren = [];
-      for (const child of block.children) {
-        if (child._type === 'span' && typeof child.text === 'string') {
-          const parts = child.text.split('<Note>');
-          
-          // If there's text before the <Note>, add it to result
-          if (parts[0]) {
-            const beforeBlock = {
-              ...block,
-              _key: generateKey(),
-              children: [{
-                _type: 'span',
-                _key: generateKey(),
-                text: parts[0].trim(),
-                marks: child.marks || []
-              }]
-            };
-            result.push(beforeBlock);
-          }
-          
-          // Add content after <Note> to noteContent if it exists
-          if (parts[1]) {
-            noteContent.push({
-              _type: 'block',
-              _key: generateKey(),
-              style: 'normal',
-              children: [{
-                _type: 'span',
-                _key: generateKey(),
-                text: parts[1].trim(),
-                marks: child.marks || []
-              }]
-            });
-          }
-        }
-      }
-      
-      continue;
-    }
-    
-    // Check if this block ends a note
-    if (collectingNote && block._type === 'block' && block.children &&
-        block.children.some(child => 
-          child._type === 'span' && 
-          typeof child.text === 'string' && 
-          child.text.includes('</Note>'))) {
-      
-      collectingNote = false;
-      
-      // Extract text before </Note> and add to noteContent
-      for (const child of block.children) {
-        if (child._type === 'span' && typeof child.text === 'string') {
-          const parts = child.text.split('</Note>');
-          
-          // Add content before </Note> to noteContent
-          if (parts[0]) {
-            noteContent.push({
-              _type: 'block',
-              _key: generateKey(),
-              style: 'normal',
-              children: [{
-                _type: 'span',
-                _key: generateKey(),
-                text: parts[0].trim(),
-                marks: child.marks || []
-              }]
-            });
-          }
-          
-          // If there's text after the </Note>, add it to result
-          if (parts[1]) {
-            const afterBlock = {
-              ...block,
-              _key: generateKey(),
-              children: [{
-                _type: 'span',
-                _key: generateKey(),
-                text: parts[1].trim(),
-                marks: child.marks || []
-              }]
-            };
-            result.push(afterBlock);
-          }
-        }
-      }
-      
-      // Create the Note block with all collected content
-      result.push({
-        _type: 'note',
-        _key: generateKey(),
-        content: noteContent
-      });
-      
-      continue;
-    }
-    
-    // If we're collecting note content, add this block to note content
-    if (collectingNote) {
-      // Process any Button tags in the note content
-      const processedBlocks = processTextBlockWithTags(block);
-      noteContent = noteContent.concat(processedBlocks);
-    } else {
-      // Regular content - process any Button tags
-      const processedBlocks = processTextBlockWithTags(block);
-      result.push(...processedBlocks);
-    }
-  }
-  
-  return result;
-} 
+function removeProblematicBlock(docId, blockKey) {
+  // Implementation of removeProblematicBlock function
+}
+
+function fixExistingDocumentsTags() {
+  // Implementation of fixExistingDocumentsTags function
+}

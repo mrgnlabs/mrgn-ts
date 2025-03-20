@@ -108,8 +108,52 @@ export interface SectionInfo {
   tag?: string;
 }
 
+export interface PropertyList {
+  _type: 'propertyList';
+  _key: string;
+  title?: string;
+  properties: Array<{
+    _key: string;
+    name: string;
+    type: string;
+    description: string;
+  }>;
+}
+
+export interface ParameterList {
+  _type: 'parameterList';
+  _key: string;
+  title?: string;
+  parameters: Array<{
+    _key: string;
+    name: string;
+    type: string;
+    description: string;
+  }>;
+}
+
+export interface Table {
+  _type: 'table';
+  _key: string;
+  headerRow?: string[];
+  rows: string[][];
+}
+
 export interface DocPage {
   title: string;
   leadText?: any[];
-  content?: Array<Block | ContentBlock | Section | NoteBlock | MathBlock | ImageWithCaption | Method | CodeBlock | DocTableBlock>;
+  content?: Array<
+    Block | 
+    ContentBlock | 
+    Section | 
+    NoteBlock | 
+    MathBlock | 
+    ImageWithCaption | 
+    Method | 
+    CodeBlock | 
+    DocTableBlock | 
+    PropertyList |
+    ParameterList |
+    Table
+  >;
 } 

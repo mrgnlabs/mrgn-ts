@@ -15,6 +15,23 @@ export function SanityToMdx({ content }: { content: any }) {
     return null
   }
 
+  // Debug the content structure
+  React.useEffect(() => {
+    console.log('SanityToMdx content:', content);
+    
+    // Check for propertyList and table items
+    const propertyLists = content.filter((item: any) => item._type === 'propertyList');
+    const tables = content.filter((item: any) => item._type === 'table');
+    
+    if (propertyLists.length > 0) {
+      console.log('PropertyList items:', propertyLists);
+    }
+    
+    if (tables.length > 0) {
+      console.log('Table items:', tables);
+    }
+  }, [content]);
+
   return (
     <div className="prose dark:prose-invert">
       <PortableText value={content} components={portableTextComponents} />

@@ -1,5 +1,4 @@
 import { type Metadata } from 'next'
-import glob from 'fast-glob'
 
 import { Layout } from '~/components-v2/Layout'
 import { type Section } from '~/components-v2/SectionProvider'
@@ -19,15 +18,8 @@ export default async function V2SiteLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Adjust the path to reflect the folder structure where your MDX files live
-  let pages = await glob('**/*.mdx', { cwd: 'src/app/(v2)' })
-  let allSectionsEntries = (await Promise.all(
-    pages.map(async (filename) => [
-      '/' + filename.replace(/(^|\/)page\.mdx$/, ''),
-      (await import(`./${filename}`)).sections,
-    ]),
-  )) as Array<[string, Array<Section>]>
-  let allSections = Object.fromEntries(allSectionsEntries)
+  // For now, we'll pass an empty sections object since we'll handle sections through Sanity
+  const allSections: Record<string, Array<Section>> = {}
 
   return (
     <div className="flex min-h-full bg-background antialiased">

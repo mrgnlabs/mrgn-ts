@@ -1,11 +1,21 @@
+// Load environment variables first
+require('dotenv').config({ path: './apps/marginfi-v2-docs/.env.local' })
+
+// Debug logging
+console.log('Environment variables:')
+console.log('NEXT_PUBLIC_SANITY_PROJECT_ID:', process.env.NEXT_PUBLIC_SANITY_PROJECT_ID)
+console.log('NEXT_PUBLIC_SANITY_DATASET:', process.env.NEXT_PUBLIC_SANITY_DATASET)
+console.log('SANITY_API_TOKEN exists:', !!process.env.SANITY_API_TOKEN)
+console.log('SANITY_API_WRITE_TOKEN exists:', !!process.env.SANITY_API_WRITE_TOKEN)
+
 const { createClient } = require('@sanity/client')
 
 // Initialize the Sanity client
 const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   apiVersion: '2023-03-25',
-  token: process.env.SANITY_API_TOKEN,
+  token: process.env.SANITY_API_WRITE_TOKEN,
   useCdn: false,
 })
 
@@ -134,7 +144,5 @@ async function createHomePage() {
   }
 }
 
-// Load environment variables
-require('dotenv').config({ path: './apps/marginfi-v2-docs/.env' })
-
+// Execute the function
 createHomePage() 
