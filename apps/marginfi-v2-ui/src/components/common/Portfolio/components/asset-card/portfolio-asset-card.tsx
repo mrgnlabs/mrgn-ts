@@ -28,6 +28,7 @@ import { TooltipProvider } from "~/components/ui/tooltip";
 import { TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Tooltip } from "~/components/ui/tooltip";
 import Link from "next/link";
+import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -117,12 +118,12 @@ export const PortfolioAssetCard = ({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div className="flex items-center gap-1 ml-2">
-                                  <span className="text-xs">Staking APY</span>
+                                  <span className="text-xs">Total APY</span>
                                   <IconInfoCircle size={14} />
                                 </div>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Staking rewards from the validator.</p>
+                                <p>Total rewards from the validator.</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -233,6 +234,18 @@ export const PortfolioAssetCard = ({
               )}
             </dl>
           </div>
+          {bank.info.rawBank.config.assetTag === AssetTag.STAKED && (
+            <div className="space-y-3 bg-background/60 py-3 px-4 rounded-lg text-muted-foreground">
+              <p>
+                You have <strong className="text-foreground">102,748 lamports</strong> of unclaimed MEV rewards. MEV
+                rewards can be claimed below and will be added to your position at the end of the epoch.
+              </p>
+
+              <Button className="w-full" variant="secondary" size="lg">
+                Claim MEV rewards
+              </Button>
+            </div>
+          )}
           <div className="flex w-full gap-3">
             <PortfolioAction
               requestedBank={bank}
