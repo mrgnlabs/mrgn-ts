@@ -89,8 +89,8 @@ interface BankConfigOptRaw {
 
 interface BankConfigCompactRaw extends Omit<BankConfigRaw, "oracleKeys" | "oracle" | "oracleSetup"> {
   oracleMaxAge: number;
-  // auto_padding_0: number[];
-  // auto_padding_1: number[];
+  padding0?: BN[];
+  padding1?: BN[];
 }
 
 type RiskTierRaw = { collateral: {} } | { isolated: {} };
