@@ -45,6 +45,8 @@ interface MarginfiAccountRaw {
   authority: PublicKey;
   lendingAccount: { balances: BalanceRaw[] };
   accountFlags: BN;
+  padding0?: BN[];
+  padding1?: BN[];
 }
 
 type MarginRequirementTypeRaw = { initial: {} } | { maintenance: {} } | { equity: {} };
