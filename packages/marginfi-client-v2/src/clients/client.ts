@@ -190,7 +190,7 @@ class MarginfiClient {
       if (!bankMetadataMap) {
         bankMetadataMap = {
           ...(await loadBankMetadatas()),
-          ...(await loadStakedBankMetadatas()),
+          ...(await loadStakedBankMetadatas(`${process.env.NEXT_PUBLIC_STAKING_BANKS}`)),
         };
       }
     } catch (error) {
