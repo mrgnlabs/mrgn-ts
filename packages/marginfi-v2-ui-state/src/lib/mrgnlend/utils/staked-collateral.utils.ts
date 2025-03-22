@@ -258,7 +258,7 @@ const getValidatorRates = async (validatorVoteAccounts: PublicKey[]): Promise<Ma
         }
 
         const data = await response.json();
-        rates.set(poolMintAddress.toBase58(), data.data?.staking_apy ?? 0);
+        rates.set(poolMintAddress.toBase58(), data.data?.total_apy ?? 0);
       } catch (error) {
         console.error("Error fetching validator rate:", error);
         rates.set(poolMintAddress.toBase58(), 0);
