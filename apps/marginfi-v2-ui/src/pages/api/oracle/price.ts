@@ -38,6 +38,9 @@ import config from "~/config/marginfi";
 
 const SWITCHBOARD_CROSSSBAR_API = process.env.SWITCHBOARD_CROSSSBAR_API || "https://crossbar.switchboard.xyz";
 const IS_SWB_STAGE = SWITCHBOARD_CROSSSBAR_API === "https://staging.crossbar.switchboard.xyz";
+const STAKING_BANKS =
+  process.env.NEXT_PUBLIC_STAKING_BANKS ||
+  "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json";
 
 const S_MAXAGE_TIME = 10;
 const STALE_WHILE_REVALIDATE_TIME = 15;
@@ -191,9 +194,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const solPools: string[] = [];
       const mints: string[] = [];
 
-      const bankMetadataMap = await loadBankMetadatas(
-        `https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json?time=${new Date().getTime()}`
-      );
+      const bankMetadataMap = await loadBankMetadatas(`${STAKING_BANKS}?time=${new Date().getTime()}`);
 
       pythStakedCollateralOracles.forEach((bankObj) => {
         const { key: bankAddress } = bankObj;
@@ -539,8 +540,8 @@ async function fetchMultiPrice(tokens: string[]): Promise<BirdeyePriceResponse> 
       process.env.VERCEL_ENV === "production" && process.env.VERCEL_PROJECT_PRODUCTION_URL
         ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
         : process.env.VERCEL_BRANCH_URL
-        ? `https://${process.env.VERCEL_BRANCH_URL}`
-        : "http://localhost:3004";
+          ? `https://${process.env.VERCEL_BRANCH_URL}`
+          : "http://localhost:3004";
 
     const response = await fetch(`${baseUrl}/api/tokens/multi?mintList=${tokens.join(",")}`, {
       signal: controller.signal,

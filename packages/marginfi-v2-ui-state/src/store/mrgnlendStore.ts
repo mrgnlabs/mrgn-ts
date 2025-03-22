@@ -270,10 +270,10 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
       // fetch staked asset metadata
       const stakedAssetBankMetadataMap = await loadBankMetadatas(
-        `https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json?time=${new Date().getTime()}`
+        `${process.env.NEXT_PUBLIC_STAKING_BANKS}?time=${new Date().getTime()}`
       );
       const stakedAssetTokenMetadataMap = await loadTokenMetadatas(
-        `https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json?time=${new Date().getTime()}`
+        `${process.env.NEXT_PUBLIC_STAKING_TOKENS}?time=${new Date().getTime()}`
       );
 
       // merge staked asset metadata with main group metadata
