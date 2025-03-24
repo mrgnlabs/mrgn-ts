@@ -22,6 +22,7 @@ import {
   SYSVAR_STAKE_HISTORY_ID,
   SYSTEM_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
+import { SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 interface AccountMeta {
   pubkey: PublicKey;
@@ -332,7 +333,31 @@ const createAccountIx = (
   return createTransactionInstruction(SYSTEM_PROGRAM_ID, accounts, data);
 };
 
-const replenishPool = (voteAccount: PublicKey): TransactionInstruction => {
+const createPoolOnrampIx = (voteAccount: PublicKey): TransactionInstruction => {
+  const poolAccount = findPoolAddress(voteAccount);
+  const onRampAccount = findPoolOnRampAddress(poolAccount);
+  const poolStakeAuthority = findPoolStakeAuthorityAddress(poolAccount);
+
+  const keys = [
+    { pubkey: poolAccount, isSigner: false, isWritable: false },
+    { pubkey: onRampAccount, isSigner: false, isWritable: true },
+    { pubkey: poolStakeAuthority, isSigner: false, isWritable: false },
+    { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+    { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    { pubkey: StakeProgram.programId, isSigner: false, isWritable: false },
+  ];
+
+  // TODO don't hard code the instruction index? (or why not, it's not gna change is it?)
+  const data = Buffer.from(Uint8Array.of(6));
+
+  return new TransactionInstruction({
+    keys,
+    programId: SINGLE_POOL_PROGRAM_ID,
+    data,
+  });
+};
+
+const replenishPoolIx = (voteAccount: PublicKey): TransactionInstruction => {
   const poolAccount = findPoolAddress(voteAccount);
   const stakePool = findPoolStakeAddress(poolAccount);
   const onRampPool = findPoolOnRampAddress(poolAccount);
@@ -370,5 +395,6 @@ export {
   findPoolOnRampAddress,
   findPoolMintAddressByVoteAccount,
   createAccountIx,
-  replenishPool,
+  createPoolOnrampIx,
+  replenishPoolIx,
 };
