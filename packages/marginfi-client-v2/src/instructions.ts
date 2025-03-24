@@ -40,7 +40,7 @@ async function makeDepositIx(
   remainingAccounts: AccountMeta[] = []
 ) {
   return mfProgram.methods
-    .lendingAccountDeposit(args.amount)
+    .lendingAccountDeposit(args.amount, null)
     .accounts({
       marginfiGroup: accounts.marginfiGroupPk,
       marginfiAccount: accounts.marginfiAccountPk,
@@ -276,6 +276,7 @@ function makeBeginFlashLoanIx(
     .accountsStrict({
       marginfiAccount: accounts.marginfiAccount,
       signer: accounts.signer,
+      authority: accounts.signer, // ask program master
       ixsSysvar: SYSVAR_INSTRUCTIONS_PUBKEY,
     })
     .instruction();
@@ -294,6 +295,7 @@ function makeEndFlashLoanIx(
     .accountsStrict({
       marginfiAccount: accounts.marginfiAccount,
       signer: accounts.signer,
+      authority: accounts.signer,
     })
     .remainingAccounts(remainingAccounts)
     .instruction();

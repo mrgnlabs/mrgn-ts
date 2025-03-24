@@ -4,7 +4,7 @@ import { loadEnvFile } from "process";
 import { DEFAULT_API_URL, loadKeypairFromFile } from "../scripts/utils";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
-import { Marginfi } from "../../marginfi-client-v2/src/idl/marginfi-types";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
 
 type Config = {
   PROGRAM_ID: string;

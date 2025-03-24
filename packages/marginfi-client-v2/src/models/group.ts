@@ -1,22 +1,14 @@
 import { BorshCoder } from "@coral-xyz/anchor";
-import {
-  PublicKey,
-  Keypair,
-  Connection,
-  SystemProgram,
-  SYSVAR_RENT_PUBKEY,
-  StakeProgram,
-  TransactionInstruction,
-} from "@solana/web3.js";
+import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, StakeProgram, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
-import { MARGINFI_IDL, MarginfiIdlType } from "../idl";
-import { AccountType, BankVaultType, MarginfiProgram } from "../types";
-import { InstructionsWrapper, SINGLE_POOL_PROGRAM_ID, TOKEN_PROGRAM_ID, getMint } from "@mrgnlabs/mrgn-common";
+
+import { InstructionsWrapper, SINGLE_POOL_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+
+import { MarginfiIdlType } from "../idl";
+import { AccountType, MarginfiProgram } from "../types";
 import instructions from "../instructions";
 import { FLASHLOAN_ENABLED_FLAG, TRANSFER_ACCOUNT_AUTHORITY_FLAG } from "../constants";
 import { BankConfigCompactRaw, BankConfigOpt, BankConfigOptRaw, serializeBankConfigOpt } from "../services";
-import { BigNumber } from "bignumber.js";
-import { sha256 } from "crypto-hash";
 import { findPoolAddress, findPoolMintAddress, findPoolOnRampAddress, findPoolStakeAddress } from "../vendor";
 
 // ----------------------------------------------------------------------------
