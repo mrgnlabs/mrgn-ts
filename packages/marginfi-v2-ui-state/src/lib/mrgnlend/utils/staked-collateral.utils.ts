@@ -302,7 +302,6 @@ const getStakePoolUnclaimedLamps = async (
     onRampAddressRecord[validatorVoteAccount.toBase58()] = onRampAddress;
   });
 
-  // Prepare arrays for getMultipleAccountsInfo
   const poolStakeAddresses = validatorVoteAccounts.map(
     (validatorVoteAccount) => poolStakeAddressRecord[validatorVoteAccount.toBase58()]
   );
@@ -310,15 +309,12 @@ const getStakePoolUnclaimedLamps = async (
     (validatorVoteAccount) => onRampAddressRecord[validatorVoteAccount.toBase58()]
   );
 
-  // Combine all addresses into a single array for batch fetching
   const allAddresses = [...poolStakeAddresses, ...onRampAddresses];
 
   return connection.getMultipleAccountsInfo(allAddresses).then((accountInfos) => {
-    // Split the results back into pool stake and onramp accounts
     const poolStakeInfos = accountInfos.slice(0, poolStakeAddresses.length);
     const onRampInfos = accountInfos.slice(poolStakeAddresses.length);
 
-    // Process each validator's accounts
     validatorVoteAccounts.forEach((validatorVoteAccount, index) => {
       const poolStakeInfo = poolStakeInfos[index];
       const onRampInfo = onRampInfos[index];
@@ -328,7 +324,6 @@ const getStakePoolUnclaimedLamps = async (
       console.log(onRampInfo);
 
       if (poolStakeInfo && onRampInfo) {
-        // Update the unclaimedLamps map with the lamports information
         unclaimedLamps.set(validatorVoteAccount.toBase58(), {
           pool: poolStakeInfo.lamports,
           onramp: onRampInfo.lamports,

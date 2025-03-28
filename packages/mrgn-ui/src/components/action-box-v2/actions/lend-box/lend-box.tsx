@@ -11,6 +11,7 @@ import {
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
+  getStakePoolUnclaimedLamps,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { AssetTag, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
@@ -38,9 +39,10 @@ import { SimulationStatus } from "../../utils";
 import { useLendSimulation } from "./hooks";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
-import { PublicKey } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { Button } from "~/components/ui/button";
+import { EDGE_RUNTIME_WEBPACK } from "next/dist/shared/lib/constants";
 
 // error handling
 export type LendBoxProps = {
@@ -144,6 +146,8 @@ export const LendBox = ({
   const hasRefreshed = React.useRef(false);
   const _prevSelectedBank = usePrevious(selectedBank);
   const _prevShouldBeHidden = usePrevious(shouldBeHidden);
+
+  const [unclaimedMev, setUnclaimedMev] = React.useState<number>(0);
 
   /**
    * Handles visibility and state refresh logic when `searchMode` is enabled.
@@ -342,6 +346,29 @@ export const LendBox = ({
     );
   }, [additionalActionMessages, actionMessages]);
 
+  // fetch unclaimed MEV for staked collateral banks
+  React.useEffect(() => {
+    const fetchUnclaimedMev = async () => {
+      const validatorVoteAccount = requestedBank?.meta.stakePool?.validatorVoteAccount;
+
+      if (!validatorVoteAccount || !marginfiClient?.provider.connection) return;
+
+      const unclaimedMev = await getStakePoolUnclaimedLamps(marginfiClient?.provider.connection, [
+        validatorVoteAccount,
+      ]);
+      const unclaimedMevBankData = unclaimedMev.get(validatorVoteAccount.toBase58());
+      setUnclaimedMev(unclaimedMevBankData?.onramp ?? 0);
+    };
+
+    if (
+      requestedBank &&
+      requestedBank.info.rawBank.config.assetTag === AssetTag.STAKED &&
+      lendMode === ActionType.Withdraw
+    ) {
+      fetchUnclaimedMev();
+    }
+  }, [requestedBank, marginfiClient, lendMode]);
+
   // store users stake accounts in state on load
   // selected stake account will be handled in lend store
   React.useEffect(() => {
@@ -480,11 +507,14 @@ export const LendBox = ({
       </div>
       {selectedBank &&
         selectedBank.info.rawBank.config.assetTag === AssetTag.STAKED &&
-        lendMode === ActionType.Withdraw && (
+        lendMode === ActionType.Withdraw &&
+        unclaimedMev > 0 && (
           <div className="mt-4 space-y-3 bg-background/60 py-3 px-4 rounded-lg text-muted-foreground text-sm">
             <p>
-              You have <strong className="text-foreground">102,748 lamports</strong> of unclaimed MEV rewards. MEV
-              rewards can be claimed below and will be added to your position at the end of the epoch.
+              The {selectedBank.meta.tokenSymbol} stake pool has{" "}
+              <strong className="text-foreground">{unclaimedMev / LAMPORTS_PER_SOL} SOL</strong> of unclaimed MEV
+              rewards. MEV rewards can be permissionlessly claimed and will be added to the pool at the end of the
+              epoch.
             </p>
 
             <Button className="w-full" variant="secondary" size="lg">
