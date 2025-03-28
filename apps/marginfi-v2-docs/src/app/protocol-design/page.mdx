@@ -30,7 +30,7 @@ On this page, we’ll walk you through the marginfi protocol design, such as ora
 
 ## Oracle Usage {{ tag: '', label: '' }}
 
-marginfi primarily relies on Pyth oracle price feeds for token market prices, leveraging Pyth’s extensive safety features for a more secure understanding of token price activity and risk management. However, for assets that Pyth does not support, the protocol employs Switchboard oracles with a similar set of best practices.
+marginfi primarily uses Pyth and Switchboard oracles to source token market prices, relying on Pyth’s robust safety features to ensure accurate pricing and effective risk management. For assets not supported by Pyth, the protocol falls back on Switchboard oracles, applying similar best practices to maintain consistency and reliability.
 
 marginfi protects for price accuracy with a few key components:
 
@@ -42,7 +42,7 @@ marginfi protects for price accuracy with a few key components:
 
 Where <Math>price_i</Math>, <Math>slot_i</Math>, and <Math>confidence_i</Math> represent the price, slot number, and confidence interval at each <Math>i</Math>th slot within the considered window.
 
-Switchboard does not natively provide EMA pricing. Live prices are used for assets powered by switchboard oracles. As mentioned above, the same confidence interval approach is applied to Switcboard assets.
+Switchboard does not natively provide EMA pricing. Live prices are used for assets powered by switchboard oracles. As mentioned above, the same confidence interval approach is applied to Switchboard assets.
 
 The combination of these features enables the marginfi protocol to estimate token prices conservatively, protect against volatility and price manipulation, and provide a safer and smoother lending experience for users.
 
