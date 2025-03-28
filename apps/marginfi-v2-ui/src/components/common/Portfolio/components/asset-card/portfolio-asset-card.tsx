@@ -29,12 +29,14 @@ import { TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Tooltip } from "~/components/ui/tooltip";
 import Link from "next/link";
 import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
   isInLendingMode: boolean;
   isBorrower?: boolean;
   accountLabels?: Record<string, string>;
+  unclaimedMev?: { pool: number; onramp: number } | null;
 }
 
 export const PortfolioAssetCard = ({
@@ -42,6 +44,7 @@ export const PortfolioAssetCard = ({
   isInLendingMode,
   isBorrower = true,
   accountLabels,
+  unclaimedMev,
 }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
   const [
@@ -107,7 +110,7 @@ export const PortfolioAssetCard = ({
                 </div>
                 <ul>
                   <li className="font-medium text-lg">{bank.meta.tokenSymbol}</li>
-                  {bank.info.rawBank.config.assetTag === 2 ? (
+                  {bank.info.rawBank.config.assetTag === AssetTag.STAKED ? (
                     <li className="font-normal flex items-center text-sm text-muted-foreground">
                       {bank.meta.stakePool?.validatorRewards && (
                         <>
@@ -189,7 +192,7 @@ export const PortfolioAssetCard = ({
           )}
           <div className="bg-background/60 py-3 px-4 rounded-lg">
             <dl className="grid grid-cols-2 gap-y-0.5">
-              {bank.info.rawBank.config.assetTag === 2 && bank.meta.stakePool?.validatorVoteAccount && (
+              {bank.info.rawBank.config.assetTag === AssetTag.STAKED && bank.meta.stakePool?.validatorVoteAccount && (
                 <>
                   <dt className="text-muted-foreground">Validator</dt>
                   <dd className="text-right text-white">
@@ -234,12 +237,17 @@ export const PortfolioAssetCard = ({
               )}
             </dl>
           </div>
-          {bank.info.rawBank.config.assetTag === AssetTag.STAKED && (
-            <div className="space-y-3 bg-background/60 py-3 px-4 rounded-lg text-muted-foreground">
+          {bank.info.rawBank.config.assetTag === AssetTag.STAKED && unclaimedMev?.onramp && unclaimedMev.onramp > 0 && (
+            <div className="space-y-3 bg-background/60 py-3 px-4 rounded-lg text-muted-foreground text-xs">
               <p>
-                You have <strong className="text-foreground">102,748 lamports</strong> of unclaimed MEV rewards. MEV
-                rewards can be claimed below and will be added to your position at the end of the epoch.
+                The {bank.meta.tokenSymbol} stake pool has{" "}
+                <strong className="text-foreground">{unclaimedMev?.onramp / LAMPORTS_PER_SOL} SOL</strong> of unclaimed
+                MEV rewards. MEV rewards can be permissionlessly claimed and will be added to the pool at the end of the
+                epoch.
               </p>
+              <Link href="" className="inline-flex items-center gap-1">
+                <IconInfoCircle size={14} /> learn more
+              </Link>
 
               <Button className="w-full" variant="secondary" size="lg">
                 Claim MEV rewards

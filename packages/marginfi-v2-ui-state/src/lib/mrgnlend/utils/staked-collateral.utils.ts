@@ -7,7 +7,7 @@ import {
   findPoolAddress,
   findPoolMintAddress,
   findPoolStakeAddress,
-  getStakeAccount,
+  findPoolOnRampAddress,
 } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 
 /**
@@ -209,7 +209,7 @@ const getStakePoolActiveStates = async (
 
   const poolStakeAccounts = Object.fromEntries(
     (await connection.getMultipleAccountsInfo(poolStakeAddressKeys.map((key) => new PublicKey(key)))).map(
-      (ai, index) => [poolStakeAddressRecord[poolStakeAddressKeys[index]], ai?.data ? getStakeAccount(ai.data) : null]
+      (ai, index) => [poolStakeAddressRecord[poolStakeAddressKeys[index]], ai?.data || null]
     )
   );
 
@@ -269,10 +269,82 @@ const getValidatorRates = async (validatorVoteAccounts: PublicKey[]): Promise<Ma
   return rates;
 };
 
+const getStakePoolUnclaimedLamps = async (
+  connection: Connection,
+  validatorVoteAccounts: PublicKey[]
+): Promise<
+  Map<
+    string,
+    {
+      pool: number;
+      onramp: number;
+    }
+  >
+> => {
+  const poolAddressRecord: Record<string, PublicKey> = {};
+  const poolStakeAddressRecord: Record<string, PublicKey> = {};
+  const onRampAddressRecord: Record<string, PublicKey> = {};
+  const unclaimedLamps = new Map<
+    string,
+    {
+      pool: number;
+      onramp: number;
+    }
+  >();
+
+  validatorVoteAccounts.forEach((validatorVoteAccount) => {
+    const poolAddress = findPoolAddress(validatorVoteAccount);
+    const poolStakeAddress = findPoolStakeAddress(poolAddress);
+    const onRampAddress = findPoolOnRampAddress(poolAddress);
+
+    poolAddressRecord[validatorVoteAccount.toBase58()] = poolAddress;
+    poolStakeAddressRecord[validatorVoteAccount.toBase58()] = poolStakeAddress;
+    onRampAddressRecord[validatorVoteAccount.toBase58()] = onRampAddress;
+  });
+
+  // Prepare arrays for getMultipleAccountsInfo
+  const poolStakeAddresses = validatorVoteAccounts.map(
+    (validatorVoteAccount) => poolStakeAddressRecord[validatorVoteAccount.toBase58()]
+  );
+  const onRampAddresses = validatorVoteAccounts.map(
+    (validatorVoteAccount) => onRampAddressRecord[validatorVoteAccount.toBase58()]
+  );
+
+  // Combine all addresses into a single array for batch fetching
+  const allAddresses = [...poolStakeAddresses, ...onRampAddresses];
+
+  return connection.getMultipleAccountsInfo(allAddresses).then((accountInfos) => {
+    // Split the results back into pool stake and onramp accounts
+    const poolStakeInfos = accountInfos.slice(0, poolStakeAddresses.length);
+    const onRampInfos = accountInfos.slice(poolStakeAddresses.length);
+
+    // Process each validator's accounts
+    validatorVoteAccounts.forEach((validatorVoteAccount, index) => {
+      const poolStakeInfo = poolStakeInfos[index];
+      const onRampInfo = onRampInfos[index];
+
+      console.log(validatorVoteAccount.toBase58());
+      console.log(poolStakeInfo);
+      console.log(onRampInfo);
+
+      if (poolStakeInfo && onRampInfo) {
+        // Update the unclaimedLamps map with the lamports information
+        unclaimedLamps.set(validatorVoteAccount.toBase58(), {
+          pool: poolStakeInfo.lamports,
+          onramp: onRampInfo.lamports,
+        });
+      }
+    });
+
+    return unclaimedLamps;
+  });
+};
+
 export {
   getStakeAccountsCached,
   filterStakedAssetBanks,
   getStakeAccounts,
   getStakePoolActiveStates,
   getValidatorRates,
+  getStakePoolUnclaimedLamps,
 };

@@ -16,4 +16,29 @@ type ValidatorStakeGroup = {
   }[];
 };
 
-export type { ValidatorStakeGroup };
+type StakeAccount = {
+  discriminant: number;
+  meta: {
+    rentExemptReserve: bigint;
+    authorized: {
+      staker: PublicKey;
+      withdrawer: PublicKey;
+    };
+    lockup: {
+      unixTimestamp: bigint;
+      epoch: bigint;
+      custodian: PublicKey;
+    };
+  };
+  stake: {
+    delegation: {
+      voterPubkey: PublicKey;
+      stake: bigint;
+      activationEpoch: bigint;
+      deactivationEpoch: bigint;
+    };
+    creditsObserved: bigint;
+  };
+};
+
+export type { ValidatorStakeGroup, StakeAccount };

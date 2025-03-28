@@ -6,10 +6,12 @@ import { IconInfoCircle, IconX } from "@tabler/icons-react";
 
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { cn, ExecuteActionProps, ExecuteCollectRewardsAction, usePrevious } from "@mrgnlabs/mrgn-utils";
+import { ActionType, ActiveBankInfo, getStakePoolUnclaimedLamps } from "@mrgnlabs/marginfi-v2-ui-state";
+import { cn, ExecuteActionProps, ExecuteCollectRewardsAction, usePrevious, useConnection } from "@mrgnlabs/mrgn-utils";
 import { CustomToastType, toastManager } from "@mrgnlabs/mrgn-toasts";
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
+import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
+import { PublicKey } from "@solana/web3.js";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { WalletAuthAccounts, WalletButton } from "~/components/wallet-v2";
@@ -33,6 +35,7 @@ const initialRewardsState: RewardsType = {
 
 export const LendingPortfolio = () => {
   const { connected } = useWallet();
+  const { connection } = useConnection();
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
   const [
     isStoreInitialized,
@@ -132,6 +135,15 @@ export const LendingPortfolio = () => {
     [sortedBanks, isStoreInitialized]
   ) as ActiveBankInfo[];
 
+  const landingBanksStaked = React.useMemo(() => {
+    return lendingBanks.filter((b) => b.info.rawBank.config.assetTag === AssetTag.STAKED);
+  }, [lendingBanks]);
+
+  const [lendingBanksUnclaimedMev, setLendingBanksUnclaimedMev] = React.useState<Map<
+    string,
+    { pool: number; onramp: number }
+  > | null>(null);
+
   const borrowingBanks = React.useMemo(
     () =>
       sortedBanks && isStoreInitialized
@@ -198,6 +210,24 @@ export const LendingPortfolio = () => {
       !borrowingBanks.length,
     [isStoreInitialized, walletConnectionDelay, isRefreshingStore, accountSummary.balance, lendingBanks, borrowingBanks]
   );
+
+  React.useEffect(() => {
+    const fetchUnclaimedMev = async () => {
+      const validatorVoteAccounts = landingBanksStaked
+        .map((b) => b.meta.stakePool?.validatorVoteAccount)
+        .filter((v) => v !== undefined) as PublicKey[];
+
+      console.log(validatorVoteAccounts);
+
+      if (validatorVoteAccounts.length > 0) {
+        const unclaimedMev = await getStakePoolUnclaimedLamps(connection, validatorVoteAccounts);
+        setLendingBanksUnclaimedMev(unclaimedMev);
+        console.log(unclaimedMev);
+      }
+    };
+
+    fetchUnclaimedMev();
+  }, [landingBanksStaked, connection]);
 
   React.useEffect(() => {
     if (rewardsToastOpen || rewardsState.state !== "REWARDS_FETCHED" || rewardsState.totalRewardAmount === 0) return;
@@ -402,6 +432,9 @@ export const LendingPortfolio = () => {
                       isInLendingMode={true}
                       isBorrower={borrowingBanks.length > 0}
                       accountLabels={accountLabels}
+                      unclaimedMev={lendingBanksUnclaimedMev?.get(
+                        bank.meta.stakePool?.validatorVoteAccount?.toBase58() || ""
+                      )}
                     />
                   ))}
                 </div>
