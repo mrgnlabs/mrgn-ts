@@ -217,12 +217,9 @@ export const LendingPortfolio = () => {
         .map((b) => b.meta.stakePool?.validatorVoteAccount)
         .filter((v) => v !== undefined) as PublicKey[];
 
-      console.log(validatorVoteAccounts);
-
       if (validatorVoteAccounts.length > 0) {
         const unclaimedMev = await getStakePoolUnclaimedLamps(connection, validatorVoteAccounts);
         setLendingBanksUnclaimedMev(unclaimedMev);
-        console.log(unclaimedMev);
       }
     };
 

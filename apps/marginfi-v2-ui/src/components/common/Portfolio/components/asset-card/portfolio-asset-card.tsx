@@ -1,8 +1,10 @@
 import React from "react";
 
 import Image from "next/image";
-import { IconAlertTriangle, IconExternalLink, IconFolderShare, IconInfoCircle } from "@tabler/icons-react";
+import Link from "next/link";
 
+import { IconAlertTriangle, IconExternalLink, IconFolderShare, IconInfoCircle } from "@tabler/icons-react";
+import { LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import {
   usdFormatter,
   dynamicNumeralFormatter,
@@ -10,11 +12,13 @@ import {
   tokenPriceFormatter,
   percentFormatter,
   shortenAddress,
+  TransactionType,
+  addTransactionMetadata,
 } from "@mrgnlabs/mrgn-common";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { capture } from "@mrgnlabs/mrgn-utils";
+import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
+import { capture, cn } from "@mrgnlabs/mrgn-utils";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
-import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useMrgnlendStore, useUiStore } from "~/store";
@@ -27,9 +31,7 @@ import { MovePositionDialog } from "../move-position";
 import { TooltipProvider } from "~/components/ui/tooltip";
 import { TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Tooltip } from "~/components/ui/tooltip";
-import Link from "next/link";
-import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -64,6 +66,7 @@ export const PortfolioAssetCard = ({
     state.nativeSolBalance,
     state.accountSummary,
   ]);
+  const [priorityFees] = useUiStore((state) => [state.priorityFees]);
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
@@ -237,11 +240,11 @@ export const PortfolioAssetCard = ({
               )}
             </dl>
           </div>
-          {bank.info.rawBank.config.assetTag === AssetTag.STAKED && unclaimedMev?.onramp && unclaimedMev.onramp > 0 && (
+          {bank.info.rawBank.config.assetTag === AssetTag.STAKED && unclaimedMev?.onramp && unclaimedMev.pool > 0 && (
             <div className="space-y-3 bg-background/60 py-3 px-4 rounded-lg text-muted-foreground text-xs">
               <p>
                 The {bank.meta.tokenSymbol} stake pool has{" "}
-                <strong className="text-foreground">{unclaimedMev?.onramp / LAMPORTS_PER_SOL} SOL</strong> of unclaimed
+                <strong className="text-foreground">{unclaimedMev?.pool / LAMPORTS_PER_SOL} SOL</strong> of unclaimed
                 MEV rewards. MEV rewards can be permissionlessly claimed and will be added to the pool at the end of the
                 epoch.
               </p>
@@ -249,7 +252,29 @@ export const PortfolioAssetCard = ({
                 <IconInfoCircle size={14} /> learn more
               </Link>
 
-              <Button className="w-full" variant="secondary" size="lg">
+              <Button
+                className="w-full"
+                variant="secondary"
+                size="lg"
+                onClick={async () => {
+                  if (!marginfiClient || !bank.meta.stakePool?.validatorVoteAccount) return;
+                  const ix = await replenishPoolIx(bank.meta.stakePool?.validatorVoteAccount);
+                  const tx = addTransactionMetadata(new Transaction().add(ix), {
+                    type: TransactionType.INITIALIZE_STAKED_POOL,
+                  });
+
+                  const txSignature = await marginfiClient.processTransactions([tx], {
+                    broadcastType: "RPC",
+                    ...priorityFees,
+                    callback(index, success, signature, stepsToAdvance) {
+                      console.log("success", success);
+                      console.log("signature", signature);
+                      console.log("stepsToAdvance", stepsToAdvance);
+                      // success && multiStepToast.successAndNext(stepsToAdvance, composeExplorerUrl(signature), signature);
+                    },
+                  });
+                }}
+              >
                 Claim MEV rewards
               </Button>
             </div>

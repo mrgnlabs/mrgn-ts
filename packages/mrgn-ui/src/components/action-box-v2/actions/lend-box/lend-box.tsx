@@ -357,7 +357,7 @@ export const LendBox = ({
         validatorVoteAccount,
       ]);
       const unclaimedMevBankData = unclaimedMev.get(validatorVoteAccount.toBase58());
-      setUnclaimedMev(unclaimedMevBankData?.onramp ?? 0);
+      setUnclaimedMev(unclaimedMevBankData?.pool ?? 0);
     };
 
     if (

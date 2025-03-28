@@ -21,6 +21,8 @@ import {
   SYSVAR_RENT_ID,
   SYSVAR_STAKE_HISTORY_ID,
   SYSTEM_PROGRAM_ID,
+  addTransactionMetadata,
+  TransactionType,
 } from "@mrgnlabs/mrgn-common";
 import { SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
