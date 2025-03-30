@@ -441,6 +441,44 @@ export const LendBox = ({
             }}
           />
         )}
+
+      {selectedBank &&
+        selectedBank.info.rawBank.config.assetTag === AssetTag.STAKED &&
+        lendMode === ActionType.Withdraw &&
+        selectedBank.meta.stakePool?.unclaimedLamps && (
+          <div className="space-y-3 mb-4">
+            {selectedBank.meta.stakePool?.unclaimedLamps.pool > 0 && (
+              <div className="space-y-3 bg-info py-3 px-4 rounded-lg text-foreground text-xs">
+                <p>
+                  The {selectedBank.meta.tokenSymbol} stake pool has{" "}
+                  <strong className="text-foreground">
+                    {dynamicNumeralFormatter(selectedBank.meta.stakePool?.unclaimedLamps.pool / LAMPORTS_PER_SOL)} SOL
+                  </strong>{" "}
+                  of unclaimed MEV rewards. MEV can be permissionlessly claimed and will be added to the pool at the end
+                  of the epoch.
+                </p>
+
+                <Button className="w-full" size="sm">
+                  Claim MEV rewards
+                </Button>
+              </div>
+            )}
+            {selectedBank?.meta.stakePool?.unclaimedLamps &&
+              selectedBank?.meta.stakePool?.unclaimedLamps?.onramp > 0 && (
+                <div className="space-y-3 bg-info py-3 px-4 rounded-lg text-info-foreground text-xs">
+                  <p>
+                    The {selectedBank.meta.tokenSymbol} stake pool has{" "}
+                    <strong className="text-foreground/80">
+                      {dynamicNumeralFormatter(selectedBank?.meta.stakePool?.unclaimedLamps?.onramp / LAMPORTS_PER_SOL)}{" "}
+                      SOL
+                    </strong>{" "}
+                    of pending MEV rewards. These rewards will be added to the pool at the end of the epoch.
+                  </p>
+                </div>
+              )}
+          </div>
+        )}
+
       {additionalActionMessages.concat(actionMessages).map(
         (actionMessage, idx) =>
           actionMessage.description && (
@@ -480,26 +518,7 @@ export const LendBox = ({
 
         {setDisplaySettings && <ActionSettingsButton onClick={() => setDisplaySettings(true)} />}
       </div>
-      {selectedBank &&
-        selectedBank.info.rawBank.config.assetTag === AssetTag.STAKED &&
-        lendMode === ActionType.Withdraw &&
-        selectedBank.meta.stakePool?.unclaimedLamps &&
-        selectedBank.meta.stakePool?.unclaimedLamps.pool > 0 && (
-          <div className="mt-4 space-y-3 bg-background/60 py-3 px-4 rounded-lg text-muted-foreground text-xs">
-            <p>
-              The {selectedBank.meta.tokenSymbol} stake pool has{" "}
-              <strong className="text-foreground">
-                {selectedBank.meta.stakePool?.unclaimedLamps.pool / LAMPORTS_PER_SOL} SOL
-              </strong>{" "}
-              of unclaimed MEV rewards. MEV rewards can be permissionlessly claimed and will be added to the pool at the
-              end of the epoch.
-            </p>
 
-            <Button className="w-full" variant="secondary" size="sm">
-              Claim MEV rewards
-            </Button>
-          </div>
-        )}
       <Preview
         actionSummary={actionSummary}
         selectedBank={selectedBank}
