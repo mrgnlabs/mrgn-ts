@@ -147,8 +147,6 @@ export const LendBox = ({
   const _prevSelectedBank = usePrevious(selectedBank);
   const _prevShouldBeHidden = usePrevious(shouldBeHidden);
 
-  const [unclaimedMev, setUnclaimedMev] = React.useState<number>(0);
-
   /**
    * Handles visibility and state refresh logic when `searchMode` is enabled.
    * - If no bank is selected, hide the component.
@@ -346,29 +344,6 @@ export const LendBox = ({
     );
   }, [additionalActionMessages, actionMessages]);
 
-  // fetch unclaimed MEV for staked collateral banks
-  React.useEffect(() => {
-    const fetchUnclaimedMev = async () => {
-      const validatorVoteAccount = requestedBank?.meta.stakePool?.validatorVoteAccount;
-
-      if (!validatorVoteAccount || !marginfiClient?.provider.connection) return;
-
-      const unclaimedMev = await getStakePoolUnclaimedLamps(marginfiClient?.provider.connection, [
-        validatorVoteAccount,
-      ]);
-      const unclaimedMevBankData = unclaimedMev.get(validatorVoteAccount.toBase58());
-      setUnclaimedMev(unclaimedMevBankData?.pool ?? 0);
-    };
-
-    if (
-      requestedBank &&
-      requestedBank.info.rawBank.config.assetTag === AssetTag.STAKED &&
-      lendMode === ActionType.Withdraw
-    ) {
-      fetchUnclaimedMev();
-    }
-  }, [requestedBank, marginfiClient, lendMode]);
-
   // store users stake accounts in state on load
   // selected stake account will be handled in lend store
   React.useEffect(() => {
@@ -508,16 +483,19 @@ export const LendBox = ({
       {selectedBank &&
         selectedBank.info.rawBank.config.assetTag === AssetTag.STAKED &&
         lendMode === ActionType.Withdraw &&
-        unclaimedMev > 0 && (
-          <div className="mt-4 space-y-3 bg-background/60 py-3 px-4 rounded-lg text-muted-foreground text-sm">
+        selectedBank.meta.stakePool?.unclaimedLamps &&
+        selectedBank.meta.stakePool?.unclaimedLamps.pool > 0 && (
+          <div className="mt-4 space-y-3 bg-background/60 py-3 px-4 rounded-lg text-muted-foreground text-xs">
             <p>
               The {selectedBank.meta.tokenSymbol} stake pool has{" "}
-              <strong className="text-foreground">{unclaimedMev / LAMPORTS_PER_SOL} SOL</strong> of unclaimed MEV
-              rewards. MEV rewards can be permissionlessly claimed and will be added to the pool at the end of the
-              epoch.
+              <strong className="text-foreground">
+                {selectedBank.meta.stakePool?.unclaimedLamps.pool / LAMPORTS_PER_SOL} SOL
+              </strong>{" "}
+              of unclaimed MEV rewards. MEV rewards can be permissionlessly claimed and will be added to the pool at the
+              end of the epoch.
             </p>
 
-            <Button className="w-full" variant="secondary" size="lg">
+            <Button className="w-full" variant="secondary" size="sm">
               Claim MEV rewards
             </Button>
           </div>

@@ -135,15 +135,6 @@ export const LendingPortfolio = () => {
     [sortedBanks, isStoreInitialized]
   ) as ActiveBankInfo[];
 
-  const landingBanksStaked = React.useMemo(() => {
-    return lendingBanks.filter((b) => b.info.rawBank.config.assetTag === AssetTag.STAKED);
-  }, [lendingBanks]);
-
-  const [lendingBanksUnclaimedMev, setLendingBanksUnclaimedMev] = React.useState<Map<
-    string,
-    { pool: number; onramp: number }
-  > | null>(null);
-
   const borrowingBanks = React.useMemo(
     () =>
       sortedBanks && isStoreInitialized
@@ -210,21 +201,6 @@ export const LendingPortfolio = () => {
       !borrowingBanks.length,
     [isStoreInitialized, walletConnectionDelay, isRefreshingStore, accountSummary.balance, lendingBanks, borrowingBanks]
   );
-
-  React.useEffect(() => {
-    const fetchUnclaimedMev = async () => {
-      const validatorVoteAccounts = landingBanksStaked
-        .map((b) => b.meta.stakePool?.validatorVoteAccount)
-        .filter((v) => v !== undefined) as PublicKey[];
-
-      if (validatorVoteAccounts.length > 0) {
-        const unclaimedMev = await getStakePoolUnclaimedLamps(connection, validatorVoteAccounts);
-        setLendingBanksUnclaimedMev(unclaimedMev);
-      }
-    };
-
-    fetchUnclaimedMev();
-  }, [landingBanksStaked, connection]);
 
   React.useEffect(() => {
     if (rewardsToastOpen || rewardsState.state !== "REWARDS_FETCHED" || rewardsState.totalRewardAmount === 0) return;
@@ -429,9 +405,6 @@ export const LendingPortfolio = () => {
                       isInLendingMode={true}
                       isBorrower={borrowingBanks.length > 0}
                       accountLabels={accountLabels}
-                      unclaimedMev={lendingBanksUnclaimedMev?.get(
-                        bank.meta.stakePool?.validatorVoteAccount?.toBase58() || ""
-                      )}
                     />
                   ))}
                 </div>

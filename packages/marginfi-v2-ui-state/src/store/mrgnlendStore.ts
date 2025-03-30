@@ -26,6 +26,7 @@ import {
   getStakeAccountsCached,
   ValidatorStakeGroup,
   getValidatorRates,
+  getStakePoolUnclaimedLamps,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -396,6 +397,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           return new PublicKey(bankMetadata.validatorVoteAccount || "");
         });
       const stakePoolActiveStates = await getStakePoolActiveStates(connection, validatorVoteAccounts);
+      const unclaimedLamps = await getStakePoolUnclaimedLamps(connection, validatorVoteAccounts);
       const validatorRates = await getValidatorRates(validatorVoteAccounts);
 
       let [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
@@ -423,9 +425,13 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
               bankMetadataMap[bank.address.toBase58()].validatorVoteAccount || ""
             );
             stakedAssetMetadata = {
+              isActive,
               validatorVoteAccount,
               validatorRewards: validatorRates.get(bank.mint.toBase58()) || 0,
-              isActive,
+              unclaimedLamps: unclaimedLamps.get(validatorVoteAccount.toBase58()) || {
+                pool: 0,
+                onramp: 0,
+              },
             };
           }
 
