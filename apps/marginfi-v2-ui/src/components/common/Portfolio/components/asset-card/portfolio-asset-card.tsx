@@ -18,7 +18,7 @@ import {
 import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
-import { capture, cn, composeExplorerUrl } from "@mrgnlabs/mrgn-utils";
+import { capture, cn, composeExplorerUrl, executeActionWrapper } from "@mrgnlabs/mrgn-utils";
 import { ActionBox, SVSPMEV } from "@mrgnlabs/mrgn-ui";
 import { MultiStepToastController, toastManager } from "@mrgnlabs/mrgn-toasts";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
@@ -249,24 +249,24 @@ export const PortfolioAssetCard = ({
                 const tx = addTransactionMetadata(new Transaction().add(ix), {
                   type: TransactionType.INITIALIZE_STAKED_POOL,
                 });
-                const toast = toastManager.createMultiStepToast("Claim MEV rewards", [
-                  { label: "Signing transaction" },
-                  { label: "Replenish SVSP MEV rewards" },
-                ]);
 
-                try {
-                  toast.start();
-
-                  await marginfiClient.processTransaction(tx, {
-                    ...priorityFees,
-                    callback(index, success, signature, stepsToAdvance) {
-                      success && toast.successAndNext(stepsToAdvance, composeExplorerUrl(signature), signature);
-                    },
-                  });
-                } catch (error) {
-                  const errorMessage = error instanceof Error ? error.message : String(error);
-                  toast.setFailed(errorMessage || "Failed to claim MEV rewards");
-                }
+                await executeActionWrapper({
+                  actionName: "Claim MEV rewards",
+                  steps: [{ label: "Signing transaction" }, { label: "Claiming SVSP MEV rewards" }],
+                  action: async (txns, onSuccessAndNext) => {
+                    const sigs = await marginfiClient.processTransactions(txns.transactions, {
+                      broadcastType: "RPC",
+                      ...priorityFees,
+                      callback(index, success, sig, stepsToAdvance) {
+                        success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+                      },
+                    });
+                    return sigs[0];
+                  },
+                  txns: {
+                    transactions: [tx],
+                  },
+                });
               }}
               className="mb-4"
             />
