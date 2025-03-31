@@ -1,4 +1,7 @@
-// This create the on-ramp for svsp accounts to be able to redeem MEV rewards
+// This creates the on-ramp for all svsp accounts to be able to redeem MEV rewards
+// You can also use this to run the repenlish crank on all the pools
+
+// TODO add a LUT and send these all in one tx to avoid burning so many tx fees.
 import {
   Connection,
   PublicKey,
@@ -13,7 +16,7 @@ import fs from "fs";
 import path from "path";
 
 /** True to create the svsp on-ramp, false to skip */
-const create = true;
+const create = false;
 /** True to crank the svsp on-ramp, false to skip */
 const crank = true;
 
@@ -25,9 +28,17 @@ async function main() {
   const wallet = loadKeypairFromFile(process.env.HOME + "/keys/staging-deploy.json");
   console.log("payer: " + wallet.publicKey);
 
-  const poolsJson = fs.readFileSync(path.join(__dirname, "svsp_pools.json"), "utf8");
-  const pools: PoolEntry[] = JSON.parse(poolsJson);
+  const jsonUrl = "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json";
+  const response = await fetch(jsonUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch JSON: ${response.statusText}`);
+  }
+  const pools: PoolEntry[] = (await response.json()) as PoolEntry[];
+  // Or read it locally....
+  //   const poolsJson = fs.readFileSync(path.join(__dirname, "svsp_pools.json"), "utf8");
+  //   const pools: PoolEntry[] = JSON.parse(poolsJson);
   console.log("read " + pools.length + " pools");
+  console.log("");
 
   for (let i = 0; i < pools.length; i++) {
     const voteAccount = new PublicKey(pools[i].validatorVoteAccount);
@@ -61,7 +72,7 @@ async function main() {
     }
 
     if (create) {
-      console.log("Init for: " + voteAccount + " on ramp: " + onRamp);
+      console.log("Init on ramp: " + onRamp);
     }
     if (crank) {
       console.log("Cranked replenish for: " + voteAccount);
