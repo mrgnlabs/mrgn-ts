@@ -128,7 +128,7 @@ export default function CreateStakedAssetPage() {
       multiStepToast.successAndNext(
         undefined,
         composeExplorerUrl(txSignature[txSignature.length - 1]),
-        txSignature[txSignature.length - 1],
+        txSignature[txSignature.length - 1]
       );
     },
     [priorityFees]

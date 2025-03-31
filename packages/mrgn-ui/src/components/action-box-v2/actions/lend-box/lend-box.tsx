@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
 
 import { WalletContextState } from "@solana/wallet-adapter-react";
+import { LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/web3.js";
+import { addTransactionMetadata, dynamicNumeralFormatter, TransactionType } from "@mrgnlabs/mrgn-common";
 
 import {
   ExtendedBankInfo,
@@ -11,7 +13,6 @@ import {
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
-  getStakePoolUnclaimedLamps,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { AssetTag, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
@@ -24,13 +25,14 @@ import {
   usePrevious,
   useIsMobile,
   LendSelectionGroups,
+  composeExplorerUrl,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { ActionMessage } from "~/components";
+import { ActionMessage, SVSPMEV } from "~/components";
 
 import { useLendBoxStore } from "./store";
 import { ActionSimulationStatus } from "../../components";
@@ -39,10 +41,8 @@ import { SimulationStatus } from "../../utils";
 import { useLendSimulation } from "./hooks";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
-import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
-import { Button } from "~/components/ui/button";
-import { EDGE_RUNTIME_WEBPACK } from "next/dist/shared/lib/constants";
+import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 // error handling
 export type LendBoxProps = {
@@ -442,42 +442,36 @@ export const LendBox = ({
           />
         )}
 
-      {selectedBank &&
-        selectedBank.info.rawBank.config.assetTag === AssetTag.STAKED &&
-        lendMode === ActionType.Withdraw &&
-        selectedBank.meta.stakePool?.unclaimedLamps && (
-          <div className="space-y-3 mb-4">
-            {selectedBank.meta.stakePool?.unclaimedLamps.pool > 0 && (
-              <div className="space-y-3 bg-info py-3 px-4 rounded-lg text-foreground text-xs">
-                <p>
-                  The {selectedBank.meta.tokenSymbol} stake pool has{" "}
-                  <strong className="text-foreground">
-                    {dynamicNumeralFormatter(selectedBank.meta.stakePool?.unclaimedLamps.pool / LAMPORTS_PER_SOL)} SOL
-                  </strong>{" "}
-                  of unclaimed MEV rewards. MEV can be permissionlessly claimed and will be added to the pool at the end
-                  of the epoch.
-                </p>
+      {selectedBank && (
+        <SVSPMEV
+          bank={selectedBank}
+          onClaim={async () => {
+            if (!marginfiClient || !selectedBank.meta.stakePool?.validatorVoteAccount) return;
+            const ix = await replenishPoolIx(selectedBank.meta.stakePool?.validatorVoteAccount);
+            const tx = addTransactionMetadata(new Transaction().add(ix), {
+              type: TransactionType.INITIALIZE_STAKED_POOL,
+            });
+            const toast = toastManager.createMultiStepToast("Claim MEV rewards", [
+              { label: "Signing transaction" },
+              { label: "Claiming SVSP MEV rewards" },
+            ]);
 
-                <Button className="w-full" size="sm">
-                  Claim MEV rewards
-                </Button>
-              </div>
-            )}
-            {selectedBank?.meta.stakePool?.unclaimedLamps &&
-              selectedBank?.meta.stakePool?.unclaimedLamps?.onramp > 0 && (
-                <div className="space-y-3 bg-info py-3 px-4 rounded-lg text-info-foreground text-xs">
-                  <p>
-                    The {selectedBank.meta.tokenSymbol} stake pool has{" "}
-                    <strong className="text-foreground/80">
-                      {dynamicNumeralFormatter(selectedBank?.meta.stakePool?.unclaimedLamps?.onramp / LAMPORTS_PER_SOL)}{" "}
-                      SOL
-                    </strong>{" "}
-                    of pending MEV rewards. These rewards will be added to the pool at the end of the epoch.
-                  </p>
-                </div>
-              )}
-          </div>
-        )}
+            toast.start();
+
+            await marginfiClient.processTransaction(tx, {
+              broadcastType: "RPC",
+              ...priorityFees,
+              callback(index, success, signature, stepsToAdvance) {
+                console.log("success", success);
+                console.log("signature", signature);
+                console.log("stepsToAdvance", stepsToAdvance);
+                success && toast.successAndNext(stepsToAdvance, composeExplorerUrl(signature), signature);
+              },
+            });
+          }}
+          className="space-y-3 mb-4"
+        />
+      )}
 
       {additionalActionMessages.concat(actionMessages).map(
         (actionMessage, idx) =>

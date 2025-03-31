@@ -15,11 +15,12 @@ import {
   TransactionType,
   addTransactionMetadata,
 } from "@mrgnlabs/mrgn-common";
+import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
-import { capture, cn } from "@mrgnlabs/mrgn-utils";
-import { ActionBox } from "@mrgnlabs/mrgn-ui";
-
+import { capture, cn, composeExplorerUrl } from "@mrgnlabs/mrgn-utils";
+import { ActionBox, SVSPMEV } from "@mrgnlabs/mrgn-ui";
+import { MultiStepToastController, toastManager } from "@mrgnlabs/mrgn-toasts";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
@@ -31,7 +32,6 @@ import { MovePositionDialog } from "../move-position";
 import { TooltipProvider } from "~/components/ui/tooltip";
 import { TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Tooltip } from "~/components/ui/tooltip";
-import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -239,59 +239,34 @@ export const PortfolioAssetCard = ({
             </dl>
           </div>
           {bank.info.rawBank.config.assetTag === AssetTag.STAKED && (
-            <>
-              {bank?.meta.stakePool?.unclaimedLamps && bank?.meta.stakePool?.unclaimedLamps?.pool > 0 && (
-                <div className="space-y-3 bg-info py-3 px-4 rounded-lg text-foreground/80 text-xs">
-                  <p>
-                    The {bank.meta.tokenSymbol} stake pool has{" "}
-                    <strong className="text-foreground">
-                      {bank?.meta.stakePool?.unclaimedLamps?.pool / LAMPORTS_PER_SOL} SOL
-                    </strong>{" "}
-                    of unclaimed MEV rewards. MEV rewards can be permissionlessly claimed and will be added to the pool
-                    at the end of the epoch.
-                  </p>
-                  <Link href="" className="inline-flex items-center gap-1">
-                    <IconInfoCircle size={14} /> learn more
-                  </Link>
+            <SVSPMEV
+              bank={bank}
+              onClaim={async () => {
+                if (!marginfiClient || !bank.meta.stakePool?.validatorVoteAccount) return;
+                const ix = await replenishPoolIx(bank.meta.stakePool?.validatorVoteAccount);
+                const tx = addTransactionMetadata(new Transaction().add(ix), {
+                  type: TransactionType.INITIALIZE_STAKED_POOL,
+                });
+                const toast = toastManager.createMultiStepToast("Claim MEV rewards", [
+                  { label: "Signing transaction" },
+                  { label: "Claiming SVSP MEV rewards" },
+                ]);
 
-                  <Button
-                    className="w-full"
-                    onClick={async () => {
-                      if (!marginfiClient || !bank.meta.stakePool?.validatorVoteAccount) return;
-                      const ix = await replenishPoolIx(bank.meta.stakePool?.validatorVoteAccount);
-                      const tx = addTransactionMetadata(new Transaction().add(ix), {
-                        type: TransactionType.INITIALIZE_STAKED_POOL,
-                      });
+                toast.start();
 
-                      const txSignature = await marginfiClient.processTransactions([tx], {
-                        broadcastType: "RPC",
-                        ...priorityFees,
-                        callback(index, success, signature, stepsToAdvance) {
-                          console.log("success", success);
-                          console.log("signature", signature);
-                          console.log("stepsToAdvance", stepsToAdvance);
-                          // success && multiStepToast.successAndNext(stepsToAdvance, composeExplorerUrl(signature), signature);
-                        },
-                      });
-                    }}
-                  >
-                    Claim MEV rewards
-                  </Button>
-                </div>
-              )}
-              {bank?.meta.stakePool?.unclaimedLamps && bank?.meta.stakePool?.unclaimedLamps?.onramp > 0 && (
-                <div className="space-y-3 bg-background py-3 px-4 rounded-lg text-muted-foreground text-xs">
-                  <p>
-                    The {bank.meta.tokenSymbol} stake pool has{" "}
-                    <strong className="text-foreground">
-                      {bank?.meta.stakePool?.unclaimedLamps?.onramp / LAMPORTS_PER_SOL} SOL
-                    </strong>{" "}
-                    of pending MEV rewards. These rewards have been claimed and will be added to the pool at the end of
-                    the epoch.
-                  </p>
-                </div>
-              )}
-            </>
+                await marginfiClient.processTransaction(tx, {
+                  broadcastType: "RPC",
+                  ...priorityFees,
+                  callback(index, success, signature, stepsToAdvance) {
+                    console.log("success", success);
+                    console.log("signature", signature);
+                    console.log("stepsToAdvance", stepsToAdvance);
+                    success && toast.successAndNext(stepsToAdvance, composeExplorerUrl(signature), signature);
+                  },
+                });
+              }}
+              className="space-y-3 mb-4"
+            />
           )}
           <div className="flex w-full gap-3">
             <PortfolioAction
