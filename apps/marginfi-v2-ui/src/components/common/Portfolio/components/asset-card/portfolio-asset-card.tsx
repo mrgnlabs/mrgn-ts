@@ -32,6 +32,7 @@ import { MovePositionDialog } from "../move-position";
 import { TooltipProvider } from "~/components/ui/tooltip";
 import { TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Tooltip } from "~/components/ui/tooltip";
+import { error } from "console";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -243,27 +244,29 @@ export const PortfolioAssetCard = ({
               bank={bank}
               onClaim={async () => {
                 if (!marginfiClient || !bank.meta.stakePool?.validatorVoteAccount) return;
+
                 const ix = await replenishPoolIx(bank.meta.stakePool?.validatorVoteAccount);
                 const tx = addTransactionMetadata(new Transaction().add(ix), {
                   type: TransactionType.INITIALIZE_STAKED_POOL,
                 });
                 const toast = toastManager.createMultiStepToast("Claim MEV rewards", [
                   { label: "Signing transaction" },
-                  { label: "Claiming SVSP MEV rewards" },
+                  { label: "Replenish SVSP MEV rewards" },
                 ]);
 
-                toast.start();
+                try {
+                  toast.start();
 
-                await marginfiClient.processTransaction(tx, {
-                  broadcastType: "RPC",
-                  ...priorityFees,
-                  callback(index, success, signature, stepsToAdvance) {
-                    console.log("success", success);
-                    console.log("signature", signature);
-                    console.log("stepsToAdvance", stepsToAdvance);
-                    success && toast.successAndNext(stepsToAdvance, composeExplorerUrl(signature), signature);
-                  },
-                });
+                  await marginfiClient.processTransaction(tx, {
+                    ...priorityFees,
+                    callback(index, success, signature, stepsToAdvance) {
+                      success && toast.successAndNext(stepsToAdvance, composeExplorerUrl(signature), signature);
+                    },
+                  });
+                } catch (error) {
+                  const errorMessage = error instanceof Error ? error.message : String(error);
+                  toast.setFailed(errorMessage || "Failed to claim MEV rewards");
+                }
               }}
               className="mb-4"
             />

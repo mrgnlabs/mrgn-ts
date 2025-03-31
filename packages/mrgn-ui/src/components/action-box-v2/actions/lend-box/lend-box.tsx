@@ -456,22 +456,21 @@ export const LendBox = ({
               { label: "Claiming SVSP MEV rewards" },
             ]);
 
-            toast.start();
+            try {
+              toast.start();
 
-            await marginfiClient.processTransaction(tx, {
-              broadcastType: "RPC",
-              ...priorityFees,
-              callback(index, success, signature, stepsToAdvance) {
-                console.log("success", success);
-                console.log("signature", signature);
-                console.log("stepsToAdvance", stepsToAdvance);
-                success && toast.successAndNext(stepsToAdvance, composeExplorerUrl(signature), signature);
-              },
-            });
+              await marginfiClient.processTransaction(tx, {
+                ...priorityFees,
+                callback(index, success, signature, stepsToAdvance) {
+                  success && toast.successAndNext(stepsToAdvance, composeExplorerUrl(signature), signature);
+                },
+              });
+            } catch (error) {
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              toast.setFailed(errorMessage || "Failed to claim MEV rewards");
+            }
           }}
-          className="space-y-3 mb-4"
-          pendingClassName="bg-info-background text-info-foreground text-xs"
-          claimClassName="text-xs"
+          className="mb-4"
         />
       )}
 
