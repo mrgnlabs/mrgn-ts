@@ -25,7 +25,8 @@ TODO list of common banks and groups...
 ## MAIN GROUP BANKS
 
 - BONK - DeyH7QxWvnbbaVB4zFrf4hoq7Q8z1ZT14co42BGwGtfM
-- SOL (legacy, no asset tag) - CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh
+- SOL (legacy, pre asset tag) - CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh
+- PYTH - E4td8i8PT2BZkMygzW4MGHCv2KPPs57dvz5W2ZXf9Twu
 
 ## STAGING BANKS
 

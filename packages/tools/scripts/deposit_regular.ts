@@ -29,7 +29,7 @@ const config: Config = {
   ACCOUNT: new PublicKey("F12SjiKaksVMJs7EQ2GBaWHLr5shFRei1seDDwFA2pek"),
   BANK: new PublicKey("3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp"),
   MINT: new PublicKey("So11111111111111111111111111111111111111112"),
-  AMOUNT: new BN(0.2 * 10 ** 9), // sol has 9 decimals
+  AMOUNT: new BN(0.002 * 10 ** 9), // sol has 9 decimals
 };
 
 async function main() {
@@ -70,11 +70,11 @@ async function main() {
   }
   transaction.add(
     await program.methods
-      .lendingAccountDeposit(config.AMOUNT)
+      .lendingAccountDeposit(config.AMOUNT, false)
       .accounts({
-        marginfiGroup: config.GROUP,
+        //marginfiGroup: config.GROUP,
         marginfiAccount: config.ACCOUNT,
-        signer: wallet.publicKey,
+        //signer: wallet.publicKey,
         bank: config.BANK,
         signerTokenAccount: ata,
         // bankLiquidityVault = deriveLiquidityVault(id, bank)

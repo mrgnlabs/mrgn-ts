@@ -16,8 +16,8 @@ type Config = {
 };
 
 const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  BANK: new PublicKey("2s37akK2eyBbp8DZgCm7RtsaEz8eJP3Nxd4urLHQv7yB"),
+  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  BANK: new PublicKey("8UEiPmgZHXXEDrqLS3oiTxQxTbeYTtPbeMBxAd2XGbpu"),
 };
 
 async function main() {
@@ -34,6 +34,37 @@ async function main() {
   let bank = await program.account.bank.fetch(config.BANK);
 
   console.log("group: " + bank.group);
+  console.log("mint: " + bank.mint);
+  console.log("flags: " + bank.flags.toNumber());
+  console.log("borrow cap: " + bank.config.borrowLimit.toNumber());
+  console.log("ui limit: " + bank.config.totalAssetValueInitLimit.toNumber());
+  console.log(
+    "interest to insurance: " + wrappedI80F48toBigNumber(bank.config.interestRateConfig.insuranceIrFee).toString()
+  );
+  console.log(
+    "interest to insurance (fixed): " +
+      wrappedI80F48toBigNumber(bank.config.interestRateConfig.insuranceFeeFixedApr).toString()
+  );
+  console.log(
+    "interest to group: " + wrappedI80F48toBigNumber(bank.config.interestRateConfig.protocolIrFee).toString()
+  );
+  console.log(
+    "interest to group (fixed): " +
+      wrappedI80F48toBigNumber(bank.config.interestRateConfig.protocolFixedFeeApr).toString()
+  );
+
+  console.log(
+    "fees owed (to insurance): " +
+      wrappedI80F48toBigNumber(bank.collectedInsuranceFeesOutstanding).toString()
+  );
+  console.log(
+    "fees owed (to group): " +
+      wrappedI80F48toBigNumber(bank.collectedGroupFeesOutstanding).toString()
+  );
+  console.log(
+    "fees owed (to program): " +
+      wrappedI80F48toBigNumber(bank.collectedProgramFeesOutstanding).toString()
+  );
 }
 
 main().catch((err) => {

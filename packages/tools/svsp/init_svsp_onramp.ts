@@ -8,8 +8,20 @@ import {
   SystemProgram,
   Transaction,
 } from "@solana/web3.js";
-import { loadKeypairFromFile } from "../scripts/utils";
-import { createPoolOnramp, deriveOnRampPool, deriveStakePool, deriveSVSPpool, getStakeAccount } from "./stake-utils";
+import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile } from "../scripts/utils";
+import {
+  createPoolOnramp,
+  deriveOnRampPool,
+  deriveStakePool,
+  deriveSVSPpool,
+  getStakeAccount,
+  replenishPool,
+} from "./stake-utils";
+
+/** True to create the svsp on-ramp, false to skip */
+const create = true;
+/** True to crank the svsp on-ramp, false to skip */
+const crank = true;
 
 type Config = {
   VOTE_ACCOUNT: PublicKey;
@@ -19,7 +31,10 @@ const config: Config = {
 };
 
 async function main() {
-  const connection = new Connection("http://127.0.0.1:8899", "confirmed");
+  loadEnvFile(".env.api");
+  const apiUrl = process.env.API_URL || DEFAULT_API_URL;
+  console.log("api: " + apiUrl);
+  const connection = new Connection(apiUrl, "confirmed");
   const wallet = loadKeypairFromFile(process.env.HOME + "/keys/staging-deploy.json");
   console.log("payer: " + wallet.publicKey);
 
@@ -28,14 +43,21 @@ async function main() {
   // const [poolAuthority] = deriveStakeAuthority(svspPool);
   const [onRamp] = deriveOnRampPool(svspPool);
 
-  const rent = await connection.getMinimumBalanceForRentExemption(StakeProgram.space);
-  const rentIx = SystemProgram.transfer({
-    fromPubkey: wallet.publicKey,
-    toPubkey: onRamp,
-    lamports: rent,
-  });
-  const createIx = createPoolOnramp(config.VOTE_ACCOUNT);
-  let tx = new Transaction().add(rentIx, createIx);
+  let tx = new Transaction();
+  if (create) {
+    const rent = await connection.getMinimumBalanceForRentExemption(StakeProgram.space);
+    const rentIx = SystemProgram.transfer({
+      fromPubkey: wallet.publicKey,
+      toPubkey: onRamp,
+      lamports: rent,
+    });
+    const createIx = createPoolOnramp(config.VOTE_ACCOUNT);
+    tx.add(rentIx, createIx);
+  }
+  if (crank) {
+    const replenishIx = replenishPool(config.VOTE_ACCOUNT);
+    tx.add(replenishIx);
+  }
 
   try {
     const signature = await sendAndConfirmTransaction(connection, tx, [wallet]);
@@ -62,79 +84,3 @@ async function main() {
 main().catch((err) => {
   console.error(err);
 });
-
-// it("Realize income from MEV rewards", async () => {
-//   // First, create the on-ramp account that will temporarily stake MEV rewards
-//   const [onRampPoolKey] = deriveOnRampPool(validators[0].splPool);
-//   const rent =
-//     await bankRunProvider.connection.getMinimumBalanceForRentExemption(
-//       StakeProgram.space
-//     );
-//   const rentIx = SystemProgram.transfer({
-//     fromPubkey: wallet.payer.publicKey,
-//     toPubkey: onRampPoolKey,
-//     lamports: rent,
-//   });
-//   const ix = createPoolOnramp(validators[0].voteAccount);
-//   let initOnRampTx = new Transaction().add(rentIx, ix);
-//   initOnRampTx.recentBlockhash = await getBankrunBlockhash(bankrunContext);
-//   initOnRampTx.sign(wallet.payer); // pays the tx fee and rent
-//   await banksClient.processTransaction(initOnRampTx);
-
-//   const onRampAccBefore = await bankRunProvider.connection.getAccountInfo(
-//     onRampPoolKey
-//   );
-//   const onRampBefore = getStakeAccount(onRampAccBefore.data);
-//   const stakeBefore = onRampBefore.stake.delegation.stake.toString();
-//   if (verbose) {
-//     console.log("On ramp lamps: " + onRampAccBefore.lamports);
-//     console.log(" (rent was:    " + rent + ")");
-//     console.log("On ramp stake: " + stakeBefore);
-//   }
-
-//   let { epoch: epochBeforeWarp, slot: slotBeforeWarp } =
-//     await getEpochAndSlot(banksClient);
-//   bankrunContext.warpToEpoch(BigInt(epochBeforeWarp + 1));
-//   let { epoch: epochAfterWarp, slot: slotAfterWarp } = await getEpochAndSlot(
-//     banksClient
-//   );
-//   for (let i = 0; i < 3; i++) {
-//     bankrunContext.warpToSlot(BigInt(i + slotAfterWarp + 1));
-//     const dummyTx = new Transaction();
-//     dummyTx.add(
-//       SystemProgram.transfer({
-//         fromPubkey: users[0].wallet.publicKey,
-//         toPubkey: bankrunProgram.provider.publicKey,
-//         lamports: i,
-//       })
-//     );
-//     dummyTx.recentBlockhash = await getBankrunBlockhash(bankrunContext);
-//     dummyTx.sign(users[0].wallet);
-//     await banksClient.processTransaction(dummyTx);
-//   }
-
-//   let { epoch, slot } = await getEpochAndSlot(banksClient);
-//   if (verbose) {
-//     console.log("It is now epoch: " + epoch + " slot " + slot);
-//   }
-
-//   // Next, the replenish crank cycles free SOL into the "on ramp" pool
-//   let replenishTx = new Transaction().add(
-//     replenishPool(validators[0].voteAccount)
-//   );
-//   replenishTx.recentBlockhash = await getBankrunBlockhash(bankrunContext);
-//   replenishTx.sign(wallet.payer); // pays the tx fee and rent
-//   let result = await banksClient.tryProcessTransaction(replenishTx);
-//   dumpBankrunLogs(result);
-
-//   const onRampAccAfter = await bankRunProvider.connection.getAccountInfo(
-//     onRampPoolKey
-//   );
-//   const onRampAfter = getStakeAccount(onRampAccAfter.data);
-//   const stakeAfter = onRampAfter.stake.delegation.stake.toString();
-//   if (verbose) {
-//     console.log("On ramp lamps: " + onRampAccAfter.lamports);
-//     console.log(" (rent was:    " + rent + ")");
-//     console.log("On ramp stake: " + stakeAfter);
-//   }
-// });
