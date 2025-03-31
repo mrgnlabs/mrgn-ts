@@ -470,6 +470,8 @@ export const LendBox = ({
             });
           }}
           className="space-y-3 mb-4"
+          pendingClassName="bg-info-background text-info-foreground text-xs"
+          claimClassName="text-xs"
         />
       )}
 
