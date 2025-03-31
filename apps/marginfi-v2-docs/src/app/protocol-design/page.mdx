@@ -30,7 +30,7 @@ On this page, we’ll walk you through the marginfi protocol design, such as ora
 
 ## Oracle Usage {{ tag: '', label: '' }}
 
-marginfi primarily uses Pyth and Switchboard oracles to source token market prices, relying on Pyth’s robust safety features to ensure accurate pricing and effective risk management. For assets not supported by Pyth, the protocol falls back on Switchboard oracles, applying similar best practices to maintain consistency and reliability.
+marginfi primarily uses Pyth and Switchboard oracles to source token market prices, relying on Pyth’s robust safety features to ensure accurate pricing and effective risk management. Wherever possible, both Pyth and Switchboard oracles are used for robustness, allowing the protocol to check against price divergence between these two core sources for greater consistency and reliability.
 
 marginfi protects for price accuracy with a few key components:
 
