@@ -265,7 +265,7 @@ export const PortfolioAssetCard = ({
                   },
                 });
               }}
-              className="space-y-3 mb-4"
+              className="mb-4"
             />
           )}
           <div className="flex w-full gap-3">

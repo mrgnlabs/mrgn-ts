@@ -7,7 +7,7 @@ interface StakePoolMetadata {
   validatorVoteAccount: PublicKey;
   validatorRewards: number;
   isActive: boolean;
-  unclaimedLamps: {
+  mev: {
     pool: number;
     onramp: number;
   };

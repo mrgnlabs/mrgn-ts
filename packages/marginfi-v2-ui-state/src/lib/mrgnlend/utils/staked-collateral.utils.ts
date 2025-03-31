@@ -334,7 +334,7 @@ const getStakeAccount = function (data: Buffer): StakeAccount {
   };
 };
 
-const getStakePoolUnclaimedLamps = async (
+const getStakePoolMev = async (
   connection: Connection,
   validatorVoteAccounts: PublicKey[]
 ): Promise<
@@ -349,7 +349,7 @@ const getStakePoolUnclaimedLamps = async (
   const poolAddressRecord: Record<string, PublicKey> = {};
   const poolStakeAddressRecord: Record<string, PublicKey> = {};
   const onRampAddressRecord: Record<string, PublicKey> = {};
-  const unclaimedLamps = new Map<
+  const mev = new Map<
     string,
     {
       pool: number;
@@ -389,16 +389,16 @@ const getStakePoolUnclaimedLamps = async (
         const stakeDecoded = getStakeAccount(poolStakeInfo.data);
         const onrampDecoded = getStakeAccount(onRampInfo.data);
         const poolLamps = poolStakeInfo.lamports - rent - Number(stakeDecoded.stake.delegation.stake.toString());
-        const onrampLamps = onRampInfo.lamports - rent + Number(onrampDecoded.stake.delegation.stake.toString());
+        const onrampStake = Number(onrampDecoded.stake.delegation.stake.toString());
 
-        unclaimedLamps.set(validatorVoteAccount.toBase58(), {
+        mev.set(validatorVoteAccount.toBase58(), {
           pool: poolLamps >= 1000 ? poolLamps : 0,
-          onramp: onrampLamps,
+          onramp: onrampStake,
         });
       }
     });
 
-    return unclaimedLamps;
+    return mev;
   });
 };
 
@@ -408,5 +408,5 @@ export {
   getStakeAccounts,
   getStakePoolActiveStates,
   getValidatorRates,
-  getStakePoolUnclaimedLamps,
+  getStakePoolMev,
 };

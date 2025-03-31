@@ -6,12 +6,10 @@ import { IconInfoCircle, IconX } from "@tabler/icons-react";
 
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { ActionType, ActiveBankInfo, getStakePoolUnclaimedLamps } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, ExecuteActionProps, ExecuteCollectRewardsAction, usePrevious, useConnection } from "@mrgnlabs/mrgn-utils";
 import { CustomToastType, toastManager } from "@mrgnlabs/mrgn-toasts";
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
-import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
-import { PublicKey } from "@solana/web3.js";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { WalletAuthAccounts, WalletButton } from "~/components/wallet-v2";
