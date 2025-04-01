@@ -176,6 +176,36 @@ Multi-step toasts can have the following states for each step:
 - `CANCELED`: Step has been canceled
 - `PAUSED`: Step has been paused
 
+## Integration with executeActionWrapper
+
+For handling transactions, the multi-step toast system works seamlessly with the `executeActionWrapper` function from `@mrgnlabs/mrgn-utils`. This function provides a complete error handling and retry mechanism.
+
+```tsx
+import { executeActionWrapper } from "@mrgnlabs/mrgn-utils";
+
+const steps = [{ label: "Sign Transaction" }, { label: "Deposit Funds" }, { label: "Confirm on Blockchain" }];
+
+// Execute an action with proper toast notifications
+await executeActionWrapper({
+  action: async (txns, onSuccessAndNext) => {},
+  steps: steps,
+  actionName: "Deposit",
+  txns: actionTxns,
+  nativeSolBalance: nativeSolBalance,
+  onComplete: () => {},
+});
+```
+
+The `executeActionWrapper` function:
+
+1. Creates and manages the multi-step toast
+2. Handles transaction errors gracefully
+3. Provides retry functionality for failed transactions (only available for errors of type `ProcessTransactionError`)
+4. Automatically updates the toast status based on transaction progress
+5. Shows transaction signatures with explorer links when available
+
+This integration is particularly useful to display transaction status in a user-friendly way, with retry and error handling.
+
 ## Custom Toasts
 
 You can also create custom toast content:
