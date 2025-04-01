@@ -214,7 +214,7 @@ const getStakePoolActiveStates = async (
   );
 
   validatorVoteAccounts.map(async (validatorVoteAccount) => {
-    const stakeAccount = poolStakeAccounts[validatorVoteAccount.toBase58()];
+    const stakeAccount = getStakeAccount(poolStakeAccounts[validatorVoteAccount.toBase58()]);
     const poolMintAddress = poolMintAddressRecord[validatorVoteAccount.toBase58()];
 
     if (!stakeAccount) {
