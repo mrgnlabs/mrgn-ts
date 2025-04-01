@@ -32,9 +32,15 @@ export type LoopTxProps = {
   };
   /** Optional recent blockhash */
   blockhash?: string;
-  /** Optional deposit configuration */
+  /** The amount the user entered to deposit before applying leverage */
+  inputDepositAmount?: Amount;
+  /**
+   * @deprecated This property is no longer supported.
+   */
   depositOpts?: MakeDepositIxOpts;
-  /** Optional borrow configuration */
+  /**
+   * @deprecated This property is no longer supported.
+   */
   borrowOpts?: MakeBorrowIxOpts;
   /** Optional setup banks addresses */
   setupBankAddresses?: PublicKey[];
@@ -65,9 +71,13 @@ export type RepayWithCollateralTxProps = {
   };
   /** Optional recent blockhash */
   blockhash?: string;
-  /** Optional withdraw configuration */
+  /**
+   * @deprecated This property is no longer supported.
+   */
   withdrawOpts?: MakeWithdrawIxOpts;
-  /** Optional repay configuration */
+  /**
+   * @deprecated This property is no longer supported.
+   */
   repayOpts?: MakeRepayIxOpts;
 };
 

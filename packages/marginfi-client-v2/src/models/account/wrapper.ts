@@ -64,17 +64,16 @@ import {
   TransactionBuilderResult,
   makeUnwrapSolIx,
   computeLoopingParams,
+  makeWrapSolIxs,
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
 import { Bank } from "../bank";
 import { Balance } from "../balance";
 import {
-  createAccountIx,
   findPoolAddress,
   findPoolMintAddress,
   findPoolMintAuthorityAddress,
-  findPoolMplAuthorityAddress,
   findPoolStakeAddress,
   findPoolStakeAuthorityAddress,
   getSwitchboardProgram,
@@ -565,8 +564,6 @@ class MarginfiAccountWrapper {
     repayAll = false,
     swap,
     blockhash: blockhashArg,
-    withdrawOpts,
-    repayOpts,
   }: RepayWithCollateralProps): Promise<FlashloanActionResult> {
     const blockhash =
       blockhashArg ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
@@ -579,24 +576,13 @@ class MarginfiAccountWrapper {
         : [ComputeBudgetProgram.setComputeUnitLimit({ units: 500_000 })];
     // tiny priority fee just in case bundle fails
     const [priorityFeeIx] = makePriorityFeeIx(0.00001);
-    const withdrawIxs = await this.makeWithdrawIx(
-      withdrawAmount,
-      depositBankAddress,
-      withdrawAll,
-      withdrawOpts ?? {
-        createAtas: false,
-        wrapAndUnwrapSol: false,
-      }
-    );
-    const repayIxs = await this.makeRepayIx(
-      repayAmount,
-      borrowBankAddress,
-      repayAll,
-      repayOpts ?? {
-        createAtas: false,
-        wrapAndUnwrapSol: false,
-      }
-    );
+    const withdrawIxs = await this.makeWithdrawIx(withdrawAmount, depositBankAddress, withdrawAll, {
+      createAtas: false,
+      wrapAndUnwrapSol: false,
+    });
+    const repayIxs = await this.makeRepayIx(repayAmount, borrowBankAddress, repayAll, {
+      wrapAndUnwrapSol: false,
+    });
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
       depositBankAddress,
       borrowBankAddress,
@@ -713,13 +699,12 @@ class MarginfiAccountWrapper {
 
   async makeLoopTxV2({
     depositAmount,
+    inputDepositAmount,
     borrowAmount,
     depositBankAddress,
     borrowBankAddress,
     swap,
     blockhash: blockhashArg,
-    depositOpts,
-    borrowOpts,
     setupBankAddresses,
   }: LoopTxProps): Promise<FlashloanActionResult> {
     const depositBank = this.client.banks.get(depositBankAddress.toBase58());
@@ -738,24 +723,16 @@ class MarginfiAccountWrapper {
         : [ComputeBudgetProgram.setComputeUnitLimit({ units: 500_000 })];
     // tiny priority fee just in case bundle fails
     const [priorityFeeIx] = makePriorityFeeIx(0.00001);
-    const borrowIxs = await this.makeBorrowIx(
-      borrowAmount,
-      borrowBankAddress,
-      borrowOpts ?? {
-        createAtas: false,
-        wrapAndUnwrapSol: false,
-      }
-    );
-    const depositIxs = await this.makeDepositIx(
-      depositAmount,
-      depositBankAddress,
-      depositOpts ?? {
-        wrapAndUnwrapSol: false,
-      }
-    );
+    const borrowIxs = await this.makeBorrowIx(borrowAmount, borrowBankAddress, {
+      createAtas: false,
+      wrapAndUnwrapSol: false,
+    });
+    const depositIxs = await this.makeDepositIx(depositAmount, depositBankAddress, {
+      wrapAndUnwrapSol: false,
+    });
 
     // unwrap if deposit bank is native
-    const unwrapIx = depositBank.mint.equals(NATIVE_MINT) ? [makeUnwrapSolIx(this.authority)] : [];
+    // const unwrapIx = depositBank.mint.equals(NATIVE_MINT) ? [makeUnwrapSolIx(this.authority)] : [];
 
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([
       depositBankAddress,
@@ -766,6 +743,11 @@ class MarginfiAccountWrapper {
     let additionalTxs: ExtendedV0Transaction[] = [];
     let flashloanTx: ExtendedV0Transaction;
     let txOverflown = false;
+
+    // wrap sol if needed
+    if (depositBank.mint.equals(NATIVE_MINT) && inputDepositAmount) {
+      setupIxs.push(...makeWrapSolIxs(this.authority, new BigNumber(inputDepositAmount)));
+    }
 
     // if atas are needed, add them
     if (setupIxs.length > 0) {
@@ -805,14 +787,7 @@ class MarginfiAccountWrapper {
     // wallets add a priority fee ix by default breaking the flashloan tx so we need to add a placeholder priority fee ix
     // docs: https://docs.phantom.app/developer-powertools/solana-priority-fees
     flashloanTx = await this.buildFlashLoanTx({
-      ixs: [
-        ...cuRequestIxs,
-        priorityFeeIx,
-        ...borrowIxs.instructions,
-        ...swapIxs,
-        ...unwrapIx,
-        ...depositIxs.instructions,
-      ],
+      ixs: [...cuRequestIxs, priorityFeeIx, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
       addressLookupTableAccounts,
       blockhash,
     });
@@ -825,9 +800,9 @@ class MarginfiAccountWrapper {
 
     if (canBeDownsized) {
       // wallets won't add a priority fee if tx space is limited
-      // this will decrease landing rate for non-rpc calls
+      // this will decrease landing rate for non-rpc calls ...unwrapIx,
       flashloanTx = await this.buildFlashLoanTx({
-        ixs: [...cuRequestIxs, ...borrowIxs.instructions, ...swapIxs, ...unwrapIx, ...depositIxs.instructions],
+        ixs: [...cuRequestIxs, ...borrowIxs.instructions, ...swapIxs, ...depositIxs.instructions],
         addressLookupTableAccounts,
         blockhash,
       });
