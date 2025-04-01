@@ -6,7 +6,7 @@ import { Keypair, PublicKey } from "@solana/web3.js";
 import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { AccountCache, BankMetadata, BirdeyeTokenMetadataResponse } from "./types";
 import { PYTH_PUSH_ORACLE_ID, PYTH_SPONSORED_SHARD_ID, MARGINFI_SPONSORED_SHARD_ID } from "./constants";
-import { Bank } from "@mrgnlabs/marginfi-client-v2";
+import { Environment } from "@mrgnlabs/marginfi-client-v2";
 
 dotenv.config();
 
@@ -58,11 +58,17 @@ export function getPythPushOracleAddresses(feedId: Buffer): PublicKey[] {
   ];
 }
 
-export async function getBankMetadata(): Promise<BankMetadata[]> {
-  const bankMetadataResponse = await fetch("https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache.json");
-  const stakedBankMetadataResponse = await fetch(
-    "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json"
-  );
+export async function getBankMetadata(env: Environment): Promise<BankMetadata[]> {
+  let bankMetadataUrl = "https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache.json";
+  let stakedBankMetadataUrl = "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json";
+
+  if (env === "staging") {
+    bankMetadataUrl = "https://storage.googleapis.com/mrgn-public/staging-metadata.json";
+    stakedBankMetadataUrl = "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache-test.json";
+  }
+
+  const bankMetadataResponse = await fetch(bankMetadataUrl);
+  const stakedBankMetadataResponse = await fetch(stakedBankMetadataUrl);
   const bankMetadata = (await bankMetadataResponse.json()) as BankMetadata[];
   const stakedBankMetadata = (await stakedBankMetadataResponse.json()) as BankMetadata[];
 

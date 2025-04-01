@@ -17,7 +17,7 @@ async function main() {
     .parseSync();
   const program = getMarginfiProgram(argv.env as Environment);
 
-  const bankMetadata = await getBankMetadata();
+  const bankMetadata = await getBankMetadata(argv.env as Environment);
   const bankAddresses = bankMetadata.map((meta) => new PublicKey(meta.bankAddress));
 
   const banks = await program.account.bank.fetchMultiple(bankAddresses);
