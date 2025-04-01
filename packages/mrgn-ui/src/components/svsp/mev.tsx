@@ -22,7 +22,12 @@ const SVSPMEV = ({ bank, onClaim, className }: SVSPMEVProps) => {
       <p className="mb-4">
         <strong>MEV rewards</strong> earned by the single validator stake pool can be replenished below. Rewards will be
         added to an onramp stake pool, then added to the main pool at the end of the epoch.
-        <Link href="" className="inline-flex items-baseline gap-1 ml-1.5 text-foreground">
+        <Link
+          href="https://docs.marginfi.com/staked-collateral#earning-yield-on-your-stake"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-baseline gap-1 ml-1.5 text-foreground"
+        >
           <IconInfoCircle size={14} className="translate-y-0.5" /> learn more
         </Link>
       </p>
