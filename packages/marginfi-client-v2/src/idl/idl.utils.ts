@@ -3,7 +3,7 @@ import * as MARGINFI_IDL_V0_1_0 from "./marginfi_0.1.0.json";
 import { MarginfiIdlType } from ".";
 
 // GCP storage URLs
-const LATEST_IDL_URL = "https://storage.googleapis.com/mrgn-public/idl/marginfi_latest.json?max-age=40";
+const LATEST_IDL_URL = `https://storage.googleapis.com/mrgn-public/idl/marginfi_latest.json?t=${Date.now()}`;
 
 /**
  * Fetches the latest IDL files from GCP.
