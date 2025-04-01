@@ -430,10 +430,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
               validatorRewards: validatorRates.get(bank.mint.toBase58()) || 0,
               mev: mev.get(validatorVoteAccount.toBase58()) || {
                 pool: 0,
-                onramp: {
-                  active: 0,
-                  activating: 0,
-                },
+                onramp: 0,
               },
             };
           }

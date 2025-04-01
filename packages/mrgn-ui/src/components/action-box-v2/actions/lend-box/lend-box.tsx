@@ -26,6 +26,7 @@ import {
   useIsMobile,
   LendSelectionGroups,
   composeExplorerUrl,
+  executeActionWrapper,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
@@ -42,7 +43,6 @@ import { useLendSimulation } from "./hooks";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
 import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
-import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 // error handling
 export type LendBoxProps = {
@@ -447,28 +447,29 @@ export const LendBox = ({
           bank={selectedBank}
           onClaim={async () => {
             if (!marginfiClient || !selectedBank.meta.stakePool?.validatorVoteAccount) return;
+
             const ix = await replenishPoolIx(selectedBank.meta.stakePool?.validatorVoteAccount);
             const tx = addTransactionMetadata(new Transaction().add(ix), {
               type: TransactionType.INITIALIZE_STAKED_POOL,
             });
-            const toast = toastManager.createMultiStepToast("Claim MEV rewards", [
-              { label: "Signing transaction" },
-              { label: "Claiming SVSP MEV rewards" },
-            ]);
 
-            try {
-              toast.start();
-
-              await marginfiClient.processTransaction(tx, {
-                ...priorityFees,
-                callback(index, success, signature, stepsToAdvance) {
-                  success && toast.successAndNext(stepsToAdvance, composeExplorerUrl(signature), signature);
-                },
-              });
-            } catch (error) {
-              const errorMessage = error instanceof Error ? error.message : String(error);
-              toast.setFailed(errorMessage || "Failed to claim MEV rewards");
-            }
+            await executeActionWrapper({
+              actionName: "Claim MEV rewards",
+              steps: [{ label: "Signing transaction" }, { label: "Claiming SVSP MEV rewards" }],
+              action: async (txns, onSuccessAndNext) => {
+                const sigs = await marginfiClient.processTransactions(txns.transactions, {
+                  broadcastType: "RPC",
+                  ...priorityFees,
+                  callback(index, success, sig, stepsToAdvance) {
+                    success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+                  },
+                });
+                return sigs[0];
+              },
+              txns: {
+                transactions: [tx],
+              },
+            });
           }}
           className="mb-4"
         />

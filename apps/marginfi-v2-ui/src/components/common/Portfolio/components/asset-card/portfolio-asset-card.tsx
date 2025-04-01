@@ -20,7 +20,6 @@ import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi
 import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
 import { capture, cn, composeExplorerUrl, executeActionWrapper } from "@mrgnlabs/mrgn-utils";
 import { ActionBox, SVSPMEV } from "@mrgnlabs/mrgn-ui";
-import { MultiStepToastController, toastManager } from "@mrgnlabs/mrgn-toasts";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
@@ -32,7 +31,6 @@ import { MovePositionDialog } from "../move-position";
 import { TooltipProvider } from "~/components/ui/tooltip";
 import { TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Tooltip } from "~/components/ui/tooltip";
-import { error } from "console";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
