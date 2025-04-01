@@ -249,11 +249,10 @@ export const PortfolioAssetCard = ({
                 });
 
                 await executeActionWrapper({
-                  actionName: "Claim MEV rewards",
-                  steps: [{ label: "Signing transaction" }, { label: "Claiming SVSP MEV rewards" }],
+                  actionName: "Replenish MEV rewards",
+                  steps: [{ label: "Signing transaction" }, { label: "Replenishing SVSP MEV" }],
                   action: async (txns, onSuccessAndNext) => {
                     const sigs = await marginfiClient.processTransactions(txns.transactions, {
-                      broadcastType: "RPC",
                       ...priorityFees,
                       callback(index, success, sig, stepsToAdvance) {
                         success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
