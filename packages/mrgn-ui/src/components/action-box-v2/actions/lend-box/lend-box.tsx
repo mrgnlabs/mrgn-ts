@@ -458,12 +458,16 @@ export const LendBox = ({
               steps: [{ label: "Signing transaction" }, { label: "Replenishing SVSP MEV" }],
               action: async (txns, onSuccessAndNext) => {
                 const sigs = await marginfiClient.processTransactions(txns.transactions, {
+                  broadcastType: "RPC",
                   ...priorityFees,
                   callback(index, success, sig, stepsToAdvance) {
                     success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
                   },
                 });
                 return sigs[0];
+              },
+              onComplete: () => {
+                refreshState();
               },
               txns: {
                 transactions: [tx],
