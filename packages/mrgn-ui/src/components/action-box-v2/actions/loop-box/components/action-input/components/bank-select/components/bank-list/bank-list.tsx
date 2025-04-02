@@ -75,10 +75,9 @@ export const BankList = ({
         const isLending = bank.isActive && bank.position.isLending;
         const isOtherBank = otherBank?.address.equals(bank.address) ?? false;
 
-        isDisabled = isOtherBank || isLending || noNativeBalance;
+        isDisabled = isOtherBank || isLending;
       } else {
-        const isBorrowing = bank.isActive && !bank.position.isLending;
-        isDisabled = isBorrowing || noNativeBalance;
+        isDisabled = noNativeBalance;
       }
 
       return isDisabled;

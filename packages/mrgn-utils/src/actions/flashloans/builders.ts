@@ -300,7 +300,7 @@ export async function calculateLoopingTransaction(props: LoopingProps): Promise<
  */
 export async function loopingBuilder({
   marginfiAccount,
-  // depositAmount,
+  depositAmount,
   actualDepositAmount,
   borrowAmount,
   depositBank,
@@ -332,6 +332,7 @@ export async function loopingBuilder({
       userPublicKey: marginfiAccount.authority.toBase58(),
       programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
       feeAccount: feeAccountInfo ? feeAccount : undefined,
+      wrapAndUnwrapSol: false,
     },
   });
 
@@ -348,10 +349,9 @@ export async function loopingBuilder({
   swapLUTs.push(...(await getAdressLookupTableAccounts(connection, addressLookupTableAddresses)));
   const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
 
-  const borrowOpts = !borrowBank.info.rawBank.mint.equals(WSOL_MINT) ? { createAtas: true } : undefined;
-
   const { transactions, txOverflown } = await marginfiAccount.makeLoopTxV2({
     depositAmount: actualDepositAmount,
+    inputDepositAmount: depositAmount,
     borrowAmount,
     depositBankAddress: depositBank.address,
     borrowBankAddress: borrowBank.address,
@@ -360,13 +360,6 @@ export async function loopingBuilder({
       lookupTables: swapLUTs,
     },
     blockhash,
-    depositOpts: {
-      wrapAndUnwrapSol: true,
-    },
-    borrowOpts,
-    // commented out as looping requires ata to be created within borrow tx
-    // otherwise setupBankAddresses are used to create atas
-    // setupBankAddresses,
   });
 
   return { transactions, txOverflown, lastValidBlockHeight };
@@ -407,6 +400,7 @@ export async function repayWithCollatBuilder({
       userPublicKey: marginfiAccount.authority.toBase58(),
       programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
       feeAccount: feeAccountInfo ? feeAccount : undefined,
+      wrapAndUnwrapSol: false,
     },
   });
   const swapIx = deserializeInstruction(swapInstruction);
@@ -457,6 +451,7 @@ export async function closePositionBuilder({
       userPublicKey: marginfiAccount.authority.toBase58(),
       programAuthorityId: LUT_PROGRAM_AUTHORITY_INDEX,
       feeAccount: feeAccountInfo ? feeAccount : undefined,
+      wrapAndUnwrapSol: false,
     },
   });
   const swapIx = deserializeInstruction(swapInstruction);

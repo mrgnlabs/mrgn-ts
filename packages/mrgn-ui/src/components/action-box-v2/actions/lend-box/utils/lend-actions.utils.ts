@@ -2,7 +2,7 @@ import { PublicKey } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, MarginfiClient, createMarginfiAccountTx } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { SolanaTransaction } from "@mrgnlabs/mrgn-common";
+import { getAssociatedTokenAddressSync, NATIVE_MINT, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { ActionProcessingError, isWholePosition, STATIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
 
 export async function generateActionTxns(props: {
@@ -36,7 +36,6 @@ export async function generateActionTxns(props: {
         if (!props.stakeAccount || !props.bank.meta.stakePool?.validatorVoteAccount) {
           throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.NATIVE_STAKE_NOT_FOUND);
         }
-
         depositTx = await account.makeDepositStakedTx(
           props.amount,
           props.bank.address,
@@ -44,7 +43,18 @@ export async function generateActionTxns(props: {
           props.bank.meta.stakePool?.validatorVoteAccount
         );
       } else {
-        depositTx = await account.makeDepositTx(props.amount, props.bank.address);
+        let wSolBalanceUi = 0;
+        if (props.bank.info.state.mint.equals(NATIVE_MINT)) {
+          const solAta = getAssociatedTokenAddressSync(
+            NATIVE_MINT, // mint
+            props.marginfiClient.wallet.publicKey // owner
+          );
+          wSolBalanceUi = await props.marginfiClient.provider.connection.getBalance(solAta);
+        }
+        depositTx = await account.makeDepositTx(props.amount, props.bank.address, {
+          wrapAndUnwrapSol: true,
+          wSolBalanceUi,
+        });
       }
       return {
         transactions: [...(accountCreationTx ? [accountCreationTx] : []), depositTx],
@@ -84,10 +94,19 @@ export async function generateActionTxns(props: {
         };
       }
     case ActionType.Repay:
+      let wSolBalanceUi = 0;
+      if (props.bank.info.state.mint.equals(NATIVE_MINT)) {
+        const solAta = getAssociatedTokenAddressSync(
+          NATIVE_MINT, // mint
+          props.marginfiClient.wallet.publicKey // owner
+        );
+        wSolBalanceUi = await props.marginfiClient.provider.connection.getBalance(solAta);
+      }
       const repayTx = await account.makeRepayTx(
         props.amount,
         props.bank.address,
-        props.bank.isActive && isWholePosition(props.bank, props.amount)
+        props.bank.isActive && isWholePosition(props.bank, props.amount),
+        { wrapAndUnwrapSol: true, wSolBalanceUi }
       );
       return {
         transactions: [repayTx],
