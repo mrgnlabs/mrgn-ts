@@ -47,9 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ bundleId: bundleResult });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ error: error instanceof Error ? error.message : `${ERROR_TAG} unknown error` });
+    return res.status(500).json({ error: error instanceof Error ? error.message : `${ERROR_TAG} unknown error` });
   }
 }
 
@@ -64,7 +62,6 @@ async function sendBundleWithRetry(bundle: Bundle): Promise<string> {
 
     try {
       const newBundleId = await grpcClient.sendBundle(bundle);
-      console.log("newBundleId", newBundleId);
       if (newBundleId) {
         bundleId = newBundleId;
       }
