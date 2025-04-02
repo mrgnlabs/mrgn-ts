@@ -10,7 +10,7 @@ import BN from "bn.js";
 // ----------------------------------------------------------------------------
 
 interface BalanceRaw {
-  active: boolean;
+  active: boolean | number;
   bankPk: PublicKey;
   assetShares: WrappedI80F48;
   liabilityShares: WrappedI80F48;
@@ -49,7 +49,8 @@ class Balance {
   }
 
   static from(balanceRaw: BalanceRaw): Balance {
-    const active = balanceRaw.active;
+    // Handle both boolean and number (u8) types for active field
+    const active = typeof balanceRaw.active === "number" ? balanceRaw.active === 1 : balanceRaw.active;
     const bankPk = balanceRaw.bankPk;
     const assetShares = wrappedI80F48toBigNumber(balanceRaw.assetShares);
     const liabilityShares = wrappedI80F48toBigNumber(balanceRaw.liabilityShares);

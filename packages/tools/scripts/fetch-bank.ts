@@ -5,7 +5,7 @@ import { loadKeypairFromFile } from "./utils";
 import { assertI80F48Approx, assertKeysEqual } from "./softTests";
 
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
-import { Marginfi } from "../../marginfi-client-v2/src/idl/marginfi-types";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
 import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
 
 const verbose = true;

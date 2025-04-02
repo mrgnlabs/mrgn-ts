@@ -1,5 +1,5 @@
 import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
-import { Marginfi } from "../../marginfi-client-v2/src/idl/marginfi-types";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
 import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
 import { bigNumberToWrappedI80F48, WrappedI80F48 } from "@mrgnlabs/mrgn-common";
 import { AnchorProvider, BN, Program } from "@coral-xyz/anchor";

@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
 
 import { WalletContextState } from "@solana/wallet-adapter-react";
+import { LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/web3.js";
+import { addTransactionMetadata, dynamicNumeralFormatter, TransactionType } from "@mrgnlabs/mrgn-common";
 
 import {
   ExtendedBankInfo,
@@ -13,7 +15,7 @@ import {
   DEFAULT_ACCOUNT_SUMMARY,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { AssetTag, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   ActionMessageType,
@@ -23,13 +25,15 @@ import {
   usePrevious,
   useIsMobile,
   LendSelectionGroups,
+  composeExplorerUrl,
+  executeActionWrapper,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { ActionMessage } from "~/components";
+import { ActionMessage, SVSPMEV } from "~/components";
 
 import { useLendBoxStore } from "./store";
 import { ActionSimulationStatus } from "../../components";
@@ -38,8 +42,7 @@ import { SimulationStatus } from "../../utils";
 import { useLendSimulation } from "./hooks";
 import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
-import { PublicKey } from "@solana/web3.js";
-import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 
 // error handling
 export type LendBoxProps = {
@@ -438,6 +441,43 @@ export const LendBox = ({
             }}
           />
         )}
+
+      {selectedBank && (
+        <SVSPMEV
+          bank={selectedBank}
+          onClaim={async () => {
+            if (!marginfiClient || !selectedBank.meta.stakePool?.validatorVoteAccount) return;
+
+            const ix = await replenishPoolIx(selectedBank.meta.stakePool?.validatorVoteAccount);
+            const tx = addTransactionMetadata(new Transaction().add(ix), {
+              type: TransactionType.INITIALIZE_STAKED_POOL,
+            });
+
+            await executeActionWrapper({
+              actionName: "Replenish MEV rewards",
+              steps: [{ label: "Signing transaction" }, { label: "Replenishing SVSP MEV" }],
+              action: async (txns, onSuccessAndNext) => {
+                const sigs = await marginfiClient.processTransactions(txns.transactions, {
+                  broadcastType: "RPC",
+                  ...priorityFees,
+                  callback(index, success, sig, stepsToAdvance) {
+                    success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+                  },
+                });
+                return sigs[0];
+              },
+              onComplete: () => {
+                refreshState();
+              },
+              txns: {
+                transactions: [tx],
+              },
+            });
+          }}
+          className="mb-4"
+        />
+      )}
+
       {additionalActionMessages.concat(actionMessages).map(
         (actionMessage, idx) =>
           actionMessage.description && (
@@ -477,6 +517,7 @@ export const LendBox = ({
 
         {setDisplaySettings && <ActionSettingsButton onClick={() => setDisplaySettings(true)} />}
       </div>
+
       <Preview
         actionSummary={actionSummary}
         selectedBank={selectedBank}
@@ -484,26 +525,7 @@ export const LendBox = ({
         lendMode={lendMode}
         hidePoolStats={hidePoolStats}
       />
-      {/* Add note regarding this epochs rewards for staked asset banks */}
-      {lendMode === ActionType.Deposit &&
-        selectedBank &&
-        selectedBank.info.rawBank.config.assetTag === 2 &&
-        amount > 0 && (
-          <div className="mt-6 text-[11px] text-muted-foreground font-light">
-            {amount === maxAmount && <p>Accumulated Jito mev rewards may be withdrawn to your wallet on deposit</p>}
-            <p>
-              Staked asset banks do not currently receive Jito mev rewards.{" "}
-              <Link
-                href="https://docs.marginfi.com/staked-collateral#earning-yield-on-your-stake"
-                target="_blank"
-                rel="noreferrer"
-                className="border-b border-muted-foreground/60 transition-colors hover:border-transparent"
-              >
-                Learn more
-              </Link>
-            </p>
-          </div>
-        )}
+
       <LSTDialog
         variant={selectedBank?.meta.tokenSymbol as LSTDialogVariants}
         open={!!lstDialogCallback}

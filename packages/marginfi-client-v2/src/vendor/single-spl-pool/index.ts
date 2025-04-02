@@ -3,7 +3,9 @@ import {
   LAMPORTS_PER_SOL,
   PublicKey,
   STAKE_CONFIG_ID,
+  SYSVAR_CLOCK_PUBKEY,
   SystemProgram,
+  StakeProgram,
   Transaction,
   TransactionInstruction,
 } from "@solana/web3.js";
@@ -19,7 +21,10 @@ import {
   SYSVAR_RENT_ID,
   SYSVAR_STAKE_HISTORY_ID,
   SYSTEM_PROGRAM_ID,
+  addTransactionMetadata,
+  TransactionType,
 } from "@mrgnlabs/mrgn-common";
+import { SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
 
 interface AccountMeta {
   pubkey: PublicKey;
@@ -252,6 +257,7 @@ const findPoolStakeAddress = (poolAddress: PublicKey): PublicKey => findPda(pool
 const findPoolStakeAuthorityAddress = (poolAddress: PublicKey): PublicKey => findPda(poolAddress, "stake_authority");
 const findPoolMintAuthorityAddress = (poolAddress: PublicKey): PublicKey => findPda(poolAddress, "mint_authority");
 const findPoolMplAuthorityAddress = (poolAddress: PublicKey): PublicKey => findPda(poolAddress, "mpl_authority");
+const findPoolOnRampAddress = (poolAddress: PublicKey): PublicKey => findPda(poolAddress, "onramp");
 
 const findMplMetadataAddress = async (poolMintAddress: PublicKey): Promise<PublicKey> => {
   const [pda] = PublicKey.findProgramAddressSync(
@@ -329,6 +335,54 @@ const createAccountIx = (
   return createTransactionInstruction(SYSTEM_PROGRAM_ID, accounts, data);
 };
 
+const createPoolOnrampIx = (voteAccount: PublicKey): TransactionInstruction => {
+  const poolAccount = findPoolAddress(voteAccount);
+  const onRampAccount = findPoolOnRampAddress(poolAccount);
+  const poolStakeAuthority = findPoolStakeAuthorityAddress(poolAccount);
+
+  const keys = [
+    { pubkey: poolAccount, isSigner: false, isWritable: false },
+    { pubkey: onRampAccount, isSigner: false, isWritable: true },
+    { pubkey: poolStakeAuthority, isSigner: false, isWritable: false },
+    { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+    { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    { pubkey: StakeProgram.programId, isSigner: false, isWritable: false },
+  ];
+
+  // TODO don't hard code the instruction index? (or why not, it's not gna change is it?)
+  const data = Buffer.from(Uint8Array.of(6));
+
+  return new TransactionInstruction({
+    keys,
+    programId: SINGLE_POOL_PROGRAM_ID,
+    data,
+  });
+};
+
+const replenishPoolIx = (voteAccount: PublicKey): TransactionInstruction => {
+  const poolAccount = findPoolAddress(voteAccount);
+  const stakePool = findPoolStakeAddress(poolAccount);
+  const onRampPool = findPoolOnRampAddress(poolAccount);
+  const authority = findPoolStakeAuthorityAddress(poolAccount);
+
+  const keys = [
+    { pubkey: voteAccount, isSigner: false, isWritable: false },
+    { pubkey: poolAccount, isSigner: false, isWritable: false },
+    { pubkey: stakePool, isSigner: false, isWritable: true },
+    { pubkey: onRampPool, isSigner: false, isWritable: true },
+    { pubkey: authority, isSigner: false, isWritable: false },
+    { pubkey: SYSVAR_CLOCK_PUBKEY, isSigner: false, isWritable: false },
+    { pubkey: SYSVAR_STAKE_HISTORY_ID, isSigner: false, isWritable: false },
+    { pubkey: STAKE_CONFIG_ID, isSigner: false, isWritable: false },
+    { pubkey: StakeProgram.programId, isSigner: false, isWritable: false },
+  ];
+
+  // TODO don't hard code the instruction index? (or why not, it's not gna change is it?)
+  const data = Buffer.from(Uint8Array.of(1));
+
+  return createTransactionInstruction(SINGLE_POOL_PROGRAM_ID, keys, data);
+};
+
 export {
   SinglePoolInstruction,
   initializeStakedPoolIxs,
@@ -340,6 +394,9 @@ export {
   findPoolMintAuthorityAddress,
   findPoolMplAuthorityAddress,
   findMplMetadataAddress,
+  findPoolOnRampAddress,
   findPoolMintAddressByVoteAccount,
   createAccountIx,
+  createPoolOnrampIx,
+  replenishPoolIx,
 };

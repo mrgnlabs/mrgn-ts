@@ -1,6 +1,6 @@
 import { AccountMeta, Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
 import { Program, AnchorProvider, Wallet, BN } from "@coral-xyz/anchor";
-import { Marginfi } from "../../marginfi-client-v2/src/idl/marginfi-types";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
 import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
 import { I80F48_ONE, loadKeypairFromFile } from "./utils";
 import { assertI80F48Approx, assertKeysEqual } from "./softTests";

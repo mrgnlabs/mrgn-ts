@@ -2,8 +2,8 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { Connection } from "@solana/web3.js";
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types";
-import marginfiIdl from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi.json";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.0";
+import marginfiIdl from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi_0.1.0.json";
 import { loadKeypairFromFile } from "./utils";
 import { Environment, Config } from "./types";
 

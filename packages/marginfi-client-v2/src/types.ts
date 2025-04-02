@@ -1,8 +1,8 @@
 import { PublicKey } from "@solana/web3.js";
-import { Marginfi } from "./idl/marginfi-types";
+import { MarginfiIdlType } from "./idl";
 import { Program } from "@mrgnlabs/mrgn-common";
 
-export type MarginfiProgram = Program<Marginfi>;
+export type MarginfiProgram = Program<MarginfiIdlType>;
 
 /**
  * Supported config environments.

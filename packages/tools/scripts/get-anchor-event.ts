@@ -5,7 +5,7 @@ import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile, SINGLE_POOL_PROGRAM_
 import { assertI80F48Approx, assertKeysEqual } from "./softTests";
 
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
-import { Marginfi } from "../../marginfi-client-v2/src/idl/marginfi-types";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
 import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
 import { getMint } from "@solana/spl-token";
 import { base64, bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";

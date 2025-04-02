@@ -1,8 +1,10 @@
 import React from "react";
 
 import Image from "next/image";
-import { IconAlertTriangle, IconExternalLink, IconFolderShare, IconInfoCircle } from "@tabler/icons-react";
+import Link from "next/link";
 
+import { IconAlertTriangle, IconExternalLink, IconFolderShare, IconInfoCircle } from "@tabler/icons-react";
+import { LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
 import {
   usdFormatter,
   dynamicNumeralFormatter,
@@ -10,12 +12,14 @@ import {
   tokenPriceFormatter,
   percentFormatter,
   shortenAddress,
+  TransactionType,
+  addTransactionMetadata,
 } from "@mrgnlabs/mrgn-common";
+import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { capture } from "@mrgnlabs/mrgn-utils";
-import { ActionBox } from "@mrgnlabs/mrgn-ui";
-import { cn } from "@mrgnlabs/mrgn-utils";
-
+import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
+import { capture, cn, composeExplorerUrl, executeActionWrapper } from "@mrgnlabs/mrgn-utils";
+import { ActionBox, SVSPMEV } from "@mrgnlabs/mrgn-ui";
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
@@ -27,7 +31,6 @@ import { MovePositionDialog } from "../move-position";
 import { TooltipProvider } from "~/components/ui/tooltip";
 import { TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Tooltip } from "~/components/ui/tooltip";
-import Link from "next/link";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -60,6 +63,7 @@ export const PortfolioAssetCard = ({
     state.nativeSolBalance,
     state.accountSummary,
   ]);
+  const [priorityFees] = useUiStore((state) => [state.priorityFees]);
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
@@ -106,7 +110,7 @@ export const PortfolioAssetCard = ({
                 </div>
                 <ul>
                   <li className="font-medium text-lg">{bank.meta.tokenSymbol}</li>
-                  {bank.info.rawBank.config.assetTag === 2 ? (
+                  {bank.info.rawBank.config.assetTag === AssetTag.STAKED ? (
                     <li className="font-normal flex items-center text-sm text-muted-foreground">
                       {bank.meta.stakePool?.validatorRewards && (
                         <>
@@ -117,12 +121,12 @@ export const PortfolioAssetCard = ({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div className="flex items-center gap-1 ml-2">
-                                  <span className="text-xs">Staking APY</span>
+                                  <span className="text-xs">Total APY</span>
                                   <IconInfoCircle size={14} />
                                 </div>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Staking rewards from the validator.</p>
+                                <p>Total rewards from the validator.</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -188,7 +192,7 @@ export const PortfolioAssetCard = ({
           )}
           <div className="bg-background/60 py-3 px-4 rounded-lg">
             <dl className="grid grid-cols-2 gap-y-0.5">
-              {bank.info.rawBank.config.assetTag === 2 && bank.meta.stakePool?.validatorVoteAccount && (
+              {bank.info.rawBank.config.assetTag === AssetTag.STAKED && bank.meta.stakePool?.validatorVoteAccount && (
                 <>
                   <dt className="text-muted-foreground">Validator</dt>
                   <dd className="text-right text-white">
@@ -233,6 +237,41 @@ export const PortfolioAssetCard = ({
               )}
             </dl>
           </div>
+          {bank.info.rawBank.config.assetTag === AssetTag.STAKED && (
+            <SVSPMEV
+              bank={bank}
+              onClaim={async () => {
+                if (!marginfiClient || !bank.meta.stakePool?.validatorVoteAccount) return;
+
+                const ix = await replenishPoolIx(bank.meta.stakePool?.validatorVoteAccount);
+                const tx = addTransactionMetadata(new Transaction().add(ix), {
+                  type: TransactionType.INITIALIZE_STAKED_POOL,
+                });
+
+                await executeActionWrapper({
+                  actionName: "Replenish MEV rewards",
+                  steps: [{ label: "Signing transaction" }, { label: "Replenishing SVSP MEV" }],
+                  action: async (txns, onSuccessAndNext) => {
+                    const sigs = await marginfiClient.processTransactions(txns.transactions, {
+                      broadcastType: "RPC",
+                      ...priorityFees,
+                      callback(index, success, sig, stepsToAdvance) {
+                        success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+                      },
+                    });
+                    return sigs[0];
+                  },
+                  onComplete: () => {
+                    fetchMrgnlendState();
+                  },
+                  txns: {
+                    transactions: [tx],
+                  },
+                });
+              }}
+              className="mb-4"
+            />
+          )}
           <div className="flex w-full gap-3">
             <PortfolioAction
               requestedBank={bank}

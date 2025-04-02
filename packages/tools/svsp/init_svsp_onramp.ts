@@ -10,17 +10,20 @@ import {
 } from "@solana/web3.js";
 import { loadKeypairFromFile } from "../scripts/utils";
 import { createPoolOnramp, deriveOnRampPool, deriveStakePool, deriveSVSPpool, getStakeAccount } from "./stake-utils";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 type Config = {
   VOTE_ACCOUNT: PublicKey;
 };
 const config: Config = {
-  VOTE_ACCOUNT: new PublicKey("9us7TgKiJSz5fqT5Eb8ghV6b2C87zxv2VbXUWbbK5GRJ"),
+  VOTE_ACCOUNT: new PublicKey("CooLbbZy5Xmdt7DiHPQ3ss2uRXawnTXXVgpMS8E8jDzr"),
 };
 
 async function main() {
-  const connection = new Connection("http://127.0.0.1:8899", "confirmed");
-  const wallet = loadKeypairFromFile(process.env.HOME + "/keys/staging-deploy.json");
+  const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT, "confirmed");
+  const wallet = loadKeypairFromFile(process.env.MARGINFI_WALLET);
   console.log("payer: " + wallet.publicKey);
 
   const [svspPool] = deriveSVSPpool(config.VOTE_ACCOUNT);

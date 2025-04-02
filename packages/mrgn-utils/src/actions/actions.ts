@@ -50,7 +50,7 @@ function getSteps(actionTxns: ActionTxns, infoProps: Record<string, any>) {
   ];
 }
 
-async function executeActionWrapper(props: {
+export async function executeActionWrapper(props: {
   action: (
     txns: ActionTxns,
     onSuccessAndNext: (stepsToAdvance: number | undefined, explorerUrl?: string, signature?: string) => void

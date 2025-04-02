@@ -1,15 +1,15 @@
 import { BorshCoder } from "@coral-xyz/anchor";
-import { PublicKey, Keypair, Connection, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, StakeProgram, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
-import { MARGINFI_IDL, MarginfiIdlType } from "../idl";
-import { AccountType, BankVaultType, MarginfiProgram } from "../types";
-import { InstructionsWrapper, SINGLE_POOL_PROGRAM_ID, TOKEN_PROGRAM_ID, getMint } from "@mrgnlabs/mrgn-common";
+
+import { InstructionsWrapper, SINGLE_POOL_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+
+import { MarginfiIdlType } from "../idl";
+import { AccountType, MarginfiProgram } from "../types";
 import instructions from "../instructions";
 import { FLASHLOAN_ENABLED_FLAG, TRANSFER_ACCOUNT_AUTHORITY_FLAG } from "../constants";
 import { BankConfigCompactRaw, BankConfigOpt, BankConfigOptRaw, serializeBankConfigOpt } from "../services";
-import { BigNumber } from "bignumber.js";
-import { sha256 } from "crypto-hash";
-import { findPoolAddress, findPoolMintAddress, findPoolStakeAddress } from "../vendor";
+import { findPoolAddress, findPoolMintAddress, findPoolOnRampAddress, findPoolStakeAddress } from "../vendor";
 
 // ----------------------------------------------------------------------------
 // On-chain types
@@ -180,6 +180,25 @@ class MarginfiGroup {
     const poolAddress = findPoolAddress(voteAccountAddress);
     const solPool = findPoolStakeAddress(poolAddress);
     const lstMint = findPoolMintAddress(poolAddress);
+    const onRampAddress = findPoolOnRampAddress(poolAddress);
+
+    const keys = [
+      { pubkey: poolAddress, isSigner: false, isWritable: false },
+      { pubkey: onRampAddress, isSigner: false, isWritable: true },
+      { pubkey: solPool, isSigner: false, isWritable: false },
+      { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+      { pubkey: StakeProgram.programId, isSigner: false, isWritable: false },
+    ];
+
+    // TODO don't hard code the instruction index? (or why not, it's not gna change is it?)
+    const data = Buffer.from(Uint8Array.of(6));
+
+    const onrampIx = new TransactionInstruction({
+      keys,
+      programId: SINGLE_POOL_PROGRAM_ID,
+      data,
+    });
 
     const ix = await instructions.makePoolAddPermissionlessStakedBankIx(
       program,
@@ -199,7 +218,7 @@ class MarginfiGroup {
     );
 
     return {
-      instructions: [ix],
+      instructions: [ix, onrampIx],
       keys: [],
     };
   }

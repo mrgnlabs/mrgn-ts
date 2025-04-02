@@ -45,6 +45,8 @@ interface MarginfiAccountRaw {
   authority: PublicKey;
   lendingAccount: { balances: BalanceRaw[] };
   accountFlags: BN;
+  padding0?: BN[];
+  padding1?: BN[];
 }
 
 type MarginRequirementTypeRaw = { initial: {} } | { maintenance: {} } | { equity: {} };
@@ -144,10 +146,18 @@ class MarginfiAccount {
     const [assets, liabilities] = filteredBalances
       .map((accountBalance) => {
         const bank = banks.get(accountBalance.bankPk.toBase58());
-        if (!bank) throw Error(`1Bank ${shortenAddress(accountBalance.bankPk)} not found`);
+        if (!bank) {
+          console.warn(`Bank ${shortenAddress(accountBalance.bankPk)} not found, excluding from health computation`);
+          return [new BigNumber(0), new BigNumber(0)];
+        }
 
         const priceInfo = oraclePrices.get(accountBalance.bankPk.toBase58());
-        if (!priceInfo) throw Error(`2Bank ${shortenAddress(accountBalance.bankPk)} not found`);
+        if (!priceInfo) {
+          console.warn(
+            `Price info for bank ${shortenAddress(accountBalance.bankPk)} not found, excluding from health computation`
+          );
+          return [new BigNumber(0), new BigNumber(0)];
+        }
 
         const { assets, liabilities } = accountBalance.getUsdValueWithPriceBias(bank, priceInfo, marginReqType);
         return [assets, liabilities];
@@ -173,10 +183,18 @@ class MarginfiAccount {
     const [assets, liabilities] = this.activeBalances
       .map((accountBalance) => {
         const bank = banks.get(accountBalance.bankPk.toBase58());
-        if (!bank) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
+        if (!bank) {
+          console.warn(`Bank ${shortenAddress(accountBalance.bankPk)} not found, excluding from health computation`);
+          return [new BigNumber(0), new BigNumber(0)];
+        }
 
         const priceInfo = oraclePrices.get(accountBalance.bankPk.toBase58());
-        if (!priceInfo) throw Error(`Bank ${shortenAddress(accountBalance.bankPk)} not found`);
+        if (!priceInfo) {
+          console.warn(
+            `Price info for bank ${shortenAddress(accountBalance.bankPk)} not found, excluding from health computation`
+          );
+          return [new BigNumber(0), new BigNumber(0)];
+        }
 
         const { assets, liabilities } = accountBalance.computeUsdValue(bank, priceInfo, marginReqType);
         return [assets, liabilities];
@@ -210,10 +228,18 @@ class MarginfiAccount {
     const apr = this.activeBalances
       .reduce((weightedApr, balance) => {
         const bank = banks.get(balance.bankPk.toBase58());
-        if (!bank) throw Error(`Bank ${balance.bankPk.toBase58()} not found`);
+        if (!bank) {
+          console.warn(`Bank ${shortenAddress(balance.bankPk)} not found, excluding from APY computation`);
+          return weightedApr;
+        }
 
         const priceInfo = oraclePrices.get(balance.bankPk.toBase58());
-        if (!priceInfo) throw Error(`Bank ${shortenAddress(balance.bankPk)} not found`);
+        if (!priceInfo) {
+          console.warn(
+            `Price info for bank ${shortenAddress(balance.bankPk)} not found, excluding from APY computation`
+          );
+          return weightedApr;
+        }
 
         return weightedApr
           .minus(

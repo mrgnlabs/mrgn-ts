@@ -11,6 +11,8 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
+
+import { Program } from "@mrgnlabs/mrgn-common";
 import {
   PDA_BANK_FEE_VAULT_AUTH_SEED,
   PDA_BANK_FEE_VAULT_SEED,
@@ -20,7 +22,7 @@ import {
   PDA_BANK_LIQUIDITY_VAULT_SEED,
   PYTH_PUSH_ORACLE_ID,
 } from "./constants";
-import { BankVaultType } from "./types";
+import { BankVaultType, MarginfiProgram } from "./types";
 import {
   NATIVE_MINT,
   createAssociatedTokenAccountIdempotentInstruction,
@@ -31,9 +33,8 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import { BankConfig, BankConfigRaw, OracleSetup, parseOracleSetup } from ".";
-import { readBigUInt64LE } from "./vendor/pyth_legacy/readBig";
-import { func } from "superstruct";
 import { parsePriceInfo } from "./vendor";
+import { MarginfiIdlTypeV0_1_0, MarginfiIdlTypeV0_1_2 } from "./idl";
 
 export function getBankVaultSeeds(type: BankVaultType): Buffer {
   switch (type) {
@@ -250,4 +251,10 @@ function u16ToArrayBufferLE(value: number): Uint8Array {
 
   // Return the buffer
   return new Uint8Array(buffer);
+}
+
+// Helper function to check if a program is using MarginfiIdl version 0.1.2
+export function isV0_1_2Program(program: MarginfiProgram): boolean {
+  if (!program || !program.idl || !program.idl.metadata) return false;
+  return program.idl.metadata.version === "0.1.2";
 }

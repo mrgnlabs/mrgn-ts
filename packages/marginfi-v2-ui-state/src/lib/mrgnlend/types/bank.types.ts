@@ -7,6 +7,10 @@ interface StakePoolMetadata {
   validatorVoteAccount: PublicKey;
   validatorRewards: number;
   isActive: boolean;
+  mev: {
+    pool: number;
+    onramp: number;
+  };
 }
 
 interface ExtendedBankMetadata {

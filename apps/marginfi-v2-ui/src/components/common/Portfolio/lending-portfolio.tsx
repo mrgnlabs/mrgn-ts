@@ -7,7 +7,7 @@ import { IconInfoCircle, IconX } from "@tabler/icons-react";
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { cn, ExecuteActionProps, ExecuteCollectRewardsAction, usePrevious } from "@mrgnlabs/mrgn-utils";
+import { cn, ExecuteActionProps, ExecuteCollectRewardsAction, usePrevious, useConnection } from "@mrgnlabs/mrgn-utils";
 import { CustomToastType, toastManager } from "@mrgnlabs/mrgn-toasts";
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
@@ -33,6 +33,7 @@ const initialRewardsState: RewardsType = {
 
 export const LendingPortfolio = () => {
   const { connected } = useWallet();
+  const { connection } = useConnection();
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
   const [
     isStoreInitialized,

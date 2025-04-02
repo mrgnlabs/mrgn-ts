@@ -2,12 +2,12 @@ import { Connection, LAMPORTS_PER_SOL, ParsedAccountData, PublicKey, StakeProgra
 
 import { MAX_U64 } from "@mrgnlabs/mrgn-common";
 import { vendor } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, ValidatorStakeGroup } from "../types";
+import { ExtendedBankInfo, StakeAccount, ValidatorStakeGroup } from "../types";
 import {
   findPoolAddress,
   findPoolMintAddress,
   findPoolStakeAddress,
-  getStakeAccount,
+  findPoolOnRampAddress,
 } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 
 /**
@@ -209,12 +209,12 @@ const getStakePoolActiveStates = async (
 
   const poolStakeAccounts = Object.fromEntries(
     (await connection.getMultipleAccountsInfo(poolStakeAddressKeys.map((key) => new PublicKey(key)))).map(
-      (ai, index) => [poolStakeAddressRecord[poolStakeAddressKeys[index]], ai?.data ? getStakeAccount(ai.data) : null]
+      (ai, index) => [poolStakeAddressRecord[poolStakeAddressKeys[index]], ai?.data || null]
     )
   );
 
   validatorVoteAccounts.map(async (validatorVoteAccount) => {
-    const stakeAccount = poolStakeAccounts[validatorVoteAccount.toBase58()];
+    const stakeAccount = getStakeAccount(poolStakeAccounts[validatorVoteAccount.toBase58()]);
     const poolMintAddress = poolMintAddressRecord[validatorVoteAccount.toBase58()];
 
     if (!stakeAccount) {
@@ -258,7 +258,7 @@ const getValidatorRates = async (validatorVoteAccounts: PublicKey[]): Promise<Ma
         }
 
         const data = await response.json();
-        rates.set(poolMintAddress.toBase58(), data.data?.staking_apy ?? 0);
+        rates.set(poolMintAddress.toBase58(), data.data?.total_apy ?? 0);
       } catch (error) {
         console.error("Error fetching validator rate:", error);
         rates.set(poolMintAddress.toBase58(), 0);
@@ -269,10 +269,144 @@ const getValidatorRates = async (validatorVoteAccounts: PublicKey[]): Promise<Ma
   return rates;
 };
 
+const getStakeAccount = function (data: Buffer): StakeAccount {
+  let offset = 0;
+
+  // Discriminant (4 bytes)
+  const discriminant = data.readUInt32LE(offset);
+  offset += 4;
+
+  // Meta
+  const rentExemptReserve = data.readBigUInt64LE(offset);
+  offset += 8;
+
+  // Authorized staker and withdrawer (2 public keys)
+  const staker = new PublicKey(data.subarray(offset, offset + 32));
+  offset += 32;
+  const withdrawer = new PublicKey(data.subarray(offset, offset + 32));
+  offset += 32;
+
+  // Lockup: unixTimestamp, epoch, custodian
+  const unixTimestamp = data.readBigUInt64LE(offset);
+  offset += 8;
+  const epoch = data.readBigUInt64LE(offset);
+  offset += 8;
+  const custodian = new PublicKey(data.subarray(offset, offset + 32));
+  offset += 32;
+
+  // Stake: Delegation
+  const voterPubkey = new PublicKey(data.subarray(offset, offset + 32));
+  offset += 32;
+  const stake = data.readBigUInt64LE(offset);
+  offset += 8;
+  const activationEpoch = data.readBigUInt64LE(offset);
+  offset += 8;
+  const deactivationEpoch = data.readBigUInt64LE(offset);
+  offset += 8;
+
+  // Credits observed
+  const creditsObserved = data.readBigUInt64LE(offset);
+
+  // Return the parsed StakeAccount object
+  return {
+    discriminant,
+    meta: {
+      rentExemptReserve,
+      authorized: {
+        staker,
+        withdrawer,
+      },
+      lockup: {
+        unixTimestamp,
+        epoch,
+        custodian,
+      },
+    },
+    stake: {
+      delegation: {
+        voterPubkey,
+        stake,
+        activationEpoch,
+        deactivationEpoch,
+      },
+      creditsObserved,
+    },
+  };
+};
+
+const getStakePoolMev = async (
+  connection: Connection,
+  validatorVoteAccounts: PublicKey[]
+): Promise<
+  Map<
+    string,
+    {
+      pool: number;
+      onramp: number;
+    }
+  >
+> => {
+  const poolAddressRecord: Record<string, PublicKey> = {};
+  const poolStakeAddressRecord: Record<string, PublicKey> = {};
+  const onRampAddressRecord: Record<string, PublicKey> = {};
+  const mev = new Map<
+    string,
+    {
+      pool: number;
+      onramp: number;
+    }
+  >();
+
+  validatorVoteAccounts.forEach((validatorVoteAccount) => {
+    const poolAddress = findPoolAddress(validatorVoteAccount);
+    const poolStakeAddress = findPoolStakeAddress(poolAddress);
+    const onRampAddress = findPoolOnRampAddress(poolAddress);
+
+    poolAddressRecord[validatorVoteAccount.toBase58()] = poolAddress;
+    poolStakeAddressRecord[validatorVoteAccount.toBase58()] = poolStakeAddress;
+    onRampAddressRecord[validatorVoteAccount.toBase58()] = onRampAddress;
+  });
+
+  const poolStakeAddresses = validatorVoteAccounts.map(
+    (validatorVoteAccount) => poolStakeAddressRecord[validatorVoteAccount.toBase58()]
+  );
+  const onRampAddresses = validatorVoteAccounts.map(
+    (validatorVoteAccount) => onRampAddressRecord[validatorVoteAccount.toBase58()]
+  );
+
+  const allAddresses = [...poolStakeAddresses, ...onRampAddresses];
+
+  return connection.getMultipleAccountsInfo(allAddresses).then((accountInfos) => {
+    const poolStakeInfos = accountInfos.slice(0, poolStakeAddresses.length);
+    const onRampInfos = accountInfos.slice(poolStakeAddresses.length);
+    const rent = 2282280;
+
+    validatorVoteAccounts.forEach((validatorVoteAccount, index) => {
+      const poolStakeInfo = poolStakeInfos[index];
+      const onRampInfo = onRampInfos[index];
+
+      if (poolStakeInfo && onRampInfo) {
+        const stakeDecoded = getStakeAccount(poolStakeInfo.data);
+        const onrampDecoded = getStakeAccount(onRampInfo.data);
+        const poolLamps = poolStakeInfo.lamports - rent - Number(stakeDecoded.stake.delegation.stake.toString());
+        const onrampStake = Number(onrampDecoded.stake.delegation.stake.toString());
+
+        mev.set(validatorVoteAccount.toBase58(), {
+          pool: poolLamps >= 1000 ? poolLamps : 0,
+          onramp: onrampStake,
+        });
+      }
+    });
+
+    return mev;
+  });
+};
+
 export {
   getStakeAccountsCached,
   filterStakedAssetBanks,
   getStakeAccounts,
   getStakePoolActiveStates,
   getValidatorRates,
+  getStakePoolMev,
 };

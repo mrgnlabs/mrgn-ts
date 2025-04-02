@@ -46,8 +46,6 @@ import {
   OraclePrice,
   ADDRESS_LOOKUP_TABLE_FOR_GROUP,
   MarginfiAccountRaw,
-  MARGINFI_IDL,
-  MarginfiIdlType,
   BankConfigOpt,
   BankConfig,
   OracleSetup,
@@ -64,6 +62,7 @@ import {
 import { BundleSimulationError, simulateBundle } from "../services/transaction/helpers";
 import { getStakeAccount, StakeAccount } from "../vendor";
 import BigNumber from "bignumber.js";
+import { fetchLatestIdl } from "../idl/idl.utils";
 
 export type BankMap = Map<string, Bank>;
 export type OraclePriceMap = Map<string, OraclePrice>;
@@ -171,6 +170,8 @@ class MarginfiClient {
       connection.rpcEndpoint
     );
 
+    const programIdl = await fetchLatestIdl();
+
     const confirmOpts = clientOptions?.confirmOpts ?? {};
     const readOnly = clientOptions?.readOnly ?? false;
     const preloadedBankAddresses = clientOptions?.preloadedBankAddresses;
@@ -181,7 +182,7 @@ class MarginfiClient {
       ...confirmOpts,
     });
 
-    const idl = { ...(MARGINFI_IDL as unknown as MarginfiIdlType), address: config.programId.toBase58() };
+    const idl = { ...programIdl, address: config.programId.toBase58() };
 
     const program = new Program(idl, provider) as any as MarginfiProgram;
 
@@ -190,7 +191,7 @@ class MarginfiClient {
       if (!bankMetadataMap) {
         bankMetadataMap = {
           ...(await loadBankMetadatas()),
-          ...(await loadStakedBankMetadatas()),
+          ...(await loadStakedBankMetadatas(`${process.env.NEXT_PUBLIC_STAKING_BANKS}`)),
         };
       }
     } catch (error) {

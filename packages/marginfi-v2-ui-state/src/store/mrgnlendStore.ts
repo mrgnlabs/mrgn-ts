@@ -26,6 +26,7 @@ import {
   getStakeAccountsCached,
   ValidatorStakeGroup,
   getValidatorRates,
+  getStakePoolMev,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -212,7 +213,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   }) => {
     try {
       const { MarginfiClient } = await import("@mrgnlabs/marginfi-client-v2");
-      const { loadBankMetadatas, loadTokenMetadatas } = await import("@mrgnlabs/mrgn-common");
+      const { loadBankMetadatas, loadStakedBankMetadatas, loadTokenMetadatas } = await import("@mrgnlabs/mrgn-common");
 
       let userDataFetched = false;
 
@@ -269,11 +270,11 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       }
 
       // fetch staked asset metadata
-      const stakedAssetBankMetadataMap = await loadBankMetadatas(
-        `https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json?time=${new Date().getTime()}`
+      const stakedAssetBankMetadataMap = await loadStakedBankMetadatas(
+        `${process.env.NEXT_PUBLIC_STAKING_BANKS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json"}?t=${new Date().getTime()}`
       );
       const stakedAssetTokenMetadataMap = await loadTokenMetadatas(
-        `https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json?time=${new Date().getTime()}`
+        `${process.env.NEXT_PUBLIC_STAKING_TOKENS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json"}?t=${new Date().getTime()}`
       );
 
       // merge staked asset metadata with main group metadata
@@ -396,6 +397,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           return new PublicKey(bankMetadata.validatorVoteAccount || "");
         });
       const stakePoolActiveStates = await getStakePoolActiveStates(connection, validatorVoteAccounts);
+      const mev = await getStakePoolMev(connection, validatorVoteAccounts);
       const validatorRates = await getValidatorRates(validatorVoteAccounts);
 
       let [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
@@ -423,9 +425,13 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
               bankMetadataMap[bank.address.toBase58()].validatorVoteAccount || ""
             );
             stakedAssetMetadata = {
+              isActive,
               validatorVoteAccount,
               validatorRewards: validatorRates.get(bank.mint.toBase58()) || 0,
-              isActive,
+              mev: mev.get(validatorVoteAccount.toBase58()) || {
+                pool: 0,
+                onramp: 0,
+              },
             };
           }
 
