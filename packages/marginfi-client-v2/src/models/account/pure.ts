@@ -653,6 +653,12 @@ class MarginfiAccount {
       ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }]
       : [];
 
+    const depositIxs = [];
+
+    if (bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol) {
+      depositIxs.push(...makeWrapSolIxs(this.authority, new BigNumber(amount).minus(wSolBalanceUi)));
+    }
+
     const depositIx = await instructions.makeDepositIx(
       program,
       {
@@ -666,11 +672,7 @@ class MarginfiAccount {
       { amount: uiToNative(amount, bank.mintDecimals) },
       remainingAccounts
     );
-    const depositIxs = [depositIx];
-
-    if (bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol) {
-      depositIxs.push(...makeWrapSolIxs(this.authority, new BigNumber(amount).minus(wSolBalanceUi)));
-    }
+    depositIxs.push(depositIx);
 
     return {
       instructions: depositIxs,
@@ -709,6 +711,10 @@ class MarginfiAccount {
       ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }]
       : [];
 
+    if (bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol) {
+      repayIxs.push(...makeWrapSolIxs(this.authority, new BigNumber(amount).minus(wSolBalanceUi)));
+    }
+
     const repayIx = await instructions.makeRepayIx(
       program,
       {
@@ -723,10 +729,6 @@ class MarginfiAccount {
       remainingAccounts
     );
     repayIxs.push(repayIx);
-
-    if (bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol) {
-      repayIxs.push(...makeWrapSolIxs(this.authority, new BigNumber(amount).minus(wSolBalanceUi)));
-    }
 
     return {
       instructions: repayIxs,
@@ -898,7 +900,12 @@ class MarginfiAccount {
 
     let ixs = [];
 
-    const userAta = getAssociatedTokenAddressSync(bank.emissionsMint, this.authority, true, mintData.emissionTokenProgram); // We allow off curve addresses here to support Fuse.
+    const userAta = getAssociatedTokenAddressSync(
+      bank.emissionsMint,
+      this.authority,
+      true,
+      mintData.emissionTokenProgram
+    ); // We allow off curve addresses here to support Fuse.
     const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
       this.authority,
       userAta,
