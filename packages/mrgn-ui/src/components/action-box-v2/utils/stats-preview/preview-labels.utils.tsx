@@ -40,6 +40,8 @@ export function getLeverageStat(
   isLoading: boolean,
   isSimulated: boolean
 ): PreviewStat {
+  console.log("depositBank", depositBank.meta.tokenSymbol);
+  console.log("borrowBank", borrowBank.meta.tokenSymbol);
   const depositValue = depositBank.isActive ? depositBank.position.usdValue : 0;
   const borrowValue = borrowBank.isActive ? borrowBank.position.usdValue : 0;
 
@@ -173,11 +175,7 @@ export function getHealthStat(health: number, isLoading: boolean, simulationHeal
         {(isSimulated || isLoading) && (
           <>
             <IconArrowRight width={12} height={12} />
-            {isLoading ? (
-              <Skeleton className="h-4 w-[45px] bg-muted" />
-            ) : (
-              percentFormatter.format(simulationHealth ?? 0)
-            )}
+            {isLoading ? <Skeleton className="h-4 w-[45px] bg-muted" /> : percentFormatter.format(computeHealth ?? 0)}
           </>
         )}
       </>
@@ -336,15 +334,22 @@ export function getBankTypeStat(bank: ExtendedBankInfo): PreviewStat {
 export function getOracleStat(bank: ExtendedBankInfo): PreviewStat {
   let oracle = "";
   let oracleIcon = <></>;
+
+  console.log("oracle", bank?.info.rawBank.config.oracleSetup);
   switch (bank?.info.rawBank.config.oracleSetup) {
     case "PythLegacy":
       oracle = "Pyth";
+      oracleIcon = <IconPyth size={14} />;
       break;
     case "PythPushOracle":
       oracle = "Pyth";
       oracleIcon = <IconPyth size={14} />;
       break;
     case "SwitchboardV2":
+      oracle = "Switchboard";
+      oracleIcon = <IconSwitchboard size={14} />;
+      break;
+    case "SwitchboardPull":
       oracle = "Switchboard";
       oracleIcon = <IconSwitchboard size={14} />;
       break;

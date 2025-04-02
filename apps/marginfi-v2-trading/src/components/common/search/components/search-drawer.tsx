@@ -24,11 +24,6 @@ const SearchDrawer = ({ pools, filter, trigger }: SearchDrawerProps) => {
             <CommandInput placeholder="Search pools by token or mint address..." autoFocus />
             <SearchList pools={pools} setOpen={setOpen} />
           </Command>
-          <DrawerClose asChild>
-            <Button variant="outline" className="mt-4 w-full">
-              Close
-            </Button>
-          </DrawerClose>
         </div>
       </DrawerContent>
     </Drawer>

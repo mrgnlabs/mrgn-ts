@@ -45,7 +45,9 @@ export const Preview = ({
                     ? "text-success"
                     : stat.color === "ALERT"
                       ? "text-alert-foreground"
-                      : "text-destructive-foreground")
+                      : stat.color === "DESTRUCTIVE"
+                        ? "text-alert-foreground"
+                        : "text-primary-foreground")
               )}
             >
               <stat.value />

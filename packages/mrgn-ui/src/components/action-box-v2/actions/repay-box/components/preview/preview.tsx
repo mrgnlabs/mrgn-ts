@@ -20,7 +20,7 @@ import {
 
 export type PreviewProps = {
   actionSummary: ActionSummary;
-  depositBank: ExtendedBankInfo;
+  depositBank: ExtendedBankInfo | null;
   borrowBank: ExtendedBankInfo | null;
   depositAmount: number;
   borrowAmount: number;
