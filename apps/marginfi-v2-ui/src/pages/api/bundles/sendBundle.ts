@@ -18,7 +18,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!Array.isArray(transactions) || transactions.some((tx) => typeof tx !== "string")) {
     return res.status(400).json({ error: "Invalid transactions format" });
   }
-  let bundleId = "";
 
   try {
     const grpcClient = searcherClient(JITO_ENDPOINT);
@@ -37,8 +36,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error(`${ERROR_TAG} failed to add transactions`);
     }
 
-    bundleId = await grpcClient.sendBundle(bundle);
-
     const bundleResult = await Promise.race([
       sendBundleWithRetry(bundle),
       setTimeoutPromise(TIMEOUT_DURATION, `${ERROR_TAG} timout after ${TIMEOUT_DURATION / 1000} seconds.`),
@@ -50,9 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ bundleId: bundleResult });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ error: error instanceof Error ? error.message : `${ERROR_TAG} unknown error`, bundleId });
+    return res.status(500).json({ error: error instanceof Error ? error.message : `${ERROR_TAG} unknown error` });
   }
 }
 
@@ -133,6 +128,9 @@ export function getBundleResult(grpcClient: SearcherClient) {
       if (bundleResult.accepted || bundleResult.finalized || bundleResult.processed) {
         resolve(bundleResult.bundleId);
       } else if (bundleResult.rejected) {
+        if (bundleResult.rejected.simulationFailure?.msg?.includes("This transaction has already been processed")) {
+          resolve(bundleResult.bundleId);
+        }
         reject(new BundleError(`${ERROR_TAG} rejected by the block-engine.`, "rejected"));
       } else if (bundleResult.dropped) {
         reject(new BundleError(`${ERROR_TAG} never landed on-chain.`, "dropped"));
