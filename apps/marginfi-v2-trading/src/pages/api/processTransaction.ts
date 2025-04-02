@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const response = await fetch(`${process.env.MARGINFI_API_URL}/arena/process-transactions`, {
+    const response = await fetch(`${process.env.MARGINFI_API_URL}/v1/arena/create-dune-request`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -34,13 +34,15 @@ type PoolListBank = {
 
 export type PoolListApiResponseRaw = {
   data: PoolListApiResponse[];
+  error: any | null;
   metadata: {
-    total_items: number;
-    total_pages: number;
     current_page: number;
-    page_size: number;
+    failed_pools: null | any[];
     has_next_page: boolean;
     has_previous_page: boolean;
+    page_size: number;
+    total_items: number;
+    total_pages: number;
   };
 };
 
@@ -129,19 +131,17 @@ export type OraclePriceV2ApiResponse = {
  * Type definitions for the /api/pool/pnl endpoint
  */
 export type PoolPnlMapApiResponse = {
-  pools: {
-    [key: string]: {
-      realized_pnl: number;
-      unrealized_pnl: number;
-      total_pnl: number;
-      current_position: number;
-      mark_price: number;
-      quote_price_usd: number;
-      entry_prices: number[] | null;
-      realized_pnl_usd: number;
-      unrealized_pnl_usd: number;
-      total_pnl_usd: number;
-    };
+  [key: string]: {
+    realized_pnl: number;
+    unrealized_pnl: number;
+    total_pnl: number;
+    current_position: number;
+    mark_price: number;
+    quote_price_usd: number;
+    entry_prices: number[] | null;
+    realized_pnl_usd: number;
+    unrealized_pnl_usd: number;
+    total_pnl_usd: number;
   };
 };
 

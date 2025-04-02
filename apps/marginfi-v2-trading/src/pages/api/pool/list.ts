@@ -1,4 +1,3 @@
-import cookie from "cookie";
 import { NextApiRequest, NextApiResponse } from "next";
 import { PoolListApiResponse, PoolListApiResponseRaw } from "~/types/api.types";
 
@@ -16,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const response = await fetch(`${process.env.MARGINFI_API_URL}/arena/pools`, {
+    const response = await fetch(`${process.env.MARGINFI_API_URL}/v1/arena/pools`, {
       headers: {
         Accept: "application/json",
         "X-API-Key": process.env.MRGN_ARENA_API_KEY,

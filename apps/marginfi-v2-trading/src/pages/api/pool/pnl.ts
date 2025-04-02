@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { address } = req.query;
 
   try {
-    const response = await fetch(`${process.env.MARGINFI_API_URL}/arena/pnl/${address}`, {
+    const response = await fetch(`${process.env.MARGINFI_API_URL}/v1/arena/pnl/${address}`, {
       headers: {
         Accept: "application/json",
         "X-API-Key": process.env.MRGN_ARENA_API_KEY,
@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const data: PoolPnlMapApiResponse = (await response.json()).data;
 
-    const poolsArray: PoolPnlApiResponse[] = Object.entries(data.pools).map(([group, poolData]) => ({
+    const poolsArray: PoolPnlApiResponse[] = Object.entries(data).map(([group, poolData]) => ({
       group,
       ...poolData,
     }));
