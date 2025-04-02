@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { base_bank, created_by, group, lookup_tables, quote_bank } = req.body;
 
-    const response = await fetch(`${process.env.MARGINFI_API_URL}/arena/register`, {
+    const response = await fetch(`${process.env.MARGINFI_API_URL}/v1/arena/pools`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
