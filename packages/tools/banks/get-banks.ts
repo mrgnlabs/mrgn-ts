@@ -36,7 +36,7 @@ async function main() {
       Symbol: bankMeta?.tokenSymbol,
       Address: bankAddress,
       Mint: item.mint.toString(),
-      Type: item.config.riskTier.isolated ? "Isolated" : "Collateral",
+      Type: item.config.assetTag === 2 ? "Native Stake" : item.config.riskTier.collateral ? "Global" : "Isolated",
       Price: price ? `$${formatNumber(Number(price))}` : "N/A",
     };
   });
