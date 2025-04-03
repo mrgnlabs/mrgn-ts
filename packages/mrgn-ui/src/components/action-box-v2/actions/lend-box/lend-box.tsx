@@ -442,8 +442,9 @@ export const LendBox = ({
           />
         )}
 
-      {selectedBank && (
+      {selectedBank && lendMode === ActionType.Withdraw && (
         <SVSPMEV
+          className="hidden md:block mb-4"
           bank={selectedBank}
           onClaim={async () => {
             if (!marginfiClient || !selectedBank.meta.stakePool?.validatorVoteAccount) return;
@@ -474,7 +475,6 @@ export const LendBox = ({
               },
             });
           }}
-          className="mb-4"
         />
       )}
 
