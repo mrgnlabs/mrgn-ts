@@ -153,24 +153,8 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
         size: 170,
         cell: (props) => getValidatorRateCell(props.getValue()),
         header: (header) => (
-          <HeaderWrapper
-            header={header}
-            align="right"
-            infoTooltip={
-              <p>
-                Validator staking rewards. Staked assets do not currently receive Jito MEV rewards.{" "}
-                <Link
-                  href="https://docs.marginfi.com/staked-collateral#earning-yield-on-your-stake"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="border-b border-foreground/60 transition-colors hover:border-transparent"
-                >
-                  Learn more
-                </Link>
-              </p>
-            }
-          >
-            Staking APY
+          <HeaderWrapper header={header} align="right" infoTooltip={<p>Total validator rewards.</p>}>
+            Total APY
           </HeaderWrapper>
         ),
         enableSorting: false,
