@@ -24,3 +24,13 @@ export type BirdeyeTokenMetadataResponse = {
     logo_uri: string;
   };
 };
+
+export type BirdeyePriceResponse = {
+  data?: {
+    [tokenAddress: string]: {
+      value: number;
+      updateUnixTime: number;
+      updateHumanTime: string;
+    };
+  };
+};

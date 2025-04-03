@@ -1,8 +1,8 @@
 import dotenv from "dotenv";
 import { PublicKey } from "@solana/web3.js";
-import { getDefaultYargsOptions, getMarginfiProgram } from "../lib/config";
+import { getDefaultYargsOptions, getMarginfiProgram, configs } from "../lib/config";
 import { Environment } from "../lib/types";
-import { formatNumber, getBankMetadata } from "../lib/utils";
+import { formatNumber, getBankMetadata, getBankPrices } from "../lib/utils";
 
 dotenv.config();
 
@@ -15,6 +15,7 @@ async function main() {
       choices: ["symbol-asc", "symbol-desc", "price-asc", "price-desc"],
     })
     .parseSync();
+  const config = configs[argv.env as Environment];
   const program = getMarginfiProgram(argv.env as Environment);
 
   const bankMetadata = await getBankMetadata(argv.env as Environment);
@@ -22,35 +23,21 @@ async function main() {
 
   const banks = await program.account.bank.fetchMultiple(bankAddresses);
 
-  // Fetch all oracle prices in a single request
-  const oraclePriceResponse = await fetch(
-    `https://app.marginfi.com/api/oracle/price?banks=${bankAddresses.map((pk) => pk.toString()).join(",")}`,
-    {
-      headers: {
-        Referer: "https://app.marginfi.com",
-      },
-    }
-  );
-  const oraclePriceData = (await oraclePriceResponse.json()) as any[];
-
-  // Create a map of bank address to price data for easy lookup
-  const priceMap = new Map();
-  oraclePriceData.forEach((price, index) => {
-    priceMap.set(bankAddresses[index].toString(), price);
-  });
+  const priceMap = await getBankPrices(banks);
 
   const banksData = banks.map((item, index) => {
     const bankPubkey = bankAddresses[index];
     const bankMeta = bankMetadata[index];
     const bankAddress = bankPubkey.toString();
-    const price = priceMap.get(bankAddress);
+    const tokenAddress = item.mint.toBase58();
+    const price = priceMap.get(tokenAddress);
 
     return {
       Symbol: bankMeta?.tokenSymbol,
       Address: bankAddress,
       Mint: item.mint.toString(),
       Type: item.config.riskTier.isolated ? "Isolated" : "Collateral",
-      Price: `$${formatNumber(Number(price.priceRealtime.price))}`,
+      Price: price ? `$${formatNumber(Number(price))}` : "N/A",
     };
   });
 
@@ -86,7 +73,7 @@ async function main() {
     sortedBanksData.sort(sortFunctions.symbol);
   }
 
-  console.log(`\r\nFound ${sortedBanksData.length} banks in group ${argv.group}`);
+  console.log(`\r\nFound ${sortedBanksData.length} banks in group ${config.GROUP_ADDRESS}`);
   console.table(sortedBanksData);
 }
 
