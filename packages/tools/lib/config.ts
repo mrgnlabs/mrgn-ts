@@ -7,7 +7,7 @@ import marginfiIdl from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi_0.1.0.jso
 import { loadKeypairFromFile } from "./utils";
 import { Environment, Config } from "./types";
 
-const configs: Record<Environment, Config> = {
+export const configs: Record<Environment, Config> = {
   production: {
     PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
     GROUP_ADDRESS: "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8",

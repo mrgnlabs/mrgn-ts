@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import BigNumber from "bignumber.js";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { AccountCache, BankMetadata, BirdeyeTokenMetadataResponse } from "./types";
+import { AccountCache, BankMetadata, BirdeyeTokenMetadataResponse, BirdeyePriceResponse } from "./types";
 import { PYTH_PUSH_ORACLE_ID, PYTH_SPONSORED_SHARD_ID, MARGINFI_SPONSORED_SHARD_ID } from "./constants";
 import { Environment } from "@mrgnlabs/marginfi-client-v2";
 
@@ -63,8 +63,8 @@ export async function getBankMetadata(env: Environment): Promise<BankMetadata[]>
   let stakedBankMetadataUrl = "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json";
 
   if (env === "staging") {
-    bankMetadataUrl = "https://storage.googleapis.com/mrgn-public/staging-metadata.json";
-    stakedBankMetadataUrl = "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache-test.json";
+    bankMetadataUrl = "https://storage.googleapis.com/mrgn-public/mrgn-bank-metadata-cache-stage.json";
+    stakedBankMetadataUrl = "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache-stage.json";
   }
 
   const bankMetadataResponse = await fetch(bankMetadataUrl);
@@ -95,4 +95,44 @@ export async function getBankMetadataFromBirdeye(bank: PublicKey, mint: PublicKe
   }
 
   return null;
+}
+
+/**
+ * Fetches token prices for a list of banks using Birdeye API
+ * @param banks Array of bank objects containing mint property
+ * @returns A map of token addresses to their prices
+ */
+export async function getBankPrices(banks: any[]): Promise<Map<string, number>> {
+  // Extract token addresses from banks
+  const tokenAddresses = banks.map((bank) => bank.mint.toBase58());
+
+  // Prepare request payload for Birdeye API
+  const payload = {
+    list_address: tokenAddresses.join(","),
+  };
+
+  // Make API request to Birdeye
+  const birdeyeApiResponse = await fetch("https://public-api.birdeye.so/defi/multi_price", {
+    method: "POST",
+    headers: {
+      "x-api-key": process.env.BIRDEYE_API_KEY,
+      "x-chain": "solana",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  // Parse response
+  const birdeyeApiJson: BirdeyePriceResponse = await birdeyeApiResponse.json();
+  const priceMap = new Map<string, number>();
+
+  // Create a map of token address to price
+  if (birdeyeApiResponse.ok && birdeyeApiJson.data) {
+    Object.entries(birdeyeApiJson.data).forEach(([tokenAddress, priceData]) => {
+      if (!priceData) return;
+      priceMap.set(tokenAddress, priceData.value);
+    });
+  }
+
+  return priceMap;
 }
