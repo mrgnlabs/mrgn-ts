@@ -96,60 +96,62 @@ export const PortfolioAssetCard = ({
           variant="portfolio"
           className="hover:no-underline outline-none py-3 [&[data-state=open]>div>div>#health-label]:opacity-0 [&[data-state=open]>div>div>#health-label]:mb-[-24px]"
         >
-          <div className="w-full space-y-1 ">
-            <div className="flex justify-between items-center w-full gap-2">
-              <div className="flex text-left gap-3">
-                <div className="flex items-center">
-                  <Image
-                    src={bank.meta.tokenLogoUri}
-                    className="rounded-full"
-                    alt={bank.meta.tokenSymbol}
-                    height={40}
-                    width={40}
-                  />
-                </div>
-                <ul>
-                  <li className="font-medium text-lg">{bank.meta.tokenSymbol}</li>
-                  {bank.info.rawBank.config.assetTag === AssetTag.STAKED ? (
-                    <li className="font-normal flex items-center text-sm text-muted-foreground">
-                      {bank.meta.stakePool?.validatorRewards && (
-                        <>
-                          <span className="text-success">
-                            {percentFormatter.format(bank.meta.stakePool?.validatorRewards / 100)}
-                          </span>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="flex items-center gap-1 ml-2">
-                                  <span className="text-xs">Total APY</span>
-                                  <IconInfoCircle size={14} />
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Total rewards from the validator.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </>
-                      )}
-                    </li>
-                  ) : (
-                    <li className={cn("text-sm font-normal", isInLendingMode ? "text-success" : "text-warning")}>
-                      {rateAP.concat(...[" ", "APY"])}
-                    </li>
-                  )}
-                </ul>
+          <div className="w-full space-y-1 pr-3 ">
+            <div className="flex gap-3">
+              <div className="flex items-center">
+                <Image
+                  src={bank.meta.tokenLogoUri}
+                  className="rounded-full"
+                  alt={bank.meta.tokenSymbol}
+                  height={40}
+                  width={40}
+                />
               </div>
-              <div className="flex flex-col items-end mr-2">
-                <div className="font-medium text-lg">
-                  {dynamicNumeralFormatter(bank.position.amount, {
-                    tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
-                  })}
-                  {" " + bank.meta.tokenSymbol}
+              <div className="flex flex-col w-full">
+                <div className="flex justify-between items-center w-full">
+                  <div className="font-medium text-lg">{bank.meta.tokenSymbol}</div>
+                  <div className="font-medium text-lg text-right">
+                    {dynamicNumeralFormatter(bank.position.amount, {
+                      tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
+                    })}
+                    {" " + bank.meta.tokenSymbol}
+                  </div>
                 </div>
-                <span className="text-muted-foreground font-normal text-sm">
-                  {usdFormatter.format(bank.position.usdValue)}
-                </span>
+                <div className="flex justify-between items-center w-full">
+                  <div>
+                    {bank.info.rawBank.config.assetTag === AssetTag.STAKED ? (
+                      <div className="font-normal flex items-center text-sm text-muted-foreground">
+                        {bank.meta.stakePool?.validatorRewards && (
+                          <>
+                            <span className="text-success">
+                              {percentFormatter.format(bank.meta.stakePool?.validatorRewards / 100)}
+                            </span>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="flex items-center gap-1 ml-2">
+                                    <span className="text-xs">Total APY</span>
+                                    <IconInfoCircle size={14} />
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Total rewards from the validator.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      <div className={cn("text-sm font-normal", isInLendingMode ? "text-success" : "text-warning")}>
+                        {rateAP.concat(...[" ", "APY"])}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-muted-foreground font-normal text-sm text-right">
+                    {usdFormatter.format(bank.position.usdValue)}
+                  </div>
+                </div>
               </div>
             </div>
             <div className="flex flex-row w-full gap-2">
