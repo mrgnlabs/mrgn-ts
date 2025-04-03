@@ -2,8 +2,14 @@ import dotenv from "dotenv";
 import { PublicKey } from "@solana/web3.js";
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { getDefaultYargsOptions, getMarginfiProgram } from "../lib/config";
-import { BirdeyeTokenMetadataResponse, Environment } from "../lib/types";
-import { formatNumber, getPythPushOracleAddresses, getBankMetadata, getBankMetadataFromBirdeye } from "../lib/utils";
+import { Environment } from "../lib/types";
+import {
+  formatNumber,
+  getPythPushOracleAddresses,
+  getBankMetadata,
+  getBankMetadataFromBirdeye,
+  getBankPrices,
+} from "../lib/utils";
 
 dotenv.config();
 
@@ -56,12 +62,8 @@ async function main() {
     bankMeta = await getBankMetadataFromBirdeye(bankPubkey, acc.mint);
   }
 
-  const oraclePriceResponse = await fetch(`https://app.marginfi.com/api/oracle/price?banks=${bankPubkey.toString()}`, {
-    headers: {
-      Referer: "https://app.marginfi.com",
-    },
-  });
-  const oraclePriceData = await oraclePriceResponse.json();
+  const priceMap = await getBankPrices([acc]);
+  const price = priceMap.get(acc.mint.toString());
 
   const assetWeightInit = wrappedI80F48toBigNumber(acc.config.assetWeightInit);
   const assetWeightMaint = wrappedI80F48toBigNumber(acc.config.assetWeightMaint);
@@ -95,7 +97,7 @@ async function main() {
     Mint: acc.mint.toString(),
     Symbol: bankMeta?.tokenSymbol,
     Decimals: acc.mintDecimals,
-    Price: `$${formatNumber(Number(oraclePriceData[0].priceRealtime.price))}`,
+    Price: `$${formatNumber(Number(price))}`,
     "Oracle Type": oracleType,
     "Oracle Keys": oracleKeys.join(", "),
     ...(oracleType === "Pyth" ? { "Pyth Oracle Addresses": pythOracleAddresses.join(", ") } : {}),
@@ -116,9 +118,9 @@ async function main() {
     "Asset Share Value": assetShareValue.toNumber(),
     "Liability Share Value": liabilityShareValue.toNumber(),
     "Asset Quantity": formatNumber(totalAssetQuantity),
-    "Asset Value (USD)": `$${formatNumber(totalAssetQuantity.times(oraclePriceData[0].priceRealtime.price))}`,
+    "Asset Value (USD)": `$${formatNumber(totalAssetQuantity.times(price))}`,
     "Liability Quantity": formatNumber(totalLiabilityQuantity),
-    "Liability Value (USD)": `$${formatNumber(totalLiabilityQuantity.times(oraclePriceData[0].priceRealtime.price))}`,
+    "Liability Value (USD)": `$${formatNumber(totalLiabilityQuantity.times(price))}`,
   };
 
   console.log(`\r\nBank: ${bankPubkey.toString()}`);
