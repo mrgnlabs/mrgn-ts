@@ -1,13 +1,14 @@
 import React from "react";
 import { Row, flexRender } from "@tanstack/react-table";
 
-import { useUiStore } from "~/store";
+import { useMrgnlendStore, useUiStore } from "~/store";
 
 import { TableCell, TableRow } from "~/components/ui/table";
 
 import { getPositionCell } from "./AssetCells";
 import { AssetListModel } from "../utils";
 import { cn, PoolTypes } from "@mrgnlabs/mrgn-utils";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 export const AssetRow = (row: Row<AssetListModel>) => {
   const isPosition = React.useMemo(
@@ -15,6 +16,11 @@ export const AssetRow = (row: Row<AssetListModel>) => {
     [row.original.position]
   );
   const [assetListSearch, poolFilter] = useUiStore((state) => [state.assetListSearch, state.poolFilter]);
+  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+  const solPrice = React.useMemo(() => {
+    const solBank = extendedBankInfos.find((bank) => bank.info.state.mint.equals(WSOL_MINT));
+    return solBank?.info.oraclePrice.priceRealtime.price.toNumber() || null;
+  }, [extendedBankInfos]);
 
   const isStakedActivating = row.original.asset.stakePool && !row.original.asset.stakePool?.isActive;
 
@@ -47,7 +53,7 @@ export const AssetRow = (row: Row<AssetListModel>) => {
       {isPosition && (
         <TableRow>
           <TableCell showPadding={true} className={cn("rounded-b-md", "pb-2")} colSpan={visibleCells.length}>
-            {getPositionCell(row.original.position)}
+            {getPositionCell({ ...row.original.position, solPrice })}
           </TableCell>
         </TableRow>
       )}
