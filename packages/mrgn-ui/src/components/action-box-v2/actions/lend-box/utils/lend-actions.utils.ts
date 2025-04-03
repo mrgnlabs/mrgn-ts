@@ -49,8 +49,13 @@ export async function generateActionTxns(props: {
             NATIVE_MINT, // mint
             props.marginfiClient.wallet.publicKey // owner
           );
-          wSolBalanceUi =
-            (await props.marginfiClient.provider.connection.getTokenAccountBalance(solAta)).value.uiAmount ?? 0;
+
+          try {
+            wSolBalanceUi =
+              (await props.marginfiClient.provider.connection.getTokenAccountBalance(solAta)).value.uiAmount ?? 0;
+          } catch (error) {
+            wSolBalanceUi = 0;
+          }
         }
         depositTx = await account.makeDepositTx(props.amount, props.bank.address, {
           wrapAndUnwrapSol: true,
@@ -101,8 +106,12 @@ export async function generateActionTxns(props: {
           NATIVE_MINT, // mint
           props.marginfiClient.wallet.publicKey // owner
         );
-        wSolBalanceUi =
-          (await props.marginfiClient.provider.connection.getTokenAccountBalance(solAta)).value.uiAmount ?? 0;
+        try {
+          wSolBalanceUi =
+            (await props.marginfiClient.provider.connection.getTokenAccountBalance(solAta)).value.uiAmount ?? 0;
+        } catch (error) {
+          wSolBalanceUi = 0;
+        }
       }
       const repayTx = await account.makeRepayTx(
         props.amount,
