@@ -16,6 +16,7 @@ import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./componen
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Button } from "~/components/ui/button";
 import { TokenFilters } from "~/store/uiStore";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 export const AssetsList = () => {
   const [extendedBankInfos, nativeSolBalance, selectedAccount, fetchMrgnlendState, stakedAssetBankInfos] =
@@ -55,6 +56,11 @@ export const AssetsList = () => {
     [tokenFilter]
   );
 
+  const solPrice = React.useMemo(() => {
+    const solBank = extendedBankInfos.find((bank) => bank.info.state.mint.equals(WSOL_MINT));
+    return solBank?.info.oraclePrice.priceRealtime.price.toNumber() || null;
+  }, [extendedBankInfos]);
+
   // non isolated, non staked asset banks
   const globalBanks = React.useMemo(() => {
     const banks = extendedBankInfos
@@ -92,6 +98,7 @@ export const AssetsList = () => {
       selectedAccount,
       connected,
       walletContextState,
+      solPrice,
       fetchMrgnlendState
     );
   }, [
@@ -101,6 +108,7 @@ export const AssetsList = () => {
     isInLendingMode,
     nativeSolBalance,
     selectedAccount,
+    solPrice,
     fetchMrgnlendState,
   ]);
 
@@ -112,6 +120,7 @@ export const AssetsList = () => {
       selectedAccount,
       connected,
       walletContextState,
+      solPrice,
       fetchMrgnlendState
     );
   }, [
@@ -121,6 +130,7 @@ export const AssetsList = () => {
     isInLendingMode,
     nativeSolBalance,
     selectedAccount,
+    solPrice,
     fetchMrgnlendState,
   ]);
 
@@ -132,6 +142,7 @@ export const AssetsList = () => {
       selectedAccount,
       connected,
       walletContextState,
+      solPrice,
       fetchMrgnlendState
     );
   }, [
@@ -141,6 +152,7 @@ export const AssetsList = () => {
     isInLendingMode,
     nativeSolBalance,
     selectedAccount,
+    solPrice,
     fetchMrgnlendState,
   ]);
 
@@ -152,6 +164,7 @@ export const AssetsList = () => {
       selectedAccount,
       connected,
       walletContextState,
+      solPrice,
       fetchMrgnlendState
     );
   }, [
@@ -161,6 +174,7 @@ export const AssetsList = () => {
     isInLendingMode,
     nativeSolBalance,
     selectedAccount,
+    solPrice,
     fetchMrgnlendState,
   ]);
 

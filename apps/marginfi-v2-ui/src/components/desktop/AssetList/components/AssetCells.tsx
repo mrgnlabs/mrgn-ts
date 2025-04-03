@@ -79,8 +79,8 @@ export const getAssetPriceCell = ({
                   <h4 className="text-base">Wide oracle price bands</h4>
                   {`${symbol} price estimates is
               ${usdFormatter.format(price)} ± ${assetPriceOffset.toFixed(
-                    2
-                  )}, which is wide. Proceed with caution. marginfi prices assets at the bottom of confidence bands and liabilities at the top.`}
+                2
+              )}, which is wide. Proceed with caution. marginfi prices assets at the bottom of confidence bands and liabilities at the top.`}
                   <br />
                   <a href="https://docs.marginfi.com">
                     <u>Learn more.</u>
@@ -361,7 +361,13 @@ export const getPositionCell = (positionData: PositionData) => {
   const makeTokenAmount = (amount: number, symbol: string) => dynamicNumeralFormatter(amount) + " " + symbol;
   const tokenWalletAmount = makeTokenAmount(positionData.walletAmount, positionData.symbol);
   const tokenPositionAmount = makeTokenAmount(positionData.positionAmount!, positionData.symbol);
+  const tokenPrice = positionData.assetTag === 2 ? positionData.solPrice || positionData.price : positionData.price;
 
+  if (positionData.symbol === "PAWS") {
+    console.log("assetTag", positionData.assetTag);
+    console.log("solPrice", positionData.solPrice);
+    console.log("price", positionData.price);
+  }
   return (
     <div className="w-full bg-background-gray rounded-md flex items-center gap-8 px-2 py-3">
       <dl className="flex gap-2 items-center">
@@ -370,7 +376,7 @@ export const getPositionCell = (positionData: PositionData) => {
           <div className="flex items-center gap-2">
             <span className="text-foreground">{tokenWalletAmount}</span>
             <span className="text-muted-foreground">
-              ({usdFormatter.format(positionData.walletAmount * positionData.price)})
+              ({usdFormatter.format(positionData.walletAmount * tokenPrice)})
             </span>
           </div>
         </dd>

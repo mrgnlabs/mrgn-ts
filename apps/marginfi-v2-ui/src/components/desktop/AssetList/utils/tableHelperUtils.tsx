@@ -59,6 +59,7 @@ export const makeData = (
   marginfiAccount: MarginfiAccountWrapper | null,
   connected: boolean,
   walletContextState: WalletContextStateOverride | WalletContextState,
+  solPrice: number | null,
   fetchMrgnlendState: () => void
 ) => {
   return data.map(
@@ -73,9 +74,9 @@ export const makeData = (
         deposits: getDepositsData(bank, isInLendingMode),
         bankCap: getBankCapData(bank, isInLendingMode),
         utilization: getUtilizationData(bank),
-        position: getPositionData(bank, nativeSolBalance, isInLendingMode),
+        position: getPositionData(bank, nativeSolBalance, isInLendingMode, solPrice),
         action: getAction(bank, isInLendingMode, marginfiAccount, connected, walletContextState, fetchMrgnlendState),
-      } as AssetListModel)
+      }) as AssetListModel
   );
 };
 

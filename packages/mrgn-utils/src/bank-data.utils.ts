@@ -64,6 +64,8 @@ export interface UtilizationData {
 export interface PositionData {
   denominationUSD: boolean;
   price: number;
+  solPrice: number | null;
+  assetTag: number;
   walletAmount: number;
   symbol: string;
   positionAmount?: number;
@@ -92,8 +94,8 @@ export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): R
       ? emissionsRate
       : 0
     : emissions == Emissions.Borrowing
-    ? emissionsRate
-    : 0;
+      ? emissionsRate
+      : 0;
 
   const rateAPR = interestRate + emissionRate;
 
@@ -234,7 +236,8 @@ export const getUtilizationData = (bank: ExtendedBankInfo): UtilizationData => (
 export const getPositionData = (
   bank: ExtendedBankInfo,
   nativeSolBalance: number,
-  isInLendingMode: boolean
+  isInLendingMode: boolean,
+  solPrice: number | null
 ): PositionData => {
   let positionAmount,
     liquidationPrice,
@@ -261,14 +264,19 @@ export const getPositionData = (
     }
   }
 
-  return {
+  const positionData: PositionData = {
     price: bank.info.state.price,
     walletAmount,
     positionAmount,
     positionUsd,
-    liquidationPrice,
+    liquidationPrice: liquidationPrice || undefined,
     isUserPositionPoorHealth,
     isInLendingMode,
     symbol: bank.meta.tokenSymbol,
-  } as PositionData;
+    assetTag: bank.info.rawBank.config.assetTag,
+    denominationUSD: false,
+    solPrice,
+  };
+
+  return positionData;
 };

@@ -123,6 +123,11 @@ const Wallet = ({
     return extendedBankInfos.find((bank) => bank.address.equals(activeToken.address));
   }, [activeToken, extendedBankInfos]);
 
+  const solPrice = React.useMemo(() => {
+    const solBank = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "SOL");
+    return solBank?.info.oraclePrice.priceRealtime.price.toNumber() || null;
+  }, [extendedBankInfos]);
+
   const getUserTokens = React.useCallback(() => {
     if (isNaN(nativeSolBalance) || !extendedBankInfos) return [];
     const prioritizedSymbols = ["SOL", "LST"];
@@ -137,9 +142,13 @@ const Wallet = ({
         let value = isSolBank
           ? nativeSolBalance + bank.userInfo.tokenAccount.balance
           : bank.userInfo.tokenAccount.balance;
+
+        const tokenPrice =
+          bank.info.rawBank.config.assetTag === 2 ? solPrice || bank.info.state.price : bank.info.state.price;
+
         let valueUSD =
           (isSolBank ? nativeSolBalance + bank.userInfo.tokenAccount.balance : bank.userInfo.tokenAccount.balance) *
-          bank.info.state.price;
+          tokenPrice;
 
         if (Number.isNaN(value) || Number.isNaN(valueUSD)) {
           value = 0;
@@ -163,7 +172,7 @@ const Wallet = ({
           b.valueUSD - a.valueUSD
         );
       });
-  }, [extendedBankInfos, nativeSolBalance]);
+  }, [extendedBankInfos, nativeSolBalance, solPrice]);
 
   const resetWalletState = React.useCallback(() => {
     setWalletTokenState(WalletState.DEFAULT);
