@@ -1,5 +1,49 @@
 # @mrgnlabs/marginfi-client-v2
 
+## 6.0.0
+
+### Major Changes
+
+- dfc2b53: # 🚀 Major Changes (version 6.0.0)
+
+  - **Improved SOL Wrapping & Unwrapping** 🌀
+    Handling of **native SOL and wSOL token accounts** has been significantly improved across the platform.
+
+    - More robust detection and management of wSOL accounts.
+    - Improved behavior in transaction builders like `makeLooperTx` and `makeRepayWithCollateralTx`.
+    - Better UX and fewer edge case failures when wrapping or unwrapping SOL in margin and flashloan flows.
+
+  - **MEV Reward Support via Stake Pool Flow** 💰
+    Users who deposit native SOL into the **Single Validator Stake Pool (SVSP)** now earn MEV rewards on their stake—just as they would when staking with a validator.
+
+    - Each epoch, MEV rewards earned by the **main pool** are temporarily moved to an **"on-ramp" account**, where they are staked to the same validator.
+    - In the following epoch, that stake is moved back into the **main pool**.
+    - This cycle repeats each epoch for new MEV rewards.
+
+  - **New IDL Logic & Account Inference** 🧠
+    This release revamps instruction generation with **implied account arguments** and convenience flags:
+
+    ## 🧩 Implied Anchor Arguments
+
+    - Most instructions now infer required accounts based on minimal inputs.
+    - Reduces boilerplate significantly when using the SDK from TypeScript.
+
+    ## 📉 Deposit Up to Limit
+
+    - New `depositUpToLimit` flag allows deposits to fill the remaining capacity of a bank.
+
+    ## ⚠️ Backwards Compatibility Notes
+
+    - Most instructions now use updated account names (e.g., `marginfi_group` ➝ `group`) but maintain account order.
+    - **Non-breaking** for Rust clients using positional metas.
+    - **Potentially breaking** for TypeScript clients or CPI consumers that pass accounts manually.
+    - Use `accountsPartial` to override inference where necessary.
+
+    ## 🛠 Minor Improvements to Bundle Handling
+
+    - Slight improvements to bundle error handling.
+    - More consistent signature behavior
+
 ## 5.0.0
 
 ### Major Changes
