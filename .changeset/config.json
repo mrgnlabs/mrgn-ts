@@ -8,6 +8,8 @@
     "@mrgnlabs/marginfi-v2-ui",
     "@mrgnlabs/mrgn-utils",
     "@mrgnlabs/scripts",
+    "@mrgnlabs/mrgn-toasts",
+    "@mrgnlabs/marginfi-client-v2",
     "@mrgnlabs/marginfi-landing-page",
     "@mrgnlabs/marginfi-v2-ui-state"
   ],
@@ -16,6 +18,8 @@
       "@mrgnlabs/mrgn-ui",
       "@mrgnlabs/marginfi-v2-trading",
       "@mrgnlabs/marginfi-v2-ui",
+      "@mrgnlabs/mrgn-toasts",
+      "@mrgnlabs/marginfi-client-v2",
       "@mrgnlabs/mrgn-utils",
       "@mrgnlabs/scripts",
       "@mrgnlabs/marginfi-landing-page",
