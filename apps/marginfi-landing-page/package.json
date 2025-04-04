@@ -41,7 +41,7 @@
     "tailwind-merge": "^1.14.0",
     "zod": "^3.23.8"
   },
-  "devDependencies": {   
+  "devDependencies": {
     "@mrgnlabs/tsconfig": "workspace:*",
     "@types/lodash.debounce": "^4.0.7",
     "@types/lodash.random": "^3.2.9",

@@ -1,5 +1,11 @@
 # @mrgnlabs/mrgn-common
 
+## 2.0.2
+
+### Patch Changes
+
+- f0506bd: Cleanup: Removed ActionComplete, improved package.json
+
 ## 2.0.1
 
 ### Major Changes
