@@ -1,11 +1,17 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { toastManager } from "@mrgnlabs/mrgn-toasts";
-import type { WalletInfo } from "~/components/wallet-v2/";
-import { useMrgnlendStore } from "~/store";
-import { authenticate, logout, getCurrentUser } from "~/auth/utils/auth.utils";
-import { AuthUser } from "../types/auth.types";
+"use client";
+
+import React from "react";
 import { Wallet } from "@mrgnlabs/mrgn-common";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
+
+import { useMrgnlendStore } from "~/store";
+import { createBrowserSupabaseClient } from "~/auth/auth-client";
+import { authenticate, logout, getCurrentUser } from "~/auth/utils/auth.utils";
+import { AuthUser } from "~/auth/types/auth.types";
+import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import type { WalletInfo } from "~/components/wallet-v2/";
+
+const supabase = createBrowserSupabaseClient();
 
 type AuthState = "loading" | "authenticated" | "unauthenticated" | undefined;
 
@@ -16,7 +22,7 @@ interface AuthContextType {
   authenticateUser: (args: { wallet: Wallet; walletId?: string }) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
+const AuthContext = React.createContext<AuthContextType>({
   authState: undefined,
   error: null,
   user: null,
@@ -24,7 +30,7 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
+  const context = React.useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
@@ -32,22 +38,21 @@ export const useAuth = () => {
 };
 
 interface AuthProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const { connected, wallet, walletAddress } = useWallet();
   const [initialized] = useMrgnlendStore((state) => [state.initialized]);
-  const [authState, setAuthState] = useState<AuthState>(undefined);
-  const [error, setError] = useState<Error | null>(null);
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [authState, setAuthState] = React.useState<AuthState>(undefined);
+  const [error, setError] = React.useState<Error | null>(null);
+  const [user, setUser] = React.useState<AuthUser | null>(null);
 
   const walletInfo = JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo;
   const walletId = walletInfo?.name || "";
 
-  const authenticateUser = useCallback(
+  const authenticateUser = React.useCallback(
     async (args: { wallet: Wallet; walletId?: string }) => {
-      console.log("Authenticating...");
       setAuthState("loading");
 
       try {
@@ -76,13 +81,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
     [setUser, setAuthState, setError]
   );
 
-  // Check for existing session and authenticate if needed
-  useEffect(() => {
-    if (!initialized || !connected || !walletAddress || !wallet || authState) {
-      return;
-    }
+  // Combined authentication management
+  React.useEffect(() => {
+    // Setup Supabase auth state listener - using the singleton instance
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        setUser(null);
+        setAuthState("unauthenticated");
+      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        // When signed in or token refreshed, get the current user data
+        getCurrentUser()
+          .then(({ user, error }) => {
+            if (user && !error) {
+              setUser(user);
+              setAuthState("authenticated");
+            } else if (error) {
+              console.error("Auth state change error:", error);
+              setError(new Error(String(error)));
+              setAuthState("unauthenticated");
+            }
+          })
+          .catch((err) => {
+            console.error("Error getting user after auth state change:", err);
+            setError(err instanceof Error ? err : new Error(String(err)));
+            setAuthState("unauthenticated");
+          });
+      }
+    });
 
-    const _auth = async () => {
+    // Initial authentication check
+    const checkInitialAuth = async () => {
+      // Only proceed if we have a wallet connection and no auth state yet
+      if (!initialized || !connected || !walletAddress || !wallet || authState) {
+        return;
+      }
+
       try {
         // First try to get the current user from the session
         const { user, error } = await getCurrentUser();
@@ -101,12 +136,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     };
 
-    _auth();
-  }, [initialized, connected, wallet, walletAddress, walletId, authState, authenticateUser]);
+    checkInitialAuth();
 
-  // Wallet disconnection - handle logout
-  useEffect(() => {
-    // Only logout if we were previously connected and now we're not
+    // Handle wallet disconnection
     if ((!connected || !walletAddress) && authState === "authenticated") {
       const handleLogout = async () => {
         try {
@@ -126,7 +158,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       handleLogout();
     }
-  }, [connected, walletAddress, authState]);
+
+    // Clean up subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [initialized, connected, wallet, walletAddress, walletId, authState, authenticateUser]);
 
   return (
     <AuthContext.Provider

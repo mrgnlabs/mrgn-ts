@@ -1,9 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { createServerSupabaseClient } from "~/auth/auth-server";
-import { verifySignature } from "~/auth/utils/auth-crypto.utils";
-import { generateToken, verifyToken } from "~/auth/utils/auth-jwt.utils";
+import { verifySignature, generateToken, verifyToken, generateDummyCredentials } from "~/auth/utils/";
 import { LoginPayload, AuthPayload } from "~/auth/types/auth.types";
-import { generateDummyCredentials } from "~/auth/utils/auth.utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -39,18 +37,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const user = userList.users.find((u) => u.user_metadata?.wallet_address === walletAddress);
 
       if (!user) {
-        return res.status(404).json({ error: "User not found" });
+        return res.status(401).json({ error: "User not found" });
       }
 
       // Update user metadata with new wallet ID if provided
       if (walletId && walletId !== user.user_metadata?.wallet_id) {
         const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
-          user_metadata: { 
+          user_metadata: {
             ...user.user_metadata,
-            wallet_id: walletId 
+            wallet_id: walletId,
           },
         });
-        
+
         if (updateError) {
           console.error("Failed to update user:", updateError);
         }
@@ -88,7 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { walletAddress, walletId }: LoginPayload = req.body;
 
       const supabase = createServerSupabaseClient();
-      
+
       // Check if user exists in Supabase Auth
       const { data: userList, error: listError } = await supabase.auth.admin.listUsers();
       if (listError) {
@@ -131,12 +129,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Token is valid, update wallet ID if changed
       if (walletId && walletId !== user.user_metadata?.wallet_id) {
         const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
-          user_metadata: { 
+          user_metadata: {
             ...user.user_metadata,
-            wallet_id: walletId 
+            wallet_id: walletId,
           },
         });
-        
+
         if (updateError) {
           console.error("Failed to update user:", updateError);
         }
