@@ -1,5 +1,14 @@
 # @mrgnlabs/marginfi-client-v2
 
+## 6.0.1
+
+### Patch Changes
+
+- e9b7c96: ### 🐛 Patch Fix
+
+  - Removed reference to a missing environment variable that was causing runtime issues
+  - No functional changes to SDK logic.
+
 ## 6.0.0
 
 ### Major Changes
