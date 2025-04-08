@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import { PublicKey } from "@solana/web3.js";
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { getDefaultYargsOptions, getMarginfiProgram } from "../lib/config";
-import { BirdeyeTokenMetadataResponse, Environment } from "../lib/types";
+import { Environment } from "../lib/types";
 import { formatNumber, getPythPushOracleAddresses, getBankMetadata, getBankMetadataFromBirdeye } from "../lib/utils";
 
 dotenv.config();
