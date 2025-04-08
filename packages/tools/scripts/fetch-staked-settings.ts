@@ -31,14 +31,25 @@ async function main() {
   });
 
   const program = new Program<Marginfi>(marginfiIdl as Marginfi, provider);
-  let group = await program.account.marginfiGroup.fetch(config.GROUP);
+  let [stakedSettingsKey] = deriveStakedSettings(program.programId, config.GROUP);
 
-  console.log("admin: " + group.admin);
-  console.log("flags: " + group.groupFlags.toNumber());
-  console.log("fee wallet: " + group.feeStateCache.globalFeeWallet);
-  console.log("interest to program (fixed): " + wrappedI80F48toBigNumber(group.feeStateCache.programFeeFixed));
-  console.log("interest to program (ir): " + wrappedI80F48toBigNumber(group.feeStateCache.programFeeRate));
+  let settings = await program.account.stakedSettings.fetch(stakedSettingsKey);
+
+  console.log("key: " + settings.key);
+  console.log("group: " + settings.marginfiGroup);
+  console.log("weight init: " + wrappedI80F48toBigNumber(settings.assetWeightInit));
+  console.log("weight maint: " + wrappedI80F48toBigNumber(settings.assetWeightMaint));
+  console.log("deposit limit: " + settings.depositLimit.toNumber());
+  console.log("oracle: " + settings.oracle);
+  console.log("oracle age: " + settings.oracleMaxAge);
+  console.log("init limit: " + settings.totalAssetValueInitLimit);
+  console.log("risk tier: " + JSON.stringify(settings.riskTier));
 }
+
+// TODO remove after package updates
+const deriveStakedSettings = (programId: PublicKey, group: PublicKey) => {
+  return PublicKey.findProgramAddressSync([Buffer.from("staked_settings", "utf-8"), group.toBuffer()], programId);
+};
 
 main().catch((err) => {
   console.error(err);

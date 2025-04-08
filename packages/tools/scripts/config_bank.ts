@@ -21,9 +21,7 @@ dotenv.config();
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
  */
-const simulate = true;
-const sendTx = true;
-const verbose = true;
+const sendTx = false;
 
 export type Config = {
   PROGRAM_ID: string;
@@ -37,19 +35,54 @@ export type Config = {
 
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  GROUP_KEY: new PublicKey("2v4DXmmnhqrERUYpZaScrXC1jdJoUYhzMjuEcytqsLeh"),
-  BANK: new PublicKey("14pCPReiear5V7viGVtdafwm6yCfBoz7pTkigGzcrdQm"),
-  ADMIN: new PublicKey("mfi1dtjy2mJ9J21UoaQ5dsRnbcg4MBU1CTacVyBp1HF"),
+  GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
+  BANK: new PublicKey("CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"),
+  ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
-  // MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
+  MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+};
+
+export const defaultBankConfigOptRaw = () => {
+  let bankConfigOpt: BankConfigOptRaw = {
+    assetWeightInit: null,
+    assetWeightMaint: null,
+    liabilityWeightInit: null,
+    liabilityWeightMaint: null,
+    depositLimit: null,
+    borrowLimit: null,
+    riskTier: null, // { collateral: {} }
+    assetTag: null,
+    totalAssetValueInitLimit: null,
+    interestRateConfig: {
+      protocolOriginationFee: null,
+      protocolIrFee: bigNumberToWrappedI80F48(0.06),
+      protocolFixedFeeApr: bigNumberToWrappedI80F48(0.0001),
+      insuranceIrFee: null,
+      insuranceFeeFixedApr: null,
+      maxInterestRate: null,
+      optimalUtilizationRate: null,
+      plateauInterestRate: bigNumberToWrappedI80F48(0.075),
+    },
+    operationalState: null,
+    oracleMaxAge: null,
+    permissionlessBadDebtSettlement: true,
+    freezeSettings: null,
+  };
+
+  return bankConfigOpt;
 };
 
 async function main() {
   let bankConfig = defaultBankConfigOptRaw();
-  await updateBankConfig(bankConfig, process.env.MARGINFI_WALLET, config, { simulate, sendTx });
+  await updateBankConfig(bankConfig, process.env.MARGINFI_WALLET, config, { sendTx });
 }
 
-export async function updateBankConfig(bankConfig: BankConfigOptRaw, walletPath: string, config: Config, options?: { simulate?: boolean; sendTx?: boolean }) {
+export async function updateBankConfig(
+  bankConfig: BankConfigOptRaw,
+  walletPath: string,
+  config: Config,
+  options?: { sendTx?: boolean }
+) {
   marginfiIdl.address = config.PROGRAM_ID;
   const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT, "confirmed");
   const wallet = loadKeypairFromFile(walletPath);
@@ -73,17 +106,6 @@ export async function updateBankConfig(bankConfig: BankConfigOptRaw, walletPath:
       .instruction()
   );
 
-  transaction.feePayer = config.ADMIN; // Set the fee payer to Squads wallet if using multisig
-
-  if (options?.simulate) {
-    try {
-      const simulation = await connection.simulateTransaction(transaction);
-      console.log("Simulation results:", simulation);
-    } catch (error) {
-      console.error("Simulation failed:", error);
-    }
-  }
-
   if (options?.sendTx) {
     try {
       const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
@@ -92,6 +114,7 @@ export async function updateBankConfig(bankConfig: BankConfigOptRaw, walletPath:
       console.error("Transaction failed:", error);
     }
   } else {
+    transaction.feePayer = config.MULTISIG_PAYER; // Set the fee payer to Squads wallet
     const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
     const serializedTransaction = transaction.serialize({
@@ -106,36 +129,6 @@ export async function updateBankConfig(bankConfig: BankConfigOptRaw, walletPath:
 export const ASSET_TAG_DEFAULT = 0;
 export const ASSET_TAG_SOL = 1;
 export const ASSET_TAG_STAKED = 2;
-
-export const defaultBankConfigOptRaw = () => {
-  let bankConfigOpt: BankConfigOptRaw = {
-    assetWeightInit: null,
-    assetWeightMaint: null,
-    liabilityWeightInit: null,
-    liabilityWeightMaint: null,
-    depositLimit: null,
-    borrowLimit: null,
-    riskTier: { collateral: {} },
-    assetTag: null,
-    totalAssetValueInitLimit: null,
-    interestRateConfig: {
-      protocolOriginationFee: bigNumberToWrappedI80F48(new BigNumber(0.005)),
-      protocolIrFee: null,
-      protocolFixedFeeApr: null,
-      insuranceIrFee: null,
-      insuranceFeeFixedApr: null,
-      maxInterestRate: null,
-      optimalUtilizationRate: null,
-      plateauInterestRate: null,
-    },
-    operationalState: null,
-    oracleMaxAge: 300,
-    permissionlessBadDebtSettlement: true,
-    freezeSettings: null,
-  };
-
-  return bankConfigOpt;
-};
 
 export type InterestRateConfigRawWithOrigination = InterestRateConfigRaw & {
   protocolOriginationFee: WrappedI80F48;

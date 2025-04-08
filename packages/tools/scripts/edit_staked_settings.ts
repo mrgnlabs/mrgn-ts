@@ -13,11 +13,12 @@ import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
  */
-const sendTx = true;
+const sendTx = false;
 const verbose = true;
 
 type Config = {
   PROGRAM_ID: string;
+  ADMIN: PublicKey;
   GROUP_KEY: PublicKey;
   // Keep undefined for any field you wish to leave as-is on-chain
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
@@ -31,14 +32,15 @@ type Config = {
 };
 
 const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
-  MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
+  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
+  ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+  MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
 
   // Leave these undefined if you do NOT want them to be changed
-  SOL_ORACLE: new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"),
-  ASSET_WEIGHT_INIT: 0.0001,
-  ASSET_WEIGHT_MAINT: 0.0002,
+  SOL_ORACLE: undefined,
+  ASSET_WEIGHT_INIT: 0.9,
+  ASSET_WEIGHT_MAINT: 0.95,
   DEPOSIT_LIMIT: undefined,
   TOTAL_ASSET_VALUE_INIT_LIMIT: undefined,
   ORACLE_MAX_AGE: undefined,
@@ -99,12 +101,10 @@ async function main() {
   transaction.add(
     await program.methods
       .editStakedSettings(editSettings)
-      .accounts({
-        // marginfiGroup: args.group, // implied from stakedSettings
-        // admin: args.admin, // implied from group
+      .accountsPartial({
+        // group: args.group, // implied from stakedSettings
+        admin: config.ADMIN,
         stakedSettings: stakedSettingsKey,
-        // rent = SYSVAR_RENT_PUBKEY,
-        // systemProgram: SystemProgram.programId,
       })
       .instruction()
   );
