@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import BigNumber from "bignumber.js";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { AccountCache, BankMetadata, BirdeyeTokenMetadataResponse } from "./types";
+import { AccountCache, BankMetadata, BirdeyeMetadataResponse, BirdeyePricesResponse } from "./types";
 import { PYTH_PUSH_ORACLE_ID, PYTH_SPONSORED_SHARD_ID, MARGINFI_SPONSORED_SHARD_ID } from "./constants";
 import { Bank } from "@mrgnlabs/marginfi-client-v2";
 
@@ -79,7 +79,19 @@ export async function getBankMetadataFromBirdeye(bank: PublicKey, mint: PublicKe
       },
     }
   );
-  const birdeyeApiJson: BirdeyeTokenMetadataResponse = await birdeyeApiResponse.json();
+
+  // Define an inline type for the single token response
+  type SingleTokenResponse = {
+    data?: {
+      address: string;
+      name: string;
+      symbol: string;
+      decimals: number;
+      logo_uri: string;
+    };
+  };
+
+  const birdeyeApiJson = (await birdeyeApiResponse.json()) as SingleTokenResponse;
 
   if (birdeyeApiResponse.ok && birdeyeApiJson.data) {
     return {
@@ -89,4 +101,66 @@ export async function getBankMetadataFromBirdeye(bank: PublicKey, mint: PublicKe
   }
 
   return null;
+}
+
+export async function getPriceAndMetadataFromBirdeye(mints: PublicKey[]) {
+  // Birdeye has a limit of 50 addresses per request
+  // Split mints into chunks of 50
+  const CHUNK_SIZE = 50;
+  const mintChunks = [];
+
+  for (let i = 0; i < mints.length; i += CHUNK_SIZE) {
+    mintChunks.push(mints.slice(i, i + CHUNK_SIZE));
+  }
+
+  let allMetadata = {};
+  let allPrices = {};
+
+  for (const chunk of mintChunks) {
+    const addresses = chunk.map((mint) => mint.toBase58()).join(",");
+
+    // Fetch metadata for this chunk
+    const birdeyeMetadataResponse = await fetch(
+      `https://public-api.birdeye.so/defi/v3/token/meta-data/multiple?list_address=${addresses}`,
+      {
+        headers: {
+          "x-api-key": process.env.BIRDEYE_API_KEY,
+          "x-chain": "solana",
+        },
+      }
+    );
+
+    // Fetch prices for this chunk
+    const birdeyePriceResponse = await fetch(
+      `https://public-api.birdeye.so/defi/multi_price?list_address=${addresses}`,
+      {
+        headers: {
+          "x-api-key": process.env.BIRDEYE_API_KEY,
+          "x-chain": "solana",
+        },
+      }
+    );
+
+    const birdeyeMetadataJson = (await birdeyeMetadataResponse.json()) as BirdeyeMetadataResponse;
+    const birdeyePriceJson = (await birdeyePriceResponse.json()) as BirdeyePricesResponse;
+
+    // Merge the results
+    if (birdeyeMetadataJson.data) {
+      allMetadata = { ...allMetadata, ...birdeyeMetadataJson.data };
+    }
+
+    if (birdeyePriceJson.data) {
+      allPrices = { ...allPrices, ...birdeyePriceJson.data };
+    }
+
+    // Add a small delay to avoid rate limiting
+    if (mintChunks.length > 1) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+  }
+
+  return {
+    metadata: allMetadata,
+    price: allPrices,
+  };
 }
