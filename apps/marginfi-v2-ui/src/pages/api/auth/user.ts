@@ -8,16 +8,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const supabase = createServerSupabaseClient();
-    
+
     // Get the authenticated user from Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !authData.user) {
       return res.status(401).json({ error: "Not authenticated" });
     }
-    
+
     const user = authData.user;
-    
+
     // Return the user data in the format expected by the frontend
     return res.status(200).json({
       user: {

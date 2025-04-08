@@ -1,9 +1,9 @@
 import { Wallet } from "@mrgnlabs/mrgn-common";
 import crypto from "crypto";
 
-import { AuthUser, SignupPayload, AuthPayload, LoginPayload } from "../types/auth.types";
-import { generateSignMessage, createSignatureMessage } from "../utils/auth-crypto.utils";
-import { createBrowserSupabaseClient } from "../auth-client";
+import { AuthUser, SignupPayload, AuthPayload, LoginPayload } from "~/auth/types/auth.types";
+import { generateSignMessage, createSignatureMessage } from "~/auth/utils/auth-crypto.utils";
+import { createBrowserSupabaseClient } from "~/auth/auth-client";
 
 export async function login(payload: AuthPayload | LoginPayload) {
   try {
@@ -105,19 +105,21 @@ export async function authenticate(wallet: Wallet, walletId?: string, referralCo
       try {
         const { signMessage, signature } = await signMessageForAuth(wallet);
 
-        // Check if user exists in Supabase Auth
-        const user = await getUser();
+        // Try to login with signature
+        const loginWithSigResult = await login({
+          walletAddress,
+          walletId,
+          signature,
+          signedMessage: signMessage,
+        });
 
-        if (user) {
-          console.log("User found");
-          return login({
-            walletAddress,
-            walletId,
-            signature,
-            signedMessage: signMessage,
-          });
-        } else {
-          console.log("Signing up");
+        // If login succeeded, return the result
+        if (loginWithSigResult.user) {
+          return loginWithSigResult;
+        }
+
+        // If login failed with "User not found", try to sign up
+        if (loginWithSigResult.error === "User not found") {
           return signup({
             walletAddress,
             signature,
@@ -126,6 +128,9 @@ export async function authenticate(wallet: Wallet, walletId?: string, referralCo
             referralCode,
           });
         }
+
+        // Otherwise, return the login error
+        return loginWithSigResult;
       } catch (error) {
         console.error("Authentication error", error);
         return {
@@ -151,6 +156,8 @@ export async function getUser() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  console.log("User1", user);
 
   return user ? user.user_metadata : null;
 }
