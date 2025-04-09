@@ -46,6 +46,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
+import { WalletActivity } from "./components/wallet-activity/wallet-activity";
 
 type WalletProps = {
   connection: Connection;
@@ -324,18 +325,14 @@ const Wallet = ({
                           </span>
                         </TabsTrigger>
                       )}
-                      <div className="cursor-help w-1/3 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="py-1.5 px-3 rounded-md opacity-50">Activity</span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Coming soon</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
+                      <TabsTrigger
+                        value="activity"
+                        className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
+                      >
+                        <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
+                          Activity
+                        </span>
+                      </TabsTrigger>
                     </TabsList>
                   )}
                   <TabsContent value="tokens">
@@ -599,6 +596,11 @@ const Wallet = ({
                       </div>
                     </TabsContent>
                   )}
+                  <TabsContent value="activity">
+                    <div className="py-8">
+                      <WalletActivity />
+                    </div>
+                  </TabsContent>
                 </Tabs>
               </div>
             ) : (
