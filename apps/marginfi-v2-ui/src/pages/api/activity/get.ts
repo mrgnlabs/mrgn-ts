@@ -9,24 +9,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Get the session cookie from the request
-    const sessionCookie = req.cookies.session || "";
-
-    if (!sessionCookie) {
-      return res.status(401).json({ error: "Unauthorized - No session cookie" });
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized - No token provided" });
     }
 
-    // Initialize Firebase and verify the session cookie
+    const idToken = authHeader.split("Bearer ")[1];
+
+    // Initialize Firebase and verify the ID token
     initFirebaseIfNeeded();
-    const decodedClaims = await getAuth().verifySessionCookie(sessionCookie, true);
-    const walletAddress = decodedClaims.uid;
+    const decodedToken = await getAuth().verifyIdToken(idToken);
+
+    // The wallet address is the UID in Firebase
+    const walletAddress = decodedToken.uid;
 
     const db = admin.firestore();
-    const activitiesCollection = db.collection("activities");
 
-    const snapshot = await activitiesCollection
-      .where("walletAddress", "==", walletAddress)
+    // Query the user's activities subcollection
+    const snapshot = await db
+      .collection("activity")
+      .doc(walletAddress)
+      .collection("activities")
       .orderBy("timestamp", "desc")
+      .limit(20)
       .get();
 
     const activities = snapshot.docs.map((doc) => ({
@@ -38,8 +43,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ activities });
   } catch (error: any) {
     console.error("Error fetching activities:", error);
-    if (error.code === "auth/session-cookie-expired" || error.code === "auth/session-cookie-revoked") {
-      return res.status(401).json({ error: "Session expired" });
+    if (error.code === "auth/id-token-expired" || error.code === "auth/id-token-revoked") {
+      return res.status(401).json({ error: "Token expired" });
     }
     return res.status(500).json({ error: "Internal server error" });
   }
