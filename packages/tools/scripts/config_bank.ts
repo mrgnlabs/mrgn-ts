@@ -55,17 +55,17 @@ export const defaultBankConfigOptRaw = () => {
     totalAssetValueInitLimit: null,
     interestRateConfig: {
       protocolOriginationFee: null,
-      protocolIrFee: bigNumberToWrappedI80F48(0.06),
-      protocolFixedFeeApr: bigNumberToWrappedI80F48(0.0001),
+      protocolIrFee: null,
+      protocolFixedFeeApr: null,
       insuranceIrFee: null,
       insuranceFeeFixedApr: null,
       maxInterestRate: null,
       optimalUtilizationRate: null,
-      plateauInterestRate: bigNumberToWrappedI80F48(0.075),
+      plateauInterestRate: null,
     },
     operationalState: null,
     oracleMaxAge: null,
-    permissionlessBadDebtSettlement: true,
+    permissionlessBadDebtSettlement: false,
     freezeSettings: null,
   };
 

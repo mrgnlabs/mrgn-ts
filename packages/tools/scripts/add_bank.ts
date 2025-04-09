@@ -31,15 +31,46 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ORACLE: new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"),
-  SOL_ORACLE_FEED: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
-  ADMIN: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
-  FEE_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
-  BANK_MINT: new PublicKey("So11111111111111111111111111111111111111112"),
+  ORACLE: new PublicKey("6JkZmXGgWnzsyTQaqRARzP64iFYnpMNT4siiuUDUaB8s"),
+  SOL_ORACLE_FEED: new PublicKey("57vdkhh8F8fSrKcT7BrRvi8f8JcK3sZr6nXNLPTznxo8"),
+  ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+  FEE_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+  BANK_MINT: new PublicKey("2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH"),
   SEED: 0,
-  MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
+  MULTISIG_PAYER: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+};
 
-  // TODO configurable settings up here (currently, scroll down)
+// Configurable settings...
+const rate: InterestRateConfigRaw = {
+  optimalUtilizationRate: bigNumberToWrappedI80F48(0.8),
+  plateauInterestRate: bigNumberToWrappedI80F48(0.075),
+  maxInterestRate: bigNumberToWrappedI80F48(3),
+  insuranceFeeFixedApr: bigNumberToWrappedI80F48(0),
+  insuranceIrFee: bigNumberToWrappedI80F48(0),
+  protocolFixedFeeApr: bigNumberToWrappedI80F48(0.125),
+  protocolIrFee: bigNumberToWrappedI80F48(0.05),
+  protocolOriginationFee: bigNumberToWrappedI80F48(0.1),
+};
+
+const bankConfig: BankConfigCompactRaw = {
+  assetWeightInit: I80F48_ONE,
+  assetWeightMaint: I80F48_ONE,
+  liabilityWeightInit: I80F48_ONE,
+  liabilityWeightMaint: I80F48_ONE,
+  depositLimit: new BN(1000000000),
+  interestRateConfig: rate,
+  operationalState: {
+    operational: undefined,
+  },
+  borrowLimit: new BN(1000000000),
+  riskTier: {
+    collateral: undefined,
+  },
+  totalAssetValueInitLimit: new BN(100000000000),
+  oracleMaxAge: 100,
+  assetTag: 0,
+  permissionlessBadDebtSettlement: false,
+  freezeSettings: false,
 };
 
 const deriveGlobalFeeState = (programId: PublicKey) => {
@@ -74,38 +105,6 @@ async function main() {
 
   const transaction = new Transaction();
 
-  const rate: InterestRateConfigRaw = {
-    optimalUtilizationRate: bigNumberToWrappedI80F48(0.5),
-    plateauInterestRate: bigNumberToWrappedI80F48(0.6),
-    maxInterestRate: bigNumberToWrappedI80F48(3),
-    insuranceFeeFixedApr: bigNumberToWrappedI80F48(0.01),
-    insuranceIrFee: bigNumberToWrappedI80F48(0.02),
-    protocolFixedFeeApr: bigNumberToWrappedI80F48(0.03),
-    protocolIrFee: bigNumberToWrappedI80F48(0.04),
-    protocolOriginationFee: bigNumberToWrappedI80F48(0.1),
-  };
-
-  let bankConfig: BankConfigCompactRaw = {
-    assetWeightInit: I80F48_ONE,
-    assetWeightMaint: I80F48_ONE,
-    liabilityWeightInit: I80F48_ONE,
-    liabilityWeightMaint: I80F48_ONE,
-    depositLimit: new BN(1000000000),
-    interestRateConfig: rate,
-    operationalState: {
-      operational: undefined,
-    },
-    borrowLimit: new BN(1000000000),
-    riskTier: {
-      collateral: undefined,
-    },
-    totalAssetValueInitLimit: new BN(100000000000),
-    oracleMaxAge: 100,
-    assetTag: 0,
-    permissionlessBadDebtSettlement: false,
-    freezeSettings: false,
-  };
-
   // Note: the BN used by `BankConfigCompactRaw` is different from the kind used in the anchor
   // version here which requires this stupid hack where the BN is re-declared (or just TS-ignore it)
   const ix = await program.methods
@@ -120,7 +119,7 @@ async function main() {
         operationalState: bankConfig.operationalState,
         borrowLimit: new BN(bankConfig.borrowLimit.toString()),
         riskTier: bankConfig.riskTier,
-        assetTag: 1, // ASSET TAG SOL
+        assetTag: bankConfig.assetTag,
         pad0: [0, 0, 0, 0, 0, 0],
         totalAssetValueInitLimit: new BN(bankConfig.totalAssetValueInitLimit.toString()),
         oracleMaxAge: bankConfig.oracleMaxAge,
