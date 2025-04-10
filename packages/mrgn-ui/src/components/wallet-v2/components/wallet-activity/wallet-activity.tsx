@@ -1,9 +1,12 @@
 import React from "react";
+import { IconLoader2 } from "@tabler/icons-react";
+import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
+
+import { Input } from "~/components/ui/input";
 import { useWalletActivity } from "../../hooks/use-wallet-activity.hook";
 import { useWallet } from "../../hooks/use-wallet.hook";
-import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Input } from "~/components/ui/input";
-import { Button } from "~/components/ui/button";
+import { WalletActivityItem } from "./components/wallet-activity-item";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 const WalletActivity = () => {
   const { connected } = useWallet();
@@ -57,8 +60,8 @@ const WalletActivity = () => {
   }
 
   return (
-    <div className="space-y-4">
-      <form onSubmit={handleSubmit} className="space-y-2">
+    <div>
+      <form onSubmit={handleSubmit} className="space-y-2 hidden">
         <div>
           <Input
             type="text"
@@ -88,26 +91,18 @@ const WalletActivity = () => {
       </form>
 
       {isLoading ? (
-        <div className="text-sm text-muted-foreground">Loading activities...</div>
+        <div className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+          <IconLoader2 size={16} className="animate-spin" /> Loading activity...
+        </div>
       ) : error ? (
         <div className="text-sm text-red-500">Error loading activities: {error}</div>
       ) : activities.length === 0 ? (
         <div className="text-sm text-muted-foreground">No activity yet</div>
       ) : (
-        <div className="space-y-2">
-          {activities.map((activity) => (
-            <div key={activity.id} className="flex items-center justify-between p-2 text-sm border rounded">
-              <div className="flex flex-col">
-                <span className="font-medium">{activity.type}</span>
-                <span className="text-xs text-muted-foreground">{new Date(activity.timestamp).toLocaleString()}</span>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {Object.entries(activity.details).map(([key, value]) => (
-                  <div key={key}>
-                    {key}: {value}
-                  </div>
-                ))}
-              </div>
+        <div className="space-y-4">
+          {activities.map((activity, index) => (
+            <div className={cn(index !== 0 && "pt-4 border-t")}>
+              <WalletActivityItem key={activity.id} activity={activity} />
             </div>
           ))}
         </div>
