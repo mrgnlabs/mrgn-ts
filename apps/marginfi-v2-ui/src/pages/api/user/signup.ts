@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
 import * as Sentry from "@sentry/nextjs";
 import { createFirebaseUser, getFirebaseUserByWallet, initFirebaseIfNeeded, logSignupAttempt } from "./utils";
-import { NextApiRequest } from "../utils";
+import { NextApiRequest, NextApiResponse } from "next";
 import { is } from "superstruct";
 import { MEMO_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 import { PublicKey, Transaction } from "@solana/web3.js";
@@ -12,6 +12,7 @@ import {
   STATUS_BAD_REQUEST,
   STATUS_UNAUTHORIZED,
   STATUS_INTERNAL_ERROR,
+  STATUS_NOT_FOUND,
   STATUS_OK,
   firebaseApi,
 } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -19,14 +20,18 @@ import { capture, identify } from "@mrgnlabs/mrgn-utils";
 
 initFirebaseIfNeeded();
 
-export interface SignupRequest {
+interface SignupRequestBody {
   walletAddress: string;
   payload: firebaseApi.SignupPayload;
   walletId?: string;
 }
 
-export default async function handler(req: NextApiRequest<SignupRequest>, res: any) {
-  const { walletAddress, payload, walletId } = req.body;
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const { walletAddress, payload, walletId } = req.body as SignupRequestBody;
 
   Sentry.setContext("signup_args", {
     walletAddress,
@@ -38,7 +43,7 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
       return res.status(STATUS_BAD_REQUEST).json({ error: "User already exists" });
     }
   } catch (error: any) {
-    return res.status(STATUS_INTERNAL_ERROR).json({ error: error.message }); // An unexpected error occurred
+    return res.status(STATUS_INTERNAL_ERROR).json({ error: error.message });
   }
 
   try {
@@ -61,6 +66,16 @@ export default async function handler(req: NextApiRequest<SignupRequest>, res: a
 
   // Generate a custom token for the client to sign in
   const customToken = await admin.auth().createCustomToken(walletAddress);
+
+  // Create a session cookie
+  const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
+  const sessionCookie = await admin.auth().createSessionCookie(customToken, { expiresIn });
+
+  // Set the session cookie
+  res.setHeader(
+    "Set-Cookie",
+    `session=${sessionCookie}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${expiresIn / 1000}`
+  );
 
   return res.status(STATUS_OK).json({ status: "success", uid: walletAddress, token: customToken });
 }
