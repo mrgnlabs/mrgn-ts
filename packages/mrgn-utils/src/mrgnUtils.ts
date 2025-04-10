@@ -127,13 +127,19 @@ export function extractErrorString(error: any, fallback?: string): string {
 }
 
 export function getTokenImageURL(
-  bank: ExtendedBankInfo | PublicKey,
+  bank: ExtendedBankInfo | PublicKey | string,
   baseUrl: string = "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/"
 ): string {
-  const verifyPublicKey = (key: ExtendedBankInfo | PublicKey) => {
+  const verifyPublicKey = (key: ExtendedBankInfo | PublicKey | string) => {
     try {
-      const _ = new PublicKey(key).toBytes();
-      return true;
+      if (typeof key === "string") {
+        const _ = new PublicKey(key).toBytes();
+        return true;
+      }
+      if (key instanceof PublicKey) {
+        return true;
+      }
+      return false;
     } catch (error) {
       return false;
     }
@@ -141,8 +147,20 @@ export function getTokenImageURL(
 
   const isPublicKey = verifyPublicKey(bank);
 
-  const mintAddress = isPublicKey ? (bank as PublicKey) : (bank as ExtendedBankInfo).info.rawBank.mint;
-  return `${baseUrl}${mintAddress.toBase58()}.png`;
+  if (typeof bank === "string") {
+    try {
+      return `${baseUrl}${new PublicKey(bank).toBase58()}.png`;
+    } catch (error) {
+      // If the string is not a valid public key, return a default image or handle the error
+      return `${baseUrl}default.png`;
+    }
+  }
+
+  if (bank instanceof PublicKey) {
+    return `${baseUrl}${bank.toBase58()}.png`;
+  }
+
+  return `${baseUrl}${bank.info.rawBank.mint.toBase58()}.png`;
 }
 
 export function isBankOracleStale(bank: ExtendedBankInfo) {
