@@ -99,7 +99,7 @@ const WalletActivity = () => {
       ) : activities.length === 0 ? (
         <div className="text-sm text-muted-foreground">No activity yet</div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4 h-[calc(100vh-190px)] overflow-y-auto">
           {activities.map((activity, index) => (
             <div className={cn(index !== 0 && "pt-4 border-t")}>
               <WalletActivityItem key={index} activity={activity} />
