@@ -7,6 +7,9 @@ type WalletActivity = {
     amount: number;
     mint: string;
     symbol: string;
+    secondaryAmount?: number;
+    secondarySymbol?: string;
+    secondaryMint?: string;
   };
 };
 

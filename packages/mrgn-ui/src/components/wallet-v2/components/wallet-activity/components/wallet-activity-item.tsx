@@ -18,6 +18,8 @@ const getActivityText = (type: string) => {
       return "Borrowed";
     case "withdraw":
       return "Withdrew";
+    case "repay":
+      return "Repaid";
     default:
       return "";
   }
@@ -25,19 +27,36 @@ const getActivityText = (type: string) => {
 
 const WalletActivityItem = ({ activity }: { activity: WalletActivity }) => {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex items-start justify-between">
-        <div className="flex items-start gap-2 text-sm pr-8">
-          <Image
-            src={getTokenImageURL(activity.details.mint)}
-            alt={activity.details.symbol}
-            width={22}
-            height={22}
-            className="rounded-full -translate-y-px"
-          />
+        <div className="flex items-start gap-2.5 text-sm pr-8">
+          <div className="relative -translate-y-px w-[22px] h-[22px] overflow-visible">
+            <Image
+              src={getTokenImageURL(activity.details.mint)}
+              alt={activity.details.symbol}
+              width={26}
+              height={26}
+              className="rounded-full"
+            />
+            {activity.type === "repay" && activity.details.secondaryMint && (
+              <Image
+                src={getTokenImageURL(activity.details.secondaryMint)}
+                alt={activity.details.secondarySymbol ?? ""}
+                width={16}
+                height={16}
+                className="rounded-full absolute -bottom-[3px] -right-[3px]"
+              />
+            )}
+          </div>
           <p>
             {getActivityText(activity.type)} {dynamicNumeralFormatter(activity.details.amount)}{" "}
             {activity.details.symbol}
+            {activity.type === "repay" && activity.details.secondaryAmount && (
+              <>
+                <br className="hidden md:block" /> with {dynamicNumeralFormatter(activity.details.secondaryAmount)}{" "}
+                {activity.details.secondarySymbol}
+              </>
+            )}
           </p>
         </div>
         <div className="flex items-center justify-end gap-2 -translate-y-1">
