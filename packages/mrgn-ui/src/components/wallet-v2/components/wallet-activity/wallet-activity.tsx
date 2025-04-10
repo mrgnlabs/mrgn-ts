@@ -102,7 +102,7 @@ const WalletActivity = () => {
         <div className="space-y-4">
           {activities.map((activity, index) => (
             <div className={cn(index !== 0 && "pt-4 border-t")}>
-              <WalletActivityItem key={activity.id} activity={activity} />
+              <WalletActivityItem key={index} activity={activity} />
             </div>
           ))}
         </div>
