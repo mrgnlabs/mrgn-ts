@@ -314,16 +314,16 @@ export const LendBox = ({
           onComplete?.();
           // Log the activity
           const activityDetails: Record<string, any> = {
-            timestamp: new Date(),
-            txn: "TEXTTXN",
             amount: amount,
             symbol: selectedBank.meta.tokenSymbol,
             mint: selectedBank.info.rawBank.mint.toBase58(),
           };
 
-          logActivity(lendMode === ActionType.Deposit ? "deposit" : "withdraw", activityDetails).catch((error) => {
-            console.error("Failed to log activity:", error);
-          });
+          logActivity(lendMode === ActionType.Deposit ? "deposit" : "withdraw", "TESTTXN", activityDetails).catch(
+            (error) => {
+              console.error("Failed to log activity:", error);
+            }
+          );
         },
       },
       infoProps: {

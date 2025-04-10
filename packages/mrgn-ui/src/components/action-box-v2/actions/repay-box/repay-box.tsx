@@ -275,8 +275,6 @@ export const RepayBox = ({
           onComplete?.();
           // Log the activity
           const activityDetails: Record<string, any> = {
-            timestamp: new Date(),
-            txn: "TEXTTXN",
             amount: amount,
             symbol: selectedBank.meta.tokenSymbol,
             mint: selectedBank.info.rawBank.mint.toBase58(),
@@ -288,7 +286,7 @@ export const RepayBox = ({
             activityDetails.secondaryMint = selectedSecondaryBank.info.rawBank.mint.toBase58();
           }
 
-          logActivity("repay", activityDetails).catch((error) => {
+          logActivity("repay", "TESTTXN", activityDetails).catch((error) => {
             console.error("Failed to log activity:", error);
           });
         },
