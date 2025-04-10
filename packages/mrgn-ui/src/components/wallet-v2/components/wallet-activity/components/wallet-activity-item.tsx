@@ -44,7 +44,7 @@ const WalletActivityItem = ({ activity }: { activity: WalletActivity }) => {
                 alt={activity.details.secondarySymbol ?? ""}
                 width={16}
                 height={16}
-                className="rounded-full absolute -bottom-[3px] -right-[3px]"
+                className="rounded-full absolute -bottom-[4px] -right-[4px] border border-muted-foreground/75"
               />
             )}
           </div>
