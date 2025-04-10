@@ -1,17 +1,11 @@
 import React from "react";
 import { useWallet } from "./use-wallet.hook";
 import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
-
-interface Activity {
-  id: string;
-  type: string;
-  timestamp: Date;
-  details: Record<string, any>;
-}
+import { WalletActivity } from "../types/wallet.types";
 
 export const useWalletActivity = () => {
   const { connected, walletAddress } = useWallet();
-  const [activities, setActivities] = React.useState<Activity[]>([]);
+  const [activities, setActivities] = React.useState<WalletActivity[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
