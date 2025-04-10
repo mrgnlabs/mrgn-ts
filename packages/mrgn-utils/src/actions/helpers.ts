@@ -151,7 +151,7 @@ export function composeExplorerUrl(signature?: string): string | undefined {
     : `https://solscan.io/tx/${signature}`;
 }
 
-export async function logActivity(type: string, details: Record<string, any>): Promise<void> {
+export async function logActivity(type: string, txn: string, details: Record<string, any>): Promise<void> {
   try {
     const response = await fetch("/api/activity/create", {
       method: "POST",
@@ -160,6 +160,7 @@ export async function logActivity(type: string, details: Record<string, any>): P
       },
       body: JSON.stringify({
         type,
+        txn,
         details,
       }),
     });
