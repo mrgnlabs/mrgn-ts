@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { initFirebaseIfNeeded } from "../user/utils";
 import * as admin from "firebase-admin";
-import { getAuth } from "firebase-admin/auth";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
@@ -9,19 +8,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Unauthorized - No token provided" });
+    // Get the session cookie from the request
+    const sessionCookie = req.cookies.session || "";
+    if (!sessionCookie) {
+      return res.status(401).json({ error: "Unauthorized - No session cookie" });
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-
-    // Initialize Firebase and verify the ID token
+    // Initialize Firebase and verify the session cookie
     initFirebaseIfNeeded();
-    const decodedToken = await getAuth().verifyIdToken(idToken);
-
-    // The wallet address is the UID in Firebase
-    const walletAddress = decodedToken.uid;
+    const decodedClaims = await admin.auth().verifySessionCookie(sessionCookie, true);
+    const walletAddress = decodedClaims.uid;
 
     const db = admin.firestore();
 
@@ -43,8 +39,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ activities });
   } catch (error: any) {
     console.error("Error fetching activities:", error);
-    if (error.code === "auth/id-token-expired" || error.code === "auth/id-token-revoked") {
-      return res.status(401).json({ error: "Token expired" });
+    if (error.code === "auth/session-cookie-expired" || error.code === "auth/session-cookie-revoked") {
+      return res.status(401).json({ error: "Session expired" });
     }
     return res.status(500).json({ error: "Internal server error" });
   }
