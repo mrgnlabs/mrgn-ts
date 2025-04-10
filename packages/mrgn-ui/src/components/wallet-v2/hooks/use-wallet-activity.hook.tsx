@@ -1,6 +1,5 @@
 import React from "react";
 import { useWallet } from "./use-wallet.hook";
-import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletActivity } from "../types/wallet.types";
 
 export const useWalletActivity = () => {
@@ -16,17 +15,7 @@ export const useWalletActivity = () => {
     setError(null);
 
     try {
-      const idToken = await firebaseApi.auth.currentUser?.getIdToken();
-      if (!idToken) {
-        throw new Error("Not authenticated");
-      }
-
-      console.log("Fetching activities with token");
-      const response = await fetch("/api/activity/get", {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
+      const response = await fetch("/api/activity/get");
 
       if (!response.ok) {
         const errorData = await response.json();
