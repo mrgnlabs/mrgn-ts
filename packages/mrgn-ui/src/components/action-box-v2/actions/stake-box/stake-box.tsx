@@ -14,6 +14,7 @@ import {
   usePrevious,
   ExecuteStakeActionProps,
   ExecuteStakeAction,
+  logActivity,
 } from "@mrgnlabs/mrgn-utils";
 
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
@@ -228,7 +229,24 @@ export const StakeBox = ({
       txOpts: {},
       callbacks: {
         captureEvent: captureEvent,
-        onComplete: onComplete,
+        onComplete: () => {
+          onComplete?.();
+          // Log the activity
+          const activityDetails: Record<string, any> = {
+            amount: amount,
+            symbol: selectedBank.meta.tokenSymbol,
+            mint: selectedBank.info.rawBank.mint.toBase58(),
+          };
+
+          if (actionTxns.actionQuote) {
+            activityDetails.secondarySymbol = selectedBank.meta.tokenSymbol;
+            activityDetails.secondaryMint = selectedBank.info.rawBank.mint.toBase58();
+          }
+
+          logActivity("stake", "TESTTXN", activityDetails).catch((error) => {
+            console.error("Failed to log activity:", error);
+          });
+        },
       },
       infoProps: {
         swapAmount: dynamicNumeralFormatter(amount),
