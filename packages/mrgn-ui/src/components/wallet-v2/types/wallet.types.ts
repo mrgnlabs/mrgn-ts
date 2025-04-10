@@ -1,28 +1,13 @@
-type WalletActivityBase = {
+type WalletActivity = {
   id: string;
-  type: "deposit" | "borrow";
+  type: "deposit" | "borrow" | "withdraw" | "repay";
   timestamp: Date;
   txn: string;
-};
-
-type WalletActivityDeposit = WalletActivityBase & {
-  type: "deposit";
   details: {
-    depositMint: string;
-    depositSymbol: string;
-    depositAmount: number;
+    amount: number;
+    mint: string;
+    symbol: string;
   };
 };
 
-type WalletActivityBorrow = WalletActivityBase & {
-  type: "borrow";
-  details: {
-    borrowMint: string;
-    borrowSymbol: string;
-    borrowAmount: number;
-  };
-};
-
-type WalletActivity = WalletActivityDeposit | WalletActivityBorrow;
-
-export type { WalletActivityBase, WalletActivityDeposit, WalletActivityBorrow, WalletActivity };
+export type { WalletActivity };

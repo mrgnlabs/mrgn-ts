@@ -1,7 +1,7 @@
 import { PublicKey, TransactionInstruction, Connection, AddressLookupTableAccount } from "@solana/web3.js";
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { WalletContextStateOverride } from "../wallet";
 import { WalletToken } from "@mrgnlabs/mrgn-common";
@@ -149,4 +149,25 @@ export function composeExplorerUrl(signature?: string): string | undefined {
   return detectedBroadcastType === "BUNDLE"
     ? `https://explorer.jito.wtf/bundle/${signature}`
     : `https://solscan.io/tx/${signature}`;
+}
+
+export async function logActivity(type: string, details: Record<string, any>): Promise<void> {
+  try {
+    const response = await fetch("/api/activity/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        type,
+        details,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to log activity: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error("Error logging activity:", error);
+  }
 }

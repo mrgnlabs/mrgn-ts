@@ -4,7 +4,7 @@ import BN from "bn.js";
 
 import { OracleSetup } from "@mrgnlabs/marginfi-client-v2";
 import { TOKEN_PROGRAM_ID, aprToApy, ceil, floor, percentFormatter } from "@mrgnlabs/mrgn-common";
-import { ActiveBankInfo, Emissions, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo, Emissions, ExtendedBankInfo, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { LendingModes } from "./types";
 import { handleError } from "./errors";
@@ -177,4 +177,32 @@ export function isBankOracleStale(bank: ExtendedBankInfo) {
   const isStale = currentTime - oracleTime > maxAge;
 
   return isStale;
+}
+
+export async function logActivity(type: string, details: Record<string, any>): Promise<void> {
+  try {
+    const idToken = await firebaseApi.auth.currentUser?.getIdToken();
+    if (!idToken) {
+      console.warn("No authenticated user found for activity logging");
+      return;
+    }
+
+    const response = await fetch("/api/activity/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({
+        type,
+        details,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to log activity: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error("Error logging activity:", error);
+  }
 }
