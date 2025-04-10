@@ -14,6 +14,7 @@ import {
   checkRepayActionAvailable,
   ExecuteRepayActionProps,
   ExecuteRepayAction,
+  logActivity,
 } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
@@ -270,7 +271,27 @@ export const RepayBox = ({
       txOpts: {},
       callbacks: {
         captureEvent: captureEvent,
-        onComplete: onComplete,
+        onComplete: () => {
+          onComplete?.();
+          // Log the activity
+          const activityDetails: Record<string, any> = {
+            timestamp: new Date(),
+            txn: "TEXTTXN",
+            amount: amount,
+            symbol: selectedBank.meta.tokenSymbol,
+            mint: selectedBank.info.rawBank.mint.toBase58(),
+          };
+
+          if (actionMode === ActionType.RepayCollat) {
+            activityDetails.secondaryAmount = repayAmount;
+            activityDetails.secondarySymbol = selectedSecondaryBank.meta.tokenSymbol;
+            activityDetails.secondaryMint = selectedSecondaryBank.info.rawBank.mint.toBase58();
+          }
+
+          logActivity("repay", activityDetails).catch((error) => {
+            console.error("Failed to log activity:", error);
+          });
+        },
       },
       actionType: actionMode,
       infoProps: {
