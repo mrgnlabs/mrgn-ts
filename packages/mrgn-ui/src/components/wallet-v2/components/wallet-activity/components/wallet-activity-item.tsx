@@ -20,6 +20,10 @@ const getActivityText = (type: string) => {
       return "Withdrew";
     case "repay":
       return "Repaid";
+    case "stake":
+      return "Staked";
+    case "unstake":
+      return "Unstaked";
     default:
       return "";
   }
@@ -47,6 +51,15 @@ const WalletActivityItem = ({ activity }: { activity: WalletActivity }) => {
                 className="rounded-full absolute -bottom-[4px] -right-[4px] border border-muted-foreground/75"
               />
             )}
+            {activity.type === "stake" && (
+              <Image
+                src={getTokenImageURL("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp")}
+                alt={"LST"}
+                width={16}
+                height={16}
+                className="rounded-full absolute -bottom-[4px] -right-[4px] border border-muted-foreground/75"
+              />
+            )}
           </div>
           <p>
             {getActivityText(activity.type)} {dynamicNumeralFormatter(activity.details.amount)}{" "}
@@ -57,6 +70,7 @@ const WalletActivityItem = ({ activity }: { activity: WalletActivity }) => {
                 {activity.details.secondarySymbol}
               </>
             )}
+            {activity.type === "stake" && <> for LST</>}
           </p>
         </div>
         <div className="flex items-center justify-end gap-2 -translate-y-1">
