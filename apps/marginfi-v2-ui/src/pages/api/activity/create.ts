@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { type, details } = req.body;
+    const { type, details, txn } = req.body;
 
     // Get the session cookie from the request
     const sessionCookie = req.cookies.session || "";
@@ -36,6 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         type,
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
         details: details || {},
+        txn,
       });
 
     return res.status(200).json({ success: true });

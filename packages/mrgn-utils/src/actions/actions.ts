@@ -28,7 +28,7 @@ export interface ExecuteActionProps {
   txOpts: TransactionOptions;
   callbacks: {
     captureEvent?: (event: string, properties?: Record<string, any>) => void;
-    onComplete?: () => void | null;
+    onComplete?: (txnSig: string) => void | null;
   };
   nativeSolBalance?: number;
 }
@@ -60,7 +60,7 @@ export async function executeActionWrapper(props: {
   txns: ActionTxns;
   existingToast?: MultiStepToastController;
   nativeSolBalance?: number;
-  onComplete?: () => void;
+  onComplete?: (txnSig: string) => void;
 }) {
   const { action, steps, actionName, txns, existingToast, nativeSolBalance, onComplete } = props;
 
@@ -81,7 +81,7 @@ export async function executeActionWrapper(props: {
       toast.successAndNext(stepsToAdvance ?? 1, explorerUrl, signature);
     });
     toast.success(composeExplorerUrl(txnSig), txnSig);
-    onComplete && onComplete();
+    onComplete && onComplete(txnSig);
     return txnSig;
   } catch (error) {
     if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {

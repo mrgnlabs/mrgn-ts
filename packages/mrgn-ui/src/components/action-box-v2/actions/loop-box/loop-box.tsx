@@ -254,7 +254,7 @@ export const LoopBox = ({
       txOpts: {},
       callbacks: {
         captureEvent: captureEvent,
-        onComplete: () => {
+        onComplete: (txnSig: string) => {
           onComplete?.();
           // Log the activity
           const activityDetails: Record<string, any> = {
@@ -266,7 +266,7 @@ export const LoopBox = ({
             secondaryMint: selectedSecondaryBank.info.rawBank.mint.toBase58(),
           };
 
-          logActivity("loop", "TESTTXN", activityDetails).catch((error) => {
+          logActivity("loop", txnSig, activityDetails).catch((error) => {
             console.error("Failed to log activity:", error);
           });
         },
