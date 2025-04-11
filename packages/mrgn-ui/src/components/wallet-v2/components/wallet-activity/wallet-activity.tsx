@@ -90,7 +90,9 @@ const WalletActivity = () => {
       ) : error ? (
         <div className="text-sm text-red-500">Error loading activities: {error}</div>
       ) : activities.length === 0 ? (
-        <div className="text-sm text-muted-foreground">No activity yet</div>
+        <div className="flex items-center justify-center h-full">
+          <p className="text-sm text-muted-foreground">No activity yet.</p>
+        </div>
       ) : (
         <div className="space-y-4 h-[calc(100vh-190px)] overflow-y-auto">
           {activities.map((activity, index) => (
