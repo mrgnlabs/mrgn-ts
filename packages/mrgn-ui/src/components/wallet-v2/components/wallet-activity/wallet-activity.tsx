@@ -1,6 +1,5 @@
 import React from "react";
 import { IconLoader2 } from "@tabler/icons-react";
-import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Input } from "~/components/ui/input";
 import { useWalletActivity } from "../../hooks/use-wallet-activity.hook";
@@ -22,16 +21,10 @@ const WalletActivity = () => {
     setSubmitError(null);
 
     try {
-      const idToken = await firebaseApi.auth.currentUser?.getIdToken();
-      if (!idToken) {
-        throw new Error("Not authenticated");
-      }
-
       const response = await fetch("/api/activity/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           type,
