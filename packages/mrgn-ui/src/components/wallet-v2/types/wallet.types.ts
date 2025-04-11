@@ -1,6 +1,6 @@
 type WalletActivity = {
   id: string;
-  type: "deposit" | "borrow" | "withdraw" | "repay" | "stake" | "unstake";
+  type: "deposit" | "borrow" | "withdraw" | "repay" | "stake" | "unstake" | "loop" | "deposit-swap";
   timestamp: Date;
   txn: string;
   details: {
@@ -10,6 +10,7 @@ type WalletActivity = {
     secondaryAmount?: number;
     secondarySymbol?: string;
     secondaryMint?: string;
+    secondaryImage?: string;
   };
 };
 
