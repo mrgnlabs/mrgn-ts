@@ -35,10 +35,10 @@ const getActivityText = (type: string) => {
 
 const WalletActivityItem = ({ activity }: { activity: WalletActivity }) => {
   return (
-    <div className="space-y-3">
+    <div className="p-3 rounded-md space-y-4 bg-accent/25">
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-2.5 text-sm pr-8">
-          <div className="relative -translate-y-px w-[22px] h-[22px] overflow-visible">
+          <div className="relative w-[22px] h-[22px] overflow-visible">
             <Image
               src={getTokenImageURL(activity.details.mint)}
               alt={activity.details.symbol}
