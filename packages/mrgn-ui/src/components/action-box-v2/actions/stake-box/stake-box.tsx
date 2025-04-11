@@ -229,7 +229,7 @@ export const StakeBox = ({
       txOpts: {},
       callbacks: {
         captureEvent: captureEvent,
-        onComplete: () => {
+        onComplete: (txnSig: string) => {
           onComplete?.();
           // Log the activity
           const activityDetails: Record<string, any> = {
@@ -243,7 +243,7 @@ export const StakeBox = ({
             activityDetails.secondaryMint = selectedBank.info.rawBank.mint.toBase58();
           }
 
-          logActivity("stake", "TESTTXN", activityDetails).catch((error) => {
+          logActivity("stake", txnSig, activityDetails).catch((error) => {
             console.error("Failed to log activity:", error);
           });
         },
