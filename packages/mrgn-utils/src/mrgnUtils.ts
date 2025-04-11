@@ -178,31 +178,3 @@ export function isBankOracleStale(bank: ExtendedBankInfo) {
 
   return isStale;
 }
-
-export async function logActivity(type: string, details: Record<string, any>): Promise<void> {
-  try {
-    const idToken = await firebaseApi.auth.currentUser?.getIdToken();
-    if (!idToken) {
-      console.warn("No authenticated user found for activity logging");
-      return;
-    }
-
-    const response = await fetch("/api/activity/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
-      },
-      body: JSON.stringify({
-        type,
-        details,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to log activity: ${response.statusText}`);
-    }
-  } catch (error) {
-    console.error("Error logging activity:", error);
-  }
-}
