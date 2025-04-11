@@ -271,7 +271,7 @@ export const RepayBox = ({
       txOpts: {},
       callbacks: {
         captureEvent: captureEvent,
-        onComplete: () => {
+        onComplete: (txnSig: string) => {
           onComplete?.();
           // Log the activity
           const activityDetails: Record<string, any> = {
@@ -286,7 +286,7 @@ export const RepayBox = ({
             activityDetails.secondaryMint = selectedSecondaryBank.info.rawBank.mint.toBase58();
           }
 
-          logActivity("repay", "TESTTXN", activityDetails).catch((error) => {
+          logActivity("repay", txnSig, activityDetails).catch((error) => {
             console.error("Failed to log activity:", error);
           });
         },

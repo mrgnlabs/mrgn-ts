@@ -324,7 +324,7 @@ export const DepositSwapBox = ({
       txOpts: {},
       callbacks: {
         captureEvent: captureEvent,
-        onComplete: () => {
+        onComplete: (txnSig: string) => {
           onComplete?.({
             walletToken: selectedSwapBank && "info" in selectedSwapBank ? undefined : (selectedSwapBank ?? undefined),
           });
@@ -339,7 +339,7 @@ export const DepositSwapBox = ({
             secondaryImage: swapTokenImage,
           };
 
-          logActivity("deposit-swap", "TESTTXN", activityDetails).catch((error) => {
+          logActivity("deposit-swap", txnSig, activityDetails).catch((error) => {
             console.error("Failed to log activity:", error);
           });
         },
