@@ -27,6 +27,7 @@ import {
   LendSelectionGroups,
   composeExplorerUrl,
   executeActionWrapper,
+  logActivity,
 } from "@mrgnlabs/mrgn-utils";
 
 import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
@@ -309,7 +310,30 @@ export const LendBox = ({
       txOpts: {},
       callbacks: {
         captureEvent: captureEvent,
-        onComplete: onComplete,
+        onComplete: (txnSig: string) => {
+          onComplete?.();
+          // Log the activity
+          const activityDetails: Record<string, any> = {
+            amount: amount,
+            symbol: selectedBank.meta.tokenSymbol,
+            mint: selectedBank.info.rawBank.mint.toBase58(),
+          };
+
+          const type =
+            lendMode === ActionType.Deposit
+              ? "deposit"
+              : lendMode === ActionType.Withdraw
+                ? "withdraw"
+                : lendMode === ActionType.Borrow
+                  ? "borrow"
+                  : "";
+
+          if (!type) return;
+
+          logActivity(type, txnSig, activityDetails).catch((error) => {
+            console.error("Failed to log activity:", error);
+          });
+        },
       },
       infoProps: {
         amount: dynamicNumeralFormatter(amount),

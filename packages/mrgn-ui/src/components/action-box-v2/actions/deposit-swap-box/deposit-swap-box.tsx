@@ -14,6 +14,7 @@ import {
   checkDepositSwapActionAvailable,
   usePrevious,
   ExecuteDepositSwapAction,
+  logActivity,
 } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter, nativeToUi, WalletToken } from "@mrgnlabs/mrgn-common";
 
@@ -300,6 +301,18 @@ export const DepositSwapBox = ({
         : selectedSwapBank.symbol
       : "";
 
+    const swapTokenMint = selectedSwapBank
+      ? "info" in selectedSwapBank
+        ? selectedSwapBank.info.rawBank.mint.toBase58()
+        : selectedSwapBank.address.toBase58()
+      : "";
+
+    const swapTokenImage = selectedSwapBank
+      ? "info" in selectedSwapBank
+        ? selectedSwapBank.meta.tokenLogoUri
+        : selectedSwapBank.logoUri
+      : "";
+
     const props = {
       actionTxns,
       attemptUuid: uuidv4(),
@@ -311,9 +324,23 @@ export const DepositSwapBox = ({
       txOpts: {},
       callbacks: {
         captureEvent: captureEvent,
-        onComplete: () => {
+        onComplete: (txnSig: string) => {
           onComplete?.({
             walletToken: selectedSwapBank && "info" in selectedSwapBank ? undefined : (selectedSwapBank ?? undefined),
+          });
+          // Log the activity
+          const activityDetails: Record<string, any> = {
+            amount: depositAmount,
+            symbol: selectedDepositBank?.meta.tokenSymbol,
+            mint: selectedDepositBank?.info.rawBank.mint.toBase58(),
+            secondaryAmount: amount,
+            secondarySymbol: swapTokenSymbol,
+            secondaryMint: swapTokenMint,
+            secondaryImage: swapTokenImage,
+          };
+
+          logActivity("deposit-swap", txnSig, activityDetails).catch((error) => {
+            console.error("Failed to log activity:", error);
           });
         },
       },
