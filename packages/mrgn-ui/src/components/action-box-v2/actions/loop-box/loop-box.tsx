@@ -16,6 +16,7 @@ import {
   usePrevious,
   ExecuteLoopActionProps,
   executeLoopAction,
+  logActivity,
 } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
@@ -253,7 +254,22 @@ export const LoopBox = ({
       txOpts: {},
       callbacks: {
         captureEvent: captureEvent,
-        onComplete: onComplete,
+        onComplete: () => {
+          onComplete?.();
+          // Log the activity
+          const activityDetails: Record<string, any> = {
+            amount: amount,
+            symbol: selectedBank.meta.tokenSymbol,
+            mint: selectedBank.info.rawBank.mint.toBase58(),
+            secondaryAmount: actionTxns.borrowAmount.toNumber(),
+            secondarySymbol: selectedSecondaryBank.meta.tokenSymbol,
+            secondaryMint: selectedSecondaryBank.info.rawBank.mint.toBase58(),
+          };
+
+          logActivity("loop", "TESTTXN", activityDetails).catch((error) => {
+            console.error("Failed to log activity:", error);
+          });
+        },
       },
       infoProps: {
         depositAmount: dynamicNumeralFormatter(amount),

@@ -24,6 +24,10 @@ const getActivityText = (type: string) => {
       return "Staked";
     case "unstake":
       return "Unstaked";
+    case "loop":
+      return "Looped";
+    case "deposit-swap":
+      return "Swapped";
     default:
       return "";
   }
@@ -42,13 +46,22 @@ const WalletActivityItem = ({ activity }: { activity: WalletActivity }) => {
               height={26}
               className="rounded-full"
             />
-            {activity.type === "repay" && activity.details.secondaryMint && (
+            {(activity.type === "loop" || activity.type === "repay") && activity.details.secondaryMint && (
               <Image
                 src={getTokenImageURL(activity.details.secondaryMint)}
                 alt={activity.details.secondarySymbol ?? ""}
                 width={16}
                 height={16}
                 className="rounded-full absolute -bottom-[4px] -right-[4px] border border-muted-foreground/75"
+              />
+            )}
+            {activity.type === "deposit-swap" && activity.details.secondaryImage && (
+              <img
+                src={activity.details.secondaryImage}
+                alt={activity.details.secondarySymbol ?? ""}
+                width={16}
+                height={16}
+                className="rounded-full absolute -bottom-[4px] -right-[4px] border border-muted-foreground/75 size-4"
               />
             )}
             {activity.type === "stake" && (
@@ -62,8 +75,17 @@ const WalletActivityItem = ({ activity }: { activity: WalletActivity }) => {
             )}
           </div>
           <p>
-            {getActivityText(activity.type)} {dynamicNumeralFormatter(activity.details.amount)}{" "}
-            {activity.details.symbol}
+            {getActivityText(activity.type)}
+            {activity.type === "deposit-swap" &&
+              activity.details.secondarySymbol &&
+              activity.details.secondaryAmount && (
+                <>
+                  {" "}
+                  {dynamicNumeralFormatter(activity.details.secondaryAmount)} {activity.details.secondarySymbol} and
+                  <br className="hidden md:block" /> deposited{" "}
+                </>
+              )}{" "}
+            {dynamicNumeralFormatter(activity.details.amount)} {activity.details.symbol}
             {activity.type === "repay" && activity.details.secondaryAmount && (
               <>
                 <br className="hidden md:block" /> with {dynamicNumeralFormatter(activity.details.secondaryAmount)}{" "}
@@ -71,6 +93,12 @@ const WalletActivityItem = ({ activity }: { activity: WalletActivity }) => {
               </>
             )}
             {activity.type === "stake" && <> for LST</>}
+            {activity.type === "loop" && (
+              <>
+                <br className="hidden md:block" /> with {dynamicNumeralFormatter(activity.details.secondaryAmount ?? 0)}{" "}
+                {activity.details.secondarySymbol}
+              </>
+            )}
           </p>
         </div>
         <div className="flex items-center justify-end gap-2 -translate-y-1">
