@@ -1,14 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
-import { formatDistanceToNow } from "date-fns";
 
+import { formatDistanceToNow } from "date-fns";
 import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { IconExternalLink, IconClock, IconRefresh } from "@tabler/icons-react";
 
 import { WalletActivity } from "~/components/wallet-v2/types/wallet.types";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
-import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { Skeleton } from "~/components/ui/skeleton";
 
 const getActivityText = (type: string) => {
   switch (type) {
@@ -140,4 +141,22 @@ const WalletActivityItem = ({ activity }: { activity: WalletActivity }) => {
   );
 };
 
-export { WalletActivityItem };
+type WalletActivityItemSkeletonProps = {
+  style?: React.CSSProperties;
+};
+
+const WalletActivityItemSkeleton = ({ style }: WalletActivityItemSkeletonProps) => {
+  return (
+    <div className="p-3 rounded-md bg-accent/25 pt-4 pb-8" style={style}>
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-8 w-8 rounded-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-2 w-48" />
+          <Skeleton className="h-2 w-24" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export { WalletActivityItem, WalletActivityItemSkeleton };
