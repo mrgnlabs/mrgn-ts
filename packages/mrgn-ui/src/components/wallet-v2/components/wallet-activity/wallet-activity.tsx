@@ -1,13 +1,17 @@
 import React from "react";
 import { IconLoader2 } from "@tabler/icons-react";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Input } from "~/components/ui/input";
 import { useWalletActivity } from "../../hooks/use-wallet-activity.hook";
 import { useWallet } from "../../hooks/use-wallet.hook";
-import { WalletActivityItem } from "./components/wallet-activity-item";
-import { cn } from "@mrgnlabs/mrgn-utils";
+import { WalletActivityItem, WalletActivityItemSkeleton } from "./components/wallet-activity-item";
 
-const WalletActivity = () => {
+type WalletActivityProps = {
+  extendedBankInfos: ExtendedBankInfo[];
+};
+
+const WalletActivity = ({ extendedBankInfos }: WalletActivityProps) => {
   const { connected } = useWallet();
   const { activities, isLoading, error, refetch } = useWalletActivity();
   const [type, setType] = React.useState("");
@@ -84,15 +88,15 @@ const WalletActivity = () => {
       </form>
 
       {isLoading ? (
-        <div className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-          <IconLoader2 size={16} className="animate-spin" /> Loading activity...
-        </div>
+        <>
+          {Array.from({ length: 5 }).map((_, index) => (
+            <WalletActivityItemSkeleton key={index} style={{ opacity: (5 - index) * 0.2 }} />
+          ))}
+        </>
       ) : error ? (
         <div className="text-sm text-red-500">Error loading activities: {error}</div>
       ) : activities.length === 0 ? (
-        <div className="flex items-center justify-center h-full">
-          <p className="text-sm text-muted-foreground">No activity yet</p>
-        </div>
+        <p className="text-sm text-muted-foreground text-center">No activity yet.</p>
       ) : (
         <div className="space-y-2 h-[calc(100vh-190px)] overflow-y-auto">
           {activities.map((activity, index) => (
