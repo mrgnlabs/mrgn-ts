@@ -54,6 +54,7 @@ export type RepayBoxProps = {
   banks: ExtendedBankInfo[];
   requestedBank: ExtendedBankInfo;
   requestedSecondaryBank?: ExtendedBankInfo;
+  initialAmount?: number;
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
   additionalSettings?: AdditionalSettings;
@@ -71,6 +72,7 @@ export const RepayBox = ({
   banks,
   requestedBank,
   requestedSecondaryBank,
+  initialAmount,
   accountSummaryArg,
   isDialog,
   additionalSettings,
@@ -221,6 +223,12 @@ export const RepayBox = ({
     fetchActionBoxState({ requestedBank: requestedBank, requestedSecondaryBank: requestedSecondaryBank });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchActionBoxState]);
+
+  React.useEffect(() => {
+    if (initialAmount !== undefined) {
+      setAmountRaw(initialAmount.toString());
+    }
+  }, [initialAmount, setAmountRaw]);
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
