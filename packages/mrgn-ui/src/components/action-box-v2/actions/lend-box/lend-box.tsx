@@ -57,6 +57,7 @@ export type LendBoxProps = {
   banks: ExtendedBankInfo[];
   requestedLendType: ActionType;
   requestedBank?: ExtendedBankInfo;
+  initialAmount?: number;
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
   showAvailableCollateral?: boolean;
@@ -100,6 +101,7 @@ export const LendBox = ({
   searchMode = false,
   shouldBeHidden = false,
   setShouldBeHidden,
+  initialAmount,
 }: LendBoxProps) => {
   const [
     amountRaw,
@@ -252,6 +254,12 @@ export const LendBox = ({
   React.useEffect(() => {
     fetchActionBoxState({ requestedLendType, requestedBank });
   }, [requestedLendType, requestedBank, fetchActionBoxState]);
+
+  React.useEffect(() => {
+    if (initialAmount !== undefined) {
+      setAmountRaw(initialAmount.toString());
+    }
+  }, [initialAmount, setAmountRaw]);
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
