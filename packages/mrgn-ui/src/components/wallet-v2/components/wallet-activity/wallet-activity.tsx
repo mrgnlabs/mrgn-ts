@@ -101,11 +101,11 @@ const WalletActivity = ({ extendedBankInfos, onRerun }: WalletActivityProps) => 
       </form>
 
       {isLoading ? (
-        <>
+        <div className="space-y-2 h-[calc(100vh-190px)] overflow-y-auto">
           {Array.from({ length: 5 }).map((_, index) => (
             <WalletActivityItemSkeleton key={index} style={{ opacity: (5 - index) * 0.2 }} />
           ))}
-        </>
+        </div>
       ) : error ? (
         <div className="text-sm text-red-500">Error loading activities: {error}</div>
       ) : activities.length === 0 ? (
@@ -120,8 +120,11 @@ const WalletActivity = ({ extendedBankInfos, onRerun }: WalletActivityProps) => 
                 key={index}
                 activity={activity}
                 bank={bank}
-                walletContextState={walletContextState}
-                onRerun={onRerun}
+                walletContextState={walletContextState as WalletContextStateOverride}
+                onRerun={() => {
+                  onRerun();
+                  setTimeout(() => refetch(), 2000);
+                }}
               />
             );
           })}
