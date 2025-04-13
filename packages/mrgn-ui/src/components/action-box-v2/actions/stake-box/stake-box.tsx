@@ -47,6 +47,7 @@ export type StakeBoxProps = {
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
   requestedActionType: ActionType;
+  initialAmount?: number;
 
   lstData?: LstData | null;
 
@@ -64,6 +65,7 @@ export const StakeBox = ({
   connected,
   isDialog,
   requestedActionType,
+  initialAmount,
   onConnect,
   captureEvent,
   onComplete,
@@ -102,6 +104,12 @@ export const StakeBox = ({
     state.setSelectedBank,
     state.setErrorMessage,
   ]);
+
+  React.useEffect(() => {
+    if (initialAmount !== undefined) {
+      setAmountRaw(initialAmount.toString());
+    }
+  }, [initialAmount, setAmountRaw]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [simulationStatus, setSimulationStatus] = React.useState<{

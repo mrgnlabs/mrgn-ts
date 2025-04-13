@@ -45,9 +45,10 @@ type WalletActivityItemProps = {
   bank: ExtendedBankInfo;
   walletContextState: WalletContextStateOverride | WalletContextState;
   onRerun?: () => void;
+  closeWallet?: () => void;
 };
 
-const WalletActivityItem = ({ activity, bank, walletContextState, onRerun }: WalletActivityItemProps) => {
+const WalletActivityItem = ({ activity, bank, walletContextState, onRerun, closeWallet }: WalletActivityItemProps) => {
   return (
     <div className="p-3 rounded-md space-y-4 bg-accent/25">
       <div className="flex items-start justify-between">
@@ -166,9 +167,10 @@ type RerunActionProps = {
   bank: ExtendedBankInfo;
   activity: WalletActivity;
   onRerun?: () => void;
+  closeWallet?: () => void;
 };
 
-const RerunAction = ({ walletContextState, bank, activity, onRerun }: RerunActionProps) => {
+const RerunAction = ({ walletContextState, bank, activity, onRerun, closeWallet }: RerunActionProps) => {
   const activityDetails = React.useMemo(() => {
     switch (activity.type) {
       case "deposit":
@@ -201,6 +203,18 @@ const RerunAction = ({ walletContextState, bank, activity, onRerun }: RerunActio
           amount: activity.details.amount,
           type: ActionType.Loop,
           title: `Loop ${bank.meta.tokenSymbol}`,
+        };
+      case "stake":
+        return {
+          amount: activity.details.amount,
+          type: ActionType.MintLST,
+          title: `Stake ${bank.meta.tokenSymbol}`,
+        };
+      case "unstake":
+        return {
+          amount: activity.details.amount,
+          type: ActionType.UnstakeLST,
+          title: `Unstake ${bank.meta.tokenSymbol}`,
         };
     }
   }, [activity, bank]);
@@ -281,6 +295,14 @@ const RerunAction = ({ walletContextState, bank, activity, onRerun }: RerunActio
           ),
         }}
       />
+    );
+  } else if (activityDetails.type === ActionType.MintLST || activityDetails.type === ActionType.UnstakeLST) {
+    return (
+      <Link href="/stake" onClick={closeWallet}>
+        <Button variant="secondary" size="icon" className="h-7 w-7">
+          <IconRefresh size={14} />
+        </Button>
+      </Link>
     );
   }
 };

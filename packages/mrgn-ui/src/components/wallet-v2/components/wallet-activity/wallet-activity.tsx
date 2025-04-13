@@ -11,9 +11,10 @@ import { WalletActivityItem, WalletActivityItemSkeleton } from "./components/wal
 type WalletActivityProps = {
   extendedBankInfos: ExtendedBankInfo[];
   onRerun: () => void;
+  closeWallet?: () => void;
 };
 
-const WalletActivity = ({ extendedBankInfos, onRerun }: WalletActivityProps) => {
+const WalletActivity = ({ extendedBankInfos, onRerun, closeWallet }: WalletActivityProps) => {
   const { connected, walletContextState } = useWallet();
   const { activities, isLoading, error, refetch } = useWalletActivity();
   const [type, setType] = React.useState("");
@@ -125,6 +126,7 @@ const WalletActivity = ({ extendedBankInfos, onRerun }: WalletActivityProps) => 
                   onRerun();
                   setTimeout(() => refetch(), 2000);
                 }}
+                closeWallet={closeWallet}
               />
             );
           })}
