@@ -172,6 +172,7 @@ const RerunAction = ({ walletContextState, bank, activity, onRerun }: RerunActio
   const activityDetails = React.useMemo(() => {
     switch (activity.type) {
       case "deposit":
+      case "deposit-swap":
         return {
           amount: activity.details.amount,
           type: ActionType.Deposit,
