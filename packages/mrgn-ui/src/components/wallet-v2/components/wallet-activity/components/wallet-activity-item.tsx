@@ -189,35 +189,70 @@ const RerunAction = ({ walletContextState, bank, activity, onRerun }: RerunActio
           type: ActionType.Withdraw,
           title: `Withdraw ${bank.meta.tokenSymbol}`,
         };
+      case "repay":
+        return {
+          amount: activity.details.amount,
+          type: ActionType.Repay,
+          title: `Repay ${bank.meta.tokenSymbol}`,
+        };
     }
   }, [activity, bank]);
 
   if (!activityDetails) return null;
 
-  return (
-    <ActionBox.Lend
-      isDialog={true}
-      useProvider={true}
-      lendProps={{
-        requestedBank: bank,
-        requestedLendType: activityDetails.type,
-        connected: true,
-        walletContextState,
-        initialAmount: activityDetails.amount,
-        onComplete: () => {
-          onRerun?.();
-        },
-      }}
-      dialogProps={{
-        title: activityDetails.title,
-        trigger: (
-          <Button variant="secondary" size="icon" className="h-7 w-7">
-            <IconRefresh size={14} />
-          </Button>
-        ),
-      }}
-    />
-  );
+  if (
+    activityDetails.type === ActionType.Deposit ||
+    activityDetails.type === ActionType.Borrow ||
+    activityDetails.type === ActionType.Withdraw
+  ) {
+    return (
+      <ActionBox.Lend
+        isDialog={true}
+        useProvider={true}
+        lendProps={{
+          requestedBank: bank,
+          requestedLendType: activityDetails.type,
+          connected: true,
+          walletContextState,
+          initialAmount: activityDetails.amount,
+          onComplete: () => {
+            onRerun?.();
+          },
+        }}
+        dialogProps={{
+          title: activityDetails.title,
+          trigger: (
+            <Button variant="secondary" size="icon" className="h-7 w-7">
+              <IconRefresh size={14} />
+            </Button>
+          ),
+        }}
+      />
+    );
+  } else if (activityDetails.type === ActionType.Repay) {
+    return (
+      <ActionBox.Repay
+        isDialog={true}
+        useProvider={true}
+        repayProps={{
+          requestedBank: bank,
+          connected: true,
+          initialAmount: activityDetails.amount,
+          onComplete: () => {
+            onRerun?.();
+          },
+        }}
+        dialogProps={{
+          title: activityDetails.title,
+          trigger: (
+            <Button variant="secondary" size="icon" className="h-7 w-7">
+              <IconRefresh size={14} />
+            </Button>
+          ),
+        }}
+      />
+    );
+  }
 };
 
 export { WalletActivityItem, WalletActivityItemSkeleton };
