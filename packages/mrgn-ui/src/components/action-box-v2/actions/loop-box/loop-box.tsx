@@ -45,6 +45,7 @@ export type LoopBoxProps = {
   accountSummaryArg?: AccountSummary;
   allBanks?: ExtendedBankInfo[];
   isDialog?: boolean;
+  initialAmount?: number;
 
   onComplete?: () => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -64,6 +65,7 @@ export const LoopBox = ({
   onComplete,
   captureEvent,
   setDisplaySettings,
+  initialAmount,
 }: LoopBoxProps) => {
   const [
     leverage,
@@ -201,6 +203,12 @@ export const LoopBox = ({
   React.useEffect(() => {
     fetchActionBoxState({ requestedBank });
   }, [requestedBank, fetchActionBoxState]);
+
+  React.useEffect(() => {
+    if (initialAmount !== undefined) {
+      setAmountRaw(initialAmount.toString());
+    }
+  }, [initialAmount, setAmountRaw]);
 
   React.useEffect(() => {
     if (errorMessage?.description) {

@@ -195,6 +195,12 @@ const RerunAction = ({ walletContextState, bank, activity, onRerun }: RerunActio
           type: ActionType.Repay,
           title: `Repay ${bank.meta.tokenSymbol}`,
         };
+      case "loop":
+        return {
+          amount: activity.details.amount,
+          type: ActionType.Loop,
+          title: `Loop ${bank.meta.tokenSymbol}`,
+        };
     }
   }, [activity, bank]);
 
@@ -235,6 +241,29 @@ const RerunAction = ({ walletContextState, bank, activity, onRerun }: RerunActio
         isDialog={true}
         useProvider={true}
         repayProps={{
+          requestedBank: bank,
+          connected: true,
+          initialAmount: activityDetails.amount,
+          onComplete: () => {
+            onRerun?.();
+          },
+        }}
+        dialogProps={{
+          title: activityDetails.title,
+          trigger: (
+            <Button variant="secondary" size="icon" className="h-7 w-7">
+              <IconRefresh size={14} />
+            </Button>
+          ),
+        }}
+      />
+    );
+  } else if (activityDetails.type === ActionType.Loop) {
+    return (
+      <ActionBox.Loop
+        isDialog={true}
+        useProvider={true}
+        loopProps={{
           requestedBank: bank,
           connected: true,
           initialAmount: activityDetails.amount,
