@@ -598,7 +598,7 @@ const Wallet = ({
                   )}
                   <TabsContent value="activity">
                     <div className="py-8">
-                      <WalletActivity extendedBankInfos={extendedBankInfos} />
+                      <WalletActivity extendedBankInfos={extendedBankInfos} onRerun={refreshState} />
                     </div>
                   </TabsContent>
                 </Tabs>

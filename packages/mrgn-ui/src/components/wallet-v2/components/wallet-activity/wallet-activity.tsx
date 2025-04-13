@@ -1,6 +1,7 @@
 import React from "react";
 import { IconLoader2 } from "@tabler/icons-react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { Input } from "~/components/ui/input";
 import { useWalletActivity } from "../../hooks/use-wallet-activity.hook";
@@ -9,15 +10,27 @@ import { WalletActivityItem, WalletActivityItemSkeleton } from "./components/wal
 
 type WalletActivityProps = {
   extendedBankInfos: ExtendedBankInfo[];
+  onRerun: () => void;
 };
 
-const WalletActivity = ({ extendedBankInfos }: WalletActivityProps) => {
-  const { connected } = useWallet();
+const WalletActivity = ({ extendedBankInfos, onRerun }: WalletActivityProps) => {
+  const { connected, walletContextState } = useWallet();
   const { activities, isLoading, error, refetch } = useWalletActivity();
   const [type, setType] = React.useState("");
   const [details, setDetails] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
+
+  const banks = React.useMemo(() => {
+    return activities.map((activity) => {
+      const matchingBank = extendedBankInfos.find((bank) => bank.info.state.mint.toBase58() === activity.details.mint);
+      if (!matchingBank) {
+        console.warn(`No matching bank found for activity with mint ${activity.details.mint}`);
+        return null;
+      }
+      return matchingBank;
+    });
+  }, [activities, extendedBankInfos]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,9 +112,19 @@ const WalletActivity = ({ extendedBankInfos }: WalletActivityProps) => {
         <p className="text-sm text-muted-foreground text-center">No activity yet.</p>
       ) : (
         <div className="space-y-2 h-[calc(100vh-190px)] overflow-y-auto">
-          {activities.map((activity, index) => (
-            <WalletActivityItem key={index} activity={activity} />
-          ))}
+          {activities.map((activity, index) => {
+            const bank = banks[index];
+            if (!bank) return null;
+            return (
+              <WalletActivityItem
+                key={index}
+                activity={activity}
+                bank={bank}
+                walletContextState={walletContextState}
+                onRerun={onRerun}
+              />
+            );
+          })}
         </div>
       )}
     </div>

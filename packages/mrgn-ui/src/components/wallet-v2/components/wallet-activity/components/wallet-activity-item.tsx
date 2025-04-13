@@ -1,3 +1,5 @@
+import React from "react";
+
 import Link from "next/link";
 import Image from "next/image";
 
@@ -10,6 +12,10 @@ import { WalletActivity } from "~/components/wallet-v2/types/wallet.types";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
+import { WalletContextState } from "@solana/wallet-adapter-react";
+import { ActionBox } from "~/components/action-box-v2";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 const getActivityText = (type: string) => {
   switch (type) {
@@ -34,7 +40,14 @@ const getActivityText = (type: string) => {
   }
 };
 
-const WalletActivityItem = ({ activity }: { activity: WalletActivity }) => {
+type WalletActivityItemProps = {
+  activity: WalletActivity;
+  bank: ExtendedBankInfo;
+  walletContextState: WalletContextStateOverride | WalletContextState;
+  onRerun?: () => void;
+};
+
+const WalletActivityItem = ({ activity, bank, walletContextState, onRerun }: WalletActivityItemProps) => {
   return (
     <div className="p-3 rounded-md space-y-4 bg-accent/25">
       <div className="flex items-start justify-between">
@@ -103,18 +116,7 @@ const WalletActivityItem = ({ activity }: { activity: WalletActivity }) => {
           </p>
         </div>
         <div className="flex items-center justify-end gap-2 -translate-y-1">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="secondary" size="icon" className="h-7 w-7">
-                  <IconRefresh size={14} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {getActivityText(activity.type)} more {activity.details.symbol}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <RerunAction walletContextState={walletContextState} bank={bank} activity={activity} onRerun={onRerun} />
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -156,6 +158,65 @@ const WalletActivityItemSkeleton = ({ style }: WalletActivityItemSkeletonProps) 
         </div>
       </div>
     </div>
+  );
+};
+
+type RerunActionProps = {
+  walletContextState: WalletContextStateOverride | WalletContextState;
+  bank: ExtendedBankInfo;
+  activity: WalletActivity;
+  onRerun?: () => void;
+};
+
+const RerunAction = ({ walletContextState, bank, activity, onRerun }: RerunActionProps) => {
+  const activityDetails = React.useMemo(() => {
+    switch (activity.type) {
+      case "deposit":
+        return {
+          amount: activity.details.amount,
+          type: ActionType.Deposit,
+          title: `Deposit ${bank.meta.tokenSymbol}`,
+        };
+      case "borrow":
+        return {
+          amount: activity.details.amount,
+          type: ActionType.Borrow,
+          title: `Borrow ${bank.meta.tokenSymbol}`,
+        };
+      case "withdraw":
+        return {
+          amount: activity.details.amount,
+          type: ActionType.Withdraw,
+          title: `Withdraw ${bank.meta.tokenSymbol}`,
+        };
+    }
+  }, [activity, bank]);
+
+  if (!activityDetails) return null;
+
+  return (
+    <ActionBox.Lend
+      isDialog={true}
+      useProvider={true}
+      lendProps={{
+        requestedBank: bank,
+        requestedLendType: activityDetails.type,
+        connected: true,
+        walletContextState,
+        initialAmount: activityDetails.amount,
+        onComplete: () => {
+          onRerun?.();
+        },
+      }}
+      dialogProps={{
+        title: activityDetails.title,
+        trigger: (
+          <Button variant="secondary" size="icon" className="h-7 w-7">
+            <IconRefresh size={14} />
+          </Button>
+        ),
+      }}
+    />
   );
 };
 
