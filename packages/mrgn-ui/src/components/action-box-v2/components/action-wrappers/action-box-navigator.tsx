@@ -3,6 +3,7 @@ import React from "react";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { IconSparkles } from "@tabler/icons-react";
+import { Button } from "~/components/ui/button";
 
 interface ActionBoxNavigatorProps {
   selectedAction: ActionType;
@@ -33,8 +34,6 @@ const toggleTitles: { [key in ActionType]?: string } = {
   [ActionType.Loop]: "You deposit",
 };
 
-const newFeatures = [ActionType.RepayCollat];
-
 export const ActionBoxNavigator = ({
   actionTypes,
   selectedAction,
@@ -63,38 +62,34 @@ export const ActionBoxNavigator = ({
       <div className="flex flex-row items-center justify-between">
         {/* Title text */}
 
-        <div className="text-lg font-normal flex items-center">
+        <div className="text-lg font-normal flex items-center justify-between w-full mb-2.5">
           {isNavigator && (
-            <div className="mb-2">
-              <ToggleGroup
-                variant="actionBox"
-                type="single"
-                className="bg-mfi-action-box-background-dark"
-                value={selectedAction}
-                onValueChange={(value) => {
-                  if (value !== "") {
-                    onSelectAction && onSelectAction(value as ActionType);
-                  }
-                }}
-              >
-                {navigatorToggles.map((toggle, idx) => (
-                  <ToggleGroupItem
-                    key={idx}
-                    value={toggle.value}
-                    aria-label={toggle.value}
-                    className="data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 capitalize h-[1.65rem]"
-                  >
-                    {newFeatures.includes(toggle.value) ? (
-                      <div className="flex items-center gap-2">
-                        <IconSparkles size={16} /> {toggle.text}
-                      </div>
-                    ) : (
-                      toggle.text
-                    )}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            </div>
+            <>
+              <div>
+                <ToggleGroup
+                  variant="actionBox"
+                  type="single"
+                  className="bg-mfi-action-box-background-dark p-1.5 rounded-md"
+                  value={selectedAction}
+                  onValueChange={(value) => {
+                    if (value !== "") {
+                      onSelectAction && onSelectAction(value as ActionType);
+                    }
+                  }}
+                >
+                  {navigatorToggles.map((toggle, idx) => (
+                    <ToggleGroupItem
+                      key={idx}
+                      value={toggle.value}
+                      aria-label={toggle.value}
+                      className="data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 capitalize h-[1.65rem]"
+                    >
+                      {toggle.text}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
+            </>
           )}
         </div>
       </div>

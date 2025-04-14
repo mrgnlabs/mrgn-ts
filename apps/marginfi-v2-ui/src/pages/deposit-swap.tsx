@@ -32,7 +32,7 @@ export default function DepositSwapPage() {
     state.marginfiClient,
     state.updateWalletTokens,
     state.updateWalletToken,
-    state.fetchMrgnlendState
+    state.fetchMrgnlendState,
   ]);
   const { connected, wallet } = useWallet();
   const { connection } = useConnection();
@@ -73,11 +73,11 @@ export default function DepositSwapPage() {
 
   return (
     <>
-      {!initialized && <Loader label="Loading marginfi..." className="mt-16" />}
+      {!initialized && <Loader label="Loading deposit swap..." className="mt-16" />}
 
       {initialized && (
         <div className="w-full max-w-7xl mx-auto mb-20 px-5">
-          <PageHeading heading="✨ Deposit Swap" body={<p>Swap any token and deposit in your chosen collateral.</p>} />
+          <PageHeading heading="Deposit Swap" body={<p>Swap any token and deposit in your chosen collateral.</p>} />
           <ActionBox.DepositSwap
             useProvider={true}
             depositSwapProps={{
@@ -90,21 +90,16 @@ export default function DepositSwapPage() {
               captureEvent: (event, properties) => {
                 capture(event, properties);
               },
-              onComplete(infoProps: {
-                walletToken?: WalletToken,
-              }) {
+              onComplete(infoProps: { walletToken?: WalletToken }) {
                 const connection = marginfiClient?.provider.connection;
-                if (
-                  infoProps.walletToken &&
-                  connection
-                ) {
+                if (infoProps.walletToken && connection) {
                   updateWalletToken(
                     infoProps.walletToken.address.toBase58(),
                     infoProps.walletToken.ata.toBase58(),
                     marginfiClient?.provider.connection
                   );
                 }
-                fetchMrgnlendState()
+                fetchMrgnlendState();
               },
             }}
           />

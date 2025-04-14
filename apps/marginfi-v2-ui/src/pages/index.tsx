@@ -10,7 +10,6 @@ import { ActionBox } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import { IconSparkles } from "@tabler/icons-react";
 
 import { Banner } from "~/components/desktop/Banner";
 import {
@@ -21,7 +20,6 @@ import {
 } from "~/components/common/Announcements";
 
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
-import { IconBackpackWallet } from "~/components/ui/icons";
 import { Loader } from "~/components/ui/loader";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
@@ -55,7 +53,7 @@ export default function HomePage() {
     let banks: (ExtendedBankInfo | undefined)[] = [];
 
     if (marginfiClient?.banks) {
-      const latestBankKeys = Array.from(marginfiClient.banks.keys()).splice(0, 2);
+      const latestBankKeys = Array.from(marginfiClient.banks.keys()).splice(0, 3);
       banks.push(
         ...latestBankKeys
           .map((bankKey) => extendedBankInfos.find((bank) => bank.address.toBase58() === bankKey))
@@ -65,26 +63,16 @@ export default function HomePage() {
 
     banks = banks.filter((bank): bank is ExtendedBankInfo => bank !== undefined);
     return [
-      {
-        image: <IconSparkles size={22} className="text-chartreuse" />,
-        text: "Native stake as collateral is live!",
-        onClick: () => router.push("/staked-assets"),
-      },
-      {
-        image: <IconSparkles size={22} className="text-chartreuse" />,
-        text: "Deposit Swap is live!",
-        onClick: () => router.push("/deposit-swap"),
-      },
       ...banks.map((bank) => ({
         bank: bank,
       })),
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
-  }, [extendedBankInfos, marginfiClient, router]);
+  }, [extendedBankInfos, marginfiClient]);
 
   return (
     <>
       <Desktop>
-        {!isStoreInitialized && <Loader label="Loading mrgnlend..." className="mt-16" />}
+        {!isStoreInitialized && <Loader label="Loading marginfi..." className="mt-16" />}
         {isStoreInitialized && (
           <>
             <div className="flex flex-col h-full justify-start content-start w-full xl:w-4/5 xl:max-w-7xl gap-4">

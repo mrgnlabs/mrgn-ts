@@ -277,7 +277,7 @@ export const PortfolioAssetCard = ({
           <div className="flex w-full gap-3">
             <PortfolioAction
               requestedBank={bank}
-              buttonVariant="outline-dark"
+              buttonVariant="secondary"
               requestedAction={isInLendingMode ? ActionType.Withdraw : ActionType.Repay}
             />
             <PortfolioAction
@@ -323,7 +323,7 @@ const PortfolioAction = ({
 }: {
   requestedBank: ExtendedBankInfo;
   requestedAction: ActionType;
-  buttonVariant?: "default" | "outline" | "outline-dark";
+  buttonVariant?: "default" | "outline" | "outline-dark" | "secondary";
 }) => {
   const { walletContextState, connected } = useWallet();
   const [fetchMrgnlendState, stakeAccounts] = useMrgnlendStore((state) => [

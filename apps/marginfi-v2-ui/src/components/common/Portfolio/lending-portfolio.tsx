@@ -244,7 +244,7 @@ export const LendingPortfolio = () => {
   }
 
   if (isLoading) {
-    return <Loader label={connected ? "Loading positions" : "Loading"} />;
+    return <Loader label={connected ? "Loading portfolio" : "Loading"} />;
   }
 
   if (isStoreInitialized && connected && !hasMultipleAccount) {

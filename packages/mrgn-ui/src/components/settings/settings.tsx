@@ -157,7 +157,7 @@ export const Settings = ({
                           <div
                             key={option.type}
                             className={cn(
-                              "relative w-full font-light border border-transparent rounded bg-mfi-action-box-accent transition-colors hover:bg-mfi-action-box-background-dark/80",
+                              "relative w-full font-light border border-transparent rounded bg-mfi-action-box-accent transition-colors hover:bg-mfi-action-box-accent/80",
                               field.value === option.type && "border-mfi-action-box-highlight"
                             )}
                           >
@@ -180,11 +180,6 @@ export const Settings = ({
                             >
                               {option.label}
                             </Label>
-                            {/* {option.type === recommendedBroadcastType && (
-                    <span className="absolute translate-y-6 bottom-0 left-0 border border-accent rounded-full text-muted-foreground bg-mfi-action-box-background-dark px-1 text-sm flex items-center gap-1">
-                      <IconSparkles size={12} /> Suggested
-                    </span>
-                  )} */}
                           </div>
                         ))}
                       </RadioGroup>
@@ -210,7 +205,7 @@ export const Settings = ({
                           <div
                             key={option.type}
                             className={cn(
-                              "relative w-full font-light border border-transparent rounded bg-mfi-action-box-accent transition-colors hover:bg-mfi-action-box-background-dark/80",
+                              "relative w-full font-light border border-transparent rounded bg-mfi-action-box-accent transition-colors hover:bg-mfi-action-box-accent/80",
                               field.value === option.type && "border-mfi-action-box-highlight"
                             )}
                           >
@@ -254,7 +249,7 @@ export const Settings = ({
                             <div
                               key={option.type}
                               className={cn(
-                                "relative w-full font-light border border-transparent rounded bg-mfi-action-box-accent transition-colors hover:bg-mfi-action-box-background-dark/80",
+                                "relative w-full font-light border border-transparent rounded bg-mfi-action-box-accent transition-colors hover:bg-mfi-action-box-accent/80",
                                 field.value === option.type && "border-mfi-action-box-highlight"
                               )}
                             >

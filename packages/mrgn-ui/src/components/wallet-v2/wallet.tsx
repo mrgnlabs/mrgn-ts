@@ -691,7 +691,7 @@ function TokenOptions({ setState, setToken }: TokenOptionsProps) {
     <div className="flex items-center justify-center gap-4 text-xs">
       {items.map((item) => (
         <button key={item.state} className="flex flex-col gap-1 font-medium items-center" onClick={item.onClick}>
-          <div className="rounded-full flex items-center justify-center h-10 w-10 bg-accent/50 transition-colors hover:bg-accent">
+          <div className="rounded-full flex items-center justify-center h-10 w-10 bg-accent/75 transition-colors hover:bg-accent">
             <item.icon size={20} />
           </div>
           {item.label}

@@ -68,14 +68,14 @@ const AssetListNav = () => {
             Isolated
           </ToggleGroupItem>
           <ToggleGroupItem value="native_stake" aria-label="Toggle staked" className="relative">
-            ✨ Native Stake
+            Native Stake
           </ToggleGroupItem>
         </ToggleGroup>
         <div className="flex items-center gap-3 ml-10">
           <Label
             className={cn(
-              "text-muted-foreground/60 hover:text-foreground/50 cursor-pointer transition-colors",
-              lendingMode === LendingModes.LEND && "text-foreground hover:text-foreground"
+              "text-muted-foreground hover:text-foreground cursor-pointer transition-colors",
+              lendingMode === LendingModes.LEND && "text-foreground"
             )}
             onClick={() => {
               setLendingMode(LendingModes.LEND);
@@ -99,11 +99,11 @@ const AssetListNav = () => {
           )}
           <Label
             className={cn(
-              "text-muted-foreground/60 ",
+              "text-muted-foreground",
               lendingMode === LendingModes.BORROW && "text-foreground",
               poolFilter === PoolTypes.NATIVE_STAKE
                 ? "cursor-not-allowed"
-                : "hover:text-foreground/50 cursor-pointer transition-colors"
+                : "hover:text-foreground cursor-pointer transition-colors"
             )}
             onClick={() => {
               poolFilter !== PoolTypes.NATIVE_STAKE && setLendingMode(LendingModes.BORROW);
@@ -130,7 +130,7 @@ const AssetListNav = () => {
             <IconSearch size={15} className="absolute top-[11px] left-4" />
             <Input
               placeholder="Search assets"
-              className="py-1 h-9 px-10 w-full rounded-lg border-background-gray-hover transition-colors focus:text-primary/70 focus-visible:ring-primary/50"
+              className="py-1 h-9 px-10 w-full rounded-lg border-border bg-background transition-colors focus:text-primary/70"
               value={assetListSearch}
               ref={searchInputRef}
               onChange={(e) => {

@@ -27,7 +27,7 @@
     --muted-highlight: 203 15% 15%;
     --muted-foreground: 240 5% 64.9%;
 
-    --accent: 210 10% 15%;
+    --accent: 210 10% 18%;
     --accent-highlight: 240 4% 21%;
     --accent-foreground: 213 5% 50%;
 
@@ -40,12 +40,12 @@
 
     --radius: 0.5rem;
 
-    --mfi-action-box-background: 204 13% 8%;
+    --mfi-action-box-background: 204 13% 12%;
     --mfi-action-box-background-dark: 180 5% 4%;
-    --mfi-action-box-foreground: 0 0% 98%;
-    --mfi-action-box-accent: 197 11% 12%;
-    --mfi-action-box-accent-foreground: 0 0% 98%;
-    --mfi-action-box-highlight: 65 75% 64%;
+    --mfi-action-box-foreground: 0 0% 99%;
+    --mfi-action-box-accent: 197 11% 16%;
+    --mfi-action-box-accent-foreground: 0 0% 99%;
+    --mfi-action-box-highlight: 65 75% 74%;
 
     --mfi-stake-calculator-chart-1: 65 75% 64%;
     --mfi-stake-calculator-chart-2: 0 0% 85%;
