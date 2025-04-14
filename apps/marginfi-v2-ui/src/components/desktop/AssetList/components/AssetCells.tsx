@@ -363,11 +363,6 @@ export const getPositionCell = (positionData: PositionData) => {
   const tokenPositionAmount = makeTokenAmount(positionData.positionAmount!, positionData.symbol);
   const tokenPrice = positionData.assetTag === 2 ? positionData.solPrice || positionData.price : positionData.price;
 
-  if (positionData.symbol === "PAWS") {
-    console.log("assetTag", positionData.assetTag);
-    console.log("solPrice", positionData.solPrice);
-    console.log("price", positionData.price);
-  }
   return (
     <div className="w-full bg-background-gray rounded-md flex items-center gap-8 px-2 py-3">
       <dl className="flex gap-2 items-center">
