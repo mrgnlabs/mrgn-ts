@@ -18,11 +18,11 @@ export default function LooperPage() {
 
   return (
     <>
-      {!initialized && <Loader label="Loading mrgnloop..." className="mt-16" />}
+      {!initialized && <Loader label="Loading looper..." className="mt-16" />}
 
       {initialized && (
         <div className="w-full max-w-7xl mx-auto mb-20 px-5">
-          <PageHeading heading="mrgnloop ➰" body={<p>Leverage your deposits to maximize yield.</p>} />
+          <PageHeading heading="Looper ➰" body={<p>Leverage your deposits to maximize yield.</p>} />
           <ActionBoxV2.Loop
             useProvider={true}
             loopProps={{
