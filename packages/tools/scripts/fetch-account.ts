@@ -16,8 +16,8 @@ type Config = {
 };
 
 const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  ACCOUNT: new PublicKey("E3uJyxW232EQAVZ9P9V6CFkxzjqqVdbh8XvUmxtZdGUt"),
+  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  ACCOUNT: new PublicKey("8KQUFZQQrqzZQpHWFFi38nEx1NBQXtW62ZTie4Jibzkh"),
 };
 
 async function main() {
@@ -35,14 +35,18 @@ async function main() {
   let balances = acc.lendingAccount.balances;
   let activeBalances = [];
   for (let i = 0; i < balances.length; i++) {
-    if (balances[i].active === false) continue; // Skip inactive balances
+    if (balances[i].active === false) {
+      console.log("index " + i + " is empty");
+      continue; // Skip inactive balances
+    }
 
     activeBalances.push({
+      Slot: i,
       "Bank PK": balances[i].bankPk.toString(),
       "Asset Tag": balances[i].bankAssetTag,
-      "Liability Shares": formatNumber(wrappedI80F48toBigNumber(balances[i].liabilityShares)),
+      "Liab Shares ": formatNumber(wrappedI80F48toBigNumber(balances[i].liabilityShares)),
       "Asset Shares": formatNumber(wrappedI80F48toBigNumber(balances[i].assetShares)),
-      "Emissions Outstanding": formatNumber(wrappedI80F48toBigNumber(balances[i].emissionsOutstanding)),
+      "Emissions": formatNumber(wrappedI80F48toBigNumber(balances[i].emissionsOutstanding)),
       "Last Update": balances[i].lastUpdate.toString(),
     });
   }
