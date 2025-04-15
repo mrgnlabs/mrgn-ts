@@ -10,8 +10,10 @@ type LoaderProps = {
 
 export const Loader = ({ label = "Loading...", className, iconSize }: LoaderProps) => {
   return (
-    <div className={cn("flex flex-col items-center justify-center gap-2 text-muted-foreground", className)}>
-      <IconMrgn className="animate-pulsate" size={iconSize} />
+    <div
+      className={cn("flex flex-col items-center justify-center gap-2 text-muted-foreground animate-pulsate", className)}
+    >
+      <IconMrgn size={iconSize} />
       <p>{label}</p>
     </div>
   );

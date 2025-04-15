@@ -52,7 +52,7 @@ module.exports = {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
-        "background-gray": "hsl(204 13% 12%)",
+        "background-gray": "hsl(204 13% 10%)",
         "background-gray-hover": "hsl(197 11% 16%)",
         "background-gray-light": "hsl(197 11% 16%)",
         "background-gray-dark": "hsl(180 5% 4%)",

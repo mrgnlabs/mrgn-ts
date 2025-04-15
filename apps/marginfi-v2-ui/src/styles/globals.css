@@ -40,7 +40,7 @@
 
     --radius: 0.5rem;
 
-    --mfi-action-box-background: 204 13% 12%;
+    --mfi-action-box-background: 204 13% 10%;
     --mfi-action-box-background-dark: 180 5% 4%;
     --mfi-action-box-foreground: 0 0% 99%;
     --mfi-action-box-accent: 197 11% 16%;
@@ -92,6 +92,7 @@ body {
 body {
   color: rgb(255, 255, 255);
   background: radial-gradient(50% 50% at 50% 50%, #101212 10%, #090a0a 80%);
+  background-attachment: fixed;
   font-family: "Aeonik Pro";
   font-weight: 300;
 }

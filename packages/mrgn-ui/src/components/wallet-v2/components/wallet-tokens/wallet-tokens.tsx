@@ -53,7 +53,7 @@ export const WalletTokens = ({ tokens, onTokenClick, className }: WalletTokensPr
           <button
             key={index}
             className={cn(
-              "flex items-center justify-between font-normal bg-accent/75 p-3 rounded-md gap-4 w-full text-left transition-colors hover:bg-accent",
+              "flex items-center justify-between font-normal bg-background-gray p-3 rounded-md gap-4 w-full text-left transition-colors hover:bg-background-gray-light",
               onTokenClick && "cursor-pointer"
             )}
             onClick={() => onTokenClick?.(token)}

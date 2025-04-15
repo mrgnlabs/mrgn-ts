@@ -50,7 +50,7 @@ type WalletActivityItemProps = {
 
 const WalletActivityItem = ({ activity, bank, walletContextState, onRerun, closeWallet }: WalletActivityItemProps) => {
   return (
-    <div className="p-3 rounded-md space-y-4 bg-accent/50">
+    <div className="p-3 rounded-md space-y-4 bg-background-gray">
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-2.5 text-sm pr-8">
           <div className="relative w-[22px] h-[22px] overflow-visible">
