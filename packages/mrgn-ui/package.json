@@ -87,6 +87,10 @@
     "@types/react-copy-to-clipboard": "^5.0.5",
     "@types/uuid": "^9.0.2",
     "next": "14.2.21",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.2",
+    "@solana/wallet-adapter-base": "^0.9.24",
+    "@solana/wallet-adapter-react": "^0.15.36",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "ts-node": "^10.9.2",
@@ -96,9 +100,8 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@solana/wallet-adapter-base": "^0.9.23",
-    "@solana/wallet-adapter-react": "^0.15.35",
-    "next": "14.2.21",
+    "@solana/wallet-adapter-base": "^0.9.24",
+    "@solana/wallet-adapter-react": "^0.15.36",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   }

@@ -46,8 +46,8 @@
     "@types/bn.js": "^5.1.1",
     "@types/lodash.debounce": "^4.0.9",
     "ts-node": "^10.9.2",
-    "@solana/wallet-adapter-base": "^0.9.23",
-    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-base": "^0.9.24",
+    "@solana/wallet-adapter-react": "^0.15.36",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "typescript": "^5.5.2"
@@ -56,8 +56,8 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@solana/wallet-adapter-base": "^0.9.23",
-    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-base": "^0.9.24",
+    "@solana/wallet-adapter-react": "^0.15.36",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   }
