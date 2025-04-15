@@ -5,7 +5,7 @@ import Image from "next/image";
 
 import { formatDistanceToNow } from "date-fns";
 import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
-import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { IconExternalLink, IconClock, IconRefresh } from "@tabler/icons-react";
 
 import { WalletActivity } from "~/components/wallet-v2/types/wallet.types";
@@ -136,10 +136,17 @@ const WalletActivityItem = ({ activity, bank, walletContextState, onRerun, close
           </TooltipProvider>
         </div>
       </div>
-      <time className="text-xs text-muted-foreground flex items-center gap-1">
-        <IconClock size={14} />
-        {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
-      </time>
+      <div className="flex items-center justify-between">
+        {(activity.accountLabel || activity.account) && (
+          <p className="text-xs text-muted-foreground">
+            Account: {activity.accountLabel || shortenAddress(activity.account)}
+          </p>
+        )}
+        <time className="text-xs text-muted-foreground flex items-center gap-1 ml-auto">
+          <IconClock size={14} />
+          {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
+        </time>
+      </div>
     </div>
   );
 };

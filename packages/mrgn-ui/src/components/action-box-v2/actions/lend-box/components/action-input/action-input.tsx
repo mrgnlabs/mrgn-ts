@@ -95,7 +95,7 @@ export const ActionInput = ({
   }, [selectedBank, isMobile]);
 
   return (
-    <div className={cn("rounded-lg p-2.5 bg-mfi-action-box-background-dark", isDialog && "p-1.5 pr-2.5")}>
+    <div className={cn("rounded-lg p-2.5 bg-mfi-action-box-background-dark", isDialog && "p-2.5")}>
       <div className="flex justify-center gap-1 items-center font-medium text-3xl">
         <div className="w-full flex-auto max-w-[162px]">
           <BankSelect

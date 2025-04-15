@@ -182,7 +182,7 @@ export const Navbar: FC = () => {
                 onClick={() => {
                   setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: !globalActionBoxProps.isOpen });
                 }}
-                className="hidden lg:flex py-2 px-4 border bg-muted/60 border-background-gray-light flex-row items-center justify-between w-56 text-muted-foreground cursor-pointer "
+                className="hidden lg:flex py-2 px-4 border bg-background-gray border-background-gray-light flex-row items-center justify-between w-56 text-muted-foreground cursor-pointer "
               >
                 <span>Search pools...</span>
                 <span>⌘ K</span>

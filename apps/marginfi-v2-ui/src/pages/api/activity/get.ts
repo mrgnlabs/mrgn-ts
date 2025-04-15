@@ -30,13 +30,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .limit(20)
       .get();
 
-    const activities = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      timestamp: doc.data().timestamp?.toDate() || null,
+    // Get all unique account addresses from activities
+    const accountAddresses = new Set<string>();
+    const activities = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      console.log("data", data);
+      if (data.account) {
+        accountAddresses.add(data.account);
+      }
+      return {
+        id: doc.id,
+        ...data,
+        account: data.account,
+        timestamp: data.timestamp?.toDate() || null,
+      };
+    });
+
+    // Fetch account labels for all accounts
+    const accountLabelsPromises = Array.from(accountAddresses).map(async (account) => {
+      const labelDoc = await db.collection("account_labels").doc(account).get();
+      return {
+        account,
+        label: labelDoc.exists ? labelDoc.data()?.label : null,
+      };
+    });
+
+    const accountLabels = await Promise.all(accountLabelsPromises);
+    const accountLabelsMap = new Map(accountLabels.map(({ account, label }) => [account, label]));
+
+    // Add labels to activities
+    const activitiesWithLabels = activities.map((activity) => ({
+      ...activity,
+      accountLabel: activity.account ? accountLabelsMap.get(activity.account) : null,
     }));
 
-    return res.status(200).json({ activities });
+    return res.status(200).json({ activities: activitiesWithLabels });
   } catch (error: any) {
     console.error("Error fetching activities:", error);
     if (error.code === "auth/session-cookie-expired" || error.code === "auth/session-cookie-revoked") {

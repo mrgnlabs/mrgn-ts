@@ -3,6 +3,8 @@ type WalletActivity = {
   type: "deposit" | "borrow" | "withdraw" | "repay" | "stake" | "unstake" | "loop" | "deposit-swap";
   timestamp: Date;
   txn: string;
+  account: string;
+  accountLabel: string;
   details: {
     amount: number;
     mint: string;

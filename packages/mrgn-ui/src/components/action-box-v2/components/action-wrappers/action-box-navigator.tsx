@@ -2,8 +2,11 @@ import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { IconSparkles } from "@tabler/icons-react";
+import { IconInfoCircle, IconRefresh, IconSparkles } from "@tabler/icons-react";
 import { Button } from "~/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
+import { TooltipProvider } from "~/components/ui/tooltip";
+import Link from "next/link";
 
 interface ActionBoxNavigatorProps {
   selectedAction: ActionType;
@@ -62,8 +65,8 @@ export const ActionBoxNavigator = ({
       <div className="flex flex-row items-center justify-between">
         {/* Title text */}
 
-        <div className="text-lg font-normal flex items-center justify-between w-full mb-2.5">
-          {isNavigator && (
+        {isNavigator && (
+          <div className="text-lg font-normal flex items-center justify-between w-full mb-2.5">
             <>
               <div>
                 <ToggleGroup
@@ -89,9 +92,29 @@ export const ActionBoxNavigator = ({
                   ))}
                 </ToggleGroup>
               </div>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link href="/deposit-swap">
+                      <Button
+                        className="ml-auto font-light text-muted-foreground text-left h-7 gap-1.5"
+                        variant="ghost"
+                        size="sm"
+                      >
+                        <IconRefresh size={14} />
+                        Deposit swap
+                      </Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Swap any token and deposit in your chosen collateral.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </>
-          )}
-        </div>
+          </div>
+        )}
       </div>
       {childrenArray[currentIndex]}
     </>
