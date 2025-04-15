@@ -1,10 +1,11 @@
 import React from "react";
 
+import { useWallet } from "@mrgnlabs/mrgn-ui";
+
 import { useTradeStoreV2 } from "~/store";
 
 import { Loader } from "~/components/common/Loader";
 import { AdminPoolCard } from "~/components/common/admin";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 export default function AdminPage() {
   const [poolsfetched, arenaPools, groupsByGroupPk] = useTradeStoreV2((state) => [

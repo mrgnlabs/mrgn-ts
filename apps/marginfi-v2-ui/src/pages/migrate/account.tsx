@@ -4,14 +4,14 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { PublicKey } from "@solana/web3.js";
+import { IconAlertTriangle, IconTransfer, IconX, IconExternalLink } from "@tabler/icons-react";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { extractErrorString } from "@mrgnlabs/mrgn-utils";
-import { IconAlertTriangle, IconTransfer, IconX, IconExternalLink } from "@tabler/icons-react";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { WalletButton } from "~/components/wallet-v2";
 import { Badge } from "~/components/ui/badge";
@@ -109,8 +109,8 @@ export default function MigrateAccountPage() {
                     {isRefreshingStore
                       ? "Loading..."
                       : selectedAccount
-                      ? shortenAddress(selectedAccount.address.toBase58())
-                      : ""}
+                        ? shortenAddress(selectedAccount.address.toBase58())
+                        : ""}
                   </SelectTrigger>
                   <SelectContent className="w-full">
                     <SelectGroup>

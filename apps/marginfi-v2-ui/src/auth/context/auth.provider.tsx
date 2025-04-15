@@ -3,13 +3,12 @@
 import React from "react";
 import { Wallet } from "@mrgnlabs/mrgn-common";
 import { toastManager } from "@mrgnlabs/mrgn-toasts";
+import { useWallet, WalletInfo } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore } from "~/store";
 import { createBrowserSupabaseClient } from "~/auth/auth-client";
 import { authenticate, logout, getCurrentUser } from "~/auth/utils/auth.utils";
 import { AuthUser } from "~/auth/types/auth.types";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
-import type { WalletInfo } from "~/components/wallet-v2/";
 
 const supabase = createBrowserSupabaseClient();
 

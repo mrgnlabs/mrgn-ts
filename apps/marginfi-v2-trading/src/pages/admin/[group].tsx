@@ -2,13 +2,12 @@ import React from "react";
 
 import { useRouter } from "next/router";
 
-import { useTradeStoreV2 } from "~/store";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
 
+import { useTradeStoreV2 } from "~/store";
 import { AdminPoolDetailHeader, AdminPoolDetailCard } from "~/components/common/admin";
 import { ArenaPoolV2 } from "~/types/trade-store.types";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { GeoBlockingWrapper } from "~/components/common/geo-blocking-wrapper";
-import { Meta } from "~/components/common/Meta/Meta";
 
 export default function AdminGroupDetailsPage() {
   const [initialized, poolsFetched, arenaPools, groupsByGroupPk] = useTradeStoreV2((state) => [

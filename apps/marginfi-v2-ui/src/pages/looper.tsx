@@ -1,12 +1,11 @@
 import React from "react";
-import { ActionBox as ActionBoxV2 } from "@mrgnlabs/mrgn-ui";
+import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { useMrgnlendStore } from "~/store";
 
 import { PageHeading } from "~/components/common/PageHeading";
 
 import { Loader } from "~/components/ui/loader";
-import { useWallet } from "~/components/wallet-v2";
 
 export default function LooperPage() {
   const [initialized, extendedBankInfosWithoutStakedAssets, extendedBankInfos] = useMrgnlendStore((state) => [
@@ -14,7 +13,7 @@ export default function LooperPage() {
     state.extendedBankInfosWithoutStakedAssets,
     state.extendedBankInfos,
   ]);
-  const { connected, walletContextState } = useWallet();
+  const { connected } = useWallet();
 
   return (
     <>

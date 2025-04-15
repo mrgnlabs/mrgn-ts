@@ -15,12 +15,12 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, capture, ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
 import { ArenaPoolV2Extended } from "~/types";
 import { useActionBoxProps } from "~/hooks/useActionBoxProps";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";
 

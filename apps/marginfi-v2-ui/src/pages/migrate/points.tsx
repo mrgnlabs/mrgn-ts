@@ -1,14 +1,14 @@
 import React from "react";
 
 import Link from "next/link";
+import { IconAlertTriangle, IconTransfer, IconX } from "@tabler/icons-react";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 import { toastManager } from "@mrgnlabs/mrgn-toasts";
-import { IconAlertTriangle, IconTransfer, IconX } from "@tabler/icons-react";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore } from "~/store";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/use-connection";
 
 import { WalletButton } from "~/components/wallet-v2";

@@ -6,10 +6,11 @@ import { useRouter } from "next/router";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { capture, Desktop, LendingModes, Mobile } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { ActionBox } from "@mrgnlabs/mrgn-ui";
+import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { IconSparkles } from "@tabler/icons-react";
 
 import { Banner } from "~/components/desktop/Banner";
 import {
