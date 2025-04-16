@@ -24,5 +24,5 @@ jobs:
         env:
           TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN }}
         run: |
-          git remote add public https://x-access-token:${TOKEN}@github.com/YOUR-ORG/YOUR-PUBLIC-REPO.git
+          git remote add public https://x-access-token:${TOKEN}@github.com/mrgnlabs/mrgn-ts.git
           git push public HEAD:refs/heads/${GITHUB_REF_NAME} --force
