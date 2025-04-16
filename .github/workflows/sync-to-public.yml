@@ -1,0 +1,28 @@
+name: Sync main/prod to public repo
+
+on:
+  push:
+    branches:
+      - main
+      - prod
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git user
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+      - name: Push to public repo
+        env:
+          TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN }}
+        run: |
+          git remote add public https://x-access-token:${TOKEN}@github.com/YOUR-ORG/YOUR-PUBLIC-REPO.git
+          git push public HEAD:refs/heads/${GITHUB_REF_NAME} --force
