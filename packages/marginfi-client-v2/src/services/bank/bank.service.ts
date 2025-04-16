@@ -87,9 +87,7 @@ export async function addOracleToBanksIx({
       setup: serializeOracleSetupToIndex(setup),
       feedId,
     },
-    {
-      oracleKey,
-    }
+    oracleKey ? [{ isSigner: false, isWritable: false, pubkey: oracleKey }] : []
   );
 
   return {

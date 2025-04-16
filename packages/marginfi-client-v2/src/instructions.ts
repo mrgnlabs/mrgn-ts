@@ -7,48 +7,45 @@ import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 async function makeInitMarginfiAccountIx(
   mfProgram: MarginfiProgram,
   accounts: {
-    marginfiGroupPk: PublicKey;
-    marginfiAccountPk: PublicKey;
-    authorityPk: PublicKey;
-    feePayerPk: PublicKey;
+    marginfiGroup: PublicKey;
+    marginfiAccount: PublicKey;
+    authority: PublicKey;
+    feePayer: PublicKey;
   }
 ) {
-  return mfProgram.methods
-    .marginfiAccountInitialize()
-    .accounts({
-      marginfiGroup: accounts.marginfiGroupPk,
-      marginfiAccount: accounts.marginfiAccountPk,
-      authority: accounts.authorityPk,
-      feePayer: accounts.feePayerPk,
-    })
-    .instruction();
+  return mfProgram.methods.marginfiAccountInitialize().accounts(accounts).instruction();
 }
 
 async function makeDepositIx(
   mfProgram: MarginfiProgram,
   accounts: {
-    marginfiGroupPk: PublicKey;
-    marginfiAccountPk: PublicKey;
-    authorityPk: PublicKey;
-    signerTokenAccountPk: PublicKey;
-    bankPk: PublicKey;
-    tokenProgramPk: PublicKey;
+    // Required accounts
+    marginfiAccount: PublicKey;
+    signerTokenAccount: PublicKey;
+    bank: PublicKey;
+    tokenProgram: PublicKey;
+    // Optional accounts - to override inference
+    group?: PublicKey;
+    authority?: PublicKey;
+    liquidityVault?: PublicKey;
   },
   args: {
     amount: BN;
+    depositUpToLimit?: boolean;
   },
   remainingAccounts: AccountMeta[] = []
 ) {
+  const { marginfiAccount, signerTokenAccount, bank, tokenProgram, ...optionalAccounts } = accounts;
+
   return mfProgram.methods
-    .lendingAccountDeposit(args.amount, null)
+    .lendingAccountDeposit(args.amount, args.depositUpToLimit ?? null)
     .accounts({
-      marginfiGroup: accounts.marginfiGroupPk,
-      marginfiAccount: accounts.marginfiAccountPk,
-      signer: accounts.authorityPk,
-      signerTokenAccount: accounts.signerTokenAccountPk,
-      bank: accounts.bankPk,
-      tokenProgram: accounts.tokenProgramPk,
+      marginfiAccount,
+      signerTokenAccount,
+      bank,
+      tokenProgram,
     })
+    .accountsPartial(optionalAccounts)
     .remainingAccounts(remainingAccounts)
     .instruction();
 }
@@ -56,12 +53,15 @@ async function makeDepositIx(
 async function makeRepayIx(
   mfProgram: MarginfiProgram,
   accounts: {
-    marginfiGroupPk: PublicKey;
-    marginfiAccountPk: PublicKey;
-    authorityPk: PublicKey;
-    signerTokenAccountPk: PublicKey;
-    bankPk: PublicKey;
-    tokenProgramPk: PublicKey;
+    // Required accounts
+    marginfiAccount: PublicKey;
+    signerTokenAccount: PublicKey;
+    bank: PublicKey;
+    tokenProgram: PublicKey;
+    // Optional accounts - to override inference
+    group?: PublicKey;
+    authority?: PublicKey;
+    liquidityVault?: PublicKey;
   },
   args: {
     amount: BN;
@@ -69,16 +69,17 @@ async function makeRepayIx(
   },
   remainingAccounts: AccountMeta[] = []
 ) {
+  const { marginfiAccount, signerTokenAccount, bank, tokenProgram, ...optionalAccounts } = accounts;
+
   return mfProgram.methods
     .lendingAccountRepay(args.amount, args.repayAll ?? null)
     .accounts({
-      marginfiGroup: accounts.marginfiGroupPk,
-      marginfiAccount: accounts.marginfiAccountPk,
-      signer: accounts.authorityPk,
-      signerTokenAccount: accounts.signerTokenAccountPk,
-      bank: accounts.bankPk,
-      tokenProgram: accounts.tokenProgramPk,
+      marginfiAccount,
+      signerTokenAccount,
+      bank,
+      tokenProgram,
     })
+    .accountsPartial(optionalAccounts)
     .remainingAccounts(remainingAccounts)
     .instruction();
 }
@@ -86,12 +87,14 @@ async function makeRepayIx(
 async function makeWithdrawIx(
   mfProgram: MarginfiProgram,
   accounts: {
-    marginfiGroupPk: PublicKey;
-    marginfiAccountPk: PublicKey;
-    signerPk: PublicKey;
-    bankPk: PublicKey;
-    destinationTokenAccountPk: PublicKey;
-    tokenProgramPk: PublicKey;
+    // Required accounts
+    marginfiAccount: PublicKey;
+    bank: PublicKey;
+    destinationTokenAccount: PublicKey;
+    tokenProgram: PublicKey;
+    // Optional accounts - to override inference
+    group?: PublicKey;
+    authority?: PublicKey;
   },
   args: {
     amount: BN;
@@ -99,16 +102,17 @@ async function makeWithdrawIx(
   },
   remainingAccounts: AccountMeta[] = []
 ) {
+  const { marginfiAccount, bank, destinationTokenAccount, tokenProgram, ...optionalAccounts } = accounts;
+
   return mfProgram.methods
     .lendingAccountWithdraw(args.amount, args.withdrawAll ?? null)
     .accounts({
-      marginfiGroup: accounts.marginfiGroupPk,
-      marginfiAccount: accounts.marginfiAccountPk,
-      signer: accounts.signerPk,
-      destinationTokenAccount: accounts.destinationTokenAccountPk,
-      bank: accounts.bankPk,
-      tokenProgram: accounts.tokenProgramPk,
+      marginfiAccount,
+      destinationTokenAccount,
+      bank,
+      tokenProgram,
     })
+    .accountsPartial(optionalAccounts)
     .remainingAccounts(remainingAccounts)
     .instruction();
 }
@@ -116,28 +120,31 @@ async function makeWithdrawIx(
 async function makeBorrowIx(
   mfProgram: MarginfiProgram,
   accounts: {
-    marginfiGroupPk: PublicKey;
-    marginfiAccountPk: PublicKey;
-    signerPk: PublicKey;
-    bankPk: PublicKey;
-    destinationTokenAccountPk: PublicKey;
-    tokenProgramPk: PublicKey;
+    // Required accounts
+    marginfiAccount: PublicKey;
+    bank: PublicKey;
+    destinationTokenAccount: PublicKey;
+    tokenProgram: PublicKey;
+    // Optional accounts - to override inference
+    group?: PublicKey;
+    authority?: PublicKey;
   },
   args: {
     amount: BN;
   },
   remainingAccounts: AccountMeta[] = []
 ) {
+  const { marginfiAccount, bank, destinationTokenAccount, tokenProgram, ...optionalAccounts } = accounts;
+
   return mfProgram.methods
     .lendingAccountBorrow(args.amount)
     .accounts({
-      marginfiGroup: accounts.marginfiGroupPk,
-      marginfiAccount: accounts.marginfiAccountPk,
-      signer: accounts.signerPk,
-      destinationTokenAccount: accounts.destinationTokenAccountPk,
-      bank: accounts.bankPk,
-      tokenProgram: accounts.tokenProgramPk,
+      marginfiAccount,
+      destinationTokenAccount,
+      bank,
+      tokenProgram,
     })
+    .accountsPartial(optionalAccounts)
     .remainingAccounts(remainingAccounts)
     .instruction();
 }
@@ -145,29 +152,40 @@ async function makeBorrowIx(
 function makeLendingAccountLiquidateIx(
   mfiProgram: MarginfiProgram,
   accounts: {
-    marginfiGroup: PublicKey;
-    signer: PublicKey;
+    // Required accounts
     assetBank: PublicKey;
     liabBank: PublicKey;
     liquidatorMarginfiAccount: PublicKey;
     liquidateeMarginfiAccount: PublicKey;
-    tokenProgramPk: PublicKey;
+    tokenProgram: PublicKey;
+    // Optional accounts - to override inference
+    group: PublicKey;
+    authority: PublicKey;
   },
   args: {
     assetAmount: BN;
   },
   remainingAccounts: AccountMeta[] = []
 ) {
+  const {
+    assetBank,
+    liabBank,
+    liquidatorMarginfiAccount,
+    liquidateeMarginfiAccount,
+    tokenProgram,
+    ...optionalAccounts
+  } = accounts;
+
   return mfiProgram.methods
     .lendingAccountLiquidate(args.assetAmount)
     .accounts({
-      signer: accounts.signer,
-      assetBank: accounts.assetBank,
-      liabBank: accounts.liabBank,
-      liquidatorMarginfiAccount: accounts.liquidatorMarginfiAccount,
-      liquidateeMarginfiAccount: accounts.liquidateeMarginfiAccount,
-      tokenProgram: accounts.tokenProgramPk,
+      assetBank,
+      liabBank,
+      liquidatorMarginfiAccount,
+      liquidateeMarginfiAccount,
+      tokenProgram,
     })
+    .accountsPartial(optionalAccounts)
     .remainingAccounts(remainingAccounts)
     .instruction();
 }
@@ -175,128 +193,145 @@ function makeLendingAccountLiquidateIx(
 function makelendingAccountWithdrawEmissionIx(
   mfiProgram: MarginfiProgram,
   accounts: {
-    marginfiGroup: PublicKey;
+    // Required accounts
     marginfiAccount: PublicKey;
-    signer: PublicKey;
-    destinationTokenAccount: PublicKey;
+    destinationAccount: PublicKey;
     bank: PublicKey;
-    emissionsMint: PublicKey;
     tokenProgram: PublicKey;
+    // Optional accounts - to override inference
+    group?: PublicKey;
+    authority?: PublicKey;
+    emissionsMint?: PublicKey;
   }
 ) {
+  const { marginfiAccount, destinationAccount, bank, tokenProgram, ...optionalAccounts } = accounts;
+
   return mfiProgram.methods
     .lendingAccountWithdrawEmissions()
     .accounts({
-      marginfiGroup: accounts.marginfiGroup,
-      marginfiAccount: accounts.marginfiAccount,
-      signer: accounts.signer,
-      destinationAccount: accounts.destinationTokenAccount,
-      bank: accounts.bank,
-      emissionsMint: accounts.emissionsMint,
-      tokenProgram: accounts.tokenProgram,
+      marginfiAccount,
+      destinationAccount,
+      bank,
+      tokenProgram,
     })
+    .accountsPartial(optionalAccounts)
     .instruction();
 }
 
 function makeSetAccountFlagIx(
   mfiProgram: MarginfiProgram,
   accounts: {
-    marginfiGroup: PublicKey;
+    // Required accounts
     marginfiAccount: PublicKey;
-    admin: PublicKey;
+    // Optional accounts - to override inference
+    group?: PublicKey;
+    admin?: PublicKey;
   },
   args: {
     flag: BN;
   }
 ) {
+  const { marginfiAccount, ...optionalAccounts } = accounts;
+
   return mfiProgram.methods
     .setAccountFlag(args.flag)
     .accounts({
-      marginfiGroup: accounts.marginfiGroup,
-      marginfiAccount: accounts.marginfiAccount,
-      admin: accounts.admin,
+      marginfiAccount,
     })
+    .accountsPartial(optionalAccounts)
     .instruction();
 }
 
 function makeUnsetAccountFlagIx(
   mfiProgram: MarginfiProgram,
   accounts: {
-    marginfiGroup: PublicKey;
+    // Required accounts
     marginfiAccount: PublicKey;
-    admin: PublicKey;
+    // Optional accounts - to override inference
+    group?: PublicKey;
+    admin?: PublicKey;
   },
   args: {
     flag: BN;
   }
 ) {
+  const { marginfiAccount, ...optionalAccounts } = accounts;
+
   return mfiProgram.methods
     .unsetAccountFlag(args.flag)
     .accounts({
-      marginfiGroup: accounts.marginfiGroup,
-      marginfiAccount: accounts.marginfiAccount,
-      admin: accounts.admin,
+      marginfiAccount,
     })
+    .accountsPartial(optionalAccounts)
     .instruction();
 }
 
 function makePoolConfigureBankIx(
   mfiProgram: MarginfiProgram,
   accounts: {
-    marginfiGroup: PublicKey;
-    admin: PublicKey;
+    // Required accounts
     bank: PublicKey;
+    // Optional accounts - to override inference
+    group?: PublicKey;
+    admin?: PublicKey;
   },
   args: {
     bankConfigOpt: BankConfigOptRaw;
   }
 ) {
+  const { bank, ...optionalAccounts } = accounts;
+
   return mfiProgram.methods
     .lendingPoolConfigureBank(args.bankConfigOpt)
     .accounts({
-      marginfiGroup: accounts.marginfiGroup,
-      admin: accounts.admin,
-      bank: accounts.bank,
+      bank,
     })
+    .accountsPartial(optionalAccounts)
     .instruction();
 }
 
 function makeBeginFlashLoanIx(
   mfiProgram: MarginfiProgram,
   accounts: {
+    // Required accounts
     marginfiAccount: PublicKey;
-    signer: PublicKey;
+    // Optional accounts - to override inference
+    authority?: PublicKey;
+    ixsSysvar?: PublicKey;
   },
   args: {
     endIndex: BN;
   }
 ) {
+  const { marginfiAccount, ...optionalAccounts } = accounts;
+
   return mfiProgram.methods
     .lendingAccountStartFlashloan(args.endIndex)
-    .accountsStrict({
-      marginfiAccount: accounts.marginfiAccount,
-      signer: accounts.signer,
-      authority: accounts.signer, // ask program master
-      ixsSysvar: SYSVAR_INSTRUCTIONS_PUBKEY,
+    .accounts({
+      marginfiAccount,
     })
+    .accountsPartial(optionalAccounts)
     .instruction();
 }
 
 function makeEndFlashLoanIx(
   mfiProgram: MarginfiProgram,
   accounts: {
+    // Required accounts
     marginfiAccount: PublicKey;
-    signer: PublicKey;
+    // Optional accounts - to override inference
+    authority?: PublicKey;
   },
   remainingAccounts: AccountMeta[] = []
 ) {
+  const { marginfiAccount, ...optionalAccounts } = accounts;
+
   return mfiProgram.methods
     .lendingAccountEndFlashloan()
-    .accountsStrict({
-      marginfiAccount: accounts.marginfiAccount,
-      signer: accounts.signer,
-      authority: accounts.signer,
+    .accounts({
+      marginfiAccount,
     })
+    .accountsPartial(optionalAccounts)
     .remainingAccounts(remainingAccounts)
     .instruction();
 }
@@ -304,22 +339,25 @@ function makeEndFlashLoanIx(
 async function makeAccountAuthorityTransferIx(
   mfProgram: MarginfiProgram,
   accounts: {
-    marginfiAccountPk: PublicKey;
-    marginfiGroupPk: PublicKey;
-    signerPk: PublicKey;
-    newAuthorityPk: PublicKey;
-    feePayerPk: PublicKey;
+    // Required accounts
+    marginfiAccount: PublicKey;
+    newAuthority: PublicKey;
+    feePayer: PublicKey;
+    // Optional accounts - to override inference
+    group?: PublicKey;
+    authority?: PublicKey;
   }
 ) {
+  const { marginfiAccount, newAuthority, feePayer, ...optionalAccounts } = accounts;
+
   return mfProgram.methods
     .setNewAccountAuthority()
     .accounts({
-      marginfiAccount: accounts.marginfiAccountPk,
-      marginfiGroup: accounts.marginfiGroupPk,
-      signer: accounts.signerPk,
-      newAuthority: accounts.newAuthorityPk,
-      feePayer: accounts.feePayerPk,
+      marginfiAccount,
+      newAuthority,
+      feePayer,
     })
+    .accountsPartial(optionalAccounts)
     .instruction();
 }
 
@@ -328,10 +366,13 @@ async function makeGroupInitIx(
   accounts: {
     marginfiGroup: PublicKey;
     admin: PublicKey;
+  },
+  args: {
+    isArenaGroup: boolean;
   }
 ) {
   return mfProgram.methods
-    .marginfiGroupInitialize()
+    .marginfiGroupInitialize(args.isArenaGroup)
     .accounts({
       marginfiGroup: accounts.marginfiGroup,
       admin: accounts.admin,
@@ -339,31 +380,46 @@ async function makeGroupInitIx(
     .instruction();
 }
 
+/**
+ * Configure the oracle for a bank
+ * @param mfProgram The marginfi program
+ * @param accounts The accounts required for this instruction
+ * @param args The oracle setup index and feed id
+ * @param remainingAccounts The remaining accounts required for this instruction, should include the feed oracle key
+ */
 async function makeLendingPoolConfigureBankOracleIx(
   mfProgram: MarginfiProgram,
   accounts: {
+    // Required accounts
     bank: PublicKey;
+    // Optional accounts - to override inference
     group?: PublicKey;
     admin?: PublicKey;
   },
   args: {
+    /**
+     * The oracle setup index, see {@link serializeOracleSetupToIndex}
+     */
     setup: number;
+    /**
+     * The oracle feed id
+     */
     feedId: PublicKey;
   },
-  remainingAccounts: {
-    oracleKey?: PublicKey;
-  }
+  /**
+   * The remaining accounts required for this instruction, should include the feed oracle key (non writable & signable)
+   */
+  remainingAccounts: AccountMeta[] = []
 ) {
+  const { bank, ...optionalAccounts } = accounts;
+
   return mfProgram.methods
     .lendingPoolConfigureBankOracle(args.setup, args.feedId)
-    .accountsPartial({
-      bank: accounts.bank,
-      group: accounts.group,
-      admin: accounts.admin,
+    .accounts({
+      bank,
     })
-    .remainingAccounts(
-      remainingAccounts.oracleKey ? [{ isSigner: false, isWritable: false, pubkey: remainingAccounts.oracleKey }] : []
-    )
+    .accountsPartial(optionalAccounts)
+    .remainingAccounts(remainingAccounts)
     .instruction();
 }
 
