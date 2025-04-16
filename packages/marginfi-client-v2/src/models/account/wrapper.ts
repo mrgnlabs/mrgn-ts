@@ -835,9 +835,8 @@ class MarginfiAccountWrapper {
    */
   async makeCloseAccountIx(): Promise<InstructionsWrapper> {
     const ix = await instructions.makeCloseAccountIx(this._program, {
-      marginfiAccountPk: this.address,
-      feePayerPk: this.client.wallet.publicKey,
-      authorityPk: this.authority,
+      marginfiAccount: this.address,
+      feePayer: this.client.wallet.publicKey,
     });
     return { instructions: [ix], keys: [] };
   }

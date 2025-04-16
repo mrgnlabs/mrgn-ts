@@ -9,8 +9,6 @@ import { serializeBankConfigOpt, serializeOracleSetupToIndex } from "./utils";
 export async function freezeBankConfigIx(
   program: MarginfiProgram,
   bankAddress: PublicKey,
-  groupAddress: PublicKey,
-  adminAddress: PublicKey,
   bankConfigOpt: BankConfigOpt
 ): Promise<InstructionsWrapper> {
   let bankConfigRaw: BankConfigOptRaw;
@@ -22,8 +20,6 @@ export async function freezeBankConfigIx(
   const ix = await instructions.makePoolConfigureBankIx(
     program,
     {
-      marginfiGroup: groupAddress,
-      admin: adminAddress,
       bank: bankAddress,
     },
     {

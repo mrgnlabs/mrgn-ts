@@ -688,12 +688,10 @@ class MarginfiAccount {
     const depositIx = await instructions.makeDepositIx(
       program,
       {
-        marginfiGroupPk: this.group,
-        marginfiAccountPk: this.address,
-        authorityPk: this.authority,
-        signerTokenAccountPk: userTokenAtaPk,
-        bankPk: bank.address,
-        tokenProgramPk: mintData.tokenProgram,
+        marginfiAccount: this.address,
+        signerTokenAccount: userTokenAtaPk,
+        bank: bank.address,
+        tokenProgram: mintData.tokenProgram,
       },
       { amount: uiToNative(amount, bank.mintDecimals) },
       remainingAccounts
@@ -744,12 +742,10 @@ class MarginfiAccount {
     const repayIx = await instructions.makeRepayIx(
       program,
       {
-        marginfiGroupPk: this.group,
-        marginfiAccountPk: this.address,
-        authorityPk: this.authority,
-        signerTokenAccountPk: userAta,
-        bankPk: bankAddress,
-        tokenProgramPk: mintData.tokenProgram,
+        marginfiAccount: this.address,
+        signerTokenAccount: userAta,
+        bank: bankAddress,
+        tokenProgram: mintData.tokenProgram,
       },
       { amount: uiToNative(amount, bank.mintDecimals), repayAll },
       remainingAccounts
@@ -819,12 +815,10 @@ class MarginfiAccount {
     const withdrawIx = await instructions.makeWithdrawIx(
       program,
       {
-        marginfiGroupPk: this.group,
-        marginfiAccountPk: this.address,
-        signerPk: this.authority,
-        bankPk: bank.address,
-        destinationTokenAccountPk: userAta,
-        tokenProgramPk: mintData.tokenProgram,
+        marginfiAccount: this.address,
+        bank: bank.address,
+        destinationTokenAccount: userAta,
+        tokenProgram: mintData.tokenProgram,
       },
       { amount: uiToNative(amount, bank.mintDecimals), withdrawAll },
       remainingAccounts
@@ -888,12 +882,10 @@ class MarginfiAccount {
     const borrowIx = await instructions.makeBorrowIx(
       program,
       {
-        marginfiGroupPk: this.group,
-        marginfiAccountPk: this.address,
-        signerPk: this.authority,
-        bankPk: bank.address,
-        destinationTokenAccountPk: userAta,
-        tokenProgramPk: mintData.tokenProgram,
+        marginfiAccount: this.address,
+        bank: bank.address,
+        destinationTokenAccount: userAta,
+        tokenProgram: mintData.tokenProgram,
       },
       { amount: uiToNative(amount, bank.mintDecimals) },
       remainingAccounts
@@ -942,12 +934,9 @@ class MarginfiAccount {
     ixs.push(createAtaIdempotentIx);
 
     const withdrawEmissionsIx = await instructions.makelendingAccountWithdrawEmissionIx(program, {
-      marginfiGroup: this.group,
       marginfiAccount: this.address,
-      signer: this.authority,
+      destinationAccount: userAta,
       bank: bank.address,
-      destinationTokenAccount: userAta,
-      emissionsMint: bank.emissionsMint,
       tokenProgram: mintData.emissionTokenProgram,
     });
     ixs.push(withdrawEmissionsIx);
@@ -999,13 +988,11 @@ class MarginfiAccount {
     const liquidateIx = await instructions.makeLendingAccountLiquidateIx(
       program,
       {
-        marginfiGroup: this.group,
-        signer: this.authority,
         assetBank: assetBankAddress,
         liabBank: liabilityBankAddress,
         liquidatorMarginfiAccount: this.address,
         liquidateeMarginfiAccount: liquidateeMarginfiAccount.address,
-        tokenProgramPk: liabilityMintData.tokenProgram,
+        tokenProgram: liabilityMintData.tokenProgram,
       },
       { assetAmount: uiToNative(assetQuantityUi, assetBank.mintDecimals) },
       remainingAccounts
@@ -1020,7 +1007,6 @@ class MarginfiAccount {
       program,
       {
         marginfiAccount: this.address,
-        signer: this.authority,
       },
       { endIndex: new BN(endIndex) }
     );
@@ -1037,7 +1023,6 @@ class MarginfiAccount {
       program,
       {
         marginfiAccount: this.address,
-        signer: this.authority,
       },
       remainingAccounts
     );
@@ -1050,20 +1035,17 @@ class MarginfiAccount {
     newAccountAuthority: PublicKey
   ): Promise<InstructionsWrapper> {
     const accountAuthorityTransferIx = await instructions.makeAccountAuthorityTransferIx(program, {
-      marginfiAccountPk: this.address,
-      marginfiGroupPk: this.group,
-      signerPk: this.authority,
-      newAuthorityPk: newAccountAuthority,
-      feePayerPk: this.authority,
+      marginfiAccount: this.address,
+      newAuthority: newAccountAuthority,
+      feePayer: this.authority,
     });
     return { instructions: [accountAuthorityTransferIx], keys: [] };
   }
 
   async makeCloseAccountIx(program: MarginfiProgram): Promise<InstructionsWrapper> {
     const ix = await instructions.makeCloseAccountIx(program, {
-      marginfiAccountPk: this.address,
-      feePayerPk: this.authority,
-      authorityPk: this.authority,
+      marginfiAccount: this.address,
+      feePayer: this.authority,
     });
     return { instructions: [ix], keys: [] };
   }

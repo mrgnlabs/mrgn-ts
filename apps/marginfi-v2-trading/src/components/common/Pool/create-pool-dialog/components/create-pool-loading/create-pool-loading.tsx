@@ -249,16 +249,12 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       const freezeStableBankIx = await freezeBankConfigIx(
         client.program,
         seeds.stableBankSeed.publicKey,
-        seeds.marginfiGroupSeed.publicKey,
-        wallet.publicKey,
         updatedQuoteBankConfig
       );
 
       const freezeTokenBankIx = await freezeBankConfigIx(
         client.program,
         seeds.tokenBankSeed.publicKey,
-        seeds.marginfiGroupSeed.publicKey,
-        wallet.publicKey,
         updatedTokenBankConfig
       );
 

@@ -693,10 +693,10 @@ class MarginfiClient {
     dbg("Generating marginfi account ix for %s", marginfiAccountPk);
 
     const initMarginfiAccountIx = await instructions.makeInitMarginfiAccountIx(this.program, {
-      marginfiGroupPk: this.groupAddress,
-      marginfiAccountPk,
-      authorityPk: this.provider.wallet.publicKey,
-      feePayerPk: this.provider.wallet.publicKey,
+      marginfiGroup: this.groupAddress,
+      marginfiAccount: marginfiAccountPk,
+      authority: this.provider.wallet.publicKey,
+      feePayer: this.provider.wallet.publicKey,
     });
 
     const ixs = [initMarginfiAccountIx];

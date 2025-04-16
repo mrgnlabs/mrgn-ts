@@ -1,8 +1,10 @@
 import { AccountMeta, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY } from "@solana/web3.js";
 import BN from "bn.js";
+
+import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+
 import { MarginfiProgram } from "./types";
 import { BankConfigCompactRaw, BankConfigOptRaw } from "./services";
-import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
 async function makeInitMarginfiAccountIx(
   mfProgram: MarginfiProgram,
@@ -159,8 +161,8 @@ function makeLendingAccountLiquidateIx(
     liquidateeMarginfiAccount: PublicKey;
     tokenProgram: PublicKey;
     // Optional accounts - to override inference
-    group: PublicKey;
-    authority: PublicKey;
+    group?: PublicKey;
+    authority?: PublicKey;
   },
   args: {
     assetAmount: BN;
@@ -367,12 +369,12 @@ async function makeGroupInitIx(
     marginfiGroup: PublicKey;
     admin: PublicKey;
   },
-  args: {
-    isArenaGroup: boolean;
+  args?: {
+    isArenaGroup?: boolean;
   }
 ) {
   return mfProgram.methods
-    .marginfiGroupInitialize(args.isArenaGroup)
+    .marginfiGroupInitialize(args?.isArenaGroup ?? false)
     .accounts({
       marginfiGroup: accounts.marginfiGroup,
       admin: accounts.admin,
@@ -423,86 +425,124 @@ async function makeLendingPoolConfigureBankOracleIx(
     .instruction();
 }
 
+/**
+ * Creates an instruction to add a permissionless staked bank to a lending pool.
+ * @param mfProgram - The marginfi program instance
+ * @param accounts - The accounts required for this instruction
+ * @param remainingAccounts - The remaining accounts required for this instruction, including pythOracle, solPool and bankMint
+ * @param args - Optional arguments for this instruction
+ */
 async function makePoolAddPermissionlessStakedBankIx(
   mfProgram: MarginfiProgram,
   accounts: {
+    // Required accounts
     stakedSettings: PublicKey;
     feePayer: PublicKey;
     bankMint: PublicKey;
     solPool: PublicKey;
     stakePool: PublicKey;
+    // Optional accounts - to override inference
+    marginfiGroup?: PublicKey;
+    /**
+     * The token program to use for this instruction, defaults to the SPL token program
+     */
+    tokenProgram?: PublicKey;
   },
-  remainingAccounts: {
-    pythOracle: PublicKey;
-  },
+  /**
+   * The remaining accounts required for this instruction. Should include:
+   * - pythOracle: The pyth oracle key (non writable & non signer)
+   * - solPool: The sol pool key (non writable & non signer)
+   * - bankMint: The bank mint key (non writable & non signer)
+   */
+  remainingAccounts: AccountMeta[] = [],
   args: {
-    seed: BN;
+    /**
+     * The seed to use for the bank account. Defaults to 0 (new BN(0)).
+     * If the seed is not specified, the seed is set to 0, and the bank account
+     * will be created at the address {@link findPoolAddress} with the default
+     * bump.
+     */
+    seed?: BN;
   }
 ) {
-  const defaultAccountMeta = {
-    isSigner: false,
-    isWritable: false,
-  };
+  const {
+    stakedSettings,
+    feePayer,
+    bankMint,
+    solPool,
+    stakePool,
+    tokenProgram = TOKEN_PROGRAM_ID,
+    ...optionalAccounts
+  } = accounts;
 
   return mfProgram.methods
-    .lendingPoolAddBankPermissionless(args.seed)
+    .lendingPoolAddBankPermissionless(args.seed ?? new BN(0))
     .accounts({
-      ...accounts,
-      tokenProgram: TOKEN_PROGRAM_ID,
+      stakedSettings,
+      feePayer,
+      bankMint,
+      solPool,
+      stakePool,
+      tokenProgram,
     })
-    .remainingAccounts([
-      { ...defaultAccountMeta, pubkey: remainingAccounts.pythOracle },
-      { ...defaultAccountMeta, pubkey: accounts.bankMint },
-      { ...defaultAccountMeta, pubkey: accounts.solPool },
-    ])
+    .accountsPartial(optionalAccounts)
+    .remainingAccounts(remainingAccounts)
     .instruction();
 }
 
 async function makePoolAddBankIx(
   mfProgram: MarginfiProgram,
   accounts: {
+    // Required accounts
     marginfiGroup: PublicKey;
-    admin: PublicKey;
     feePayer: PublicKey;
     bankMint: PublicKey;
     bank: PublicKey;
     tokenProgram: PublicKey;
+    // Optional accounts - to override inference
+    admin?: PublicKey;
+    globalFeeWallet?: PublicKey;
   },
   args: {
     bankConfig: BankConfigCompactRaw;
   }
 ) {
+  const { marginfiGroup, feePayer, bankMint, bank, tokenProgram, ...optionalAccounts } = accounts;
+
   return mfProgram.methods
     .lendingPoolAddBank({
       ...args.bankConfig,
       pad0: [0, 0, 0, 0, 0, 0, 0, 0],
     })
     .accounts({
-      marginfiGroup: accounts.marginfiGroup,
-      admin: accounts.admin,
-      feePayer: accounts.feePayer,
-      bankMint: accounts.bankMint,
-      bank: accounts.bank,
-      tokenProgram: accounts.tokenProgram,
+      marginfiGroup,
+      feePayer,
+      bankMint,
+      bank,
+      tokenProgram,
     })
+    .accountsPartial(optionalAccounts)
     .instruction();
 }
 
 async function makeCloseAccountIx(
   mfProgram: MarginfiProgram,
   accounts: {
-    marginfiAccountPk: PublicKey;
-    feePayerPk: PublicKey;
-    authorityPk: PublicKey;
+    // Required accounts
+    marginfiAccount: PublicKey;
+    feePayer: PublicKey;
+    // Optional accounts - to override inference
+    authority?: PublicKey;
   }
 ) {
+  const { marginfiAccount, feePayer, ...optionalAccounts } = accounts;
   return mfProgram.methods
     .marginfiAccountClose()
     .accounts({
-      marginfiAccount: accounts.marginfiAccountPk,
-      feePayer: accounts.feePayerPk,
-      authority: accounts.authorityPk,
+      marginfiAccount,
+      feePayer,
     })
+    .accountsPartial(optionalAccounts)
     .instruction();
 }
 

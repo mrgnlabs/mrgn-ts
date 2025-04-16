@@ -73,9 +73,7 @@ class MarginfiGroup {
     const ix = await instructions.makeSetAccountFlagIx(
       program,
       {
-        marginfiGroup: this.address,
         marginfiAccount: marginfiAccountAddress,
-        admin: this.admin,
       },
       { flag: new BN(FLASHLOAN_ENABLED_FLAG) }
     );
@@ -93,9 +91,7 @@ class MarginfiGroup {
     const ix = await instructions.makeUnsetAccountFlagIx(
       program,
       {
-        marginfiGroup: this.address,
         marginfiAccount: marginfiAccountAddress,
-        admin: this.admin,
       },
       { flag: new BN(FLASHLOAN_ENABLED_FLAG) }
     );
@@ -113,9 +109,7 @@ class MarginfiGroup {
     const ix = await instructions.makeSetAccountFlagIx(
       program,
       {
-        marginfiGroup: this.address,
         marginfiAccount: marginfiAccountAddress,
-        admin: this.admin,
       },
       { flag: new BN(TRANSFER_ACCOUNT_AUTHORITY_FLAG) }
     );
@@ -133,9 +127,7 @@ class MarginfiGroup {
     const ix = await instructions.makeUnsetAccountFlagIx(
       program,
       {
-        marginfiGroup: this.address,
         marginfiAccount: marginfiAccountAddress,
-        admin: this.admin,
       },
       { flag: new BN(TRANSFER_ACCOUNT_AUTHORITY_FLAG) }
     );
@@ -154,8 +146,6 @@ class MarginfiGroup {
     const ix = await instructions.makePoolConfigureBankIx(
       program,
       {
-        marginfiGroup: this.address,
-        admin: this.admin,
         bank: bank,
       },
       { bankConfigOpt: args }
@@ -209,9 +199,23 @@ class MarginfiGroup {
         solPool,
         stakePool: poolAddress,
       },
-      {
-        pythOracle: pythOracle,
-      },
+      [
+        {
+          pubkey: pythOracle,
+          isSigner: false,
+          isWritable: false,
+        },
+        {
+          pubkey: lstMint,
+          isSigner: false,
+          isWritable: false,
+        },
+        {
+          pubkey: solPool,
+          isSigner: false,
+          isWritable: false,
+        },
+      ],
       {
         seed: new BN(0),
       }

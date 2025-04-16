@@ -34,7 +34,6 @@ import {
 import BigNumber from "bignumber.js";
 import { BankConfig, BankConfigRaw, OracleSetup, parseOracleSetup } from ".";
 import { parsePriceInfo } from "./vendor";
-import { MarginfiIdlTypeV0_1_0, MarginfiIdlTypeV0_1_2 } from "./idl";
 
 export function getBankVaultSeeds(type: BankVaultType): Buffer {
   switch (type) {
