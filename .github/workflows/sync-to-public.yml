@@ -1,4 +1,4 @@
-name: Sync to Public Repo
+name: Sync to Public Repo (SSH)
 
 on:
   push:
@@ -11,23 +11,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the branch
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # required to push tags and full history if needed
+          fetch-depth: 0
 
-      - name: Set Git user identity
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PUBLIC_REPO_DEPLOY_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Configure Git
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
-      - name: Add public repo as remote and push branch
-        env:
-          TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN }}
+      - name: Add public repo as remote and push
         run: |
-          echo "Adding remote 'public'..."
-          git remote add public "https://x-access-token:${TOKEN}@github.com/mrgnlabs/mrgn-ts.git"
-          git remote -v  # optional: confirm it's added
-
-          echo "Pushing branch ${GITHUB_REF_NAME} to public repo..."
+          git remote add public git@github.com:mrgnlabs/mrgn-ts.git
           git push public HEAD:refs/heads/${GITHUB_REF_NAME} --force
