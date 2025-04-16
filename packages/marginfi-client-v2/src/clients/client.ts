@@ -170,7 +170,7 @@ class MarginfiClient {
       connection.rpcEndpoint
     );
 
-    const programIdl = await fetchLatestIdl();
+    const programIdl = fetchLatestIdl();
 
     const confirmOpts = clientOptions?.confirmOpts ?? {};
     const readOnly = clientOptions?.readOnly ?? false;
