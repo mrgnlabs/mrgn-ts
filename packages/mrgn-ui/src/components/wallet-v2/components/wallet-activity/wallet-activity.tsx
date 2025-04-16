@@ -51,15 +51,16 @@ const WalletActivity = ({ extendedBankInfos, onRerun, closeWallet }: WalletActiv
       ) : error ? (
         <div className="text-sm text-red-500">Error loading activities: {error}</div>
       ) : activities.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center">No activity yet.</p>
+        <p className="text-sm text-muted-foreground text-center">
+          No activity yet, start using marginfi
+          <br /> and track your activity here.
+        </p>
       ) : (
         <div className="space-y-2 h-[calc(100vh-190px)] overflow-y-auto">
           {activities.map((activity, index) => {
             const bank = banks[index];
             const secondaryBank = secondaryBanks[index];
 
-            console.log("bank", bank?.meta.tokenSymbol);
-            console.log("secondaryBank", secondaryBank?.meta.tokenSymbol);
             if (!bank) return null;
             return (
               <WalletActivityItem
