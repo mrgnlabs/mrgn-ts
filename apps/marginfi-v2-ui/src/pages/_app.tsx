@@ -11,14 +11,13 @@ import { Analytics } from "@vercel/analytics/react";
 import { registerMoonGateWallet } from "@moongate/moongate-adapter";
 
 import { cn, Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
-import { ActionBoxProvider, ActionProvider, AuthDialog } from "@mrgnlabs/mrgn-ui";
+import { ActionBoxProvider, ActionProvider, AuthDialog, WalletProvider as MrgnWalletProvider } from "@mrgnlabs/mrgn-ui";
 import { generateEndpoint } from "~/rpc.utils";
 
 import config from "~/config";
 import { MrgnlendProvider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { WalletProvider as MrgnWalletProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ConnectionProvider } from "~/hooks/use-connection";
 
 import GlobalActionBoxPortal from "~/components/common/global-actionbox-portal/global-actionbox-portal";
