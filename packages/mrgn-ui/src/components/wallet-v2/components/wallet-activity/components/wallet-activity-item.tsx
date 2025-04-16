@@ -134,13 +134,13 @@ const WalletActivityItem = ({
           </TooltipProvider>
         </div>
       </div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         {(activity.accountLabel || activity.account) && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground w-1/2 truncate">
             Account: {activity.accountLabel || shortenAddress(activity.account)}
           </p>
         )}
-        <time className="text-xs text-muted-foreground flex items-center gap-1 ml-auto">
+        <time className="text-xs text-muted-foreground flex items-center justify-end gap-1 ml-auto w-1/2 truncate text-right">
           <IconClock size={14} />
           {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
         </time>
