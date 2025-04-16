@@ -193,6 +193,7 @@ export const Header = () => {
               connection={connection}
               initialized={initialized}
               userDataFetched={userDataFetched}
+              hideActivity={true}
               extendedBankInfos={extendedBankInfos}
               nativeSolBalance={nativeSolBalance}
               refreshState={() =>

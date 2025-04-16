@@ -59,6 +59,7 @@ type WalletProps = {
   nativeSolBalance: number;
   userPointsData?: UserPointsData;
   accountSummary?: AccountSummary;
+  hideActivity?: boolean;
   refreshState: () => void;
   headerComponent?: JSX.Element;
   processOpts?: ProcessTransactionsClientOpts;
@@ -89,6 +90,7 @@ const Wallet = ({
   extendedBankInfos,
   nativeSolBalance,
   userPointsData,
+  hideActivity,
   accountSummary,
   refreshState,
   headerComponent,
@@ -325,14 +327,16 @@ const Wallet = ({
                           </span>
                         </TabsTrigger>
                       )}
-                      <TabsTrigger
-                        value="activity"
-                        className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
-                      >
-                        <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
-                          Activity
-                        </span>
-                      </TabsTrigger>
+                      {!hideActivity && (
+                        <TabsTrigger
+                          value="activity"
+                          className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
+                        >
+                          <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
+                            Activity
+                          </span>
+                        </TabsTrigger>
+                      )}
                     </TabsList>
                   )}
                   <TabsContent value="tokens">
