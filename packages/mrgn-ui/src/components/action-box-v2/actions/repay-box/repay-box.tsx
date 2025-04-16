@@ -283,18 +283,18 @@ export const RepayBox = ({
           onComplete?.();
           // Log the activity
           const activityDetails: Record<string, any> = {
-            amount: amount,
+            amount: actionMode === ActionType.RepayCollat ? repayAmount : amount,
             symbol: selectedBank.meta.tokenSymbol,
             mint: selectedBank.info.rawBank.mint.toBase58(),
           };
 
           if (actionMode === ActionType.RepayCollat) {
-            activityDetails.secondaryAmount = repayAmount;
+            activityDetails.secondaryAmount = amount;
             activityDetails.secondarySymbol = selectedSecondaryBank.meta.tokenSymbol;
             activityDetails.secondaryMint = selectedSecondaryBank.info.rawBank.mint.toBase58();
           }
 
-          logActivity("repay", txnSig, activityDetails).catch((error) => {
+          logActivity(actionMode, txnSig, activityDetails).catch((error) => {
             console.error("Failed to log activity:", error);
           });
         },

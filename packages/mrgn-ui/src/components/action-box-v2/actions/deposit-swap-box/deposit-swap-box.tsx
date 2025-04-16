@@ -295,23 +295,19 @@ export const DepositSwapBox = ({
         )
       : dynamicNumeralFormatter(debouncedAmount ?? 0);
 
-    const swapTokenSymbol = selectedSwapBank
-      ? "info" in selectedSwapBank
-        ? selectedSwapBank.meta.tokenSymbol
-        : selectedSwapBank.symbol
-      : "";
+    let swapTokenSymbol = "";
+    let swapTokenMint = "";
+    let swapTokenImage = "";
 
-    const swapTokenMint = selectedSwapBank
-      ? "info" in selectedSwapBank
-        ? selectedSwapBank.info.rawBank.mint.toBase58()
-        : selectedSwapBank.address.toBase58()
-      : "";
-
-    const swapTokenImage = selectedSwapBank
-      ? "info" in selectedSwapBank
-        ? selectedSwapBank.meta.tokenLogoUri
-        : selectedSwapBank.logoUri
-      : "";
+    if (selectedSwapBank && "info" in selectedSwapBank) {
+      swapTokenSymbol = selectedSwapBank.meta.tokenSymbol;
+      swapTokenMint = selectedSwapBank.info.rawBank.mint.toBase58();
+      swapTokenImage = selectedSwapBank.meta.tokenLogoUri;
+    } else if (selectedSwapBank) {
+      swapTokenSymbol = selectedSwapBank.symbol;
+      swapTokenMint = selectedSwapBank.address.toBase58();
+      swapTokenImage = selectedSwapBank.logoUri;
+    }
 
     const props = {
       actionTxns,
@@ -339,7 +335,7 @@ export const DepositSwapBox = ({
             secondaryImage: swapTokenImage,
           };
 
-          logActivity("deposit-swap", txnSig, activityDetails).catch((error) => {
+          logActivity(ActionType.Deposit, txnSig, activityDetails).catch((error) => {
             console.error("Failed to log activity:", error);
           });
         },
@@ -365,6 +361,7 @@ export const DepositSwapBox = ({
     debouncedAmount,
     setAmountRaw,
     onComplete,
+    amount,
   ]);
 
   return (

@@ -17,24 +17,37 @@ import { ActionBox } from "~/components/action-box-v2";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
-const getActivityText = (type: string) => {
+const getActivityText = (activity: WalletActivity) => {
+  const { type, details } = activity;
+
+  if (type === ActionType.Deposit && details.secondaryMint) {
+    return `Swapped ${details.secondaryAmount} ${details.secondarySymbol} and deposited ${details.amount} ${details.symbol}`;
+  }
+
+  if (type === ActionType.MintLST && details.secondaryAmount) {
+    return `Staked ${details.amount} ${details.symbol} for ${details.secondaryAmount} LST`;
+  }
+
+  if (type === ActionType.RepayCollat && details.secondaryAmount) {
+    return `Repaid ${details.amount} ${details.symbol} with ${details.secondaryAmount} ${details.secondarySymbol}`;
+  }
+
   switch (type) {
-    case "deposit":
-      return "Deposited";
-    case "borrow":
-      return "Borrowed";
-    case "withdraw":
-      return "Withdrew";
-    case "repay":
-      return "Repaid";
-    case "stake":
-      return "Staked";
-    case "unstake":
-      return "Unstaked";
-    case "loop":
-      return "Looped";
-    case "deposit-swap":
-      return "Swapped";
+    case ActionType.Deposit:
+      return `Deposited ${details.amount} ${details.symbol}`;
+    case ActionType.Borrow:
+      return `Borrowed ${details.amount} ${details.symbol}`;
+    case ActionType.Withdraw:
+      return `Withdrew ${details.amount} ${details.symbol}`;
+    case ActionType.Repay:
+    case ActionType.RepayCollat:
+      return `Repaid ${details.amount} ${details.symbol}`;
+    case ActionType.MintLST:
+      return `Staked ${details.amount} ${details.symbol} for LST`;
+    case ActionType.UnstakeLST:
+      return `Unstaked ${details.amount} ${details.symbol}`;
+    case ActionType.Loop:
+      return `Looped ${details.amount} ${details.symbol}`;
     default:
       return "";
   }
@@ -43,12 +56,20 @@ const getActivityText = (type: string) => {
 type WalletActivityItemProps = {
   activity: WalletActivity;
   bank: ExtendedBankInfo;
+  secondaryBank?: ExtendedBankInfo;
   walletContextState: WalletContextStateOverride | WalletContextState;
   onRerun?: () => void;
   closeWallet?: () => void;
 };
 
-const WalletActivityItem = ({ activity, bank, walletContextState, onRerun, closeWallet }: WalletActivityItemProps) => {
+const WalletActivityItem = ({
+  activity,
+  bank,
+  secondaryBank,
+  walletContextState,
+  onRerun,
+  closeWallet,
+}: WalletActivityItemProps) => {
   return (
     <div className="p-3 rounded-md space-y-4 bg-background-gray">
       <div className="flex items-start justify-between">
@@ -61,25 +82,20 @@ const WalletActivityItem = ({ activity, bank, walletContextState, onRerun, close
               height={26}
               className="rounded-full"
             />
-            {(activity.type === "loop" || activity.type === "repay") && activity.details.secondaryMint && (
-              <Image
-                src={getTokenImageURL(activity.details.secondaryMint)}
-                alt={activity.details.secondarySymbol ?? ""}
-                width={16}
-                height={16}
-                className="rounded-full absolute -bottom-[4px] -right-[4px] border border-muted-foreground/75"
-              />
-            )}
-            {activity.type === "deposit-swap" && activity.details.secondaryImage && (
-              <img
-                src={activity.details.secondaryImage}
-                alt={activity.details.secondarySymbol ?? ""}
-                width={16}
-                height={16}
-                className="rounded-full absolute -bottom-[4px] -right-[4px] border border-muted-foreground/75 size-4"
-              />
-            )}
-            {activity.type === "stake" && (
+            {(activity.type === ActionType.Loop ||
+              activity.type === ActionType.Repay ||
+              activity.type === ActionType.RepayCollat ||
+              activity.type === ActionType.Deposit) &&
+              activity.details.secondaryMint && (
+                <Image
+                  src={getTokenImageURL(activity.details.secondaryMint)}
+                  alt={activity.details.secondarySymbol ?? ""}
+                  width={16}
+                  height={16}
+                  className="rounded-full absolute -bottom-[4px] -right-[4px] border border-muted-foreground/75"
+                />
+              )}
+            {activity.type === ActionType.MintLST && (
               <Image
                 src={getTokenImageURL("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp")}
                 alt={"LST"}
@@ -89,38 +105,14 @@ const WalletActivityItem = ({ activity, bank, walletContextState, onRerun, close
               />
             )}
           </div>
-          <p>
-            {getActivityText(activity.type)}
-            {activity.type === "deposit-swap" &&
-              activity.details.secondarySymbol &&
-              activity.details.secondaryAmount && (
-                <>
-                  {" "}
-                  {dynamicNumeralFormatter(activity.details.secondaryAmount)} {activity.details.secondarySymbol} and
-                  <br className="hidden md:block" /> deposited{" "}
-                </>
-              )}{" "}
-            {dynamicNumeralFormatter(activity.details.amount)} {activity.details.symbol}
-            {activity.type === "repay" && activity.details.secondaryAmount && (
-              <>
-                <br className="hidden md:block" /> with {dynamicNumeralFormatter(activity.details.secondaryAmount)}{" "}
-                {activity.details.secondarySymbol}
-              </>
-            )}
-            {activity.type === "stake" && <> for LST</>}
-            {activity.type === "loop" && (
-              <>
-                <br className="hidden md:block" /> with {dynamicNumeralFormatter(activity.details.secondaryAmount ?? 0)}{" "}
-                {activity.details.secondarySymbol}
-              </>
-            )}
-          </p>
+          <p>{getActivityText(activity)}</p>
         </div>
         <div className="flex items-center justify-end gap-2 -translate-y-1">
           <RerunAction
             walletContextState={walletContextState}
             bank={bank}
             activity={activity}
+            secondaryBank={secondaryBank}
             onRerun={onRerun}
             closeWallet={closeWallet}
           />
@@ -179,62 +171,14 @@ type RerunActionProps = {
   walletContextState: WalletContextStateOverride | WalletContextState;
   bank: ExtendedBankInfo;
   activity: WalletActivity;
+  secondaryBank?: ExtendedBankInfo;
   onRerun?: () => void;
   closeWallet?: () => void;
 };
 
-const RerunAction = ({ walletContextState, bank, activity, onRerun, closeWallet }: RerunActionProps) => {
-  const activityDetails = React.useMemo(() => {
-    switch (activity.type) {
-      case "deposit":
-      case "deposit-swap":
-        return {
-          amount: activity.details.amount,
-          type: ActionType.Deposit,
-          title: `Deposit ${bank.meta.tokenSymbol}`,
-        };
-      case "borrow":
-        return {
-          amount: activity.details.amount,
-          type: ActionType.Borrow,
-          title: `Borrow ${bank.meta.tokenSymbol}`,
-        };
-      case "withdraw":
-        return {
-          amount: activity.details.amount,
-          type: ActionType.Withdraw,
-          title: `Withdraw ${bank.meta.tokenSymbol}`,
-        };
-      case "repay":
-        return {
-          amount: activity.details.amount,
-          type: ActionType.Repay,
-          title: `Repay ${bank.meta.tokenSymbol}`,
-        };
-      case "loop":
-        return {
-          amount: activity.details.amount,
-          type: ActionType.Loop,
-          title: `Loop ${bank.meta.tokenSymbol}`,
-        };
-      case "stake":
-        return {
-          amount: activity.details.amount,
-          type: ActionType.MintLST,
-          title: `Stake ${bank.meta.tokenSymbol}`,
-        };
-      case "unstake":
-        return {
-          amount: activity.details.amount,
-          type: ActionType.UnstakeLST,
-          title: `Unstake ${bank.meta.tokenSymbol}`,
-        };
-    }
-  }, [activity, bank]);
-
-  if (!activityDetails) return null;
-
-  if (activityDetails.type === ActionType.Loop) {
+const RerunAction = ({ walletContextState, bank, activity, secondaryBank, onRerun, closeWallet }: RerunActionProps) => {
+  // for now we link to respective pages for loop, stake, and deposit-swap
+  if (activity.type === ActionType.Loop) {
     return (
       <Link href="/looper" onClick={closeWallet}>
         <Button variant="secondary" size="icon" className="h-7 w-7">
@@ -242,7 +186,7 @@ const RerunAction = ({ walletContextState, bank, activity, onRerun, closeWallet 
         </Button>
       </Link>
     );
-  } else if (activityDetails.type === ActionType.MintLST || activityDetails.type === ActionType.UnstakeLST) {
+  } else if (activity.type === ActionType.MintLST || activity.type === ActionType.UnstakeLST) {
     return (
       <Link href="/stake" onClick={closeWallet}>
         <Button variant="secondary" size="icon" className="h-7 w-7">
@@ -250,7 +194,7 @@ const RerunAction = ({ walletContextState, bank, activity, onRerun, closeWallet 
         </Button>
       </Link>
     );
-  } else if (activity.type === "deposit-swap") {
+  } else if (activity.type === ActionType.Deposit && activity.details.secondaryMint) {
     return (
       <Link href="/deposit-swap" onClick={closeWallet}>
         <Button variant="secondary" size="icon" className="h-7 w-7">
@@ -259,26 +203,34 @@ const RerunAction = ({ walletContextState, bank, activity, onRerun, closeWallet 
       </Link>
     );
   } else if (
-    activityDetails.type === ActionType.Deposit ||
-    activityDetails.type === ActionType.Borrow ||
-    activityDetails.type === ActionType.Withdraw
+    activity.type === ActionType.Deposit ||
+    activity.type === ActionType.Borrow ||
+    activity.type === ActionType.Withdraw
   ) {
+    // check collateral is available for withdraw
+    if (
+      activity.type === ActionType.Withdraw &&
+      (!bank.isActive || !bank.position.isLending || bank.position.amount < activity.details.amount)
+    ) {
+      return null;
+    }
+
     return (
       <ActionBox.Lend
         isDialog={true}
         useProvider={true}
         lendProps={{
           requestedBank: bank,
-          requestedLendType: activityDetails.type,
+          requestedLendType: activity.type,
           connected: true,
           walletContextState,
-          initialAmount: activityDetails.amount,
+          initialAmount: activity.details.amount,
           onComplete: () => {
             onRerun?.();
           },
         }}
         dialogProps={{
-          title: activityDetails.title,
+          title: `${activity.type} ${activity.details.symbol}`,
           trigger: (
             <Button variant="secondary" size="icon" className="h-7 w-7">
               <IconRefresh size={14} />
@@ -287,21 +239,43 @@ const RerunAction = ({ walletContextState, bank, activity, onRerun, closeWallet 
         }}
       />
     );
-  } else if (activityDetails.type === ActionType.Repay) {
+  } else if (activity.type === ActionType.Repay || activity.type === ActionType.RepayCollat) {
+    // check liability is available for repay
+    if (
+      activity.type === ActionType.Repay &&
+      (!bank.isActive || !bank.position.isLending || bank.position.amount < activity.details.amount)
+    ) {
+      return null;
+    }
+
+    // check collateral is available for repay
+    if (
+      activity.type === ActionType.RepayCollat &&
+      secondaryBank &&
+      activity.details.secondaryAmount &&
+      (!secondaryBank.isActive ||
+        !secondaryBank.position.isLending ||
+        secondaryBank.position.amount < activity.details.secondaryAmount)
+    ) {
+      return null;
+    }
+
     return (
       <ActionBox.Repay
         isDialog={true}
         useProvider={true}
         repayProps={{
           requestedBank: bank,
+          requestedSecondaryBank: secondaryBank,
           connected: true,
-          initialAmount: activityDetails.amount,
+          initialAmount:
+            activity.type === ActionType.RepayCollat ? activity.details.secondaryAmount : activity.details.amount,
           onComplete: () => {
             onRerun?.();
           },
         }}
         dialogProps={{
-          title: activityDetails.title,
+          title: `Repay ${activity.details.symbol}`,
           trigger: (
             <Button variant="secondary" size="icon" className="h-7 w-7">
               <IconRefresh size={14} />

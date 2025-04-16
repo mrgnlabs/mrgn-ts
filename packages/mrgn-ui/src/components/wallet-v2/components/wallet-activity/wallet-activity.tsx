@@ -27,6 +27,15 @@ const WalletActivity = ({ extendedBankInfos, onRerun, closeWallet }: WalletActiv
     });
   }, [activities, extendedBankInfos]);
 
+  const secondaryBanks = React.useMemo(() => {
+    return activities.map((activity) => {
+      const matchingBank = extendedBankInfos.find(
+        (bank) => bank.info.state.mint.toBase58() === activity.details.secondaryMint
+      );
+      return matchingBank || null;
+    });
+  }, [activities, extendedBankInfos]);
+
   if (!connected) {
     return <div className="text-sm text-muted-foreground">Connect your wallet to view activity</div>;
   }
@@ -47,12 +56,17 @@ const WalletActivity = ({ extendedBankInfos, onRerun, closeWallet }: WalletActiv
         <div className="space-y-2 h-[calc(100vh-190px)] overflow-y-auto">
           {activities.map((activity, index) => {
             const bank = banks[index];
+            const secondaryBank = secondaryBanks[index];
+
+            console.log("bank", bank?.meta.tokenSymbol);
+            console.log("secondaryBank", secondaryBank?.meta.tokenSymbol);
             if (!bank) return null;
             return (
               <WalletActivityItem
                 key={index}
                 activity={activity}
                 bank={bank}
+                secondaryBank={secondaryBank || undefined}
                 walletContextState={walletContextState as WalletContextStateOverride}
                 onRerun={() => {
                   onRerun();

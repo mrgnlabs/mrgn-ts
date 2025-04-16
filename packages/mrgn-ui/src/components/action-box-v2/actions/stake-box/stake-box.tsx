@@ -247,11 +247,14 @@ export const StakeBox = ({
           };
 
           if (actionTxns.actionQuote) {
+            activityDetails.secondaryAmount = actionTxns.actionQuote
+              ? nativeToUi(Number(actionTxns?.actionQuote?.outAmount), 9)
+              : undefined;
             activityDetails.secondarySymbol = selectedBank.meta.tokenSymbol;
             activityDetails.secondaryMint = selectedBank.info.rawBank.mint.toBase58();
           }
 
-          logActivity("stake", txnSig, activityDetails).catch((error) => {
+          logActivity(requestedActionType, txnSig, activityDetails).catch((error) => {
             console.error("Failed to log activity:", error);
           });
         },

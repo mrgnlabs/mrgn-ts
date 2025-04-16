@@ -320,6 +320,7 @@ export const LendBox = ({
         captureEvent: captureEvent,
         onComplete: (txnSig: string) => {
           onComplete?.();
+
           // Log the activity
           const activityDetails: Record<string, any> = {
             amount: amount,
@@ -327,18 +328,7 @@ export const LendBox = ({
             mint: selectedBank.info.rawBank.mint.toBase58(),
           };
 
-          const type =
-            lendMode === ActionType.Deposit
-              ? "deposit"
-              : lendMode === ActionType.Withdraw
-                ? "withdraw"
-                : lendMode === ActionType.Borrow
-                  ? "borrow"
-                  : "";
-
-          if (!type) return;
-
-          logActivity(type, txnSig, activityDetails).catch((error) => {
+          logActivity(lendMode, txnSig, activityDetails).catch((error) => {
             console.error("Failed to log activity:", error);
           });
         },

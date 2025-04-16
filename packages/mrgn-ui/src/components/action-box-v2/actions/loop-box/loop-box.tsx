@@ -274,7 +274,7 @@ export const LoopBox = ({
             secondaryMint: selectedSecondaryBank.info.rawBank.mint.toBase58(),
           };
 
-          logActivity("loop", txnSig, activityDetails).catch((error) => {
+          logActivity(ActionType.Loop, txnSig, activityDetails).catch((error) => {
             console.error("Failed to log activity:", error);
           });
         },
