@@ -117,7 +117,13 @@ const WalletActivityItem = ({ activity, bank, walletContextState, onRerun, close
           </p>
         </div>
         <div className="flex items-center justify-end gap-2 -translate-y-1">
-          <RerunAction walletContextState={walletContextState} bank={bank} activity={activity} onRerun={onRerun} />
+          <RerunAction
+            walletContextState={walletContextState}
+            bank={bank}
+            activity={activity}
+            onRerun={onRerun}
+            closeWallet={closeWallet}
+          />
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -228,7 +234,31 @@ const RerunAction = ({ walletContextState, bank, activity, onRerun, closeWallet 
 
   if (!activityDetails) return null;
 
-  if (
+  if (activityDetails.type === ActionType.Loop) {
+    return (
+      <Link href="/looper" onClick={closeWallet}>
+        <Button variant="secondary" size="icon" className="h-7 w-7">
+          <IconRefresh size={14} />
+        </Button>
+      </Link>
+    );
+  } else if (activityDetails.type === ActionType.MintLST || activityDetails.type === ActionType.UnstakeLST) {
+    return (
+      <Link href="/stake" onClick={closeWallet}>
+        <Button variant="secondary" size="icon" className="h-7 w-7">
+          <IconRefresh size={14} />
+        </Button>
+      </Link>
+    );
+  } else if (activity.type === "deposit-swap") {
+    return (
+      <Link href="/deposit-swap" onClick={closeWallet}>
+        <Button variant="secondary" size="icon" className="h-7 w-7">
+          <IconRefresh size={14} />
+        </Button>
+      </Link>
+    );
+  } else if (
     activityDetails.type === ActionType.Deposit ||
     activityDetails.type === ActionType.Borrow ||
     activityDetails.type === ActionType.Withdraw
@@ -279,37 +309,6 @@ const RerunAction = ({ walletContextState, bank, activity, onRerun, closeWallet 
           ),
         }}
       />
-    );
-  } else if (activityDetails.type === ActionType.Loop) {
-    return (
-      <ActionBox.Loop
-        isDialog={true}
-        useProvider={true}
-        loopProps={{
-          requestedBank: bank,
-          connected: true,
-          initialAmount: activityDetails.amount,
-          onComplete: () => {
-            onRerun?.();
-          },
-        }}
-        dialogProps={{
-          title: activityDetails.title,
-          trigger: (
-            <Button variant="secondary" size="icon" className="h-7 w-7">
-              <IconRefresh size={14} />
-            </Button>
-          ),
-        }}
-      />
-    );
-  } else if (activityDetails.type === ActionType.MintLST || activityDetails.type === ActionType.UnstakeLST) {
-    return (
-      <Link href="/stake" onClick={closeWallet}>
-        <Button variant="secondary" size="icon" className="h-7 w-7">
-          <IconRefresh size={14} />
-        </Button>
-      </Link>
     );
   }
 };
