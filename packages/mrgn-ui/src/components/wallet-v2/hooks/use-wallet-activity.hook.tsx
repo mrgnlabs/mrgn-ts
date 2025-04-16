@@ -1,16 +1,14 @@
+"use client";
+
 import React from "react";
-import { useWallet } from "./use-wallet.hook";
 import { WalletActivity } from "../types/wallet.types";
 
-export const useWalletActivity = () => {
-  const { connected, walletAddress } = useWallet();
+const useWalletActivity = () => {
   const [activities, setActivities] = React.useState<WalletActivity[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const fetchActivities = React.useCallback(async () => {
-    if (!connected || !walletAddress) return;
-
     setIsLoading(true);
     setError(null);
 
@@ -37,7 +35,7 @@ export const useWalletActivity = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [connected, walletAddress]);
+  }, []);
 
   React.useEffect(() => {
     fetchActivities();
@@ -50,3 +48,5 @@ export const useWalletActivity = () => {
     refetch: fetchActivities,
   };
 };
+
+export { useWalletActivity };

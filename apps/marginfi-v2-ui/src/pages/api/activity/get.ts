@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { initFirebaseIfNeeded } from "../user/utils";
 import * as admin from "firebase-admin";
+import { STATUS_INTERNAL_ERROR, STATUS_OK, STATUS_UNAUTHORIZED } from "@mrgnlabs/marginfi-v2-ui-state";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
@@ -11,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Get the session cookie from the request
     const sessionCookie = req.cookies.session || "";
     if (!sessionCookie) {
-      return res.status(401).json({ error: "Unauthorized - No session cookie" });
+      return res.status(STATUS_UNAUTHORIZED).json({ error: "Unauthorized - No session cookie" });
     }
 
     // Initialize Firebase and verify the session cookie
@@ -34,7 +35,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const accountAddresses = new Set<string>();
     const activities = snapshot.docs.map((doc) => {
       const data = doc.data();
-      console.log("data", data);
       if (data.account) {
         accountAddresses.add(data.account);
       }
@@ -64,12 +64,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       accountLabel: activity.account ? accountLabelsMap.get(activity.account) : null,
     }));
 
-    return res.status(200).json({ activities: activitiesWithLabels });
+    return res.status(STATUS_OK).json({ activities: activitiesWithLabels });
   } catch (error: any) {
     console.error("Error fetching activities:", error);
     if (error.code === "auth/session-cookie-expired" || error.code === "auth/session-cookie-revoked") {
-      return res.status(401).json({ error: "Session expired" });
+      return res.status(STATUS_UNAUTHORIZED).json({ error: "Session expired" });
     }
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(STATUS_INTERNAL_ERROR).json({ error: "Internal server error" });
   }
 }
