@@ -103,7 +103,7 @@ export const ActionBoxNavigator = ({
                         size="sm"
                       >
                         <IconRefresh size={14} />
-                        Deposit swap
+                        Deposit Swap
                       </Button>
                     </Link>
                   </TooltipTrigger>
