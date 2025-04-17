@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 import { getWalletConnectionMethod } from "~/components/wallet-v2/utils/wallet.utils";
 import {
   AuthScreenProps,

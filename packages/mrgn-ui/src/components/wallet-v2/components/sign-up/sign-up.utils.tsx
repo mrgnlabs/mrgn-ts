@@ -4,7 +4,7 @@ import { WalletName } from "@solana/wallet-adapter-base";
 import { IconBrandX, IconBrandApple, IconBrandGoogle } from "@tabler/icons-react";
 import { MarginfiAccount, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Web3AuthSocialProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { Web3AuthSocialProvider } from "~/components/wallet-v2";
 import { ExtendedWallet, QuoteResponseMeta } from "@mrgnlabs/mrgn-utils";
 import {
   InAppSignIn,

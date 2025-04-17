@@ -26,7 +26,7 @@ import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterD
 import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 
 import {
   WalletButton,

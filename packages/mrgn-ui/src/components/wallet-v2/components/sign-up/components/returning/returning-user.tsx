@@ -3,7 +3,7 @@ import React from "react";
 import { useOs } from "@mrgnlabs/mrgn-utils";
 import { useBrowser } from "@mrgnlabs/mrgn-utils";
 import { getWalletConnectionMethod } from "~/components/wallet-v2/utils/wallet.utils";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 import { AuthScreenProps, socialProviders } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import {
   OnboardHeader,

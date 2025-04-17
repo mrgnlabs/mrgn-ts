@@ -9,7 +9,7 @@ import { PublicKey } from "@solana/web3.js";
 import { SwapResult } from "@jup-ag/common";
 import { QuoteResponseMeta } from "@mrgnlabs/mrgn-utils";
 
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 
 type SwapProps = {
   onLoad?: () => void;

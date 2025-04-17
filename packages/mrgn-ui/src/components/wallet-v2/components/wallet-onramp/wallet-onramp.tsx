@@ -4,7 +4,7 @@ import { Asset, AuthenticationStrategy, Environment, MesoEvent, Network, inlineT
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { IconArrowLeft } from "@tabler/icons-react";
 
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";

@@ -15,7 +15,7 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { OnrampScreenProps } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import { ScreenWrapper, WalletSeperator } from "~/components/wallet-v2/components/sign-up/components";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";

@@ -7,7 +7,7 @@ import { IconChevronDown, IconBrandX, IconBrandApple, IconBrandGoogle } from "@t
 
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { WalletInfo, Web3AuthProvider, useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { WalletInfo, Web3AuthProvider, useWallet } from "~/components/wallet-v2";
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
 import { Wallet } from "~/components/wallet-v2/wallet";
 
@@ -75,7 +75,10 @@ export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonP
   }, [walletInfo, setIsWalletSignUpOpen, select, loginWeb3Auth]);
 
   return (
-    <Button className={cn("gap-1.5 py-0", walletInfo ? "px-2 pl-3" : "px-4", className)} onClick={() => handleWalletConnect()}>
+    <Button
+      className={cn("gap-1.5 py-0", walletInfo ? "px-2 pl-3" : "px-4", className)}
+      onClick={() => handleWalletConnect()}
+    >
       <div className="flex flex-row relative h-full gap-4">
         <div className="inline-flex items-center gap-2">
           Sign in

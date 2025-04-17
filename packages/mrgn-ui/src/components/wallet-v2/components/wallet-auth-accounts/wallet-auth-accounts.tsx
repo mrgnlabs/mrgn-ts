@@ -7,7 +7,7 @@ import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle } from "@t
 import { Connection } from "@solana/web3.js";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 
 import { Button } from "~/components/ui/button";
 import { IconLoader } from "~/components/ui/icons";
