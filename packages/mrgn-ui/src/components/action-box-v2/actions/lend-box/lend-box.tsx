@@ -257,9 +257,10 @@ export const LendBox = ({
 
   React.useEffect(() => {
     if (initialAmount !== undefined) {
-      setAmountRaw(initialAmount.toString());
+      const finalAmount = Math.min(initialAmount, maxAmount);
+      setAmountRaw(finalAmount.toString());
     }
-  }, [initialAmount, setAmountRaw]);
+  }, [initialAmount, setAmountRaw, maxAmount]);
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {

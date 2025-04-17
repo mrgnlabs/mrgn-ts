@@ -105,12 +105,6 @@ export const StakeBox = ({
     state.setErrorMessage,
   ]);
 
-  React.useEffect(() => {
-    if (initialAmount !== undefined) {
-      setAmountRaw(initialAmount.toString());
-    }
-  }, [initialAmount, setAmountRaw]);
-
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [simulationStatus, setSimulationStatus] = React.useState<{
     isLoading: boolean;
@@ -131,6 +125,13 @@ export const StakeBox = ({
     nativeSolBalance,
     actionMode,
   });
+
+  React.useEffect(() => {
+    if (initialAmount !== undefined) {
+      const finalAmount = Math.min(initialAmount, maxAmount);
+      setAmountRaw(finalAmount.toString());
+    }
+  }, [initialAmount, setAmountRaw, maxAmount]);
 
   const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
     transactionSettings: null,
