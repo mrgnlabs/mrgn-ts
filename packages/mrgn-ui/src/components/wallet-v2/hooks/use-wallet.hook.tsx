@@ -506,5 +506,5 @@ const useWallet = () => {
   return context;
 };
 
-export type { Web3AuthSocialProvider, Web3AuthProvider, WalletInfo };
+export type { Web3AuthSocialProvider, Web3AuthProvider, WalletInfo, WalletContextState as WalletContextStateOverride };
 export { WalletProvider, useWallet };

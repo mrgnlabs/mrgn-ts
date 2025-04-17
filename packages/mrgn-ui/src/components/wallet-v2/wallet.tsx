@@ -100,7 +100,7 @@ const Wallet = ({
 }: WalletProps) => {
   const router = useRouter();
   const [isWalletOpen, setIsWalletOpen] = useWalletStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
-  const { wallet, connected, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected, isLoading } = useWallet();
+  const { wallet, connected, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConnected, isLoading } = useWallet();
   const [walletData, setWalletData] = React.useState<{
     address: string;
     shortAddress: string;
@@ -273,7 +273,7 @@ const Wallet = ({
                   {headerComponent && headerComponent}
 
                   <div className="flex items-center md:gap-1">
-                    {web3AuthConncected && (
+                    {web3AuthConnected && (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -618,7 +618,7 @@ const Wallet = ({
         </Sheet>
       )}
 
-      {web3AuthConncected && <WalletPkDialog pk={web3AuthPk} />}
+      {web3AuthConnected && <WalletPkDialog pk={web3AuthPk} />}
     </>
   );
 };
