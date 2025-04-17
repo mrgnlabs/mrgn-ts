@@ -83,22 +83,27 @@ export async function sendTransactionAsBundle(
     await sleep(500);
 
     for (let attempt = 0; attempt < 10; attempt++) {
-      const getBundleStatusInFlightResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
+      const getBundleStatusResponse = await fetch("https://mainnet.block-engine.jito.wtf/api/v1/bundles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: 1,
-          method: "getInflightBundleStatuses",
+          method: "getBundleStatuses",
           params: [[bundleId]],
         }),
       });
 
-      const getBundleStatusInFlightResult = await getBundleStatusInFlightResponse.json();
+      const getBundleStatusResult = await getBundleStatusResponse.json();
 
-      if (getBundleStatusInFlightResult.error) throw new Error(getBundleStatusInFlightResult.error.message);
+      let status = getBundleStatusResult.result?.value[0]?.confirmation_status;
 
-      const status = getBundleStatusInFlightResult?.result?.value[0]?.status;
+      if (getBundleStatusResult.result?.value[0]?.err) {
+        const error = getBundleStatusResult.result?.value[0].err;
+        if (error?.Ok !== null) {
+          throw new Error(error);
+        }
+      }
 
       /**
        * Bundle status values:
@@ -109,12 +114,12 @@ export async function sendTransactionAsBundle(
        */
       if (status === "Failed") {
         throw new SendBundleError(`${API_ERROR_TAG} unknown error`);
-      } else if (status === "Landed") {
+      } else if (status === "confirmed" || status === "finalized") {
         await confirmBundle(connection, bundleId);
         return bundleId;
       }
 
-      await sleep(500); // Wait before retrying
+      await sleep(1000); // Wait before retrying
     }
   } catch (error) {
     if (throwError) {

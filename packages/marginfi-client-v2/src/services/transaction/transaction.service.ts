@@ -232,8 +232,8 @@ export async function processTransactions({
       const priorityFeeUi = maxCapUi
         ? Math.min(processOpts.priorityFeeMicro ? microLamportsToUi(processOpts.priorityFeeMicro, cu) : 0, maxCapUi)
         : processOpts.priorityFeeMicro
-        ? microLamportsToUi(processOpts.priorityFeeMicro, cu)
-        : 0;
+          ? microLamportsToUi(processOpts.priorityFeeMicro, cu)
+          : 0;
       console.log(`💸 Priority fee for tx ${idx}: ${priorityFeeUi} SOL`);
     });
   }
@@ -247,7 +247,7 @@ export async function processTransactions({
       priorityFeeMicro: processOpts.priorityFeeMicro ?? 0,
       bundleTipUi: processOpts.bundleTipUi ?? 0,
       feePayer: wallet.publicKey,
-   
+
       maxCapUi,
     },
     processOpts.addArenaTxTag
