@@ -1525,6 +1525,44 @@ export type Marginfi = {
       ];
     },
     {
+      name: "lendingPoolConfigureBankEmode";
+      discriminator: [17, 175, 91, 57, 239, 86, 49, 71];
+      accounts: [
+        {
+          name: "group";
+          relations: ["bank"];
+        },
+        {
+          name: "emodeAdmin";
+          signer: true;
+          relations: ["group"];
+        },
+        {
+          name: "bank";
+          writable: true;
+        },
+      ];
+      args: [
+        {
+          name: "emodeTag";
+          type: "u16";
+        },
+        {
+          name: "entries";
+          type: {
+            array: [
+              {
+                defined: {
+                  name: "emodeEntry";
+                };
+              },
+              10,
+            ];
+          };
+        },
+      ];
+    },
+    {
       name: "lendingPoolConfigureBankOracle";
       discriminator: [209, 82, 255, 171, 124, 21, 71, 81];
       accounts: [
@@ -2057,6 +2095,10 @@ export type Marginfi = {
       args: [
         {
           name: "newAdmin";
+          type: "pubkey";
+        },
+        {
+          name: "newEmodeAdmin";
           type: "pubkey";
         },
         {
@@ -2621,6 +2663,11 @@ export type Marginfi = {
       name: "arenaSettingCannotChange";
       msg: "Arena groups cannot return to non-arena status";
     },
+    {
+      code: 6075;
+      name: "badEmodeConfig";
+      msg: "The Emode config was invalid";
+    },
   ];
   types: [
     {
@@ -2869,8 +2916,8 @@ export type Marginfi = {
           {
             name: "emissionsRate";
             docs: [
-              "Emissions APR.",
-              "Number of emitted tokens (emissions_mint) per 1e(bank.mint_decimal) tokens (bank mint) (native amount) per 1 YEAR.",
+              "Emissions APR. Number of emitted tokens (emissions_mint) per 1e(bank.mint_decimal) tokens",
+              "(bank mint) (native amount) per 1 YEAR.",
             ];
             type: "u64";
           },
@@ -2898,14 +2945,21 @@ export type Marginfi = {
             };
           },
           {
+            name: "emode";
+            docs: [
+              "Controls this bank's emode configuration, which enables some banks to treat the assets of",
+              "certain other banks more preferentially as collateral.",
+            ];
+            type: {
+              defined: {
+                name: "emodeSettings";
+              };
+            };
+          },
+          {
             name: "padding0";
             type: {
-              array: [
-                {
-                  array: ["u64", 2];
-                },
-                27,
-              ];
+              array: ["u8", 8];
             };
           },
           {
@@ -3338,6 +3392,141 @@ export type Marginfi = {
             type: {
               defined: {
                 name: "stakedSettingsEditConfig";
+              };
+            };
+          },
+        ];
+      };
+    },
+    {
+      name: "emodeConfig";
+      docs: [
+        "An emode configuration. Each bank has one such configuration, but this may also be the",
+        "intersection of many configurations (see `reconcile_emode_configs`). For example, the risk",
+        "engine creates such an intersection from all the emode config of all banks the user is borrowing",
+        "from.",
+      ];
+      repr: {
+        kind: "c";
+      };
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "entries";
+            type: {
+              array: [
+                {
+                  defined: {
+                    name: "emodeEntry";
+                  };
+                },
+                10,
+              ];
+            };
+          },
+        ];
+      };
+    },
+    {
+      name: "emodeEntry";
+      repr: {
+        kind: "c";
+      };
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "collateralBankEmodeTag";
+            docs: ["emode_tag of the bank(s) whose collateral you wish to treat preferentially."];
+            type: "u16";
+          },
+          {
+            name: "flags";
+            docs: [
+              "* APPLIES_TO_ISOLATED (1) - (NOT YET IMPLEMENTED) if set, isolated banks with this tag",
+              "also benefit. If not set, isolated banks continue to offer zero collateral, even if they",
+              "use this tag.",
+              "* 2, 4, 8, 16, 32, etc - reserved for future use",
+            ];
+            type: "u8";
+          },
+          {
+            name: "pad0";
+            type: {
+              array: ["u8", 5];
+            };
+          },
+          {
+            name: "assetWeightInit";
+            docs: ["Note: If set below the collateral bank's weight, does nothing."];
+            type: {
+              defined: {
+                name: "wrappedI80f48";
+              };
+            };
+          },
+          {
+            name: "assetWeightMaint";
+            docs: ["Note: If set below the collateral bank's weight, does nothing."];
+            type: {
+              defined: {
+                name: "wrappedI80f48";
+              };
+            };
+          },
+        ];
+      };
+    },
+    {
+      name: "emodeSettings";
+      docs: [
+        "Controls the bank's e-mode configuration, allowing certain collateral sources to be treated more",
+        "favorably as collateral when used to borrow from this bank.",
+      ];
+      repr: {
+        kind: "c";
+      };
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "emodeTag";
+            docs: [
+              "This bank's NON-unique id that other banks will use to determine what emode rate to use when",
+              "this bank is offered as collateral.",
+              "",
+              "For example, all stablecoin banks might share the same emode_tag, and in their entries, each",
+              'such stablecoin bank will recognize that collateral sources with this "stable" tag get',
+              "preferential weights. When a new stablecoin is added that is considered riskier, it may get",
+              "a new, less favorable emode tag, and eventually get upgraded to the same one as the other",
+              "stables",
+              "",
+              "* 0 is in an invalid tag and will do nothing.",
+            ];
+            type: "u16";
+          },
+          {
+            name: "pad0";
+            type: {
+              array: ["u8", 6];
+            };
+          },
+          {
+            name: "timestamp";
+            docs: ["Unix timestamp from the system clock when emode state was last updated"];
+            type: "i64";
+          },
+          {
+            name: "flags";
+            docs: ["EMODE_ON (1) - If set, at least one entry is configured", "2, 4, 8, etc, Reserved for future use"];
+            type: "u64";
+          },
+          {
+            name: "emodeConfig";
+            type: {
+              defined: {
+                name: "emodeConfig";
               };
             };
           },
@@ -4426,13 +4615,22 @@ export type Marginfi = {
             };
           },
           {
+            name: "emodeAdmin";
+            docs: [
+              "This admin can configure collateral ratios above (but not below) the collateral ratio of",
+              "certain banks , e.g. allow SOL to count as 90% collateral when borrowing an LST instead of",
+              "the default rate.",
+            ];
+            type: "pubkey";
+          },
+          {
             name: "padding0";
             type: {
               array: [
                 {
                   array: ["u64", 2];
                 },
-                26,
+                24,
               ];
             };
           },
