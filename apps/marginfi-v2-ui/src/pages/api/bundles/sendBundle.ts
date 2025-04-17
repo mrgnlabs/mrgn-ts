@@ -79,7 +79,7 @@ async function sendBundleWithRetry(bundle: Bundle): Promise<string> {
       }
     }
 
-    await sleep(500);
+    await sleep(1000);
   }
 
   throw new Error(`${ERROR_TAG} multiple attempts failed.`);
