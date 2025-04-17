@@ -154,7 +154,6 @@ export function composeExplorerUrl(signature?: string): string | undefined {
 export async function logActivity(type: string, txn: string, details: Record<string, any>): Promise<void> {
   try {
     const mfiAccount = localStorage.getItem("mfiAccount");
-    console.log("mfiAccount", mfiAccount);
     const response = await fetch("/api/activity/create", {
       method: "POST",
       headers: {

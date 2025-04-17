@@ -21,7 +21,6 @@ const useWalletActivity = () => {
       }
 
       const data = await response.json();
-      console.log("Received activities:", data);
 
       if (!data.activities || !Array.isArray(data.activities)) {
         console.error("Invalid activities data:", data);
