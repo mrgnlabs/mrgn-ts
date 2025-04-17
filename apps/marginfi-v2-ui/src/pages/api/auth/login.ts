@@ -1,7 +1,13 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { createServerSupabaseClient } from "~/auth/auth-server";
-import { verifySignature, generateToken, verifyToken, generateDummyCredentials } from "~/auth/utils/";
-import { LoginPayload, AuthPayload } from "~/auth/types/auth.types";
+import {
+  createServerSupabaseClient,
+  AuthPayload,
+  verifySignature,
+  generateDummyCredentials,
+  generateToken,
+  LoginPayload,
+  verifyToken,
+} from "@mrgnlabs/mrgn-ui";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {

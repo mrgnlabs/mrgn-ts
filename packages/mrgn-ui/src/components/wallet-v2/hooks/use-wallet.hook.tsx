@@ -18,6 +18,11 @@ import type { Wallet } from "@mrgnlabs/mrgn-common";
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
 import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
+// Auth imports
+import { authenticate, getCurrentUser, logout as logoutUser } from "../auth/utils/auth.utils";
+import { createBrowserSupabaseClient } from "../auth/client/auth-client";
+import { AuthUser } from "../auth/types/auth.types";
+
 // use-wallet.hook.tsx
 // --------------------
 //
@@ -60,6 +65,12 @@ type WalletContextProps = {
   requestPrivateKey: () => void;
   pfp: string;
   web3AuthPk: string;
+
+  // Auth-related properties
+  user: AuthUser | null;
+  authError: Error | null;
+  signatureDenied: boolean;
+  authenticateUser: (args?: { referralCode?: string }) => Promise<void>;
 };
 
 // Web3Auth configuration
@@ -105,49 +116,32 @@ const web3AuthOpenLoginAdapterSettings = {
 // This is a simplified version that works with our implementation
 // We use type assertion to bypass TypeScript's strict checking
 const makeCustomWalletContextState = (wallet: Wallet): WalletContextState => {
-  // Create a basic implementation that matches the structure we need
-  // First cast to unknown to bypass TypeScript's strict checking
   return {
     publicKey: wallet.publicKey,
     connected: true,
     connecting: false,
     disconnecting: false,
-
-    // Methods we need to support
-    signTransaction: wallet.signTransaction,
-    signAllTransactions: wallet.signAllTransactions,
-    signMessage: wallet.signMessage,
-
-    // Basic wallet info
     wallet: {
       adapter: {
         name: "Web3Auth" as WalletName,
         publicKey: wallet.publicKey,
         connected: true,
+        readyState: 1, // WalletReadyState.Installed
       },
     },
-
-    // Other required properties and methods
-    wallets: [],
-    autoConnect: false,
-    signIn: async () => ({
-      account: {
-        address: wallet.publicKey.toBase58(),
-        publicKey: wallet.publicKey.toBytes(),
-      },
-      signedMessage: new Uint8Array(0),
-      signature: new Uint8Array(0),
-    }),
-
-    // Other required methods with empty implementations
+    select: () => {},
     connect: async () => {},
     disconnect: async () => {},
-    select: () => {},
     sendTransaction: async () => {
-      throw new Error("Not implemented");
+      throw new Error("sendTransaction not implemented");
     },
-  } as unknown as WalletContextState; // TODO: fix this
+    signTransaction: wallet.signTransaction,
+    signAllTransactions: wallet.signAllTransactions,
+    signMessage: wallet.signMessage,
+  } as unknown as WalletContextState;
 };
+
+const supabase = createBrowserSupabaseClient();
 
 const WalletContext = React.createContext<WalletContextProps | undefined>(undefined);
 
@@ -170,6 +164,12 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [web3AuthEmail, setWeb3AuthEmail] = React.useState<string>("");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [web3AuthPkCookie, setWeb3AuthPkCookie] = useCookies(["mrgnPrivateKeyRequested"]);
+
+  // Auth-related states
+  const [user, setUser] = React.useState<AuthUser | null>(null);
+  const [authError, setAuthError] = React.useState<Error | null>(null);
+  const [signatureDenied, setSignatureDenied] = React.useState<boolean>(false);
+  const [isAwaitingSignature, setIsAwaitingSignature] = React.useState<boolean>(false);
 
   // Determine the wallet to use: web3auth or wallet adapter
   // Will check web3auth first, then walletQueryParam, then walletContextState
@@ -249,24 +249,45 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     [web3Auth, setIsWalletSignUpOpen]
   );
 
+  // Enhanced logout method to handle both wallet disconnection and auth logout
   const logout = React.useCallback(async () => {
-          await fetch("/api/user/logout", { method: "POST" });
+              await fetch("/api/user/logout", { method: "POST" });
 
-    if (web3Auth?.connected && web3Auth) {
-      await web3Auth.logout();
-      setWeb3AuthWalletData(undefined);
-    } else if (walletContextState.connected) {
-      await walletContextState.disconnect();
+    setIsLoading(true);
+
+    try {
+      // Wallet logout
+      if (web3Auth?.connected && web3Auth) {
+        await web3Auth.logout();
+        setWeb3AuthWalletData(undefined);
+      } else if (walletContextState.connected) {
+        await walletContextState.disconnect();
+      }
+
+      // Auth logout
+      try {
+        const logoutResult = await logoutUser();
+        if (!logoutResult.success && logoutResult.error) {
+          console.error("Logout error:", logoutResult.error);
+        }
+        setUser(null);
+        setSignatureDenied(false);
+      } catch (authErr) {
+        console.error("Auth logout error:", authErr);
+      }
+
+      if (asPath.includes("#")) {
+        const newUrl = asPath.split("#")[0];
+        replace(newUrl);
+      }
+
+      setIsWalletOpen(false);
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      setIsLoading(false);
+      setPfp("");
     }
-
-    if (asPath.includes("#")) {
-      const newUrl = asPath.split("#")[0];
-      replace(newUrl);
-    }
-
-    setIsWalletOpen(false);
-    setIsLoading(false);
-    setPfp("");
   }, [asPath, replace, walletContextState, web3Auth, setIsWalletOpen, setIsLoading]);
 
   const select = (walletName: WalletName | string) => {
@@ -418,6 +439,56 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [makeWeb3AuthWalletData]);
 
+  // Authenticate user with wallet
+  const authenticateUser = React.useCallback(
+    async (args?: { referralCode?: string }) => {
+      if (!wallet.publicKey) {
+        toastManager.showErrorToast("Wallet not connected");
+        return;
+      }
+
+      // Set loading state to true during authentication
+      setIsLoading(true);
+      setIsAwaitingSignature(true);
+
+      try {
+        // Get wallet ID if available (for Web3Auth)
+        const walletId = web3AuthWalletData ? web3AuthLoginType : undefined;
+
+        // Authenticate with wallet
+        const authResult = await authenticate(wallet, walletId, args?.referralCode);
+
+        // Reset awaiting signature state
+        setIsAwaitingSignature(false);
+
+        if (authResult.user) {
+          // Authentication successful
+          setUser(authResult.user);
+          setSignatureDenied(false);
+        } else if (authResult.error) {
+          // Check if error is due to signature denial
+          if (
+            authResult.error.includes("User rejected") ||
+            authResult.error.includes("declined") ||
+            authResult.error.includes("denied")
+          ) {
+            setSignatureDenied(true);
+            // Disconnect wallet when signature is denied
+            await logout();
+          }
+
+          setAuthError(new Error(String(authResult.error)));
+        }
+      } catch (err) {
+        console.error("Authentication error:", err);
+        setAuthError(err instanceof Error ? err : new Error(String(err)));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [wallet, web3AuthWalletData, web3AuthLoginType, logout]
+  );
+
   // set wallet context state depending on the wallet connection type
   React.useEffect(() => {
     // const currentInfo = JSON.parse(localStorage.getItem("walletInfo") || "{}");
@@ -476,11 +547,129 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [web3Auth?.connected, web3AuthWalletData, walletContextState.connected, walletContextState.publicKey]);
 
+  // Combined auth state management - handles all auth-related effects in one place
+  React.useEffect(() => {
+    // Setup Supabase auth state listener
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event: string) => {
+      if (event === "SIGNED_OUT") {
+        setUser(null);
+      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        // Get current user data when signed in or token refreshed
+        getCurrentUser()
+          .then(({ user, error }) => {
+            if (user && !error) {
+              setUser(user);
+            } else if (error) {
+              console.error("Auth state change error:", error);
+              setAuthError(new Error(String(error)));
+            }
+          })
+          .catch((err) => {
+            console.error("Error getting user after auth state change:", err);
+            setAuthError(err instanceof Error ? err : new Error(String(err)));
+          });
+      }
+    });
+
+    // Initial authentication check when wallet connects
+    const checkAuth = async () => {
+      // Only proceed if wallet is connected and we don't have user data yet
+      const isWalletConnected = Boolean(walletContextState.connected || (web3Auth?.connected && web3AuthWalletData));
+      if (!isWalletConnected || !wallet.publicKey || user || isLoading || signatureDenied) {
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        // Try to get current user from session
+        const { user, error } = await getCurrentUser();
+
+        if (user && !error) {
+          setUser(user);
+        } else if (!signatureDenied) {
+          // Only try to authenticate if signature wasn't previously denied
+          await authenticateUser();
+        }
+      } catch (err) {
+        console.error("Auth check error:", err);
+        setAuthError(err instanceof Error ? err : new Error(String(err)));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Check auth when wallet connects
+    checkAuth();
+
+    // Handle wallet disconnection
+    const handleWalletDisconnection = async () => {
+      const isWalletConnected = Boolean(walletContextState.connected || (web3Auth?.connected && web3AuthWalletData));
+      if (!isWalletConnected && user) {
+        try {
+          // Logout from auth when wallet disconnects
+          const logoutResult = await logoutUser();
+          if (!logoutResult.success && logoutResult.error) {
+            console.error("Logout error:", logoutResult.error);
+          }
+          setUser(null);
+        } catch (err) {
+          console.error("Error during logout:", err);
+        }
+      }
+    };
+
+    // Handle wallet disconnection
+    handleWalletDisconnection();
+
+    // Handle signature denial
+    if (signatureDenied && wallet.publicKey) {
+      // If signature was denied but wallet is still connected, disconnect it
+      logout().catch((err) => {
+        console.error("Error disconnecting after signature denial:", err);
+      });
+    }
+
+    // Update loading state based on authentication process
+    if (isAwaitingSignature && !isLoading) {
+      setIsLoading(true);
+    }
+
+    // Clean up subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [
+    wallet,
+    walletContextState.connected,
+    web3Auth?.connected,
+    web3AuthWalletData,
+    user,
+    isLoading,
+    signatureDenied,
+    isAwaitingSignature,
+    authenticateUser,
+    logout,
+  ]);
+
+  // Compute connected state based on both wallet connection and authentication
+  const isConnected = React.useMemo(() => {
+    const walletConnected = Boolean(walletContextState.connected || (web3Auth?.connected && web3AuthWalletData));
+
+    // If signature was denied, we consider the wallet as not connected
+    if (signatureDenied) {
+      return false;
+    }
+
+    return walletConnected;
+  }, [walletContextState.connected, web3Auth?.connected, web3AuthWalletData, signatureDenied]);
+
   return (
     <WalletContext.Provider
       value={{
         connecting: walletContextState.connecting,
-        connected: Boolean(walletContextState.connected || (web3Auth?.connected && web3AuthWalletData)),
+        connected: isConnected,
         web3AuthConnected: Boolean(web3Auth?.connected && web3AuthWalletData),
         wallet,
         walletAddress: wallet?.publicKey as PublicKey,
@@ -493,6 +682,12 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         requestPrivateKey,
         pfp,
         web3AuthPk,
+
+        // Auth-related properties
+        user,
+        authError,
+        signatureDenied,
+        authenticateUser,
       }}
     >
       {children}

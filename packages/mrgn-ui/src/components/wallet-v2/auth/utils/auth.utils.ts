@@ -1,9 +1,9 @@
 import { Wallet } from "@mrgnlabs/mrgn-common";
 import crypto from "crypto";
 
-import { AuthUser, SignupPayload, AuthPayload, LoginPayload } from "~/auth/types/auth.types";
-import { generateSignMessage, createSignatureMessage } from "~/auth/utils/auth-crypto.utils";
-import { createBrowserSupabaseClient } from "~/auth/auth-client";
+import { AuthUser, SignupPayload, AuthPayload, LoginPayload } from "../types/auth.types";
+import { generateSignMessage, createSignatureMessage } from "../utils/auth-crypto.utils";
+import { createBrowserSupabaseClient } from "../client";
 
 export async function login(payload: AuthPayload | LoginPayload) {
   try {

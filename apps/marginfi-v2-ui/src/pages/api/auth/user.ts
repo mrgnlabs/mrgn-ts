@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { createServerSupabaseClient } from "~/auth/auth-server";
+import { createServerSupabaseClient } from "@mrgnlabs/mrgn-ui";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {

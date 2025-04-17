@@ -1299,6 +1299,9 @@ importers:
       '@solana/web3.js':
         specifier: ^1.93.2
         version: 1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@supabase/supabase-js':
+        specifier: ^2.49.1
+        version: 2.49.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@tabler/icons-react':
         specifier: ^3.3.0
         version: 3.30.0(react@18.3.1)
@@ -1341,6 +1344,9 @@ importers:
       embla-carousel-react:
         specifier: ^8.1.6
         version: 8.5.2(react@18.3.1)
+      jsonwebtoken:
+        specifier: ^9.0.2
+        version: 9.0.2
       lottie-react:
         specifier: ^2.4.0
         version: 2.4.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1380,6 +1386,9 @@ importers:
       superstruct:
         specifier: ^1.0.4
         version: 1.0.4
+      tweetnacl:
+        specifier: ^1.0.3
+        version: 1.0.3
       uuid:
         specifier: ^9.0.0
         version: 9.0.1
@@ -1399,6 +1408,9 @@ importers:
       '@solana/wallet-adapter-react':
         specifier: ^0.15.36
         version: 0.15.36(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bs58@6.0.0)(react@18.3.1)
+      '@types/jsonwebtoken':
+        specifier: ^9.0.9
+        version: 9.0.9
       '@types/numeral':
         specifier: ^2.0.5
         version: 2.0.5

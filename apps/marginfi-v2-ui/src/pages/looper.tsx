@@ -22,7 +22,7 @@ export default function LooperPage() {
       {initialized && (
         <div className="w-full max-w-7xl mx-auto mb-20 px-5">
           <PageHeading heading="Looper ➰" body={<p>Leverage your deposits to maximize yield.</p>} />
-          <ActionBoxV2.Loop
+          <ActionBox.Loop
             useProvider={true}
             loopProps={{
               connected: connected,

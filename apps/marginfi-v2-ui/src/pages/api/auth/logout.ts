@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { createServerSupabaseClient } from "~/auth/auth-server";
+import { createServerSupabaseClient } from "@mrgnlabs/mrgn-ui";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Clear the auth cookie
   res.setHeader("Set-Cookie", "auth_token=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict");
-  
+
   // Sign out from Supabase Auth if there's a session
   try {
     const supabase = createServerSupabaseClient();
