@@ -467,11 +467,8 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           setSignatureDenied(false);
         } else if (authResult.error) {
           // Check if error is due to signature denial
-          if (
-            authResult.error.includes("User rejected") ||
-            authResult.error.includes("declined") ||
-            authResult.error.includes("denied")
-          ) {
+          const errorString = authResult.error.toLowerCase();
+          if (["User rejected", "declined", "denied", "rejected"].some((str) => errorString.includes(str))) {
             setSignatureDenied(true);
             // Disconnect wallet when signature is denied
             await logout();
