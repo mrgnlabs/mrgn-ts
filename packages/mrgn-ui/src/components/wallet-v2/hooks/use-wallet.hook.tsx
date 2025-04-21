@@ -12,7 +12,7 @@ import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
 
-import {  generateEndpoint } from "@mrgnlabs/mrgn-utils";
+import { generateEndpoint } from "@mrgnlabs/mrgn-utils";
 import type { Wallet } from "@mrgnlabs/mrgn-common";
 
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
@@ -217,7 +217,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
               transactions: T
             ) => Promise<T>,
             signAllTransactions: walletContextState?.signAllTransactions as <
-              T extends Transaction | VersionedTransaction
+              T extends Transaction | VersionedTransaction,
             >(
               transactions: T[]
             ) => Promise<T[]>,
@@ -236,7 +236,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
             transactions: T
           ) => Promise<T>,
           signAllTransactions: walletContextState?.signAllTransactions as <
-            T extends Transaction | VersionedTransaction
+            T extends Transaction | VersionedTransaction,
           >(
             transactions: T[]
           ) => Promise<T[]>,
@@ -283,30 +283,47 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   // logout of web3auth, phantom wallet, or  wallet adapter
   const logout = React.useCallback(async () => {
-    // web3auth
-    if (web3Auth?.connected && web3Auth) {
-      await web3Auth.logout();
-      setWeb3AuthWalletData(undefined);
+    try {
+      // Clear session cookie first
+      await fetch("/api/user/logout", { method: "POST" });
 
-      // phantom wallet
-    } else if (window.phantom && window?.phantom?.solana?.isConnected) {
-      await window.phantom.solana.disconnect();
-      localStorage.setItem("phantomLogout", "true");
+      // web3auth
+      if (web3Auth?.connected && web3Auth) {
+        await web3Auth.logout();
+        setWeb3AuthWalletData(undefined);
 
-      // wallet adapter
-    } else {
-      await walletContextStateDefault.disconnect();
+        // phantom wallet
+      } else if (window.phantom && window?.phantom?.solana?.isConnected) {
+        await window.phantom.solana.disconnect();
+        localStorage.setItem("phantomLogout", "true");
+
+        // wallet adapter
+      } else {
+        await walletContextStateDefault.disconnect();
+      }
+
+      // remove hash from url (web3auth redirect)
+      if (asPath.includes("#")) {
+        const newUrl = asPath.split("#")[0];
+        replace(newUrl);
+      }
+
+      setIsWalletOpen(false);
+      setIsLoading(false);
+      setPfp("");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      // Continue with logout even if session clearing fails
+      if (web3Auth?.connected && web3Auth) {
+        await web3Auth.logout();
+        setWeb3AuthWalletData(undefined);
+      } else if (window.phantom && window?.phantom?.solana?.isConnected) {
+        await window.phantom.solana.disconnect();
+        localStorage.setItem("phantomLogout", "true");
+      } else {
+        await walletContextStateDefault.disconnect();
+      }
     }
-
-    // remove hash from url (web3auth redirect)
-    if (asPath.includes("#")) {
-      const newUrl = asPath.split("#")[0];
-      replace(newUrl);
-    }
-
-    setIsWalletOpen(false);
-    setIsLoading(false);
-    setPfp("");
   }, [asPath, replace, walletContextStateDefault, web3Auth, setIsWalletOpen, setIsLoading]);
 
   // select wallet from wallet button
