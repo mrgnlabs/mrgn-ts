@@ -18,24 +18,13 @@ import type { Wallet } from "@mrgnlabs/mrgn-common";
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
 import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
-// Auth imports
-import { authenticate, getCurrentUser, logout as logoutUser } from "../auth/utils/auth.utils";
-import { createBrowserSupabaseClient } from "../auth/client/auth-client";
-import { AuthUser } from "../auth/types/auth.types";
+import { AuthUser, createBrowserSupabaseClient, authenticate, getCurrentUser, logout as logoutUser } from "../auth";
 
-// use-wallet.hook.tsx
-// --------------------
-//
-// This hook provides a unified interface for wallet operations using:
-// - Wallet Standard (for all compatible wallets including Phantom)
-// - Web3Auth (for social login and email passwordless authentication)
-//
-// The Wallet Standard provides a chain-agnostic set of interfaces that standardize
-// how applications interact with wallets, eliminating the need for wallet-specific code.
-
-// Types for Web3Auth providers
+// --- Types and Context ---
+// Types for Web3Auth providers (limited to those supported in this implementation)
 type Web3AuthSocialProvider = "google" | "twitter" | "apple";
 type Web3AuthProvider = "email_passwordless" | Web3AuthSocialProvider;
+
 type WalletInfo = {
   name: WalletName | string;
   web3Auth: boolean;
@@ -43,7 +32,7 @@ type WalletInfo = {
   email?: string;
 };
 
-// Main wallet context properties
+// Main wallet context properties (exposed via WalletContext)
 type WalletContextProps = {
   connecting: boolean;
   connected: boolean;
@@ -52,7 +41,7 @@ type WalletContextProps = {
   walletAddress: PublicKey;
   walletContextState: WalletContextState;
   isLoading: boolean;
-  isOverride?: boolean; // Added for compatibility with existing components
+  isOverride?: boolean;
   select: (walletName: WalletName | string) => void;
   loginWeb3Auth: (
     provider: string,
@@ -72,6 +61,11 @@ type WalletContextProps = {
   signatureDenied: boolean;
   authenticateUser: (args?: { referralCode?: string }) => Promise<void>;
 };
+
+// --- ENVIRONMENT FLAG ---
+
+// Check if authentication is enabled (defaults to true if not specified)
+const isAuthEnabled = process.env.NEXT_PUBLIC_AUTH_ENABLED !== "false";
 
 // Web3Auth configuration
 const web3AuthChainConfig = {
@@ -264,16 +258,15 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         await walletContextState.disconnect();
       }
 
-      // Auth logout
-      try {
-        const logoutResult = await logoutUser();
-        if (!logoutResult.success && logoutResult.error) {
-          console.error("Logout error:", logoutResult.error);
+      // Auth logout (only if auth is enabled)
+      if (isAuthEnabled) {
+        try {
+          logoutUser();
+          setUser(null);
+          setSignatureDenied(false);
+        } catch (authErr) {
+          console.error("Auth logout error:", authErr);
         }
-        setUser(null);
-        setSignatureDenied(false);
-      } catch (authErr) {
-        console.error("Auth logout error:", authErr);
       }
 
       if (asPath.includes("#")) {
@@ -442,6 +435,11 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   // Authenticate user with wallet
   const authenticateUser = React.useCallback(
     async (args?: { referralCode?: string }) => {
+      // If authentication is disabled, do nothing
+      if (!isAuthEnabled) {
+        return;
+      }
+
       if (!wallet.publicKey) {
         toastManager.showErrorToast("Wallet not connected");
         return;
@@ -486,66 +484,13 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     [wallet, web3AuthWalletData, web3AuthLoginType, logout]
   );
 
-  // set wallet context state depending on the wallet connection type
-  React.useEffect(() => {
-    // const currentInfo = JSON.parse(localStorage.getItem("walletInfo") || "{}");
-
-    if (web3Auth?.connected && web3AuthWalletData) {
-      setWalletContextState(makeCustomWalletContextState(web3AuthWalletData));
-    } else if (walletContextStateDefault.connected) {
-      if (walletContextStateDefault.wallet) {
-        const walletInfo: WalletInfo = {
-          name: walletContextStateDefault.wallet?.adapter.name,
-          icon: walletContextStateDefault.wallet?.adapter.icon,
-          web3Auth: false,
-        };
-        localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
-      }
-      setWalletContextState(walletContextStateDefault);
-    } else {
-      setWalletContextState(walletContextStateDefault);
-    }
-
-    // intentionally do not include walletContextState to avoid infinite re-renders
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [web3Auth?.connected, web3AuthWalletData, walletContextStateDefault.connected]);
-
-  // open wallet signup modal if onramp is true
-  React.useEffect(() => {
-    if (query.onramp) {
-      setIsWalletSignUpOpen(true);
-    }
-  }, [query.onramp, setIsWalletSignUpOpen]);
-
-  // if web3auth is connected, fetch wallet data
-  React.useEffect(() => {
-    if (!web3Auth?.connected || !web3Auth?.provider || web3AuthWalletData) return;
-    setIsLoading(true);
-    makeWeb3AuthWalletData(web3Auth.provider);
-    setIsLoading(false);
-  }, [web3Auth?.connected, web3Auth?.provider, web3AuthWalletData, makeWeb3AuthWalletData]);
-
-  // initialize web3auth sdk on page load
-  React.useEffect(() => {
-    if (web3Auth) return;
-    setIsLoading(true);
-    initWeb3Auth();
-  }, [initWeb3Auth, web3Auth]);
-
-  // Set profile picture based on wallet
-  React.useEffect(() => {
-    if (web3Auth?.connected && web3AuthWalletData) {
-      // Profile picture is already set by Web3Auth
-    } else if (walletContextState.connected && walletContextState.publicKey) {
-      // Generate identicon for wallet adapter wallets
-      setPfp(
-        "data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(walletContextState.publicKey.toString() || "mrgn"))
-      );
-    }
-  }, [web3Auth?.connected, web3AuthWalletData, walletContextState.connected, walletContextState.publicKey]);
-
   // Combined auth state management - handles all auth-related effects in one place
   React.useEffect(() => {
+    // If authentication is disabled, do nothing
+    if (!isAuthEnabled) {
+      return;
+    }
+
     // Setup Supabase auth state listener
     const {
       data: { subscription },
@@ -654,13 +599,77 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const isConnected = React.useMemo(() => {
     const walletConnected = Boolean(walletContextState.connected || (web3Auth?.connected && web3AuthWalletData));
 
+    // If authentication is disabled, just return the wallet connection state
+    if (!isAuthEnabled) {
+      return walletConnected;
+    }
+
     // If signature was denied, we consider the wallet as not connected
     if (signatureDenied) {
       return false;
     }
 
-    return walletConnected;
-  }, [walletContextState.connected, web3Auth?.connected, web3AuthWalletData, signatureDenied]);
+    // When auth is enabled, only consider connected if user is authenticated
+    return walletConnected && user !== null;
+  }, [walletContextState.connected, web3Auth?.connected, web3AuthWalletData, signatureDenied, user]);
+
+  // set wallet context state depending on the wallet connection type
+  React.useEffect(() => {
+    // const currentInfo = JSON.parse(localStorage.getItem("walletInfo") || "{}");
+
+    if (web3Auth?.connected && web3AuthWalletData) {
+      setWalletContextState(makeCustomWalletContextState(web3AuthWalletData));
+    } else if (walletContextStateDefault.connected) {
+      if (walletContextStateDefault.wallet) {
+        const walletInfo: WalletInfo = {
+          name: walletContextStateDefault.wallet?.adapter.name,
+          icon: walletContextStateDefault.wallet?.adapter.icon,
+          web3Auth: false,
+        };
+        localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+      }
+      setWalletContextState(walletContextStateDefault);
+    } else {
+      setWalletContextState(walletContextStateDefault);
+    }
+
+    // intentionally do not include walletContextState to avoid infinite re-renders
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [web3Auth?.connected, web3AuthWalletData, walletContextStateDefault.connected]);
+
+  // open wallet signup modal if onramp is true
+  React.useEffect(() => {
+    if (query.onramp) {
+      setIsWalletSignUpOpen(true);
+    }
+  }, [query.onramp, setIsWalletSignUpOpen]);
+
+  // if web3auth is connected, fetch wallet data
+  React.useEffect(() => {
+    if (!web3Auth?.connected || !web3Auth?.provider || web3AuthWalletData) return;
+    setIsLoading(true);
+    makeWeb3AuthWalletData(web3Auth.provider);
+    setIsLoading(false);
+  }, [web3Auth?.connected, web3Auth?.provider, web3AuthWalletData, makeWeb3AuthWalletData]);
+
+  // initialize web3auth sdk on page load
+  React.useEffect(() => {
+    if (web3Auth) return;
+    setIsLoading(true);
+    initWeb3Auth();
+  }, [initWeb3Auth, web3Auth]);
+
+  // Set profile picture based on wallet
+  React.useEffect(() => {
+    if (web3Auth?.connected && web3AuthWalletData) {
+      // Profile picture is already set by Web3Auth
+    } else if (walletContextState.connected && walletContextState.publicKey) {
+      // Generate identicon for wallet adapter wallets
+      setPfp(
+        "data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(walletContextState.publicKey.toString() || "mrgn"))
+      );
+    }
+  }, [web3Auth?.connected, web3AuthWalletData, walletContextState.connected, walletContextState.publicKey]);
 
   return (
     <WalletContext.Provider
@@ -681,10 +690,10 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         web3AuthPk,
 
         // Auth-related properties
-        user,
-        authError,
-        signatureDenied,
-        authenticateUser,
+        user: isAuthEnabled ? user : null,
+        authError: isAuthEnabled ? authError : null,
+        signatureDenied: isAuthEnabled ? signatureDenied : false,
+        authenticateUser: isAuthEnabled ? authenticateUser : () => Promise.resolve(),
       }}
     >
       {children}
