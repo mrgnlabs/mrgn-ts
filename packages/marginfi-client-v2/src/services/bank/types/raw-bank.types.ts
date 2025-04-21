@@ -40,6 +40,8 @@ interface BankRaw {
   emissionsRate: BN;
   emissionsMint: PublicKey;
   emissionsRemaining: WrappedI80F48;
+
+  // emode: EmodeSettingsRaw;
 }
 
 interface BankConfigRaw {
@@ -123,6 +125,24 @@ type OracleSetupRaw =
 interface OracleConfigOptRaw {
   setup: OracleSetupRaw;
   keys: PublicKey[];
+}
+
+interface EmodeEntryRaw {
+  collateralBankEmodeTag: number;
+  flags: number;
+  assetWeightInit: WrappedI80F48;
+  assetWeightMaint: WrappedI80F48;
+}
+
+interface EmodeSettingsRaw {
+  emodeTag: number;
+  timestamp: BN;
+  flags: BN;
+  emodeConfig: EmodeConfigRaw;
+}
+
+interface EmodeConfigRaw {
+  entries: EmodeEntryRaw[];
 }
 
 export type {
