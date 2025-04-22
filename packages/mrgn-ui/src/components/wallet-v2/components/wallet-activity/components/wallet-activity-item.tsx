@@ -73,7 +73,7 @@ const WalletActivityItem = ({
   return (
     <div className="p-3 rounded-md space-y-4 bg-background-gray">
       <div className="flex items-start justify-between">
-        <div className="flex items-start gap-2.5 text-sm pr-8">
+        <div className="flex items-start gap-2.5 text-sm pr-8 max-w-[80%]">
           <div className="relative w-[22px] h-[22px] overflow-visible">
             <Image
               src={getTokenImageURL(activity.details.mint)}
