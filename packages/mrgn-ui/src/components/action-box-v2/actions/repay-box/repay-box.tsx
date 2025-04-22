@@ -295,7 +295,7 @@ export const RepayBox = ({
             activityDetails.secondaryMint = selectedSecondaryBank.info.rawBank.mint.toBase58();
           }
 
-          logActivity(actionMode, txnSig, activityDetails).catch((error) => {
+          logActivity(actionMode, txnSig, activityDetails, selectedAccount?.address).catch((error) => {
             console.error("Failed to log activity:", error);
           });
         },

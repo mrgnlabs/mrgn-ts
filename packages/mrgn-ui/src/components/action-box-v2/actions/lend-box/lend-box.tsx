@@ -329,7 +329,7 @@ export const LendBox = ({
             mint: selectedBank.info.rawBank.mint.toBase58(),
           };
 
-          logActivity(lendMode, txnSig, activityDetails).catch((error) => {
+          logActivity(lendMode, txnSig, activityDetails, selectedAccount?.address).catch((error) => {
             console.error("Failed to log activity:", error);
           });
         },
@@ -357,6 +357,7 @@ export const LendBox = ({
     setAmountRaw,
     transactionSettings,
     onComplete,
+    selectedAccount,
   ]);
 
   const hasErrorsWarnings = React.useMemo(() => {

@@ -151,9 +151,14 @@ export function composeExplorerUrl(signature?: string): string | undefined {
     : `https://solscan.io/tx/${signature}`;
 }
 
-export async function logActivity(type: string, txn: string, details: Record<string, any>): Promise<void> {
+export async function logActivity(
+  type: string,
+  txn: string,
+  details: Record<string, any>,
+  account?: PublicKey
+): Promise<void> {
   try {
-    const mfiAccount = localStorage.getItem("mfiAccount");
+    const mfiAccount = account ? account.toBase58() : localStorage.getItem("mfiAccount");
     const response = await fetch("/api/activity/create", {
       method: "POST",
       headers: {

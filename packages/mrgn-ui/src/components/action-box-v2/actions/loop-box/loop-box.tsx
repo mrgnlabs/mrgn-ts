@@ -275,7 +275,7 @@ export const LoopBox = ({
             secondaryMint: selectedSecondaryBank.info.rawBank.mint.toBase58(),
           };
 
-          logActivity(ActionType.Loop, txnSig, activityDetails).catch((error) => {
+          logActivity(ActionType.Loop, txnSig, activityDetails, selectedAccount?.address).catch((error) => {
             console.error("Failed to log activity:", error);
           });
         },
@@ -304,6 +304,7 @@ export const LoopBox = ({
     transactionSettings,
     nativeSolBalance,
     onComplete,
+    selectedAccount,
   ]);
 
   React.useEffect(() => {

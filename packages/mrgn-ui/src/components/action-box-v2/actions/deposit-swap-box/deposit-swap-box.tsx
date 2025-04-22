@@ -335,7 +335,7 @@ export const DepositSwapBox = ({
             secondaryImage: swapTokenImage,
           };
 
-          logActivity(ActionType.Deposit, txnSig, activityDetails).catch((error) => {
+          logActivity(ActionType.Deposit, txnSig, activityDetails, selectedAccount?.address).catch((error) => {
             console.error("Failed to log activity:", error);
           });
         },
@@ -362,6 +362,7 @@ export const DepositSwapBox = ({
     setAmountRaw,
     onComplete,
     amount,
+    selectedAccount,
   ]);
 
   return (
