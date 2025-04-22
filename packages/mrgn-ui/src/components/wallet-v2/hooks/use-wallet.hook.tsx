@@ -12,6 +12,39 @@ import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
 import { WalletName } from "@solana/wallet-adapter-base";
 
+// CUSTOM PHANTOM LOGIC - START
+// Helper function to detect if we're in Phantom's mobile in-app browser
+const isPhantomMobileInAppBrowser = (): boolean => {
+  // Check if we're on mobile
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator?.userAgent || "");
+
+  // Check if we're in Phantom's in-app browser
+  // Phantom in-app browser has a specific user agent pattern
+  const isPhantomBrowser = /Phantom/.test(navigator?.userAgent || "");
+
+  return isMobile && isPhantomBrowser;
+};
+
+// Toggle custom Phantom connector with env var AND only on mobile in-app browser
+// Default to true if the env var is not defined
+const useCustomPhantomConnector =
+  (process.env.NEXT_PUBLIC_CUSTOM_PHANTOM_CONNECTOR !== "false") &&
+  typeof window !== "undefined" &&
+  isPhantomMobileInAppBrowser();
+
+// Phantom wallet type for window.phantom.solana
+type PhantomWallet = {
+  publicKey: { toBase58: () => string };
+  isConnected: boolean;
+  connect: (options?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey: { toBase58: () => string } }>;
+  disconnect: () => Promise<void>;
+  signTransaction: <T extends Transaction | VersionedTransaction>(transaction: T) => Promise<T>;
+  signAllTransactions: <T extends Transaction | VersionedTransaction>(transactions: T[]) => Promise<T[]>;
+  signMessage: (message: Uint8Array) => Promise<{ signature: Uint8Array }>;
+  on: (event: string, callback: () => void) => void;
+};
+// CUSTOM PHANTOM LOGIC - END
+
 import { generateEndpoint } from "@mrgnlabs/mrgn-utils";
 import type { Wallet } from "@mrgnlabs/mrgn-common";
 
@@ -135,6 +168,37 @@ const makeCustomWalletContextState = (wallet: Wallet): WalletContextState => {
   } as unknown as WalletContextState;
 };
 
+// CUSTOM PHANTOM LOGIC - START
+// Create a custom wallet context state for Phantom wallet
+// This ensures the wallet is properly identified as Phantom in the UI and elsewhere
+const makePhantomWalletContextState = (wallet: Wallet): WalletContextState => {
+  return {
+    publicKey: wallet.publicKey,
+    connected: true,
+    connecting: false,
+    disconnecting: false,
+    wallet: {
+      adapter: {
+        name: "Phantom" as WalletName,
+        icon: "/phantom.png",
+        publicKey: wallet.publicKey,
+        connected: true,
+        readyState: 1, // WalletReadyState.Installed
+      },
+    },
+    select: () => {},
+    connect: async () => {},
+    disconnect: async () => {},
+    sendTransaction: async () => {
+      throw new Error("sendTransaction not implemented");
+    },
+    signTransaction: wallet.signTransaction,
+    signAllTransactions: wallet.signAllTransactions,
+    signMessage: wallet.signMessage,
+  } as unknown as WalletContextState;
+};
+// CUSTOM PHANTOM LOGIC - END
+
 const supabase = createBrowserSupabaseClient();
 
 const WalletContext = React.createContext<WalletContextProps | undefined>(undefined);
@@ -254,7 +318,15 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       if (web3Auth?.connected && web3Auth) {
         await web3Auth.logout();
         setWeb3AuthWalletData(undefined);
-      } else if (walletContextState.connected) {
+      }
+      // CUSTOM PHANTOM LOGIC - START
+      else if (useCustomPhantomConnector && window.phantom && window?.phantom?.solana?.isConnected) {
+        await window.phantom.solana.disconnect();
+        // Set flag to prevent auto-reconnect
+        localStorage.setItem("phantomLogout", "true");
+      }
+      // CUSTOM PHANTOM LOGIC - END
+      else if (walletContextState.connected) {
         await walletContextState.disconnect();
       }
 
@@ -284,15 +356,64 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   }, [asPath, replace, walletContextState, web3Auth, setIsWalletOpen, setIsLoading]);
 
   const select = (walletName: WalletName | string) => {
-    walletContextState.select(walletName as WalletName);
+    // CUSTOM PHANTOM LOGIC - START
+    if (useCustomPhantomConnector && walletName === "Phantom" && window?.phantom && window?.phantom?.solana) {
+      // Set loading state
+      setIsLoading(true);
 
-    if (walletContextState.wallet) {
-      const walletInfo: WalletInfo = {
-        name: walletName,
-        icon: walletContextState.wallet.adapter.icon,
-        web3Auth: false,
-      };
-      localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+      // Clear the phantomLogout flag when attempting to connect
+      localStorage.removeItem("phantomLogout");
+
+      // Connect to Phantom wallet directly via window.phantom.solana
+      window.phantom?.solana
+        .connect()
+        .then(() => {
+          // Store wallet info for future reference
+          const walletInfo: WalletInfo = {
+            name: "Phantom",
+            icon: `/phantom.png`,
+            web3Auth: false,
+          };
+          localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+
+          // Create wallet data from Phantom connection
+          const phantomWallet: Wallet = {
+            publicKey: new PublicKey(window.phantom.solana.publicKey.toBase58()),
+            signTransaction: window.phantom.solana.signTransaction,
+            signAllTransactions: window.phantom.solana.signAllTransactions,
+            signMessage: async (message: Uint8Array) => {
+              const { signature } = await window.phantom.solana.signMessage(message);
+              return signature;
+            },
+          };
+
+          // Update state with Phantom wallet data
+          setWalletContextState(makePhantomWalletContextState(phantomWallet));
+
+          // Close wallet modal after successful connection
+          setIsWalletOpen(false);
+        })
+        .catch((error: any) => {
+          console.error("Error connecting to Phantom wallet:", error);
+          toastManager.showErrorToast("Failed to connect to Phantom wallet");
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+    // CUSTOM PHANTOM LOGIC - END
+    else {
+      // Use the standard wallet adapter for other wallets
+      walletContextState.select(walletName as WalletName);
+
+      if (walletContextState.wallet) {
+        const walletInfo: WalletInfo = {
+          name: walletName,
+          icon: walletContextState.wallet.adapter.icon,
+          web3Auth: false,
+        };
+        localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+      }
     }
   };
 
@@ -658,6 +779,92 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoading(true);
     initWeb3Auth();
   }, [initWeb3Auth, web3Auth]);
+
+  // CUSTOM PHANTOM LOGIC - START
+  // Set up Phantom wallet event handlers
+  React.useEffect(() => {
+    // Only set up event handlers if custom connector is enabled
+    if (!useCustomPhantomConnector) return;
+
+    if (window?.phantom && window?.phantom?.solana) {
+      // Handle Phantom wallet connect event
+      const handleConnect = () => {
+        if (walletContextState.connected) return;
+
+        const phantomWallet: Wallet = {
+          publicKey: new PublicKey(window.phantom.solana.publicKey.toBase58()),
+          signTransaction: window.phantom.solana.signTransaction,
+          signAllTransactions: window.phantom.solana.signAllTransactions,
+          signMessage: async (message: Uint8Array) => {
+            const { signature } = await window.phantom.solana.signMessage(message);
+            return signature;
+          },
+        };
+
+        setWalletContextState(makePhantomWalletContextState(phantomWallet));
+        window.localStorage.removeItem("phantomLogout");
+      };
+
+      // Handle Phantom wallet disconnect event
+      const handleDisconnect = () => {
+        setWalletContextState(walletContextStateDefault);
+      };
+
+      // Add event listeners
+      window.phantom.solana.on("connect", handleConnect);
+      window.phantom.solana.on("disconnect", handleDisconnect);
+
+      // Clean up event listeners on unmount
+      return () => {
+        window.phantom.solana.removeListener("connect", handleConnect);
+        window.phantom.solana.removeListener("disconnect", handleDisconnect);
+      };
+    }
+  }, [walletContextState.connected, walletContextStateDefault]);
+  // CUSTOM PHANTOM LOGIC - END
+
+  // CUSTOM PHANTOM LOGIC - START
+  // Auto-connect to Phantom if it was the last used wallet
+  React.useEffect(() => {
+    // Only run if custom connector is enabled
+    if (!useCustomPhantomConnector) return;
+
+    // Get wallet info from localStorage
+    const walletInfo = JSON.parse(localStorage.getItem("walletInfo") || "{}");
+
+    // If last wallet was Phantom and we're not already connected
+    if (
+      walletInfo?.name === "Phantom" &&
+      window?.phantom &&
+      window?.phantom?.solana &&
+      !window?.phantom?.solana?.isConnected &&
+      !walletContextState.connected &&
+      !window.localStorage.getItem("phantomLogout")
+    ) {
+      // Try to auto-connect to Phantom with onlyIfTrusted to avoid prompts
+      window.phantom.solana
+        .connect({ onlyIfTrusted: true })
+        .then(() => {
+          const phantomWallet: Wallet = {
+            publicKey: new PublicKey(window.phantom.solana.publicKey.toBase58()),
+            signTransaction: window.phantom.solana.signTransaction,
+            signAllTransactions: window.phantom.solana.signAllTransactions,
+            signMessage: async (message: Uint8Array) => {
+              const { signature } = await window.phantom.solana.signMessage(message);
+              return signature;
+            },
+          };
+
+          setWalletContextState(makePhantomWalletContextState(phantomWallet));
+        })
+        .catch((error: any) => {
+          console.error("Auto-connect to Phantom failed:", error);
+          // Clear wallet info to prevent future auto-connect attempts
+          localStorage.removeItem("walletInfo");
+        });
+    }
+  }, [walletContextState.connected]);
+  // CUSTOM PHANTOM LOGIC - END
 
   // Set profile picture based on wallet
   React.useEffect(() => {
