@@ -167,6 +167,19 @@ const WalletActivityItemSkeleton = ({ style }: WalletActivityItemSkeletonProps) 
   );
 };
 
+const RerunTooltipButton = ({ children }: { children?: React.ReactNode }) => (
+  <TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button variant="secondary" size="icon" className="h-7 w-7">
+          {children || <IconRefresh size={14} />}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Re-run this transaction</TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+);
+
 type RerunActionProps = {
   walletContextState: WalletContextStateOverride | WalletContextState;
   bank: ExtendedBankInfo;
@@ -181,25 +194,19 @@ const RerunAction = ({ walletContextState, bank, activity, secondaryBank, onReru
   if (activity.type === ActionType.Loop) {
     return (
       <Link href="/looper" onClick={closeWallet}>
-        <Button variant="secondary" size="icon" className="h-7 w-7">
-          <IconRefresh size={14} />
-        </Button>
+        <RerunTooltipButton />
       </Link>
     );
   } else if (activity.type === ActionType.MintLST || activity.type === ActionType.UnstakeLST) {
     return (
       <Link href="/stake" onClick={closeWallet}>
-        <Button variant="secondary" size="icon" className="h-7 w-7">
-          <IconRefresh size={14} />
-        </Button>
+        <RerunTooltipButton />
       </Link>
     );
   } else if (activity.type === ActionType.Deposit && activity.details.secondaryMint) {
     return (
       <Link href="/deposit-swap" onClick={closeWallet}>
-        <Button variant="secondary" size="icon" className="h-7 w-7">
-          <IconRefresh size={14} />
-        </Button>
+        <RerunTooltipButton />
       </Link>
     );
   } else if (
@@ -231,11 +238,7 @@ const RerunAction = ({ walletContextState, bank, activity, secondaryBank, onReru
         }}
         dialogProps={{
           title: `${activity.type} ${activity.details.symbol}`,
-          trigger: (
-            <Button variant="secondary" size="icon" className="h-7 w-7">
-              <IconRefresh size={14} />
-            </Button>
-          ),
+          trigger: <RerunTooltipButton />,
         }}
       />
     );
@@ -276,15 +279,13 @@ const RerunAction = ({ walletContextState, bank, activity, secondaryBank, onReru
         }}
         dialogProps={{
           title: `Repay ${activity.details.symbol}`,
-          trigger: (
-            <Button variant="secondary" size="icon" className="h-7 w-7">
-              <IconRefresh size={14} />
-            </Button>
-          ),
+          trigger: <RerunTooltipButton />,
         }}
       />
     );
   }
+
+  return null;
 };
 
 export { WalletActivityItem, WalletActivityItemSkeleton };
