@@ -65,9 +65,10 @@ import {
   makeUnwrapSolIx,
   computeLoopingParams,
   makeWrapSolIxs,
+  MarginfiAccountRaw,
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
-import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
+import { MarginfiAccount, MarginRequirementType } from "./pure";
 import { Bank } from "../bank";
 import { Balance } from "../balance";
 import {

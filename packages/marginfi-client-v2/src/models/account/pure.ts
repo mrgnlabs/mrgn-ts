@@ -18,8 +18,8 @@ import { Bank } from "../bank";
 import { PriceBias, OraclePrice } from "../price";
 import instructions from "../../instructions";
 import { AccountType, MarginfiProgram } from "../../types";
-import { makeWrapSolIxs, makeUnwrapSolIx, PythPushFeedIdMap, findOracleKey } from "../../utils";
-import { Balance, BalanceRaw } from "../balance";
+import { makeWrapSolIxs, makeUnwrapSolIx } from "../../utils";
+import { Balance } from "../balance";
 import {
   BankMap,
   DISABLED_FLAG,
@@ -30,28 +30,11 @@ import {
   RiskTier,
   TRANSFER_ACCOUNT_AUTHORITY_FLAG,
   MintData,
-  computeMaxLeverage,
+  MarginfiAccountRaw,
 } from "../..";
 import BN from "bn.js";
 import { Address, BorshCoder, BorshInstructionCoder, translateAddress } from "@coral-xyz/anchor";
 import { findPoolMintAddress, findPoolAddress, findPoolStakeAddress } from "../../vendor/single-spl-pool";
-
-// ----------------------------------------------------------------------------
-// On-chain types
-// ----------------------------------------------------------------------------
-
-interface MarginfiAccountRaw {
-  group: PublicKey;
-  authority: PublicKey;
-  lendingAccount: { balances: BalanceRaw[] };
-  accountFlags: BN;
-  padding0?: BN[];
-  padding1?: BN[];
-}
-
-type MarginRequirementTypeRaw = { initial: {} } | { maintenance: {} } | { equity: {} };
-
-export type { MarginfiAccountRaw, MarginRequirementTypeRaw };
 
 // ----------------------------------------------------------------------------
 // Client types

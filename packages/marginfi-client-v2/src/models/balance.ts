@@ -1,26 +1,10 @@
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import BN from "bn.js";
 
-import { WrappedI80F48, wrappedI80F48toBigNumber, nativeToUi } from "@mrgnlabs/mrgn-common";
+import { wrappedI80F48toBigNumber, nativeToUi } from "@mrgnlabs/mrgn-common";
 
-import { OraclePrice, MarginRequirementType, PriceBias } from "..";
+import { OraclePrice, MarginRequirementType, PriceBias, BalanceRaw } from "..";
 import { Bank } from "./bank";
-
-// ----------------------------------------------------------------------------
-// On-chain types
-// ----------------------------------------------------------------------------
-
-interface BalanceRaw {
-  active: boolean | number;
-  bankPk: PublicKey;
-  assetShares: WrappedI80F48;
-  liabilityShares: WrappedI80F48;
-  emissionsOutstanding: WrappedI80F48;
-  lastUpdate: BN;
-}
-
-export type { BalanceRaw };
 
 // ----------------------------------------------------------------------------
 // Client types
