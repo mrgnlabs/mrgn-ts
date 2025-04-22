@@ -692,6 +692,8 @@ class MarginfiAccount {
         signerTokenAccount: userTokenAtaPk,
         bank: bank.address,
         tokenProgram: mintData.tokenProgram,
+        authority: this.authority,
+        group: this.group,
       },
       { amount: uiToNative(amount, bank.mintDecimals) },
       remainingAccounts
