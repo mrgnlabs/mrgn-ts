@@ -289,11 +289,11 @@ export const LendingPortfolio = () => {
           </div>
         </div>
       )}
-      <div className="p-4 md:p-6 rounded-xl space-y-3 w-full bg-background-gray-dark">
+      <div className="p-4 md:p-6 rounded-xl space-y-3 w-full bg-muted/25">
         <div className="flex justify-between w-full">
           <h2 className="font-medium text-xl">Lend/borrow</h2>
 
-          <div className="flex text-lg items-center gap-1.5 text-sm">
+          <div className="flex text-sm items-center gap-1.5">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger className="inline-flex items-center gap-1">
