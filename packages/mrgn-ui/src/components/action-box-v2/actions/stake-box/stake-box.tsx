@@ -339,7 +339,8 @@ export const StakeBox = ({
         <ActionButton
           isLoading={isLoading}
           isEnabled={
-            !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length
+            !additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length &&
+            actionTxns?.transactions.length > 0
           }
           connected={connected}
           handleAction={handleLstAction}

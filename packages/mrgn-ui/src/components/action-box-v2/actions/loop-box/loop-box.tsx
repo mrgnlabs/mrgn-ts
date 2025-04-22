@@ -399,7 +399,7 @@ export const LoopBox = ({
             !additionalActionMessages
               .concat(actionMessages)
               .concat(quoteActionMessage)
-              .filter((value) => value.isEnabled === false).length
+              .filter((value) => value.isEnabled === false).length && actionTxns?.transactions.length > 0
           }
           connected={connected}
           handleAction={() => {
