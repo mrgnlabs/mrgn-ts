@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { formatDistanceToNow } from "date-fns";
-import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
+import { composeExplorerUrl, getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { IconExternalLink, IconClock, IconRefresh } from "@tabler/icons-react";
 
@@ -121,7 +121,7 @@ const WalletActivityItem = ({
               <TooltipTrigger asChild>
                 <Button variant="secondary" size="icon" className="h-7 w-7">
                   <Link
-                    href={`https://solscan.io/tx/${activity.txn}`}
+                    href={composeExplorerUrl(activity.txn) ?? ""}
                     target="_blank"
                     className="flex items-center gap-1"
                   >
