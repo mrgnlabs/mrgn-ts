@@ -110,21 +110,15 @@ async function main() {
   console.groupCollapsed("%cPre State", "font-weight: bold");
   console.log(`AssetValue: ${assetValuePre}`);
   console.log(`LiabilityValue: ${liabilityValuePre}`);
+  console.log(`Timestamp: ${cachePre.timestamp}`);
   console.groupEnd();
 
   console.groupCollapsed("%cPost State", "font-weight: bold");
   console.log(`AssetValue: ${assetValuePost}`);
   console.log(`LiabilityValue: ${liabilityValuePost}`);
   console.log(`Health: ${(assetValuePost - liabilityValuePost) / assetValuePost}`);
+  console.log(`Timestamp: ${marginfiAccountPost.healthCache.timestamp}`);
   console.groupEnd();
-
-  // Display the active balances and totals
-  //   console.log(`\r\nAccount: ${accountPubkey.toString()}`);
-  //   console.log(`Authority: ${acc.authority.toString()}`);
-  //   console.log(`Total Deposits: ${formatNumber(totalDeposits)}`);
-  //   console.log(`Total Liabilities: ${formatNumber(totalLiabilities)}`);
-  //   console.log("\r\nBalances:");
-  //   console.table(activeBalances);
 }
 
 main().catch((err) => {

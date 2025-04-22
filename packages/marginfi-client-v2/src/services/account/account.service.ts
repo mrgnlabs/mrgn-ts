@@ -5,8 +5,8 @@ import BN from "bn.js";
 import { SolanaTransaction, bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
 
 import MarginfiClient from "../../clients/client";
-import { MarginfiAccountWrapper, MarginfiAccountRaw, MarginfiAccount } from "../../models/account";
-import { BalanceRaw } from "../../models/balance";
+import { MarginfiAccountWrapper, MarginfiAccount } from "../../models/account";
+import { BalanceRaw, MarginfiAccountRaw } from "./types";
 
 /**
  * This function creates a new Marginfi account transaction and returns a projected dummy account for simulation.
@@ -33,6 +33,18 @@ export async function createMarginfiAccountTx(props: {
     group: props.marginfiClient.group.address,
     authority: authority,
     lendingAccount: { balances: dummyBalances },
+    healthCache: {
+      assetValue: {
+        value: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      },
+      liabilityValue: {
+        value: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      },
+      timestamp: new BN(0),
+      flags: new BN([0]),
+      prices: [],
+    },
+    emissionsDestinationAccount: new PublicKey("11111111111111111111111111111111"),
     accountFlags: new BN([0, 0, 0]),
   };
 
