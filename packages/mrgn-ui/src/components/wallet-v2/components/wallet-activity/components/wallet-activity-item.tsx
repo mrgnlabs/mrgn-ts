@@ -175,7 +175,7 @@ const RerunTooltipButton = ({ children }: { children?: React.ReactNode }) => (
           {children || <IconRefresh size={14} />}
         </Button>
       </TooltipTrigger>
-      <TooltipContent>Re-run this transaction</TooltipContent>
+      <TooltipContent>Re-run this action</TooltipContent>
     </Tooltip>
   </TooltipProvider>
 );
