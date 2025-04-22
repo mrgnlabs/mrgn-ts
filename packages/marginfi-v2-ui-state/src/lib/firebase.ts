@@ -191,7 +191,26 @@ async function signupWithAddress(walletAddress: string, payload: SignupPayload, 
   }
 
   if (!data.token) throw new Error("Something went wrong during sign-up");
+
+  // Sign in with custom token to get ID token
   await signinFirebaseAuth(data.token);
+
+  // Get the ID token
+  const idToken = await auth.currentUser?.getIdToken();
+  if (!idToken) throw new Error("Failed to get ID token");
+
+  // Create session cookie
+  const sessionResponse = await fetch("/api/user/session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ idToken }),
+  });
+
+  if (!sessionResponse.ok) {
+    throw new Error("Failed to create session");
+  }
 }
 
 async function loginWithAddress(walletAddress: string, walletId?: string) {
