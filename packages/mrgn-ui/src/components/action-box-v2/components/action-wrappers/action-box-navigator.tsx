@@ -13,6 +13,7 @@ interface ActionBoxNavigatorProps {
   actionTypes?: ActionType[];
   onSelectAction?: (action: ActionType) => void;
   children: React.ReactNode;
+  onClose?: () => void;
 }
 
 // const actionTitles: { [key in ActionType]?: string } = {
@@ -42,6 +43,7 @@ export const ActionBoxNavigator = ({
   selectedAction,
   onSelectAction,
   children,
+  onClose,
 }: ActionBoxNavigatorProps) => {
   const childrenArray = React.Children.toArray(children);
   const isNavigator = React.useMemo(() => actionTypes && actionTypes.length > 1, [actionTypes]);
@@ -101,6 +103,9 @@ export const ActionBoxNavigator = ({
                         className="ml-auto font-light text-muted-foreground text-left h-7 gap-1.5"
                         variant="ghost"
                         size="sm"
+                        onClick={() => {
+                          onClose?.();
+                        }}
                       >
                         <IconRefresh size={14} />
                         Deposit Swap

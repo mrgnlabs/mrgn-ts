@@ -222,6 +222,7 @@ const BorrowLend = (
           selectedAction={selectedAction}
           onSelectAction={setSelectedAction}
           actionTypes={[ActionType.Deposit, ActionType.Borrow]}
+          onClose={actionBoxProps.isDialog ? actionBoxProps.dialogProps?.onClose : undefined}
         >
           <LendBox
             {...combinedProps}
