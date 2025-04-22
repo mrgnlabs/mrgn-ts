@@ -661,14 +661,13 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Set profile picture based on wallet
   React.useEffect(() => {
-    if (web3Auth?.connected && web3AuthWalletData) {
-      // Profile picture is already set by Web3Auth
-    } else if (walletContextState.connected && walletContextState.publicKey) {
+    if (walletContextState.connected && walletContextState.publicKey && !pfp) {
       // Generate identicon for wallet adapter wallets
       setPfp(
         "data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(walletContextState.publicKey.toString() || "mrgn"))
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [web3Auth?.connected, web3AuthWalletData, walletContextState.connected, walletContextState.publicKey]);
 
   return (
