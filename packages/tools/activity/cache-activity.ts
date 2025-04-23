@@ -1,27 +1,14 @@
 import dotenv from "dotenv";
 import * as admin from "firebase-admin";
-import { getDefaultYargsOptions } from "../lib/config";
-import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import fs from "fs";
 import path from "path";
 
+import { shortenAddress } from "@mrgnlabs/mrgn-common";
+
+import { getDefaultYargsOptions } from "../lib/config";
+import { Activity } from "../lib/types";
+
 dotenv.config();
-
-type ActivityDetails = {
-  amount?: string;
-  symbol?: string;
-  secondaryAmount?: string;
-  secondarySymbol?: string;
-};
-
-type Activity = {
-  id: string;
-  type: string;
-  details: ActivityDetails;
-  account?: string;
-  timestamp: admin.firestore.Timestamp;
-  txn: string;
-};
 
 async function main() {
   const argv = getDefaultYargsOptions()
@@ -29,7 +16,7 @@ async function main() {
       alias: "o",
       type: "string",
       description: "Output file path",
-      default: "./activity-export.json",
+      default: path.join(__dirname, "../activity-cache.json"),
     })
     .parseSync();
 
@@ -60,6 +47,7 @@ async function main() {
   console.log(`Found ${walletDocs.length} wallets with activity`);
 
   const allActivities: Record<string, any[]> = {};
+  let totalActivities = 0;
 
   // Fetch activities for each wallet
   for (const walletDoc of walletDocs) {
@@ -86,6 +74,8 @@ async function main() {
         timestamp: data.timestamp?.toDate()?.toISOString() || null,
       };
     });
+
+    totalActivities += activities.length;
 
     // Fetch account labels for all accounts
     const accountLabelsPromises = Array.from(accountAddresses).map(async (account) => {
@@ -114,6 +104,9 @@ async function main() {
     allActivities[walletAddress] = formattedActivities;
   }
 
+  console.log(`\nTotal wallets processed: ${Object.keys(allActivities).length}`);
+  console.log(`Total activities found: ${totalActivities}`);
+
   // Ensure output directory exists
   const outputDir = path.dirname(argv.output);
   if (!fs.existsSync(outputDir)) {
@@ -123,7 +116,6 @@ async function main() {
   // Save to file
   fs.writeFileSync(argv.output, JSON.stringify(allActivities, null, 2));
   console.log(`\nExported activities to ${argv.output}`);
-  console.log(`Total wallets processed: ${Object.keys(allActivities).length}`);
 }
 
 main().catch((err) => {

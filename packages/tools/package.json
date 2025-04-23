@@ -15,7 +15,8 @@
     "banks:get-all": "tsx banks/get-banks.ts",
     "banks:get-accounts": "tsx banks/get-bank-accounts.ts",
     "activity:get": "tsx activity/get.ts",
-    "activity:export": "tsx activity/export.ts",
+    "activity:cache": "tsx activity/cache-activity.ts",
+    "activity:report": "tsx activity/report.ts",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },
