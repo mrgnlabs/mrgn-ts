@@ -17,9 +17,14 @@ export function generateToken(walletAddress: string): string {
   );
 }
 
-export function verifyToken(token: string): boolean {
+export function verifyToken(token: string, currentWalletAddress?: string): boolean {
   try {
-    jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+
+    if (currentWalletAddress) {
+      return decoded.wallet_address === currentWalletAddress;
+    }
+
     return true;
   } catch {
     return false;

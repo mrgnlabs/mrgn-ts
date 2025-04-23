@@ -116,8 +116,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (token) {
         try {
-          // Simply verify the token is valid
-          tokenValid = verifyToken(token);
+          // Verify the token is valid AND belongs to the current wallet
+          tokenValid = verifyToken(token, walletAddress);
         } catch (error) {
           console.error("Token verification error:", error);
           tokenValid = false;
