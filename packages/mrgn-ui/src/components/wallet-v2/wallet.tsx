@@ -214,32 +214,32 @@ const Wallet = ({
 
   return (
     <>
-      {!isLoading && !connected && <WalletButton />}
+      {!connected && <WalletButton />}
 
-      {!isLoading && connected && (
+      {connected && (
         <Sheet open={isWalletOpen} onOpenChange={(open) => setIsWalletOpen(open)}>
-          <SheetTrigger asChild disabled={!userDataFetched}>
-            {wallet?.publicKey && (
-              <button
-                disabled={!userDataFetched}
-                className="flex items-center gap-2 hover:bg-accent/50 transition-colors rounded-full py-1 sm:pr-3 sm:pl-1 text-sm text-muted-foreground font-normal shrink-0"
-              >
-                <WalletAvatar pfp={pfp} address={wallet?.publicKey.toBase58()} size="sm" />
-                {userDataFetched && wallet?.publicKey ? (
-                  <>
-                    <div className="flex flex-col items-start">
-                      {shortenAddress(wallet?.publicKey)}
-                      <div className="text-muted-foreground/70 text-xs">
-                        {accountLabels?.[selectedAccount?.address.toBase58() ?? "Account"]}
-                      </div>
-                    </div>
-                    <IconChevronDown size={16} className="sm:ml-4 ml-2" />
-                  </>
-                ) : (
-                  "Loading..."
-                )}
-              </button>
-            )}
+          <SheetTrigger asChild disabled={!userDataFetched || isLoading}>
+            <button
+              className="flex items-center gap-2 hover:bg-accent/50 transition-colors rounded-full py-1 sm:pr-3 sm:pl-1 text-sm text-muted-foreground font-normal shrink-0"
+              disabled={!userDataFetched || isLoading}
+            >
+              {wallet?.publicKey && <WalletAvatar pfp={pfp} address={wallet?.publicKey.toBase58()} size="sm" />}
+
+              {!userDataFetched || isLoading ? (
+                <div className="flex flex-col items-start">
+                  <span>Loading...</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-start">
+                  {shortenAddress(wallet?.publicKey)}
+                  <div className="text-muted-foreground/70 text-xs">
+                    {accountLabels?.[selectedAccount?.address.toBase58() ?? "Account"]}
+                  </div>
+                </div>
+              )}
+
+              {!isLoading && userDataFetched && <IconChevronDown size={16} className="sm:ml-4 ml-2" />}
+            </button>
           </SheetTrigger>
           <SheetContent className="outline-none z-[50] px-4 bg-background border-0 pt-2">
             <SheetHeader className="sr-only">

@@ -28,7 +28,7 @@ const isPhantomMobileInAppBrowser = (): boolean => {
 // Toggle custom Phantom connector with env var AND only on mobile in-app browser
 // Default to true if the env var is not defined
 const useCustomPhantomConnector =
-  (process.env.NEXT_PUBLIC_CUSTOM_PHANTOM_CONNECTOR !== "false") &&
+  process.env.NEXT_PUBLIC_CUSTOM_PHANTOM_CONNECTOR !== "false" &&
   typeof window !== "undefined" &&
   isPhantomMobileInAppBrowser();
 
@@ -228,6 +228,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [authError, setAuthError] = React.useState<Error | null>(null);
   const [signatureDenied, setSignatureDenied] = React.useState<boolean>(false);
   const [isAwaitingSignature, setIsAwaitingSignature] = React.useState<boolean>(false);
+  const [wasLoggedOut, setWasLoggedOut] = React.useState(false);
 
   // Determine the wallet to use: web3auth or wallet adapter
   // Will check web3auth first, then walletQueryParam, then walletContextState
@@ -310,10 +311,10 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   // Enhanced logout method to handle both wallet disconnection and auth logout
   const logout = React.useCallback(async () => {
               await fetch("/api/user/logout", { method: "POST" });
-
-    setIsLoading(true);
-
     try {
+      // Set flag to prevent authentication after logout
+      setWasLoggedOut(true);
+      
       // Wallet logout
       if (web3Auth?.connected && web3Auth) {
         await web3Auth.logout();
@@ -350,12 +351,14 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
-      setIsLoading(false);
       setPfp("");
     }
-  }, [asPath, replace, walletContextState, web3Auth, setIsWalletOpen, setIsLoading]);
+  }, [asPath, replace, walletContextState, web3Auth, setIsWalletOpen]);
 
   const select = (walletName: WalletName | string) => {
+    // Reset wasLoggedOut flag when connecting
+    setWasLoggedOut(false);
+    
     // CUSTOM PHANTOM LOGIC - START
     if (useCustomPhantomConnector && walletName === "Phantom" && window?.phantom && window?.phantom?.solana) {
       // Set loading state
@@ -640,7 +643,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     const checkAuth = async () => {
       // Only proceed if wallet is connected and we don't have user data yet
       const isWalletConnected = Boolean(walletContextState.connected || (web3Auth?.connected && web3AuthWalletData));
-      if (!isWalletConnected || !wallet.publicKey || user || isLoading || signatureDenied) {
+      if (!isWalletConnected || !wallet.publicKey || user || isLoading || signatureDenied || wasLoggedOut) {
         return;
       }
 
@@ -714,6 +717,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     isAwaitingSignature,
     authenticateUser,
     logout,
+    wasLoggedOut,
   ]);
 
   // Compute connected state based on both wallet connection and authentication

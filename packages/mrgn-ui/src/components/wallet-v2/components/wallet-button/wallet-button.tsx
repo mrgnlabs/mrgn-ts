@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 
 import Image from "next/image";
-import Script from "next/script";
 
 import { IconChevronDown, IconBrandX, IconBrandApple, IconBrandGoogle } from "@tabler/icons-react";
 
@@ -35,7 +34,7 @@ type WalletButtonProps = {
 };
 
 export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonProps) => {
-  const { loginWeb3Auth, select } = useWallet();
+  const { loginWeb3Auth, select, isLoading } = useWallet();
   const [setIsWalletSignUpOpen] = useWalletStore((state) => [state.setIsWalletSignUpOpen]);
 
   const walletInfo = useMemo(() => JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo, []);
@@ -78,19 +77,26 @@ export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonP
     <Button
       className={cn("gap-1.5 py-0", walletInfo ? "px-2 pl-3" : "px-4", className)}
       onClick={() => handleWalletConnect()}
+      disabled={isLoading}
     >
       <div className="flex flex-row relative h-full gap-4">
         <div className="inline-flex items-center gap-2">
-          Sign in
-          {showWalletInfo && walletInfo && (
+          {isLoading ? (
+            "Loading..."
+          ) : (
             <>
-              {" "}
-              with
-              <WalletIcon />
+              Sign in
+              {showWalletInfo && walletInfo && (
+                <>
+                  {" "}
+                  with
+                  <WalletIcon />
+                </>
+              )}
             </>
           )}
         </div>
-        {showWalletInfo && walletInfo && (
+        {!isLoading && showWalletInfo && walletInfo && (
           <div
             onClick={(e) => {
               e.stopPropagation();
