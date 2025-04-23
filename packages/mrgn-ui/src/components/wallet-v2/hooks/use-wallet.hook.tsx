@@ -11,15 +11,50 @@ import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
 import { WalletName } from "@solana/wallet-adapter-base";
+import { generateEndpoint } from "@mrgnlabs/mrgn-utils";
+import type { Wallet } from "@mrgnlabs/mrgn-common";
+
+import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
+
+import { AuthUser, createBrowserSupabaseClient, authenticate, getCurrentUser, logout as logoutUser } from "../auth";
+
+/*
+use-wallet.hook.tsx:
+
+This hook provides a comprehensive wallet management solution for Solana applications with the following features:
+
+1. WALLET CONNECTION MANAGEMENT:
+   - Supports multiple wallet providers. Three main providers are:
+      - wallet-standard compliant wallets: solflare, backpack, phantom (desktop)
+      - Phantom (mobile): custom Phantom connector for mobile in-app browser (see here: https://github.com/anza-xyz/wallet-adapter/issues/814)
+      - Web3Auth
+   - Handles wallet connection, disconnection, and reconnection flows
+   - Maintains wallet state (connected, disconnected, loading)
+   - Provides transaction signing capabilities (signTransaction, signAllTransactions, signMessage)
+
+2. CUSTOM PHANTOM INTEGRATION:
+   - Direct integration with Phantom wallet via window.phantom.solana
+   - Special handling ONLY FOR PHANTOM MOBILE IN WALLET BROWSER
+   - Can be disabled via NEXT_PUBLIC_USE_CUSTOM_PHANTOM_CONNECTOR=false environment variable (defaults to true)
+   - Everything tagged between CUSTOM PHANTOM LOGIC - START and CUSTOM PHANTOM LOGIC - END is custom Phantom logic, this will make it easy if we can eventually rip this out
+
+3. AUTHENTICATION:
+   - Integrates with Supabase for user authentication
+   - Handles wallet signature-based authentication flow
+   - Manages user session state
+   - Can be disabled via NEXT_PUBLIC_AUTH_ENABLED=false environment variable (defaults to true)
+
+4. WEB3AUTH INTEGRATION:
+   - Supports social login options (Google, Twitter, Apple)
+   - Handles email passwordless authentication
+   - Manages Web3Auth wallet creation and connection
+*/
 
 // CUSTOM PHANTOM LOGIC - START
 // Helper function to detect if we're in Phantom's mobile in-app browser
 const isPhantomMobileInAppBrowser = (): boolean => {
-  // Check if we're on mobile
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator?.userAgent || "");
-
-  // Check if we're in Phantom's in-app browser
-  // Phantom in-app browser has a specific user agent pattern
   const isPhantomBrowser = /Phantom/.test(navigator?.userAgent || "");
 
   return isMobile && isPhantomBrowser;
@@ -32,29 +67,9 @@ const useCustomPhantomConnector =
   typeof window !== "undefined" &&
   isPhantomMobileInAppBrowser();
 
-// Phantom wallet type for window.phantom.solana
-type PhantomWallet = {
-  publicKey: { toBase58: () => string };
-  isConnected: boolean;
-  connect: (options?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey: { toBase58: () => string } }>;
-  disconnect: () => Promise<void>;
-  signTransaction: <T extends Transaction | VersionedTransaction>(transaction: T) => Promise<T>;
-  signAllTransactions: <T extends Transaction | VersionedTransaction>(transactions: T[]) => Promise<T[]>;
-  signMessage: (message: Uint8Array) => Promise<{ signature: Uint8Array }>;
-  on: (event: string, callback: () => void) => void;
-};
 // CUSTOM PHANTOM LOGIC - END
 
-import { generateEndpoint } from "@mrgnlabs/mrgn-utils";
-import type { Wallet } from "@mrgnlabs/mrgn-common";
-
-import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
-import { toastManager } from "@mrgnlabs/mrgn-toasts";
-
-import { AuthUser, createBrowserSupabaseClient, authenticate, getCurrentUser, logout as logoutUser } from "../auth";
-
-// --- Types and Context ---
-// Types for Web3Auth providers (limited to those supported in this implementation)
+// Types for Web3Auth
 type Web3AuthSocialProvider = "google" | "twitter" | "apple";
 type Web3AuthProvider = "email_passwordless" | Web3AuthSocialProvider;
 
@@ -94,8 +109,6 @@ type WalletContextProps = {
   signatureDenied: boolean;
   authenticateUser: (args?: { referralCode?: string }) => Promise<void>;
 };
-
-// --- ENVIRONMENT FLAG ---
 
 // Check if authentication is enabled (defaults to true if not specified)
 const isAuthEnabled = process.env.NEXT_PUBLIC_AUTH_ENABLED !== "false";
@@ -140,9 +153,7 @@ const web3AuthOpenLoginAdapterSettings = {
 };
 
 // Create a custom wallet context state for Web3Auth
-// This is a simplified version that works with our implementation
-// We use type assertion to bypass TypeScript's strict checking
-const makeCustomWalletContextState = (wallet: Wallet): WalletContextState => {
+const makeCustomWeb3AuthWalletContextState = (wallet: Wallet): WalletContextState => {
   return {
     publicKey: wallet.publicKey,
     connected: true,
@@ -153,7 +164,7 @@ const makeCustomWalletContextState = (wallet: Wallet): WalletContextState => {
         name: "Web3Auth" as WalletName,
         publicKey: wallet.publicKey,
         connected: true,
-        readyState: 1, // WalletReadyState.Installed
+        readyState: 1,
       },
     },
     select: () => {},
@@ -183,7 +194,7 @@ const makePhantomWalletContextState = (wallet: Wallet): WalletContextState => {
         icon: "/phantom.png",
         publicKey: wallet.publicKey,
         connected: true,
-        readyState: 1, // WalletReadyState.Installed
+        readyState: 1,
       },
     },
     select: () => {},
@@ -230,7 +241,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAwaitingSignature, setIsAwaitingSignature] = React.useState<boolean>(false);
   const [wasLoggedOut, setWasLoggedOut] = React.useState(false);
 
-  // Determine the wallet to use: web3auth or wallet adapter
+  // Determine the wallet to use: web3auth,  wallet adapter
   // Will check web3auth first, then walletQueryParam, then walletContextState
   const wallet: Wallet = React.useMemo(() => {
     if (web3AuthWalletData && web3Auth?.connected) {
@@ -268,7 +279,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       signMessage: undefined,
       signTransaction: undefined,
       signAllTransactions: undefined,
-    } as unknown as Wallet; // TODO: does this introduce new edge case?
+    } as unknown as Wallet;
   }, [web3AuthWalletData, web3Auth?.connected, walletContextState, walletQueryParam]);
 
   // Login to web3auth with specified social provider
@@ -310,16 +321,15 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Enhanced logout method to handle both wallet disconnection and auth logout
   const logout = React.useCallback(async () => {
-              await fetch("/api/user/logout", { method: "POST" });
+    await fetch("/api/user/logout", { method: "POST" });
     try {
-      // Set flag to prevent authentication after logout
       setWasLoggedOut(true);
-      
-      // Wallet logout
+
       if (web3Auth?.connected && web3Auth) {
         await web3Auth.logout();
         setWeb3AuthWalletData(undefined);
       }
+
       // CUSTOM PHANTOM LOGIC - START
       else if (useCustomPhantomConnector && window.phantom && window?.phantom?.solana?.isConnected) {
         await window.phantom.solana.disconnect();
@@ -331,7 +341,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         await walletContextState.disconnect();
       }
 
-      // Auth logout (only if auth is enabled)
       if (isAuthEnabled) {
         try {
           logoutUser();
@@ -356,22 +365,17 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   }, [asPath, replace, walletContextState, web3Auth, setIsWalletOpen]);
 
   const select = (walletName: WalletName | string) => {
-    // Reset wasLoggedOut flag when connecting
     setWasLoggedOut(false);
-    
+
     // CUSTOM PHANTOM LOGIC - START
     if (useCustomPhantomConnector && walletName === "Phantom" && window?.phantom && window?.phantom?.solana) {
-      // Set loading state
       setIsLoading(true);
 
-      // Clear the phantomLogout flag when attempting to connect
       localStorage.removeItem("phantomLogout");
 
-      // Connect to Phantom wallet directly via window.phantom.solana
       window.phantom?.solana
         .connect()
         .then(() => {
-          // Store wallet info for future reference
           const walletInfo: WalletInfo = {
             name: "Phantom",
             icon: `/phantom.png`,
@@ -379,7 +383,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           };
           localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
 
-          // Create wallet data from Phantom connection
           const phantomWallet: Wallet = {
             publicKey: new PublicKey(window.phantom.solana.publicKey.toBase58()),
             signTransaction: window.phantom.solana.signTransaction,
@@ -390,10 +393,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
             },
           };
 
-          // Update state with Phantom wallet data
           setWalletContextState(makePhantomWalletContextState(phantomWallet));
-
-          // Close wallet modal after successful connection
           setIsWalletOpen(false);
         })
         .catch((error: any) => {
@@ -406,7 +406,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     }
     // CUSTOM PHANTOM LOGIC - END
     else {
-      // Use the standard wallet adapter for other wallets
       walletContextState.select(walletName as WalletName);
 
       if (walletContextState.wallet) {
@@ -559,7 +558,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   // Authenticate user with wallet
   const authenticateUser = React.useCallback(
     async (args?: { referralCode?: string }) => {
-      // If authentication is disabled, do nothing
       if (!isAuthEnabled) {
         return;
       }
@@ -569,30 +567,23 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      // Set loading state to true during authentication
       setIsLoading(true);
       setIsAwaitingSignature(true);
 
       try {
-        // Get wallet ID if available (for Web3Auth)
         const walletId = web3AuthWalletData ? web3AuthLoginType : undefined;
 
-        // Authenticate with wallet
         const authResult = await authenticate(wallet, walletId, args?.referralCode);
 
-        // Reset awaiting signature state
         setIsAwaitingSignature(false);
 
         if (authResult.user) {
-          // Authentication successful
           setUser(authResult.user);
           setSignatureDenied(false);
         } else if (authResult.error) {
-          // Check if error is due to signature denial
           const errorString = authResult.error.toLowerCase();
           if (["User rejected", "declined", "denied", "rejected"].some((str) => errorString.includes(str))) {
             setSignatureDenied(true);
-            // Disconnect wallet when signature is denied
             await logout();
           }
 
@@ -610,7 +601,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Combined auth state management - handles all auth-related effects in one place
   React.useEffect(() => {
-    // If authentication is disabled, do nothing
     if (!isAuthEnabled) {
       return;
     }
@@ -622,7 +612,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       if (event === "SIGNED_OUT") {
         setUser(null);
       } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        // Get current user data when signed in or token refreshed
         getCurrentUser()
           .then(({ user, error }) => {
             if (user && !error) {
@@ -641,7 +630,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Initial authentication check when wallet connects
     const checkAuth = async () => {
-      // Only proceed if wallet is connected and we don't have user data yet
       const isWalletConnected = Boolean(walletContextState.connected || (web3Auth?.connected && web3AuthWalletData));
       if (!isWalletConnected || !wallet.publicKey || user || isLoading || signatureDenied || wasLoggedOut) {
         return;
@@ -649,13 +637,11 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
       try {
         setIsLoading(true);
-        // Try to get current user from session
         const { user, error } = await getCurrentUser();
 
         if (user && !error) {
           setUser(user);
         } else if (!signatureDenied) {
-          // Only try to authenticate if signature wasn't previously denied
           await authenticateUser();
         }
       } catch (err) {
@@ -666,15 +652,12 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // Check auth when wallet connects
     checkAuth();
 
-    // Handle wallet disconnection
     const handleWalletDisconnection = async () => {
       const isWalletConnected = Boolean(walletContextState.connected || (web3Auth?.connected && web3AuthWalletData));
       if (!isWalletConnected && user) {
         try {
-          // Logout from auth when wallet disconnects
           const logoutResult = await logoutUser();
           if (!logoutResult.success && logoutResult.error) {
             console.error("Logout error:", logoutResult.error);
@@ -686,23 +669,17 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // Handle wallet disconnection
     handleWalletDisconnection();
 
-    // Handle signature denial
     if (signatureDenied && wallet.publicKey) {
-      // If signature was denied but wallet is still connected, disconnect it
       logout().catch((err) => {
         console.error("Error disconnecting after signature denial:", err);
       });
     }
-
-    // Update loading state based on authentication process
     if (isAwaitingSignature && !isLoading) {
       setIsLoading(true);
     }
 
-    // Clean up subscription on unmount
     return () => {
       subscription.unsubscribe();
     };
@@ -721,29 +698,27 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   ]);
 
   // Compute connected state based on both wallet connection and authentication
+  // If authentication is disabled, just return the wallet connection state
+  // If signature was denied, we consider the wallet as not connected
+  // When auth is enabled, only consider connected if user is authenticated
   const isConnected = React.useMemo(() => {
     const walletConnected = Boolean(walletContextState.connected || (web3Auth?.connected && web3AuthWalletData));
 
-    // If authentication is disabled, just return the wallet connection state
     if (!isAuthEnabled) {
       return walletConnected;
     }
 
-    // If signature was denied, we consider the wallet as not connected
     if (signatureDenied) {
       return false;
     }
 
-    // When auth is enabled, only consider connected if user is authenticated
     return walletConnected && user !== null;
   }, [walletContextState.connected, web3Auth?.connected, web3AuthWalletData, signatureDenied, user]);
 
   // set wallet context state depending on the wallet connection type
   React.useEffect(() => {
-    // const currentInfo = JSON.parse(localStorage.getItem("walletInfo") || "{}");
-
     if (web3Auth?.connected && web3AuthWalletData) {
-      setWalletContextState(makeCustomWalletContextState(web3AuthWalletData));
+      setWalletContextState(makeCustomWeb3AuthWalletContextState(web3AuthWalletData));
     } else if (walletContextStateDefault.connected) {
       if (walletContextStateDefault.wallet) {
         const walletInfo: WalletInfo = {
@@ -758,18 +733,15 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       setWalletContextState(walletContextStateDefault);
     }
 
-    // intentionally do not include walletContextState to avoid infinite re-renders
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [web3Auth?.connected, web3AuthWalletData, walletContextStateDefault.connected]);
 
-  // open wallet signup modal if onramp is true
   React.useEffect(() => {
     if (query.onramp) {
       setIsWalletSignUpOpen(true);
     }
   }, [query.onramp, setIsWalletSignUpOpen]);
 
-  // if web3auth is connected, fetch wallet data
   React.useEffect(() => {
     if (!web3Auth?.connected || !web3Auth?.provider || web3AuthWalletData) return;
     setIsLoading(true);
@@ -777,7 +749,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoading(false);
   }, [web3Auth?.connected, web3Auth?.provider, web3AuthWalletData, makeWeb3AuthWalletData]);
 
-  // initialize web3auth sdk on page load
   React.useEffect(() => {
     if (web3Auth) return;
     setIsLoading(true);
@@ -787,11 +758,9 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   // CUSTOM PHANTOM LOGIC - START
   // Set up Phantom wallet event handlers
   React.useEffect(() => {
-    // Only set up event handlers if custom connector is enabled
     if (!useCustomPhantomConnector) return;
 
     if (window?.phantom && window?.phantom?.solana) {
-      // Handle Phantom wallet connect event
       const handleConnect = () => {
         if (walletContextState.connected) return;
 
@@ -809,34 +778,26 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         window.localStorage.removeItem("phantomLogout");
       };
 
-      // Handle Phantom wallet disconnect event
       const handleDisconnect = () => {
         setWalletContextState(walletContextStateDefault);
       };
 
-      // Add event listeners
       window.phantom.solana.on("connect", handleConnect);
       window.phantom.solana.on("disconnect", handleDisconnect);
 
-      // Clean up event listeners on unmount
       return () => {
         window.phantom.solana.removeListener("connect", handleConnect);
         window.phantom.solana.removeListener("disconnect", handleDisconnect);
       };
     }
   }, [walletContextState.connected, walletContextStateDefault]);
-  // CUSTOM PHANTOM LOGIC - END
 
-  // CUSTOM PHANTOM LOGIC - START
   // Auto-connect to Phantom if it was the last used wallet
   React.useEffect(() => {
-    // Only run if custom connector is enabled
     if (!useCustomPhantomConnector) return;
 
-    // Get wallet info from localStorage
     const walletInfo = JSON.parse(localStorage.getItem("walletInfo") || "{}");
 
-    // If last wallet was Phantom and we're not already connected
     if (
       walletInfo?.name === "Phantom" &&
       window?.phantom &&
@@ -845,7 +806,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       !walletContextState.connected &&
       !window.localStorage.getItem("phantomLogout")
     ) {
-      // Try to auto-connect to Phantom with onlyIfTrusted to avoid prompts
       window.phantom.solana
         .connect({ onlyIfTrusted: true })
         .then(() => {
@@ -863,7 +823,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         })
         .catch((error: any) => {
           console.error("Auto-connect to Phantom failed:", error);
-          // Clear wallet info to prevent future auto-connect attempts
           localStorage.removeItem("walletInfo");
         });
     }
@@ -873,7 +832,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   // Set profile picture based on wallet
   React.useEffect(() => {
     if (walletContextState.connected && walletContextState.publicKey && !pfp) {
-      // Generate identicon for wallet adapter wallets
       setPfp(
         "data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(walletContextState.publicKey.toString() || "mrgn"))
       );
