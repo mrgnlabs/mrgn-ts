@@ -19,17 +19,14 @@ Wallet: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}
 `;
 }
 
-// Update the generateSignMessage function
 export async function generateSignMessage(walletAddress: string): Promise<SignMessagePayload> {
   const nonce = generateNonce();
   const timestamp = Date.now();
 
-  // Store the original data for verification
   const payload: SignMessagePayload = {
     nonce,
     walletAddress,
     timestamp,
-    // Store the formatted message for reference
     formattedMessage: createSignatureMessage(walletAddress),
   };
 
@@ -43,10 +40,7 @@ export function verifySignature(walletAddress: string, signature: Uint8Array | {
     // Handle both Phantom and standard wallet adapter signature formats
     const signatureBytes = "signature" in signature ? signature.signature : signature;
 
-    // Recreate the exact message string that was signed
     const messageString = createSignatureMessage(walletAddress);
-
-    // Encode the message string (not the JSON object)
     const messageBytes = new TextEncoder().encode(messageString);
 
     return nacl.sign.detached.verify(messageBytes, signatureBytes, publicKey.toBytes());

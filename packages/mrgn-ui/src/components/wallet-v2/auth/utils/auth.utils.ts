@@ -16,9 +16,6 @@ export async function login(payload: AuthPayload | LoginPayload) {
 
     const data = await response.json();
 
-    // Don't store token in localStorage for security reasons
-    // The token is already stored in an HttpOnly cookie by the server
-
     return data;
   } catch (error) {
     console.error("Login failed", error);
@@ -39,9 +36,6 @@ export async function signup(payload: SignupPayload) {
     });
 
     const data = await response.json();
-
-    // Don't store token in localStorage for security reasons
-    // The token is already stored in an HttpOnly cookie by the server
 
     return data;
   } catch (error) {
@@ -151,17 +145,6 @@ export async function authenticate(wallet: Wallet, walletId?: string, referralCo
   }
 }
 
-export async function getUser() {
-  const supabase = createBrowserSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  console.log("User1", user);
-
-  return user ? user.user_metadata : null;
-}
-
 export async function getCurrentUser(): Promise<{ user: AuthUser | null; error: any }> {
   try {
     const response = await fetch("/api/auth/user", {
@@ -203,10 +186,6 @@ export async function logout(): Promise<{ success: boolean; error?: string }> {
       return { success: false, error: errorData.error || `HTTP error ${response.status}` };
     }
 
-    // Clean up any localStorage items related to authentication
-    localStorage.removeItem("token");
-
-    // Sign out from Supabase client
     const supabase = createBrowserSupabaseClient();
     await supabase.auth.signOut();
 
@@ -220,7 +199,7 @@ export async function logout(): Promise<{ success: boolean; error?: string }> {
   }
 }
 
-const SALT = process.env.NEXT_PUBLIC_AUTH_PASSWORD_SALT || "marginfi-auth-salt"; // Ideally from env variables
+const SALT = process.env.NEXT_PUBLIC_AUTH_PASSWORD_SALT || "marginfi-auth-salt";
 
 export function generateDummyCredentials(walletAddress: string) {
   // Derive a deterministic password using SHA256 + salt

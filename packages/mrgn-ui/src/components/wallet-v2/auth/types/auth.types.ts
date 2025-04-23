@@ -7,12 +7,6 @@ export type AuthUser = {
   lastLogin?: string;
 };
 
-export type AuthResponse = {
-  user: AuthUser | null;
-  error: AuthError | null;
-  token?: string;
-};
-
 export type AuthError = {
   message: string;
   code: string;

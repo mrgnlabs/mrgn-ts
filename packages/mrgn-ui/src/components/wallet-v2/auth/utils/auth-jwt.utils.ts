@@ -17,7 +17,7 @@ export function generateToken(walletAddress: string): string {
   );
 }
 
-export function verifyToken(token: string, currentWalletAddress?: string): boolean {
+export function verifyToken(token: string, currentWalletAddress: string): boolean {
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as any;
 
