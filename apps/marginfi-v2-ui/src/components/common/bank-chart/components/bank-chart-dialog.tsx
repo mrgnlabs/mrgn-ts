@@ -21,9 +21,10 @@ type BankChartDialogProps = {
   symbol?: string;
   mintAddress?: string;
   trigger?: React.ReactNode;
+  tab?: "rates" | "tvl";
 };
 
-const BankChartDialog = ({ bankAddress, symbol, trigger, mintAddress }: BankChartDialogProps) => {
+const BankChartDialog = ({ bankAddress, symbol, trigger, mintAddress, tab = "tvl" }: BankChartDialogProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -49,7 +50,7 @@ const BankChartDialog = ({ bankAddress, symbol, trigger, mintAddress }: BankChar
           </DialogTitle>
           <DialogDescription>Total Deposits, borrows, and interest rates over the last 30 days.</DialogDescription>
         </DialogHeader>
-        <BankChart bankAddress={bankAddress} />
+        <BankChart bankAddress={bankAddress} tab={tab} />
       </DialogContent>
     </Dialog>
   );

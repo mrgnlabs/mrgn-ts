@@ -239,19 +239,31 @@ export const getRateCell = ({
         </div>
       )}
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
         <div className="flex justify-end">{percentFormatter.format(rateAPY)}</div>
         <div className="-mr-1">
-          <BankChartDialog
-            bankAddress={bankAddress.toBase58()}
-            symbol={symbol}
-            mintAddress={mintAddress.toBase58()}
-            trigger={
-              <Button size="sm" variant="ghost" className="h-5 w-5 p-0">
-                <IconChartAreaLineFilled size={16} className="text-muted-foreground" />
-              </Button>
-            }
-          />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <BankChartDialog
+                    bankAddress={bankAddress.toBase58()}
+                    symbol={symbol}
+                    mintAddress={mintAddress.toBase58()}
+                    tab="rates"
+                    trigger={
+                      <Button size="sm" variant="ghost" className="h-5 w-5 p-0">
+                        <IconChartAreaLineFilled size={16} className="text-muted-foreground" />
+                      </Button>
+                    }
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Interest rates over the last 30 days.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
     </div>
@@ -297,12 +309,12 @@ export const getDepositsCell = (depositsData: DepositsData) => {
   return (
     <div
       className={cn(
-        "flex flex-col items-end gap-0.5 text-foreground",
+        "flex flex-col items-end text-foreground",
         (depositsData.isReduceOnly || depositsData.isBankHigh) && "text-warning",
         depositsData.isBankFilled && "text-destructive-foreground"
       )}
     >
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
         {dynamicNumeralFormatter(depositsData.bankDeposits, {
           forceDecimals: true,
         })}
@@ -310,6 +322,30 @@ export const getDepositsCell = (depositsData: DepositsData) => {
         {(depositsData.isReduceOnly || depositsData.isBankHigh || depositsData.isBankFilled) && (
           <IconAlertTriangle size={14} />
         )}
+        <div className="-mr-1 mt-px">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <BankChartDialog
+                    bankAddress={depositsData.bankAddress.toBase58()}
+                    symbol={depositsData.symbol}
+                    mintAddress={depositsData.mintAddress.toBase58()}
+                    tab="tvl"
+                    trigger={
+                      <Button size="sm" variant="ghost" className="h-5 w-5 p-0">
+                        <IconChartAreaLineFilled size={16} className="text-muted-foreground" />
+                      </Button>
+                    }
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Total deposits / borrows over the last 30 days.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
 
       <p className="text-xs text-muted-foreground">

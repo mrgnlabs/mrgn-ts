@@ -66,10 +66,11 @@ const formatRate = (value: number) => `${value.toFixed(2)}%`;
 
 type BankChartProps = {
   bankAddress: string;
+  tab?: "rates" | "tvl";
 };
 
-const BankChart = ({ bankAddress }: BankChartProps) => {
-  const [showTVL, setShowTVL] = React.useState(false);
+const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
+  const [showTVL, setShowTVL] = React.useState(tab === "tvl");
   const { data, error, isLoading } = useBankChart(bankAddress);
 
   if (isLoading) {

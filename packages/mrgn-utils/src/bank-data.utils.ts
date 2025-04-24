@@ -86,6 +86,8 @@ export interface DepositsData {
   symbol: string;
   isInLendingMode: boolean;
   isStakedAsset: boolean;
+  bankAddress: PublicKey;
+  mintAddress: PublicKey;
 }
 
 export interface BankCapData {
@@ -313,6 +315,8 @@ export const getDepositsData = (bank: ExtendedBankInfo, isInLendingMode: boolean
     symbol: bank.meta.tokenSymbol,
     isInLendingMode,
     isStakedAsset,
+    bankAddress: bank.address,
+    mintAddress: bank.info.rawBank.mint,
   };
 };
 
