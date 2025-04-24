@@ -1,11 +1,11 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { STATUS_INTERNAL_ERROR, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { BankRatesResponse } from "~/components/common/bank-chart/types/bank-chart.types";
+import { loadBankMetadatas, loadTokenMetadatas } from "@mrgnlabs/mrgn-common";
+import { BankHistoricalDataResponse } from "~/components/common/bank-chart/types/bank-chart.types";
 
 // Filter to get one entry per day from the raw data
-const filterOneEntryPerDay = (data: BankRatesResponse["data"]) => {
-  const dailyEntries = new Map<string, BankRatesResponse["data"][0]>();
+const filterOneEntryPerDay = (data: BankHistoricalDataResponse["data"]) => {
+  const dailyEntries = new Map<string, BankHistoricalDataResponse["data"][0]>();
 
   // Sort by date ascending first to ensure we get the earliest entry of each day
   data
@@ -36,9 +36,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: "API configuration missing" });
     }
 
-    const apiUrl = `${process.env.MARGINFI_API_URL}/v1/base/bank-rates?bank_address=${bankAddress}`;
+    const bankMetadata = await loadBankMetadatas();
+    const bankMeta = bankMetadata[bankAddress];
 
-    const response = await fetch(apiUrl, {
+    if (!bankMeta) {
+      return res.status(404).json({ error: "Bank metadata not found" });
+    }
+
+    const pricefetch = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/tokens/price?tokenAddress=${bankMeta.tokenAddress}`
+    );
+    const priceData = await pricefetch.json();
+
+    if (!priceData) {
+      return res.status(404).json({ error: "Token price data not found" });
+    }
+
+    const response = await fetch(`${process.env.MARGINFI_API_URL}/v1/base/bank-rates?bank_address=${bankAddress}`, {
       headers: {
         "x-api-key": process.env.MARGINFI_API_KEY,
       },
@@ -46,24 +60,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      console.error("Error fetching bank rates:", {
+      console.error("Error fetching bank data:", {
         status: response.status,
         statusText: response.statusText,
         error: errorData,
       });
 
       return res.status(response.status).json({
-        error: "Error fetching bank rates",
+        error: "Error fetching bank data",
         details: errorData || response.statusText,
       });
     }
 
-    const data: BankRatesResponse = await response.json();
-    // Get one entry per day and take the last 30 days worth
+    const data: BankHistoricalDataResponse = await response.json();
     const filteredData = filterOneEntryPerDay(data.data).slice(-30);
-    return res.status(STATUS_OK).json(filteredData);
+
+    const formattedData = filteredData.map((entry) => ({
+      ...entry,
+      total_deposits: Number(entry.total_deposits) * priceData.value,
+      total_borrows: Number(entry.total_borrows) * priceData.value,
+    }));
+
+    return res.status(STATUS_OK).json(formattedData);
   } catch (error: any) {
-    console.error("Error in bank rates endpoint:", error);
+    console.error("Error in bank data endpoint:", error);
     return res.status(STATUS_INTERNAL_ERROR).json({ error: "Internal server error" });
   }
 }

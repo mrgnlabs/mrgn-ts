@@ -2,10 +2,20 @@
 
 import React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { IconLoader2 } from "@tabler/icons-react";
+
 import { useBankChart } from "./hooks/use-bank-chart.hook";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "~/components/ui/chart";
-import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "~/components/ui/chart";
+import { Skeleton } from "~/components/ui/skeleton";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
 // Use the same colors for both charts
 const chartColors = {
@@ -63,7 +73,12 @@ const BankChart = ({ bankAddress }: BankChartProps) => {
   const { data, error, isLoading } = useBankChart(bankAddress);
 
   if (isLoading) {
-    return <div>Loading bank rates...</div>;
+    return (
+      <Skeleton className="bg-background-gray-dark/30 w-[748px] h-[420px] mx-auto flex flex-col gap-2 items-center justify-center text-muted-foreground">
+        <IconLoader2 size={16} className="animate-spin" />
+        <p>Loading chart...</p>
+      </Skeleton>
+    );
   }
 
   if (error) {
@@ -87,22 +102,31 @@ const BankChart = ({ bankAddress }: BankChartProps) => {
   }));
 
   return (
-    <Card className="bg-transparent">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-xl">Bank Rate History</CardTitle>
-        <Button variant="outline" size="sm" onClick={() => setShowTVL(!showTVL)} className="text-sm font-medium">
-          {showTVL ? "Show Rates" : "Show TVL"}
-        </Button>
+    <Card className="bg-transparent border-none">
+      <CardHeader className="flex flex-col items-center justify-center pt-0 pb-4">
+        <CardTitle className="sr-only">Bank History</CardTitle>
+        <CardDescription className="sr-only">
+          Chart showing interest rates and total deposits and borrows over the last 30 days.
+        </CardDescription>
+        <ToggleGroup
+          type="single"
+          value={showTVL ? "tvl" : "rates"}
+          onValueChange={(value) => setShowTVL(value === "tvl")}
+          className="mb-4"
+        >
+          <ToggleGroupItem value="tvl">TVL</ToggleGroupItem>
+          <ToggleGroupItem value="rates">Rates</ToggleGroupItem>
+        </ToggleGroup>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
+        <ChartContainer config={chartConfig} className="bg-background p-6 rounded-lg">
           <AreaChart
             data={formattedData}
             margin={{
-              left: 12,
-              right: 12,
-              top: 12,
-              bottom: 12,
+              top: 24,
+              right: 24,
+              bottom: 6,
+              left: 0,
             }}
           >
             <CartesianGrid vertical={false} />
@@ -110,16 +134,17 @@ const BankChart = ({ bankAddress }: BankChartProps) => {
               dataKey="timestamp"
               tickLine={false}
               axisLine={false}
-              tickMargin={8}
+              tickMargin={12}
               tickFormatter={formatDate}
               interval="preserveStartEnd"
               minTickGap={50}
             />
-            <YAxis tickFormatter={formatValue} domain={["auto", "auto"]} hide={false} width={80} />
+            <YAxis tickFormatter={formatValue} domain={["auto", "auto"]} hide={false} width={80} tickMargin={12} />
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent labelFormatter={(label) => formatDate(label as string)} />}
             />
+            <ChartLegend content={<ChartLegendContent />} className="mt-6" />
             <defs>
               <linearGradient id="fillPrimary" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={chartColors.primary} stopOpacity={0.8} />
@@ -134,15 +159,6 @@ const BankChart = ({ bankAddress }: BankChartProps) => {
             {showTVL ? (
               <>
                 <Area
-                  dataKey="totalBorrows"
-                  type="monotone"
-                  fill="url(#fillSecondary)"
-                  fillOpacity={0.4}
-                  stroke={chartColors.secondary}
-                  strokeWidth={2}
-                  name="Total Borrows"
-                />
-                <Area
                   dataKey="totalDeposits"
                   type="monotone"
                   fill="url(#fillPrimary)"
@@ -151,18 +167,18 @@ const BankChart = ({ bankAddress }: BankChartProps) => {
                   strokeWidth={2}
                   name="Total Deposits"
                 />
-              </>
-            ) : (
-              <>
                 <Area
-                  dataKey="borrowRate"
+                  dataKey="totalBorrows"
                   type="monotone"
                   fill="url(#fillSecondary)"
                   fillOpacity={0.4}
                   stroke={chartColors.secondary}
                   strokeWidth={2}
-                  name="Borrow Rate"
+                  name="Total Borrows"
                 />
+              </>
+            ) : (
+              <>
                 <Area
                   dataKey="depositRate"
                   type="monotone"
@@ -171,6 +187,15 @@ const BankChart = ({ bankAddress }: BankChartProps) => {
                   stroke={chartColors.primary}
                   strokeWidth={2}
                   name="Deposit Rate"
+                />
+                <Area
+                  dataKey="borrowRate"
+                  type="monotone"
+                  fill="url(#fillSecondary)"
+                  fillOpacity={0.4}
+                  stroke={chartColors.secondary}
+                  strokeWidth={2}
+                  name="Borrow Rate"
                 />
               </>
             )}

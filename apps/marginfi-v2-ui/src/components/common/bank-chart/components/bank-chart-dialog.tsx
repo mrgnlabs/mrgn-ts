@@ -1,17 +1,29 @@
 "use client";
 
 import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "~/components/ui/dialog";
-import { BankChart } from "../bank-chart";
 import { IconChartLine } from "@tabler/icons-react";
+
+import { BankChart } from "../bank-chart";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
+import Image from "next/image";
+import { getTokenImageURL } from "~/mrgnUtils";
 
 type BankChartDialogProps = {
   bankAddress: string;
+  symbol?: string;
+  mintAddress?: string;
   trigger?: React.ReactNode;
 };
 
-const BankChartDialog = ({ bankAddress, trigger }: BankChartDialogProps) => {
+const BankChartDialog = ({ bankAddress, symbol, trigger, mintAddress }: BankChartDialogProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -21,9 +33,23 @@ const BankChartDialog = ({ bankAddress, trigger }: BankChartDialogProps) => {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className="w-full md:max-w-4xl bg-background-gray/95">
         <DialogHeader>
-          <DialogTitle>Bank Rate History</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            {mintAddress && (
+              <Image
+                src={getTokenImageURL(mintAddress)}
+                alt={symbol || "Bank"}
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
+            )}
+            {symbol || "Bank"} <span>Historical Data</span>
+          </DialogTitle>
+          <DialogDescription>
+            Chart showing interest rates and total deposits and borrows over the last 30 days.
+          </DialogDescription>
         </DialogHeader>
         <BankChart bankAddress={bankAddress} />
       </DialogContent>

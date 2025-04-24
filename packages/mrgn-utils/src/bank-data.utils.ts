@@ -44,6 +44,7 @@ export interface RateData {
   symbol: string;
   isInLendingMode: boolean;
   bankAddress: PublicKey;
+  mintAddress: PublicKey;
 }
 
 export interface AssetPriceData {
@@ -169,6 +170,7 @@ export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): R
     symbol: bank.meta.tokenSymbol,
     isInLendingMode,
     bankAddress: bank.address,
+    mintAddress: bank.info.rawBank.mint,
   };
 };
 

@@ -147,6 +147,7 @@ export const getRateCell = ({
   lendingRate,
   isInLendingMode,
   bankAddress,
+  mintAddress,
 }: RateData) => {
   return (
     <div className={cn("flex justify-end items-center gap-2", isInLendingMode ? "text-success" : "text-warning")}>
@@ -243,6 +244,8 @@ export const getRateCell = ({
         <div className="-mr-1">
           <BankChartDialog
             bankAddress={bankAddress.toBase58()}
+            symbol={symbol}
+            mintAddress={mintAddress.toBase58()}
             trigger={
               <Button size="sm" variant="ghost" className="h-5 w-5 p-0">
                 <IconChartAreaLineFilled size={16} className="text-muted-foreground" />
