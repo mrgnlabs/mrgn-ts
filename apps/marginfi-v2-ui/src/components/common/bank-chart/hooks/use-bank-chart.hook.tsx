@@ -1,10 +1,11 @@
 "use client";
 
 import React from "react";
-import { BankRate, UseBankRatesReturn } from "../types/bank-chart.types";
+import { BankRate, DailyAverages, UseBankRatesReturn } from "../types/bank-chart.types";
+import { filterDailyRates } from "../utils/bank-chart.utils";
 
 const useBankRates = (bankAddress: string): UseBankRatesReturn => {
-  const [data, setData] = React.useState<BankRate[] | null>(null);
+  const [data, setData] = React.useState<DailyAverages[] | null>(null);
   const [error, setError] = React.useState<Error | null>(null);
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
 
@@ -20,7 +21,8 @@ const useBankRates = (bankAddress: string): UseBankRatesReturn => {
         }
 
         const result: BankRate[] = await response.json();
-        setData(result);
+        const dailyRates = filterDailyRates(result);
+        setData(dailyRates);
       } catch (err) {
         setError(err instanceof Error ? err : new Error("Failed to fetch bank rates"));
       } finally {
@@ -35,4 +37,4 @@ const useBankRates = (bankAddress: string): UseBankRatesReturn => {
 };
 
 export { useBankRates };
-export type { BankRate };
+export type { DailyAverages };

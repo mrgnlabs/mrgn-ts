@@ -3,6 +3,23 @@ import { STATUS_INTERNAL_ERROR, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state
 
 import { BankRatesResponse } from "~/components/common/bank-chart/types/bank-chart.types";
 
+// Filter to get one entry per day from the raw data
+const filterOneEntryPerDay = (data: BankRatesResponse["data"]) => {
+  const dailyEntries = new Map<string, BankRatesResponse["data"][0]>();
+
+  // Sort by date ascending first to ensure we get the earliest entry of each day
+  data
+    .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
+    .forEach((entry) => {
+      const date = entry.time.split("T")[0];
+      if (!dailyEntries.has(date)) {
+        dailyEntries.set(date, entry);
+      }
+    });
+
+  return Array.from(dailyEntries.values());
+};
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -20,8 +37,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const apiUrl = `${process.env.MARGINFI_API_URL}/v1/base/bank-rates?bank_address=${bankAddress}`;
-
-    console.log("apiUrl", apiUrl);
 
     const response = await fetch(apiUrl, {
       headers: {
@@ -44,7 +59,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const data: BankRatesResponse = await response.json();
-    return res.status(STATUS_OK).json(data.data.slice(0, 86000));
+    // Get one entry per day and take the last 30 days worth
+    const filteredData = filterOneEntryPerDay(data.data).slice(-30);
+    return res.status(STATUS_OK).json(filteredData);
   } catch (error: any) {
     console.error("Error in bank rates endpoint:", error);
     return res.status(STATUS_INTERNAL_ERROR).json({ error: "Internal server error" });

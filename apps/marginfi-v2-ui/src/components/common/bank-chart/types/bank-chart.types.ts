@@ -10,10 +10,18 @@ type BankRatesResponse = {
   data: BankRate[];
 };
 
+type DailyAverages = {
+  timestamp: string;
+  borrowRate: number;
+  depositRate: number;
+  totalBorrows: number;
+  totalDeposits: number;
+};
+
 type UseBankRatesReturn = {
-  data: BankRate[] | null;
+  data: DailyAverages[] | null;
   error: Error | null;
   isLoading: boolean;
 };
 
-export type { BankRate, BankRatesResponse, UseBankRatesReturn };
+export type { BankRate, BankRatesResponse, DailyAverages, UseBankRatesReturn };
