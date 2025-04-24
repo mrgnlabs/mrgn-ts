@@ -9,7 +9,7 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, Emissions, StakePoolMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
 import { aprToApy, nativeToUi, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-
+import { PublicKey } from "@solana/web3.js";
 import { isBankOracleStale } from "./mrgnUtils";
 import BigNumber from "bignumber.js";
 
@@ -43,6 +43,7 @@ export interface RateData {
   rateAPY: number;
   symbol: string;
   isInLendingMode: boolean;
+  bankAddress: PublicKey;
 }
 
 export interface AssetPriceData {
@@ -167,6 +168,7 @@ export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): R
     rateAPY,
     symbol: bank.meta.tokenSymbol,
     isInLendingMode,
+    bankAddress: bank.address,
   };
 };
 

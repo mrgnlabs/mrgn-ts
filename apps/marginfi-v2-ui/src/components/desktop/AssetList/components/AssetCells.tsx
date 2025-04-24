@@ -11,7 +11,7 @@ import {
   shortenAddress,
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
-import { IconAlertTriangle, IconExternalLink, IconInfoCircle } from "@tabler/icons-react";
+import { IconAlertTriangle, IconExternalLink, IconInfoCircle, IconChartAreaLineFilled } from "@tabler/icons-react";
 
 import {
   AssetData,
@@ -36,6 +36,8 @@ import { Table } from "~/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { EmodePopover } from "~/components/common/emode/components/emode-popover";
 import { IconEmode } from "~/components/ui/icons";
+import { BankChartDialog } from "~/components/common/bank-chart/components/bank-chart-dialog";
+import { Button } from "~/components/ui/button";
 
 export const getAssetCell = (asset: AssetData) => {
   return (
@@ -144,6 +146,7 @@ export const getRateCell = ({
   emissionsRemaining,
   lendingRate,
   isInLendingMode,
+  bankAddress,
 }: RateData) => {
   return (
     <div className={cn("flex justify-end items-center gap-2", isInLendingMode ? "text-success" : "text-warning")}>
@@ -235,7 +238,18 @@ export const getRateCell = ({
         </div>
       )}
 
-      <div className="flex justify-end">{percentFormatter.format(rateAPY)}</div>
+      <div className="flex items-center gap-2">
+        <div className="flex justify-end">{percentFormatter.format(rateAPY)}</div>
+        {bankAddress.toBase58()}
+        <BankChartDialog
+          bankAddress={bankAddress.toBase58()}
+          trigger={
+            <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+              <IconChartAreaLineFilled size={16} className="text-muted-foreground" />
+            </Button>
+          }
+        />
+      </div>
     </div>
   );
 };
