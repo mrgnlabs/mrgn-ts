@@ -1,19 +1,13 @@
-import { BankRate, DailyAverages } from "../types/bank-chart.types";
+import { BankChartData, BankChartDataDailyAverages } from "../types/bank-chart.types";
 
-const getNoonTimestamp = (date: string) => {
-  const d = new Date(date);
-  d.setUTCHours(12, 0, 0, 0);
-  return d.getTime();
-};
-
-export const filterDailyRates = (data: BankRate[]): DailyAverages[] => {
+export const filterDailyRates = (data: BankChartData[]): BankChartDataDailyAverages[] => {
   // Get the current date and 30 days ago
   const now = new Date();
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(now.getDate() - 30);
 
   // Group entries by date (YYYY-MM-DD)
-  const dailyEntries = new Map<string, BankRate>();
+  const dailyEntries = new Map<string, BankChartData>();
 
   data
     // Filter out future dates and dates older than 30 days

@@ -40,6 +40,10 @@
 
     --radius: 0.5rem;
 
+    --mrgn-success: 130 33% 59%;
+    --mrgn-warning: 44 96% 44%;
+    --mrgn-error: 7 65% 66%;
+
     --mfi-action-box-background: 204 13% 10%;
     --mfi-action-box-background-dark: 180 5% 4%;
     --mfi-action-box-foreground: 0 0% 99%;

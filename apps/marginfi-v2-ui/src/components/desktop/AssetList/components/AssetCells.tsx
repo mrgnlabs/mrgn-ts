@@ -240,11 +240,11 @@ export const getRateCell = ({
 
       <div className="flex items-center gap-1">
         <div className="flex justify-end">{percentFormatter.format(rateAPY)}</div>
-        <div className="-mr-7">
+        <div className="-mr-1">
           <BankChartDialog
             bankAddress={bankAddress.toBase58()}
             trigger={
-              <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+              <Button size="sm" variant="ghost" className="h-5 w-5 p-0">
                 <IconChartAreaLineFilled size={16} className="text-muted-foreground" />
               </Button>
             }

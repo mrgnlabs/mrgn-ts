@@ -2,18 +2,36 @@
 
 import React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { useBankRates } from "./hooks/use-bank-chart.hook";
+import { useBankChart } from "./hooks/use-bank-chart.hook";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "~/components/ui/chart";
+import { Button } from "~/components/ui/button";
 
-const chartConfig = {
-  borrowRate: {
-    label: "Borrow Rate",
-    color: "hsl(var(--mfi-stake-calculator-chart-1))",
-  },
+// Use the same colors for both charts
+const chartColors = {
+  primary: "hsl(var(--mrgn-success))",
+  secondary: "hsl(var(--mrgn-warning))",
+} as const;
+
+const ratesChartConfig = {
   depositRate: {
     label: "Deposit Rate",
-    color: "hsl(var(--mfi-stake-calculator-chart-2))",
+    color: chartColors.primary,
+  },
+  borrowRate: {
+    label: "Borrow Rate",
+    color: chartColors.secondary,
+  },
+} satisfies ChartConfig;
+
+const tvlChartConfig = {
+  totalDeposits: {
+    label: "Total Deposits",
+    color: chartColors.primary,
+  },
+  totalBorrows: {
+    label: "Total Borrows",
+    color: chartColors.secondary,
   },
 } satisfies ChartConfig;
 
@@ -25,12 +43,24 @@ const formatDate = (dateStr: string) => {
   });
 };
 
+const formatTVL = (value: number) => {
+  if (value >= 1_000_000) {
+    return `$${(value / 1_000_000).toFixed(2)}M`;
+  } else if (value >= 1_000) {
+    return `$${(value / 1_000).toFixed(2)}K`;
+  }
+  return `$${value.toFixed(2)}`;
+};
+
+const formatRate = (value: number) => `${value.toFixed(2)}%`;
+
 type BankChartProps = {
   bankAddress: string;
 };
 
 const BankChart = ({ bankAddress }: BankChartProps) => {
-  const { data, error, isLoading } = useBankRates(bankAddress);
+  const [showTVL, setShowTVL] = React.useState(false);
+  const { data, error, isLoading } = useBankChart(bankAddress);
 
   if (isLoading) {
     return <div>Loading bank rates...</div>;
@@ -44,15 +74,30 @@ const BankChart = ({ bankAddress }: BankChartProps) => {
     return <div>No data available</div>;
   }
 
+  const chartConfig = showTVL ? tvlChartConfig : ratesChartConfig;
+  const formatValue = showTVL ? formatTVL : formatRate;
+
+  // Transform the data to include formatted values
+  const formattedData = data.map((item) => ({
+    ...item,
+    formattedBorrowRate: formatRate(item.borrowRate),
+    formattedDepositRate: formatRate(item.depositRate),
+    formattedTotalBorrows: formatTVL(item.totalBorrows),
+    formattedTotalDeposits: formatTVL(item.totalDeposits),
+  }));
+
   return (
     <Card className="bg-transparent">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-xl">Bank Rate History</CardTitle>
+        <Button variant="outline" size="sm" onClick={() => setShowTVL(!showTVL)} className="text-sm font-medium">
+          {showTVL ? "Show Rates" : "Show TVL"}
+        </Button>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
           <AreaChart
-            data={data}
+            data={formattedData}
             margin={{
               left: 12,
               right: 12,
@@ -70,36 +115,65 @@ const BankChart = ({ bankAddress }: BankChartProps) => {
               interval="preserveStartEnd"
               minTickGap={50}
             />
-            <YAxis tickFormatter={(value: number) => `${value.toFixed(2)}%`} domain={["auto", "auto"]} hide={false} />
+            <YAxis tickFormatter={formatValue} domain={["auto", "auto"]} hide={false} width={80} />
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent labelFormatter={(label) => formatDate(label as string)} />}
             />
             <defs>
-              <linearGradient id="fillBorrowRate" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-borrowRate)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--color-borrowRate)" stopOpacity={0.1} />
+              <linearGradient id="fillPrimary" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={chartColors.primary} stopOpacity={0.8} />
+                <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0.1} />
               </linearGradient>
-              <linearGradient id="fillDepositRate" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-depositRate)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--color-depositRate)" stopOpacity={0.1} />
+              <linearGradient id="fillSecondary" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={chartColors.secondary} stopOpacity={0.8} />
+                <stop offset="95%" stopColor={chartColors.secondary} stopOpacity={0.1} />
               </linearGradient>
             </defs>
 
-            <Area
-              dataKey="borrowRate"
-              type="monotone"
-              fill="url(#fillBorrowRate)"
-              fillOpacity={0.4}
-              stroke="var(--color-borrowRate)"
-            />
-            <Area
-              dataKey="depositRate"
-              type="monotone"
-              fill="url(#fillDepositRate)"
-              fillOpacity={0.4}
-              stroke="var(--color-depositRate)"
-            />
+            {showTVL ? (
+              <>
+                <Area
+                  dataKey="totalBorrows"
+                  type="monotone"
+                  fill="url(#fillSecondary)"
+                  fillOpacity={0.4}
+                  stroke={chartColors.secondary}
+                  strokeWidth={2}
+                  name="Total Borrows"
+                />
+                <Area
+                  dataKey="totalDeposits"
+                  type="monotone"
+                  fill="url(#fillPrimary)"
+                  fillOpacity={0.4}
+                  stroke={chartColors.primary}
+                  strokeWidth={2}
+                  name="Total Deposits"
+                />
+              </>
+            ) : (
+              <>
+                <Area
+                  dataKey="borrowRate"
+                  type="monotone"
+                  fill="url(#fillSecondary)"
+                  fillOpacity={0.4}
+                  stroke={chartColors.secondary}
+                  strokeWidth={2}
+                  name="Borrow Rate"
+                />
+                <Area
+                  dataKey="depositRate"
+                  type="monotone"
+                  fill="url(#fillPrimary)"
+                  fillOpacity={0.4}
+                  stroke={chartColors.primary}
+                  strokeWidth={2}
+                  name="Deposit Rate"
+                />
+              </>
+            )}
           </AreaChart>
         </ChartContainer>
       </CardContent>

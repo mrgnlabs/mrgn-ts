@@ -1,4 +1,4 @@
-type BankRate = {
+type BankChartData = {
   borrow_rate_pct: string;
   deposit_rate_pct: string;
   time: string;
@@ -6,11 +6,11 @@ type BankRate = {
   total_deposits: string;
 };
 
-type BankRatesResponse = {
-  data: BankRate[];
+type BankHistoricalDataResponse = {
+  data: BankChartData[];
 };
 
-type DailyAverages = {
+type BankChartDataDailyAverages = {
   timestamp: string;
   borrowRate: number;
   depositRate: number;
@@ -19,9 +19,9 @@ type DailyAverages = {
 };
 
 type UseBankRatesReturn = {
-  data: DailyAverages[] | null;
+  data: BankChartDataDailyAverages[] | null;
   error: Error | null;
   isLoading: boolean;
 };
 
-export type { BankRate, BankRatesResponse, DailyAverages, UseBankRatesReturn };
+export type { BankChartData, BankHistoricalDataResponse, BankChartDataDailyAverages, UseBankRatesReturn };

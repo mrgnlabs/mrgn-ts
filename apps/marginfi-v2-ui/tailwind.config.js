@@ -45,9 +45,9 @@ module.exports = {
       colors: {
         "usd-equiv": "rgba(113, 119, 126, 0.3)",
         "btn-light": "rgb(227, 227, 227)",
-        success: "#75ba80",
-        warning: "#daa204",
-        error: "#e07d6f",
+        success: "hsl(var(--mrgn-success))",
+        warning: "hsl(var(--mrgn-warning))",
+        error: "hsl(var(--mrgn-error))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -59,9 +59,9 @@ module.exports = {
         foreground: "hsl(var(--foreground))",
         chartreuse: "#DCE85D",
         mrgn: {
-          success: "#75ba80",
-          warning: "#daa204",
-          error: "#e07d6f",
+          success: "hsl(var(--mrgn-success))",
+          warning: "hsl(var(--mrgn-warning))",
+          error: "hsl(var(--mrgn-error))",
         },
         primary: {
           DEFAULT: "hsl(var(--primary))",
