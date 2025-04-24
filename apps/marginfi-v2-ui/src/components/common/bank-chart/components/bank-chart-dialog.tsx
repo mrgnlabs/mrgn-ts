@@ -47,9 +47,7 @@ const BankChartDialog = ({ bankAddress, symbol, trigger, mintAddress }: BankChar
             )}
             {symbol || "Bank"} <span>Historical Data</span>
           </DialogTitle>
-          <DialogDescription>
-            Chart showing interest rates and total deposits and borrows over the last 30 days.
-          </DialogDescription>
+          <DialogDescription>Total Deposits, borrows, and interest rates over the last 30 days.</DialogDescription>
         </DialogHeader>
         <BankChart bankAddress={bankAddress} />
       </DialogContent>
