@@ -75,7 +75,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
 
   if (isLoading) {
     return (
-      <Skeleton className="bg-background-gray-dark/30 w-[748px] h-[420px] mx-auto flex flex-col gap-2 items-center justify-center text-muted-foreground">
+      <Skeleton className="bg-muted/50 w-[100%] h-[435px] mx-auto flex flex-col gap-2 items-center justify-center text-muted-foreground">
         <IconLoader2 size={16} className="animate-spin" />
         <p>Loading chart...</p>
       </Skeleton>
@@ -104,18 +104,18 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
 
   return (
     <Card className="bg-transparent border-none">
-      <CardHeader className="flex flex-col items-center justify-center pt-0">
-        <CardTitle className="sr-only">Bank History</CardTitle>
-        <CardDescription className="sr-only">
+      <CardHeader className="sr-only">
+        <CardTitle>Bank History</CardTitle>
+        <CardDescription>
           Chart showing interest rates and total deposits and borrows over the last 30 days.
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-0 space-y-4">
+      <CardContent className="p-3 rounded-lg space-y-4 relative bg-background-gray">
         <ToggleGroup
           type="single"
           value={showTVL ? "tvl" : "rates"}
           onValueChange={(value) => setShowTVL(value === "tvl")}
-          className="mb-4"
+          className="justify-start absolute right-3 z-20"
         >
           <ToggleGroupItem value="tvl">TVL</ToggleGroupItem>
           <ToggleGroupItem value="rates">Rates</ToggleGroupItem>

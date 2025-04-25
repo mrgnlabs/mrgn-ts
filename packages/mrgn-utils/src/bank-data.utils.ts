@@ -16,6 +16,7 @@ import BigNumber from "bignumber.js";
 export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 
 export interface AssetData {
+  address: PublicKey;
   symbol: string;
   name: string;
   image: string;
@@ -128,6 +129,7 @@ export const getAssetData = (
   }[]
 ): AssetData => {
   return {
+    address: bank.address,
     symbol: bank.meta.tokenSymbol,
     name: bank.meta.tokenName,
     image: bank.meta.tokenLogoUri,

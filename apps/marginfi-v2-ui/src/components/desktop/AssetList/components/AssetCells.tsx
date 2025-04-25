@@ -42,10 +42,8 @@ import { Button } from "~/components/ui/button";
 export const getAssetCell = (asset: AssetData) => {
   return (
     <div className="flex gap-2 justify-start items-center">
-      <div className="flex items-center gap-4">
-        <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
-        <div>{asset.symbol}</div>
-      </div>
+      <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
+      <div>{asset.symbol}</div>
     </div>
   );
 };
@@ -357,76 +355,6 @@ export const getDepositsCell = (depositsData: DepositsData) => {
     </div>
   );
 };
-
-// export const getDepositsCell = (depositsData: DepositsData) => {
-//   return (
-//     <TooltipProvider>
-//       <Tooltip>
-//         <TooltipTrigger asChild>
-//           <span
-//             className={cn(
-//               "flex items-center justify-end gap-1.5 text-white",
-//               (depositsData.isReduceOnly || depositsData.isBankHigh) && "text-warning",
-//               depositsData.isBankFilled && "text-destructive-foreground"
-//             )}
-//           >
-//             {depositsData.denominationUSD && "$"}
-//             {dynamicNumeralFormatter(depositsData.bankDeposits, {
-//               forceDecimals: true,
-//             })}
-
-//             {(depositsData.isReduceOnly || depositsData.isBankHigh || depositsData.isBankFilled) && (
-//               <IconAlertTriangle size={14} />
-//             )}
-//           </span>
-//         </TooltipTrigger>
-//         <TooltipContent className="text-left">
-//           {depositsData.isStakedAsset && !depositsData.isInLendingMode ? (
-//             <div>
-//               <span>Native stake can only be deposited at this time.</span>
-//             </div>
-//           ) : (
-//             <>
-//               <div>
-//                 {depositsData.isReduceOnly
-//                   ? "Reduce Only"
-//                   : depositsData.isBankHigh && (depositsData.isBankFilled ? "Limit Reached" : "Approaching Limit")}
-//               </div>
-
-//               {depositsData.isReduceOnly ? (
-//                 <span>{depositsData.symbol} is being discontinued.</span>
-//               ) : (
-//                 <>
-//                   <span>
-//                     {depositsData.symbol} {depositsData.isInLendingMode ? "deposits" : "borrows"} are at{" "}
-//                     {percentFormatterMod(depositsData.capacity, {
-//                       minFractionDigits: 0,
-//                       maxFractionDigits:
-//                         depositsData.isBankHigh && !depositsData.isBankFilled && depositsData.capacity >= 0.99 ? 4 : 2,
-//                     })}{" "}
-//                     capacity.
-//                   </span>
-//                   {!depositsData.isBankFilled && (
-//                     <>
-//                       <br />
-//                       <br />
-//                       <span>Available: {numeralFormatter(depositsData.available)}</span>
-//                     </>
-//                   )}
-//                 </>
-//               )}
-//               <br />
-//               <br />
-//               <a href="https://docs.marginfi.com">
-//                 <u>Learn more.</u>
-//               </a>
-//             </>
-//           )}
-//         </TooltipContent>
-//       </Tooltip>
-//     </TooltipProvider>
-//   );
-// };
 
 export const getBankCapCell = ({ bankCap, bankCapUsd }: BankCapData) => (
   <div className="flex flex-col items-end gap-0.5 text-foreground">

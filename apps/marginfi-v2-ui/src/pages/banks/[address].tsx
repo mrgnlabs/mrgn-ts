@@ -1,17 +1,25 @@
 import React from "react";
 import { useRouter } from "next/router";
+import Image from "next/image";
 import Error from "next/error";
 
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { LendingModes } from "@mrgnlabs/mrgn-utils";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { BankChart } from "~/components/common/bank-chart/bank-chart";
+import { ActionType, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
+import {
+  aprToApy,
+  usdFormatter,
+  numeralFormatter,
+  percentFormatter,
+  dynamicNumeralFormatter,
+} from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 
+import { BankChart } from "~/components/common/bank-chart/bank-chart";
 import { Loader } from "~/components/ui/loader";
-import Image from "next/image";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 
 export default function BankPage() {
   const router = useRouter();
@@ -27,6 +35,99 @@ export default function BankPage() {
 
   const bank = extendedBankInfos.find((bank) => bank.address.toBase58() === address);
 
+  const bankData = React.useMemo(() => {
+    if (!bank) {
+      return null;
+    }
+
+    const assetWeightInit = bank.info.rawBank
+      .getAssetWeight(MarginRequirementType.Initial, bank.info.oraclePrice)
+      .toNumber();
+
+    let lendingRate = bank.info.state.lendingRate;
+    let borrowingRate = bank.info.state.borrowingRate;
+
+    if (bank.info.state.emissions == Emissions.Lending) {
+      lendingRate += bank.info.state.emissionsRate;
+    }
+
+    if (bank.info.state.emissions == Emissions.Borrowing) {
+      borrowingRate += bank.info.state.emissionsRate;
+    }
+
+    return {
+      totalDeposits: bank.info.state.totalDeposits,
+      totalDepositsUsd: bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber(),
+      totalBorrows: Math.min(
+        bank.info.state.availableLiquidity,
+        bank.info.state.borrowCap - bank.info.state.totalBorrows
+      ),
+      totalBorrowsUsd:
+        Math.min(bank.info.state.availableLiquidity, bank.info.state.borrowCap - bank.info.state.totalBorrows) *
+        bank.info.oraclePrice.priceRealtime.price.toNumber(),
+      utilization: bank.info.state.utilizationRate / 100,
+      weight: assetWeightInit <= 0 ? 0 : assetWeightInit,
+      ltv: 1 / bank.info.rawBank.config.liabilityWeightInit.toNumber(),
+      lendingRate: aprToApy(lendingRate) * 100,
+      borrowingRate: aprToApy(borrowingRate) * 100,
+    };
+  }, [bank]);
+
+  const stats = React.useMemo(
+    () => [
+      {
+        title: "Total Deposits",
+        description: "Total deposits in the bank",
+        value: (
+          <>
+            <span>{dynamicNumeralFormatter(bankData?.totalDeposits || 0)}</span>
+            <span className="text-muted-foreground ml-2 text-base">
+              (${dynamicNumeralFormatter(bankData?.totalDepositsUsd || 0)})
+            </span>
+          </>
+        ),
+      },
+      {
+        title: "Total Borrows",
+        description: "Total borrows in the bank",
+        value: (
+          <>
+            <span>{dynamicNumeralFormatter(bankData?.totalBorrows || 0)}</span>
+            <span className="text-muted-foreground ml-2 text-base">
+              (${dynamicNumeralFormatter(bankData?.totalBorrowsUsd || 0)})
+            </span>
+          </>
+        ),
+      },
+      {
+        title: "Utilization",
+        description: "Utilization of the bank",
+        value: `${percentFormatter.format(bankData?.utilization || 0)}`,
+      },
+      {
+        title: "Weight",
+        description: "Weight of the bank",
+        value: bankData?.weight ? `${percentFormatter.format(bankData.weight)}` : 0,
+      },
+      {
+        title: "LTV",
+        description: "LTV of the bank",
+        value: bankData?.ltv ? `${percentFormatter.format(bankData.ltv)}` : 0,
+      },
+      {
+        title: "Rates",
+        description: "Interest rates of the bank",
+        value: (
+          <div className="flex items-center justify-center gap-2 text-2xl">
+            <span className="text-mrgn-success">{numeralFormatter(bankData?.lendingRate || 0)}%</span>/
+            <span className="text-mrgn-warning">{numeralFormatter(bankData?.borrowingRate || 0)}%</span>
+          </div>
+        ),
+      },
+    ],
+    [bankData]
+  );
+
   if (!initialized) {
     return <Loader label="Loading bank..." />;
   }
@@ -40,38 +141,61 @@ export default function BankPage() {
   }
 
   return (
-    <div className="w-full space-y-4 max-w-8xl mx-auto">
-      <header className="py-4">
-        <h1 className="flex items-center gap-3 text-4xl font-medium">
+    <div className="w-full space-y-8 max-w-8xl mx-auto pb-32">
+      <header className="flex items-start justify-between gap-8 py-4">
+        <h1 className="flex items-center gap-3 text-4xl font-medium w-1/2">
           <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} width={48} height={48} />
-          {bank.meta.tokenSymbol} Bank
+          {bank.meta.tokenSymbol}
         </h1>
+        {stats.length > 0 && (
+          <div className="w-full grid grid-cols-2 gap-6 md:grid-cols-3">
+            {stats.map((stat) => (
+              <Stat key={stat.title} title={stat.title} description={stat.description} value={stat.value} />
+            ))}
+          </div>
+        )}
       </header>
       <div className="w-full grid md:grid-cols-12 gap-8">
         <div className="md:col-span-8">
           <BankChart bankAddress={bank.address.toBase58()} />
         </div>
-        <div className="md:col-span-4">
-          <div className="p-4 space-y-4 w-full">
-            <ActionBox.BorrowLend
-              useProvider={true}
-              lendProps={{
-                requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
-                connected,
-                walletContextState,
-                requestedBank: bank,
-                showTokenSelection: false,
-                captureEvent: (event, properties) => {
-                  // capture(event, properties);
-                },
-                onComplete: () => {
-                  fetchMrgnlendState();
-                },
-              }}
-            />
-          </div>
+        <div className="md:col-span-4 pt-0">
+          <ActionBox.BorrowLend
+            useProvider={true}
+            lendProps={{
+              requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
+              connected,
+              walletContextState,
+              requestedBank: bank,
+              showTokenSelection: false,
+              captureEvent: (event, properties) => {
+                // capture(event, properties);
+              },
+              onComplete: () => {
+                fetchMrgnlendState();
+              },
+            }}
+          />
         </div>
       </div>
     </div>
   );
 }
+
+type StatProps = {
+  title: string;
+  description: string;
+  value?: string | number | React.ReactNode;
+};
+
+const Stat = ({ title, description, value }: StatProps) => {
+  return (
+    <Card className="w-full bg-background-gray">
+      <CardHeader className="items-center text-muted-foreground">
+        <CardTitle className="font-normal">{title}</CardTitle>
+        <CardDescription className="sr-only">{description}</CardDescription>
+      </CardHeader>
+      <CardContent>{value && <div className="text-3xl text-center">{value}</div>}</CardContent>
+    </Card>
+  );
+};
