@@ -4,7 +4,7 @@ import React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { IconLoader2 } from "@tabler/icons-react";
 
-import { useBankChart } from "./hooks/use-bank-chart.hook";
+import { useBankChart } from "../hooks/use-bank-chart.hook";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   ChartConfig,

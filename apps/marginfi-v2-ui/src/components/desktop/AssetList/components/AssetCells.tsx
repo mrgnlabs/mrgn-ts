@@ -36,7 +36,7 @@ import { Table } from "~/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { EmodePopover } from "~/components/common/emode/components/emode-popover";
 import { IconEmode } from "~/components/ui/icons";
-import { BankChartDialog } from "~/components/common/bank-chart/components/bank-chart-dialog";
+import { BankChartDialog } from "~/components/common/bank/components/bank-chart-dialog";
 import { Button } from "~/components/ui/button";
 
 export const getAssetCell = (asset: AssetData) => {

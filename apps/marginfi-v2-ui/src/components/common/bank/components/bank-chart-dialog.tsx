@@ -3,7 +3,7 @@
 import React from "react";
 import { IconChartLine } from "@tabler/icons-react";
 
-import { BankChart } from "../bank-chart";
+import { BankChart } from "./bank-chart";
 import {
   Dialog,
   DialogContent,

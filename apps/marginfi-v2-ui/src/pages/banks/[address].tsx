@@ -4,7 +4,7 @@ import Image from "next/image";
 import Error from "next/error";
 
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
-import { LendingModes } from "@mrgnlabs/mrgn-utils";
+import { LendingModes, getAssetPriceData } from "@mrgnlabs/mrgn-utils";
 import { ActionType, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 import {
@@ -13,13 +13,16 @@ import {
   numeralFormatter,
   percentFormatter,
   dynamicNumeralFormatter,
+  shortenAddress,
 } from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 
-import { BankChart } from "~/components/common/bank-chart/bank-chart";
+import { BankChart, BankShare } from "~/components/common/bank/components";
 import { Loader } from "~/components/ui/loader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import { IconSwitchboard, IconPyth } from "~/components/ui/icons";
+import Link from "next/link";
 
 export default function BankPage() {
   const router = useRouter();
@@ -34,6 +37,14 @@ export default function BankPage() {
   const { connected, walletContextState } = useWallet();
 
   const bank = extendedBankInfos.find((bank) => bank.address.toBase58() === address);
+
+  const assetPriceData = React.useMemo(() => {
+    if (!bank) {
+      return null;
+    }
+
+    return getAssetPriceData(bank);
+  }, [bank]);
 
   const bankData = React.useMemo(() => {
     if (!bank) {
@@ -142,11 +153,49 @@ export default function BankPage() {
 
   return (
     <div className="w-full space-y-8 max-w-8xl mx-auto pb-32">
-      <header className="flex items-start justify-between gap-8 py-4">
-        <h1 className="flex items-center gap-3 text-4xl font-medium w-1/2">
-          <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} width={48} height={48} />
-          {bank.meta.tokenSymbol}
-        </h1>
+      <header className="flex items-center justify-between gap-8 pb-4">
+        <div className="flex flex-col items-center w-1/2">
+          <h1 className="flex items-center gap-3 text-4xl font-medium">
+            <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} width={48} height={48} />
+            {bank.meta.tokenSymbol}
+          </h1>
+          <BankShare bank={bank} />
+          <ul className="flex flex-col gap-2 text-sm items-center text-muted-foreground mt-6">
+            <li>
+              <span>Bank:</span>{" "}
+              <Link
+                href={`https://solscan.io/account/${bank.address.toBase58()}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground"
+              >
+                {shortenAddress(bank.address.toBase58())}
+              </Link>
+            </li>
+            <li>
+              <span>Mint:</span>{" "}
+              <Link
+                href={`https://solscan.io/token/${bank.info.rawBank.mint.toBase58()}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground"
+              >
+                {shortenAddress(bank.info.rawBank.mint.toBase58())}
+              </Link>
+            </li>
+            <li>
+              <span>Price:</span>{" "}
+              <span className="text-foreground">
+                {usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())}
+              </span>
+              {assetPriceData && assetPriceData.oracle === "Pyth" ? (
+                <IconPyth size={14} className="inline ml-1" />
+              ) : assetPriceData && assetPriceData.oracle === "Switchboard" ? (
+                <IconSwitchboard size={14} className="inline ml-1" />
+              ) : null}
+            </li>
+          </ul>
+        </div>
         {stats.length > 0 && (
           <div className="w-full grid grid-cols-2 gap-6 md:grid-cols-3">
             {stats.map((stat) => (

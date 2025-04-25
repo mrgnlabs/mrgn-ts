@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { STATUS_INTERNAL_ERROR, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
 import { loadBankMetadatas, loadTokenMetadatas } from "@mrgnlabs/mrgn-common";
-import { BankHistoricalDataResponse } from "~/components/common/bank-chart/types/bank-chart.types";
+import { BankHistoricalDataResponse } from "~/components/common/bank/types/bank-chart.types";
 
 export const MAX_DURATION = 60;
 
