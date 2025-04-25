@@ -104,11 +104,13 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
 
   return (
     <Card className="bg-transparent border-none">
-      <CardHeader className="flex flex-col items-center justify-center pt-0 pb-4">
+      <CardHeader className="flex flex-col items-center justify-center pt-0">
         <CardTitle className="sr-only">Bank History</CardTitle>
         <CardDescription className="sr-only">
           Chart showing interest rates and total deposits and borrows over the last 30 days.
         </CardDescription>
+      </CardHeader>
+      <CardContent className="p-0 space-y-4">
         <ToggleGroup
           type="single"
           value={showTVL ? "tvl" : "rates"}
@@ -118,9 +120,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
           <ToggleGroupItem value="tvl">TVL</ToggleGroupItem>
           <ToggleGroupItem value="rates">Rates</ToggleGroupItem>
         </ToggleGroup>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="bg-background p-6 rounded-lg">
+        <ChartContainer config={chartConfig} className="p-0">
           <AreaChart
             data={formattedData}
             margin={{
