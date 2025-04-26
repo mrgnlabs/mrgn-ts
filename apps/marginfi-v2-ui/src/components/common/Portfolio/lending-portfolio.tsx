@@ -19,7 +19,7 @@ import { Loader } from "~/components/ui/loader";
 
 import { RewardsDialog } from "./components/rewards";
 
-import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats } from "./components";
+import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats, PortfolioChart } from "./components";
 import { RewardsType } from "./types";
 import { useRewardSimulation } from "./hooks";
 import { EmodePortfolio } from "~/components/common/emode/components";
