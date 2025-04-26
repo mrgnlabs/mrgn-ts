@@ -16,6 +16,7 @@ import {
 } from "~/components/ui/chart";
 import { Skeleton } from "~/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
+import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common/dist/utils/formatters.utils";
 
 // Use the same colors for both charts
 const chartColors = {
@@ -53,17 +54,6 @@ const formatDate = (dateStr: string) => {
   });
 };
 
-const formatTVL = (value: number) => {
-  if (value >= 1_000_000) {
-    return `$${(value / 1_000_000).toFixed(2)}M`;
-  } else if (value >= 1_000) {
-    return `$${(value / 1_000).toFixed(2)}K`;
-  }
-  return `$${value.toFixed(2)}`;
-};
-
-const formatRate = (value: number) => `${value.toFixed(2)}%`;
-
 type BankChartProps = {
   bankAddress: string;
   tab?: "rates" | "tvl";
@@ -91,15 +81,15 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
   }
 
   const chartConfig = showTVL ? tvlChartConfig : ratesChartConfig;
-  const formatValue = showTVL ? formatTVL : formatRate;
+  const formatValue = showTVL ? dynamicNumeralFormatter : percentFormatter.format;
 
   // Transform the data to include formatted values
   const formattedData = data.map((item) => ({
     ...item,
-    formattedBorrowRate: formatRate(item.borrowRate),
-    formattedDepositRate: formatRate(item.depositRate),
-    formattedTotalBorrows: formatTVL(item.totalBorrows),
-    formattedTotalDeposits: formatTVL(item.totalDeposits),
+    formattedBorrowRate: percentFormatter.format(item.borrowRate),
+    formattedDepositRate: percentFormatter.format(item.depositRate),
+    formattedTotalBorrows: dynamicNumeralFormatter(item.totalBorrows),
+    formattedTotalDeposits: dynamicNumeralFormatter(item.totalDeposits),
   }));
 
   return (
@@ -140,7 +130,13 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
               interval="preserveStartEnd"
               minTickGap={50}
             />
-            <YAxis tickFormatter={formatValue} domain={["auto", "auto"]} hide={false} width={80} tickMargin={12} />
+            <YAxis
+              tickFormatter={(value) => `$${formatValue(value)}`}
+              domain={[0, "auto"]}
+              hide={false}
+              width={80}
+              tickMargin={12}
+            />
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent labelFormatter={(label) => formatDate(label as string)} />}

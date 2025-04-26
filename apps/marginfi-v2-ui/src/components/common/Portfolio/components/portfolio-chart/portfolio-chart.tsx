@@ -1,24 +1,41 @@
 "use client";
 
-import { numeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common/dist/utils/formatters.utils";
+import {
+  dynamicNumeralFormatter,
+  numeralFormatter,
+  usdFormatter,
+} from "@mrgnlabs/mrgn-common/dist/utils/formatters.utils";
 import React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
 import { Card, CardContent } from "~/components/ui/card";
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "~/components/ui/chart";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "~/components/ui/chart";
 
 type PortfolioChartProps = {
-  value: number;
+  deposits: number;
+  borrows: number;
 };
 
 const chartColors = {
-  primary: "hsl(198.6 88.7% 48.4%)",
+  primary: "hsl(var(--mrgn-success))",
+  secondary: "hsl(var(--mrgn-warning))",
 } as const;
 
 const chartConfig = {
-  value: {
-    label: "Portfolio Value",
+  deposits: {
+    label: "Supplied",
     color: chartColors.primary,
+  },
+  borrows: {
+    label: "Borrowed",
+    color: chartColors.secondary,
   },
 } satisfies ChartConfig;
 
@@ -30,34 +47,41 @@ const formatDate = (dateStr: string) => {
   });
 };
 
-const generateMockData = (currentValue: number) => {
+const generateMockData = (deposits: number, borrows: number) => {
   const data = [];
   const now = new Date();
-  const volatility = currentValue * 0.15;
+  const depositsVolatility = deposits * 0.6;
+  const borrowsVolatility = borrows * 0.6;
 
   for (let i = 30; i >= 0; i--) {
     const date = new Date(now);
     date.setDate(date.getDate() - i);
 
-    const randomFactor = Math.random() * 2 - 1;
-    const dailyChange = volatility * randomFactor;
-    const dayValue = Math.max(0, currentValue + dailyChange * (i / 30));
+    const depositsRandomFactor = Math.random() * 2 - 1;
+    const borrowsRandomFactor = Math.random() * 2 - 1;
+
+    const depositsDailyChange = depositsVolatility * depositsRandomFactor;
+    const borrowsDailyChange = borrowsVolatility * borrowsRandomFactor;
+
+    const depositsValue = Math.max(0, deposits + depositsDailyChange * (i / 30));
+    const borrowsValue = Math.max(0, borrows + borrowsDailyChange * (i / 30));
 
     data.push({
       timestamp: date.toISOString(),
-      value: dayValue,
+      deposits: depositsValue,
+      borrows: borrowsValue,
     });
   }
 
   return data;
 };
 
-const PortfolioChart = ({ value }: PortfolioChartProps) => {
-  const mockData = React.useMemo(() => generateMockData(value), [value]);
+const PortfolioChart = ({ deposits, borrows }: PortfolioChartProps) => {
+  const mockData = React.useMemo(() => generateMockData(deposits, borrows), [deposits, borrows]);
 
   return (
-    <div className="w-full h-[200px]">
-      <ChartContainer config={chartConfig} className="h-full w-full">
+    <div className="w-full h-[300px]">
+      <ChartContainer config={chartConfig} className="h-full w-full -translate-x-3">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={mockData}
@@ -81,8 +105,8 @@ const PortfolioChart = ({ value }: PortfolioChartProps) => {
               fontSize={12}
             />
             <YAxis
-              tickFormatter={(value) => `$${numeralFormatter(value)}`}
-              domain={["auto", "auto"]}
+              tickFormatter={(value) => `$${dynamicNumeralFormatter(value)}`}
+              domain={[0, "auto"]}
               axisLine={false}
               tickLine={false}
               width={65}
@@ -94,20 +118,35 @@ const PortfolioChart = ({ value }: PortfolioChartProps) => {
               cursor={false}
               content={<ChartTooltipContent labelFormatter={(label) => formatDate(label as string)} />}
             />
+            <ChartLegend content={<ChartLegendContent />} className="mt-6" />
             <defs>
-              <linearGradient id="portfolioFill" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="depositsFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={chartColors.primary} stopOpacity={0.2} />
                 <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0.05} />
               </linearGradient>
+              <linearGradient id="borrowsFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={chartColors.secondary} stopOpacity={0.2} />
+                <stop offset="95%" stopColor={chartColors.secondary} stopOpacity={0.05} />
+              </linearGradient>
             </defs>
             <Area
-              dataKey="value"
+              dataKey="deposits"
               type="monotone"
-              fill="url(#portfolioFill)"
+              fill="url(#depositsFill)"
               fillOpacity={1}
               stroke={chartColors.primary}
               strokeWidth={1.5}
-              name="Portfolio Value"
+              name="Supplied"
+              isAnimationActive={false}
+            />
+            <Area
+              dataKey="borrows"
+              type="monotone"
+              fill="url(#borrowsFill)"
+              fillOpacity={1}
+              stroke={chartColors.secondary}
+              strokeWidth={1.5}
+              name="Borrowed"
               isAnimationActive={false}
             />
           </AreaChart>
