@@ -268,23 +268,26 @@ export const WalletAuthAccounts = ({
         }}
         open={popoverOpen}
       >
-        {selectedAccount && accountLabels?.[selectedAccount.address.toBase58()] && (
+        {selectedAccount && (
           <PopoverTrigger asChild>
             <Button variant="secondary" size="sm" className="text-sm">
               <span className="max-w-[80px] lg:max-w-[120px] truncate">
-                {accountLabels?.[selectedAccount.address.toBase58()]}
-              </span>{" "}
+                {accountLabels?.[selectedAccount.address.toBase58()] || "Account"}
+              </span>
               <IconChevronDown size={16} />
             </Button>
           </PopoverTrigger>
         )}
-        {/* TODO: fix this z-index mess */}
         <PopoverContent className="w-80 z-50" align={popoverContentAlign}>
           {walletAuthAccountsState === WalletAuthAccountsState.DEFAULT && (
             <div className="grid gap-4 w-[80]">
               <div className="space-y-2">
                 <h4 className="font-medium leading-none">Your accounts</h4>
-                <p className="text-sm text-muted-foreground">Manage your accounts or create a new one below.</p>
+                <p className="text-sm text-muted-foreground">
+                  {marginfiAccounts.length === 1
+                    ? "Create another account below."
+                    : "Manage your accounts or create a new one below."}
+                </p>
               </div>
               <div
                 className={cn(
