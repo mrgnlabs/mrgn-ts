@@ -379,7 +379,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       setPfp("");
     }
-  }, [asPath, replace, walletContextState, web3Auth, setIsWalletOpen]);
+  }, [asPath, replace, walletContextState, web3Auth, setIsWalletOpen, useCustomPhantomConnector]);
 
   const select = (walletName: WalletName | string) => {
     setWasLoggedOut(false);
@@ -816,7 +816,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         window.phantom.solana.removeListener("disconnect", handleDisconnect);
       };
     }
-  }, [walletContextState.connected, walletContextStateDefault]);
+  }, [walletContextState.connected, walletContextStateDefault, useCustomPhantomConnector]);
 
   // Auto-connect to Phantom if it was the last used wallet
   React.useEffect(() => {
