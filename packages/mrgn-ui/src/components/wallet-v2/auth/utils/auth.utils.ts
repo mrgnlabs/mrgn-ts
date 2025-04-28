@@ -11,17 +11,21 @@ export async function login(payload: AuthPayload | LoginPayload) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-      credentials: "include", // Include cookies in the request
+      credentials: "include",
     });
 
     const data = await response.json();
 
-    return data;
+    return {
+      ...data,
+      statusCode: response.status,
+    };
   } catch (error) {
     console.error("Login failed", error);
     return {
       user: null,
       error: error instanceof Error ? error.message : "Login failed",
+      statusCode: undefined, // couldn't reach server maybe
     };
   }
 }
@@ -37,7 +41,10 @@ export async function signup(payload: SignupPayload) {
 
     const data = await response.json();
 
-    return data;
+    return {
+      ...data,
+      statusCode: response.status,
+    };
   } catch (error) {
     console.error("Signup failed", error);
     return {
@@ -52,7 +59,7 @@ async function signMessageForAuth(wallet: Wallet) {
     throw new Error("Wallet does not support signMessage");
   }
 
-  const signMessage = await generateSignMessage(wallet.publicKey?.toBase58() ?? "");
+  const signMessage = generateSignMessage(wallet.publicKey?.toBase58() ?? "");
   const messageToSign = createSignatureMessage(wallet.publicKey?.toBase58() ?? "");
   const rawSignature = await wallet.signMessage(new TextEncoder().encode(messageToSign));
   const signatureBytes = ("signature" in rawSignature ? rawSignature.signature : rawSignature) as Uint8Array;
@@ -147,11 +154,12 @@ export async function authenticate(wallet: Wallet, walletId?: string, referralCo
 
 const composeErrorMessage = (error: any) => {
   if (error instanceof Error) {
-    if (error.name === "WalletSignMessageError") {
+    if (error.message.length > 0) {
+      return error.message;
+      //@ts-ignore
+    } else if (error.error.length > 0) {
       //@ts-ignore
       return error.error;
-    } else {
-      return error.message;
     }
   } else {
     return "Authentication failed";

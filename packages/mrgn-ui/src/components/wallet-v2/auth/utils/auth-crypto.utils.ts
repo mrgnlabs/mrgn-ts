@@ -19,7 +19,7 @@ Wallet: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}
 `;
 }
 
-export async function generateSignMessage(walletAddress: string): Promise<SignMessagePayload> {
+export function generateSignMessage(walletAddress: string): SignMessagePayload {
   const nonce = generateNonce();
   const timestamp = Date.now();
 

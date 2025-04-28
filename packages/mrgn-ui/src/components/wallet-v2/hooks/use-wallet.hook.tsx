@@ -11,7 +11,7 @@ import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
 import { WalletName } from "@solana/wallet-adapter-base";
-import { generateEndpoint } from "@mrgnlabs/mrgn-utils";
+import { generateEndpoint, useBrowser } from "@mrgnlabs/mrgn-utils";
 import type { Wallet } from "@mrgnlabs/mrgn-common";
 
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
@@ -50,24 +50,6 @@ This hook provides a comprehensive wallet management solution for Solana applica
    - Handles email passwordless authentication
    - Manages Web3Auth wallet creation and connection
 */
-
-// CUSTOM PHANTOM LOGIC - START
-// Helper function to detect if we're in Phantom's mobile in-app browser
-const isPhantomMobileInAppBrowser = (): boolean => {
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator?.userAgent || "");
-  const isPhantomBrowser = /Phantom/.test(navigator?.userAgent || "");
-
-  return isMobile && isPhantomBrowser;
-};
-
-// Toggle custom Phantom connector with env var AND only on mobile in-app browser
-// Default to true if the env var is not defined
-const useCustomPhantomConnector =
-  process.env.NEXT_PUBLIC_CUSTOM_PHANTOM_CONNECTOR !== "false" &&
-  typeof window !== "undefined" &&
-  isPhantomMobileInAppBrowser();
-
-// CUSTOM PHANTOM LOGIC - END
 
 // Types for Web3Auth
 type Web3AuthSocialProvider = "google" | "twitter" | "apple";
@@ -263,6 +245,18 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => clearTimeout(timeout);
   }, [walletContextStateDefault.connecting]);
+
+  // CUSTOM PHANTOM LOGIC - START
+  const browser = useBrowser();
+
+  const useCustomPhantomConnector = React.useMemo(() => {
+    return (
+      process.env.NEXT_PUBLIC_CUSTOM_PHANTOM_CONNECTOR !== "false" &&
+      typeof window !== "undefined" &&
+      browser === "Phantom"
+    );
+  }, [browser]);
+  // CUSTOM PHANTOM LOGIC - END
 
   // Determine the wallet to use: web3auth,  wallet adapter
   // Will check web3auth first, then walletQueryParam, then walletContextState
@@ -858,7 +852,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           localStorage.removeItem("walletInfo");
         });
     }
-  }, [walletContextState.connected]);
+  }, [useCustomPhantomConnector, walletContextState.connected]);
   // CUSTOM PHANTOM LOGIC - END
 
   // Set profile picture based on wallet

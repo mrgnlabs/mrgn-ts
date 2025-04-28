@@ -57,6 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (updateError) {
           console.error("Failed to update user:", updateError);
+          return res.status(500).json({ error: "Failed to update user" });
         }
       }
 

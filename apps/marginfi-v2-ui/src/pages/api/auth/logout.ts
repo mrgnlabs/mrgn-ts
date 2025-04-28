@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await supabase.auth.signOut();
   } catch (error) {
     console.error("Error signing out from Supabase:", error);
-    // Continue with logout even if Supabase signout fails
+    return res.status(500).json({ error: "Failed to sign out from Supabase" });
   }
 
   return res.status(200).json({ success: true });
