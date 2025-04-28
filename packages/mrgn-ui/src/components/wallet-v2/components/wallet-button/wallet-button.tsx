@@ -74,12 +74,12 @@ export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonP
   }, [walletInfo, setIsWalletSignUpOpen, select, loginWeb3Auth]);
 
   return (
-    <Button
-      className={cn("gap-1.5 py-0", walletInfo ? "px-2 pl-3" : "px-4", className)}
-      onClick={() => handleWalletConnect()}
-      disabled={isLoading}
-    >
-      <div className="flex flex-row relative h-full gap-4">
+    <div className={cn("flex flex-row relative py-0", walletInfo ? "px-2 pl-3" : "px-4", className)}>
+      <Button
+        onClick={handleWalletConnect}
+        disabled={isLoading}
+        className={cn(" gap-1.5 py-0 px-3", walletInfo && showWalletInfo ? "rounded-r-none" : "rounded-md", "flex-1")}
+      >
         <div className="inline-flex items-center gap-2">
           {isLoading ? (
             "Loading..."
@@ -96,18 +96,20 @@ export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonP
             </>
           )}
         </div>
-        {!isLoading && showWalletInfo && walletInfo && (
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsWalletSignUpOpen(true);
-            }}
-            className="pl-2 border-l border-border inline-flex items-center"
-          >
-            <IconChevronDown size={20} />
-          </div>
-        )}
-      </div>
-    </Button>
+      </Button>
+      {showWalletInfo && walletInfo && (
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsWalletSignUpOpen(true);
+          }}
+          disabled={isLoading}
+          size="default"
+          className="rounded-l-none px-2 py-0 border-l-0"
+        >
+          <IconChevronDown size={20} />
+        </Button>
+      )}
+    </div>
   );
 };
