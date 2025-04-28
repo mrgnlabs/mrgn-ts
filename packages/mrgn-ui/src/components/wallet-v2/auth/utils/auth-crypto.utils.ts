@@ -1,7 +1,7 @@
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Transaction } from "@solana/web3.js";
+import { MEMO_PROGRAM_ID, Wallet } from "@mrgnlabs/mrgn-common";
 import * as nacl from "tweetnacl";
 import { SignMessagePayload } from "../types/auth.types";
-import base58 from "bs58";
 
 export function generateNonce(): string {
   return crypto.randomUUID();
@@ -48,4 +48,32 @@ export function verifySignature(walletAddress: string, signature: Uint8Array | {
     console.error("Signature verification failed:", error);
     return false;
   }
+}
+
+export async function signTransactionWithMemoForAuth(
+  wallet: Wallet,
+  signMessage: SignMessagePayload,
+  messageToSign: string
+) {
+  if (!wallet.signTransaction) {
+    throw new Error("Wallet does not support signTransaction");
+  }
+
+  const transaction = new Transaction().add({
+    keys: [],
+    programId: MEMO_PROGRAM_ID,
+    data: Buffer.from(messageToSign, "utf8"),
+  });
+
+  transaction.feePayer = wallet.publicKey;
+
+  const signedTx = await wallet.signTransaction(transaction); // TODO: recent blockhash needed?
+
+  if (!signedTx.signatures?.[0]?.signature) {
+    throw new Error("Failed to sign transaction");
+  }
+
+  const signature = Buffer.from(signedTx.signatures[0].signature).toString("base64");
+
+  return { signMessage, signature };
 }

@@ -2,7 +2,11 @@ import { Wallet } from "@mrgnlabs/mrgn-common";
 import crypto from "crypto";
 
 import { AuthUser, SignupPayload, AuthPayload, LoginPayload } from "../types/auth.types";
-import { generateSignMessage, createSignatureMessage } from "../utils/auth-crypto.utils";
+import {
+  generateSignMessage,
+  createSignatureMessage,
+  signTransactionWithMemoForAuth,
+} from "../utils/auth-crypto.utils";
 import { createBrowserSupabaseClient } from "../client";
 
 export async function login(payload: AuthPayload | LoginPayload) {
@@ -55,17 +59,17 @@ export async function signup(payload: SignupPayload) {
 }
 
 async function signMessageForAuth(wallet: Wallet) {
-  if (!wallet.signMessage) {
-    throw new Error("Wallet does not support signMessage");
-  }
-
   const signMessage = generateSignMessage(wallet.publicKey?.toBase58() ?? "");
   const messageToSign = createSignatureMessage(wallet.publicKey?.toBase58() ?? "");
-  const rawSignature = await wallet.signMessage(new TextEncoder().encode(messageToSign));
-  const signatureBytes = ("signature" in rawSignature ? rawSignature.signature : rawSignature) as Uint8Array;
-  const signature = Buffer.from(signatureBytes).toString("base64");
 
-  return { signMessage, signature };
+  if (wallet.signMessage) {
+    const rawSignature = await wallet.signMessage(new TextEncoder().encode(messageToSign));
+    const signatureBytes = ("signature" in rawSignature ? rawSignature.signature : rawSignature) as Uint8Array;
+    const signature = Buffer.from(signatureBytes).toString("base64");
+    return { signMessage, signature };
+  } else {
+    return signTransactionWithMemoForAuth(wallet, signMessage, messageToSign);
+  }
 }
 
 /**
