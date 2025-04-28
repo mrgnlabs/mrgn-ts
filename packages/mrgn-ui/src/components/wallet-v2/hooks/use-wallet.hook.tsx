@@ -592,7 +592,11 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         } else if (authResult.error) {
           const errorString = authResult.error.toLowerCase();
 
-          if (["User rejected", "declined", "denied", "rejected", "closed"].some((str) => errorString.includes(str))) {
+          if (
+            ["User rejected", "declined", "denied", "rejected", "closed", "cancelled"].some((str) =>
+              errorString.includes(str)
+            )
+          ) {
             setSignatureDenied(true);
             await logout();
           }

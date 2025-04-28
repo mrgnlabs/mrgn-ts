@@ -129,7 +129,7 @@ export async function authenticate(wallet: Wallet, walletId?: string, referralCo
         console.error("Authentication error", error);
         return {
           user: null,
-          error: error instanceof Error ? error.message : "Authentication failed",
+          error: composeErrorMessage(error),
         };
       }
     }
@@ -144,6 +144,19 @@ export async function authenticate(wallet: Wallet, walletId?: string, referralCo
     };
   }
 }
+
+const composeErrorMessage = (error: any) => {
+  if (error instanceof Error) {
+    if (error.name === "WalletSignMessageError") {
+      //@ts-ignore
+      return error.error;
+    } else {
+      return error.message;
+    }
+  } else {
+    return "Authentication failed";
+  }
+};
 
 export async function getCurrentUser(): Promise<{ user: AuthUser | null; error: any }> {
   try {
