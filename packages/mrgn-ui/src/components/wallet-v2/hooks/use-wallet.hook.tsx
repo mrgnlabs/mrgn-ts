@@ -231,7 +231,8 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [web3AuthLoginType, setWeb3AuthLoginType] = React.useState<string>("");
   const [web3AuthPk, setWeb3AuthPk] = React.useState<string>("");
   const [web3AuthEmail, setWeb3AuthEmail] = React.useState<string>("");
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [isConnecting, setIsConnecting] = React.useState(false);
+  const [isAuthenticating, setIsAuthenticating] = React.useState(false);
   const [web3AuthPkCookie, setWeb3AuthPkCookie] = useCookies(["mrgnPrivateKeyRequested"]);
 
   // Auth-related states
@@ -240,6 +241,10 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [signatureDenied, setSignatureDenied] = React.useState<boolean>(false);
   const [isAwaitingSignature, setIsAwaitingSignature] = React.useState<boolean>(false);
   const [wasLoggedOut, setWasLoggedOut] = React.useState(false);
+
+  const isLoading = React.useMemo(() => {
+    return isConnecting || isAuthenticating || walletContextStateDefault.connecting;
+  }, [isConnecting, isAuthenticating, walletContextStateDefault.connecting]);
 
   // Determine the wallet to use: web3auth,  wallet adapter
   // Will check web3auth first, then walletQueryParam, then walletContextState
@@ -369,7 +374,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
     // CUSTOM PHANTOM LOGIC - START
     if (useCustomPhantomConnector && walletName === "Phantom" && window?.phantom && window?.phantom?.solana) {
-      setIsLoading(true);
+      setIsConnecting(true);
 
       localStorage.removeItem("phantomLogout");
 
@@ -401,20 +406,24 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           toastManager.showErrorToast("Failed to connect to Phantom wallet");
         })
         .finally(() => {
-          setIsLoading(false);
+          setIsConnecting(false);
         });
     }
     // CUSTOM PHANTOM LOGIC - END
     else {
-      walletContextState.select(walletName as WalletName);
+      try {
+        walletContextState.select(walletName as WalletName);
 
-      if (walletContextState.wallet) {
-        const walletInfo: WalletInfo = {
-          name: walletName,
-          icon: walletContextState.wallet.adapter.icon,
-          web3Auth: false,
-        };
-        localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+        if (walletContextState.wallet) {
+          const walletInfo: WalletInfo = {
+            name: walletName,
+            icon: walletContextState.wallet.adapter.icon,
+            web3Auth: false,
+          };
+          localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+        }
+      } catch (error) {
+        console.error("Error selecting wallet:", error);
       }
     }
   };
@@ -551,7 +560,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error(error);
     } finally {
-      setIsLoading(false);
+      setIsConnecting(false);
     }
   }, [makeWeb3AuthWalletData]);
 
@@ -567,7 +576,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      setIsLoading(true);
+      setIsAuthenticating(true);
       setIsAwaitingSignature(true);
 
       try {
@@ -582,7 +591,8 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           setSignatureDenied(false);
         } else if (authResult.error) {
           const errorString = authResult.error.toLowerCase();
-          if (["User rejected", "declined", "denied", "rejected"].some((str) => errorString.includes(str))) {
+
+          if (["User rejected", "declined", "denied", "rejected", "closed"].some((str) => errorString.includes(str))) {
             setSignatureDenied(true);
             await logout();
           }
@@ -593,7 +603,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         console.error("Authentication error:", err);
         setAuthError(err instanceof Error ? err : new Error(String(err)));
       } finally {
-        setIsLoading(false);
+        setIsAuthenticating(false);
       }
     },
     [wallet, web3AuthWalletData, web3AuthLoginType, logout]
@@ -631,12 +641,12 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     // Initial authentication check when wallet connects
     const checkAuth = async () => {
       const isWalletConnected = Boolean(walletContextState.connected || (web3Auth?.connected && web3AuthWalletData));
-      if (!isWalletConnected || !wallet.publicKey || user || isLoading || signatureDenied || wasLoggedOut) {
+      if (!isWalletConnected || !wallet.publicKey || isAuthenticating || user || signatureDenied || wasLoggedOut) {
         return;
       }
 
       try {
-        setIsLoading(true);
+        setIsAuthenticating(true);
         const { user, error } = await getCurrentUser();
 
         if (user && !error) {
@@ -648,7 +658,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         console.error("Auth check error:", err);
         setAuthError(err instanceof Error ? err : new Error(String(err)));
       } finally {
-        setIsLoading(false);
+        setIsAuthenticating(false);
       }
     };
 
@@ -677,7 +687,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       });
     }
     if (isAwaitingSignature && !isLoading) {
-      setIsLoading(true);
+      setIsConnecting(true);
     }
 
     return () => {
@@ -695,6 +705,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     authenticateUser,
     logout,
     wasLoggedOut,
+    isAuthenticating,
   ]);
 
   // Compute connected state based on both wallet connection and authentication
@@ -744,14 +755,13 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   React.useEffect(() => {
     if (!web3Auth?.connected || !web3Auth?.provider || web3AuthWalletData) return;
-    setIsLoading(true);
     makeWeb3AuthWalletData(web3Auth.provider);
-    setIsLoading(false);
+    setIsConnecting(false);
   }, [web3Auth?.connected, web3Auth?.provider, web3AuthWalletData, makeWeb3AuthWalletData]);
 
   React.useEffect(() => {
     if (web3Auth) return;
-    setIsLoading(true);
+    setIsConnecting(true);
     initWeb3Auth();
   }, [initWeb3Auth, web3Auth]);
 

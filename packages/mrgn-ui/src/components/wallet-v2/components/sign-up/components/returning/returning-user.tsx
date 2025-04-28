@@ -17,18 +17,13 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/
 
 interface props extends AuthScreenProps {}
 
-export const ReturningUser = ({
-  isLoading,
-  isActiveLoading,
-  setIsActiveLoading,
-  setIsLoading,
-  select,
-  onClose,
-}: props) => {
+export const ReturningUser = ({ select, onClose }: props) => {
   const wallets = useAvailableWallets();
-  const { connected, loginWeb3Auth } = useWallet();
+  const { connected, loginWeb3Auth, isLoading: isWalletLoading } = useWallet();
   const { isAndroid, isIOS, isPWA, isPhone } = useOs();
   const browser = useBrowser();
+
+  const [activeMethod, setActiveMethod] = React.useState<string>("");
 
   React.useEffect(() => {
     if (connected) {
@@ -79,11 +74,10 @@ export const ReturningUser = ({
           </AccordionTrigger>
           <AccordionContent className="flex flex-col gap-6 mt-4">
             <WalletAuthEmailForm
-              loading={isLoading && isActiveLoading === "email"}
-              active={!isLoading || (isLoading && isActiveLoading === "email")}
+              loading={isWalletLoading && activeMethod === "email"}
+              active={!isWalletLoading || (isWalletLoading && activeMethod === "email")}
               onSubmit={(email) => {
-                setIsLoading(true);
-                setIsActiveLoading("email");
+                setActiveMethod("email");
                 loginWeb3Auth("email_passwordless", { login_hint: email });
               }}
             />
@@ -92,13 +86,12 @@ export const ReturningUser = ({
               {socialProviders.map((provider, i) => (
                 <li key={i}>
                   <WalletAuthButton
-                    loading={isLoading && isActiveLoading === provider.name}
-                    active={!isLoading || (isLoading && isActiveLoading === provider.name)}
+                    loading={isWalletLoading && activeMethod === provider.name}
+                    active={!isWalletLoading || (isWalletLoading && activeMethod === provider.name)}
                     name={provider.name}
                     image={provider.image}
                     onClick={() => {
-                      setIsLoading(true);
-                      setIsActiveLoading(provider.name);
+                      setActiveMethod(provider.name);
                       loginWeb3Auth(provider.name);
                     }}
                   />
@@ -121,10 +114,13 @@ export const ReturningUser = ({
             {(wallets.length > 0 || isAndroid || isIOS) && (
               <ul className="flex flex-wrap items-start justify-center gap-4 overflow-auto">
                 <WalletAuthWrapper
-                  isLoading={isLoading}
-                  isActiveLoading={isActiveLoading}
+                  isLoading={isWalletLoading}
+                  isActiveLoading={activeMethod}
                   wallets={wallets}
-                  onClick={(wallet) => onSelectWallet(wallet)}
+                  onClick={(wallet) => {
+                    setActiveMethod(wallet.adapter.name);
+                    onSelectWallet(wallet);
+                  }}
                 />
               </ul>
             )}
