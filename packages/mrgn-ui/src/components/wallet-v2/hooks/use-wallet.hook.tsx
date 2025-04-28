@@ -242,9 +242,27 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAwaitingSignature, setIsAwaitingSignature] = React.useState<boolean>(false);
   const [wasLoggedOut, setWasLoggedOut] = React.useState(false);
 
+  // Loading state
+  const [delayedConnecting, setDelayedConnecting] = React.useState(walletContextStateDefault.connecting);
+
   const isLoading = React.useMemo(() => {
-    return isConnecting || isAuthenticating || walletContextStateDefault.connecting;
-  }, [isConnecting, isAuthenticating, walletContextStateDefault.connecting]);
+    return isConnecting || isAuthenticating || delayedConnecting;
+  }, [isConnecting, isAuthenticating, delayedConnecting]);
+
+  // useEffect to handle debounce of walletContextState.connecting, else there is a glitch in the UI
+  React.useEffect(() => {
+    let timeout: NodeJS.Timeout;
+
+    if (walletContextStateDefault.connecting) {
+      setDelayedConnecting(true);
+    } else {
+      timeout = setTimeout(() => {
+        setDelayedConnecting(false);
+      }, 100);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [walletContextStateDefault.connecting]);
 
   // Determine the wallet to use: web3auth,  wallet adapter
   // Will check web3auth first, then walletQueryParam, then walletContextState
@@ -326,7 +344,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Enhanced logout method to handle both wallet disconnection and auth logout
   const logout = React.useCallback(async () => {
-    await fetch("/api/user/logout", { method: "POST" });
+    fetch("/api/user/logout", { method: "POST" });
     try {
       setWasLoggedOut(true);
 

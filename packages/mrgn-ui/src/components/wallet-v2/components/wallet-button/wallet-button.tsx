@@ -78,7 +78,11 @@ export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonP
       <Button
         onClick={handleWalletConnect}
         disabled={isLoading}
-        className={cn(" gap-1.5 py-0 px-3", walletInfo && showWalletInfo ? "rounded-r-none" : "rounded-md", "flex-1")}
+        className={cn(
+          " gap-1.5 py-0 px-3",
+          walletInfo && showWalletInfo && !isLoading ? "rounded-r-none" : "rounded-md",
+          "flex-1"
+        )}
       >
         <div className="inline-flex items-center gap-2">
           {isLoading ? (
@@ -97,7 +101,7 @@ export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonP
           )}
         </div>
       </Button>
-      {showWalletInfo && walletInfo && (
+      {!isLoading && showWalletInfo && walletInfo && (
         <Button
           onClick={(e) => {
             e.stopPropagation();
