@@ -159,7 +159,7 @@ export const Header = () => {
             </Link>
           )}
           <div className="flex items-center gap-4">
-            {!isMobile && connected && (
+            {!isMobile && connected && !process.env.NEXT_PUBLIC_HIDE_ARENA_FEATURES && (
               <div className="flex items-center">
                 {/* <CreatePoolSoon /> */}
                 <CreatePoolDialog

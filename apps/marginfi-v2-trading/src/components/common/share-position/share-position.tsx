@@ -118,16 +118,18 @@ const SharePosition = ({ pool, triggerVariant = "ghost", triggerClassName, onOpe
                     />
                     {pool.tokenBank.meta.tokenSymbol}
                   </div>
-                  <div className={cn("flex flex-col items-end gap-1", shareType === "$" && "-translate-y-2")}>
-                    {shareType === "$" && <PnlBadge pnl={positionData?.pnl ?? 0} positionSize={positionSizeUsd} />}
-                    <PnlLabel
-                      type={shareType}
-                      pnl={positionData?.pnl ?? 0}
-                      positionSize={positionSizeUsd}
-                      showTooltip={false}
-                      className="text-4xl"
-                    />
-                  </div>
+                  {!process.env.NEXT_PUBLIC_HIDE_ARENA_FEATURES && (
+                    <div className={cn("flex flex-col items-end gap-1", shareType === "$" && "-translate-y-2")}>
+                      {shareType === "$" && <PnlBadge pnl={positionData?.pnl ?? 0} positionSize={positionSizeUsd} />}
+                      <PnlLabel
+                        type={shareType}
+                        pnl={positionData?.pnl ?? 0}
+                        positionSize={positionSizeUsd}
+                        showTooltip={false}
+                        className="text-4xl"
+                      />
+                    </div>
+                  )}
                 </div>
                 <dl className="absolute bottom-0 left-0 pb-2 px-6 w-full grid grid-cols-2 gap-1">
                   <dt className="text-sm text-muted-foreground">Leverage</dt>

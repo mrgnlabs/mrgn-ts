@@ -100,15 +100,17 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
               <h3>{`${arenaPool.tokenBank.meta.tokenSymbol.toUpperCase()}/${arenaPool.quoteBank.meta.tokenSymbol.toUpperCase()}`}</h3>
             </div>
           </Link>
-          <div className="flex items-center gap-2">
-            <PnlLabel
-              pnl={positionData?.pnl ?? 0}
-              positionSize={positionSizeUsd}
-              showTooltip={!isMobile}
-              className="text-xl md:text-2xl"
-            />
-            <PnlBadge pnl={positionData?.pnl ?? 0} positionSize={positionSizeUsd} className="hidden md:block" />
-          </div>
+          {!process.env.NEXT_PUBLIC_HIDE_ARENA_FEATURES && (
+            <div className="flex items-center gap-2">
+              <PnlLabel
+                pnl={positionData?.pnl ?? 0}
+                positionSize={positionSizeUsd}
+                showTooltip={!isMobile}
+                className="text-xl md:text-2xl"
+              />
+              <PnlBadge pnl={positionData?.pnl ?? 0} positionSize={positionSizeUsd} className="hidden md:block" />
+            </div>
+          )}
         </div>
       )}
       <div className="bg-accent/50 rounded-xl p-4">
@@ -168,10 +170,14 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
           >
             {accountSummary && percentFormatter.format(accountSummary.healthFactor)}
           </dd>
-          <dt>PnL</dt>
-          <dd className="text-right">
-            <PnlLabel pnl={positionData?.pnl ?? 0} positionSize={positionSizeUsd} className="text-primary" />
-          </dd>
+          {!process.env.NEXT_PUBLIC_HIDE_ARENA_FEATURES && (
+            <>
+              <dt>PnL</dt>
+              <dd className="text-right">
+                <PnlLabel pnl={positionData?.pnl ?? 0} positionSize={positionSizeUsd} className="text-primary" />
+              </dd>
+            </>
+          )}
         </dl>
       </div>
       <div className="flex flex-col-reverse md:flex-row items-center justify-center md:justify-between gap-4">

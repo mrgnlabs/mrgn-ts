@@ -87,14 +87,16 @@ export const PositionListItem = ({ arenaPool }: props) => {
           ignoreMinDisplay: true,
         })}
       </TableCell>
-      <TableCell>
-        <PnlDisplayTooltip pool={arenaPool}>
-          <div className="flex flex-row items-center gap-1">
-            <PnlLabel pnl={positionData?.pnl} positionSize={positionSizeUsd} showTooltip={false} />
-            <InfoCircledIcon />
-          </div>
-        </PnlDisplayTooltip>
-      </TableCell>
+      {!process.env.NEXT_PUBLIC_HIDE_ARENA_FEATURES && (
+        <TableCell>
+          <PnlDisplayTooltip pool={arenaPool}>
+            <div className="flex flex-row items-center gap-1">
+              <PnlLabel pnl={positionData?.pnl} positionSize={positionSizeUsd} showTooltip={false} />
+              <InfoCircledIcon />
+            </div>
+          </PnlDisplayTooltip>
+        </TableCell>
+      )}
 
       <TableCell className="text-right">
         {client && accountSummary && arenaPool && (
