@@ -1,5 +1,11 @@
 import dotenv from "dotenv";
-import { PublicKey, TransactionMessage, VersionedMessage, VersionedTransaction } from "@solana/web3.js";
+import {
+  ComputeBudgetProgram,
+  PublicKey,
+  TransactionMessage,
+  VersionedMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { getDefaultYargsOptions, getMarginfiProgram } from "../lib/config";
 import { Environment } from "../lib/types";
@@ -30,8 +36,8 @@ async function main() {
   //     })
   //     .parseSync();
 
-  const accountPubkey = new PublicKey("23wbuai64QpYcEKYSK7HdWYwVmiLKUghTkxrverRXrHe");
-  const program = getMarginfiProgram();
+  const accountPubkey = new PublicKey("2GMbwepeyW5xzgm3cQLivdPWLydrFevLy2iBbZab3pd6");
+  const program = getMarginfiProgram("staging");
 
   const accountRaw: MarginfiAccountRaw = await program.account.marginfiAccount.fetch(accountPubkey);
   const activePositions = accountRaw.lendingAccount.balances.filter((b) => b.active);
@@ -50,6 +56,8 @@ async function main() {
   }));
 
   // Fetch bank metadata
+
+  const requestHeapIx = ComputeBudgetProgram.requestHeapFrame({ bytes: 256 * 1024 });
 
   const ixs = await program.methods
     .lendingAccountPulseHealth()
@@ -76,7 +84,7 @@ async function main() {
 
   const tx = new VersionedTransaction(
     new TransactionMessage({
-      instructions: [ixs],
+      instructions: [requestHeapIx, ixs],
       payerKey: accountRaw.authority,
       recentBlockhash: (await program.provider.connection.getLatestBlockhash()).blockhash,
     }).compileToV0Message([])
@@ -86,6 +94,8 @@ async function main() {
     accounts: { encoding: "base64", addresses: [accountPubkey.toBase58()] },
     sigVerify: false,
   });
+
+  console.log("health", health);
 
   const marginfiAccountPost = MarginfiAccount.decode(
     Buffer.from(health.value.accounts[0].data[0], "base64"),

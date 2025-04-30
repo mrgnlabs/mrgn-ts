@@ -318,7 +318,7 @@ export const WalletAuthAccounts = ({
                           </Tooltip>
                         </TooltipProvider>
 
-                        <span className="text-muted-foreground text-[10px]">
+                        <span id={account.address.toBase58()} className="text-muted-foreground text-[10px]">
                           {isActivatingAccountDelay === index
                             ? "Switching..."
                             : shortenAddress(account.address.toBase58())}
