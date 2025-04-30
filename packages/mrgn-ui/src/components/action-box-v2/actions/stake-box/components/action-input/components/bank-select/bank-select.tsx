@@ -26,7 +26,7 @@ export const BankSelect = ({
   const [isOpen, setIsOpen] = React.useState(false);
 
   const isSelectable = React.useMemo(() => {
-    if (actionMode === ActionType.UnstakeLST) {
+    if (actionMode === ActionType.UnstakeLST || actionMode === ActionType.UnstakeFull) {
       return false;
     }
     return true;

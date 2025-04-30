@@ -310,6 +310,13 @@ const Stake = (
   const stakeContextProps = useStakeBoxContext();
   const { stakeProps, useProvider, ...actionBoxProps } = props;
 
+  const [selectedAction, setSelectedAction] = React.useState(stakeProps.requestedActionType);
+  React.useEffect(() => {
+    setSelectedAction(stakeProps.requestedActionType);
+  }, [stakeProps.requestedActionType]);
+
+  const requestedBank = "requestedBank" in stakeProps ? stakeProps.requestedBank : undefined;
+
   let combinedProps: StakeBoxProps;
 
   if (useProvider && contextProps) {
@@ -323,9 +330,25 @@ const Stake = (
   }
   return (
     <ActionBox {...actionBoxProps}>
-      <ActionBoxWrapper showSettings={true} isDialog={props.isDialog} actionMode={stakeProps.requestedActionType}>
-        <ActionBoxNavigator selectedAction={stakeProps.requestedActionType}>
-          <StakeBox {...combinedProps} isDialog={props.isDialog} />
+      <ActionBoxWrapper showSettings={true} isDialog={props.isDialog} actionMode={selectedAction}>
+        <ActionBoxNavigator
+          selectedAction={selectedAction}
+          onSelectAction={setSelectedAction}
+          actionTypes={[ActionType.MintLST, ActionType.UnstakeFull, ActionType.UnstakeLST]}
+        >
+          <StakeBox {...combinedProps} requestedActionType={ActionType.MintLST} isDialog={props.isDialog} />
+          <StakeBox
+            {...combinedProps}
+            requestedActionType={ActionType.UnstakeFull}
+            requestedBank={requestedBank}
+            isDialog={props.isDialog}
+          />
+          <StakeBox
+            {...combinedProps}
+            requestedActionType={ActionType.UnstakeLST}
+            requestedBank={requestedBank}
+            isDialog={props.isDialog}
+          />
         </ActionBoxNavigator>
       </ActionBoxWrapper>
     </ActionBox>

@@ -5,7 +5,8 @@ enum ActionType {
   RepayCollat = "Collateral Repay",
   Withdraw = "Withdraw",
   MintLST = "Mint LST",
-  UnstakeLST = "Unstake LST",
+  UnstakeLST = "Insatnt Unstake",
+  UnstakeFull = "Unstake",
   MintYBX = "Mint YBX",
   Loop = "Loop",
 }
