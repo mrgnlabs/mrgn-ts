@@ -8,6 +8,7 @@ import {
   signTransactionWithMemoForAuth,
 } from "../utils/auth-crypto.utils";
 import { createBrowserSupabaseClient } from "../client";
+import { Connection } from "@solana/web3.js";
 
 export async function login(payload: AuthPayload | LoginPayload) {
   try {
@@ -58,7 +59,7 @@ export async function signup(payload: SignupPayload) {
   }
 }
 
-async function signMessageForAuth(wallet: Wallet) {
+async function signMessageForAuth(wallet: Wallet, connection: Connection) {
   const signMessage = generateSignMessage(wallet.publicKey?.toBase58() ?? "");
   const messageToSign = createSignatureMessage(wallet.publicKey?.toBase58() ?? "");
 
@@ -68,7 +69,8 @@ async function signMessageForAuth(wallet: Wallet) {
     const signature = Buffer.from(signatureBytes).toString("base64");
     return { signMessage, signature };
   } else {
-    return signTransactionWithMemoForAuth(wallet, signMessage, messageToSign);
+    const signature = await signTransactionWithMemoForAuth(wallet, messageToSign, connection);
+    return { signMessage, signature };
   }
 }
 
@@ -79,7 +81,7 @@ async function signMessageForAuth(wallet: Wallet) {
  * @param walletId - The wallet ID to authenticate with
  * @param referralCode - The referral code to authenticate with
  */
-export async function authenticate(wallet: Wallet, walletId?: string, referralCode?: string) {
+export async function authenticate(wallet: Wallet, connection: Connection, walletId?: string, referralCode?: string) {
   try {
     const walletAddress = wallet.publicKey?.toBase58();
     if (!walletAddress) {
@@ -108,7 +110,7 @@ export async function authenticate(wallet: Wallet, walletId?: string, referralCo
     // If login requires a signature
     if (loginResult.requiresSignature) {
       try {
-        const { signMessage, signature } = await signMessageForAuth(wallet);
+        const { signMessage, signature } = await signMessageForAuth(wallet, connection);
 
         // Try to login with signature
         const loginWithSigResult = await login({

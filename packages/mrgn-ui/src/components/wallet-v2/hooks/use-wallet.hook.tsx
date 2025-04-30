@@ -11,7 +11,7 @@ import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
 import { WalletName } from "@solana/wallet-adapter-base";
-import { generateEndpoint, useBrowser } from "@mrgnlabs/mrgn-utils";
+import { generateEndpoint, useBrowser, useConnection } from "@mrgnlabs/mrgn-utils";
 import type { Wallet } from "@mrgnlabs/mrgn-common";
 
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
@@ -206,6 +206,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   const walletContextStateDefault = useWalletAdapter();
   const [walletContextState, setWalletContextState] = React.useState<WalletContextState>(walletContextStateDefault);
+  const { connection } = useConnection();
 
   const [web3Auth, setWeb3Auth] = React.useState<Web3AuthNoModal | null>(null);
   const [web3AuthWalletData, setWeb3AuthWalletData] = React.useState<Wallet | undefined>(undefined);
@@ -594,7 +595,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const walletId = web3AuthWalletData ? web3AuthLoginType : undefined;
 
-        const authResult = await authenticate(wallet, walletId, args?.referralCode);
+        const authResult = await authenticate(wallet, connection, walletId, args?.referralCode);
 
         setIsAwaitingSignature(false);
 

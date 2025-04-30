@@ -1,4 +1,4 @@
-import { PublicKey, Transaction } from "@solana/web3.js";
+import { Connection, PublicKey, Transaction } from "@solana/web3.js";
 import { MEMO_PROGRAM_ID, Wallet } from "@mrgnlabs/mrgn-common";
 import * as nacl from "tweetnacl";
 import { SignMessagePayload } from "../types/auth.types";
@@ -50,14 +50,11 @@ export function verifySignature(walletAddress: string, signature: Uint8Array | {
   }
 }
 
-export async function signTransactionWithMemoForAuth(
-  wallet: Wallet,
-  signMessage: SignMessagePayload,
-  messageToSign: string
-) {
+export async function signTransactionWithMemoForAuth(wallet: Wallet, messageToSign: string, connection: Connection) {
   if (!wallet.signTransaction) {
     throw new Error("Wallet does not support signTransaction");
   }
+  const { blockhash } = await connection.getLatestBlockhash();
 
   const transaction = new Transaction().add({
     keys: [],
@@ -66,8 +63,10 @@ export async function signTransactionWithMemoForAuth(
   });
 
   transaction.feePayer = wallet.publicKey;
+  transaction.recentBlockhash = blockhash;
 
-  const signedTx = await wallet.signTransaction(transaction); // TODO: recent blockhash needed?
+  // Request signature
+  const signedTx = await wallet.signTransaction(transaction);
 
   if (!signedTx.signatures?.[0]?.signature) {
     throw new Error("Failed to sign transaction");
@@ -75,5 +74,5 @@ export async function signTransactionWithMemoForAuth(
 
   const signature = Buffer.from(signedTx.signatures[0].signature).toString("base64");
 
-  return { signMessage, signature };
+  return signature;
 }
