@@ -74,13 +74,13 @@ export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonP
   }, [walletInfo, setIsWalletSignUpOpen, select, loginWeb3Auth]);
 
   return (
-    <div className={cn("flex flex-row relative py-0", walletInfo ? "px-2 pl-3" : "px-4", className)}>
+    <div className={cn("flex flex-row relative py-0", className)}>
       <Button
         onClick={handleWalletConnect}
         disabled={isLoading}
         className={cn(
-          " gap-1.5 py-0 px-3",
-          walletInfo && showWalletInfo && !isLoading ? "rounded-r-none" : "rounded-md",
+          "gap-1.5 py-0 px-3",
+          walletInfo && showWalletInfo && !isLoading ? "rounded-r-none pr-6 sm:pr-3" : "rounded-md",
           "flex-1"
         )}
       >
@@ -109,7 +109,7 @@ export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonP
           }}
           disabled={isLoading}
           size="default"
-          className="rounded-l-none px-2 py-0 border-l-0"
+          className="rounded-l-none px-1 border-l-0"
         >
           <IconChevronDown size={20} />
         </Button>
