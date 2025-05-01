@@ -692,8 +692,9 @@ class MarginfiAccount {
         signerTokenAccount: userTokenAtaPk,
         bank: bank.address,
         tokenProgram: mintData.tokenProgram,
-        authority: this.authority,
-        group: this.group,
+        authority: opts.overrideInferAccounts?.authority ?? this.authority,
+        group: opts.overrideInferAccounts?.group ?? this.group,
+        liquidityVault: opts.overrideInferAccounts?.liquidityVault,
       },
       { amount: uiToNative(amount, bank.mintDecimals) },
       remainingAccounts
@@ -748,6 +749,9 @@ class MarginfiAccount {
         signerTokenAccount: userAta,
         bank: bankAddress,
         tokenProgram: mintData.tokenProgram,
+        authority: opts.overrideInferAccounts?.authority,
+        group: opts.overrideInferAccounts?.group,
+        liquidityVault: opts.overrideInferAccounts?.liquidityVault,
       },
       { amount: uiToNative(amount, bank.mintDecimals), repayAll },
       remainingAccounts
@@ -821,6 +825,8 @@ class MarginfiAccount {
         bank: bank.address,
         destinationTokenAccount: userAta,
         tokenProgram: mintData.tokenProgram,
+        authority: opts.overrideInferAccounts?.authority,
+        group: opts.overrideInferAccounts?.group,
       },
       { amount: uiToNative(amount, bank.mintDecimals), withdrawAll },
       remainingAccounts
@@ -888,6 +894,8 @@ class MarginfiAccount {
         bank: bank.address,
         destinationTokenAccount: userAta,
         tokenProgram: mintData.tokenProgram,
+        authority: opt?.overrideInferAccounts?.authority,
+        group: opt?.overrideInferAccounts?.group,
       },
       { amount: uiToNative(amount, bank.mintDecimals) },
       remainingAccounts
@@ -1152,23 +1160,41 @@ enum MarginRequirementType {
 export interface MakeDepositIxOpts {
   wrapAndUnwrapSol?: boolean;
   wSolBalanceUi?: number;
+  overrideInferAccounts?: {
+    group?: PublicKey;
+    authority?: PublicKey;
+    liquidityVault?: PublicKey;
+  };
 }
 
 export interface MakeRepayIxOpts {
   wrapAndUnwrapSol?: boolean;
   wSolBalanceUi?: number;
+  overrideInferAccounts?: {
+    group?: PublicKey;
+    authority?: PublicKey;
+    liquidityVault?: PublicKey;
+  };
 }
 
 export interface MakeWithdrawIxOpts {
   observationBanksOverride?: PublicKey[];
   wrapAndUnwrapSol?: boolean;
   createAtas?: boolean;
+  overrideInferAccounts?: {
+    group?: PublicKey;
+    authority?: PublicKey;
+  };
 }
 
 export interface MakeBorrowIxOpts {
   observationBanksOverride?: PublicKey[];
   wrapAndUnwrapSol?: boolean;
   createAtas?: boolean;
+  overrideInferAccounts?: {
+    group?: PublicKey;
+    authority?: PublicKey;
+  };
 }
 
 export function isWeightedPrice(reqType: MarginRequirementType): boolean {
