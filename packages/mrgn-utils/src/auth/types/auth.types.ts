@@ -34,3 +34,14 @@ export type LoginPayload = {
   walletAddress: string;
   walletId?: string;
 };
+
+export type AuthResult = {
+  user: AuthUser | null;
+  error?: any;
+  statusCode?: number;
+};
+
+export type LogoutResult = {
+  success: boolean;
+  error?: string;
+};

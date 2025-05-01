@@ -13,9 +13,6 @@ export function createBrowserSupabaseClient() {
       autoRefreshToken: false,
       persistSession: false,
     },
-    global: {
-      // No need to manually set headers, cookies will be sent automatically
-    },
   });
 
   return supabaseInstance;

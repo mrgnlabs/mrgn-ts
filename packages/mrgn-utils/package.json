@@ -37,7 +37,10 @@
     "posthog-js": "^1.104.4",
     "react-responsive": "^9.0.2",
     "superstruct": "^1.0.4",
-    "tailwind-merge": "^1.14.0"
+    "tailwind-merge": "^1.14.0",
+    "tweetnacl": "^1.0.3",
+    "jsonwebtoken": "^9.0.2",
+    "@supabase/supabase-js": "^2.49.1"
   },
   "devDependencies": {
     "@mrgnlabs/tsconfig": "workspace:*",
@@ -50,7 +53,8 @@
     "@solana/wallet-adapter-react": "^0.15.36",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.2",
+    "@types/jsonwebtoken": "^9.0.9"
   },
   "publishConfig": {
     "access": "public"

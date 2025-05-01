@@ -76,10 +76,7 @@
     "superstruct": "^1.0.4",
     "uuid": "^9.0.0",
     "vaul": "^0.9.0",
-    "zustand": "^4.4.1",
-    "jsonwebtoken": "^9.0.2",
-    "tweetnacl": "^1.0.3",
-    "@supabase/supabase-js": "^2.49.1"
+    "zustand": "^4.4.1"
   },
   "devDependencies": {
     "@mrgnlabs/tsconfig": "workspace:*",
@@ -93,8 +90,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.2",
-    "@types/jsonwebtoken": "^9.0.9"
+    "typescript": "^5.5.2"
   },
   "publishConfig": {
     "access": "public"

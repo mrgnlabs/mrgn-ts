@@ -3,11 +3,11 @@ import {
   createServerSupabaseClient,
   AuthPayload,
   verifySignature,
-  generateDummyCredentials,
+  generateCreds,
   generateToken,
   LoginPayload,
   verifyToken,
-} from "@mrgnlabs/mrgn-ui";
+} from "@mrgnlabs/mrgn-utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       const supabase = createServerSupabaseClient();
-      const { email, password } = generateDummyCredentials(walletAddress);
+      const { email, password } = generateCreds(walletAddress);
 
       // Check if user exists in Supabase Auth
       const { data: userList, error: listError } = await supabase.auth.admin.listUsers();
@@ -60,6 +60,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(500).json({ error: "Failed to update user" });
         }
       }
+
+      console.log({
+        email,
+        password,
+      });
 
       // Authenticate the user
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -148,7 +153,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       // Authenticate the user
-      const { email, password } = generateDummyCredentials(walletAddress);
+      const { email, password } = generateCreds(walletAddress);
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,

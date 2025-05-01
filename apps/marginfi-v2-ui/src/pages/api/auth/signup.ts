@@ -2,10 +2,10 @@ import { NextApiRequest, NextApiResponse } from "next";
 import {
   createServerSupabaseClient,
   verifySignature,
-  generateDummyCredentials,
+  generateCreds,
   generateToken,
   SignupPayload,
-} from "@mrgnlabs/mrgn-ui";
+} from "@mrgnlabs/mrgn-utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { walletAddress, signature, signedMessage, walletId, referralCode }: SignupPayload = req.body;
+    const { walletAddress, signature, walletId, referralCode }: SignupPayload = req.body;
 
     // Verify the signature
     const signatureBytes = Buffer.from(signature, "base64");
@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const supabase = createServerSupabaseClient();
-    const { email, password } = generateDummyCredentials(walletAddress);
+    const { email, password } = generateCreds(walletAddress);
 
     // Check if user exists in Supabase Auth
     const { data: userList, error: listError } = await supabase.auth.admin.listUsers();

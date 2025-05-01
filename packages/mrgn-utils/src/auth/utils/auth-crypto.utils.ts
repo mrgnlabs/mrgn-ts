@@ -50,29 +50,34 @@ export function verifySignature(walletAddress: string, signature: Uint8Array | {
   }
 }
 
-export async function signTransactionWithMemoForAuth(wallet: Wallet, messageToSign: string, connection: Connection) {
-  if (!wallet.signTransaction) {
-    throw new Error("Wallet does not support signTransaction");
+export async function signTransactionWithMemoForAuth(
+  wallet: Wallet,
+  messageToSign: string,
+  connection: Connection
+): Promise<{ signature: string; transaction: Transaction }> {
+  try {
+    const transaction = new Transaction();
+    -transaction.add({
+      keys: [],
+      programId: MEMO_PROGRAM_ID,
+      data: Buffer.from(messageToSign, "utf-8"),
+    });
+
+    const { blockhash } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+    transaction.feePayer = wallet.publicKey;
+
+    const signedTransaction = await wallet.signTransaction(transaction);
+
+    const serializedTransaction = signedTransaction.serialize();
+    const signature = Buffer.from(serializedTransaction).toString("base64");
+
+    return {
+      signature,
+      transaction: signedTransaction,
+    };
+  } catch (error) {
+    console.error("Error signing transaction with memo:", error);
+    throw error;
   }
-  const { blockhash } = await connection.getLatestBlockhash();
-
-  const transaction = new Transaction().add({
-    keys: [],
-    programId: MEMO_PROGRAM_ID,
-    data: Buffer.from(messageToSign, "utf8"),
-  });
-
-  transaction.feePayer = wallet.publicKey;
-  transaction.recentBlockhash = blockhash;
-
-  // Request signature
-  const signedTx = await wallet.signTransaction(transaction);
-
-  if (!signedTx.signatures?.[0]?.signature) {
-    throw new Error("Failed to sign transaction");
-  }
-
-  const signature = Buffer.from(signedTx.signatures[0].signature).toString("base64");
-
-  return signature;
 }
