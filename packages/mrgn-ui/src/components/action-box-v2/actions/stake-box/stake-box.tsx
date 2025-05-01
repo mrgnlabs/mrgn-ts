@@ -44,6 +44,7 @@ export type StakeBoxProps = {
   marginfiClient: MarginfiClient | null;
   banks: ExtendedBankInfo[];
   requestedBank?: ExtendedBankInfo;
+  lstBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
   requestedActionType: ActionType;

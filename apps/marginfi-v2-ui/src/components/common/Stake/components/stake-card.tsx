@@ -80,6 +80,7 @@ const StakeCard = ({ lstBank, lstOverview, connected, extendedBankInfosWithoutSt
               banks: extendedBankInfosWithoutStakedAssets,
               connected: connected,
               requestedActionType: ActionType.MintLST,
+              lstBank: lstBank,
               captureEvent: (event, properties) => {
                 capture("user_stake", properties);
               },

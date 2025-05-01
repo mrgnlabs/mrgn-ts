@@ -315,7 +315,8 @@ const Stake = (
     setSelectedAction(stakeProps.requestedActionType);
   }, [stakeProps.requestedActionType]);
 
-  const requestedBank = "requestedBank" in stakeProps ? stakeProps.requestedBank : undefined;
+  const requestedBank =
+    "requestedBank" in stakeProps ? stakeProps.requestedBank : "lstBank" in stakeProps ? stakeProps.lstBank : undefined;
 
   let combinedProps: StakeBoxProps;
 
