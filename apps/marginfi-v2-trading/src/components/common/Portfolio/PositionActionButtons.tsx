@@ -229,12 +229,14 @@ export const PositionActionButtons = ({
           />
         )}
 
-        <ClosePosition
-          arenaPool={arenaPool}
-          positionsByGroupPk={positionsByGroupPk}
-          depositBanks={depositBanks}
-          borrowBank={borrowBank}
-        />
+        <div className={cn(rightAlignLastButton && "ml-auto")}>
+          <ClosePosition
+            arenaPool={arenaPool}
+            positionsByGroupPk={positionsByGroupPk}
+            depositBanks={depositBanks}
+            borrowBank={borrowBank}
+          />
+        </div>
       </div>
     </ActionBoxProvider>
   );

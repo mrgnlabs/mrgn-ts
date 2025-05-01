@@ -148,7 +148,7 @@ export const ClosePositionDialog = ({
           <Button variant="destructive" className="w-full mx-auto" onClick={handleClosePosition} disabled={isLoading}>
             {isLoading ? <IconLoader2 className="animate-spin" /> : "Confirm close position"}{" "}
           </Button>
-          <SharePosition pool={arenaPool} />
+          {!process.env.NEXT_PUBLIC_HIDE_ARENA_FEATURES && <SharePosition pool={arenaPool} />}
         </DialogFooter>
       </DialogContent>
     </Dialog>
