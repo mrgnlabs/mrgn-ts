@@ -14,7 +14,7 @@ import {
   JupiterOptions,
 } from "@mrgnlabs/mrgn-utils";
 
-import { createStakeLstTx, createUnstakeLstTx, getSimulationResult } from "../utils";
+import { createStakeLstTx, createUnstakeLstTx, createInstantUnstakeLstTx, getSimulationResult } from "../utils";
 import { SimulationStatus } from "../../../utils/simulation.utils";
 import { useActionBoxStore } from "../../../store";
 
@@ -120,13 +120,25 @@ export function useStakeSimulation({
     try {
       let _actionTxns: StakeActionTxns | ActionMessageType;
 
+      console.log("fetching action txns", props.actionMode);
+
       if (props.actionMode === ActionType.UnstakeLST) {
-        _actionTxns = await createUnstakeLstTx({
+        _actionTxns = await createInstantUnstakeLstTx({
           amount: props.amount,
           feepayer: props.marginfiClient.wallet.publicKey,
           connection: props.connection,
           jupiterOptions: props.jupiterOptions,
           platformFeeBps: props.platformFeeBps,
+        });
+      } else if (props.actionMode === ActionType.UnstakeFull) {
+        console.log("unstake full");
+        _actionTxns = await createUnstakeLstTx({
+          destinationStakeAuthority: props.marginfiClient.wallet.publicKey,
+          sourceTransferAuthority: props.marginfiClient.wallet.publicKey,
+          amount: props.amount,
+          feepayer: props.marginfiClient.wallet.publicKey,
+          connection: props.connection,
+          lstData: props.lstData,
         });
       } else {
         _actionTxns = await createStakeLstTx({
@@ -139,6 +151,8 @@ export function useStakeSimulation({
           platformFeeBps: props.platformFeeBps,
         });
       }
+
+      console.log("actionTxns", _actionTxns);
 
       if (_actionTxns && "transactions" in _actionTxns) {
         return {

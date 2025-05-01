@@ -44,6 +44,8 @@ export async function fetchLstData(connection: Connection) {
     //   if (baselineValidatorData) projectedApy = baselineValidatorData.apy;
     // }
 
+    console.log("stakePoolInfo", stakePoolInfo);
+
     return {
       poolAddress: new PublicKey(stakePoolInfo.address),
       tvl: totalLamports / 1e9,
@@ -52,6 +54,7 @@ export async function fetchLstData(connection: Connection) {
       solDepositFee,
       accountData: stakePool,
       validatorList: stakePoolInfo.validatorList.map((v) => new PublicKey(v.voteAccountAddress)),
+      validatorListInfos: stakePoolInfo.validatorList,
       updateRequired: stakePoolInfo.details.updateRequired,
       lastUpdateEpoch: stakePoolInfo.lastUpdateEpoch,
     };

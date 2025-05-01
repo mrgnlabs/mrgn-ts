@@ -40,6 +40,7 @@ export enum TransactionType {
   MINT_LST_NATIVE = "MINT_LST_NATIVE",
   SWAP_TO_SOL = "SWAP_TO_SOL",
   SOL_TO_LST = "SOL_TO_LST",
+  UNSTAKE_LST = "UNSTAKE_LST",
 
   // EMISSIONS
   WITHDRAW_EMISSIONS = "WITHDRAW_EMISSIONS",
@@ -143,7 +144,7 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
   [TransactionType.SOL_TO_LST]: {
     label: ({ amount } = {}) => (amount ? `Mint LST with ${amount} SOL` : "Mint LST with SOL"),
   },
-
+  [TransactionType.UNSTAKE_LST]: { label: ({ amount } = {}) => (amount ? `Unstake ${amount} LST` : "Unstake LST") },
   // EMISSIONS
   [TransactionType.WITHDRAW_EMISSIONS]: { label: () => "Withdraw emissions" },
 

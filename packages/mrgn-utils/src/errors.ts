@@ -296,6 +296,11 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     isEnabled: false,
     code: 153,
   },
+  STAKE_UNSTAKE_VALIDATOR_NOT_FOUND: {
+    description: "Validator stake account not found, please try again.",
+    isEnabled: false,
+    code: 154,
+  },
 };
 
 const createProcessingTxFailedCheck = (info?: string): ActionMessageType => ({
