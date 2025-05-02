@@ -13,11 +13,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    const supabase = createServerSupabaseClient(req, res);
     const hasSignature = req.body.signature && req.body.signedMessage;
 
     if (hasSignature) {
       // Signature-based login
-      const { walletAddress, signature, signedMessage, walletId }: AuthPayload = req.body;
+      const { walletAddress, signature, walletId }: AuthPayload = req.body;
 
       const signatureBytes = Buffer.from(signature, "base64");
       const isValidSignature = verifySignature(walletAddress, signatureBytes);
@@ -26,7 +27,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(401).json({ error: "Invalid signature" });
       }
 
-      const supabase = createServerSupabaseClient(req, res);
       const { email, password } = generateCreds(walletAddress, signature);
 
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -72,11 +72,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Regular login path (uses session if present)
       const { walletAddress, walletId }: LoginPayload = req.body;
 
-      const supabase = createServerSupabaseClient(req, res);
       const {
         data: { user },
         error: userError,
-      } = await supabase.auth.getUser();
+      } = await supabase.auth.getUser(); // Will only work if setSession has been called previously
 
       if (userError || !user) {
         return res.status(401).json({

@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Sign out from Supabase Auth if there's a session
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = createServerSupabaseClient(req, res);
     await supabase.auth.signOut();
   } catch (error) {
     console.error("Error signing out from Supabase:", error);
