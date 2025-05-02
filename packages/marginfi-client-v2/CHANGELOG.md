@@ -1,5 +1,11 @@
 # @mrgnlabs/marginfi-client-v2
 
+## 6.0.2
+
+### Patch Changes
+
+- 2bb8f54: fix: added type overrides for inferred accounts
+
 ## 6.0.1
 
 ### Patch Changes
