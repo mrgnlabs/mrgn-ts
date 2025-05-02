@@ -4,9 +4,7 @@ import {
   AuthPayload,
   verifySignature,
   generateCreds,
-  generateToken,
   LoginPayload,
-  verifyToken,
 } from "@mrgnlabs/mrgn-utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -15,14 +13,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Check if this is a login with signature or a regular login
     const hasSignature = req.body.signature && req.body.signedMessage;
 
     if (hasSignature) {
-      // Handle login with signature (similar to signup)
+      // Signature-based login
       const { walletAddress, signature, signedMessage, walletId }: AuthPayload = req.body;
 
-      // Verify the signature
       const signatureBytes = Buffer.from(signature, "base64");
       const isValidSignature = verifySignature(walletAddress, signatureBytes);
 
@@ -30,27 +26,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(401).json({ error: "Invalid signature" });
       }
 
-      const supabase = createServerSupabaseClient();
-      const { email, password } = generateCreds(walletAddress);
+      const supabase = createServerSupabaseClient(req, res);
+      const { email, password } = generateCreds(walletAddress, signature);
 
-      // Check if user exists in Supabase Auth
-      const { data: userList, error: listError } = await supabase.auth.admin.listUsers();
-      if (listError) {
-        console.error("Error fetching users:", listError);
-        return res.status(500).json({ error: "Failed to check existing users" });
-      }
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      const user = userList.users.find((u) => u.user_metadata?.wallet_address === walletAddress);
-
-      if (!user) {
-        return res.status(401).json({ error: "User not found" });
-      }
-
-      // Update user metadata with new wallet ID if provided
-      if (walletId && walletId !== user.user_metadata?.wallet_id) {
-        const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
+      if (authData.user && walletId && walletId !== authData.user.user_metadata?.wallet_id) {
+        const { error: updateError } = await supabase.auth.admin.updateUserById(authData.user.id, {
           user_metadata: {
-            ...user.user_metadata,
+            ...authData.user.user_metadata,
             wallet_id: walletId,
           },
         });
@@ -61,84 +48,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
-      console.log({
-        email,
-        password,
-      });
-
-      // Authenticate the user
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
       if (authError || !authData.session) {
         console.error("Error authenticating user:", authError);
         return res.status(500).json({ error: "Failed to authenticate user" });
       }
 
-      // Generate JWT token for signature validation
-      const token = generateToken(walletAddress);
-
-      // Set the token as an HttpOnly cookie
-      res.setHeader("Set-Cookie", `auth_token=${token}; HttpOnly; Path=/; Max-Age=${60 * 60 * 24}; SameSite=Strict`);
+      await supabase.auth.setSession({
+        access_token: authData.session.access_token,
+        refresh_token: authData.session.refresh_token,
+      });
 
       return res.status(200).json({
         user: {
-          id: user.id,
-          walletAddress: walletAddress,
-          walletId: walletId || user.user_metadata?.wallet_id,
-          referralCode: user.user_metadata?.referral_code,
-          referredBy: user.user_metadata?.referred_by,
-          lastLogin: user.last_sign_in_at,
+          id: authData.user?.id,
+          walletAddress,
+          walletId: walletId || authData.user?.user_metadata?.wallet_id,
+          referralCode: authData.user?.user_metadata?.referral_code,
+          referredBy: authData.user?.user_metadata?.referred_by,
+          lastLogin: authData.user?.last_sign_in_at,
         },
       });
     } else {
-      // Regular login - check for valid token
+      // Regular login path (uses session if present)
       const { walletAddress, walletId }: LoginPayload = req.body;
 
-      const supabase = createServerSupabaseClient();
+      const supabase = createServerSupabaseClient(req, res);
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-      // Check if user exists in Supabase Auth
-      const { data: userList, error: listError } = await supabase.auth.admin.listUsers();
-      if (listError) {
-        console.error("Error fetching users:", listError);
-        return res.status(500).json({ error: "Failed to check existing users" });
-      }
-
-      const user = userList.users.find((u) => u.user_metadata?.wallet_address === walletAddress);
-
-      if (!user) {
-        // User not found - this is a new user, require signature for signup
-        return res.status(401).json({
-          error: "User not found",
-          requiresSignature: true,
-        });
-      }
-
-      // Check for token in cookies
-      const token = req.cookies.auth_token;
-      let tokenValid = false;
-
-      if (token) {
-        try {
-          // Verify the token is valid AND belongs to the current wallet
-          tokenValid = verifyToken(token, walletAddress);
-        } catch (error) {
-          console.error("Token verification error:", error);
-          tokenValid = false;
-        }
-      }
-
-      // If token is not valid, require signature verification
-      if (!tokenValid) {
+      if (userError || !user) {
         return res.status(401).json({
           error: "Authentication required",
           requiresSignature: true,
         });
       }
 
-      // Token is valid, update wallet ID if changed
+      if (user.user_metadata?.wallet_address !== walletAddress) {
+        return res.status(403).json({ error: "Wallet mismatch" });
+      }
+
       if (walletId && walletId !== user.user_metadata?.wallet_id) {
         const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
           user_metadata: {
@@ -152,28 +102,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
-      // Authenticate the user
-      const { email, password } = generateCreds(walletAddress);
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (authError || !authData.session) {
-        console.error("Error authenticating user:", authError);
-        return res.status(500).json({ error: "Failed to authenticate user" });
-      }
-
-      // Generate new JWT token
-      const newToken = generateToken(walletAddress);
-
-      // Set the token as an HttpOnly cookie
-      res.setHeader("Set-Cookie", `auth_token=${newToken}; HttpOnly; Path=/; Max-Age=${60 * 60 * 24}; SameSite=Strict`);
-
       return res.status(200).json({
         user: {
           id: user.id,
-          walletAddress: walletAddress,
+          walletAddress: user.user_metadata?.wallet_address,
           walletId: walletId || user.user_metadata?.wallet_id,
           referralCode: user.user_metadata?.referral_code,
           referredBy: user.user_metadata?.referred_by,

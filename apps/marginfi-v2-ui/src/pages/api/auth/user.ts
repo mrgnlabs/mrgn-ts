@@ -7,16 +7,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const supabase = createServerSupabaseClient();
+    const supabase = createServerSupabaseClient(req, res);
 
-    // Get the authenticated user from Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.getUser();
+    // Get the current session
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
-    if (authError || !authData.user) {
+    if (sessionError || !session) {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    const user = authData.user;
+    // Get the authenticated user from Supabase Auth
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(session.access_token);
+
+    if (userError || !user) {
+      return res.status(401).json({ error: "User not found" });
+    }
 
     // Return the user data in the format expected by the frontend
     return res.status(200).json({

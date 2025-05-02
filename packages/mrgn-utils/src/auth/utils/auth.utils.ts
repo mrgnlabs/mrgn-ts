@@ -1,12 +1,16 @@
+import { Wallet } from "@mrgnlabs/mrgn-common";
 import crypto from "crypto";
 
-import { Wallet } from "@mrgnlabs/mrgn-common";
+import { AuthUser, SignupPayload, AuthPayload, LoginPayload } from "../types/auth.types";
+import {
+  generateSignMessage,
+  createSignatureMessage,
+  signTransactionWithMemoForAuth,
+} from "../utils/auth-crypto.utils";
+import { createBrowserSupabaseClient } from "../client";
 import { Connection } from "@solana/web3.js";
 
-import { AuthUser, SignupPayload, AuthPayload, LoginPayload, AuthResult, LogoutResult } from "../types/auth.types";
-import { generateSignMessage, createSignatureMessage, signTransactionWithMemoForAuth } from "./auth-crypto.utils";
-
-export async function login(payload: AuthPayload | LoginPayload): Promise<AuthResult> {
+export async function login(payload: AuthPayload | LoginPayload) {
   try {
     const response = await fetch("/api/auth/login", {
       method: "POST",
@@ -31,7 +35,7 @@ export async function login(payload: AuthPayload | LoginPayload): Promise<AuthRe
   }
 }
 
-export async function signup(payload: SignupPayload): Promise<AuthResult> {
+export async function signup(payload: SignupPayload) {
   try {
     const response = await fetch("/api/auth/signup", {
       method: "POST",
@@ -51,87 +55,82 @@ export async function signup(payload: SignupPayload): Promise<AuthResult> {
     return {
       user: null,
       error: error instanceof Error ? error.message : "Signup failed",
-      statusCode: undefined, // couldn't reach server maybe
     };
   }
 }
+
 async function signMessageForAuth(wallet: Wallet, connection: Connection) {
-  const signedMessage = generateSignMessage(wallet.publicKey?.toBase58() ?? "");
+  const signMessage = generateSignMessage(wallet.publicKey?.toBase58() ?? "");
   const messageToSign = createSignatureMessage(wallet.publicKey?.toBase58() ?? "");
 
   if (wallet.signMessage) {
     const rawSignature = await wallet.signMessage(new TextEncoder().encode(messageToSign));
     const signatureBytes = ("signature" in rawSignature ? rawSignature.signature : rawSignature) as Uint8Array;
     const signature = Buffer.from(signatureBytes).toString("base64");
-    return { signedMessage, signature };
+    return { signMessage, signature };
   } else {
     const { signature } = await signTransactionWithMemoForAuth(wallet, messageToSign, connection);
-    return { signedMessage, signature };
-  } // TODO: this will not work with ledger, we need the user to manually select if theyre using a ledger or not. We can do this within the modal once we release auth
+    return { signMessage, signature };
+  }
 }
 
 /**
- * Authenticate a user with a wallet
+ * Authenticates a user with a wallet
+ * Tries to login first, if that fails, will request a signature and send it to the server to either login with signature or signup
  * @param wallet - The wallet to authenticate with
- * @param connection - The Solana connection
- * @param walletId - The wallet ID (for Web3Auth)
- * @param referralCode - Optional referral code
- * @returns The authentication result
+ * @param walletId - The wallet ID to authenticate with
+ * @param referralCode - The referral code to authenticate with
  */
-export async function authenticate(
-  wallet: Wallet,
-  connection: Connection,
-  walletId?: string,
-  referralCode?: string
-): Promise<AuthResult> {
+export async function authenticate(wallet: Wallet, connection: Connection, walletId?: string, referralCode?: string) {
   try {
-    // First try to login with existing token
-    const loginResult = await login({
-      walletAddress: wallet.publicKey.toString(),
-      walletId,
-    });
+    const walletAddress = wallet.publicKey?.toBase58();
+    if (!walletAddress) {
+      return {
+        user: null,
+        error: "Wallet not connected",
+      };
+    }
 
-    // If login succeeded, return the result
+    if (!wallet.signMessage) {
+      return {
+        user: null,
+        error: "Wallet does not support message signing",
+      };
+    }
+
+    const loginResult = await login({ walletAddress, walletId });
+
     if (loginResult.user) {
       return loginResult;
     }
 
-    // If login failed with a 401 or 404, request a signature and try to login/signup
-    if (loginResult.statusCode === 401 || loginResult.statusCode === 404) {
+    if (loginResult.requiresSignature) {
       try {
-        // Sign a message for authentication
-        const { signature, signedMessage } = await signMessageForAuth(wallet, connection);
+        const { signMessage, signature } = await signMessageForAuth(wallet, connection);
 
-        // Create auth payload
-        const authPayload: AuthPayload = {
-          walletAddress: wallet.publicKey.toString(),
-          signature: Buffer.from(signature).toString("base64"),
-          signedMessage,
+        const loginWithSigResult = await login({
+          walletAddress,
           walletId,
-        };
+          signature,
+          signedMessage: signMessage,
+        });
 
-        // Try to login with signature
-        const loginWithSignatureResult = await login(authPayload);
-
-        // If login succeeded, return the result
-        if (loginWithSignatureResult.user) {
-          return loginWithSignatureResult;
+        if (loginWithSigResult.user) {
+          return loginWithSigResult;
         }
 
-        // If login failed with a 404, try to signup
-        if (loginWithSignatureResult.statusCode === 404) {
-          // Create signup payload
-          const signupPayload: SignupPayload = {
-            ...authPayload,
+        if (loginWithSigResult.error === "User not found") {
+          return signup({
+            walletAddress,
+            signature,
+            signedMessage: signMessage,
+            walletId,
             referralCode,
-          };
-
-          // Try to signup
-          return await signup(signupPayload);
+          });
         }
 
-        // If login failed with another error, return the error
-        return loginWithSignatureResult;
+        // Otherwise, return the login error
+        return loginWithSigResult;
       } catch (error) {
         console.error("Authentication error", error);
         return {
@@ -141,72 +140,44 @@ export async function authenticate(
       }
     }
 
-    // If login failed with another error, return the error
-    return loginResult;
+    // If we get here, something else went wrong
+    return { user: null, error: loginResult.error || "Authentication failed" };
   } catch (error) {
-    console.error("Authentication error:", error);
+    console.error("Unexpected authentication error", error);
     return {
       user: null,
-      error: error instanceof Error ? error.message : "Authentication failed",
+      error: error instanceof Error ? error.message : "Unexpected authentication error",
     };
   }
 }
 
 const composeErrorMessage = (error: any) => {
   if (error instanceof Error) {
-    if (error.name === "WalletSignMessageError") {
+    if (error.message.length > 0) {
+      return error.message;
+      //@ts-ignore
+    } else if (error.error.length > 0) {
       //@ts-ignore
       return error.error;
-    } else {
-      return error.message;
     }
   } else {
     return "Authentication failed";
   }
 };
 
-export async function getCurrentUser(): Promise<{ user: AuthUser | null; error: any }> {
+export async function logout(): Promise<{ success: boolean; error?: string }> {
   try {
-    const response = await fetch("/api/auth/user", {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // Include cookies in the request
-    });
+    const supabase = createBrowserSupabaseClient();
 
-    if (!response.ok) {
-      return { user: null, error: `HTTP error! Status: ${response.status}` };
-    }
+    const { error } = await supabase.auth.signOut();
 
-    const data = await response.json();
-
-    return {
-      user: data.user,
-      error: data.error,
-    };
-  } catch (error) {
-    console.error("Error getting current user:", error);
-    return {
-      user: null,
-      error: error instanceof Error ? error.message : "Failed to get current user",
-    };
-  }
-}
-
-export async function logout(): Promise<LogoutResult> {
-  try {
-    // Clear session cookie
-    const response = await fetch("/api/auth/logout", {
-      method: "POST",
-      credentials: "include", // Include cookies in the request
-    });
-
-    if (!response.ok) {
-      return { success: false, error: `HTTP error! Status: ${response.status}` };
+    if (error) {
+      return { success: false, error: error.message };
     }
 
     return { success: true };
   } catch (error) {
-    console.error("Error during logout:", error);
+    console.error("Logout error:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Logout failed",
@@ -214,13 +185,12 @@ export async function logout(): Promise<LogoutResult> {
   }
 }
 
-// Constants for auth
 const SALT = process.env.NEXT_PUBLIC_AUTH_PASSWORD_SALT || "marginfi-auth-salt";
 
-export function generateCreds(walletAddress: string) {
+export function generateCreds(walletAddress: string, signature: string) {
   const derivedPassword = crypto
     .createHash("sha256")
-    .update(walletAddress + SALT)
+    .update(signature + SALT)
     .digest("hex");
 
   return {

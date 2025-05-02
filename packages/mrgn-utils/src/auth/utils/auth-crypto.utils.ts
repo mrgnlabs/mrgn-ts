@@ -54,7 +54,7 @@ export async function signTransactionWithMemoForAuth(
   wallet: Wallet,
   messageToSign: string,
   connection: Connection
-): Promise<{ signature: string; transaction: Transaction }> {
+): Promise<{ signature: string }> {
   try {
     const transaction = new Transaction();
     -transaction.add({
@@ -74,7 +74,6 @@ export async function signTransactionWithMemoForAuth(
 
     return {
       signature,
-      transaction: signedTransaction,
     };
   } catch (error) {
     console.error("Error signing transaction with memo:", error);

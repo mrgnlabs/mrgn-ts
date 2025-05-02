@@ -1,11 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import {
-  createServerSupabaseClient,
-  verifySignature,
-  generateCreds,
-  generateToken,
-  SignupPayload,
-} from "@mrgnlabs/mrgn-utils";
+import { createServerSupabaseClient, verifySignature, generateCreds, SignupPayload } from "@mrgnlabs/mrgn-utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {
@@ -23,8 +17,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: "Invalid signature" });
     }
 
-    const supabase = createServerSupabaseClient();
-    const { email, password } = generateCreds(walletAddress);
+    const supabase = createServerSupabaseClient(req, res);
+    const { email, password } = generateCreds(walletAddress, signature);
 
     // Check if user exists in Supabase Auth
     const { data: userList, error: listError } = await supabase.auth.admin.listUsers();
@@ -68,11 +62,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: "Failed to authenticate user" });
     }
 
-    // Generate JWT token
-    const token = generateToken(walletAddress);
-
-    // Set the token as an HttpOnly cookie
-    res.setHeader("Set-Cookie", `auth_token=${token}; HttpOnly; Path=/; Max-Age=${60 * 60 * 24}; SameSite=Strict`);
+    // Set the Supabase session cookie
+    // This follows the recommended approach in the Supabase docs
+    await supabase.auth.setSession({
+      access_token: authData.session.access_token,
+      refresh_token: authData.session.refresh_token,
+    });
 
     return res.status(200).json({
       user: {
