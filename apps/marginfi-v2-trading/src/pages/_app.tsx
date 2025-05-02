@@ -121,8 +121,8 @@ export default function MrgnApp({ Component, pageProps }: AppProps & StaticArena
                       <Analytics />
 
                       <AuthDialog onboardingEnabled={false} />
-                      <ToastProvider theme="light" />
                     </div>
+                    <ToastProvider theme="light" />
                   </ActionProvider>
                 </TradePovider>
               </MrgnWalletProvider>
