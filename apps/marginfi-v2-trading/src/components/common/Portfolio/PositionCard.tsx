@@ -181,9 +181,11 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
         </dl>
       </div>
       <div className="flex flex-col-reverse md:flex-row items-center justify-center md:justify-between gap-4">
-        <div className="w-full flex items-center justify-center md:inline-block md:mr-auto">
-          {arenaPool && <SharePosition pool={arenaPool} />}
-        </div>
+        {!process.env.NEXT_PUBLIC_HIDE_ARENA_FEATURES && (
+          <div className="w-full flex items-center justify-center md:inline-block md:mr-auto">
+            {arenaPool && <SharePosition pool={arenaPool} />}
+          </div>
+        )}
         {client && accountSummary && arenaPool && (
           <PositionActionButtons
             arenaPool={arenaPool}
@@ -191,8 +193,8 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
             accountSummary={accountSummary}
             client={client}
             selectedAccount={wrappedAccount}
-            className="justify-center md:justify-start"
-            rightAlignLastButton
+            className="justify-center md:justify-end"
+            rightAlignLastButton={!!process.env.NEXT_PUBLIC_HIDE_ARENA_FEATURES}
           />
         )}
       </div>
