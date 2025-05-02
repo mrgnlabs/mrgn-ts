@@ -60,7 +60,18 @@ export interface LstData {
   solDepositFee: number;
   accountData: solanaStakePool.StakePool;
   validatorList: PublicKey[];
-  validatorListInfos: { voteAccountAddress: string; activeStakeLamports: string }[];
+  stakeAccounts: {
+    voteAccountAddress: string;
+    stakeAccountAddress: string;
+    validatorActiveStakeLamports: string;
+    validatorLastUpdateEpoch: string;
+    validatorLamports: string;
+    validatorTransientStakeAccountAddress: string;
+    validatorTransientStakeLamports: string;
+    updateRequired: boolean;
+  }[];
+  poolWithdrawAuthority: PublicKey;
+  validatorListKey: PublicKey;
   updateRequired: boolean;
   lastUpdateEpoch: string;
 }

@@ -160,6 +160,7 @@ export function useStakeSimulation({
           actionMessage: null,
         };
       } else {
+        console.log("actionTxns error", _actionTxns);
         const errorMessage = _actionTxns ?? STATIC_SIMULATION_ERRORS.DEPOSIT_FAILED;
         return {
           txns: null,

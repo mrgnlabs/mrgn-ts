@@ -93,23 +93,29 @@ export async function createUnstakeLstTx({
 
   // 3. withdraw stake
   const stakePool = lstData.poolAddress;
-  const [validatorList] = PublicKey.findProgramAddressSync(
-    [stakePool.toBuffer(), Buffer.from("validator_list")],
-    SplStakePool.STAKE_POOL_PROGRAM_ID
-  );
+  const validatorList = new PublicKey(lstData.validatorListKey);
+
+  const topValidator = lstData.stakeAccounts
+    .filter((v) => Number(v.validatorActiveStakeLamports) > 0)
+    .sort((a, b) => Number(b.validatorActiveStakeLamports) - Number(a.validatorActiveStakeLamports))[0];
+
+  if (!topValidator) {
+    return STATIC_SIMULATION_ERRORS.STAKE_UNSTAKE_VALIDATOR_NOT_FOUND;
+  }
+
+  const validatorStake = new PublicKey(topValidator.stakeAccountAddress);
+
   const [withdrawAuthority] = PublicKey.findProgramAddressSync(
     [lstData.poolAddress.toBuffer(), Buffer.from("withdraw")],
     SplStakePool.STAKE_POOL_PROGRAM_ID
   );
-  const validatorStake = await findUsableValidatorStakeAccount(connection, stakePool, lstData.validatorListInfos);
+
   const managerFeeAccount = lstData.accountData.managerFeeAccount;
   const poolMint = lstData.accountData.poolMint;
 
   const finalBlockhash = blockhash || (await connection.getLatestBlockhash()).blockhash;
 
-  if (!validatorStake) {
-    return STATIC_SIMULATION_ERRORS.STAKE_SIMULATION_FAILED;
-  }
+  const poolTokens = uiToNative(amount, 9).toNumber();
 
   const unstakeIx = StakePoolInstruction.withdrawStake({
     stakePool,
@@ -122,7 +128,7 @@ export async function createUnstakeLstTx({
     sourcePoolAccount,
     managerFeeAccount,
     poolMint,
-    poolTokens: amount,
+    poolTokens,
   });
 
   unstakeIxs.push(unstakeIx);
@@ -375,37 +381,3 @@ export const createSwapToSolTx = async ({
 
   return { quote: swapQuote, tx: swapTx };
 };
-
-async function findUsableValidatorStakeAccount(
-  connection: Connection,
-  stakePool: PublicKey,
-  validatorList: { voteAccountAddress: string; activeStakeLamports: string }[],
-  maxValidatorsToTry = 5
-): Promise<PublicKey | null> {
-  const sortedValidators = validatorList
-    .filter((v) => Number(v.activeStakeLamports) > 0)
-    .sort((a, b) => Number(b.activeStakeLamports) - Number(a.activeStakeLamports))
-    .slice(0, maxValidatorsToTry);
-
-  for (const validator of sortedValidators) {
-    const voteAccount = new PublicKey(validator.voteAccountAddress);
-
-    const [validatorStake] = PublicKey.findProgramAddressSync(
-      [Buffer.from("validator_stake"), voteAccount.toBuffer(), stakePool.toBuffer()],
-      SplStakePool.STAKE_POOL_PROGRAM_ID
-    );
-
-    try {
-      const stakeAccountInfo = await connection.getParsedAccountInfo(validatorStake);
-      const delegated = (stakeAccountInfo?.value?.data as any)?.parsed?.info?.stake?.delegation;
-
-      if (Number(delegated?.stake ?? 0) > 0 && delegated?.voter === voteAccount.toBase58()) {
-        return validatorStake;
-      }
-    } catch (_) {
-      continue;
-    }
-  }
-
-  return null;
-}

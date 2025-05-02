@@ -54,9 +54,11 @@ export async function fetchLstData(connection: Connection) {
       solDepositFee,
       accountData: stakePool,
       validatorList: stakePoolInfo.validatorList.map((v) => new PublicKey(v.voteAccountAddress)),
-      validatorListInfos: stakePoolInfo.validatorList,
+      validatorListKey: stakePoolInfo.validatorListStorageAccount,
+      stakeAccounts: stakePoolInfo.details.stakeAccounts,
       updateRequired: stakePoolInfo.details.updateRequired,
       lastUpdateEpoch: stakePoolInfo.lastUpdateEpoch,
+      poolWithdrawAuthority: stakePoolInfo.poolWithdrawAuthority,
     };
   } catch (error) {
     console.error("Error fetching LST data", error);

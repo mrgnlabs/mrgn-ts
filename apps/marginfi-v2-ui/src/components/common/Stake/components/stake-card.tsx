@@ -8,6 +8,7 @@ import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { LSTOverview } from "~/components/common/Stake/utils/stake-utils";
 import { useIsMobile } from "~/hooks/use-is-mobile";
+import { useMrgnlendStore } from "~/store";
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "~/components/ui/card";
 import { IconLST } from "~/components/ui/icons";
@@ -22,6 +23,7 @@ type StakeCardProps = {
 
 const StakeCard = ({ lstBank, lstOverview, connected, extendedBankInfosWithoutStakedAssets }: StakeCardProps) => {
   const isMobile = useIsMobile();
+  const [fetchMrgnlendState] = useMrgnlendStore((state) => [state.fetchMrgnlendState]);
 
   const scrollPageDown = () => {
     const stakeCalculator = document.getElementById("stake-calculator");
@@ -84,6 +86,9 @@ const StakeCard = ({ lstBank, lstOverview, connected, extendedBankInfosWithoutSt
               captureEvent: (event, properties) => {
                 capture("user_stake", properties);
               },
+              onComplete: () => {
+                fetchMrgnlendState();
+              },
             }}
             dialogProps={{
               trigger: (
@@ -104,6 +109,9 @@ const StakeCard = ({ lstBank, lstOverview, connected, extendedBankInfosWithoutSt
               requestedBank: lstBank,
               captureEvent: (event, properties) => {
                 capture("user_unstake", properties);
+              },
+              onComplete: () => {
+                fetchMrgnlendState();
               },
             }}
             dialogProps={{

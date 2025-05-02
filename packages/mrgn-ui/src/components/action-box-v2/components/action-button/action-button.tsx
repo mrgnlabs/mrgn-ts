@@ -40,6 +40,8 @@ export const ActionButton = ({
     return <WalletButton className="w-full py-5" showWalletInfo={false} />;
   }
 
+  console.log("isEnabled", isEnabled);
+
   return (
     <Button disabled={isLoading || !isEnabled} className={cn("w-full py-5", className)} onClick={handleAction}>
       {isLoading ? <Loader className={`${loaderType === "DEFAULT" && "animate-spin"}`} /> : buttonLabel}

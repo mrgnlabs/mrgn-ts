@@ -303,6 +303,10 @@ export const StakeBox = ({
     }
   }, [marginfiClient, banks, refreshSelectedBanks]);
 
+  console.log(actionTxns.transactions.length);
+  console.log("additionalActionMessages", additionalActionMessages);
+  console.log("actionMessages", actionMessages);
+
   return (
     <ActionBoxContentWrapper>
       <div className="mb-5">
