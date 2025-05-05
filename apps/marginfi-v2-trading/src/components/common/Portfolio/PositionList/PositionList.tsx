@@ -67,7 +67,7 @@ export const PositionList = ({ activePool }: { activePool: ArenaPoolV2 }) => {
             <TableHead className="w-[14%]">Value</TableHead>
             <TableHead className="w-[14%]">Leverage</TableHead>
             <TableHead className="w-[14%]">Size</TableHead>
-            <TableHead className="w-[14%]">PNL</TableHead>
+            {!process.env.NEXT_PUBLIC_HIDE_ARENA_FEATURES && <TableHead className="w-[14%]">PNL</TableHead>}
             <TableHead className="w-[14%]"></TableHead>
           </TableRow>
         </TableHeader>

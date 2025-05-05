@@ -308,6 +308,7 @@ export async function loopingBuilder({
   quote,
   connection,
   setupBankAddresses,
+  overrideInferAccounts,
 }: LoopingProps): Promise<FlashloanBuilderResponse> {
   if (!marginfiAccount) throw new Error("not initialized");
 
@@ -360,6 +361,7 @@ export async function loopingBuilder({
       lookupTables: swapLUTs,
     },
     blockhash,
+    overrideInferAccounts,
   });
 
   return { transactions, txOverflown, lastValidBlockHeight };

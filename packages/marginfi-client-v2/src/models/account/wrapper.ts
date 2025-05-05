@@ -706,6 +706,7 @@ class MarginfiAccountWrapper {
     swap,
     blockhash: blockhashArg,
     setupBankAddresses,
+    overrideInferAccounts,
   }: LoopTxProps): Promise<FlashloanActionResult> {
     const depositBank = this.client.banks.get(depositBankAddress.toBase58());
     if (!depositBank) throw Error("Deposit bank not found");
@@ -726,9 +727,11 @@ class MarginfiAccountWrapper {
     const borrowIxs = await this.makeBorrowIx(borrowAmount, borrowBankAddress, {
       createAtas: false,
       wrapAndUnwrapSol: false,
+      overrideInferAccounts,
     });
     const depositIxs = await this.makeDepositIx(depositAmount, depositBankAddress, {
       wrapAndUnwrapSol: false,
+      overrideInferAccounts,
     });
 
     // unwrap if deposit bank is native
