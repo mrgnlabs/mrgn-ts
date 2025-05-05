@@ -6,7 +6,7 @@ import { useCookies } from "react-cookie";
 import { minidenticon } from "minidenticons";
 import { useWallet as useWalletAdapter, WalletContextState } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
-import { CHAIN_NAMESPACES, IProvider, ADAPTER_EVENTS, WALLET_ADAPTERS } from "@web3auth/base";
+import { CHAIN_NAMESPACES, IProvider, ADAPTER_EVENTS, WALLET_ADAPTERS, WEB3AUTH_NETWORK } from "@web3auth/base";
 import { Web3AuthNoModal } from "@web3auth/no-modal";
 import { AuthAdapter } from "@web3auth/auth-adapter";
 
@@ -268,7 +268,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     ) => {
       try {
         if (!web3Auth) {
-          toastManager.showErrorToast("marginfi account not ready.");
           throw new Error("marginfi account not ready.");
         }
         await web3Auth.connectTo(WALLET_ADAPTERS.AUTH, {
@@ -472,15 +471,16 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       );
       web3AuthChainConfig.rpcTarget = rpcEndpoint;
 
+      const privateKeyProvider = new SolanaPrivateKeyProvider({
+        config: { chainConfig: web3AuthChainConfig },
+      });
+
       const web3AuthInstance = new Web3AuthNoModal({
         clientId: process.env.NEXT_PUBLIC_WEB3_AUTH_CLIENT_ID!,
         chainConfig: web3AuthChainConfig,
-        web3AuthNetwork: "sapphire_mainnet",
+        web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_MAINNET,
         uiConfig: web3authAuthAdapterConfig,
-      });
-
-      const privateKeyProvider = new SolanaPrivateKeyProvider({
-        config: { chainConfig: web3AuthChainConfig },
+        privateKeyProvider,
       });
 
       const authAdapter = new AuthAdapter({
