@@ -1,13 +1,12 @@
 import React, { useCallback, useMemo } from "react";
 
 import Image from "next/image";
-import Script from "next/script";
 
 import { IconChevronDown, IconBrandX, IconBrandApple, IconBrandGoogle } from "@tabler/icons-react";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { WalletInfo, Web3AuthProvider, useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { WalletInfo, Web3AuthProvider, useWallet } from "~/components/wallet-v2";
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
 import { Wallet } from "~/components/wallet-v2/wallet";
 
@@ -35,7 +34,7 @@ type WalletButtonProps = {
 };
 
 export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonProps) => {
-  const { loginWeb3Auth, select } = useWallet();
+  const { loginWeb3Auth, select, isLoading } = useWallet();
   const [setIsWalletSignUpOpen] = useWalletStore((state) => [state.setIsWalletSignUpOpen]);
 
   const walletInfo = useMemo(() => JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo, []);
@@ -75,30 +74,46 @@ export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonP
   }, [walletInfo, setIsWalletSignUpOpen, select, loginWeb3Auth]);
 
   return (
-    <Button className={cn("gap-1.5 py-0", walletInfo ? "px-2 pl-3" : "px-4", className)} onClick={() => handleWalletConnect()}>
-      <div className="flex flex-row relative h-full gap-4">
+    <div className={cn("flex flex-row relative py-0", className)}>
+      <Button
+        onClick={handleWalletConnect}
+        disabled={isLoading}
+        className={cn(
+          "gap-1.5 py-0 px-3",
+          walletInfo && showWalletInfo && !isLoading ? "rounded-r-none pr-6 sm:pr-3" : "rounded-md",
+          "flex-1"
+        )}
+      >
         <div className="inline-flex items-center gap-2">
-          Sign in
-          {showWalletInfo && walletInfo && (
+          {isLoading ? (
+            "Loading..."
+          ) : (
             <>
-              {" "}
-              with
-              <WalletIcon />
+              Sign in
+              {showWalletInfo && walletInfo && (
+                <>
+                  {" "}
+                  with
+                  <WalletIcon />
+                </>
+              )}
             </>
           )}
         </div>
-        {showWalletInfo && walletInfo && (
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsWalletSignUpOpen(true);
-            }}
-            className="pl-2 border-l border-border inline-flex items-center"
-          >
-            <IconChevronDown size={20} />
-          </div>
-        )}
-      </div>
-    </Button>
+      </Button>
+      {!isLoading && showWalletInfo && walletInfo && (
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsWalletSignUpOpen(true);
+          }}
+          disabled={isLoading}
+          size="default"
+          className="rounded-l-none px-1 border-l-0"
+        >
+          <IconChevronDown size={20} />
+        </Button>
+      )}
+    </div>
   );
 };

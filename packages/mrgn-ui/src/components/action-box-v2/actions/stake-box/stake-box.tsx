@@ -18,7 +18,7 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
-import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { WalletContextStateOverride } from "~/components/wallet-v2";
 import { ActionMessage } from "~/components";
 import {
   ActionBoxContentWrapper,

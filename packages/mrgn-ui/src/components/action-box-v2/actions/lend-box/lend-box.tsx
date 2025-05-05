@@ -33,7 +33,7 @@ import {
 import { ActionBoxContentWrapper, ActionButton, ActionSettingsButton } from "~/components/action-box-v2/components";
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
 import { LSTDialog, LSTDialogVariants } from "~/components/LSTDialog";
-import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { WalletContextStateOverride } from "~/components/wallet-v2";
 import { ActionMessage, SVSPMEV } from "~/components";
 
 import { useLendBoxStore } from "./store";

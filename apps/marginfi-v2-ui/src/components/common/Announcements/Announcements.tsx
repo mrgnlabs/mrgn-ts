@@ -5,12 +5,11 @@ import { Swiper, SwiperSlide, useSwiper } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import { IconArrowRight } from "@tabler/icons-react";
 
-import { ActionBox } from "@mrgnlabs/mrgn-ui";
+import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { capture, LendingModes, cn } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { useMrgnlendStore } from "~/store";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import "swiper/css";
 import "swiper/css/autoplay";

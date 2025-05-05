@@ -1,12 +1,12 @@
 import { firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
-import { WalletInfo } from "~/components/wallet-v2/";
+import { useWallet, WalletInfo } from "@mrgnlabs/mrgn-ui";
+
 import { onAuthStateChanged } from "firebase/auth";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/router";
 
 import { useUserProfileStore } from "~/store";
 import { useMrgnlendStore } from "~/store";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import React from "react";
 import { toastManager } from "@mrgnlabs/mrgn-toasts";
 

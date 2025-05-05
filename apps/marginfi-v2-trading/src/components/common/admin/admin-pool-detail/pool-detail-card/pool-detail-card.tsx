@@ -29,13 +29,12 @@ import { useTradeStoreV2, useUiStore } from "~/store";
 
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
-import { ActionBox, ActionBoxProvider } from "@mrgnlabs/mrgn-ui";
+import { ActionBox, ActionBoxProvider, useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { ArenaBank, ArenaPoolV2, ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
 import { useArenaClient } from "~/hooks/useArenaClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";
-import { useWallet } from "~/components/wallet-v2/hooks";
 
 type AdminPoolDetailCardProps = {
   activePool: ArenaPoolV2;

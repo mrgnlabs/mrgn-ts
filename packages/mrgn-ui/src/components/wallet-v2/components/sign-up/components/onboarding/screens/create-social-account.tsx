@@ -1,7 +1,7 @@
 import { useAvailableWallets } from "@mrgnlabs/mrgn-utils";
 import { useOs } from "@mrgnlabs/mrgn-utils";
 import { OnrampScreenProps, socialProviders } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 
 import {
   ScreenWrapper,
@@ -56,17 +56,19 @@ export const CreateSocialAccount: React.FC<props> = ({
           </li>
         ))}
       </ul>
-      <>
-        <WalletSeperator description="or connect with" />
-        <ul className="flex flex-wrap items-start justify-center gap-4 overflow-auto">
-          <WalletAuthWrapper
-            isLoading={isLoading}
-            isActiveLoading={isActiveLoading}
-            wallets={isPWA ? pwaWallets : wallets}
-            onClick={(wallet) => selectWallet(wallet)}
-          />
-        </ul>
-      </>
+      {!isPWA && (
+        <>
+          <WalletSeperator description="or connect with" />
+          <ul className="flex flex-wrap items-start justify-center gap-4 overflow-auto">
+            <WalletAuthWrapper
+              isLoading={isLoading}
+              isActiveLoading={isActiveLoading}
+              wallets={isPWA ? pwaWallets : wallets}
+              onClick={(wallet) => selectWallet(wallet)}
+            />
+          </ul>
+        </>
+      )}
     </ScreenWrapper>
   );
 };

@@ -25,7 +25,7 @@ import {
 } from "@mrgnlabs/mrgn-common";
 
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 
 import { Loader } from "~/components/ui/loader";
 import { Button } from "~/components/ui/button";

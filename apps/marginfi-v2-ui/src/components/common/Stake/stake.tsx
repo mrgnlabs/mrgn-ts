@@ -1,24 +1,17 @@
 import React from "react";
 import Link from "next/link";
 
-import { StakeBoxProvider, StakeCalculator } from "@mrgnlabs/mrgn-ui";
+import { StakeBoxProvider, StakeCalculator, useWallet } from "@mrgnlabs/mrgn-ui";
 import { IconCheck } from "@tabler/icons-react";
 
 import { useMrgnlendStore } from "~/store";
-import { useWallet } from "~/components/wallet-v2";
 import { IntegrationsData, LSTOverview, fetchLSTOverview } from "~/components/common/Stake/utils/stake-utils";
 
 import { Button } from "~/components/ui/button";
 import { IconArena } from "~/components/ui/icons";
 import { PageHeading } from "~/components/common/PageHeading";
 
-import {
-  StakeCard,
-  IntegrationCard,
-  IntegrationCardSkeleton,
-  MfiIntegrationCard,
-  ArenaIntegrationCard,
-} from "~/components/common/Stake";
+import { StakeCard, IntegrationCard, IntegrationCardSkeleton, MfiIntegrationCard } from "~/components/common/Stake";
 import { PublicKey } from "@solana/web3.js";
 
 const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");

@@ -1,9 +1,9 @@
 import React from "react";
-
 import Link from "next/link";
 
+import { useWallet } from "@mrgnlabs/mrgn-ui";
+
 import { useMrgnlendStore, useUserProfileStore } from "~/store";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { PointsOverview, PointsConnectWallet } from "~/components/common/Points";
 import { PointsTable } from "~/components/desktop/Points";
