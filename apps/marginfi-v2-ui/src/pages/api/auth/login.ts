@@ -5,11 +5,17 @@ import {
   verifySignature,
   generateCreds,
   LoginPayload,
+  AuthApiSuccessResponse,
+  AuthApiErrorResponse,
+  AuthUser,
 } from "@mrgnlabs/mrgn-utils";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<AuthApiSuccessResponse | AuthApiErrorResponse>
+) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({ user: null, error: "Method not allowed" });
   }
 
   try {
@@ -24,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const isValidSignature = verifySignature(walletAddress, signatureBytes);
 
       if (!isValidSignature) {
-        return res.status(401).json({ error: "Invalid signature" });
+        return res.status(401).json({ user: null, error: "Invalid signature" });
       }
 
       const { email, password } = generateCreds(walletAddress, signature);
@@ -33,13 +39,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { data: userList, error: listError } = await supabase.auth.admin.listUsers();
       if (listError) {
         console.error("Error fetching users:", listError);
-        return res.status(500).json({ error: "Failed to check existing users" });
+        return res.status(500).json({ user: null, error: "Failed to check existing users" });
       }
 
       const user = userList.users.find((u) => u.user_metadata?.wallet_address === walletAddress);
 
       if (!user) {
-        return res.status(401).json({ error: "User not found" });
+        return res.status(401).json({ user: null, error: "User not found" });
       }
 
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -57,13 +63,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (updateError) {
           console.error("Failed to update user:", updateError);
-          return res.status(500).json({ error: "Failed to update user" });
+          return res.status(500).json({ user: null, error: "Failed to update user" });
         }
       }
 
       if (authError || !authData.session) {
         console.error("Error authenticating user:", authError);
-        return res.status(500).json({ error: "Failed to authenticate user" });
+        return res.status(500).json({ user: null, error: "Failed to authenticate user" });
       }
 
       await supabase.auth.setSession({
@@ -71,15 +77,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         refresh_token: authData.session.refresh_token,
       });
 
+      const userData: AuthUser = {
+        id: authData.user?.id || "",
+        walletAddress,
+        walletId: walletId || authData.user?.user_metadata?.wallet_id,
+        referralCode: authData.user?.user_metadata?.referral_code,
+        referredBy: authData.user?.user_metadata?.referred_by,
+        lastLogin: authData.user?.last_sign_in_at,
+      };
+
       return res.status(200).json({
-        user: {
-          id: authData.user?.id,
-          walletAddress,
-          walletId: walletId || authData.user?.user_metadata?.wallet_id,
-          referralCode: authData.user?.user_metadata?.referral_code,
-          referredBy: authData.user?.user_metadata?.referred_by,
-          lastLogin: authData.user?.last_sign_in_at,
-        },
+        user: userData,
       });
     } else {
       // Regular login path (uses session if present)
@@ -92,13 +100,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (userError || !user) {
         return res.status(401).json({
+          user: null,
           error: "Authentication required",
           requiresSignature: true,
         });
       }
 
       if (user.user_metadata?.wallet_address !== walletAddress) {
-        return res.status(403).json({ error: "Wallet mismatch", requiresSignature: true });
+        return res.status(403).json({ user: null, error: "Wallet mismatch", requiresSignature: true });
       }
 
       if (walletId && walletId !== user.user_metadata?.wallet_id) {
@@ -114,20 +123,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
 
+      const userData: AuthUser = {
+        id: user.id,
+        walletAddress: user.user_metadata?.wallet_address || "",
+        walletId: walletId || user.user_metadata?.wallet_id,
+        referralCode: user.user_metadata?.referral_code,
+        referredBy: user.user_metadata?.referred_by,
+        lastLogin: user.last_sign_in_at,
+      };
+
       return res.status(200).json({
-        user: {
-          id: user.id,
-          walletAddress: user.user_metadata?.wallet_address,
-          walletId: walletId || user.user_metadata?.wallet_id,
-          referralCode: user.user_metadata?.referral_code,
-          referredBy: user.user_metadata?.referred_by,
-          lastLogin: user.last_sign_in_at,
-        },
+        user: userData,
       });
     }
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({
+      user: null,
       error: error instanceof Error ? error.message : "Internal server error",
     });
   }

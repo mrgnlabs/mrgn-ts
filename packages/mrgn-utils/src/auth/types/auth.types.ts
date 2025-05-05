@@ -34,3 +34,23 @@ export type LoginPayload = {
   walletAddress: string;
   walletId?: string;
 };
+
+export type AuthApiSuccessResponse = {
+  user: AuthUser;
+  statusCode?: number;
+  error?: never;
+};
+
+export type AuthApiErrorResponse = {
+  user: null;
+  error: string;
+  requiresSignature?: boolean;
+  statusCode?: number;
+};
+
+export type AuthApiResponse = AuthApiSuccessResponse | AuthApiErrorResponse;
+
+export type LogoutResponse = {
+  success: boolean;
+  error?: string;
+};

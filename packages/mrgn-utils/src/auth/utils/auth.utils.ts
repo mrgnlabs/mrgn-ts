@@ -1,7 +1,15 @@
 import { Wallet } from "@mrgnlabs/mrgn-common";
 import crypto from "crypto";
 
-import { AuthUser, SignupPayload, AuthPayload, LoginPayload } from "../types/auth.types";
+import {
+  AuthUser,
+  SignupPayload,
+  AuthPayload,
+  LoginPayload,
+  AuthApiResponse,
+  AuthApiErrorResponse,
+  LogoutResponse,
+} from "../types/auth.types";
 import {
   generateSignMessage,
   createSignatureMessage,
@@ -11,7 +19,7 @@ import { createBrowserSupabaseClient } from "../client";
 import { Connection } from "@solana/web3.js";
 import { captureSentryException } from "../../sentry.utils";
 
-export async function login(payload: AuthPayload | LoginPayload) {
+export async function login(payload: AuthPayload | LoginPayload): Promise<AuthApiResponse> {
   try {
     const response = await fetch("/api/auth/login", {
       method: "POST",
@@ -20,23 +28,23 @@ export async function login(payload: AuthPayload | LoginPayload) {
       credentials: "include",
     });
 
-    const data = await response.json(); // TODO: add types
+    const data = await response.json();
 
     return {
       ...data,
       statusCode: response.status,
-    };
+    } as AuthApiResponse;
   } catch (error) {
     console.error("Login failed", error);
     return {
       user: null,
       error: error instanceof Error ? error.message : "Login failed",
       statusCode: undefined, // couldn't reach server maybe
-    };
+    } as AuthApiErrorResponse;
   }
 }
 
-export async function signup(payload: SignupPayload) {
+export async function signup(payload: SignupPayload): Promise<AuthApiResponse> {
   try {
     const response = await fetch("/api/auth/signup", {
       method: "POST",
@@ -45,18 +53,18 @@ export async function signup(payload: SignupPayload) {
       credentials: "include", // Include cookies in the request
     });
 
-    const data = await response.json(); // TODO: add types
+    const data = await response.json();
 
     return {
       ...data,
       statusCode: response.status,
-    };
+    } as AuthApiResponse;
   } catch (error) {
     console.error("Signup failed", error);
     return {
       user: null,
       error: error instanceof Error ? error.message : "Signup failed",
-    };
+    } as AuthApiErrorResponse;
   }
 }
 
@@ -79,10 +87,17 @@ async function signMessageForAuth(wallet: Wallet, connection: Connection) {
  * Authenticates a user with a wallet
  * Tries to login first, if that fails, will request a signature and send it to the server to either login with signature or signup
  * @param wallet - The wallet to authenticate with
+ * @param connection - The Solana connection to use
  * @param walletId - The wallet ID to authenticate with
  * @param referralCode - The referral code to authenticate with
+ * @returns Authentication response with user data or error
  */
-export async function authenticate(wallet: Wallet, connection: Connection, walletId?: string, referralCode?: string) {
+export async function authenticate(
+  wallet: Wallet,
+  connection: Connection,
+  walletId?: string,
+  referralCode?: string
+): Promise<AuthApiResponse> {
   try {
     const walletAddress = wallet.publicKey?.toBase58();
     if (!walletAddress) {
@@ -168,7 +183,7 @@ const composeErrorMessage = (error: any) => {
   }
 };
 
-export async function logout(): Promise<{ success: boolean; error?: string }> {
+export async function logout(): Promise<LogoutResponse> {
   try {
     const supabase = createBrowserSupabaseClient();
 
@@ -178,13 +193,13 @@ export async function logout(): Promise<{ success: boolean; error?: string }> {
       return { success: false, error: error.message };
     }
 
-    return { success: true };
+    return { success: true } as LogoutResponse;
   } catch (error) {
     console.error("Logout error:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Logout failed",
-    };
+    } as LogoutResponse;
   }
 }
 

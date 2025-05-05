@@ -1,9 +1,17 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { createServerSupabaseClient, verifySignature, generateCreds, SignupPayload } from "@mrgnlabs/mrgn-utils";
+import { 
+  createServerSupabaseClient, 
+  verifySignature, 
+  generateCreds, 
+  SignupPayload, 
+  AuthApiSuccessResponse, 
+  AuthApiErrorResponse,
+  AuthUser 
+} from "@mrgnlabs/mrgn-utils";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<AuthApiSuccessResponse | AuthApiErrorResponse>) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({ user: null, error: "Method not allowed" });
   }
 
   try {
@@ -14,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const isValidSignature = verifySignature(walletAddress, signatureBytes);
 
     if (!isValidSignature) {
-      return res.status(401).json({ error: "Invalid signature" });
+      return res.status(401).json({ user: null, error: "Invalid signature" });
     }
 
     const supabase = createServerSupabaseClient(req, res);
@@ -24,13 +32,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: userList, error: listError } = await supabase.auth.admin.listUsers();
     if (listError) {
       console.error("Error fetching users:", listError);
-      return res.status(500).json({ error: "Failed to check existing users" });
+      return res.status(500).json({ user: null, error: "Failed to check existing users" });
     }
 
     const existingUser = userList.users.find((u) => u.user_metadata?.wallet_address === walletAddress);
 
     if (existingUser) {
-      return res.status(400).json({ error: "User already exists" });
+      return res.status(400).json({ user: null, error: "User already exists" });
     }
 
     // Create the user in Supabase Auth
@@ -48,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (createError || !userData.user) {
       console.error("Signup error:", createError);
-      return res.status(400).json({ error: createError?.message || "Failed to create user" });
+      return res.status(400).json({ user: null, error: createError?.message || "Failed to create user" });
     }
 
     // Authenticate the user
@@ -59,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (authError || !authData.session) {
       console.error("Error authenticating user:", authError);
-      return res.status(500).json({ error: "Failed to authenticate user" });
+      return res.status(500).json({ user: null, error: "Failed to authenticate user" });
     }
 
     // Set the Supabase session cookie
@@ -69,17 +77,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       refresh_token: authData.session.refresh_token,
     });
 
+    const user: AuthUser = {
+      id: userData.user.id,
+      walletAddress,
+      walletId,
+      referralCode,
+    };
+    
     return res.status(200).json({
-      user: {
-        id: userData.user.id,
-        walletAddress,
-        walletId,
-        referralCode,
-      },
+      user
     });
   } catch (error) {
     console.error("Signup error:", error);
     return res.status(500).json({
+      user: null,
       error: error instanceof Error ? error.message : "Internal server error",
     });
   }
