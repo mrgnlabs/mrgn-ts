@@ -133,7 +133,15 @@ export async function createUnstakeLstTx({
 
   unstakeIxs.push(unstakeIx);
 
-  // 4. finalize unstake transaction
+  // 4. deactive stake account
+  const deactivateStakeAccountIx = StakeProgram.deactivate({
+    stakePubkey: destinationStake,
+    authorizedPubkey: destinationStakeAuthority,
+  });
+
+  unstakeIxs.push(...deactivateStakeAccountIx.instructions);
+
+  // 5. finalize unstake transaction
   const unstakeMessage = new TransactionMessage({
     payerKey: feepayer,
     recentBlockhash: finalBlockhash,
