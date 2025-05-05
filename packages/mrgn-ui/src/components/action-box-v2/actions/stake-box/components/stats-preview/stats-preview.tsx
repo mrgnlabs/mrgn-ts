@@ -16,7 +16,7 @@ import {
 interface StakeActionSummary {
   actionPreview?: {
     supply: number;
-    projectedApy: number;
+    projectedApy?: number;
     currentPrice: number;
     commission: number;
   };
@@ -52,8 +52,8 @@ export const StatsPreview = ({ actionSummary, selectedBank, isLoading, actionMod
                   (stat.color === "SUCCESS"
                     ? "text-success"
                     : stat.color === "ALERT"
-                    ? "text-alert-foreground"
-                    : "text-destructive-foreground")
+                      ? "text-alert-foreground"
+                      : "text-destructive-foreground")
               )}
             >
               <stat.value />
@@ -78,7 +78,9 @@ function generateStakeStats(summary: StakeActionSummary, isLoading: boolean) {
 
   if (summary.actionPreview) {
     stats.push(getLstSupplyStat(summary.actionPreview.supply));
-    stats.push(getProjectedAPYStat(summary.actionPreview.projectedApy));
+    if (summary.actionPreview.projectedApy) {
+      stats.push(getProjectedAPYStat(summary.actionPreview.projectedApy));
+    }
     stats.push(getCurrentPriceStat(summary.actionPreview.currentPrice));
     stats.push(getCommissionStat(summary.actionPreview.commission));
   }
