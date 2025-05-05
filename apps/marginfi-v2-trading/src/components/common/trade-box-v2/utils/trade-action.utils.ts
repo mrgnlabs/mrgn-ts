@@ -71,6 +71,10 @@ export async function generateTradeTx(props: CalculateTradingProps): Promise<Tra
     setupBankAddresses: [props.borrowBank.address],
     marginfiAccount: finalAccount,
     depositAmount: finalDepositAmount,
+    overrideInferAccounts: {
+      group: props.marginfiClient.group.address,
+      authority: props.marginfiClient.provider.publicKey,
+    },
   });
 
   if (result && "actionQuote" in result) {
