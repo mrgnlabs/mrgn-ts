@@ -16,17 +16,6 @@ interface ActionBoxNavigatorProps {
   onClose?: () => void;
 }
 
-// const actionTitles: { [key in ActionType]?: string } = {
-//   [ActionType.Borrow]: "You borrow",
-//   [ActionType.Deposit]: "You supply",
-//   [ActionType.Withdraw]: "You withdraw",
-//   [ActionType.Repay]: "You repay",
-//   [ActionType.RepayCollat]: "You repay with collateral",
-//   [ActionType.MintLST]: "You stake",
-//   [ActionType.UnstakeLST]: "You unstake",
-//   [ActionType.Loop]: "You deposit",
-// };
-
 const toggleTitles: { [key in ActionType]?: string | React.ReactNode } = {
   [ActionType.Borrow]: "Borrow",
   [ActionType.Deposit]: "Lend",
@@ -34,8 +23,8 @@ const toggleTitles: { [key in ActionType]?: string | React.ReactNode } = {
   [ActionType.Repay]: "Repay",
   [ActionType.RepayCollat]: "Collateral Repay",
   [ActionType.MintLST]: "Stake",
-  [ActionType.UnstakeLST]: "Instant Unstake",
-  [ActionType.UnstakeFull]: (
+  [ActionType.InstantUnstakeLST]: "Instant Unstake",
+  [ActionType.UnstakeLST]: (
     <span>
       Unstake <span className="text-[11px] text-muted-foreground">(1-2 days)</span>
     </span>
@@ -44,7 +33,7 @@ const toggleTitles: { [key in ActionType]?: string | React.ReactNode } = {
 };
 
 const toggleIcons: { [key in ActionType]?: React.ReactNode } = {
-  [ActionType.UnstakeLST]: <IconRocket size={16} />,
+  [ActionType.InstantUnstakeLST]: <IconRocket size={16} />,
 };
 
 export const ActionBoxNavigator = ({

@@ -62,7 +62,7 @@ export function useDepositSwapActionAmounts({
           return maxAmountCollateral ?? 0;
         case ActionType.MintLST:
           return selectedBank.userInfo.maxDeposit ?? 0;
-        case ActionType.UnstakeLST:
+        case ActionType.InstantUnstakeLST:
           return selectedBank.userInfo.maxDeposit ?? 0;
         default:
           return 0;

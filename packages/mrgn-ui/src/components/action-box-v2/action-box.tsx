@@ -335,18 +335,18 @@ const Stake = (
         <ActionBoxNavigator
           selectedAction={selectedAction}
           onSelectAction={setSelectedAction}
-          actionTypes={[ActionType.MintLST, ActionType.UnstakeFull, ActionType.UnstakeLST]}
+          actionTypes={[ActionType.MintLST, ActionType.UnstakeLST, ActionType.InstantUnstakeLST]}
         >
           <StakeBox {...combinedProps} requestedActionType={ActionType.MintLST} isDialog={props.isDialog} />
           <StakeBox
             {...combinedProps}
-            requestedActionType={ActionType.UnstakeFull}
+            requestedActionType={ActionType.UnstakeLST}
             requestedBank={requestedBank}
             isDialog={props.isDialog}
           />
           <StakeBox
             {...combinedProps}
-            requestedActionType={ActionType.UnstakeLST}
+            requestedActionType={ActionType.InstantUnstakeLST}
             requestedBank={requestedBank}
             isDialog={props.isDialog}
           />

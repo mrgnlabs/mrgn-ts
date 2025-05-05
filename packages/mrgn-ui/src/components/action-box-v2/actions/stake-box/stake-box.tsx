@@ -158,10 +158,10 @@ export const StakeBox = ({
         } else if (selectedBank.meta.tokenSymbol !== "SOL" && actionTxns?.actionQuote?.outAmount && lstData) {
           return nativeToUi(Number(actionTxns?.actionQuote?.outAmount) / lstData?.lstSolValue, 9);
         }
-      } else if (requestedActionType === ActionType.UnstakeLST) {
+      } else if (requestedActionType === ActionType.InstantUnstakeLST) {
         const _debouncedAmount = uiToNative(debouncedAmount, 9).toNumber();
         return nativeToUi(_debouncedAmount / lstData.lstSolValue, 9);
-      } else if (requestedActionType === ActionType.UnstakeFull) {
+      } else if (requestedActionType === ActionType.UnstakeLST) {
         const _debouncedAmount = uiToNative(debouncedAmount, 9).toNumber();
         return nativeToUi(_debouncedAmount / lstData.lstSolValue, 9);
       }

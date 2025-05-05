@@ -68,9 +68,9 @@ export function useActionAmounts({
         return selectedBank?.userInfo.maxDeposit ?? 0;
       case ActionType.MintLST:
         return selectedBank?.userInfo.maxDeposit ?? 0;
-      case ActionType.UnstakeLST:
+      case ActionType.InstantUnstakeLST:
         return selectedBank?.userInfo.maxDeposit ?? 0;
-      case ActionType.UnstakeFull:
+      case ActionType.UnstakeLST:
         return selectedBank?.userInfo.maxDeposit ?? 0;
       default:
         return 0;

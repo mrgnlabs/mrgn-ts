@@ -122,7 +122,7 @@ export function useStakeSimulation({
 
       console.log("fetching action txns", props.actionMode);
 
-      if (props.actionMode === ActionType.UnstakeLST) {
+      if (props.actionMode === ActionType.InstantUnstakeLST) {
         _actionTxns = await createInstantUnstakeLstTx({
           amount: props.amount,
           feepayer: props.marginfiClient.wallet.publicKey,
@@ -130,7 +130,7 @@ export function useStakeSimulation({
           jupiterOptions: props.jupiterOptions,
           platformFeeBps: props.platformFeeBps,
         });
-      } else if (props.actionMode === ActionType.UnstakeFull) {
+      } else if (props.actionMode === ActionType.UnstakeLST) {
         console.log("unstake full");
         _actionTxns = await createUnstakeLstTx({
           destinationStakeAuthority: props.marginfiClient.wallet.publicKey,

@@ -103,7 +103,7 @@ export function checkActionAvailable({
         const lstStakeChecks = canBeLstStaked(lstQuoteMeta as any);
         if (lstStakeChecks) checks.push(...lstStakeChecks);
         break;
-      case ActionType.UnstakeLST:
+      case ActionType.InstantUnstakeLST:
         const lstUnstakeChecks = canBeLstStaked(lstQuoteMeta as any);
         if (lstUnstakeChecks) checks.push(...lstUnstakeChecks);
         break;
