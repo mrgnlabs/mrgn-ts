@@ -33,17 +33,14 @@ export function generateSignMessage(walletAddress: string): SignMessagePayload {
   return payload;
 }
 
-export function verifySignature(walletAddress: string, signature: Uint8Array | { signature: Uint8Array }): boolean {
+export function verifySignature(walletAddress: string, signature: Uint8Array): boolean {
   try {
     const publicKey = new PublicKey(walletAddress);
-
-    // Handle both Phantom and standard wallet adapter signature formats
-    const signatureBytes = "signature" in signature ? signature.signature : signature;
 
     const messageString = createSignatureMessage(walletAddress);
     const messageBytes = new TextEncoder().encode(messageString);
 
-    return nacl.sign.detached.verify(messageBytes, signatureBytes, publicKey.toBytes());
+    return nacl.sign.detached.verify(messageBytes, signature, publicKey.toBytes());
   } catch (error) {
     console.error("Signature verification failed:", error);
     return false;

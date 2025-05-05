@@ -3,5 +3,11 @@ import { createPagesServerClient as createHelperClient } from "@supabase/auth-he
 import { NextApiRequest, NextApiResponse } from "next";
 
 export const createServerSupabaseClient = (req: NextApiRequest, res: NextApiResponse) => {
-  return createHelperClient({ req, res });
+  return createHelperClient(
+    { req, res },
+    {
+      supabaseKey: process.env.SUPABASE_SERVICE_KEY,
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    }
+  );
 };

@@ -9,6 +9,7 @@ import {
 } from "../utils/auth-crypto.utils";
 import { createBrowserSupabaseClient } from "../client";
 import { Connection } from "@solana/web3.js";
+import { captureSentryException } from "../../sentry.utils";
 
 export async function login(payload: AuthPayload | LoginPayload) {
   try {
@@ -19,7 +20,7 @@ export async function login(payload: AuthPayload | LoginPayload) {
       credentials: "include",
     });
 
-    const data = await response.json();
+    const data = await response.json(); // TODO: add types
 
     return {
       ...data,
@@ -44,7 +45,7 @@ export async function signup(payload: SignupPayload) {
       credentials: "include", // Include cookies in the request
     });
 
-    const data = await response.json();
+    const data = await response.json(); // TODO: add types
 
     return {
       ...data,
@@ -115,11 +116,15 @@ export async function authenticate(wallet: Wallet, connection: Connection, walle
           signedMessage: signMessage,
         });
 
+        console.log("Login with signature result:", loginWithSigResult);
+
         if (loginWithSigResult.user) {
+          console.log("User found, logging in");
           return loginWithSigResult;
         }
 
         if (loginWithSigResult.error === "User not found") {
+          console.log("User not found, signing up");
           return signup({
             walletAddress,
             signature,
@@ -141,9 +146,11 @@ export async function authenticate(wallet: Wallet, connection: Connection, walle
     }
 
     // If we get here, something else went wrong
+    captureSentryException(loginResult.error, "Error while authenticating", { walletAddress, walletId });
     return { user: null, error: loginResult.error || "Authentication failed" };
   } catch (error) {
     console.error("Unexpected authentication error", error);
+    captureSentryException(error, "Unexpected authentication error", { walletAddress: wallet.publicKey?.toBase58() });
     return {
       user: null,
       error: error instanceof Error ? error.message : "Unexpected authentication error",
