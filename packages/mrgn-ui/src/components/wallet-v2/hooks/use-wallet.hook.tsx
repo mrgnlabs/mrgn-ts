@@ -12,7 +12,7 @@ import { AuthAdapter } from "@web3auth/auth-adapter";
 
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
 import { WalletName } from "@solana/wallet-adapter-base";
-import { generateEndpoint, useBrowser, useConnection } from "@mrgnlabs/mrgn-utils";
+import { generateEndpoint, useBrowser } from "@mrgnlabs/mrgn-utils";
 import type { Wallet } from "@mrgnlabs/mrgn-common";
 
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
@@ -188,7 +188,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   const walletContextStateDefault = useWalletAdapter();
   const [walletContextState, setWalletContextState] = React.useState<WalletContextState>(walletContextStateDefault);
-  const { connection } = useConnection();
 
   const [web3Auth, setWeb3Auth] = React.useState<Web3AuthNoModal | null>(null);
   const [web3AuthWalletData, setWeb3AuthWalletData] = React.useState<Wallet | undefined>(undefined);
@@ -199,27 +198,9 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConnecting, setIsConnecting] = React.useState(false);
   const [web3AuthPkCookie, setWeb3AuthPkCookie] = useCookies(["mrgnPrivateKeyRequested"]);
 
-  // Loading state
-  const [delayedConnecting, setDelayedConnecting] = React.useState(walletContextStateDefault.connecting);
-
   const isLoading = React.useMemo(() => {
-    return isConnecting || delayedConnecting;
-  }, [isConnecting, delayedConnecting]);
-
-  // useEffect to handle debounce of walletContextState.connecting, else there is a glitch in the UI
-  React.useEffect(() => {
-    let timeout: NodeJS.Timeout;
-
-    if (walletContextStateDefault.connecting) {
-      setDelayedConnecting(true);
-    } else {
-      timeout = setTimeout(() => {
-        setDelayedConnecting(false);
-      }, 100);
-    }
-
-    return () => clearTimeout(timeout);
-  }, [walletContextStateDefault.connecting]);
+    return isConnecting || walletContextStateDefault.connecting;
+  }, [isConnecting, walletContextStateDefault.connecting]);
 
   // CUSTOM PHANTOM LOGIC - START
   const browser = useBrowser();
@@ -228,6 +209,8 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     return (
       process.env.NEXT_PUBLIC_CUSTOM_PHANTOM_CONNECTOR !== "false" &&
       typeof window !== "undefined" &&
+      window?.phantom &&
+      window?.phantom?.solana &&
       browser === "Phantom"
     );
   }, [browser]);
@@ -321,7 +304,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       // CUSTOM PHANTOM LOGIC - START
-      else if (useCustomPhantomConnector && window.phantom && window?.phantom?.solana?.isConnected) {
+      else if (useCustomPhantomConnector) {
         await window.phantom.solana.disconnect();
         // Set flag to prevent auto-reconnect
         localStorage.setItem("phantomLogout", "true");
@@ -346,8 +329,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   const select = (walletName: WalletName | string) => {
     // CUSTOM PHANTOM LOGIC - START
-    console.log(walletName);
-    if (useCustomPhantomConnector && walletName === "Phantom" && window?.phantom && window?.phantom?.solana) {
+    if (useCustomPhantomConnector && walletName === "Phantom") {
       setIsConnecting(true);
 
       localStorage.removeItem("phantomLogout");
@@ -355,24 +337,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       window.phantom?.solana
         .connect()
         .then(() => {
-          const walletInfo: WalletInfo = {
-            name: "Phantom",
-            icon: `/phantom.png`,
-            web3Auth: false,
-          };
-          localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
-
-          const phantomWallet: Wallet = {
-            publicKey: new PublicKey(window.phantom.solana.publicKey.toBase58()),
-            signTransaction: window.phantom.solana.signTransaction,
-            signAllTransactions: window.phantom.solana.signAllTransactions,
-            signMessage: async (message: Uint8Array) => {
-              const { signature } = await window.phantom.solana.signMessage(message);
-              return signature;
-            },
-          };
-
-          setWalletContextState(makePhantomWalletContextState(phantomWallet));
           setIsWalletOpen(false);
         })
         .catch((error: any) => {
@@ -539,10 +503,8 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [makeWeb3AuthWalletData]);
 
-  // Compute connected state based on both wallet connection and authentication
-  // If authentication is disabled, just return the wallet connection state
-  // If signature was denied, we consider the wallet as not connected
-  // When auth is enabled, only consider connected if user is authenticated
+  // Compute connected state based on wallet connection
+  // This handles both web3auth and walletContextState
   const isConnected = React.useMemo(() => {
     return Boolean(walletContextState.connected || (web3Auth?.connected && web3AuthWalletData));
   }, [walletContextState.connected, web3Auth?.connected, web3AuthWalletData]);
@@ -606,7 +568,13 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         };
 
         setWalletContextState(makePhantomWalletContextState(phantomWallet));
-        window.localStorage.removeItem("phantomLogout");
+        const walletInfo: WalletInfo = {
+          name: "Phantom",
+          icon: `/phantom.png`,
+          web3Auth: false,
+        };
+        localStorage.setItem("walletInfo", JSON.stringify(walletInfo));
+        localStorage.removeItem("phantomLogout");
       };
 
       const handleDisconnect = () => {
@@ -637,25 +605,10 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       !walletContextState.connected &&
       !window.localStorage.getItem("phantomLogout")
     ) {
-      window.phantom.solana
-        .connect({ onlyIfTrusted: true })
-        .then(() => {
-          const phantomWallet: Wallet = {
-            publicKey: new PublicKey(window.phantom.solana.publicKey.toBase58()),
-            signTransaction: window.phantom.solana.signTransaction,
-            signAllTransactions: window.phantom.solana.signAllTransactions,
-            signMessage: async (message: Uint8Array) => {
-              const { signature } = await window.phantom.solana.signMessage(message);
-              return signature;
-            },
-          };
-
-          setWalletContextState(makePhantomWalletContextState(phantomWallet));
-        })
-        .catch((error: any) => {
-          console.error("Auto-connect to Phantom failed:", error);
-          localStorage.removeItem("walletInfo");
-        });
+      window.phantom.solana.connect({ onlyIfTrusted: true }).catch((error: any) => {
+        console.error("Auto-connect to Phantom failed:", error);
+        localStorage.removeItem("walletInfo");
+      });
     }
   }, [useCustomPhantomConnector, walletContextState.connected]);
   // CUSTOM PHANTOM LOGIC - END
@@ -667,8 +620,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         "data:image/svg+xml;utf8," + encodeURIComponent(minidenticon(walletContextState.publicKey.toString() || "mrgn"))
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [web3Auth?.connected, web3AuthWalletData, walletContextState.connected, walletContextState.publicKey]);
+  }, [web3Auth?.connected, web3AuthWalletData, walletContextState.connected, walletContextState.publicKey, pfp]);
 
   return (
     <WalletContext.Provider

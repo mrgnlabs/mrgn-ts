@@ -116,15 +116,11 @@ export async function authenticate(wallet: Wallet, connection: Connection, walle
           signedMessage: signMessage,
         });
 
-        console.log("Login with signature result:", loginWithSigResult);
-
         if (loginWithSigResult.user) {
-          console.log("User found, logging in");
           return loginWithSigResult;
         }
 
         if (loginWithSigResult.error === "User not found") {
-          console.log("User not found, signing up");
           return signup({
             walletAddress,
             signature,
