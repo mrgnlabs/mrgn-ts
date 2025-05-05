@@ -70,8 +70,8 @@ export interface LstData {
     validatorTransientStakeLamports: string;
     updateRequired: boolean;
   }[];
-  poolWithdrawAuthority: PublicKey;
-  validatorListKey: PublicKey;
+  poolWithdrawAuthority: string;
+  validatorListKey: string;
   updateRequired: boolean;
   lastUpdateEpoch: string;
 }
