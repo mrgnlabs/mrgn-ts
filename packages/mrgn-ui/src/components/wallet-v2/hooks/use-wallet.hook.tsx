@@ -8,7 +8,8 @@ import { useWallet as useWalletAdapter, WalletContextState } from "@solana/walle
 import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { CHAIN_NAMESPACES, IProvider, ADAPTER_EVENTS, WALLET_ADAPTERS } from "@web3auth/base";
 import { Web3AuthNoModal } from "@web3auth/no-modal";
-import { OpenloginAdapter } from "@web3auth/openlogin-adapter";
+import { AuthAdapter } from "@web3auth/auth-adapter";
+
 import { SolanaWallet, SolanaPrivateKeyProvider } from "@web3auth/solana-provider";
 import { WalletName } from "@solana/wallet-adapter-base";
 import { generateEndpoint, useBrowser, useConnection } from "@mrgnlabs/mrgn-utils";
@@ -89,7 +90,7 @@ const web3AuthChainConfig = {
   tickerName: "Solana",
 };
 
-const web3authAdapterConfig =
+const web3authAuthAdapterConfig =
   process.env.NEXT_PUBLIC_APP_ID === "marginfi-v2-ui"
     ? {
         appName: "marginfi",
@@ -97,7 +98,7 @@ const web3authAdapterConfig =
         logoDark: "https://marginfi-v2-ui-git-staging-mrgn.vercel.app/mrgn.svg",
         mode: "dark" as const,
         theme: {
-          gray: "#0E1010",
+          primary: "#0E1010",
         },
         useLogoLoader: true,
       }
@@ -107,14 +108,14 @@ const web3authAdapterConfig =
         logoLight: "https://www.thearena.trade/icon.svg",
         mode: "dark" as const,
         theme: {
-          gray: "#0E1010",
+          primary: "#0E1010",
         },
         useLogoLoader: true,
       };
 
-const web3AuthOpenLoginAdapterSettings = {
+const web3AuthAuthAdapterSettings = {
   uxMode: "redirect" as const,
-  whiteLabel: web3authAdapterConfig,
+  whiteLabel: web3authAuthAdapterConfig,
 };
 
 // Create a custom wallet context state for Web3Auth
@@ -287,7 +288,7 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           toastManager.showErrorToast("marginfi account not ready.");
           throw new Error("marginfi account not ready.");
         }
-        await web3Auth.connectTo(WALLET_ADAPTERS.OPENLOGIN, {
+        await web3Auth.connectTo(WALLET_ADAPTERS.AUTH, {
           loginProvider: provider,
           extraLoginOptions,
           mfaLevel: "none",
@@ -511,21 +512,22 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         clientId: process.env.NEXT_PUBLIC_WEB3_AUTH_CLIENT_ID!,
         chainConfig: web3AuthChainConfig,
         web3AuthNetwork: "sapphire_mainnet",
+        uiConfig: web3authAuthAdapterConfig,
       });
 
       const privateKeyProvider = new SolanaPrivateKeyProvider({
         config: { chainConfig: web3AuthChainConfig },
       });
 
-      const openloginAdapter = new OpenloginAdapter({
+      const authAdapter = new AuthAdapter({
         privateKeyProvider,
-        adapterSettings: web3AuthOpenLoginAdapterSettings,
+        adapterSettings: web3AuthAuthAdapterSettings,
       });
 
-      web3AuthInstance.configureAdapter(openloginAdapter);
+      web3AuthInstance.configureAdapter(authAdapter);
 
-      web3AuthInstance.on(ADAPTER_EVENTS.CONNECTED, async (provider) => {
-        await makeWeb3AuthWalletData(provider);
+      web3AuthInstance.on(ADAPTER_EVENTS.CONNECTED, async (data) => {
+        await makeWeb3AuthWalletData(data.provider);
       });
 
       await web3AuthInstance.init();
