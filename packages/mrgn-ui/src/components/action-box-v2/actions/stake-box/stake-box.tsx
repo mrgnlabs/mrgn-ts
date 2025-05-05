@@ -159,7 +159,11 @@ export const StakeBox = ({
           return nativeToUi(Number(actionTxns?.actionQuote?.outAmount) / lstData?.lstSolValue, 9);
         }
       } else if (requestedActionType === ActionType.UnstakeLST) {
-        return nativeToUi(Number(actionTxns?.actionQuote?.outAmount), 9);
+        const _debouncedAmount = uiToNative(debouncedAmount, 9).toNumber();
+        return nativeToUi(_debouncedAmount / lstData.lstSolValue, 9);
+      } else if (requestedActionType === ActionType.UnstakeFull) {
+        const _debouncedAmount = uiToNative(debouncedAmount, 9).toNumber();
+        return nativeToUi(_debouncedAmount / lstData.lstSolValue, 9);
       }
     }
     return 0; // Default value if conditions are not met
@@ -191,10 +195,10 @@ export const StakeBox = ({
     return {
       commission: lstData.solDepositFee,
       currentPrice: lstData.lstSolValue,
-      projectedApy: lstData.projectedApy,
+      projectedApy: actionMode === ActionType.MintLST ? lstData.projectedApy : undefined,
       supply: lstData.tvl * solPriceUsd,
     };
-  }, [lstData, solPriceUsd]);
+  }, [lstData, solPriceUsd, actionMode]);
 
   const actionMessages = React.useMemo(() => {
     return checkStakeActionAvailable({
