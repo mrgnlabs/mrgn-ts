@@ -307,9 +307,12 @@ export const StakeBox = ({
     }
   }, [marginfiClient, banks, refreshSelectedBanks]);
 
-  console.log(actionTxns.transactions.length);
-  console.log("additionalActionMessages", additionalActionMessages);
-  console.log("actionMessages", actionMessages);
+  // when switching from unstake to stake the bank is set to LST so we need to reset
+  React.useEffect(() => {
+    if (actionMode === ActionType.MintLST && selectedBank?.meta.tokenSymbol === "LST") {
+      setSelectedBank(null);
+    }
+  }, [actionMode, selectedBank, setSelectedBank]);
 
   return (
     <ActionBoxContentWrapper>
