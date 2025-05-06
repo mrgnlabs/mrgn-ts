@@ -574,7 +574,8 @@ export const handleError = (
       if (
         error.message?.toLowerCase().includes("insufficient lamport") ||
         error?.logs?.some((entry: string[]) => entry.includes("insufficient lamport")) ||
-        checkErrorCodeExactMatch(error.message, 1)
+        checkErrorCodeExactMatch(error.message, 1) ||
+        error.message.includes("Attempt to debit an account but found no record of a prior credit")
       ) {
         return STATIC_SIMULATION_ERRORS.INSUFICIENT_LAMPORTS;
       }
