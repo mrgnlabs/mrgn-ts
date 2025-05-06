@@ -1,7 +1,6 @@
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
 
-import { IconX } from "@tabler/icons-react";
 import {
   ClosePositionActionTxns,
   ExecuteClosePositionActionProps,
@@ -10,6 +9,8 @@ import {
   capture,
 } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
+import { MultiStepToastController, toastManager } from "@mrgnlabs/mrgn-toasts";
 
 import { Button } from "~/components/ui/button";
 import { ArenaBank, ArenaPoolPositions, ArenaPoolV2Extended } from "~/types/trade-store.types";
@@ -17,13 +18,11 @@ import { useWrappedAccount } from "~/hooks/useWrappedAccount";
 import { useArenaClient } from "~/hooks/useArenaClient";
 import { useConnection } from "~/hooks/use-connection";
 import { useTradeStoreV2, useUiStore } from "~/store";
-import { useWallet } from "~/components/wallet-v2/hooks";
 import { useLeveragedPositionDetails } from "~/hooks/arenaHooks";
 import { usePositionsData } from "~/hooks/usePositionsData";
 
 import { ClosePositionDialog } from "./components/close-position-dialog";
 import { simulateClosePosition } from "./utils/close-position-utils";
-import { MultiStepToastController, toastManager } from "@mrgnlabs/mrgn-toasts";
 
 interface ClosePositionProps {
   arenaPool: ArenaPoolV2Extended;

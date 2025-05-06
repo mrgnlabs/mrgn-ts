@@ -8,9 +8,9 @@ import { motion, useAnimate, useScroll, useTransform } from "framer-motion";
 import { IconPlus, IconCopy, IconCheck, IconSettings, IconLayoutDashboard } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { cn } from "@mrgnlabs/mrgn-utils";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useTradeStoreV2, useUiStore } from "~/store";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useIsMobile } from "~/hooks/use-is-mobile";
 import { useConnection } from "~/hooks/use-connection";
 
@@ -159,7 +159,7 @@ export const Header = () => {
             </Link>
           )}
           <div className="flex items-center gap-4">
-            {!isMobile && connected && (
+            {!isMobile && connected && !process.env.NEXT_PUBLIC_HIDE_ARENA_FEATURES && (
               <div className="flex items-center">
                 {/* <CreatePoolSoon /> */}
                 <CreatePoolDialog

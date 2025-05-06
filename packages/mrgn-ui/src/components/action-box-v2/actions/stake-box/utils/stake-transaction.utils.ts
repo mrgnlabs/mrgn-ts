@@ -30,13 +30,135 @@ import {
   Keypair,
   PublicKey,
   Signer,
+  StakeProgram,
   SystemProgram,
   TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
+import { StakePoolInstruction } from "@solana/spl-stake-pool";
 
 type CreateUnstakeLstTxProps = {
+  destinationStakeAuthority: PublicKey;
+  sourceTransferAuthority: PublicKey;
+  amount: number;
+  feepayer: PublicKey;
+  connection: Connection;
+  lstData: LstData;
+  blockhash?: string;
+};
+
+export async function createUnstakeLstTx({
+  destinationStakeAuthority,
+  sourceTransferAuthority,
+  amount,
+  feepayer,
+  connection,
+  lstData,
+  blockhash,
+}: CreateUnstakeLstTxProps): Promise<StakeActionTxns | ActionMessageType> {
+  const unstakeIxs: TransactionInstruction[] = [];
+
+  // 1. get or create source pool account (LST token account)
+  const sourcePoolAccount = getAssociatedTokenAddressSync(lstData.accountData.poolMint, feepayer, true);
+  const ataData = await connection.getAccountInfo(sourcePoolAccount);
+
+  if (!ataData) {
+    unstakeIxs.push(
+      createAssociatedTokenAccountIdempotentInstruction(
+        feepayer,
+        sourcePoolAccount,
+        feepayer,
+        lstData.accountData.poolMint
+      )
+    );
+  }
+
+  // 2. create destination stake account
+  const destinationStakeKeypair = Keypair.generate();
+  const destinationStake = destinationStakeKeypair.publicKey;
+  const stakeAccountSpace = 200;
+
+  const rentExemptionAmount = await connection.getMinimumBalanceForRentExemption(stakeAccountSpace);
+
+  const createDestinationStakeAccountIx = SystemProgram.createAccount({
+    fromPubkey: feepayer,
+    newAccountPubkey: destinationStake,
+    lamports: rentExemptionAmount,
+    space: stakeAccountSpace,
+    programId: StakeProgram.programId,
+  });
+
+  unstakeIxs.push(createDestinationStakeAccountIx);
+
+  // 3. withdraw stake
+  const stakePool = lstData.poolAddress;
+  const validatorList = new PublicKey(lstData.validatorListKey);
+
+  const topValidator = lstData.stakeAccounts
+    .filter((v) => Number(v.validatorActiveStakeLamports) > 0)
+    .sort((a, b) => Number(b.validatorActiveStakeLamports) - Number(a.validatorActiveStakeLamports))[0];
+
+  if (!topValidator) {
+    return STATIC_SIMULATION_ERRORS.STAKE_UNSTAKE_VALIDATOR_NOT_FOUND;
+  }
+
+  const validatorStake = new PublicKey(topValidator.stakeAccountAddress);
+
+  const [withdrawAuthority] = PublicKey.findProgramAddressSync(
+    [lstData.poolAddress.toBuffer(), Buffer.from("withdraw")],
+    SplStakePool.STAKE_POOL_PROGRAM_ID
+  );
+
+  const managerFeeAccount = lstData.accountData.managerFeeAccount;
+  const poolMint = lstData.accountData.poolMint;
+
+  const finalBlockhash = blockhash || (await connection.getLatestBlockhash()).blockhash;
+
+  const poolTokens = uiToNative(amount, 9).toNumber();
+
+  const unstakeIx = StakePoolInstruction.withdrawStake({
+    stakePool,
+    validatorList,
+    withdrawAuthority,
+    validatorStake,
+    destinationStake,
+    destinationStakeAuthority,
+    sourceTransferAuthority,
+    sourcePoolAccount,
+    managerFeeAccount,
+    poolMint,
+    poolTokens,
+  });
+
+  unstakeIxs.push(unstakeIx);
+
+  // 4. deactive stake account
+  const deactivateStakeAccountIx = StakeProgram.deactivate({
+    stakePubkey: destinationStake,
+    authorizedPubkey: destinationStakeAuthority,
+  });
+
+  unstakeIxs.push(...deactivateStakeAccountIx.instructions);
+
+  // 5. finalize unstake transaction
+  const unstakeMessage = new TransactionMessage({
+    payerKey: feepayer,
+    recentBlockhash: finalBlockhash,
+    instructions: unstakeIxs,
+  });
+
+  const unstakeTx = addTransactionMetadata(new VersionedTransaction(unstakeMessage.compileToV0Message([])), {
+    signers: [destinationStakeKeypair],
+    type: TransactionType.UNSTAKE_LST,
+  });
+
+  return {
+    transactions: [unstakeTx],
+  } as StakeActionTxns;
+}
+
+type CreateInstantUnstakeLstTxProps = {
   amount: number;
   feepayer: PublicKey;
   connection: Connection;
@@ -46,14 +168,14 @@ type CreateUnstakeLstTxProps = {
 };
 
 // unstaking LST (essentially a swap)
-export async function createUnstakeLstTx({
+export async function createInstantUnstakeLstTx({
   amount,
   feepayer,
   connection,
   blockhash,
   jupiterOptions,
   platformFeeBps,
-}: CreateUnstakeLstTxProps): Promise<StakeActionTxns | ActionMessageType> {
+}: CreateInstantUnstakeLstTxProps): Promise<StakeActionTxns | ActionMessageType> {
   const swapResponse = await createSwapToSolTx({
     feepayer,
     connection,

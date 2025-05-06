@@ -2,7 +2,7 @@ import React from "react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { IconInfoCircle, IconRefresh, IconSparkles } from "@tabler/icons-react";
+import { IconInfoCircle, IconRefresh, IconRocket, IconSparkles } from "@tabler/icons-react";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { TooltipProvider } from "~/components/ui/tooltip";
@@ -16,26 +16,24 @@ interface ActionBoxNavigatorProps {
   onClose?: () => void;
 }
 
-// const actionTitles: { [key in ActionType]?: string } = {
-//   [ActionType.Borrow]: "You borrow",
-//   [ActionType.Deposit]: "You supply",
-//   [ActionType.Withdraw]: "You withdraw",
-//   [ActionType.Repay]: "You repay",
-//   [ActionType.RepayCollat]: "You repay with collateral",
-//   [ActionType.MintLST]: "You stake",
-//   [ActionType.UnstakeLST]: "You unstake",
-//   [ActionType.Loop]: "You deposit",
-// };
-
-const toggleTitles: { [key in ActionType]?: string } = {
+const toggleTitles: { [key in ActionType]?: string | React.ReactNode } = {
   [ActionType.Borrow]: "Borrow",
   [ActionType.Deposit]: "Lend",
   [ActionType.Withdraw]: "Withdraw",
   [ActionType.Repay]: "Repay",
   [ActionType.RepayCollat]: "Collateral Repay",
-  [ActionType.MintLST]: "You stake",
-  [ActionType.UnstakeLST]: "You unstake",
+  [ActionType.MintLST]: "Stake",
+  [ActionType.InstantUnstakeLST]: "Instant Unstake",
+  [ActionType.UnstakeLST]: (
+    <span>
+      Unstake <span className="text-[11px] text-muted-foreground">(1-2 days)</span>
+    </span>
+  ),
   [ActionType.Loop]: "You deposit",
+};
+
+const toggleIcons: { [key in ActionType]?: React.ReactNode } = {
+  [ActionType.InstantUnstakeLST]: <IconRocket size={16} />,
 };
 
 export const ActionBoxNavigator = ({
@@ -87,36 +85,39 @@ export const ActionBoxNavigator = ({
                       key={idx}
                       value={toggle.value}
                       aria-label={toggle.value}
-                      className="data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 capitalize h-[1.65rem]"
+                      className="gap-1.5 data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 capitalize h-[1.65rem]"
                     >
+                      {toggleIcons[toggle.value]}
                       {toggle.text}
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
               </div>
 
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Link href="/deposit-swap">
-                      <Button
-                        className="ml-auto font-light text-muted-foreground text-left h-7 gap-1.5"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          onClose?.();
-                        }}
-                      >
-                        <IconRefresh size={14} />
-                        Deposit Swap
-                      </Button>
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Swap any token and deposit in your chosen collateral.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {selectedAction === ActionType.Deposit && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href="/deposit-swap">
+                        <Button
+                          className="ml-auto font-light text-muted-foreground text-left h-7 gap-1.5"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            onClose?.();
+                          }}
+                        >
+                          <IconRefresh size={14} />
+                          Deposit Swap
+                        </Button>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Swap any token and deposit in your chosen collateral.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </>
           </div>
         )}

@@ -2,7 +2,7 @@ import React from "react";
 
 import { OnrampScreenProps, socialProviders } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import { useAvailableWallets } from "@mrgnlabs/mrgn-utils";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 import { useOs } from "@mrgnlabs/mrgn-utils";
 
 import {

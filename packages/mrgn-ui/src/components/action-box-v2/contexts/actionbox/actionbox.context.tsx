@@ -4,7 +4,7 @@ import { WalletContextState } from "@solana/wallet-adapter-react";
 import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 
-import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { WalletContextStateOverride } from "~/components/wallet-v2";
 
 export type HidePoolStats = Array<"amount" | "health" | "size" | "type" | "oracle" | "liquidation">;
 

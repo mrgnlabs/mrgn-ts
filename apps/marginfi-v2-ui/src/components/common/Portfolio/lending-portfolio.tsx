@@ -9,11 +9,12 @@ import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, ExecuteActionProps, ExecuteCollectRewardsAction, usePrevious, useConnection } from "@mrgnlabs/mrgn-utils";
 import { CustomToastType, toastManager } from "@mrgnlabs/mrgn-toasts";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
+
 import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { WalletAuthAccounts, WalletButton } from "~/components/wallet-v2";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Loader } from "~/components/ui/loader";
 
 import { RewardsDialog } from "./components/rewards";

@@ -34,16 +34,25 @@ export type LoopTxProps = {
   blockhash?: string;
   /** The amount the user entered to deposit before applying leverage */
   inputDepositAmount?: Amount;
-  /**
-   * @deprecated This property is no longer supported.
-   */
-  depositOpts?: MakeDepositIxOpts;
-  /**
-   * @deprecated This property is no longer supported.
-   */
-  borrowOpts?: MakeBorrowIxOpts;
   /** Optional setup banks addresses */
   setupBankAddresses?: PublicKey[];
+  /**
+   * Optional override for inferred accounts in the transaction instructions.
+   * The group and authority public keys can be overridden if the user has
+   * custom configuration.
+   */
+  overrideInferAccounts?: {
+    /**
+     * Group public key to use instead of the one inferred from the account
+     * type.
+     */
+    group?: PublicKey;
+    /**
+     * Authority public key to use instead of the one inferred from the account
+     * type.
+     */
+    authority?: PublicKey;
+  };
 };
 
 export interface RepayWithCollateralProps extends RepayWithCollateralTxProps {

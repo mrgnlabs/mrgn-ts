@@ -44,6 +44,8 @@ const getActivityText = (activity: WalletActivity) => {
       return `Repaid ${details.amount} ${details.symbol}`;
     case ActionType.MintLST:
       return `Staked ${details.amount} ${details.symbol} for LST`;
+    case ActionType.InstantUnstakeLST:
+      return `Unstaked ${details.amount} LST via swap`;
     case ActionType.UnstakeLST:
       return `Unstaked ${details.amount} ${details.symbol}`;
     case ActionType.Loop:
@@ -197,7 +199,11 @@ const RerunAction = ({ walletContextState, bank, activity, secondaryBank, onReru
         <RerunTooltipButton />
       </Link>
     );
-  } else if (activity.type === ActionType.MintLST || activity.type === ActionType.UnstakeLST) {
+  } else if (
+    activity.type === ActionType.MintLST ||
+    activity.type === ActionType.InstantUnstakeLST ||
+    activity.type === ActionType.UnstakeLST
+  ) {
     return (
       <Link href="/stake" onClick={closeWallet}>
         <RerunTooltipButton />

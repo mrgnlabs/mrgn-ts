@@ -2,10 +2,10 @@ import React from "react";
 import { useRouter } from "next/router";
 
 import { identify } from "@mrgnlabs/mrgn-utils";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
-import { useWallet } from "~/components/wallet-v2";
 
 // @ts-ignore - Safe because context hook checks for null
 const TradeContext = React.createContext<>();

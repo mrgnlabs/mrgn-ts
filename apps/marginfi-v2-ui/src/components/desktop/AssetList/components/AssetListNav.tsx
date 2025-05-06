@@ -6,7 +6,6 @@ import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 
 import { useUiStore } from "~/store";
 import { TokenFilters } from "~/store/uiStore";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Label } from "~/components/ui/label";

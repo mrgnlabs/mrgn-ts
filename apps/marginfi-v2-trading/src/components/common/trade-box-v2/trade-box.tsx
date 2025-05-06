@@ -12,12 +12,12 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 import { toastManager } from "@mrgnlabs/mrgn-toasts";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { useWallet, useWalletStore } from "@mrgnlabs/mrgn-ui";
 
 import { ArenaPoolV2 } from "~/types/trade-store.types";
 import { SimulationStatus, TradeSide } from "~/components/common/trade-box-v2/utils";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { useTradeStoreV2, useUiStore } from "~/store";
-import { useWallet, useWalletStore } from "~/components/wallet-v2";
 import { useExtendedPool } from "~/hooks/useExtendedPools";
 import { useArenaClient } from "~/hooks/useArenaClient";
 import { useWrappedAccount } from "~/hooks/useWrappedAccount";

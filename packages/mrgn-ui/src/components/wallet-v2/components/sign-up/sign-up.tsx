@@ -6,7 +6,7 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { useOs, useBrowser, cn } from "@mrgnlabs/mrgn-utils";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 import { AUTO_FLOW_MAP, AuthFlowType, AuthScreenProps } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
 import { Progress } from "~/components/ui/progress";

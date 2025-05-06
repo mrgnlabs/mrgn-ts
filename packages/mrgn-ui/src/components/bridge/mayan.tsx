@@ -5,7 +5,7 @@ import { capture, generateEndpoint } from "@mrgnlabs/mrgn-utils";
 import { MultiStepToastController, toastManager } from "@mrgnlabs/mrgn-toasts";
 
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 
 import type { MayanWidgetColors, MayanWidgetConfigType } from "./mayan.types";
 

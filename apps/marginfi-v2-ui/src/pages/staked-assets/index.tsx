@@ -5,9 +5,9 @@ import Link from "next/link";
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendingModes } from "@mrgnlabs/mrgn-utils";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { PageHeading } from "~/components/common/PageHeading";
 
@@ -19,7 +19,7 @@ export default function StakedAssetsPage() {
   const [fetchMrgnlendState, stakedAssetBankInfos, stakeAccounts] = useMrgnlendStore((state) => [
     state.fetchMrgnlendState,
     state.stakedAssetBankInfos,
-    state.stakeAccounts
+    state.stakeAccounts,
   ]);
 
   return (

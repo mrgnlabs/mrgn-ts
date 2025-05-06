@@ -102,25 +102,31 @@ export default function PortfolioPage({ initialData }: StaticArenaProps) {
                     )}
                   >
                     <StatBlock label="Portfolio Size" value={`$${dynamicNumeralFormatter(portfolioSize)}`} />
-                    <Card>
-                      <CardHeader className="p-4 md:p-6 pb-0 md:pb-0">
-                        <CardTitle className="text-base text-muted-foreground font-normal">Portfolio PnL</CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-4 pt-2 md:p-6 md:pt-2">
-                        {!portfolioPnl ? (
-                          <Skeleton className="h-8 w-3/4" />
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <PnlLabel pnl={portfolioPnl} positionSize={portfolioSize} className="text-xl md:text-3xl" />
-                            <PnlBadge
-                              pnl={portfolioPnl}
-                              positionSize={portfolioSize}
-                              className="text-[10px] md:text-sm"
-                            />
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                    {!process.env.NEXT_PUBLIC_HIDE_ARENA_FEATURES && (
+                      <Card>
+                        <CardHeader className="p-4 md:p-6 pb-0 md:pb-0">
+                          <CardTitle className="text-base text-muted-foreground font-normal">Portfolio PnL</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-2 md:p-6 md:pt-2">
+                          {!portfolioPnl ? (
+                            <Skeleton className="h-8 w-3/4" />
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <PnlLabel
+                                pnl={portfolioPnl}
+                                positionSize={portfolioSize}
+                                className="text-xl md:text-3xl"
+                              />
+                              <PnlBadge
+                                pnl={portfolioPnl}
+                                positionSize={portfolioSize}
+                                className="text-[10px] md:text-sm"
+                              />
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
                     {portfolioCombined && portfolioCombined.length > 0 && (
                       <div className="col-span-2 md:col-span-1">
                         <StatBlock

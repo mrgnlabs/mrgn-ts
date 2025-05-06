@@ -7,10 +7,10 @@ import { useRouter } from "next/router";
 import { WSOL_MINT, LST_MINT } from "@mrgnlabs/mrgn-common";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { PublicKey } from "@solana/web3.js";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
 
 import config from "~/config";
 import { useTradeStoreV2 } from "~/store";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useConnection } from "~/hooks/use-connection";
 
 type SwapProps = {
@@ -58,8 +58,8 @@ export const Swap = ({ onLoad, initialInputMint }: SwapProps) => {
         initialInputMint: initialInputMint
           ? initialInputMint.toBase58()
           : initialMint
-          ? initialMint.toBase58()
-          : undefined,
+            ? initialMint.toBase58()
+            : undefined,
         initialOutputMint: initialInputMint?.equals(WSOL_MINT) ? LST_MINT.toBase58() : WSOL_MINT.toBase58(),
       },
     });

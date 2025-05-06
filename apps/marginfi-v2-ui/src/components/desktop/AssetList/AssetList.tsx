@@ -5,6 +5,8 @@ import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowM
 import { IconExternalLink } from "@tabler/icons-react";
 
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
+import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { STABLECOINS, LSTS, MEMES } from "~/config/constants";
@@ -13,10 +15,8 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./components";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Button } from "~/components/ui/button";
 import { TokenFilters } from "~/store/uiStore";
-import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 export const AssetsList = () => {
   const [extendedBankInfos, nativeSolBalance, selectedAccount, fetchMrgnlendState, stakedAssetBankInfos] =

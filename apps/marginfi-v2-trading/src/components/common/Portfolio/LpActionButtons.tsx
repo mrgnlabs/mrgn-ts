@@ -3,9 +3,9 @@ import { IconMinus, IconPlus } from "@tabler/icons-react";
 
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, capture, LendSelectionGroups } from "@mrgnlabs/mrgn-utils";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useConnection } from "~/hooks/use-connection";
-import { useWallet } from "~/components/wallet-v2";
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";
 import { Button } from "~/components/ui/button";

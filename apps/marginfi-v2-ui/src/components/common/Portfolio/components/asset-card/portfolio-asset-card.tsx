@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { IconAlertTriangle, IconExternalLink, IconFolderShare, IconInfoCircle } from "@tabler/icons-react";
-import { LAMPORTS_PER_SOL, Transaction } from "@solana/web3.js";
+import { Transaction } from "@solana/web3.js";
 import {
   usdFormatter,
   dynamicNumeralFormatter,
@@ -19,13 +19,13 @@ import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
 import { capture, cn, composeExplorerUrl, executeActionWrapper } from "@mrgnlabs/mrgn-utils";
-import { ActionBox, SVSPMEV } from "@mrgnlabs/mrgn-ui";
+import { ActionBox, SVSPMEV, useWallet } from "@mrgnlabs/mrgn-ui";
+
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { MovePositionDialog } from "../move-position";
 import { TooltipProvider } from "~/components/ui/tooltip";

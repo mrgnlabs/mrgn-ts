@@ -3,13 +3,12 @@ import React from "react";
 import { IconSortDescending, IconSortAscending, IconSearch } from "@tabler/icons-react";
 
 import { ArenaGroupStatus, Desktop, Mobile } from "@mrgnlabs/mrgn-utils";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useTradeStoreV2 } from "~/store";
 import { TradePoolFilterStates } from "~/store/tradeStoreV2";
-import { useActionBoxStore } from "~/components/action-box-v2/store";
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { useIsMobile } from "~/hooks/use-is-mobile";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { PageHeading } from "~/components/common/PageHeading";
 import { Loader } from "~/components/common/Loader";
 import { Input } from "~/components/ui/input";

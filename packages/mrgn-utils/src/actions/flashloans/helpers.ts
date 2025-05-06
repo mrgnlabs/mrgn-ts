@@ -61,7 +61,7 @@ export async function verifyTxSizeCloseBorrowLendPosition(
       };
     }
   } catch (error) {
-    console.error(error);
+    if (error instanceof ActionProcessingError) throw error;
     throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.TX_BUILD_FAILED);
   }
 }
@@ -85,7 +85,8 @@ export async function verifyTxSizeCollat(props: RepayWithCollatProps): Promise<V
       };
     }
   } catch (error) {
-    console.error(error);
+    if (error instanceof ActionProcessingError) throw error;
+
     throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.TX_BUILD_FAILED);
   }
 }
