@@ -5,10 +5,10 @@
  * IDL can be found at `target/idl/marginfi.json`.
  */
 export type Marginfi = {
-  address: "";
+  address: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA";
   metadata: {
     name: "marginfi";
-    version: "0.1.2";
+    version: "0.1.3";
     spec: "0.1.0";
     description: "Created with Anchor";
   };
@@ -576,6 +576,23 @@ export type Marginfi = {
       args: [];
     },
     {
+      name: "lendingAccountSortBalances";
+      docs: [
+        '(Permissionless) Sorts the lending account balances in descending order and removes the "gaps"',
+        "(i.e. inactive balances in between the active ones), if any.",
+        "This is necessary to ensure any legacy marginfi accounts are compliant with the",
+        '"gapless and sorted" requirements we now have.',
+      ];
+      discriminator: [187, 194, 110, 84, 82, 170, 204, 9];
+      accounts: [
+        {
+          name: "marginfiAccount";
+          writable: true;
+        },
+      ];
+      args: [];
+    },
+    {
       name: "lendingAccountStartFlashloan";
       discriminator: [14, 131, 33, 220, 81, 186, 180, 107];
       accounts: [
@@ -627,7 +644,6 @@ export type Marginfi = {
         },
         {
           name: "bankLiquidityVaultAuthority";
-          writable: true;
           pda: {
             seeds: [
               {
@@ -2287,6 +2303,80 @@ export type Marginfi = {
       discriminator: [157, 140, 6, 77, 89, 173, 173, 125];
     },
   ];
+  events: [
+    {
+      name: "editStakedSettingsEvent";
+      discriminator: [29, 58, 155, 191, 75, 220, 145, 206];
+    },
+    {
+      name: "healthPulseEvent";
+      discriminator: [183, 159, 218, 110, 61, 220, 65, 1];
+    },
+    {
+      name: "lendingAccountBorrowEvent";
+      discriminator: [223, 96, 81, 10, 156, 99, 26, 59];
+    },
+    {
+      name: "lendingAccountDepositEvent";
+      discriminator: [161, 54, 237, 217, 105, 248, 122, 151];
+    },
+    {
+      name: "lendingAccountLiquidateEvent";
+      discriminator: [166, 160, 249, 154, 183, 39, 23, 242];
+    },
+    {
+      name: "lendingAccountRepayEvent";
+      discriminator: [16, 220, 55, 111, 7, 80, 16, 25];
+    },
+    {
+      name: "lendingAccountWithdrawEvent";
+      discriminator: [3, 220, 148, 243, 33, 249, 54, 88];
+    },
+    {
+      name: "lendingPoolBankAccrueInterestEvent";
+      discriminator: [104, 117, 187, 156, 111, 154, 106, 186];
+    },
+    {
+      name: "lendingPoolBankCollectFeesEvent";
+      discriminator: [101, 119, 97, 250, 169, 175, 156, 253];
+    },
+    {
+      name: "lendingPoolBankConfigureEvent";
+      discriminator: [246, 35, 233, 110, 93, 152, 235, 40];
+    },
+    {
+      name: "lendingPoolBankConfigureFrozenEvent";
+      discriminator: [24, 10, 55, 18, 49, 150, 157, 179];
+    },
+    {
+      name: "lendingPoolBankConfigureOracleEvent";
+      discriminator: [119, 140, 110, 253, 150, 64, 210, 62];
+    },
+    {
+      name: "lendingPoolBankCreateEvent";
+      discriminator: [236, 220, 201, 63, 239, 126, 136, 249];
+    },
+    {
+      name: "lendingPoolBankHandleBankruptcyEvent";
+      discriminator: [166, 77, 41, 140, 36, 94, 10, 57];
+    },
+    {
+      name: "marginfiAccountCreateEvent";
+      discriminator: [183, 5, 117, 104, 122, 199, 68, 51];
+    },
+    {
+      name: "marginfiAccountTransferAccountAuthorityEvent";
+      discriminator: [112, 61, 140, 132, 251, 92, 90, 202];
+    },
+    {
+      name: "marginfiGroupConfigureEvent";
+      discriminator: [241, 104, 172, 167, 41, 195, 199, 170];
+    },
+    {
+      name: "marginfiGroupCreateEvent";
+      discriminator: [233, 125, 61, 14, 98, 240, 136, 253];
+    },
+  ];
   errors: [
     {
       code: 6000;
@@ -2667,6 +2757,11 @@ export type Marginfi = {
       code: 6075;
       name: "badEmodeConfig";
       msg: "The Emode config was invalid";
+    },
+    {
+      code: 6076;
+      name: "pythPushInvalidWindowSize";
+      msg: "TWAP window size does not match expected duration";
     },
   ];
   types: [
@@ -3674,6 +3769,8 @@ export type Marginfi = {
         "A read-only cache of the internal risk engine's information. Only valid in borrow/withdraw if",
         "the tx does not fail. To see the state in any context, e.g. to figure out if the risk engine is",
         "failing due to some bad price information, use `pulse_health`.",
+        "",
+        "Note:",
       ];
       repr: {
         kind: "c";
@@ -3683,6 +3780,12 @@ export type Marginfi = {
         fields: [
           {
             name: "assetValue";
+            docs: [
+              "Internal risk engine asset value, using initial weight (e.g. what is used for borrowing",
+              "purposes), with all confidence adjustments, and other discounts on price.",
+              "* Uses EMA price",
+              "* In dollars",
+            ];
             type: {
               defined: {
                 name: "wrappedI80f48";
@@ -3691,6 +3794,72 @@ export type Marginfi = {
           },
           {
             name: "liabilityValue";
+            docs: [
+              "Internal risk engine liability value, using initial weight (e.g. what is used for borrowing",
+              "purposes), with all confidence adjustments, and other discounts on price.",
+              "* Uses EMA price",
+              "* In dollars",
+            ];
+            type: {
+              defined: {
+                name: "wrappedI80f48";
+              };
+            };
+          },
+          {
+            name: "assetValueMaint";
+            docs: [
+              "Internal risk engine asset value, using maintenance weight (e.g. what is used for",
+              "liquidation purposes), with all confidence adjustments.",
+              "* Zero if the risk engine failed to load",
+              "* Uses SPOT price",
+              "* In dollars",
+            ];
+            type: {
+              defined: {
+                name: "wrappedI80f48";
+              };
+            };
+          },
+          {
+            name: "liabilityValueMaint";
+            docs: [
+              "Internal risk engine liability value, using maintenance weight (e.g. what is used for",
+              "liquidation purposes), with all confidence adjustments.",
+              "* Zero if the risk engine failed to load",
+              "* Uses SPOT price",
+              "* In dollars",
+            ];
+            type: {
+              defined: {
+                name: "wrappedI80f48";
+              };
+            };
+          },
+          {
+            name: "assetValueEquity";
+            docs: [
+              'The "true" value of assets without any confidence or weight adjustments. Internally, used',
+              "only for bankruptcies.",
+              "* Zero if the risk engine failed to load",
+              "* Uses EMA price",
+              "* In dollars",
+            ];
+            type: {
+              defined: {
+                name: "wrappedI80f48";
+              };
+            };
+          },
+          {
+            name: "liabilityValueEquity";
+            docs: [
+              'The "true" value of liabilities without any confidence or weight adjustments.',
+              "Internally, used only for bankruptcies.",
+              "* Zero if the risk engine failed to load",
+              "* Uses EMA price",
+              "* In dollars",
+            ];
             type: {
               defined: {
                 name: "wrappedI80f48";
@@ -3705,34 +3874,110 @@ export type Marginfi = {
           {
             name: "flags";
             docs: [
-              "The flags that indicate the state of the health cache This is u64 bitfield, where each bit",
-              "represents a flag.",
+              "The flags that indicate the state of the health cache. This is a u64 bitfield, where each",
+              "bit represents a flag.",
               "",
               "* HEALTHY = 1 - If set, the account cannot be liquidated. If 0, the account is unhealthy and",
               "can be liquidated.",
               "* ENGINE STATUS = 2 - If set, the engine did not error during the last health pulse. If 0,",
-              "the engine would have errored and this cache is likely invalid.",
-              "* 4, 8, 16, 32, 64, 128, etc - reserved for future use",
+              "the engine would have errored and this cache is likely invalid. `RiskEngineInitRejected`",
+              "is ignored and will allow the flag to be set anyways.",
+              "* ORACLE OK = 4 - If set, the engine did not error due to an oracle issue. If 0, engine was",
+              "passed a bad bank or oracle account, or an oracle was stale. Check the order in which",
+              "accounts were passed and ensure each balance has the correct banks/oracles, and that",
+              "oracle cranks ran recently enough. Check `internal_err` and `err_index` for more details",
+              "in some circumstances. Invalid if generated after borrow/withdraw (these instructions will",
+              "ignore oracle issues if health is still satisfactory with some balance zeroed out).",
+              "* 8, 16, 32, 64, 128, etc - reserved for future use",
             ];
-            type: "u64";
+            type: "u32";
+          },
+          {
+            name: "mrgnErr";
+            docs: [
+              "If the engine errored, look here for the error code. If the engine returns ok, you may also",
+              "check here to see if the risk engine rejected this tx (3009).",
+            ];
+            type: "u32";
           },
           {
             name: "prices";
             docs: [
               "Each price corresponds to that index of Balances in the LendingAccount. Useful for debugging",
               "or liquidator consumption, to determine how a user's position is priced internally.",
-              "* If a price overflows u64, shows u64::MAX",
-              "* If a price is negative for some reason (as several oracles support), pulse will panic",
+              "* An f64 stored as bytes",
             ];
             type: {
               array: [
                 {
-                  defined: {
-                    name: "wrappedI80f48";
-                  };
+                  array: ["u8", 8];
                 },
                 16,
               ];
+            };
+          },
+          {
+            name: "internalErr";
+            docs: [
+              "Errors in asset oracles are ignored (with prices treated as zero). If you see a zero price",
+              "and the `ORACLE_OK` flag is not set, check here to see what error was ignored internally.",
+            ];
+            type: "u32";
+          },
+          {
+            name: "errIndex";
+            docs: ["Index in `balances` where `internal_err` appeared"];
+            type: "u8";
+          },
+          {
+            name: "programVersion";
+            docs: ["Since 0.1.3, the version will be encoded here. See PROGRAM_VERSION."];
+            type: "u8";
+          },
+          {
+            name: "pad0";
+            type: {
+              array: ["u8", 2];
+            };
+          },
+          {
+            name: "internalLiqErr";
+            type: "u32";
+          },
+          {
+            name: "internalBankruptcyErr";
+            type: "u32";
+          },
+          {
+            name: "reserved0";
+            type: {
+              array: ["u8", 32];
+            };
+          },
+          {
+            name: "reserved1";
+            type: {
+              array: ["u8", 16];
+            };
+          },
+        ];
+      };
+    },
+    {
+      name: "healthPulseEvent";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "account";
+            type: "pubkey";
+          },
+          {
+            name: "healthCache";
+            type: {
+              defined: {
+                name: "healthCache";
+              };
             };
           },
         ];

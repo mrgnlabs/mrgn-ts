@@ -22,30 +22,33 @@ import { makeWrapSolIxs, makeUnwrapSolIx } from "../../utils";
 import { Balance } from "../balance";
 import {
   BankMap,
-  DISABLED_FLAG,
-  FLASHLOAN_ENABLED_FLAG,
   MarginfiClient,
   MarginfiIdlType,
   OraclePriceMap,
   RiskTier,
-  TRANSFER_ACCOUNT_AUTHORITY_FLAG,
   MintData,
   MarginfiAccountRaw,
+  MarginfiAccountType,
+  AccountFlags,
+  getActiveAccountFlags,
 } from "../..";
 import BN from "bn.js";
 import { Address, BorshCoder, BorshInstructionCoder, translateAddress } from "@coral-xyz/anchor";
 import { findPoolMintAddress, findPoolAddress, findPoolStakeAddress } from "../../vendor/single-spl-pool";
+import { HealthCache } from "../health-cache";
 
 // ----------------------------------------------------------------------------
 // Client types
 // ----------------------------------------------------------------------------
 
-class MarginfiAccount {
+class MarginfiAccount implements MarginfiAccountType {
   public address: PublicKey;
   public group: PublicKey;
   public authority: PublicKey;
   public balances: Balance[];
-  private accountFlags: BN;
+  public accountFlags: AccountFlags[];
+  public emissionsDestinationAccount: PublicKey;
+  public healthCache: HealthCache;
 
   // ----------------------------------------------------------------------------
   // Factories
@@ -56,7 +59,9 @@ class MarginfiAccount {
     this.group = marginfiAccountRaw.group;
     this.authority = marginfiAccountRaw.authority;
     this.balances = marginfiAccountRaw.lendingAccount.balances.map(Balance.from);
-    this.accountFlags = marginfiAccountRaw.accountFlags;
+    this.accountFlags = getActiveAccountFlags(marginfiAccountRaw.accountFlags);
+    this.emissionsDestinationAccount = marginfiAccountRaw.emissionsDestinationAccount;
+    this.healthCache = HealthCache.from(marginfiAccountRaw.healthCache);
   }
 
   static async fetch(address: PublicKey, client: MarginfiClient): Promise<MarginfiAccount> {
@@ -90,15 +95,15 @@ class MarginfiAccount {
   }
 
   get isDisabled(): boolean {
-    return (this.accountFlags.toNumber() & DISABLED_FLAG) !== 0;
+    return this.accountFlags.includes(AccountFlags.ACCOUNT_DISABLED);
   }
 
   get isFlashLoanEnabled(): boolean {
-    return (this.accountFlags.toNumber() & FLASHLOAN_ENABLED_FLAG) !== 0;
+    return this.accountFlags.includes(AccountFlags.ACCOUNT_IN_FLASHLOAN);
   }
 
   get isTransferAccountAuthorityEnabled(): boolean {
-    return (this.accountFlags.toNumber() & TRANSFER_ACCOUNT_AUTHORITY_FLAG) !== 0;
+    return this.accountFlags.includes(AccountFlags.ACCOUNT_TRANSFER_AUTHORITY_ALLOWED);
   }
 
   computeFreeCollateral(

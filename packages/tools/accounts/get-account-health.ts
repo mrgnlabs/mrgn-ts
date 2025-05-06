@@ -41,6 +41,7 @@ async function main() {
 
   const accountRaw: MarginfiAccountRaw = await program.account.marginfiAccount.fetch(accountPubkey);
   const activePositions = accountRaw.lendingAccount.balances.filter((b) => b.active);
+
   const bankKeys = activePositions.map((b) => b.bankPk);
   const banks = (await program.account.bank.fetchMultiple(bankKeys)) as unknown as BankRaw[];
 
@@ -95,12 +96,12 @@ async function main() {
     sigVerify: false,
   });
 
-  console.log("health", health);
-
   const marginfiAccountPost = MarginfiAccount.decode(
     Buffer.from(health.value.accounts[0].data[0], "base64"),
     program.idl
   );
+
+  console.log({ marginfiAccountPost: marginfiAccountPost.authority });
 
   const accPre = await program.account.marginfiAccount.fetch(accountPubkey);
   const cachePre = accPre.healthCache;

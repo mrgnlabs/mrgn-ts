@@ -6,7 +6,7 @@ import { WrappedI80F48 } from "@mrgnlabs/mrgn-common";
 // On-chain types
 // ----------------------------------------------------------------------------
 
-interface BalanceRaw {
+export interface BalanceRaw {
   active: boolean | number;
   bankPk: PublicKey;
   assetShares: WrappedI80F48;
@@ -15,15 +15,19 @@ interface BalanceRaw {
   lastUpdate: BN;
 }
 
-interface HealthCacheRaw {
+export interface HealthCacheRaw {
   assetValue: WrappedI80F48;
   liabilityValue: WrappedI80F48;
+  assetValueMaint: WrappedI80F48;
+  liabilityValueMaint: WrappedI80F48;
+  assetValueEquity: WrappedI80F48;
+  liabilityValueEquity: WrappedI80F48;
   timestamp: BN;
-  flags: BN;
-  prices: WrappedI80F48[];
+  flags: number;
+  prices: number[][];
 }
 
-interface MarginfiAccountRaw {
+export interface MarginfiAccountRaw {
   group: PublicKey;
   authority: PublicKey;
   lendingAccount: { balances: BalanceRaw[] };
@@ -33,6 +37,4 @@ interface MarginfiAccountRaw {
   padding0?: BN[];
 }
 
-type MarginRequirementTypeRaw = { initial: {} } | { maintenance: {} } | { equity: {} };
-
-export type { MarginfiAccountRaw, BalanceRaw, MarginRequirementTypeRaw };
+export type MarginRequirementTypeRaw = { initial: {} } | { maintenance: {} } | { equity: {} };

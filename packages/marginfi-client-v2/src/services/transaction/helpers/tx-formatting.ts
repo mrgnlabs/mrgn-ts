@@ -21,7 +21,7 @@ import {
   TransactionArenaKeyMap,
 } from "@mrgnlabs/mrgn-common";
 
-import { MarginfiIdlType, MARGINFI_IDL_V0_1_2 } from "../../../idl";
+import { MarginfiIdlType, MARGINFI_IDL } from "../../../idl";
 import { makeTxPriorityIx } from "../../../models/account";
 import { makePriorityFeeMicroIx } from "../../../utils";
 
@@ -34,7 +34,7 @@ export function isFlashloan(tx: SolanaTransaction): boolean {
   if (isV0Tx(tx)) {
     const addressLookupTableAccounts = tx.addressLookupTables ?? [];
     const message = decompileV0Transaction(tx, addressLookupTableAccounts);
-    const idl = { ...MARGINFI_IDL_V0_1_2, address: new PublicKey(0) } as unknown as MarginfiIdlType;
+    const idl = { ...MARGINFI_IDL, address: new PublicKey(0) } as unknown as MarginfiIdlType;
     const decoded = message.instructions.map((ix) => decodeInstruction(idl, ix.data));
     return decoded.some((ix) => ix?.name.toLowerCase().includes("flashloan"));
   }

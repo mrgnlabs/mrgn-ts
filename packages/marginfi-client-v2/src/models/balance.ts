@@ -3,14 +3,14 @@ import BigNumber from "bignumber.js";
 
 import { wrappedI80F48toBigNumber, nativeToUi } from "@mrgnlabs/mrgn-common";
 
-import { OraclePrice, MarginRequirementType, PriceBias, BalanceRaw } from "..";
+import { OraclePrice, MarginRequirementType, PriceBias, BalanceRaw, BalanceType } from "..";
 import { Bank } from "./bank";
 
 // ----------------------------------------------------------------------------
 // Client types
 // ----------------------------------------------------------------------------
 
-class Balance {
+class Balance implements BalanceType {
   public active: boolean;
   public bankPk: PublicKey;
   public assetShares: BigNumber;
