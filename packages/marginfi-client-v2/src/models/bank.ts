@@ -22,6 +22,7 @@ import {
   BankConfigRaw,
   BankConfigType,
   BankRaw,
+  BankType,
   InterestRateConfig,
   OperationalState,
   OracleSetup,
@@ -36,7 +37,7 @@ const SECONDS_PER_YEAR = SECONDS_PER_DAY * 365.25;
 // Client types
 // ----------------------------------------------------------------------------
 
-class Bank {
+class Bank implements BankType {
   public address: PublicKey;
   public tokenSymbol: string | undefined;
 
