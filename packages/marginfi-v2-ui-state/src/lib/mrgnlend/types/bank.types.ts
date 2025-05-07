@@ -36,6 +36,7 @@ interface BankState {
   availableLiquidity: number;
   utilizationRate: number;
   isIsolated: boolean;
+  hasEmode: boolean;
 }
 
 interface BankInfo {

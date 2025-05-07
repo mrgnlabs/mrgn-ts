@@ -8,6 +8,7 @@ import {
   RiskTier,
   MarginfiAccountWrapper,
   MarginRequirementType,
+  EmodeTag,
 } from "@mrgnlabs/marginfi-client-v2";
 import { nativeToUi, MintLayout, TokenMetadata, WSOL_MINT, floor, ceil, uiToNative } from "@mrgnlabs/mrgn-common";
 
@@ -69,6 +70,7 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
     availableLiquidity: liquidity,
     utilizationRate,
     isIsolated: bank.config.riskTier === RiskTier.Isolated,
+    hasEmode: bank.emode.emodeTag !== EmodeTag.UNSET,
   };
 }
 
@@ -147,7 +149,7 @@ async function makeEmissionsPriceMap(
   const emissionsPrices = banksWithEmissions.map((bank, i) => ({
     mint: bank.emissionsMint,
     price: emissionTokenMap
-      ? emissionTokenMap[bank.emissionsMint.toBase58()]?.price ?? new BigNumber(0)
+      ? (emissionTokenMap[bank.emissionsMint.toBase58()]?.price ?? new BigNumber(0))
       : new BigNumber(0),
     decimals: mint[0].decimals,
   }));
@@ -179,7 +181,8 @@ function makeExtendedBankMetadata(
     tokenSymbol: tokenMetadata.symbol,
     tokenName: tokenMetadata.name,
     tokenLogoUri: overrideIcon
-      ? tokenMetadata.icon ?? "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png"
+      ? (tokenMetadata.icon ??
+        "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png")
       : `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png`,
     stakePool: stakedAsset,
   };

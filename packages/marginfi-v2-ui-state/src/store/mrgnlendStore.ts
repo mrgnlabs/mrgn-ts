@@ -27,6 +27,8 @@ import {
   ValidatorStakeGroup,
   getValidatorRates,
   getStakePoolMev,
+  createLocalStorageKey,
+  getCachedMarginfiAccountsForAuthority,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -112,49 +114,6 @@ function createPersistentMrgnlendStore() {
   );
 }
 
-function createLocalStorageKey(authority: PublicKey): string {
-  return `marginfi_accounts-${authority.toString()}`;
-}
-
-async function getCachedMarginfiAccountsForAuthority(
-  authority: PublicKey,
-  client: MarginfiClient
-): Promise<MarginfiAccountWrapper[]> {
-  if (typeof window === "undefined") {
-    return client.getMarginfiAccountsForAuthority(authority);
-  }
-
-  const cacheKey = createLocalStorageKey(authority);
-  const cachedAccountsStr = window.localStorage.getItem(cacheKey);
-  let cachedAccounts: string[] = [];
-
-  if (cachedAccountsStr) {
-    cachedAccounts = JSON.parse(cachedAccountsStr);
-  }
-
-  if (cachedAccounts && cachedAccounts.length > 0) {
-    const accountAddresses: PublicKey[] = cachedAccounts.reduce((validAddresses: PublicKey[], address: string) => {
-      try {
-        const publicKey = new PublicKey(address);
-        validAddresses.push(publicKey);
-        return validAddresses;
-      } catch (error) {
-        console.warn(`Invalid public key: ${address}. Skipping.`);
-        return validAddresses;
-      }
-    }, []);
-
-    // Update local storage with valid addresses only
-    window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses.map((addr) => addr.toString())));
-    return client.getMultipleMarginfiAccounts(accountAddresses);
-  } else {
-    const accounts = await client.getMarginfiAccountsForAuthority(authority);
-    const accountAddresses = accounts.map((account) => account.address.toString());
-    window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses));
-    return accounts;
-  }
-}
-
 export function clearAccountCache(authority: PublicKey) {
   try {
     const cacheKey = createLocalStorageKey(authority);
@@ -220,14 +179,12 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const connection = args?.connection ?? get().marginfiClient?.provider.connection;
       if (!connection) throw new Error("Connection not found");
 
-      const wallet = args?.wallet ?? get().marginfiClient?.provider?.wallet;
-
       const marginfiConfig = args?.marginfiConfig ?? get().marginfiClient?.config;
       if (!marginfiConfig) throw new Error("Marginfi config must be provided at least once");
 
+      const wallet = args?.wallet ?? get().marginfiClient?.provider?.wallet;
       const stageTokens = args?.stageTokens ?? get().stageTokens;
-
-      const isReadOnly = args?.isOverride !== undefined ? args.isOverride : (get().marginfiClient?.isReadOnly ?? false);
+      const isReadOnly = args?.isOverride !== undefined ? !!args.isOverride : get().marginfiClient?.isReadOnly;
       const bundleSimRpcEndpoint = args?.bundleSimRpcEndpoint ?? get().bundleSimRpcEndpoint ?? undefined;
       const processTransactionStrategy =
         args?.processTransactionStrategy ?? get().processTransactionStrategy ?? undefined;

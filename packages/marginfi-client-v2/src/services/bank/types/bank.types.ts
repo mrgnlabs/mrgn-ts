@@ -161,7 +161,7 @@ export enum EmodeFlags {
   RESERVED_3 = 1 << 3, // 8
 }
 
-export const enum EmodeTag {
+export enum EmodeTag {
   UNSET = 0,
   SOL = 501,
   LST = 157,
