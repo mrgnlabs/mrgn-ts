@@ -389,6 +389,22 @@ function makeLendingPosition(props: MakeLendingPositionProps): LendingPosition {
   };
 }
 
+function groupBanksByEmodeTag(banks: ExtendedBankInfo[]) {
+  const groupedBanks: Record<EmodeTag, ExtendedBankInfo[]> = {
+    [EmodeTag.UNSET]: [],
+    [EmodeTag.SOL]: [],
+    [EmodeTag.LST]: [],
+    [EmodeTag.STABLE]: [],
+  };
+
+  for (const bank of banks) {
+    const emodeTag = bank.info.rawBank.emode.emodeTag;
+    groupedBanks[emodeTag].push(bank);
+  }
+
+  return groupedBanks;
+}
+
 export {
   makeBankInfo,
   makeExtendedBankMetadata,
@@ -396,4 +412,5 @@ export {
   makeLendingPosition,
   makeEmissionsPriceMap,
   makeExtendedBankEmission,
+  groupBanksByEmodeTag,
 };

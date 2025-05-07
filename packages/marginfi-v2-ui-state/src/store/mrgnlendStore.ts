@@ -29,6 +29,7 @@ import {
   getStakePoolMev,
   createLocalStorageKey,
   getCachedMarginfiAccountsForAuthority,
+  groupBanksByEmodeTag,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -43,7 +44,7 @@ import type {
   BankMetadata,
   WalletToken,
 } from "@mrgnlabs/mrgn-common";
-import type { MarginfiAccountWrapper, ProcessTransactionStrategy } from "@mrgnlabs/marginfi-client-v2";
+import { EmodeTag, MarginfiAccountWrapper, ProcessTransactionStrategy } from "@mrgnlabs/marginfi-client-v2";
 import type { MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
 
 interface ProtocolStats {
@@ -78,6 +79,8 @@ interface MrgnlendState {
   processTransactionStrategy: ProcessTransactionStrategy | null;
 
   walletTokens: WalletToken[] | null;
+
+  groupedEmodeBanks: Record<EmodeTag, ExtendedBankInfo[]>;
 
   // Actions
   fetchMrgnlendState: (args?: {
@@ -158,6 +161,13 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   processTransactionStrategy: null,
 
   walletTokens: null,
+
+  groupedEmodeBanks: {
+    [EmodeTag.UNSET]: [],
+    [EmodeTag.SOL]: [],
+    [EmodeTag.LST]: [],
+    [EmodeTag.STABLE]: [],
+  },
 
   // Actions
   fetchMrgnlendState: async (args?: {
@@ -441,6 +451,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
       const pointsTotal = get().protocolStats.pointsTotal;
 
+      const banksByEmodeTag = groupBanksByEmodeTag(sortedExtendedBankInfos);
+
       set({
         initialized: true,
         userDataFetched,
@@ -469,6 +481,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         bundleSimRpcEndpoint,
         processTransactionStrategy,
         stageTokens: stageTokens ?? null,
+        groupedEmodeBanks: banksByEmodeTag,
       });
 
       const pointSummary = await getPointsSummary();
