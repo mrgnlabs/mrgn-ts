@@ -121,6 +121,7 @@ export interface BankType {
   emissionsRemaining: BigNumber;
 
   oracleKey: PublicKey;
+  emode: EmodeSettingsType;
 }
 
 /**
@@ -143,7 +144,7 @@ export enum EmodeEntryFlags {
 
 export interface EmodeEntry {
   collateralBankEmodeTag: EmodeTag;
-  flags: EmodeEntryFlags;
+  flags: EmodeEntryFlags[];
   assetWeightInit: BigNumber;
   assetWeightMaint: BigNumber;
 }
@@ -167,11 +168,11 @@ export const enum EmodeTag {
   STABLE = 5748,
 }
 
-export interface EmodeSettings {
+export interface EmodeSettingsType {
   emodeTag: EmodeTag;
   timestamp: number;
-  flags: EmodeFlags;
-  emodeConfig: EmodeEntry;
+  flags: EmodeFlags[];
+  emodeEntries: EmodeEntry[];
 }
 
 export interface OracleConfigOpt {

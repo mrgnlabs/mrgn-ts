@@ -1,6 +1,7 @@
 import {
   EmodeEntryFlags,
   EmodeFlags,
+  EmodeTag,
   OperationalState,
   OperationalStateRaw,
   OracleSetup,
@@ -100,6 +101,23 @@ export function getActiveEmodeEntryFlags(flags: number): EmodeEntryFlags[] {
  */
 export function hasEmodeEntryFlag(flags: number, flag: number): boolean {
   return (flags & flag) === flag;
+}
+
+/**
+ * Parse a raw EMode tag number into the corresponding EmodeTag enum value
+ */
+export function parseEmodeTag(emodeTagRaw: number): EmodeTag {
+  switch (emodeTagRaw) {
+    case 501:
+      return EmodeTag.SOL;
+    case 157:
+      return EmodeTag.LST;
+    case 5748:
+      return EmodeTag.STABLE;
+    case 0:
+    default:
+      return EmodeTag.UNSET;
+  }
 }
 
 export { parseRiskTier, parseOperationalState, parseOracleSetup };

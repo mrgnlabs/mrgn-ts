@@ -131,14 +131,14 @@ interface EmodeEntryRaw {
   assetWeightMaint: WrappedI80F48;
 }
 
-interface EmodeSettingsRaw {
+export interface EmodeSettingsRaw {
   emodeTag: number;
   timestamp: BN;
   flags: BN;
   emodeConfig: EmodeConfigRaw;
 }
 
-interface EmodeConfigRaw {
+export interface EmodeConfigRaw {
   entries: EmodeEntryRaw[];
 }
 

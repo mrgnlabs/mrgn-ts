@@ -29,6 +29,7 @@ import {
   RiskTier,
 } from "../services";
 import { parseRiskTier, parseOperationalState, parseOracleSetup } from "../services/bank/utils";
+import { EmodeSettings } from "./emode-settings";
 
 const SECONDS_PER_DAY = 24 * 60 * 60;
 const SECONDS_PER_YEAR = SECONDS_PER_DAY * 365.25;
@@ -76,6 +77,7 @@ class Bank implements BankType {
   public emissionsRemaining: BigNumber;
 
   public oracleKey: PublicKey;
+  public emode: EmodeSettings;
 
   constructor(
     address: PublicKey,
@@ -105,6 +107,7 @@ class Bank implements BankType {
     emissionsMint: PublicKey,
     emissionsRemaining: BigNumber,
     oracleKey: PublicKey,
+    emode: EmodeSettings,
     tokenSymbol?: string
   ) {
     this.address = address;
@@ -145,6 +148,7 @@ class Bank implements BankType {
     this.emissionsRemaining = emissionsRemaining;
 
     this.oracleKey = oracleKey;
+    this.emode = emode;
   }
 
   static decodeBankRaw(encoded: Buffer, idl: MarginfiIdlType): BankRaw {
@@ -204,6 +208,7 @@ class Bank implements BankType {
       : new BigNumber(0);
 
     const oracleKey = findOracleKey(config, feedIdMap);
+    const emode = EmodeSettings.from(accountParsed.emode);
 
     return new Bank(
       address,
@@ -233,6 +238,7 @@ class Bank implements BankType {
       emissionsMint,
       emissionsRemaining,
       oracleKey,
+      emode,
       bankMetadata?.tokenSymbol
     );
   }
