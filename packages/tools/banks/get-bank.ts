@@ -91,6 +91,13 @@ async function main() {
   const oracleKeys = acc.config.oracleKeys.filter((key) => !key.equals(PublicKey.default));
   const pythOracleAddresses = oracleKeys.map((key) => getPythPushOracleAddresses(key.toBuffer()));
 
+  const eModeConfig = acc.emode;
+
+  const eModeTag = eModeConfig.emodeTag;
+  const eModeTimestamp = new Date(eModeConfig.timestamp.toNumber() * 1000).toLocaleString("en-US");
+  const eModeFlags = eModeConfig.flags.toString();
+  const eModeEntries = wrappedI80F48toBigNumber(eModeConfig.emodeConfig.entries[0].assetWeightInit);
+
   const bankData = {
     Address: bankPubkey.toString(),
     Group: acc.group.toString(),
@@ -121,6 +128,10 @@ async function main() {
     "Asset Value (USD)": `$${formatNumber(totalAssetQuantity.times(price))}`,
     "Liability Quantity": formatNumber(totalLiabilityQuantity),
     "Liability Value (USD)": `$${formatNumber(totalLiabilityQuantity.times(price))}`,
+    "EMode Tag": eModeTag,
+    "EMode Timestamp": eModeTimestamp,
+    "EMode Flags": eModeFlags,
+    "EMode Entries": eModeEntries,
   };
 
   console.log(`\r\nBank: ${bankPubkey.toString()}`);

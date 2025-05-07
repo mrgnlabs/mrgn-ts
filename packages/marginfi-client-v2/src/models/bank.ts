@@ -20,6 +20,7 @@ import { DEFAULT_ORACLE_MAX_AGE } from "../constants";
 import {
   AssetTag,
   BankConfigRaw,
+  BankConfigType,
   BankRaw,
   InterestRateConfig,
   OperationalState,
@@ -491,47 +492,22 @@ LTVs:
   }
 }
 
-class BankConfig {
-  public assetWeightInit: BigNumber;
-  public assetWeightMaint: BigNumber;
-
-  public liabilityWeightInit: BigNumber;
-  public liabilityWeightMaint: BigNumber;
-
-  public depositLimit: BigNumber;
-  public borrowLimit: BigNumber;
-
-  public riskTier: RiskTier;
-  public totalAssetValueInitLimit: BigNumber;
-  public assetTag: AssetTag;
-
-  public interestRateConfig: InterestRateConfig;
-  public operationalState: OperationalState;
-
-  public oracleSetup: OracleSetup;
-  public oracleKeys: PublicKey[];
-  public oracleMaxAge: number;
-
-  public permissionlessBadDebtSettlement: boolean;
-  public freezeSettings: boolean;
-
+class BankConfig implements BankConfigType {
   constructor(
-    assetWeightInit: BigNumber,
-    assetWeightMaint: BigNumber,
-    liabilityWeightInit: BigNumber,
-    liabilityWeightMaint: BigNumber,
-    depositLimit: BigNumber,
-    borrowLimit: BigNumber,
-    riskTier: RiskTier,
-    totalAssetValueInitLimit: BigNumber,
-    assetTag: AssetTag,
-    oracleSetup: OracleSetup,
-    oracleKeys: PublicKey[],
-    oracleMaxAge: number,
-    interestRateConfig: InterestRateConfig,
-    operationalState: OperationalState,
-    permissionlessBadDebtSettlement: boolean,
-    freezeSettings: boolean
+    public assetWeightInit: BigNumber,
+    public assetWeightMaint: BigNumber,
+    public liabilityWeightInit: BigNumber,
+    public liabilityWeightMaint: BigNumber,
+    public depositLimit: BigNumber,
+    public borrowLimit: BigNumber,
+    public riskTier: RiskTier,
+    public totalAssetValueInitLimit: BigNumber,
+    public assetTag: AssetTag,
+    public oracleSetup: OracleSetup,
+    public oracleKeys: PublicKey[],
+    public oracleMaxAge: number,
+    public interestRateConfig: InterestRateConfig,
+    public operationalState: OperationalState
   ) {
     this.assetWeightInit = assetWeightInit;
     this.assetWeightMaint = assetWeightMaint;
@@ -547,8 +523,6 @@ class BankConfig {
     this.interestRateConfig = interestRateConfig;
     this.operationalState = operationalState;
     this.oracleMaxAge = oracleMaxAge;
-    this.permissionlessBadDebtSettlement = permissionlessBadDebtSettlement;
-    this.freezeSettings = freezeSettings;
   }
 
   static fromAccountParsed(bankConfigRaw: BankConfigRaw): BankConfig {
@@ -575,8 +549,6 @@ class BankConfig {
       protocolIrFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolIrFee),
       protocolOriginationFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolOriginationFee),
     };
-    const permissionlessBadDebtSettlement = bankConfigRaw.permissionlessBadDebtSettlement;
-    const freezeSettings = bankConfigRaw.freezeSettings;
 
     return {
       assetWeightInit,
@@ -593,8 +565,6 @@ class BankConfig {
       oracleKeys,
       oracleMaxAge,
       interestRateConfig,
-      permissionlessBadDebtSettlement,
-      freezeSettings,
     };
   }
 }
