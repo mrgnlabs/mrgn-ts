@@ -546,6 +546,26 @@ async function makeCloseAccountIx(
     .instruction();
 }
 
+async function makePulseHealthIx(
+  mfProgram: MarginfiProgram,
+  accounts: {
+    marginfiAccount: PublicKey;
+  },
+  /**
+   * The remaining accounts required for this instruction. Should include:
+   * - For each balance the user has, pass bank and oracle: <bank1, oracle1, bank2, oracle2>
+   */
+  remainingAccounts: AccountMeta[] = []
+) {
+  return mfProgram.methods
+    .lendingAccountPulseHealth()
+    .accounts({
+      marginfiAccount: accounts.marginfiAccount,
+    })
+    .remainingAccounts(remainingAccounts)
+    .instruction();
+}
+
 const instructions = {
   makeDepositIx,
   makeRepayIx,
@@ -565,6 +585,7 @@ const instructions = {
   makeCloseAccountIx,
   makePoolAddPermissionlessStakedBankIx,
   makeLendingPoolConfigureBankOracleIx,
+  makePulseHealthIx,
 };
 
 export default instructions;
