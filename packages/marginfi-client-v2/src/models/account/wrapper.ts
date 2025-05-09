@@ -1923,20 +1923,6 @@ class MarginfiAccountWrapper {
   // Helpers
   // --------------------------------------------------------------------------
 
-  getHealthCheckAccounts(
-    mandatoryBanks: Bank[] = [],
-    excludedBanks: Bank[] = [],
-    bankMetadataMap: BankMetadataMap,
-    authority: PublicKey
-  ): AccountMeta[] {
-    return this._marginfiAccount.getHealthCheckAccounts(
-      this.client.banks,
-      mandatoryBanks,
-      excludedBanks,
-      bankMetadataMap
-    );
-  }
-
   private static async _fetchAccountData(
     accountAddress: Address,
     config: MarginfiConfig,

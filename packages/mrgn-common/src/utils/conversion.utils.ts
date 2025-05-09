@@ -2,6 +2,7 @@ import { Address, BN } from "@coral-xyz/anchor";
 import BigNumber from "bignumber.js";
 import { Decimal } from "decimal.js";
 import { Amount, WrappedI80F48 } from "../types";
+import { PublicKey } from "@solana/web3.js";
 
 const I80F48_FRACTIONAL_BYTES = 6;
 const I80F48_TOTAL_BYTES = 16;
@@ -112,3 +113,36 @@ export function shortenAddress(pubkey: Address, chars = 4): string {
 export function bpsToPercentile(bps: number): number {
   return bps / 10000;
 }
+
+/**
+ * Prepares transaction remaining accounts by processing bank-oracle groups:
+ * 1. Sorts groups in descending order by bank public key (pushes inactive accounts to end)
+ * 2. Flattens the structure into a single public key array
+ *
+ * Stable on most JS implementations (this shouldn't matter since we do not generally have duplicate
+ * banks), in place, and uses the raw 32-byte value to sort in byte-wise lexicographical order (like
+ * Rust's b.key.cmp(&a.key))
+ *
+ * @param banksAndOracles - Array where each element is a bank-oracle group: [bankPubkey,
+ *                          oracle1Pubkey, oracle2Pubkey?, ...] Note: SystemProgram keys (111..111)
+ *                          represent inactive accounts
+ * @returns Flattened array of public keys with inactive accounts at the end, ready for transaction
+ *          composition
+ */
+export const composeRemainingAccounts = (banksAndOracles: PublicKey[][]): PublicKey[] => {
+  banksAndOracles.sort((a, b) => {
+    const A = a[0].toBytes();
+    const B = b[0].toBytes();
+    // find the first differing byte
+    for (let i = 0; i < 32; i++) {
+      if (A[i] !== B[i]) {
+        // descending: bigger byte should come first
+        return B[i] - A[i];
+      }
+    }
+    return 0; // identical keys
+  });
+
+  // flatten out [bank, oracle…, oracle…] → [bank, oracle…, bank, oracle…, …]
+  return banksAndOracles.flat();
+};

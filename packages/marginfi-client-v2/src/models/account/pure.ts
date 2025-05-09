@@ -7,6 +7,7 @@ import {
   TOKEN_2022_PROGRAM_ID,
   WSOL_MINT,
   aprToApy,
+  composeRemainingAccounts,
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
   shortenAddress,
@@ -611,7 +612,7 @@ class MarginfiAccount implements MarginfiAccountType {
     mandatoryBanks: Bank[] = [],
     excludedBanks: Bank[] = [],
     bankMetadataMap: BankMetadataMap
-  ): AccountMeta[] {
+  ): PublicKey[] {
     const mandatoryBanksSet = new Set(mandatoryBanks.map((b) => b.address.toBase58()));
     const excludedBanksSet = new Set(excludedBanks.map((b) => b.address.toBase58()));
     const activeBanks = new Set(this.activeBalances.map((b) => b.bankPk.toBase58()));
@@ -638,7 +639,9 @@ class MarginfiAccount implements MarginfiAccountType {
         return new PublicKey(newBank);
       });
 
-    return makeHealthAccountMetas(banks, projectedActiveBanks, bankMetadataMap, this.authority);
+    return projectedActiveBanks;
+
+    // return makeHealthAccountMetas(banks, projectedActiveBanks, bankMetadataMap);
   }
 
   // ----------------------------------------------------------------------------
@@ -790,14 +793,12 @@ class MarginfiAccount implements MarginfiAccountType {
     }
 
     // Add withdraw-related instructions
-    const remainingAccounts = [];
+    const remainingAccounts: PublicKey[] = [];
     if (mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
-      remainingAccounts.push({ pubkey: mintData.mint, isSigner: false, isWritable: false });
+      remainingAccounts.push(mintData.mint);
     }
     if (opts.observationBanksOverride !== undefined) {
-      remainingAccounts.push(
-        ...makeHealthAccountMetas(banks, opts.observationBanksOverride, bankMetadataMap, this.authority)
-      );
+      remainingAccounts.push(...makeHealthAccountMetas(banks, opts.observationBanksOverride, bankMetadataMap));
     } else {
       remainingAccounts.push(
         ...(withdrawAll
@@ -817,7 +818,7 @@ class MarginfiAccount implements MarginfiAccountType {
         group: opts.overrideInferAccounts?.group,
       },
       { amount: uiToNative(amount, bank.mintDecimals), withdrawAll },
-      remainingAccounts
+      remainingAccounts.map((account) => ({ pubkey: account, isSigner: false, isWritable: false }))
     );
     withdrawIxs.push(withdrawIx);
 
@@ -838,15 +839,15 @@ class MarginfiAccount implements MarginfiAccountType {
     bankMetadataMap: BankMetadataMap,
     amount: Amount,
     bankAddress: PublicKey,
-    opt: MakeBorrowIxOpts = {}
+    borrowOpts: MakeBorrowIxOpts = {}
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
     const mintData = mintDatas.get(bankAddress.toBase58());
     if (!mintData) throw Error(`Mint data for bank ${bankAddress.toBase58()} not found`);
 
-    const wrapAndUnwrapSol = opt.wrapAndUnwrapSol ?? true;
-    const createAtas = opt.createAtas ?? true;
+    const wrapAndUnwrapSol = borrowOpts.wrapAndUnwrapSol ?? true;
+    const createAtas = borrowOpts.createAtas ?? true;
 
     const borrowIxs: TransactionInstruction[] = [];
 
@@ -863,16 +864,17 @@ class MarginfiAccount implements MarginfiAccountType {
       borrowIxs.push(createAtaIdempotentIx);
     }
 
-    let remainingAccounts = [];
+    const healthAccounts = this.getHealthCheckAccounts(banks, [bank], [], bankMetadataMap);
+
+    const remainingAccounts: PublicKey[] = [];
     if (mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
-      remainingAccounts.push({ pubkey: mintData.mint, isSigner: false, isWritable: false });
+      remainingAccounts.push(mintData.mint);
     }
-    if (opt?.observationBanksOverride !== undefined) {
-      remainingAccounts.push(
-        ...makeHealthAccountMetas(banks, opt.observationBanksOverride, bankMetadataMap, this.authority)
-      );
+    if (borrowOpts?.observationBanksOverride) {
+      remainingAccounts.push(...borrowOpts.observationBanksOverride);
     } else {
-      remainingAccounts.push(...this.getHealthCheckAccounts(banks, [bank], [], bankMetadataMap));
+      const accountMetas = makeHealthAccountMetas(banks, healthAccounts, bankMetadataMap);
+      remainingAccounts.push(...accountMetas);
     }
 
     const borrowIx = await instructions.makeBorrowIx(
@@ -882,11 +884,11 @@ class MarginfiAccount implements MarginfiAccountType {
         bank: bank.address,
         destinationTokenAccount: userAta,
         tokenProgram: mintData.tokenProgram,
-        authority: opt?.overrideInferAccounts?.authority,
-        group: opt?.overrideInferAccounts?.group,
+        authority: borrowOpts?.overrideInferAccounts?.authority,
+        group: borrowOpts?.overrideInferAccounts?.group,
       },
       { amount: uiToNative(amount, bank.mintDecimals) },
-      remainingAccounts
+      remainingAccounts.map((account) => ({ pubkey: account, isSigner: false, isWritable: false }))
     );
     borrowIxs.push(borrowIx);
 
@@ -961,22 +963,14 @@ class MarginfiAccount implements MarginfiAccountType {
 
     let ixs = [];
 
-    let remainingAccounts = [];
+    let remainingAccounts: PublicKey[] = [];
     if (liabilityMintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
-      remainingAccounts.push({ pubkey: liabilityMintData.mint, isSigner: false, isWritable: false });
+      remainingAccounts.push(liabilityMintData.mint);
     }
     remainingAccounts.push(
       ...[
-        {
-          pubkey: assetBank.oracleKey,
-          isSigner: false,
-          isWritable: false,
-        },
-        {
-          pubkey: liabilityBank.oracleKey,
-          isSigner: false,
-          isWritable: false,
-        },
+        assetBank.oracleKey,
+        liabilityBank.oracleKey,
         ...this.getHealthCheckAccounts(banks, [liabilityBank, assetBank], [], bankMetadataMap),
         ...liquidateeMarginfiAccount.getHealthCheckAccounts(banks, [], [], bankMetadataMap),
       ]
@@ -993,7 +987,7 @@ class MarginfiAccount implements MarginfiAccountType {
         tokenProgram: liabilityMintData.tokenProgram,
       },
       { assetAmount: uiToNative(assetQuantityUi, assetBank.mintDecimals) },
-      remainingAccounts
+      remainingAccounts.map((account) => ({ pubkey: account, isSigner: false, isWritable: false }))
     );
     ixs.push(liquidateIx);
 
@@ -1022,7 +1016,7 @@ class MarginfiAccount implements MarginfiAccountType {
       {
         marginfiAccount: this.address,
       },
-      remainingAccounts
+      remainingAccounts.map((account) => ({ pubkey: account, isSigner: false, isWritable: false }))
     );
 
     return { instructions: [ix], keys: [] };
@@ -1192,52 +1186,33 @@ export function isWeightedPrice(reqType: MarginRequirementType): boolean {
 export function makeHealthAccountMetas(
   banks: Map<string, Bank>,
   banksToInclude: PublicKey[],
-  bankMetadataMap?: BankMetadataMap,
-  authority?: PublicKey
-): AccountMeta[] {
-  return banksToInclude.flatMap((bankAddress) => {
-    const bank = banks.get(bankAddress.toBase58());
-    const accs: AccountMeta[] = [];
-    if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+  bankMetadataMap?: BankMetadataMap
+): PublicKey[] {
+  return composeRemainingAccounts(
+    banksToInclude.flatMap((bankAddress) => {
+      const bank = banks.get(bankAddress.toBase58());
+      const accounts: PublicKey[][] = [];
+      if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
 
-    accs.push(
-      {
-        pubkey: bankAddress,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: bank.oracleKey,
-        isSigner: false,
-        isWritable: false,
-      }
-    );
+      accounts.push([bankAddress, bank.oracleKey]);
 
-    if (bank.config.assetTag === 2) {
-      if (!authority) throw Error("Authority is required for staked accounts");
+      if (bank.config.assetTag === 2) {
+        const bankMetadata = bankMetadataMap?.[bankAddress.toBase58()];
 
-      const solBank = Array.from(banks.values()).find((b) => b.mint.equals(WSOL_MINT));
+        if (!bankMetadata || !bankMetadata.validatorVoteAccount) {
+          throw Error(`Bank metadata for ${bankAddress.toBase58()} not found`);
+        }
 
-      if (!solBank) throw Error(`SOL bank not found`);
+        const pool = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
+        const solPool = findPoolStakeAddress(pool);
+        const lstMint = findPoolMintAddress(pool);
 
-      const bankMetadata = bankMetadataMap?.[bankAddress.toBase58()];
-
-      if (!bankMetadata || !bankMetadata.validatorVoteAccount) {
-        throw Error(`Bank metadata for ${bankAddress.toBase58()} not found`);
+        accounts.push([lstMint, solPool]);
       }
 
-      const pool = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
-      const solPool = findPoolStakeAddress(pool);
-      const lstMint = findPoolMintAddress(pool);
-
-      accs.push(
-        { pubkey: lstMint, isSigner: false, isWritable: false },
-        { pubkey: solPool, isSigner: false, isWritable: false }
-      );
-    }
-
-    return accs;
-  });
+      return accounts;
+    })
+  );
 }
 
 export { MarginfiAccount, MarginRequirementType };
