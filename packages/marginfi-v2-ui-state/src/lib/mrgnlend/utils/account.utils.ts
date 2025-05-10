@@ -4,10 +4,17 @@ import BigNumber from "bignumber.js";
 import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { MarginfiAccountWrapper, MarginRequirementType, MintData } from "@mrgnlabs/marginfi-client-v2";
 
-import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, unpackAccount, nativeToUi } from "@mrgnlabs/mrgn-common";
+import {
+  getAssociatedTokenAddressSync,
+  TOKEN_2022_PROGRAM_ID,
+  unpackAccount,
+  nativeToUi,
+  NATIVE_MINT,
+} from "@mrgnlabs/mrgn-common";
 
 import { ExtendedBankInfo, AccountSummary, TokenAccountMap, TokenAccount } from "../types";
 import { getStakeAccountsCached } from "./staked-collateral.utils";
+import { UserAssetBalance } from "@mrgnlabs/mrgn-utils";
 
 function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: ExtendedBankInfo[]): AccountSummary {
   const equityComponents = marginfiAccount.computeHealthComponents(MarginRequirementType.Equity);
@@ -57,11 +64,48 @@ async function fetchTokenAccounts(
   walletAddress: PublicKey,
   bankInfos: { mint: PublicKey; mintDecimals: number; bankAddress: PublicKey; assetTag?: number }[],
   mintDatas: Map<string, MintData>,
-  fetchStakeAccounts: boolean = true
+  fetchStakeAccounts: boolean = true,
+  mixinBalancesAddressMap?: Record<string, UserAssetBalance> | undefined
 ): Promise<{
   nativeSolBalance: number;
   tokenAccountMap: TokenAccountMap;
 }> {
+  // 如果有 Mixin 余额，直接使用 Mixin 余额
+  if (mixinBalancesAddressMap) {
+    const tokenAccountMap = new Map();
+    let nativeSolBalance = 0;
+
+    for (const bank of bankInfos) {
+      const mixinBalance = mixinBalancesAddressMap[bank.mint.toBase58()];
+
+      if (mixinBalance) {
+        // 如果是 SOL，更新 nativeSolBalance
+        if (bank.mint.equals(NATIVE_MINT)) {
+          nativeSolBalance = Number(mixinBalance.total_amount);
+        }
+
+        // 添加到 tokenAccountMap
+        tokenAccountMap.set(bank.mint.toBase58(), {
+          created: true,
+          mint: bank.mint,
+          balance: Number(mixinBalance.total_amount) ?? 0,
+        });
+      } else {
+        // 如果没有 Mixin 余额，设置为 0
+        tokenAccountMap.set(bank.mint.toBase58(), {
+          created: false,
+          mint: bank.mint,
+          balance: 0,
+        });
+      }
+    }
+
+    return {
+      nativeSolBalance,
+      tokenAccountMap,
+    };
+  }
+
   // Get relevant addresses
   const mintList = bankInfos.map((bank) => ({
     address: bank.mint,

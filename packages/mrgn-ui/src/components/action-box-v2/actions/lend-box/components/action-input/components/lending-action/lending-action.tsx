@@ -49,7 +49,6 @@ export const LendingAction = ({
             amount: formatAmount(walletAmount, "SOL"),
           };
         }
-
         return {
           label: "Wallet: ",
           amount: formatAmount(walletAmount, selectedBank?.meta.tokenSymbol),

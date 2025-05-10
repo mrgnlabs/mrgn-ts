@@ -95,6 +95,7 @@ export type MarginfiClientOptions = {
     tokenDatas: Map<string, MintData>;
     feedIdMap: PythPushFeedIdMap;
   }>;
+  mixinPublicKey?: PublicKey | undefined;
 };
 
 /**
@@ -175,12 +176,20 @@ class MarginfiClient {
     const confirmOpts = clientOptions?.confirmOpts ?? {};
     const readOnly = clientOptions?.readOnly ?? false;
     const preloadedBankAddresses = clientOptions?.preloadedBankAddresses;
+    if (clientOptions?.mixinPublicKey) {
+      wallet.publicKey = new PublicKey(clientOptions.mixinPublicKey);
+    }
+    console.log("clientOptions.mixinPublicKey: ", clientOptions?.mixinPublicKey);
+    console.log("wallet: ", wallet);
+    console.log("wallet.publicKey: ", wallet.publicKey.toBase58());
 
     const provider = new AnchorProvider(connection, wallet, {
       ...AnchorProvider.defaultOptions(),
       commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
       ...confirmOpts,
     });
+
+    console.log("provider.publicKey: ", provider.publicKey.toBase58());
 
     const idl = { ...programIdl, address: config.programId.toBase58() };
 

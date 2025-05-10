@@ -144,7 +144,7 @@ export const getMedianPrioritizationFeeByPercentile = async (
 const getRecentPrioritizationFeesFromRpc = async (config: any, rpcRequest: any) => {
   const accounts = config?.lockedWritableAccounts?.map((key: { toBase58: () => any }) => key.toBase58());
   const args = accounts?.length ? [accounts] : [[]];
-  config.percentile && args.push({ percentile: config.percentile });
+  // config.percentile && args.push({ percentile: config.percentile });
 
   const response = await rpcRequest("getRecentPrioritizationFees", args);
 
@@ -196,16 +196,18 @@ export const getRecentPrioritizationFeesByPercentile = async (
   if (tritonGRPFResponse?.result) {
     recentPrioritizationFees = tritonGRPFResponse.result!;
   }
-
   if (fallbackGRPFResponse?.result && !tritonGRPFResponse?.result) {
     recentPrioritizationFees = fallbackGRPFResponse.result!;
   }
 
-  if (fallback && fallbackGRPFResponse.error) {
-    return fallbackGRPFResponse.error;
+  // 修改为
+  if (fallback) {
+    if (fallbackGRPFResponse && fallbackGRPFResponse?.error) {
+      return fallbackGRPFResponse.error;
+    }
   }
 
-  if (tritonGRPFResponse?.error) {
+  if (tritonGRPFResponse && tritonGRPFResponse?.error) {
     return tritonGRPFResponse.error;
   }
 

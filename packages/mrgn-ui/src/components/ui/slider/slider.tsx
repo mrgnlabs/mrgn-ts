@@ -1,9 +1,13 @@
 import * as React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
-import Lottie from "lottie-react";
-
+import dynamic from "next/dynamic";
 import { cn, blendHexColors } from "@mrgnlabs/mrgn-utils";
 import fireAnimation from "./fire-lottie.json";
+
+// 动态导入 Lottie 组件，禁用 SSR
+const Lottie = dynamic(() => import("lottie-react"), {
+  ssr: false,
+});
 
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,

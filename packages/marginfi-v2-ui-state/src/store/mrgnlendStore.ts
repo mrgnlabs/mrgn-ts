@@ -43,6 +43,7 @@ import type {
 } from "@mrgnlabs/mrgn-common";
 import type { MarginfiAccountWrapper, ProcessTransactionStrategy } from "@mrgnlabs/marginfi-client-v2";
 import type { MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
+import type { UserAssetBalance } from "@mrgnlabs/mrgn-utils";
 
 interface ProtocolStats {
   deposits: number;
@@ -87,6 +88,8 @@ interface MrgnlendState {
     bundleSimRpcEndpoint?: string;
     stageTokens?: string[];
     processTransactionStrategy?: ProcessTransactionStrategy;
+    mixinPublicKey?: PublicKey | undefined;
+    mixinBalancesAddressMap?: Record<string, UserAssetBalance> | undefined;
   }) => Promise<void>;
   setIsRefreshingStore: (isRefreshingStore: boolean) => void;
   resetUserData: () => void;
@@ -210,6 +213,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
     bundleSimRpcEndpoint?: string;
     stageTokens?: string[];
     processTransactionStrategy?: ProcessTransactionStrategy;
+    mixinPublicKey?: PublicKey | undefined;
+    mixinBalancesAddressMap?: Record<string, UserAssetBalance> | undefined;
   }) => {
     try {
       const { MarginfiClient } = await import("@mrgnlabs/marginfi-client-v2");
@@ -221,6 +226,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       if (!connection) throw new Error("Connection not found");
 
       const wallet = args?.wallet ?? get().marginfiClient?.provider?.wallet;
+      const publicKey = args?.mixinPublicKey ?? wallet?.publicKey;
+      console.log("publicKey: ", publicKey);
 
       const marginfiConfig = args?.marginfiConfig ?? get().marginfiClient?.config;
       if (!marginfiConfig) throw new Error("Marginfi config must be provided at least once");
@@ -296,6 +303,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         bankMetadataMap: bankMetadataMap,
         processTransactionStrategy,
         fetchGroupDataOverride: fetchGroupData,
+        mixinPublicKey: publicKey,
       });
       const clientBanks = [...marginfiClient.banks.values()];
 
@@ -314,24 +322,26 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       let marginfiAccounts: MarginfiAccountWrapper[] = [];
       let selectedAccount: MarginfiAccountWrapper | null = null;
       let stakeAccounts: ValidatorStakeGroup[] = [];
-      if (wallet?.publicKey) {
+      if (publicKey) {
         const [tokenData, marginfiAccountWrappers] = await Promise.all([
           fetchTokenAccounts(
             connection,
-            wallet.publicKey,
+            publicKey,
             banks.map((bank) => ({
               mint: bank.mint,
               mintDecimals: bank.mintDecimals,
               bankAddress: bank.address,
               assetTag: bank.config.assetTag,
             })),
-            marginfiClient.mintDatas
+            marginfiClient.mintDatas,
+            false,
+            args?.mixinBalancesAddressMap
           ),
-          getCachedMarginfiAccountsForAuthority(wallet.publicKey, marginfiClient),
+          getCachedMarginfiAccountsForAuthority(publicKey, marginfiClient),
         ]);
 
-        stakeAccounts = await getStakeAccountsCached(wallet.publicKey);
-
+        stakeAccounts = [] as ValidatorStakeGroup[];
+        // stakeAccounts = await getStakeAccountsCached(publicKey);
         nativeSolBalance = tokenData.nativeSolBalance;
         tokenAccountMap = tokenData.tokenAccountMap;
         marginfiAccounts = marginfiAccountWrappers;
@@ -405,11 +415,13 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           const emissionTokenPriceData = priceMap[bank.emissionsMint.toBase58()];
 
           let userData;
-          if (wallet?.publicKey) {
+          if (publicKey) {
             const tokenAccount = tokenAccountMap!.get(bank.mint.toBase58());
             if (!tokenAccount) {
               return acc;
             }
+
+            // if mixinPublicKey is provided, set nativeSolBalance to 0
             userData = {
               nativeSolBalance,
               tokenAccount,
@@ -478,7 +490,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       );
 
       let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
-      if (wallet?.publicKey && selectedAccount) {
+      if (publicKey && selectedAccount) {
         accountSummary = computeAccountSummary(selectedAccount, extendedBankInfos);
       }
 
@@ -506,7 +518,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           pointsTotal: pointsTotal,
         },
         selectedAccount,
-        nativeSolBalance,
+        nativeSolBalance: args?.mixinPublicKey ? 0 : nativeSolBalance,
         accountSummary,
         birdEyeApiKey,
         bundleSimRpcEndpoint,
@@ -517,27 +529,27 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const pointSummary = await getPointsSummary();
 
       set({
-        protocolStats: { deposits, borrows, tvl: deposits - borrows, pointsTotal: pointSummary.points_total },
+        protocolStats: { deposits, borrows, tvl: deposits - borrows, pointsTotal: 0 },
       });
 
-      const [sortedExtendedBankEmission, sortedExtendedBankMetadatasEmission, newEmissionsTokenMap] =
-        await makeExtendedBankEmission(sortedExtendedBankInfos, sortedExtendedBankMetadatas, priceMap, birdEyeApiKey);
+      // const [sortedExtendedBankEmission, sortedExtendedBankMetadatasEmission, newEmissionsTokenMap] =
+      //   await makeExtendedBankEmission(sortedExtendedBankInfos, sortedExtendedBankMetadatas, priceMap, birdEyeApiKey);
 
-      if (newEmissionsTokenMap !== null) {
-        set({
-          extendedBankInfos: sortedExtendedBankEmission,
-          extendedBankMetadatas: sortedExtendedBankMetadatasEmission,
-          emissionTokenMap: newEmissionsTokenMap,
-        });
-      } else {
-        if (emissionsTokenMap && Object.keys(emissionsTokenMap).length === 0) {
-          set({
-            extendedBankInfos: sortedExtendedBankEmission,
-            extendedBankMetadatas: sortedExtendedBankMetadatasEmission,
-            emissionTokenMap: null,
-          });
-        }
-      }
+      // if (newEmissionsTokenMap !== null) {
+      //   set({
+      //     extendedBankInfos: sortedExtendedBankEmission,
+      //     extendedBankMetadatas: sortedExtendedBankMetadatasEmission,
+      //     emissionTokenMap: newEmissionsTokenMap,
+      //   });
+      // } else {
+      //   if (emissionsTokenMap && Object.keys(emissionsTokenMap).length === 0) {
+      //     set({
+      //       extendedBankInfos: sortedExtendedBankEmission,
+      //       extendedBankMetadatas: sortedExtendedBankMetadatasEmission,
+      //       emissionTokenMap: null,
+      //     });
+      //   }
+      // }
     } catch (err) {
       console.error("error refreshing state: ", err);
       set({ isRefreshingStore: false });

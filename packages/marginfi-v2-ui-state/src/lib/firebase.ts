@@ -1,6 +1,6 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, signInWithCustomToken } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+// import { initializeApp } from "firebase/app";
+// import { getAuth, signInWithCustomToken } from "firebase/auth";
+// import { getFirestore } from "firebase/firestore";
 import {
   STATUS_BAD_REQUEST,
   STATUS_INTERNAL_ERROR,
@@ -15,14 +15,14 @@ import { createMemoInstruction } from "@mrgnlabs/mrgn-common";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import base58 from "bs58";
 import { object, string, optional, Infer } from "superstruct";
-import { FIREBASE_CONFIG } from "../config";
+// import { FIREBASE_CONFIG } from "../config";
 import { Wallet } from "@mrgnlabs/mrgn-common";
 
-const app = initializeApp(FIREBASE_CONFIG);
-const db = getFirestore(app);
-const auth = getAuth(app);
+// const app = initializeApp(FIREBASE_CONFIG);
+// const db = getFirestore(app);
+// const auth = getAuth(app);
 
-export { app, db, auth };
+// export { app, db, auth };
 
 // ----------------------------------------------------------------------------
 // Points auth API
@@ -171,79 +171,81 @@ export {
 export type { UserData, LoginPayload, SignupPayload, MigratePayload, AccountLabelPayload };
 
 async function signupWithAddress(walletAddress: string, payload: SignupPayload, walletId?: string) {
-  const response = await fetch("/api/user/signup", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ walletAddress, payload, walletId }),
-  });
-  const data = await response.json();
+  return;
+  // const response = await fetch("/api/user/signup", {
+  //   method: "POST",
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //   },
+  //   body: JSON.stringify({ walletAddress, payload, walletId }),
+  // });
+  // const data = await response.json();
 
-  switch (response.status) {
-    case STATUS_BAD_REQUEST:
-      throw new Error(data.error);
-    case STATUS_UNAUTHORIZED:
-    case STATUS_INTERNAL_ERROR:
-      throw new Error("Something went wrong during sign-up");
-    default: {
-    }
-  }
+  // switch (response.status) {
+  //   case STATUS_BAD_REQUEST:
+  //     throw new Error(data.error);
+  //   case STATUS_UNAUTHORIZED:
+  //   case STATUS_INTERNAL_ERROR:
+  //     throw new Error("Something went wrong during sign-up");
+  //   default: {
+  //   }
+  // }
 
-  if (!data.token) throw new Error("Something went wrong during sign-up");
+  // if (!data.token) throw new Error("Something went wrong during sign-up");
 
-  // Sign in with custom token to get ID token
-  await signinFirebaseAuth(data.token);
+  // // Sign in with custom token to get ID token
+  // await signinFirebaseAuth(data.token);
 
-  // Get the ID token
-  const idToken = await auth.currentUser?.getIdToken();
-  if (!idToken) throw new Error("Failed to get ID token");
+  // // Get the ID token
+  // const idToken = await auth.currentUser?.getIdToken();
+  // if (!idToken) throw new Error("Failed to get ID token");
 
-  // Create session cookie
-  const sessionResponse = await fetch("/api/user/session", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ idToken }),
-  });
+  // // Create session cookie
+  // const sessionResponse = await fetch("/api/user/session", {
+  //   method: "POST",
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //   },
+  //   body: JSON.stringify({ idToken }),
+  // });
 
-  if (!sessionResponse.ok) {
-    throw new Error("Failed to create session");
-  }
+  // if (!sessionResponse.ok) {
+  //   throw new Error("Failed to create session");
+  // }
 }
 
 async function loginWithAddress(walletAddress: string, walletId?: string) {
-  const response = await fetch("/api/user/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ walletAddress, walletId }),
-  });
-  const data = await response.json();
+  return;
+  // const response = await fetch("/api/user/login", {
+  //   method: "POST",
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //   },
+  //   body: JSON.stringify({ walletAddress, walletId }),
+  // });
+  // const data = await response.json();
 
-  if (!data.token) throw new Error("Something went wrong during sign-in");
+  // if (!data.token) throw new Error("Something went wrong during sign-in");
 
-  // Sign in with custom token to get ID token
-  await signinFirebaseAuth(data.token);
+  // // Sign in with custom token to get ID token
+  // await signinFirebaseAuth(data.token);
 
-  // Get the ID token
-  const idToken = await auth.currentUser?.getIdToken();
-  if (!idToken) throw new Error("Failed to get ID token");
+  // // Get the ID token
+  // const idToken = await auth.currentUser?.getIdToken();
+  // if (!idToken) throw new Error("Failed to get ID token");
 
-  // Create session cookie
-  const sessionResponse = await fetch("/api/user/session", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ idToken }),
-  });
+  // // Create session cookie
+  // const sessionResponse = await fetch("/api/user/session", {
+  //   method: "POST",
+  //   headers: {
+  //     "Content-Type": "application/json",
+  //   },
+  //   body: JSON.stringify({ idToken }),
+  // });
 
-  if (!sessionResponse.ok) {
-    throw new Error("Failed to create session");
-  }
+  // if (!sessionResponse.ok) {
+  //   throw new Error("Failed to create session");
+  // }
 }
 
 async function signMigrateMemo(wallet: Wallet, migrateData: MigratePayload): Promise<string> {
@@ -354,17 +356,18 @@ async function signAccountLabelTx(
 }
 
 async function signinFirebaseAuth(token: string) {
-  try {
-    await signInWithCustomToken(auth, token);
-  } catch (error: any) {
-    console.error("Error signing in with custom token: ", error);
-    if (error.code === "auth/network-request-failed") {
-      // @todo need to give user better experience here
-      throw new Error(
-        "It appears there was a network error. Please check your internet connection and try again. If the problem persists, please try again later."
-      );
-    } else {
-      throw new Error("An error occurred while signing in. Please try again later.");
-    }
-  }
+  return;
+  // try {
+  //   await signInWithCustomToken(auth, token);
+  // } catch (error: any) {
+  //   console.error("Error signing in with custom token: ", error);
+  //   if (error.code === "auth/network-request-failed") {
+  //     // @todo need to give user better experience here
+  //     throw new Error(
+  //       "It appears there was a network error. Please check your internet connection and try again. If the problem persists, please try again later."
+  //     );
+  //   } else {
+  //     throw new Error("An error occurred while signing in. Please try again later.");
+  //   }
+  // }
 }

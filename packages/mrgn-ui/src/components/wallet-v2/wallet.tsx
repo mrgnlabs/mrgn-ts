@@ -37,7 +37,7 @@ import {
   WalletPkDialog,
   WalletSend,
   WalletReceive,
-  WalletAuthAccounts,
+  // WalletAuthAccounts,
 } from "~/components/wallet-v2/components";
 import { Swap } from "~/components/swap";
 import { Mayan, Debridge } from "~/components/bridge";
@@ -255,7 +255,7 @@ const Wallet = ({
                     <div className="flex relative flex-col items-start gap-1.5">
                       <p className="text-xs self-center text-muted-foreground ">Manage accounts</p>
 
-                      <WalletAuthAccounts
+                      {/* <WalletAuthAccounts
                         initialized={initialized}
                         mfiClient={mfiClient}
                         connection={connection}
@@ -266,7 +266,7 @@ const Wallet = ({
                         accountLabels={accountLabels}
                         fetchAccountLabels={fetchAccountLabels}
                         fullHeight={true}
-                      />
+                      /> */}
                     </div>
                   )}
 

@@ -1,0 +1,365 @@
+import React, { FC, useMemo, useState } from "react";
+
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/router";
+import { IconMrgn } from "~/components/ui/icons";
+import {
+  IconBell,
+  IconBrandTelegram,
+  IconSearch,
+  IconSettings,
+  IconUserCircle,
+  IconX,
+  IconChevronDown,
+  IconChevronRightPipe,
+  IconChevronRight,
+} from "@tabler/icons-react";
+import { Button } from "~/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
+import { ResponsiveSettingsWrapper } from "~/components/settings/settings-wrapper";
+import { useAppStore, useUiStore } from "~/store";
+import MixinWallet from "../MixinWallet/MixinWallet";
+import { Drawer, DrawerPortal, DrawerContent, DrawerTrigger, DrawerOverlay, DrawerClose } from "~/components/ui/drawer";
+import { LoginModal } from "../MixinWallet";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { useConnection } from "~/hooks/use-connection";
+
+// @todo implement second pretty navbar row
+export const Navbar: FC = () => {
+  const router = useRouter();
+  const connection = useConnection();
+
+  const [initialized, setInitialized] = React.useState(false);
+
+  const {
+    priorityType,
+    broadcastType,
+    priorityFees,
+    maxCapType,
+    setTransactionSettings,
+    accountLabels,
+    fetchAccountLabels,
+    displaySettings,
+    setDisplaySettings,
+    jupiterOptions,
+    setJupiterOptions,
+    setGlobalActionBoxProps,
+    globalActionBoxProps,
+  } = useUiStore((state) => ({
+    priorityType: state.priorityType,
+    broadcastType: state.broadcastType,
+    priorityFees: state.priorityFees,
+    maxCapType: state.maxCapType,
+    setTransactionSettings: state.setTransactionSettings,
+    accountLabels: state.accountLabels,
+    fetchAccountLabels: state.fetchAccountLabels,
+    displaySettings: state.displaySettings,
+    setDisplaySettings: state.setDisplaySettings,
+    jupiterOptions: state.jupiterOptions,
+    setJupiterOptions: state.setJupiterOptions,
+    setGlobalActionBoxProps: state.setGlobalActionBoxProps,
+    globalActionBoxProps: state.globalActionBoxProps,
+  }));
+
+  const { user, balances, getMixinClient, setKeystore, clear } = useAppStore((s) => ({
+    user: s.user,
+    balances: s.balances,
+    getMixinClient: s.getMixinClient,
+    setKeystore: s.setKeystore,
+    clear: s.clear,
+  }));
+
+  const isLoggedIn = !!user;
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const handleAvatarClick = () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+    }
+  };
+
+  const handleLogout = () => {
+    clear();
+    return;
+  };
+
+  return (
+    <header className="h-[64px] mb-4 md:mb-8 lg:mb-14">
+      <nav className="fixed w-full top-0 h-[64px] z-50 bg-background">
+        <div className="w-full flex justify-between items-center h-16 text-sm font-[500] text-[#868E95] z-10 border-b-[0.5px] border-[#1C2125] px-4">
+          <div className="h-full w-1/2 z-10 flex items-center gap-8">
+            {/* <Link
+              href="/"
+              className="h-[35.025px] w-[31.0125px] min-h-[35.025px] min-w-[31.0125px] flex justify-center items-center text-white"
+            >
+              <IconMrgn size={35} />
+            </Link> */}
+
+            <div className="flex items-center md:pl-12">
+              {isLoggedIn ? (
+                <Drawer direction="left">
+                  <DrawerTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center h-full gap-3 bg-accent/50 hover:bg-accent/80 transition-all rounded-full py-2 px-4 text-sm text-muted-foreground font-normal shrink-0"
+                    >
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={user.avatar_url} />
+                        <AvatarFallback>
+                          <IconUserCircle
+                            size={32}
+                            className="text-nav-light-text dark:text-nav-dark-text"
+                            stroke={1.5}
+                          />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col items-start">
+                        <span className="font-aeonik text-base text-nav-light-text dark:text-nav-dark-text">
+                          {user?.full_name || "未登录"}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{user?.identity_number || ""}</span>
+                      </div>
+                      <IconChevronDown size={16} className="ml-2" />
+                    </Button>
+                  </DrawerTrigger>
+                  <DrawerPortal>
+                    <DrawerOverlay className="fixed inset-0 z-50 bg-black/80" />
+                    <DrawerContent className="fixed bottom-0 max-w-md h-screen">
+                      <div className="flex h-full w-full flex-col">
+                        <div className="flex items-center justify-between p-4">
+                          <DrawerClose asChild>
+                            <Button variant="outline" size="icon" className="hover:bg-transparent rounded-full">
+                              <IconX className="h-6 w-6" />
+                            </Button>
+                          </DrawerClose>
+                        </div>
+                        <div className="flex-1 min-h-0 space-y-6 overflow-y-auto px-4">
+                          <div className="text-center">
+                            <h2 className="text-xl font-medium">管理账户</h2>
+                            <div className="mt-2 inline-block px-4 py-1 rounded-full text-sm">
+                              {user.full_name || "账户 1"}
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-medium">资产概览</h3>
+                            <div className="space-y-2">
+                              {Object.values(balances).map((balance) => (
+                                <div
+                                  key={balance.asset.symbol}
+                                  className="flex items-center justify-between p-4 bg-background-gray rounded-lg"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <Avatar>
+                                      <AvatarImage src={balance.asset.icon_url} />
+                                      <AvatarFallback>
+                                        <IconUserCircle
+                                          size={24}
+                                          className="text-nav-light-text dark:text-nav-dark-text"
+                                        />
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span>{balance.asset.name}</span>
+                                  </div>
+                                  <span>{balance.total_amount}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-auto p-4">
+                          <Button
+                            variant="outline"
+                            className="w-full rounded-full mb-4 hover:bg-destructive hover:text-destructive-foreground transition-all"
+                            onClick={handleLogout}
+                          >
+                            断开连接
+                          </Button>
+                        </div>
+                      </div>
+                    </DrawerContent>
+                  </DrawerPortal>
+                </Drawer>
+              ) : (
+                <Button
+                  variant="default"
+                  size="default"
+                  className="flex items-center gap-2 bg-accent hover:bg-accent/70 text-secondary-foreground transition-all rounded-full py-2 px-6 text-sm font-medium"
+                  aria-label="Login"
+                  onClick={handleAvatarClick}
+                >
+                  {/* <IconUserCircle size={20} className="text-primary-foreground" stroke={1.5} /> */}
+                  Connect Wallet
+                </Button>
+              )}
+            </div>
+
+            <LoginModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
+
+            <div className="hidden lg:flex justify-start items-center gap-8">
+              <Link
+                href={"/"}
+                className={`${
+                  router.pathname === "/" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                }`}
+              >
+                lend
+              </Link>
+
+              {/* <Link
+                href={"/stake"}
+                className={
+                  router.pathname === "/stake" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                }
+              >
+                stake
+              </Link> */}
+
+              {/* <Link
+                href={"/looper"}
+                className={
+                  router.pathname === "/looper" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                }
+              >
+                looper
+              </Link> */}
+
+              <Link
+                href={"/portfolio"}
+                className={`${
+                  router.pathname === "/portfolio" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                } whitespace-nowrap`}
+              >
+                portfolio
+              </Link>
+
+              {/* {lipAccount && lipAccount.deposits.length > 0 && (
+                <Link
+                  href={"/earn"}
+                  className={
+                    router.pathname === "/earn" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                  }
+                >
+                  earn
+                </Link>
+              )} */}
+              {/* 
+              <Link
+                href="/ecosystem"
+                className={`${
+                  router.pathname === "/ecosystem" ? "text-primary hover-underline-static" : "hover-underline-animation"
+                } whitespace-nowrap`}
+              >
+                ecosystem
+              </Link> */}
+            </div>
+          </div>
+          {
+            <div className="pr-20 h-full w-1/2 flex justify-end items-center z-10 gap-2 sm:gap-4 text-[#868E95]">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 shrink-0 flex lg:hidden rounded-full hover:bg-accent/50 transition-all"
+              >
+                <IconSearch size={20} className="text-muted-foreground" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  // setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: !globalActionBoxProps.isOpen });
+                }}
+                className="hidden lg:flex items-center justify-between w-56 h-10 px-4 rounded-full bg-accent/50 hover:bg-accent/80 text-muted-foreground transition-all"
+              >
+                <span className="text-sm">Search pools...</span>
+                <span className="text-xs bg-accent/50 px-2 py-1 rounded-md">⌘ K</span>
+              </Button>
+
+              {/* 
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-lg">
+                    <IconBell size={20} />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="flex flex-col items-center justify-center text-center gap-4">
+                    <div className="flex flex-col items-center justify-center text-center gap-2">
+                      <Image
+                        src="https://storage.googleapis.com/mrgn-public/ecosystem-images/asgardwatchbot.jpg"
+                        alt="Asgard Heimdall"
+                        width={52}
+                        height={52}
+                        className="rounded-full"
+                      />
+                      <h2 className="text-lg font-medium">Asgard Watchbot</h2>
+                      <p className="text-sm">
+                        Sign up for real time notifications with Asgardfi&apos;s telegram watchbot.
+                      </p>
+                    </div>
+                    <Link
+                      href="https://t.me/AsgardWatchBot"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => {
+                        // capture("asgard_watchbot_clicked");
+                      }}
+                    >
+                      <Button variant="secondary" size="sm">
+                        <IconBrandTelegram size={18} /> Open in Telegram
+                      </Button>
+                    </Link>
+                  </div>
+                </PopoverContent>
+              </Popover> */}
+
+              <ResponsiveSettingsWrapper
+                transactionOptions={{
+                  broadcastType,
+                  priorityType,
+                  maxCap: priorityFees.maxCapUi ?? 0,
+                  maxCapType,
+                }}
+                jupiterOptions={{ ...jupiterOptions, slippageBps: jupiterOptions.slippageBps / 100 }}
+                onTransactionOptionsChange={(settings) => setTransactionSettings(settings, connection.connection)}
+                onJupiterOptionsChange={(settings) => setJupiterOptions(settings)}
+                settingsDialogOpen={displaySettings}
+                setSettingsDialogOpen={setDisplaySettings}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 shrink-0 rounded-full hover:bg-accent/50 transition-all"
+                >
+                  <IconSettings size={20} className="text-muted-foreground" />
+                </Button>
+              </ResponsiveSettingsWrapper>
+
+              {/* <Wallet
+                connection={connection}
+                initialized={initialized}
+                userDataFetched={userDataFetched}
+                mfiClient={mfiClient}
+                marginfiAccounts={marginfiAccounts}
+                selectedAccount={selectedAccount}
+                extendedBankInfos={extendedBankInfos}
+                nativeSolBalance={nativeSolBalance}
+                userPointsData={userPointsData}
+                accountSummary={accountSummary}
+                refreshState={fetchMrgnlendState}
+                processOpts={{
+                  ...priorityFees,
+                  broadcastType,
+                }}
+                accountLabels={accountLabels}
+                fetchAccountLabels={fetchAccountLabels}
+              /> */}
+            </div>
+          }
+        </div>
+      </nav>
+    </header>
+  );
+};

@@ -21,6 +21,8 @@ export async function generateActionTxns(props: {
       marginfiAccount: props.marginfiAccount,
       marginfiClient: props.marginfiClient,
     });
+    console.log("newAccount: ", newAccount.authority.toBase58());
+    console.log("tx: ", tx);
     account = newAccount;
     accountCreationTx = tx;
   }
@@ -36,6 +38,10 @@ export async function generateActionTxns(props: {
         if (!props.stakeAccount || !props.bank.meta.stakePool?.validatorVoteAccount) {
           throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.NATIVE_STAKE_NOT_FOUND);
         }
+        console.log("account: ", account);
+        console.log("props.amount: ", props.amount);
+        console.log("props.bank.address: ", props.bank.address);
+
         depositTx = await account.makeDepositStakedTx(
           props.amount,
           props.bank.address,

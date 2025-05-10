@@ -17,6 +17,7 @@
     "@jup-ag/api": "^6.0.38",
     "@jup-ag/common": "^6.1.0",
     "@jup-ag/referral-sdk": "^0.1.7",
+    "@mixin.dev/mixin-node-sdk": "^7.4.1",
     "@mrgnlabs/marginfi-client-v2": "workspace:*",
     "@mrgnlabs/marginfi-v2-ui-state": "workspace:*",
     "@mrgnlabs/mrgn-common": "workspace:*",
@@ -41,15 +42,15 @@
   },
   "devDependencies": {
     "@mrgnlabs/tsconfig": "workspace:*",
-    "@types/numeral": "^2.0.5",
-    "@types/react": "^18.2.61",
-    "@types/bn.js": "^5.1.1",
-    "@types/lodash.debounce": "^4.0.9",
-    "ts-node": "^10.9.2",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/wallet-adapter-react": "^0.15.35",
+    "@types/bn.js": "^5.1.1",
+    "@types/lodash.debounce": "^4.0.9",
+    "@types/numeral": "^2.0.5",
+    "@types/react": "^18.2.61",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.5.2"
   },
   "publishConfig": {

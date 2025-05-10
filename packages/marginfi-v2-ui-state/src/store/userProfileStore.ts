@@ -1,6 +1,6 @@
-import { User, signOut } from "firebase/auth";
+// import { User, signOut } from "firebase/auth";
 import { create } from "zustand";
-import { firebaseApi } from "../lib";
+// import { firebaseApi } from "../lib";
 import { DEFAULT_USER_POINTS_DATA, UserPointsData, getPointsDataForUser } from "../lib/points";
 
 type ZoomLevel = 1 | 2 | 3;
@@ -9,7 +9,7 @@ interface UserProfileState {
   // State
   lendZoomLevel: ZoomLevel;
   showBadges: boolean;
-  currentFirebaseUser: User | null;
+  // currentFirebaseUser: User | null;
   hasUser: boolean | null;
   userPointsData: UserPointsData;
 
@@ -17,7 +17,7 @@ interface UserProfileState {
   setLendZoomLevel: (level: ZoomLevel) => void;
   setShowBadges: (checked: boolean) => void;
   checkForFirebaseUser: (walletAddress: string) => Promise<void>;
-  setFirebaseUser: (user: User | null) => void;
+  // setFirebaseUser: (user: User | null) => void;
   signoutFirebaseUser: (isConnected: boolean, walletAddress?: string) => Promise<void>;
   fetchPoints: (walletAddress: string) => Promise<void>;
   resetPoints: () => void;
@@ -38,23 +38,22 @@ function createUserProfileStore() {
     checkForFirebaseUser: async (walletAddress: string) => {
       let user;
       try {
-        user = await firebaseApi.getUser(walletAddress);
+        // user = await firebaseApi.getUser(walletAddress);
       } catch (error: any) {}
 
       set({ hasUser: !!user });
     },
-    setFirebaseUser: (user: User | null) => {
-      set(() => ({ currentFirebaseUser: user }));
-    },
+    // setFirebaseUser: (user: User | null) => {
+    //   set(() => ({ currentFirebaseUser: user }));
+    // },
     signoutFirebaseUser: async (isConnected: boolean, walletAddress?: string) => {
-      const currentFirebaseUser = get().currentFirebaseUser;
-
-      const disconnected = !isConnected && currentFirebaseUser;
-      const mismatchingId = walletAddress && currentFirebaseUser?.uid && walletAddress !== currentFirebaseUser.uid;
-      if (disconnected || mismatchingId) {
-        await signOut(firebaseApi.auth);
-        set(() => ({ currentFirebaseUser: null }));
-      }
+      // const currentFirebaseUser = get().currentFirebaseUser;
+      // const disconnected = !isConnected && currentFirebaseUser;
+      // const mismatchingId = walletAddress && currentFirebaseUser?.uid && walletAddress !== currentFirebaseUser.uid;
+      // if (disconnected || mismatchingId) {
+      //   // await signOut(firebaseApi.auth);
+      //   // set(() => ({ currentFirebaseUser: null }));
+      // }
     },
     fetchPoints: async (wallet: string) => set({ userPointsData: await getPointsDataForUser(wallet) }),
     resetPoints: () => set({ userPointsData: DEFAULT_USER_POINTS_DATA }),

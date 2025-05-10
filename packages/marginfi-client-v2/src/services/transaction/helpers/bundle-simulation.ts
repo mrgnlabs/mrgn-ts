@@ -8,7 +8,11 @@ import {
 } from "@solana/web3.js";
 
 export class BundleSimulationError extends Error {
-  constructor(message: string, public readonly logs?: string[], public readonly cause?: unknown) {
+  constructor(
+    message: string,
+    public readonly logs?: string[],
+    public readonly cause?: unknown
+  ) {
     super(message);
     this.name = "BundleSimulationError";
   }
@@ -91,7 +95,9 @@ export async function simulateBundle(
     // Prepare transaction data
     const encodedTransactions = encodeTransactions(transactions);
     const config = createBundleConfig(transactions, includeAccounts);
-
+    console.log("rpcEndpoint: ", rpcEndpoint);
+    console.log("encodedTransactions: ", encodedTransactions);
+    console.log("config: ", config);
     // Execute simulation
     const result = await executeBundleSimulation(rpcEndpoint, encodedTransactions, config);
 

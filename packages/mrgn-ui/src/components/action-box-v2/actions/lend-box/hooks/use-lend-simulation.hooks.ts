@@ -131,10 +131,19 @@ export function useLendSimulation({
           amount: amount,
         });
 
+        console.log("actionTxns: ", actionTxns.actionTxns);
+        console.log("finalAccount: ", actionTxns.finalAccount);
+        console.log("selectedBank: ", selectedBank);
+        console.log("lendMode: ", lendMode);
+        console.log("amount: ", amount);
+
+        console.log("simulationResult: ", simulationResult);
+
         setSimulationResult(simulationResult);
         setActionTxns(actionTxns.actionTxns);
         setErrorMessage(null);
       } catch (error) {
+        console.log("error: ", error);
         if (error instanceof ActionProcessingError) {
           handleError(error.details, {
             setErrorMessage,

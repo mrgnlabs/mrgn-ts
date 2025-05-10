@@ -54,8 +54,8 @@ export function useActionAmounts({
     switch (actionMode) {
       case ActionType.Deposit:
         return selectedBank.info.rawBank.config.assetTag === 2
-          ? selectedStakeAccount?.balance ?? 0
-          : selectedBank?.userInfo.maxDeposit ?? 0;
+          ? (selectedStakeAccount?.balance ?? 0)
+          : (selectedBank?.userInfo.maxDeposit ?? 0);
       case ActionType.Withdraw:
         return selectedBank?.userInfo.maxWithdraw ?? 0;
       case ActionType.Borrow:

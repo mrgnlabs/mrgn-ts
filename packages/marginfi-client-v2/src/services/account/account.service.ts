@@ -19,6 +19,10 @@ export async function createMarginfiAccountTx(props: {
   const authority = props.marginfiAccount?.authority ?? props.marginfiClient.provider.publicKey;
   const marginfiAccountKeypair = Keypair.generate();
 
+  console.log("marginfiAccount: ", props.marginfiAccount?.authority.toBase58());
+  console.log("marginfiClient.provider", props.marginfiClient.provider);
+  console.log("marginfiClient.provider.publicKey: ", props.marginfiClient.provider.publicKey.toBase58());
+  console.log("authority: ", authority.toBase58());
   // create a dummy account with 15 empty balances to be used in other transactions
   const dummyWrappedI80F48 = bigNumberToWrappedI80F48(new BigNumber(0));
   const dummyBalances: BalanceRaw[] = Array(15).fill({
