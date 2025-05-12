@@ -14,6 +14,7 @@ const badgeVariants = cva(
         outline: "text-foreground",
         long: "bg-mrgn-green text-mrgn-green-foreground border-none",
         short: "bg-mrgn-red text-mrgn-red-foreground border-none",
+        emode: "bg-background-gray text-purple-200 gap-1 px-2 py-1",
       },
     },
     defaultVariants: {

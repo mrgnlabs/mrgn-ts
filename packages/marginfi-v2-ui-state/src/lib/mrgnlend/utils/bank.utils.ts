@@ -46,7 +46,7 @@ import {
   EmodePair,
 } from "../types";
 import { fetchBirdeyePrices } from "./account.utils";
-import { stagingStaticBankMetadata, stagingStaticTokenMetadata, VOLATILITY_FACTOR } from "../consts";
+import { EMODE_TAG_LABELS, stagingStaticBankMetadata, stagingStaticTokenMetadata, VOLATILITY_FACTOR } from "../consts";
 import { FEE_MARGIN } from "../../../constants";
 
 function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: TokenPrice): BankState {
@@ -435,6 +435,7 @@ function getEmodePairs(banks: Bank[]) {
     bank.emode.emodeEntries.forEach((emodeEntry) => {
       emodePairs.push({
         collateralBankTag: emodeEntry.collateralBankEmodeTag,
+        collateralBankLabel: EMODE_TAG_LABELS[emodeEntry.collateralBankEmodeTag] || "Unknown",
         liabilityBank: bank.address,
         liabilityBankTag: emodeTag,
         assetWeightMaint: emodeEntry.assetWeightMaint.toNumber(),

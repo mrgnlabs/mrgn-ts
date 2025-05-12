@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
-import { IconExternalLink } from "@tabler/icons-react";
+import { IconBolt, IconExternalLink, IconInfoCircle } from "@tabler/icons-react";
 
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
@@ -17,16 +17,19 @@ import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./components";
 import { Button } from "~/components/ui/button";
 import { TokenFilters } from "~/store/uiStore";
+import { TooltipProvider, TooltipContent, Tooltip, TooltipTrigger } from "~/components/ui/tooltip";
+import { Badge } from "~/components/ui/badge";
 
 export const AssetsList = () => {
-  const [extendedBankInfos, nativeSolBalance, selectedAccount, fetchMrgnlendState, stakedAssetBankInfos] =
-    useMrgnlendStore((state) => [
+  const [extendedBankInfos, nativeSolBalance, selectedAccount, fetchMrgnlendState, emodePairs] = useMrgnlendStore(
+    (state) => [
       state.extendedBankInfos,
       state.nativeSolBalance,
       state.selectedAccount,
       state.fetchMrgnlendState,
-      state.stakedAssetBankInfos,
-    ]);
+      state.emodePairs,
+    ]
+  );
   const [poolFilter, isFilteredUserPositions, lendingMode, tokenFilter, setTokenFilter] = useUiStore((state) => [
     state.poolFilter,
     state.isFilteredUserPositions,
@@ -87,6 +90,10 @@ export const AssetsList = () => {
 
     return filterBanksByTokenType(banks);
   }, [isFilteredUserPositions, extendedBankInfos, filterBanksByTokenType]);
+
+  const emodeBanks = React.useMemo(() => {
+    return extendedBankInfos.filter((b) => b.info.state.hasEmode);
+  }, [extendedBankInfos]);
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
@@ -156,9 +163,9 @@ export const AssetsList = () => {
     fetchMrgnlendState,
   ]);
 
-  const allStakedAssetsTableData = React.useMemo(() => {
+  const emodePoolTableData = React.useMemo(() => {
     return makeData(
-      stakedAssetBankInfos,
+      emodeBanks,
       isInLendingMode,
       nativeSolBalance,
       selectedAccount,
@@ -170,7 +177,7 @@ export const AssetsList = () => {
   }, [
     connected,
     walletContextState,
-    stakedAssetBankInfos,
+    emodeBanks,
     isInLendingMode,
     nativeSolBalance,
     selectedAccount,
@@ -217,6 +224,25 @@ export const AssetsList = () => {
     },
     onSortingChange: setSorting,
   });
+
+  const eModeTable = useReactTable<AssetListModel>({
+    data: emodePoolTableData,
+    columns: tableColumns,
+    getRowCanExpand: () => true,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+  });
+
+  const emodeGroups = React.useMemo(() => {
+    console.log(emodePairs);
+    const deduped = Array.from(new Set(emodePairs.map((pair) => pair.collateralBankLabel)));
+    console.log(deduped);
+    return deduped;
+  }, [emodePairs]);
 
   React.useEffect(() => {
     if (poolFilter === PoolTypes.NATIVE_STAKE && tokenFilter !== TokenFilters.ALL) {
@@ -324,6 +350,65 @@ export const AssetsList = () => {
             </div>
           </div>
         </>
+      )}
+      {poolFilter === PoolTypes.E_MODE && emodePoolTableData.length > 0 && (
+        <div className="space-y-4">
+          <div className="py-2 flex items-center gap-3">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <IconInfoCircle size={16} /> Active e-mode groups
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    For more information on e-mode, and available e-mode pairings, visit the{" "}
+                    <Link
+                      href="https://docs.marginfi.com/e-mode"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline"
+                    >
+                      marginfi docs
+                    </Link>
+                    .
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <div className="flex items-center gap-3">
+              {emodeGroups.map((group) => (
+                <Badge variant="emode" key={group}>
+                  <IconBolt size={16} /> {group}
+                </Badge>
+              ))}
+            </div>
+          </div>
+          <Table>
+            <TableHeader>
+              {eModeTable.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      style={{
+                        width: header.column.getSize(),
+                      }}
+                    >
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {eModeTable.getRowModel().rows.map((row) => {
+                return <AssetRow key={row.id} {...row} />;
+              })}
+            </TableBody>
+          </Table>
+        </div>
       )}
       <LSTDialog
         variant={lstDialogVariant}

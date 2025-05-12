@@ -72,6 +72,7 @@ enum Emissions {
 
 type EmodePair = {
   collateralBankTag: EmodeTag;
+  collateralBankLabel: string;
   liabilityBank: PublicKey;
   liabilityBankTag: EmodeTag;
   assetWeightMaint: number;

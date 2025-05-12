@@ -65,7 +65,7 @@ export const makeData = (
   return data.map(
     (bank) =>
       ({
-        asset: getAssetData(bank.meta),
+        asset: getAssetData(bank),
         validator: bank.meta.stakePool?.validatorVoteAccount || "",
         "validator-rate": bank.meta.stakePool?.validatorRewards || "",
         price: getAssetPriceData(bank),

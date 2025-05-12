@@ -11,7 +11,7 @@ import {
   shortenAddress,
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
-import { IconAlertTriangle, IconExternalLink, IconInfoCircle } from "@tabler/icons-react";
+import { IconAlertTriangle, IconBolt, IconExternalLink, IconInfoCircle } from "@tabler/icons-react";
 
 import {
   AssetData,
@@ -30,6 +30,7 @@ import { IMAGE_CDN_URL } from "~/config/constants";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, TooltipPortal } from "~/components/ui/tooltip";
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { PublicKey } from "@solana/web3.js";
+import { Badge } from "~/components/ui/badge";
 
 export const getAssetCell = (asset: AssetData) => {
   return (
@@ -37,6 +38,11 @@ export const getAssetCell = (asset: AssetData) => {
       <div className="flex items-center gap-4">
         <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
         <div>{asset.symbol}</div>
+        {asset.hasEmode && (
+          <Badge variant="emode">
+            <IconBolt size={14} /> e-mode
+          </Badge>
+        )}
       </div>
     </div>
   );

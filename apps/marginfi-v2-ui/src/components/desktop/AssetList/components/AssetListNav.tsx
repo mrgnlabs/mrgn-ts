@@ -1,6 +1,6 @@
 import React from "react";
 
-import { IconFilter, IconSearch, IconX } from "@tabler/icons-react";
+import { IconBolt, IconFilter, IconSearch, IconX } from "@tabler/icons-react";
 
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 
@@ -68,6 +68,11 @@ const AssetListNav = () => {
           </ToggleGroupItem>
           <ToggleGroupItem value="native_stake" aria-label="Toggle staked" className="relative">
             Native Stake
+          </ToggleGroupItem>
+          <ToggleGroupItem value="e_mode" aria-label="Toggle e-mode" className="relative gap-1 items-center">
+            <IconBolt size={16} className="text-purple-300" />
+            <span className="ml-0.5">e-mode</span>
+            <span className={cn("bg-gray-400 rounded-full h-2 w-2 animate-pulse ml-2", true && "bg-green-400/75")} />
           </ToggleGroupItem>
         </ToggleGroup>
         <div className="flex items-center gap-3 ml-10">
@@ -151,20 +156,22 @@ const AssetListNav = () => {
             />
           </div>
         </div>
-        <Select value={tokenFilter} onValueChange={setTokenFilter} disabled={poolFilter === PoolTypes.NATIVE_STAKE}>
-          <SelectTrigger className="md:w-[180px] shrink-0">
-            <div className="flex items-center gap-2">
-              <IconFilter size={18} />
-              <SelectValue defaultValue="all" placeholder="All tokens" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={TokenFilters.ALL}>All tokens</SelectItem>
-            <SelectItem value={TokenFilters.STABLE}>Stablecoins</SelectItem>
-            <SelectItem value={TokenFilters.LST}>SOL / LST</SelectItem>
-            <SelectItem value={TokenFilters.MEME}>Memes</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          <Select value={tokenFilter} onValueChange={setTokenFilter} disabled={poolFilter === PoolTypes.NATIVE_STAKE}>
+            <SelectTrigger className="md:w-[180px] shrink-0">
+              <div className="flex items-center gap-2">
+                <IconFilter size={18} />
+                <SelectValue defaultValue="all" placeholder="All tokens" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={TokenFilters.ALL}>All tokens</SelectItem>
+              <SelectItem value={TokenFilters.STABLE}>Stablecoins</SelectItem>
+              <SelectItem value={TokenFilters.LST}>SOL / LST</SelectItem>
+              <SelectItem value={TokenFilters.MEME}>Memes</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
   );
