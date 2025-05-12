@@ -537,7 +537,8 @@ export const handleError = (
 
       if (
         error.message?.toLowerCase()?.includes("stale") ||
-        checkErrorCodeMatch(error.message, 6017) ||
+        checkErrorCodeMatch(error.message, 6049) || // Switchboard
+        checkErrorCodeMatch(error.message, 6050) || // Pyth
         error.message?.toLowerCase()?.includes("stale") ||
         error?.logs?.some((entry: string) => entry.includes("stale"))
       ) {
@@ -582,7 +583,7 @@ export const handleError = (
       }
 
       if (
-        checkErrorCodeMatch(error.message, 6029) ||
+        checkErrorCodeMatch(error.message, 6003) ||
         error.message?.toLowerCase().includes("deposit capacity exceeded")
       ) {
         return STATIC_SIMULATION_ERRORS.DEPOSIT_CAP_EXCEEDED;
@@ -590,32 +591,33 @@ export const handleError = (
 
       if (
         checkErrorCodeMatch(error.message, 6047) ||
-        checkErrorCodeMatch(error.message, 6049) ||
+        checkErrorCodeMatch(error.message, 6048) ||
         error.message?.toLowerCase().includes("can only deposit staked assets")
       ) {
         return STATIC_SIMULATION_ERRORS.STAKED_ONLY_SOL_CHECK;
       }
 
-      if (checkErrorCodeMatch(error.message, 6029) || error.message?.toLowerCase().includes("borrow cap exceeded")) {
+      if (checkErrorCodeMatch(error.message, 6027) || error.message?.toLowerCase().includes("borrow cap exceeded")) {
         return STATIC_SIMULATION_ERRORS.BORROW_CAP_EXCEEDED;
       }
 
       if (
-        checkErrorCodeMatch(error.message, 6010) ||
+        checkErrorCodeMatch(error.message, 6009) ||
         error.message?.toLowerCase().includes("bad health or stale oracle")
       ) {
         return STATIC_SIMULATION_ERRORS.STALE_TRADING_OR_HEALTH;
       }
 
-      if (checkErrorCodeMatch(error.message, 6028) || error.message?.toLowerCase().includes("utilization ratio")) {
+      if (checkErrorCodeMatch(error.message, 6026) || error.message?.toLowerCase().includes("utilization ratio")) {
         return STATIC_SIMULATION_ERRORS.UTILIZATION_RATIO_INVALID;
       }
 
+      // Jupiter error, 6001 is a Jupiter error code
       if (isArena && checkErrorCodeMatch(error.message, 6001)) {
         return STATIC_SIMULATION_ERRORS.SLIPPAGE;
       }
 
-      if (checkErrorCodeMatch(error.message, 6043)) {
+      if (checkErrorCodeMatch(error.message, 6041)) {
         return STATIC_SIMULATION_ERRORS.ILLEGAL_ACCOUNT_AUTHORITY_TRANSFER;
       }
     }
