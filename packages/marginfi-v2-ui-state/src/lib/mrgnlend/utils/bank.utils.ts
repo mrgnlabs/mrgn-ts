@@ -447,6 +447,72 @@ function getEmodePairs(banks: Bank[]) {
   return emodePairs;
 }
 
+function getUserActiveEmodes(
+  selectedAccount: MarginfiAccountWrapper,
+  emodePairs: EmodePair[],
+  banksByEmodeTag: Record<EmodeTag, Bank[]>
+): EmodePair[] {
+  if (!selectedAccount) return [];
+
+  const activeBalances = selectedAccount.activeBalances;
+
+  // Get deposits (assets) and their corresponding emode tags
+  const deposits = activeBalances
+    .filter((balance) => balance.assetShares.gt(0))
+    .map((balance) => {
+      // Find the bank for this balance to get its emode tag
+      const bank = Object.values(banksByEmodeTag)
+        .flat()
+        .find((bank) => bank.address.equals(balance.bankPk));
+
+      return {
+        bankPk: balance.bankPk,
+        emodeTag: bank?.emode.emodeTag,
+      };
+    })
+    .filter((deposit) => deposit.emodeTag);
+
+  // Get borrows (liabilities)
+  const borrows = activeBalances.filter((balance) => balance.liabilityShares.gt(0)).map((balance) => balance.bankPk);
+
+  // If no borrows or no deposits with emode tags, no emode pairs are active
+  if (borrows.length === 0 || deposits.length === 0) return [];
+
+  // Get potential emode pairs that match user's borrows
+  const potentialEmodePairs = emodePairs.filter((pair) =>
+    borrows.some((borrowPk) => borrowPk.equals(pair.liabilityBank))
+  );
+
+  // If no potential emode pairs, no emode is active
+  if (potentialEmodePairs.length === 0) return [];
+
+  // Check if all borrows have emode pairs
+  const allBorrowsHaveEmodePairs = borrows.every((borrowPk) =>
+    potentialEmodePairs.some((pair) => pair.liabilityBank.equals(borrowPk))
+  );
+
+  // If any borrow doesn't have an emode pair, all emodes are canceled
+  if (!allBorrowsHaveEmodePairs) return [];
+
+  // Check if all potential emode pairs use the same collateral tag
+  const collateralTags = new Set(potentialEmodePairs.map((pair) => pair.collateralBankTag));
+
+  // If more than one collateral tag is needed, all emodes are canceled
+  if (collateralTags.size > 1) return [];
+
+  // The single collateral tag that all emode pairs use
+  const requiredCollateralTag = [...collateralTags][0];
+
+  // Check if user has deposits that match the required collateral tag
+  const hasMatchingDeposit = deposits.some((deposit) => deposit.emodeTag === requiredCollateralTag);
+
+  // If no matching deposit is found, no emode is active
+  if (!hasMatchingDeposit) return [];
+
+  // All conditions are met, return the active emode pairs
+  return potentialEmodePairs;
+}
+
 /*
 TODO: leverage env vars for all staging/production paths
 */
@@ -511,4 +577,5 @@ export {
   groupBanksByEmodeTag,
   fetchStateMetaData,
   getEmodePairs,
+  getUserActiveEmodes,
 };
