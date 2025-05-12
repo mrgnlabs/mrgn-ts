@@ -1,4 +1,4 @@
-import { Bank, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
+import { Bank, EmodeTag, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import { PublicKey } from "@solana/web3.js";
 
 import { LendingPosition, UserInfo } from "./token.types";
@@ -70,5 +70,21 @@ enum Emissions {
   Borrowing,
 }
 
+type EmodePair = {
+  collateralBankTag: EmodeTag;
+  liabilityBank: PublicKey;
+  liabilityBankTag: EmodeTag;
+  assetWeightMaint: number;
+  assetWeightInt: number;
+};
+
 export { Emissions };
-export type { ActiveBankInfo, ExtendedBankInfo, BankInfo, BankState, ExtendedBankMetadata, StakePoolMetadata };
+export type {
+  ActiveBankInfo,
+  ExtendedBankInfo,
+  BankInfo,
+  BankState,
+  ExtendedBankMetadata,
+  StakePoolMetadata,
+  EmodePair,
+};

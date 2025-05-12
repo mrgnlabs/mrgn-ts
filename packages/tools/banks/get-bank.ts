@@ -96,7 +96,16 @@ async function main() {
   const eModeTag = eModeConfig.emodeTag;
   const eModeTimestamp = new Date(eModeConfig.timestamp.toNumber() * 1000).toLocaleString("en-US");
   const eModeFlags = eModeConfig.flags.toString();
-  const eModeEntries = wrappedI80F48toBigNumber(eModeConfig.emodeConfig.entries[0].assetWeightInit);
+  const eModeEntries = eModeConfig.emodeConfig.entries
+    .filter((entry) => entry.collateralBankEmodeTag !== 0)
+    .map((entry) => {
+      return {
+        collateralBankEmodeTag: entry.collateralBankEmodeTag,
+        assetWeightInit: wrappedI80F48toBigNumber(entry.assetWeightInit),
+        assetWeightMaint: wrappedI80F48toBigNumber(entry.assetWeightMaint),
+        flags: entry.flags,
+      };
+    });
 
   const bankData = {
     Address: bankPubkey.toString(),
@@ -131,7 +140,7 @@ async function main() {
     "EMode Tag": eModeTag,
     "EMode Timestamp": eModeTimestamp,
     "EMode Flags": eModeFlags,
-    "EMode Entries": eModeEntries,
+    "EMode Entries": JSON.stringify(eModeEntries),
   };
 
   console.log(`\r\nBank: ${bankPubkey.toString()}`);

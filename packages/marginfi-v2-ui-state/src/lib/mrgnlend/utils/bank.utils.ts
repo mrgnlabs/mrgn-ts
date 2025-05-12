@@ -9,8 +9,23 @@ import {
   MarginfiAccountWrapper,
   MarginRequirementType,
   EmodeTag,
+  MarginfiConfig,
 } from "@mrgnlabs/marginfi-client-v2";
-import { nativeToUi, MintLayout, TokenMetadata, WSOL_MINT, floor, ceil, uiToNative } from "@mrgnlabs/mrgn-common";
+import {
+  nativeToUi,
+  MintLayout,
+  TokenMetadata,
+  WSOL_MINT,
+  floor,
+  ceil,
+  uiToNative,
+  loadBankMetadatas,
+  BankMetadataMap,
+  TokenMetadataMap,
+  loadTokenMetadatas,
+  BankMetadata,
+  loadStakedBankMetadatas,
+} from "@mrgnlabs/mrgn-common";
 
 import {
   TokenPrice,
@@ -28,9 +43,10 @@ import {
   MakeLendingPositionRawProps,
   MakeLendingPositionWrappedProps,
   StakePoolMetadata,
+  EmodePair,
 } from "../types";
 import { fetchBirdeyePrices } from "./account.utils";
-import { VOLATILITY_FACTOR } from "../consts";
+import { stagingStaticBankMetadata, stagingStaticTokenMetadata, VOLATILITY_FACTOR } from "../consts";
 import { FEE_MARGIN } from "../../../constants";
 
 function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: TokenPrice): BankState {
@@ -390,19 +406,98 @@ function makeLendingPosition(props: MakeLendingPositionProps): LendingPosition {
 }
 
 function groupBanksByEmodeTag(banks: ExtendedBankInfo[]) {
-  const groupedBanks: Record<EmodeTag, ExtendedBankInfo[]> = {
-    [EmodeTag.UNSET]: [],
-    [EmodeTag.SOL]: [],
-    [EmodeTag.LST]: [],
-    [EmodeTag.STABLE]: [],
-  };
+  const groupedBanks: Record<EmodeTag, ExtendedBankInfo[]> = {} as Record<EmodeTag, ExtendedBankInfo[]>;
 
   for (const bank of banks) {
     const emodeTag = bank.info.rawBank.emode.emodeTag;
+
+    if (!groupedBanks[emodeTag]) {
+      groupedBanks[emodeTag] = [];
+    }
+
+    // Add the bank to its emodeTag group
     groupedBanks[emodeTag].push(bank);
   }
 
   return groupedBanks;
+}
+
+function getEmodePairs(banks: Bank[]) {
+  const emodePairs: EmodePair[] = [];
+
+  banks.forEach((bank) => {
+    const emodeTag = bank.emode.emodeTag;
+
+    if (emodeTag === EmodeTag.UNSET) {
+      return;
+    }
+
+    bank.emode.emodeEntries.forEach((emodeEntry) => {
+      emodePairs.push({
+        collateralBankTag: emodeEntry.collateralBankEmodeTag,
+        liabilityBank: bank.address,
+        liabilityBankTag: emodeTag,
+        assetWeightMaint: emodeEntry.assetWeightMaint.toNumber(),
+        assetWeightInt: emodeEntry.assetWeightInit.toNumber(),
+      });
+    });
+  });
+
+  return emodePairs;
+}
+
+/*
+TODO: leverage env vars for all staging/production paths
+*/
+async function fetchStateMetaData(marginfiConfig: MarginfiConfig) {
+  let bankMetadataMap: { [address: string]: BankMetadata };
+  let tokenMetadataMap: { [symbol: string]: TokenMetadata };
+
+  if (marginfiConfig.environment === "production") {
+    let results = await Promise.all([
+      loadBankMetadatas(process.env.NEXT_PUBLIC_BANKS_MAP),
+      loadTokenMetadatas(process.env.NEXT_PUBLIC_TOKENS_MAP),
+    ]);
+    bankMetadataMap = results[0];
+    tokenMetadataMap = results[1];
+  } else if (marginfiConfig.environment === "staging") {
+    if (process.env.NEXT_PUBLIC_BANKS_MAP && process.env.NEXT_PUBLIC_TOKENS_MAP) {
+      let results = await Promise.all([
+        loadBankMetadatas(process.env.NEXT_PUBLIC_BANKS_MAP),
+        loadTokenMetadatas(process.env.NEXT_PUBLIC_TOKENS_MAP),
+      ]);
+      bankMetadataMap = results[0];
+      tokenMetadataMap = results[1];
+    } else {
+      bankMetadataMap = stagingStaticBankMetadata;
+      tokenMetadataMap = stagingStaticTokenMetadata;
+    }
+  } else {
+    throw new Error("Unknown environment");
+  }
+
+  // fetch staked asset metadata
+  const stakedAssetBankMetadataMap = await loadStakedBankMetadatas(
+    `${process.env.NEXT_PUBLIC_STAKING_BANKS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json"}?t=${new Date().getTime()}`
+  );
+  const stakedAssetTokenMetadataMap = await loadTokenMetadatas(
+    `${process.env.NEXT_PUBLIC_STAKING_TOKENS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json"}?t=${new Date().getTime()}`
+  );
+
+  // merge staked asset metadata with main group metadata
+  bankMetadataMap = {
+    ...bankMetadataMap,
+    ...stakedAssetBankMetadataMap,
+  };
+  tokenMetadataMap = {
+    ...tokenMetadataMap,
+    ...stakedAssetTokenMetadataMap,
+  };
+
+  return {
+    bankMetadataMap,
+    tokenMetadataMap,
+  };
 }
 
 export {
@@ -413,4 +508,6 @@ export {
   makeEmissionsPriceMap,
   makeExtendedBankEmission,
   groupBanksByEmodeTag,
+  fetchStateMetaData,
+  getEmodePairs,
 };

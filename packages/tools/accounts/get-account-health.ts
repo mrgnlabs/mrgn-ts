@@ -17,6 +17,7 @@ import {
   findOracleKey,
   MarginfiAccount,
   MarginfiAccountRaw,
+  MarginfiAccountType,
 } from "@mrgnlabs/marginfi-client-v2";
 
 dotenv.config();
@@ -103,7 +104,7 @@ async function main() {
 
   console.log({ marginfiAccountPost: marginfiAccountPost.authority });
 
-  const accPre = await program.account.marginfiAccount.fetch(accountPubkey);
+  const accPre: MarginfiAccountRaw = await program.account.marginfiAccount.fetch(accountPubkey);
   const cachePre = accPre.healthCache;
 
   const assetValuePre = wrappedI80F48toBigNumber(cachePre.assetValue).toNumber();
