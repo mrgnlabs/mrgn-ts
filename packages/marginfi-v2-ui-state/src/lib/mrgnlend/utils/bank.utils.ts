@@ -404,7 +404,26 @@ function makeLendingPosition(props: MakeLendingPositionProps): LendingPosition {
     isDust,
   };
 }
+function groupRawBankByEmodeTag(banks: Bank[]) {
+  const groupedBanks: Record<EmodeTag, Bank[]> = {} as Record<EmodeTag, Bank[]>;
 
+  for (const bank of banks) {
+    const emodeTag = bank.emode.emodeTag;
+
+    if (!groupedBanks[emodeTag]) {
+      groupedBanks[emodeTag] = [];
+    }
+
+    // Add the bank to its emodeTag group
+    groupedBanks[emodeTag].push(bank);
+  }
+
+  return groupedBanks;
+}
+
+/*
+ * deprecated
+ */
 function groupBanksByEmodeTag(banks: ExtendedBankInfo[]) {
   const groupedBanks: Record<EmodeTag, ExtendedBankInfo[]> = {} as Record<EmodeTag, ExtendedBankInfo[]>;
 
@@ -577,5 +596,6 @@ export {
   groupBanksByEmodeTag,
   fetchStateMetaData,
   getEmodePairs,
+  groupRawBankByEmodeTag,
   getUserActiveEmodes,
 };
