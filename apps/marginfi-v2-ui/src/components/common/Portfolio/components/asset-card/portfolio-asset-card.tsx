@@ -14,6 +14,7 @@ import {
   shortenAddress,
   TransactionType,
   addTransactionMetadata,
+  percentFormatterMod,
 } from "@mrgnlabs/mrgn-common";
 import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -101,13 +102,6 @@ export const PortfolioAssetCard = ({
     [bank, isInLendingMode]
   );
 
-  const shortPercent = (percent: string) => {
-    if (percent.substring(percent.length - 4, percent.length) === ".00%") {
-      return percent.substring(0, percent.length - 4) + "%";
-    }
-    return percent;
-  };
-
   if (variant === "simple") {
     return (
       <div
@@ -140,9 +134,14 @@ export const PortfolioAssetCard = ({
                           <IconBolt size={12} className="text-purple-300 translate-y-px" /> <p>e-mode weights active</p>
                         </div>
                         <p className="text-center">
-                          {shortPercent(percentFormatter.format(assetWeight))}{" "}
+                          {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
                           <span className="text-muted-foreground text-xs">
-                            +({shortPercent(percentFormatter.format(originalAssetWeight - assetWeight))})
+                            +(
+                            {percentFormatterMod(originalAssetWeight - assetWeight, {
+                              minFractionDigits: 0,
+                              maxFractionDigits: 2,
+                            })}
+                            )
                           </span>
                         </p>
                       </div>
@@ -218,9 +217,14 @@ export const PortfolioAssetCard = ({
                                 <p>e-mode weights active</p>
                               </div>
                               <p>
-                                {shortPercent(percentFormatter.format(assetWeight))}{" "}
+                                {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
                                 <span className="text-muted-foreground text-xs">
-                                  +({shortPercent(percentFormatter.format(originalAssetWeight - assetWeight))})
+                                  +(
+                                  {percentFormatterMod(originalAssetWeight - assetWeight, {
+                                    minFractionDigits: 0,
+                                    maxFractionDigits: 2,
+                                  })}
+                                  )
                                 </span>
                               </p>
                             </div>
