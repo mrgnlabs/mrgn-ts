@@ -166,14 +166,18 @@ export const getAssetPriceData = (bank: ExtendedBankInfo): AssetPriceData => {
   };
 };
 
-export const getAssetWeightData = (bank: ExtendedBankInfo, isInLendingMode: boolean): AssetWeightData => {
+export const getAssetWeightData = (
+  bank: ExtendedBankInfo,
+  isInLendingMode: boolean,
+  assetWeightInitOverride?: BigNumber
+): AssetWeightData => {
   if (!bank?.info?.rawBank?.getAssetWeight) {
     return {
       assetWeight: 0,
     };
   }
   const assetWeightInit = bank.info.rawBank
-    .getAssetWeight(MarginRequirementType.Initial, bank.info.oraclePrice)
+    .getAssetWeight(MarginRequirementType.Initial, bank.info.oraclePrice, false, assetWeightInitOverride)
     .toNumber();
 
   if (assetWeightInit <= 0) {

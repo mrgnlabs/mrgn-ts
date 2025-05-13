@@ -2,6 +2,7 @@ import { Bank, EmodeTag, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import { PublicKey } from "@solana/web3.js";
 
 import { LendingPosition, UserInfo } from "./token.types";
+import BigNumber from "bignumber.js";
 
 interface StakePoolMetadata {
   validatorVoteAccount: PublicKey;
@@ -36,6 +37,7 @@ interface BankState {
   availableLiquidity: number;
   utilizationRate: number;
   isIsolated: boolean;
+  originalWeights: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber };
   hasEmode: boolean;
 }
 
@@ -71,11 +73,12 @@ enum Emissions {
 }
 
 type EmodePair = {
+  collateralBanks: PublicKey[];
   collateralBankTag: EmodeTag;
   liabilityBank: PublicKey;
   liabilityBankTag: EmodeTag;
-  assetWeightMaint: number;
-  assetWeightInt: number;
+  assetWeightMaint: BigNumber;
+  assetWeightInt: BigNumber;
 };
 
 export { Emissions };

@@ -35,6 +35,7 @@ import {
   EmodePair,
   groupRawBankByEmodeTag,
   getUserActiveEmodes,
+  adjustBankWeightsWithEmodePairs,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -51,6 +52,7 @@ import type {
 } from "@mrgnlabs/mrgn-common";
 import { EmodeTag, MarginfiAccountWrapper, ProcessTransactionStrategy } from "@mrgnlabs/marginfi-client-v2";
 import type { MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
+import BigNumber from "bignumber.js";
 
 interface ProtocolStats {
   deposits: number;
@@ -186,8 +188,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   }) => {
     try {
       const { MarginfiClient } = await import("@mrgnlabs/marginfi-client-v2");
-      const { loadBankMetadatas, loadStakedBankMetadatas, loadTokenMetadatas } = await import("@mrgnlabs/mrgn-common");
-
       let userDataFetched = false;
 
       const connection = args?.connection ?? get().marginfiClient?.provider.connection;
@@ -217,7 +217,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       });
       const clientBanks = [...marginfiClient.banks.values()];
 
-      const banks = stageTokens
+      let banks = stageTokens
         ? clientBanks.filter(
             (bank) => bank.tokenSymbol && !stageTokens.find((a) => a.toLowerCase() == bank?.tokenSymbol?.toLowerCase())
           )
@@ -234,6 +234,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       let marginfiAccounts: MarginfiAccountWrapper[] = [];
       let selectedAccount: MarginfiAccountWrapper | null = null;
       let stakeAccounts: ValidatorStakeGroup[] = [];
+      let bankWeightsPreEmode: Record<string, { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }> = {};
+
       if (wallet?.publicKey) {
         const [tokenData, marginfiAccountWrappers] = await Promise.all([
           fetchTokenAccounts(
@@ -284,7 +286,15 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       let userActiveEmodes: EmodePair[] = [];
       if (selectedAccount) {
         userActiveEmodes = getUserActiveEmodes(selectedAccount, emodePairs, groupedEmodeBanks);
-        set({ userActiveEmodes });
+
+        if (userActiveEmodes.length > 0) {
+          const { adjustedBanks, originalWeights } = adjustBankWeightsWithEmodePairs(banks, userActiveEmodes);
+
+          banks = adjustedBanks;
+          bankWeightsPreEmode = originalWeights;
+
+          set({ userActiveEmodes });
+        }
       }
 
       const banksWithPriceAndToken: {
@@ -371,7 +381,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
               emissionTokenPriceData,
               userData,
               false,
-              stakedAssetMetadata
+              stakedAssetMetadata,
+              bankWeightsPreEmode?.[bank.address.toBase58()]
             )
           );
           acc[1].push(makeExtendedBankMetadata(bank, tokenMetadata, false, stakedAssetMetadata));
@@ -485,6 +496,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           mint: extendedBankInfo.info.state.mint,
           balance: 0,
         },
+        emodeActive: false,
         maxDeposit: 0,
         maxRepay: 0,
         maxWithdraw: 0,

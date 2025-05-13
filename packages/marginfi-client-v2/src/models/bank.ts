@@ -331,12 +331,15 @@ class Bank implements BankType {
   getAssetWeight(
     marginRequirementType: MarginRequirementType,
     oraclePrice: OraclePrice,
-    ignoreSoftLimits: boolean = false
+    ignoreSoftLimits: boolean = false,
+    assetWeightInitOverride?: BigNumber
   ): BigNumber {
+    const assetWeightInit = assetWeightInitOverride ?? this.config.assetWeightInit;
+
     switch (marginRequirementType) {
       case MarginRequirementType.Initial:
         const isSoftLimitDisabled = this.config.totalAssetValueInitLimit.isZero();
-        if (ignoreSoftLimits || isSoftLimitDisabled) return this.config.assetWeightInit;
+        if (ignoreSoftLimits || isSoftLimitDisabled) return assetWeightInit;
         const totalBankCollateralValue = this.computeAssetUsdValue(
           oraclePrice,
           this.totalAssetShares,
@@ -344,9 +347,9 @@ class Bank implements BankType {
           PriceBias.Lowest
         );
         if (totalBankCollateralValue.isGreaterThan(this.config.totalAssetValueInitLimit)) {
-          return this.config.totalAssetValueInitLimit.div(totalBankCollateralValue).times(this.config.assetWeightInit);
+          return this.config.totalAssetValueInitLimit.div(totalBankCollateralValue).times(assetWeightInit);
         } else {
-          return this.config.assetWeightInit;
+          return assetWeightInit;
         }
       case MarginRequirementType.Maintenance:
         return this.config.assetWeightMaint;

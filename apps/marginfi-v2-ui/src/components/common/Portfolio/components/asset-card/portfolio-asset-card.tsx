@@ -18,7 +18,7 @@ import {
 import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { AssetTag, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
-import { capture, cn, composeExplorerUrl, executeActionWrapper } from "@mrgnlabs/mrgn-utils";
+import { capture, cn, composeExplorerUrl, executeActionWrapper, getAssetWeightData } from "@mrgnlabs/mrgn-utils";
 import { ActionBox, SVSPMEV, useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useAssetItemData } from "~/hooks/useAssetItemData";
@@ -91,6 +91,16 @@ export const PortfolioAssetCard = ({
     [marginfiAccounts.length, bank]
   );
 
+  const assetWeight = React.useMemo(
+    () => getAssetWeightData(bank, isInLendingMode).assetWeight,
+    [bank, isInLendingMode]
+  );
+
+  const originalAssetWeight = React.useMemo(
+    () => getAssetWeightData(bank, isInLendingMode, bank.info.state.originalWeights.assetWeightInit).assetWeight,
+    [bank, isInLendingMode]
+  );
+
   if (variant === "simple") {
     return (
       <div
@@ -160,7 +170,7 @@ export const PortfolioAssetCard = ({
                 <div className="flex justify-between items-center w-full">
                   <div className="flex items-center gap-3 font-medium text-lg">
                     {bank.meta.tokenSymbol}{" "}
-                    {bank.info.state.hasEmode && (
+                    {bank.position.emodeActive && (
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -176,7 +186,10 @@ export const PortfolioAssetCard = ({
                                 <p>e-mode weights active</p>
                               </div>
                               <p>
-                                80% <span className="text-muted-foreground text-xs">(+10%)</span>
+                                {percentFormatter.format(assetWeight)}{" "}
+                                <span className="text-muted-foreground text-xs">
+                                  +({percentFormatter.format(originalAssetWeight - assetWeight)})
+                                </span>
                               </p>
                             </div>
                           </TooltipContent>

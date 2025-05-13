@@ -1,5 +1,5 @@
 export * from "./misc.consts";
-export {
-  bankMetadata as stagingStaticBankMetadata,
-  tokenMetadata as stagingStaticTokenMetadata,
-} from "./staging-metadata.json";
+import stagingMetadata from "./staging-metadata.json";
+
+export const stagingStaticBankMetadata = stagingMetadata.bankMetadata;
+export const stagingStaticTokenMetadata = stagingMetadata.tokenMetadata;

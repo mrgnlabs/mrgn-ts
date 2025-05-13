@@ -49,7 +49,12 @@ import { fetchBirdeyePrices } from "./account.utils";
 import { stagingStaticBankMetadata, stagingStaticTokenMetadata, VOLATILITY_FACTOR } from "../consts";
 import { FEE_MARGIN } from "../../../constants";
 
-function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: TokenPrice): BankState {
+function makeBankInfo(
+  bank: Bank,
+  oraclePrice: OraclePrice,
+  emissionTokenData?: TokenPrice,
+  originalWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }
+): BankState {
   const { lendingRate, borrowingRate } = bank.computeInterestRates();
   const totalDeposits = nativeToUi(bank.getTotalAssetQuantity(), bank.mintDecimals);
   const totalBorrows = nativeToUi(bank.getTotalLiabilityQuantity(), bank.mintDecimals);
@@ -86,6 +91,10 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
     availableLiquidity: liquidity,
     utilizationRate,
     isIsolated: bank.config.riskTier === RiskTier.Isolated,
+    originalWeights: originalWeights ?? {
+      assetWeightMaint: bank.config.assetWeightMaint,
+      assetWeightInit: bank.config.assetWeightInit,
+    },
     hasEmode: bank.emode.emodeTag !== EmodeTag.UNSET,
   };
 }
@@ -211,7 +220,8 @@ function makeExtendedBankInfo(
   emissionTokenPrice?: TokenPrice,
   userData?: UserDataProps,
   overrideIcon?: boolean,
-  stakePoolMetadata?: StakePoolMetadata
+  stakePoolMetadata?: StakePoolMetadata,
+  originalWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }
 ): ExtendedBankInfo {
   function isUserDataRawProps(userData: UserDataWrappedProps | UserDataRawProps): userData is UserDataRawProps {
     return (
@@ -221,7 +231,7 @@ function makeExtendedBankInfo(
 
   // Aggregate user-agnostic bank info
   const meta = makeExtendedBankMetadata(bank, tokenMetadata, overrideIcon, stakePoolMetadata);
-  const bankInfo = makeBankInfo(bank, oraclePrice, emissionTokenPrice);
+  const bankInfo = makeBankInfo(bank, oraclePrice, emissionTokenPrice, originalWeights);
   let state: BankInfo = {
     rawBank: bank,
     oraclePrice,
@@ -326,7 +336,14 @@ function makeExtendedBankInfo(
       marginfiAccount: userData.marginfiAccount,
     };
   }
-  const position = makeLendingPosition({ balance: positionRaw, bank, bankInfo, oraclePrice, ...props });
+  const position = makeLendingPosition({
+    balance: positionRaw,
+    bank,
+    bankInfo,
+    oraclePrice,
+    emodeActive: !!originalWeights,
+    ...props,
+  });
   let withdrawPower: number;
   if (isUserDataRawProps(userData)) {
     withdrawPower = userData.marginfiAccount
@@ -402,6 +419,7 @@ function makeLendingPosition(props: MakeLendingPositionProps): LendingPosition {
     liquidationPrice,
     isLending,
     isDust,
+    emodeActive: props.emodeActive,
   };
 }
 function groupRawBankByEmodeTag(banks: Bank[]) {
@@ -453,11 +471,14 @@ function getEmodePairs(banks: Bank[]) {
 
     bank.emode.emodeEntries.forEach((emodeEntry) => {
       emodePairs.push({
+        collateralBanks: banks
+          .filter((bank) => bank.emode.emodeTag === emodeEntry.collateralBankEmodeTag)
+          .map((bank) => bank.address),
         collateralBankTag: emodeEntry.collateralBankEmodeTag,
         liabilityBank: bank.address,
         liabilityBankTag: emodeTag,
-        assetWeightMaint: emodeEntry.assetWeightMaint.toNumber(),
-        assetWeightInt: emodeEntry.assetWeightInit.toNumber(),
+        assetWeightMaint: emodeEntry.assetWeightMaint,
+        assetWeightInt: emodeEntry.assetWeightInit,
       });
     });
   });
@@ -465,11 +486,79 @@ function getEmodePairs(banks: Bank[]) {
   return emodePairs;
 }
 
+function adjustBankWeightsWithEmodePairs(
+  banks: Bank[],
+  emodePairs: EmodePair[]
+): {
+  adjustedBanks: Bank[];
+  originalWeights: Record<string, { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }>;
+} {
+  if (!emodePairs.length) return { adjustedBanks: banks, originalWeights: {} };
+
+  const originalWeights: Record<string, { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }> = {};
+
+  // Create a map to track the lowest weights for each collateral bank
+  const lowestWeights: Map<string, { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }> = new Map();
+
+  // For each emode pair, find the collateral banks and track their lowest possible weights
+  emodePairs.forEach((emodePair) => {
+    emodePair.collateralBanks.forEach((collateralBankPk) => {
+      const bankPkStr = collateralBankPk.toString();
+
+      // If we haven't seen this bank yet, initialize with current emode pair weights
+      if (!lowestWeights.has(bankPkStr)) {
+        lowestWeights.set(bankPkStr, {
+          assetWeightMaint: emodePair.assetWeightMaint,
+          assetWeightInit: emodePair.assetWeightInt,
+        });
+      } else {
+        // If we've seen this bank before, use the lower weights
+        const currentLowest = lowestWeights.get(bankPkStr)!;
+        lowestWeights.set(bankPkStr, {
+          assetWeightMaint: BigNumber.min(currentLowest.assetWeightMaint, emodePair.assetWeightMaint),
+          assetWeightInit: BigNumber.min(currentLowest.assetWeightInit, emodePair.assetWeightInt),
+        });
+      }
+    });
+  });
+
+  // Make a copy of the banks array to avoid modifying the original array reference
+  // but keep the original Bank objects (with their methods intact)
+  const adjustedBanks = [...banks];
+
+  // Apply the lowest weights to each bank
+  for (const bank of adjustedBanks) {
+    const bankPkStr = bank.address.toString();
+    const lowestWeight = lowestWeights.get(bankPkStr);
+
+    if (lowestWeight) {
+      // Store original weights before modifying
+      originalWeights[bankPkStr] = {
+        assetWeightMaint: bank.config.assetWeightMaint,
+        assetWeightInit: bank.config.assetWeightInit,
+      };
+
+      // Apply new weights only if they're higher than current weights
+      if (lowestWeight.assetWeightMaint.gt(bank.config.assetWeightMaint)) {
+        // Use the emode weight directly since it's already a BigNumber
+        bank.config.assetWeightMaint = lowestWeight.assetWeightMaint;
+      }
+
+      if (lowestWeight.assetWeightInit.gt(bank.config.assetWeightInit)) {
+        // Use the emode weight directly since it's already a BigNumber
+        bank.config.assetWeightInit = lowestWeight.assetWeightInit;
+      }
+    }
+  }
+
+  return { adjustedBanks, originalWeights };
+}
+
 function getUserActiveEmodes(
   selectedAccount: MarginfiAccountWrapper,
   emodePairs: EmodePair[],
-  banksByEmodeTag: Record<EmodeTag, ExtendedBankInfo[]>
-): EmodePair[] {
+  banksByEmodeTag: Record<EmodeTag, Bank[]>
+) {
   if (!selectedAccount) return [];
 
   const activeBalances = selectedAccount.activeBalances;
@@ -485,7 +574,7 @@ function getUserActiveEmodes(
 
       return {
         bankPk: balance.bankPk,
-        emodeTag: bank?.info.rawBank.emode.emodeTag,
+        emodeTag: bank?.emode.emodeTag,
       };
     })
     .filter((deposit) => deposit.emodeTag);
@@ -597,4 +686,5 @@ export {
   getEmodePairs,
   groupRawBankByEmodeTag,
   getUserActiveEmodes,
+  adjustBankWeightsWithEmodePairs,
 };

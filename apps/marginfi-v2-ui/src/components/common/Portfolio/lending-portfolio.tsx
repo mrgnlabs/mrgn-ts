@@ -6,7 +6,13 @@ import { IconBolt, IconInfoCircle, IconSearch, IconSparkles, IconX } from "@tabl
 
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { ActionType, ActiveBankInfo, getUserActiveEmodes, groupBanksByEmodeTag } from "@mrgnlabs/marginfi-v2-ui-state";
+import {
+  ActionType,
+  ActiveBankInfo,
+  getUserActiveEmodes,
+  groupBanksByEmodeTag,
+  groupRawBankByEmodeTag,
+} from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, ExecuteActionProps, ExecuteCollectRewardsAction, usePrevious, useConnection } from "@mrgnlabs/mrgn-utils";
 import { CustomToastType, toastManager } from "@mrgnlabs/mrgn-toasts";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
@@ -213,7 +219,7 @@ export const LendingPortfolio = () => {
 
   const activeEmodePairs = React.useMemo(() => {
     if (!selectedAccount) return [];
-    const banksByEmodeTag = groupBanksByEmodeTag(sortedBanks);
+    const banksByEmodeTag = groupRawBankByEmodeTag(sortedBanks.map((bank) => bank.info.rawBank));
     return getUserActiveEmodes(selectedAccount, emodePairs, banksByEmodeTag);
   }, [selectedAccount, emodePairs, sortedBanks]);
 

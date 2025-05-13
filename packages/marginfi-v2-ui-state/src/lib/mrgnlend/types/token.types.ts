@@ -37,6 +37,7 @@ interface AccountSummary {
 
 interface LendingPosition {
   isLending: boolean;
+  emodeActive: boolean;
   amount: number;
   usdValue: number;
   weightedUSDValue: number;
@@ -51,6 +52,7 @@ interface MakeLendingPositionWrappedProps {
   bankInfo: BankState;
   oraclePrice: OraclePrice;
   marginfiAccount: MarginfiAccountWrapper;
+  emodeActive: boolean;
 }
 interface MakeLendingPositionRawProps {
   balance: Balance;
@@ -60,6 +62,7 @@ interface MakeLendingPositionRawProps {
   marginfiAccount: MarginfiAccount;
   banks: Map<string, Bank>;
   oraclePrices: Map<string, OraclePrice>;
+  emodeActive: boolean;
 }
 
 interface UserInfo {
