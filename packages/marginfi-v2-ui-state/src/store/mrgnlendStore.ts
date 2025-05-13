@@ -33,6 +33,8 @@ import {
   fetchStateMetaData,
   getEmodePairs,
   EmodePair,
+  groupRawBankByEmodeTag,
+  getUserActiveEmodes,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -85,6 +87,7 @@ interface MrgnlendState {
 
   groupedEmodeBanks: Record<EmodeTag, ExtendedBankInfo[]>;
   emodePairs: EmodePair[];
+  userActiveEmodes: EmodePair[];
 
   // Actions
   fetchMrgnlendState: (args?: {
@@ -168,6 +171,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
   groupedEmodeBanks: {} as Record<EmodeTag, ExtendedBankInfo[]>,
   emodePairs: [],
+  userActiveEmodes: [],
 
   // Actions
   fetchMrgnlendState: async (args?: {
@@ -273,6 +277,14 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         }
 
         userDataFetched = true;
+      }
+
+      const groupedEmodeBanks = groupRawBankByEmodeTag(banks);
+
+      let userActiveEmodes: EmodePair[] = [];
+      if (selectedAccount) {
+        userActiveEmodes = getUserActiveEmodes(selectedAccount, emodePairs, groupedEmodeBanks);
+        set({ userActiveEmodes });
       }
 
       const banksWithPriceAndToken: {
