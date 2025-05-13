@@ -1,4 +1,10 @@
-import { getPriceWithConfidence, OracleSetup, PriceBias, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
+import {
+  getPriceWithConfidence,
+  OracleSetup,
+  PriceBias,
+  MarginRequirementType,
+  EmodeTag,
+} from "@mrgnlabs/marginfi-client-v2";
 import {
   ExtendedBankInfo,
   ExtendedBankMetadata,
@@ -19,6 +25,7 @@ export interface AssetData {
   image: string;
   stakePool?: StakePoolMetadata;
   hasEmode: boolean;
+  emodeTag: string;
 }
 
 export interface RateData {
@@ -88,6 +95,7 @@ export const getAssetData = (bank: ExtendedBankInfo): AssetData => ({
   image: bank.meta.tokenLogoUri,
   stakePool: bank.meta.stakePool,
   hasEmode: bank.info.state.hasEmode,
+  emodeTag: bank.info.state.hasEmode ? EmodeTag[bank.info.rawBank.emode.emodeTag] : "",
 });
 
 export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): RateData => {

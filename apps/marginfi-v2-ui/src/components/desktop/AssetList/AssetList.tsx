@@ -7,6 +7,7 @@ import { IconBolt, IconExternalLink, IconInfoCircle } from "@tabler/icons-react"
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { STABLECOINS, LSTS, MEMES } from "~/config/constants";
@@ -238,9 +239,7 @@ export const AssetsList = () => {
   });
 
   const emodeGroups = React.useMemo(() => {
-    console.log(emodePairs);
-    const deduped = Array.from(new Set(emodePairs.map((pair) => pair.collateralBankLabel)));
-    console.log(deduped);
+    const deduped = Array.from(new Set(emodePairs.map((pair) => EmodeTag[pair.collateralBankTag])));
     return deduped;
   }, [emodePairs]);
 

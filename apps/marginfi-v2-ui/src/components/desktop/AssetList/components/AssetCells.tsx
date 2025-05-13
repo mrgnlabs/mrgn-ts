@@ -38,9 +38,9 @@ export const getAssetCell = (asset: AssetData) => {
       <div className="flex items-center gap-4">
         <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
         <div>{asset.symbol}</div>
-        {asset.hasEmode && (
+        {asset.hasEmode && asset.emodeTag && (
           <Badge variant="emode">
-            <IconBolt size={14} /> e-mode
+            <IconBolt size={14} /> {asset.emodeTag}
           </Badge>
         )}
       </div>
