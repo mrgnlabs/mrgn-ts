@@ -353,39 +353,41 @@ export const AssetsList = () => {
       )}
       {poolFilter === PoolTypes.E_MODE && emodePoolTableData.length > 0 && (
         <div className="space-y-4">
-          <div className="py-2 flex items-center gap-3">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <IconInfoCircle size={14} /> E-mode groups
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    For more information on e-mode, and available e-mode pairings, visit the{" "}
-                    <Link
-                      href="https://docs.marginfi.com/e-mode"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline"
-                    >
-                      marginfi docs
-                    </Link>
-                    .
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <div className="flex items-center gap-3">
-              {emodeGroups.map((group) => (
-                <Badge variant="emode" key={group}>
-                  <IconBolt size={16} /> {group}
-                </Badge>
-              ))}
-              <EmodeViewAll />
+          {emodeGroups.length > 0 && (
+            <div className="py-2 flex items-center gap-3">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <IconInfoCircle size={14} /> E-mode groups
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      For more information on e-mode, and available e-mode pairings, visit the{" "}
+                      <Link
+                        href="https://docs.marginfi.com/e-mode"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline"
+                      >
+                        marginfi docs
+                      </Link>
+                      .
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <div className="flex items-center gap-3">
+                {emodeGroups.map((group) => (
+                  <Badge variant="emode" key={group}>
+                    <IconBolt size={16} /> {group}
+                  </Badge>
+                ))}
+                <EmodeViewAll />
+              </div>
             </div>
-          </div>
+          )}
           <Table>
             <TableHeader>
               {eModeTable.getHeaderGroups().map((headerGroup) => (

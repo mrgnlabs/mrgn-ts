@@ -593,7 +593,7 @@ export const LendingPortfolio = () => {
                       >
                         <PortfolioAssetCard
                           bank={bank}
-                          isInLendingMode={true}
+                          isInLendingMode={false}
                           isBorrower={borrowingBanks.length > 0}
                           accountLabels={accountLabels}
                           variant={filterEmode ? "simple" : "accordion"}
