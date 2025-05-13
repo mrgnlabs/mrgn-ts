@@ -2,11 +2,11 @@ import React from "react";
 import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 
-import { IconInfoCircle, IconX } from "@tabler/icons-react";
+import { IconBolt, IconInfoCircle, IconX } from "@tabler/icons-react";
 
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ActiveBankInfo, getUserActiveEmodes, groupBanksByEmodeTag } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, ExecuteActionProps, ExecuteCollectRewardsAction, usePrevious, useConnection } from "@mrgnlabs/mrgn-utils";
 import { CustomToastType, toastManager } from "@mrgnlabs/mrgn-toasts";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
@@ -21,9 +21,11 @@ import { RewardsDialog } from "./components/rewards";
 
 import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats } from "./components";
 import { RewardsType } from "./types";
-import { useRewardSimulation } from "./hooks";
+import { useRewardSimulation, useLineConnection } from "./hooks";
 import { IconLoader } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
+import { Switch } from "~/components/ui/switch";
+import { Label } from "~/components/ui/label";
 
 const initialRewardsState: RewardsType = {
   state: "NOT_FETCHED",
@@ -45,6 +47,7 @@ export const LendingPortfolio = () => {
     selectedAccount,
     marginfiAccounts,
     fetchMrgnlendState,
+    emodePairs,
   ] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfos,
@@ -54,6 +57,7 @@ export const LendingPortfolio = () => {
     state.selectedAccount,
     state.marginfiAccounts,
     state.fetchMrgnlendState,
+    state.emodePairs,
   ]);
   const [priorityFees, broadcastType, accountLabels, setGlobalActionBoxProps, globalActionBoxProps] = useUiStore(
     (state) => [
@@ -65,6 +69,9 @@ export const LendingPortfolio = () => {
     ]
   );
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
+
+  const [filterEmode, setFilterEmode] = React.useState(false);
+  const [openAccordions, setOpenAccordions] = React.useState<Record<string, boolean>>({});
 
   // Rewards
   const [rewardsState, setRewardsState] = React.useState<RewardsType>(initialRewardsState);
@@ -201,6 +208,46 @@ export const LendingPortfolio = () => {
     [isStoreInitialized, walletConnectionDelay, isRefreshingStore, accountSummary.balance, lendingBanks, borrowingBanks]
   );
 
+  const activeEmodePairs = React.useMemo(() => {
+    if (!selectedAccount) return [];
+    const banksByEmodeTag = groupBanksByEmodeTag(sortedBanks);
+    return getUserActiveEmodes(selectedAccount, emodePairs, banksByEmodeTag);
+  }, [selectedAccount, emodePairs, sortedBanks]);
+
+  // Create refs for each lending and borrowing card, keyed by address
+  const lendingRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
+  const borrowingRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Build connection pairs: only connect assets in the same e-mode group
+  const refPairs = React.useMemo(() => {
+    if (!selectedAccount) return [];
+    const pairs: [{ current: HTMLDivElement | null }, { current: HTMLDivElement | null }][] = [];
+
+    activeEmodePairs.forEach((emodePair) => {
+      lendingBanks
+        .filter((bank) => bank.info.rawBank.emode.emodeTag === emodePair.collateralBankTag)
+        .forEach((lendingBank) => {
+          const lendingRef = lendingRefs.current[lendingBank.address.toBase58()];
+          const borrowingRef = borrowingRefs.current[emodePair.liabilityBank.toBase58()];
+          if (lendingRef && borrowingRef) {
+            pairs.push([{ current: lendingRef }, { current: borrowingRef }]);
+          }
+        });
+    });
+
+    return pairs;
+  }, [activeEmodePairs, selectedAccount, lendingBanks]);
+
+  // Use the hook
+  const { containerRef, LineConnectionSvg } = useLineConnection(refPairs, {
+    color: "rgba(147, 51, 234, 0.3)",
+    pulseColor: "rgba(147, 51, 234, 0.8)",
+    pulseSpeed: 3,
+    cornerRadius: 10,
+    lineSpacing: 40,
+    useUniqueColors: false,
+  });
+
   React.useEffect(() => {
     if (rewardsToastOpen || rewardsState.state !== "REWARDS_FETCHED" || rewardsState.totalRewardAmount === 0) return;
 
@@ -222,7 +269,6 @@ export const LendingPortfolio = () => {
       </div>
     );
 
-    console.log("newToast", newToast);
     setRewardsToastOpen(true);
 
     setRewardsToast(newToast);
@@ -239,6 +285,13 @@ export const LendingPortfolio = () => {
       return () => clearTimeout(timer);
     }
   }, [connected]);
+
+  // Close all accordions when filterEmode is turned on
+  React.useEffect(() => {
+    if (filterEmode) {
+      setOpenAccordions({});
+    }
+  }, [filterEmode]);
 
   if (isStoreInitialized && !connected) {
     return <WalletButton />;
@@ -267,34 +320,31 @@ export const LendingPortfolio = () => {
   }
 
   return (
-    <div className="py-4 md:py-6 flex flex-col items-center md:items-start w-full mb-10 gap-2">
-      {hasMultipleAccount && (
-        <div className="flex w-max justify-center gap-1.5">
-          <p className="text-sm text-muted-foreground">Manage accounts:</p>
-          <div className="-translate-y-1.5">
-            <WalletAuthAccounts
-              initialized={true}
-              mfiClient={marginfiClient}
-              connection={marginfiClient?.provider.connection ?? null}
-              marginfiAccounts={marginfiAccounts}
-              selectedAccount={selectedAccount}
-              fetchMrgnlendState={fetchMrgnlendState}
-              closeOnSwitch={true}
-              popoverContentAlign="start"
-              processOpts={{
-                ...priorityFees,
-                broadcastType,
-              }}
-              accountLabels={accountLabels}
-            />
-          </div>
-        </div>
-      )}
-      <div className="p-4 md:p-6 rounded-xl space-y-3 w-full bg-muted/25">
-        <div className="flex justify-between w-full">
-          <h2 className="font-medium text-xl">Lend/borrow</h2>
+    <div className="py-4 md:py-6 flex flex-col items-center md:items-start w-full mb-10 gap-4">
+      <div className="p-4 md:p-6 md:pt-4 rounded-xl space-y-3 w-full bg-muted/25">
+        <div className="flex items-center gap-4 w-full">
+          <WalletAuthAccounts
+            initialized={true}
+            mfiClient={marginfiClient}
+            connection={marginfiClient?.provider.connection ?? null}
+            marginfiAccounts={marginfiAccounts}
+            selectedAccount={selectedAccount}
+            fetchMrgnlendState={fetchMrgnlendState}
+            closeOnSwitch={true}
+            popoverContentAlign="start"
+            processOpts={{
+              ...priorityFees,
+              broadcastType,
+            }}
+            accountLabels={accountLabels}
+          />
+          {activeEmodePairs.length > 0 && (
+            <div className="flex items-center gap-1.5 text-sm text-purple-300">
+              <IconBolt size={16} /> e-mode active
+            </div>
+          )}
 
-          <div className="flex text-sm items-center gap-1.5">
+          <div className="flex text-sm items-center gap-1.5 ml-auto">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger className="inline-flex items-center gap-1">
@@ -388,95 +438,174 @@ export const LendingPortfolio = () => {
             points={numeralFormatter(userPointsData.totalPoints)}
           />
         </div>
-        <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-20">
-          <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
-            <dl className="flex justify-between items-center gap-2 text-xl font-medium">
-              <dt>Supplied</dt>
-              <dd className="text-lg">{accountSupplied}</dd>
-            </dl>
-            {isStoreInitialized ? (
-              lendingBanks.length > 0 ? (
-                <div className="flex flex-col gap-4">
-                  {lendingBanks.map((bank) => (
-                    <PortfolioAssetCard
-                      key={bank.meta.tokenSymbol}
-                      bank={bank}
-                      isInLendingMode={true}
-                      isBorrower={borrowingBanks.length > 0}
-                      accountLabels={accountLabels}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-muted-foreground flex flex-wrap items-center gap-1">
-                  <span>No lending positions found.</span>
-                  <span
-                    className="border-b border-primary/50 transition-colors hover:border-primary cursor-pointer"
-                    onClick={() => {
-                      setGlobalActionBoxProps({
-                        ...globalActionBoxProps,
-                        isOpen: true,
-                        actionType: ActionType.Deposit,
-                      });
-                    }}
-                  >
-                    Search the pools
-                  </span>
-                  <span>to lend assets.</span>
-                </div>
-              )
-            ) : (
-              <PortfolioAssetCardSkeleton />
+        <div ref={containerRef} className="relative flex flex-col gap-6">
+          <div
+            className={cn(
+              "transition-opacity duration-500 absolute inset-0 pointer-events-none z-10",
+              filterEmode ? "opacity-100" : "opacity-0"
             )}
+          >
+            <LineConnectionSvg />
           </div>
-          <div className="flex flex-wrap flex-col flex-1 gap-4 md:min-w-[340px]">
-            <dl className="flex justify-between items-center gap-2 text-xl font-medium">
-              <dt>Borrowed</dt>
-              <dd className="text-lg">{accountBorrowed}</dd>
-            </dl>
-            {isStoreInitialized ? (
-              borrowingBanks.length > 0 ? (
-                <div className="flex flex-col gap-4">
-                  {borrowingBanks.map((bank) => (
-                    <PortfolioAssetCard
-                      key={bank.meta.tokenSymbol}
-                      bank={bank}
-                      isInLendingMode={false}
-                      isBorrower={borrowingBanks.length > 0}
-                    />
-                  ))}
-                </div>
+          {activeEmodePairs.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Label htmlFor="pairings" className="text-sm text-muted-foreground">
+                Highlight e-mode
+              </Label>
+              <Switch
+                checked={filterEmode}
+                onCheckedChange={(checked) => setFilterEmode(checked)}
+                className="ml-2 data-[state=unchecked]:bg-background-gray-light data-[state=checked]:bg-purple-400"
+              />
+            </div>
+          )}
+          <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-40">
+            <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
+              <dl className="flex justify-between items-center gap-2 text-xl font-medium">
+                <dt>Supplied</dt>
+                <dd className="text-lg">{accountSupplied}</dd>
+              </dl>
+              {isStoreInitialized ? (
+                lendingBanks.length > 0 ? (
+                  <div className="flex flex-col gap-4">
+                    {lendingBanks.map((bank, i) => {
+                      const eModeActive = activeEmodePairs.some(
+                        (pair) => pair.collateralBankTag === bank.info.rawBank.emode.emodeTag
+                      );
+                      return (
+                        <div
+                          key={bank.meta.tokenSymbol}
+                          ref={(el) => {
+                            lendingRefs.current[bank.address.toBase58()] = el;
+                          }}
+                          className={cn(
+                            "transition-opacity duration-500",
+                            filterEmode && "cursor-pointer",
+                            filterEmode && !eModeActive && "opacity-25"
+                          )}
+                        >
+                          <PortfolioAssetCard
+                            bank={bank}
+                            isInLendingMode={true}
+                            isBorrower={borrowingBanks.length > 0}
+                            accountLabels={accountLabels}
+                            variant={filterEmode ? "simple" : "accordion"}
+                            {...(!filterEmode && {
+                              disabled: filterEmode,
+                              open: !!openAccordions[bank.meta.tokenSymbol],
+                              onOpenChange: (isOpen: boolean) =>
+                                setOpenAccordions((prev) => ({
+                                  ...prev,
+                                  [bank.meta.tokenSymbol]: isOpen,
+                                })),
+                            })}
+                            {...(filterEmode && {
+                              onCardClick: () => {
+                                if (filterEmode) setFilterEmode(false);
+                              },
+                            })}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground flex flex-wrap items-center gap-1">
+                    <span>No lending positions found.</span>
+                    <span
+                      className="border-b border-primary/50 transition-colors hover:border-primary cursor-pointer"
+                      onClick={() => {
+                        setGlobalActionBoxProps({
+                          ...globalActionBoxProps,
+                          isOpen: true,
+                          actionType: ActionType.Deposit,
+                        });
+                      }}
+                    >
+                      Search the pools
+                    </span>
+                    <span>to lend assets.</span>
+                  </div>
+                )
               ) : (
-                <div className="text-muted-foreground flex flex-wrap items-center gap-1">
-                  <span>No borrow positions found.</span>
-                  <span
-                    className="border-b border-primary/50 transition-colors hover:border-primary cursor-pointer"
-                    onClick={() => {
-                      setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: true, actionType: ActionType.Borrow });
-                    }}
-                  >
-                    Search the pools
-                  </span>{" "}
-                  <span>and open a new borrow.</span>
-                </div>
-              )
-            ) : (
-              <PortfolioAssetCardSkeleton />
-            )}
+                <PortfolioAssetCardSkeleton />
+              )}
+            </div>
+            <div className="flex flex-wrap flex-col flex-1 gap-4 md:min-w-[340px]">
+              <dl className="flex justify-between items-center gap-2 text-xl font-medium">
+                <dt>Borrowed</dt>
+                <dd className="text-lg">{accountBorrowed}</dd>
+              </dl>
+              {isStoreInitialized ? (
+                borrowingBanks.length > 0 ? (
+                  <div className="flex flex-col gap-4">
+                    {borrowingBanks.map((bank) => (
+                      <div
+                        key={bank.address.toBase58()}
+                        ref={(el) => {
+                          borrowingRefs.current[bank.address.toBase58()] = el;
+                        }}
+                      >
+                        <PortfolioAssetCard
+                          bank={bank}
+                          isInLendingMode={true}
+                          isBorrower={borrowingBanks.length > 0}
+                          accountLabels={accountLabels}
+                          variant={filterEmode ? "simple" : "accordion"}
+                          {...(!filterEmode && {
+                            disabled: filterEmode,
+                            open: !!openAccordions[bank.meta.tokenSymbol],
+                            onOpenChange: (isOpen: boolean) =>
+                              setOpenAccordions((prev) => ({
+                                ...prev,
+                                [bank.meta.tokenSymbol]: isOpen,
+                              })),
+                          })}
+                          {...(filterEmode && {
+                            onCardClick: () => {
+                              if (filterEmode) setFilterEmode(false);
+                            },
+                          })}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-muted-foreground flex flex-wrap items-center gap-1">
+                    <span>No borrow positions found.</span>
+                    <span
+                      className="border-b border-primary/50 transition-colors hover:border-primary cursor-pointer"
+                      onClick={() => {
+                        setGlobalActionBoxProps({
+                          ...globalActionBoxProps,
+                          isOpen: true,
+                          actionType: ActionType.Borrow,
+                        });
+                      }}
+                    >
+                      Search the pools
+                    </span>{" "}
+                    <span>and open a new borrow.</span>
+                  </div>
+                )
+              ) : (
+                <PortfolioAssetCardSkeleton />
+              )}
+            </div>
           </div>
+          <RewardsDialog
+            availableRewards={rewardsState}
+            onClose={() => {
+              setRewardsDialogOpen(false);
+            }}
+            open={rewardsDialogOpen}
+            onOpenChange={(open) => {
+              setRewardsDialogOpen(open);
+            }}
+            onCollect={handleCollectRewardsAction}
+            isLoading={rewardsLoading}
+          />
         </div>
-        <RewardsDialog
-          availableRewards={rewardsState}
-          onClose={() => {
-            setRewardsDialogOpen(false);
-          }}
-          open={rewardsDialogOpen}
-          onOpenChange={(open) => {
-            setRewardsDialogOpen(open);
-          }}
-          onCollect={handleCollectRewardsAction}
-          isLoading={rewardsLoading}
-        />
       </div>
     </div>
   );

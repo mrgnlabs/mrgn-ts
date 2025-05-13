@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { IconAlertTriangle, IconExternalLink, IconFolderShare, IconInfoCircle } from "@tabler/icons-react";
+import { IconAlertTriangle, IconBolt, IconExternalLink, IconFolderShare, IconInfoCircle } from "@tabler/icons-react";
 import { Transaction } from "@solana/web3.js";
 import {
   usdFormatter,
@@ -17,13 +17,13 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
+import { AssetTag, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { capture, cn, composeExplorerUrl, executeActionWrapper } from "@mrgnlabs/mrgn-utils";
 import { ActionBox, SVSPMEV, useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ChevronDown } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 
@@ -37,6 +37,9 @@ interface PortfolioAssetCardProps {
   isInLendingMode: boolean;
   isBorrower?: boolean;
   accountLabels?: Record<string, string>;
+  variant?: "accordion" | "simple";
+
+  onCardClick?: () => void;
 }
 
 export const PortfolioAssetCard = ({
@@ -44,6 +47,8 @@ export const PortfolioAssetCard = ({
   isInLendingMode,
   isBorrower = true,
   accountLabels,
+  variant = "accordion",
+  onCardClick,
 }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
   const [
@@ -86,6 +91,50 @@ export const PortfolioAssetCard = ({
     [marginfiAccounts.length, bank]
   );
 
+  if (variant === "simple") {
+    return (
+      <div
+        className="bg-background-gray rounded-xl px-3 py-3.5 flex gap-3 items-center cursor-pointer hover:bg-background-gray-light transition"
+        onClick={onCardClick}
+      >
+        <Image
+          src={bank.meta.tokenLogoUri}
+          className="rounded-full -translate-y-0.5"
+          alt={bank.meta.tokenSymbol}
+          height={36}
+          width={36}
+        />
+        <div className="flex items-center gap-1 w-full">
+          <div className="flex flex-col flex-1 -translate-y-0.5">
+            <div className="flex items-center gap-3 font-medium text-lg">
+              {bank.meta.tokenSymbol}
+              {bank.info.state.hasEmode && (
+                <span className="text-purple-300 text-xs flex items-center gap-1 lowercase">
+                  <IconBolt size={12} /> {EmodeTag[bank.info.rawBank.emode.emodeTag]}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-4 text-sm">
+              <span className={isInLendingMode ? "text-success" : "text-warning"}>{rateAP} APY</span>
+            </div>
+          </div>
+          <div className="text-right pr-2 leading-none space-y-0 -translate-y-0.5">
+            <div className="font-medium text-lg">
+              {dynamicNumeralFormatter(bank.position.amount, {
+                tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
+              })}
+              {" " + bank.meta.tokenSymbol}
+            </div>
+            <span className="text-muted-foreground text-sm font-normal">
+              {usdFormatter.format(bank.position.usdValue)}
+            </span>
+          </div>
+          <ChevronDown className="h-4 w-4 self-start translate-y-1 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Accordion type="single" collapsible>
       <AccordionItem
@@ -109,7 +158,32 @@ export const PortfolioAssetCard = ({
               </div>
               <div className="flex flex-col w-full">
                 <div className="flex justify-between items-center w-full">
-                  <div className="font-medium text-lg">{bank.meta.tokenSymbol}</div>
+                  <div className="flex items-center gap-3 font-medium text-lg">
+                    {bank.meta.tokenSymbol}{" "}
+                    {bank.info.state.hasEmode && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="text-purple-300 text-xs flex items-center gap-1 lowercase">
+                              <IconBolt size={12} />
+                              {EmodeTag[bank.info.rawBank.emode.emodeTag]}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="flex flex-col gap-2">
+                              <div className="flex gap-1 items-center">
+                                <IconBolt size={12} className="text-purple-300 translate-y-px" />{" "}
+                                <p>e-mode weights active</p>
+                              </div>
+                              <p>
+                                80% <span className="text-muted-foreground text-xs">(+10%)</span>
+                              </p>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
                   <div className="font-medium text-lg text-right">
                     {dynamicNumeralFormatter(bank.position.amount, {
                       tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
@@ -143,7 +217,7 @@ export const PortfolioAssetCard = ({
                         )}
                       </div>
                     ) : (
-                      <div className={cn("text-sm font-normal", isInLendingMode ? "text-success" : "text-warning")}>
+                      <div className={cn("text-sm font-light", isInLendingMode ? "text-success" : "text-warning")}>
                         {rateAP.concat(...[" ", "APY"])}
                       </div>
                     )}
