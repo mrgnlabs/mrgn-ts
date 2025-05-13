@@ -56,7 +56,7 @@ export const LendingPortfolio = () => {
     selectedAccount,
     marginfiAccounts,
     fetchMrgnlendState,
-    emodePairs,
+    userActiveEmodes,
   ] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfos,
@@ -66,7 +66,7 @@ export const LendingPortfolio = () => {
     state.selectedAccount,
     state.marginfiAccounts,
     state.fetchMrgnlendState,
-    state.emodePairs,
+    state.userActiveEmodes,
   ]);
   const [priorityFees, broadcastType, accountLabels, setGlobalActionBoxProps, globalActionBoxProps] = useUiStore(
     (state) => [
@@ -215,15 +215,7 @@ export const LendingPortfolio = () => {
       !lendingBanks.length &&
       !borrowingBanks.length,
     [isStoreInitialized, walletConnectionDelay, isRefreshingStore, accountSummary.balance, lendingBanks, borrowingBanks]
-  );
-
-  const activeEmodePairs = React.useMemo(() => {
-    if (!selectedAccount) return [];
-    const banksByEmodeTag = groupRawBankByEmodeTag(sortedBanks.map((bank) => bank.info.rawBank));
-    return getUserActiveEmodes(selectedAccount, emodePairs, banksByEmodeTag);
-  }, [selectedAccount, emodePairs, sortedBanks]);
-
-  // Create refs for each lending and borrowing card, keyed by address
+  ); // Create refs for each lending and borrowing card, keyed by address
   const lendingRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
   const borrowingRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -232,7 +224,7 @@ export const LendingPortfolio = () => {
     if (!selectedAccount) return [];
     const pairs: [{ current: HTMLDivElement | null }, { current: HTMLDivElement | null }][] = [];
 
-    activeEmodePairs.forEach((emodePair) => {
+    userActiveEmodes.forEach((emodePair) => {
       lendingBanks
         .filter((bank) => bank.info.rawBank.emode.emodeTag === emodePair.collateralBankTag)
         .forEach((lendingBank) => {
@@ -245,7 +237,7 @@ export const LendingPortfolio = () => {
     });
 
     return pairs;
-  }, [activeEmodePairs, selectedAccount, lendingBanks]);
+  }, [userActiveEmodes, selectedAccount, lendingBanks]);
 
   // Use the hook
   const { containerRef, LineConnectionSvg } = useLineConnection(refPairs, {
@@ -477,7 +469,7 @@ export const LendingPortfolio = () => {
                 </Tooltip>
               </TooltipProvider>
               <div className="flex items-center gap-3">
-                {activeEmodePairs.map((pair) => (
+                {userActiveEmodes.map((pair) => (
                   <Badge variant="emode" key={pair.collateralBankTag}>
                     <IconBolt size={16} /> {EmodeTag[pair.collateralBankTag]}
                   </Badge>
@@ -485,29 +477,17 @@ export const LendingPortfolio = () => {
                 <EmodeViewAll />
               </div>
             </div>
-            {activeEmodePairs.length > 0 && (
-              <>
-                {/* <div className="flex items-center gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setFilterEmode(!filterEmode)}
-                    className={cn(filterEmode && "text-purple-400")}
-                  >
-                    <IconBolt size={14} /> Highlight e-mode
-                  </Button>
-                </div> */}
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="pairings" className="text-sm text-muted-foreground flex items-center gap-1">
-                    <IconSparkles size={14} /> Highlight e-mode
-                  </Label>
-                  <Switch
-                    checked={filterEmode}
-                    onCheckedChange={(checked) => setFilterEmode(checked)}
-                    className="ml-2 data-[state=unchecked]:bg-background-gray-light data-[state=checked]:bg-purple-400"
-                  />
-                </div>
-              </>
+            {userActiveEmodes.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Label htmlFor="pairings" className="text-sm text-muted-foreground flex items-center gap-1">
+                  <IconSparkles size={14} /> Highlight e-mode
+                </Label>
+                <Switch
+                  checked={filterEmode}
+                  onCheckedChange={(checked) => setFilterEmode(checked)}
+                  className="ml-2 data-[state=unchecked]:bg-background-gray-light data-[state=checked]:bg-purple-400"
+                />
+              </div>
             )}
           </div>
           <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-40">
@@ -520,7 +500,7 @@ export const LendingPortfolio = () => {
                 lendingBanks.length > 0 ? (
                   <div className="flex flex-col gap-4">
                     {lendingBanks.map((bank, i) => {
-                      const eModeActive = activeEmodePairs.some(
+                      const eModeActive = userActiveEmodes.some(
                         (pair) => pair.collateralBankTag === bank.info.rawBank.emode.emodeTag
                       );
                       return (
