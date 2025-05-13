@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
-import { IconBolt, IconExternalLink, IconInfoCircle } from "@tabler/icons-react";
+import { IconBolt, IconExternalLink, IconInfoCircle, IconSearch } from "@tabler/icons-react";
 
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
@@ -16,6 +16,7 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./components";
+import { EmodeViewAll } from "~/components/common/emode/components";
 import { Button } from "~/components/ui/button";
 import { TokenFilters } from "~/store/uiStore";
 import { TooltipProvider, TooltipContent, Tooltip, TooltipTrigger } from "~/components/ui/tooltip";
@@ -357,7 +358,7 @@ export const AssetsList = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <IconInfoCircle size={16} /> Active e-mode groups
+                    <IconInfoCircle size={14} /> E-mode groups
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -382,6 +383,7 @@ export const AssetsList = () => {
                   <IconBolt size={16} /> {group}
                 </Badge>
               ))}
+              <EmodeViewAll />
             </div>
           </div>
           <Table>

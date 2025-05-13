@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 
-import { IconBolt, IconInfoCircle, IconX } from "@tabler/icons-react";
+import { IconBolt, IconInfoCircle, IconSearch, IconSparkles, IconX } from "@tabler/icons-react";
 
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
@@ -22,10 +22,13 @@ import { RewardsDialog } from "./components/rewards";
 import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats } from "./components";
 import { RewardsType } from "./types";
 import { useRewardSimulation, useLineConnection } from "./hooks";
+import { EmodeViewAll } from "~/components/common/emode/components";
 import { IconLoader } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { Switch } from "~/components/ui/switch";
 import { Label } from "~/components/ui/label";
+import { Badge } from "~/components/ui/badge";
+import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 
 const initialRewardsState: RewardsType = {
   state: "NOT_FETCHED",
@@ -338,11 +341,6 @@ export const LendingPortfolio = () => {
             }}
             accountLabels={accountLabels}
           />
-          {activeEmodePairs.length > 0 && (
-            <div className="flex items-center gap-1.5 text-sm text-purple-300">
-              <IconBolt size={16} /> e-mode active
-            </div>
-          )}
 
           <div className="flex text-sm items-center gap-1.5 ml-auto">
             <TooltipProvider>
@@ -447,18 +445,65 @@ export const LendingPortfolio = () => {
           >
             <LineConnectionSvg />
           </div>
-          {activeEmodePairs.length > 0 && (
-            <div className="flex items-center gap-2">
-              <Label htmlFor="pairings" className="text-sm text-muted-foreground">
-                Highlight e-mode
-              </Label>
-              <Switch
-                checked={filterEmode}
-                onCheckedChange={(checked) => setFilterEmode(checked)}
-                className="ml-2 data-[state=unchecked]:bg-background-gray-light data-[state=checked]:bg-purple-400"
-              />
+          <div className="flex items-center gap-3 justify-between">
+            <div className="py-2 flex items-center gap-3">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <IconInfoCircle size={14} /> Active e-mode groups
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      For more information on e-mode, and available e-mode pairings, visit the{" "}
+                      <Link
+                        href="https://docs.marginfi.com/e-mode"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline"
+                      >
+                        marginfi docs
+                      </Link>
+                      .
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <div className="flex items-center gap-3">
+                {activeEmodePairs.map((pair) => (
+                  <Badge variant="emode" key={pair.collateralBankTag}>
+                    <IconBolt size={16} /> {EmodeTag[pair.collateralBankTag]}
+                  </Badge>
+                ))}
+                <EmodeViewAll />
+              </div>
             </div>
-          )}
+            {activeEmodePairs.length > 0 && (
+              <>
+                {/* <div className="flex items-center gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setFilterEmode(!filterEmode)}
+                    className={cn(filterEmode && "text-purple-400")}
+                  >
+                    <IconBolt size={14} /> Highlight e-mode
+                  </Button>
+                </div> */}
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="pairings" className="text-sm text-muted-foreground flex items-center gap-1">
+                    <IconSparkles size={14} /> Highlight e-mode
+                  </Label>
+                  <Switch
+                    checked={filterEmode}
+                    onCheckedChange={(checked) => setFilterEmode(checked)}
+                    className="ml-2 data-[state=unchecked]:bg-background-gray-light data-[state=checked]:bg-purple-400"
+                  />
+                </div>
+              </>
+            )}
+          </div>
           <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-40">
             <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
               <dl className="flex justify-between items-center gap-2 text-xl font-medium">
