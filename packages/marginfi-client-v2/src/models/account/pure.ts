@@ -763,15 +763,15 @@ class MarginfiAccount implements MarginfiAccountType {
     amount: Amount,
     bankAddress: PublicKey,
     withdrawAll: boolean = false,
-    opts: MakeWithdrawIxOpts = {}
+    withdrawOpts: MakeWithdrawIxOpts = {}
   ): Promise<InstructionsWrapper> {
     const bank = banks.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
     const mintData = mintDatas.get(bankAddress.toBase58());
     if (!mintData) throw Error(`Mint data for bank ${bankAddress.toBase58()} not found`);
 
-    const wrapAndUnwrapSol = opts.wrapAndUnwrapSol ?? true;
-    const createAtas = opts.createAtas ?? true;
+    const wrapAndUnwrapSol = withdrawOpts.wrapAndUnwrapSol ?? true;
+    const createAtas = withdrawOpts.createAtas ?? true;
 
     const withdrawIxs = [];
 
@@ -792,19 +792,20 @@ class MarginfiAccount implements MarginfiAccountType {
       withdrawIxs.push(createAtaIdempotentIx);
     }
 
+    const healthAccounts = withdrawAll
+      ? this.getHealthCheckAccounts(banks, [], [bank], bankMetadataMap)
+      : this.getHealthCheckAccounts(banks, [bank], [], bankMetadataMap);
+
     // Add withdraw-related instructions
     const remainingAccounts: PublicKey[] = [];
     if (mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
       remainingAccounts.push(mintData.mint);
     }
-    if (opts.observationBanksOverride !== undefined) {
-      remainingAccounts.push(...makeHealthAccountMetas(banks, opts.observationBanksOverride, bankMetadataMap));
+    if (withdrawOpts.observationBanksOverride) {
+      remainingAccounts.push(...withdrawOpts.observationBanksOverride);
     } else {
-      remainingAccounts.push(
-        ...(withdrawAll
-          ? this.getHealthCheckAccounts(banks, [], [bank], bankMetadataMap)
-          : this.getHealthCheckAccounts(banks, [bank], [], bankMetadataMap))
-      );
+      const accountMetas = makeHealthAccountMetas(banks, healthAccounts, bankMetadataMap);
+      remainingAccounts.push(...accountMetas);
     }
 
     const withdrawIx = await instructions.makeWithdrawIx(
@@ -814,8 +815,8 @@ class MarginfiAccount implements MarginfiAccountType {
         bank: bank.address,
         destinationTokenAccount: userAta,
         tokenProgram: mintData.tokenProgram,
-        authority: opts.overrideInferAccounts?.authority,
-        group: opts.overrideInferAccounts?.group,
+        authority: withdrawOpts.overrideInferAccounts?.authority,
+        group: withdrawOpts.overrideInferAccounts?.group,
       },
       { amount: uiToNative(amount, bank.mintDecimals), withdrawAll },
       remainingAccounts.map((account) => ({ pubkey: account, isSigner: false, isWritable: false }))
