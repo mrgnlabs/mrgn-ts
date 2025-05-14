@@ -659,26 +659,37 @@ function getUserActiveEmodes(
   const depositEmodeTags = new Set(deposits.map((deposit) => deposit.emodeTag));
 
   // Get borrows (liabilities)
-  const borrows = activeBalances.filter((balance) => balance.liabilityShares.gt(0)).map((balance) => balance.bankPk);
+  const borrows = activeBalances
+    .filter((balance) => balance.liabilityShares.gt(0))
+    .map((balance) => {
+      // Find the bank for this balance to get its emode tag
+      const bank = Object.values(banksByEmodeTag)
+        .flat()
+        .find((bank) => bank.address.equals(balance.bankPk));
 
-  // If no borrows or no deposits with emode tags, no emode pairs are active
+      return {
+        bankPk: balance.bankPk,
+        emodeTag: bank?.emode.emodeTag,
+      };
+    })
+    .filter((borrow) => borrow.emodeTag);
+
+  // Get borrow emode tags
+  const borrowEmodeTags = new Set(borrows.map((borrow) => borrow.emodeTag));
+
   if (borrows.length === 0 || deposits.length === 0) return [];
+  if (depositEmodeTags.size === 0 || borrowEmodeTags.size === 0) return [];
+
+  // if there aren't any emode tags in the borrow set, return empty array
+  if (borrowEmodeTags.has(undefined)) return [];
 
   // Get potential emode pairs that match user's borrows
   const potentialEmodePairs = emodePairs.filter((pair) =>
-    borrows.some((borrowPk) => borrowPk.equals(pair.liabilityBank))
+    borrows.some((borrow) => borrow.bankPk.equals(pair.liabilityBank))
   );
 
   // If no potential emode pairs, no emode is active
   if (potentialEmodePairs.length === 0) return [];
-
-  // Check if all borrows have emode pairs
-  const allBorrowsHaveEmodePairs = borrows.every((borrowPk) =>
-    potentialEmodePairs.some((pair) => pair.liabilityBank.equals(borrowPk))
-  );
-
-  // If any borrow doesn't have an emode pair, all emodes are canceled
-  if (!allBorrowsHaveEmodePairs) return [];
 
   // Filter to only include pairs where the collateral tag matches one of user's deposits
   const matchingEmodePairs = potentialEmodePairs.filter((pair) => depositEmodeTags.has(pair.collateralBankTag));
@@ -686,23 +697,18 @@ function getUserActiveEmodes(
   // If no matching pairs, return empty array
   if (matchingEmodePairs.length === 0) return [];
 
-  // Check if all borrows have at least one compatible emode pair
-  const allBorrowsHaveCompatiblePairs = borrows.every((borrowPk) =>
-    matchingEmodePairs.some((pair) => pair.liabilityBank.equals(borrowPk))
-  );
+  // if there is only one emode pair active, return it
+  if (matchingEmodePairs.length === 1) return matchingEmodePairs;
 
-  // If any borrow doesn't have compatible emode pair, all emodes are canceled
-  if (!allBorrowsHaveCompatiblePairs) return [];
+  // if there are multiple emode pairs active
+  const matchedLiabilityTags = new Set(matchingEmodePairs.map((pair) => pair.liabilityBankTag));
+  const matchedCollateralTags = new Set(matchingEmodePairs.map((pair) => pair.collateralBankTag));
 
-  // Get the collateral tags used by matching pairs
-  const activeCollateralTags = new Set(matchingEmodePairs.map((pair) => pair.collateralBankTag));
+  if (matchedLiabilityTags.size === 1 || matchedCollateralTags.size === 1) {
+    return matchingEmodePairs;
+  }
 
-  // If more than one collateral tag would be active, all emodes are canceled
-  // (this handles the case where different borrows require different collateral types)
-  if (activeCollateralTags.size > 1) return [];
-
-  // All conditions are met, return the active emode pairs
-  return matchingEmodePairs;
+  return [];
 }
 
 /*
