@@ -439,9 +439,6 @@ function groupRawBankByEmodeTag(banks: Bank[]) {
   return groupedBanks;
 }
 
-/*
- * deprecated
- */
 function groupBanksByEmodeTag(banks: ExtendedBankInfo[]) {
   const groupedBanks: Record<EmodeTag, ExtendedBankInfo[]> = {} as Record<EmodeTag, ExtendedBankInfo[]>;
 
@@ -457,6 +454,86 @@ function groupBanksByEmodeTag(banks: ExtendedBankInfo[]) {
   }
 
   return groupedBanks;
+}
+
+function groupLiabilityBanksByCollateralBank(banks: ExtendedBankInfo[], emodePairs: EmodePair[]) {
+  const bankMap = new Map<string, ExtendedBankInfo>();
+  banks.forEach((bank) => {
+    bankMap.set(bank.info.rawBank.address.toString(), bank);
+  });
+
+  const result: Record<string, { liabilityBank: ExtendedBankInfo; emodePair: EmodePair }[]> = {};
+
+  emodePairs.forEach((emodePair) => {
+    const liabilityBankKey = emodePair.liabilityBank.toString();
+
+    const liabilityBank = bankMap.get(liabilityBankKey);
+
+    if (!liabilityBank) {
+      console.error(`Liability bank ${liabilityBankKey} referenced in emode pair not found in banks array`);
+      return;
+    }
+
+    banks.forEach((potentialCollateralBank) => {
+      const bankRaw = potentialCollateralBank.info.rawBank;
+      const collateralBankKey = bankRaw.address.toString();
+
+      if (bankRaw.address.equals(emodePair.liabilityBank)) {
+        return;
+      }
+
+      if (bankRaw.emode.emodeTag === emodePair.collateralBankTag) {
+        if (!result[collateralBankKey]) {
+          result[collateralBankKey] = [];
+        }
+
+        result[collateralBankKey].push({
+          liabilityBank: liabilityBank,
+          emodePair,
+        });
+      }
+    });
+  });
+
+  return result;
+}
+
+function groupCollateralBanksByLiabilityBank(banks: ExtendedBankInfo[], emodePairs: EmodePair[]) {
+  // Create a map of bank PublicKey string to the ExtendedBankInfo
+  const bankMap = new Map<string, ExtendedBankInfo>();
+  banks.forEach((bank) => {
+    bankMap.set(bank.info.rawBank.address.toString(), bank);
+  });
+
+  const result: Record<string, { collateralBank: ExtendedBankInfo; emodePair: EmodePair }[]> = {};
+
+  emodePairs.forEach((emodePair) => {
+    const liabilityBankKey = emodePair.liabilityBank.toString();
+
+    banks.forEach((potentialCollateralBank) => {
+      const bankRaw = potentialCollateralBank.info.rawBank;
+      if (bankRaw.address.equals(emodePair.liabilityBank)) {
+        return;
+      }
+
+      if (bankRaw.emode.emodeTag === emodePair.collateralBankTag) {
+        if (!result[liabilityBankKey]) {
+          result[liabilityBankKey] = [];
+        }
+
+        result[liabilityBankKey].push({
+          collateralBank: potentialCollateralBank,
+          emodePair,
+        });
+      }
+    });
+
+    if (!bankMap.has(liabilityBankKey)) {
+      console.error(`Liability bank ${liabilityBankKey} referenced in emode pair not found in banks array`);
+    }
+  });
+
+  return result;
 }
 
 function getEmodePairs(banks: Bank[]) {
@@ -497,7 +574,6 @@ function adjustBankWeightsWithEmodePairs(
 
   const originalWeights: Record<string, { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }> = {};
 
-  // Create a map to track the lowest weights for each collateral bank
   const lowestWeights: Map<string, { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }> = new Map();
 
   // For each emode pair, find the collateral banks and track their lowest possible weights
@@ -696,4 +772,6 @@ export {
   groupRawBankByEmodeTag,
   getUserActiveEmodes,
   adjustBankWeightsWithEmodePairs,
+  groupCollateralBanksByLiabilityBank,
+  groupLiabilityBanksByCollateralBank,
 };

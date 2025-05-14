@@ -36,6 +36,8 @@ import {
   groupRawBankByEmodeTag,
   getUserActiveEmodes,
   adjustBankWeightsWithEmodePairs,
+  groupCollateralBanksByLiabilityBank,
+  groupLiabilityBanksByCollateralBank,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -90,6 +92,20 @@ interface MrgnlendState {
   groupedEmodeBanks: Record<EmodeTag, ExtendedBankInfo[]>;
   emodePairs: EmodePair[];
   userActiveEmodes: EmodePair[];
+  collateralBanksByLiabilityBank: Record<
+    string,
+    {
+      collateralBank: ExtendedBankInfo;
+      emodePair: EmodePair;
+    }[]
+  >;
+  liabilityBanksByCollateralBank: Record<
+    string,
+    {
+      liabilityBank: ExtendedBankInfo;
+      emodePair: EmodePair;
+    }[]
+  >;
 
   // Actions
   fetchMrgnlendState: (args?: {
@@ -174,6 +190,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   groupedEmodeBanks: {} as Record<EmodeTag, ExtendedBankInfo[]>,
   emodePairs: [],
   userActiveEmodes: [],
+  collateralBanksByLiabilityBank: {},
+  liabilityBanksByCollateralBank: {},
 
   // Actions
   fetchMrgnlendState: async (args?: {
@@ -424,6 +442,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const pointsTotal = get().protocolStats.pointsTotal;
 
       const banksByEmodeTag = groupBanksByEmodeTag(sortedExtendedBankInfos);
+      const collateralBanksByLiabilityBank = groupCollateralBanksByLiabilityBank(sortedExtendedBankInfos, emodePairs);
+      const liabilityBanksByCollateralBank = groupLiabilityBanksByCollateralBank(sortedExtendedBankInfos, emodePairs);
 
       set({
         initialized: true,
@@ -455,6 +475,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         processTransactionStrategy,
         stageTokens: stageTokens ?? null,
         groupedEmodeBanks: banksByEmodeTag,
+        collateralBanksByLiabilityBank,
+        liabilityBanksByCollateralBank,
       });
 
       const pointSummary = await getPointsSummary();
