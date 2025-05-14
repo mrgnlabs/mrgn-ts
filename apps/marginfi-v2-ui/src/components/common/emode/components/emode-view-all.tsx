@@ -91,7 +91,7 @@ const EmodeViewAll = () => {
                     .filter((emodeTag) => emodeTag !== "0")
                     .map((emodeTag) => (
                       <SelectItem key={emodeTag} value={emodeTag.toString()}>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 lowercase">
                           <IconBolt size={16} className="text-purple-300" />
                           {EmodeTag[emodeTag as keyof typeof EmodeTag]}
                         </div>
