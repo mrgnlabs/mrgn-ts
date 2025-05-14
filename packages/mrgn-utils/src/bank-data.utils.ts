@@ -11,6 +11,7 @@ import {
   Emissions,
   StakePoolMetadata,
   BankState,
+  EmodePair,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 import { aprToApy, nativeToUi, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
@@ -51,6 +52,15 @@ export interface AssetWeightData {
   assetWeight: number;
   originalAssetWeight?: number;
   emodeActive?: boolean;
+  isInLendingMode?: boolean;
+  collateralBanks?: {
+    collateralBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[];
+  liabilityBanks?: {
+    liabilityBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[];
 }
 
 export interface DepositsData {
@@ -171,11 +181,20 @@ export const getAssetPriceData = (bank: ExtendedBankInfo): AssetPriceData => {
 export const getAssetWeightData = (
   bank: ExtendedBankInfo,
   isInLendingMode: boolean,
-  assetWeightInitOverride?: BigNumber
+  assetWeightInitOverride?: BigNumber,
+  collateralBanks?: {
+    collateralBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[],
+  liabilityBanks?: {
+    liabilityBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[]
 ): AssetWeightData => {
   if (!bank?.info?.rawBank?.getAssetWeight) {
     return {
       assetWeight: 0,
+      isInLendingMode,
     };
   }
   const assetWeightInit = bank.info.rawBank
@@ -188,6 +207,7 @@ export const getAssetWeightData = (
     return {
       assetWeight: 0,
       originalAssetWeight,
+      isInLendingMode,
     };
   }
 
@@ -196,7 +216,10 @@ export const getAssetWeightData = (
   return {
     assetWeight,
     originalAssetWeight,
-    emodeActive: isInLendingMode && bank.isActive && bank.position.emodeActive,
+    emodeActive: bank.isActive && bank.position.emodeActive,
+    collateralBanks: collateralBanks,
+    liabilityBanks: liabilityBanks,
+    isInLendingMode,
   };
 };
 

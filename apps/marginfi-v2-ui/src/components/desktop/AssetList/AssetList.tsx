@@ -23,15 +23,25 @@ import { TooltipProvider, TooltipContent, Tooltip, TooltipTrigger } from "~/comp
 import { Badge } from "~/components/ui/badge";
 
 export const AssetsList = () => {
-  const [extendedBankInfos, nativeSolBalance, selectedAccount, fetchMrgnlendState, emodePairs] = useMrgnlendStore(
-    (state) => [
-      state.extendedBankInfos,
-      state.nativeSolBalance,
-      state.selectedAccount,
-      state.fetchMrgnlendState,
-      state.emodePairs,
-    ]
-  );
+  const [
+    extendedBankInfos,
+    nativeSolBalance,
+    selectedAccount,
+    fetchMrgnlendState,
+    emodePairs,
+    groupedEmodeBanks,
+    collateralBanksByLiabilityBank,
+    liabilityBanksByCollateralBank,
+  ] = useMrgnlendStore((state) => [
+    state.extendedBankInfos,
+    state.nativeSolBalance,
+    state.selectedAccount,
+    state.fetchMrgnlendState,
+    state.emodePairs,
+    state.groupedEmodeBanks,
+    state.collateralBanksByLiabilityBank,
+    state.liabilityBanksByCollateralBank,
+  ]);
   const [poolFilter, isFilteredUserPositions, lendingMode, tokenFilter, setTokenFilter] = useUiStore((state) => [
     state.poolFilter,
     state.isFilteredUserPositions,
@@ -174,7 +184,9 @@ export const AssetsList = () => {
       connected,
       walletContextState,
       solPrice,
-      fetchMrgnlendState
+      fetchMrgnlendState,
+      collateralBanksByLiabilityBank,
+      liabilityBanksByCollateralBank
     );
   }, [
     connected,
@@ -185,6 +197,8 @@ export const AssetsList = () => {
     selectedAccount,
     solPrice,
     fetchMrgnlendState,
+    collateralBanksByLiabilityBank,
+    liabilityBanksByCollateralBank,
   ]);
 
   const tableColumns = React.useMemo(() => {
