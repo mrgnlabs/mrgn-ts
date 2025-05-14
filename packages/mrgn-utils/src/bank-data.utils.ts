@@ -49,6 +49,8 @@ export interface AssetPriceData {
 
 export interface AssetWeightData {
   assetWeight: number;
+  originalAssetWeight?: number;
+  emodeActive?: boolean;
 }
 
 export interface DepositsData {
@@ -180,9 +182,12 @@ export const getAssetWeightData = (
     .getAssetWeight(MarginRequirementType.Initial, bank.info.oraclePrice, false, assetWeightInitOverride)
     .toNumber();
 
+  const originalAssetWeight = bank.info.state.originalWeights.assetWeightInit.toNumber();
+
   if (assetWeightInit <= 0) {
     return {
       assetWeight: 0,
+      originalAssetWeight,
     };
   }
 
@@ -190,6 +195,8 @@ export const getAssetWeightData = (
 
   return {
     assetWeight,
+    originalAssetWeight,
+    emodeActive: isInLendingMode && bank.isActive && bank.position.emodeActive,
   };
 };
 

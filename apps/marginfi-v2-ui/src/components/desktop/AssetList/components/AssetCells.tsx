@@ -240,9 +240,42 @@ export const getRateCell = ({
   );
 };
 
-export const getAssetWeightCell = ({ assetWeight }: AssetWeightData) => (
-  <div className="flex justify-end">{!assetWeight ? <>-</> : <>{(assetWeight * 100).toFixed(0) + "%"}</>}</div>
-);
+export const getAssetWeightCell = ({ assetWeight, originalAssetWeight, emodeActive }: AssetWeightData) => {
+  return (
+    <div className="flex justify-end">
+      {emodeActive && originalAssetWeight ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger className="flex items-center gap-1 text-purple-300">
+              <IconBolt size={12} className="text-purple-300" />
+              {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-1 items-center">
+                  <IconBolt size={12} className="text-purple-300 translate-y-px" /> <p>e-mode weights active</p>
+                </div>
+                <p className="text-center">
+                  {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
+                  <span className="text-muted-foreground text-xs">
+                    (+
+                    {percentFormatterMod(assetWeight - originalAssetWeight, {
+                      minFractionDigits: 0,
+                      maxFractionDigits: 2,
+                    })}
+                    )
+                  </span>
+                </p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        <>{(assetWeight * 100).toFixed(0) + "%"}</>
+      )}
+    </div>
+  );
+};
 
 export const getDepositsCell = (depositsData: DepositsData) => {
   return (

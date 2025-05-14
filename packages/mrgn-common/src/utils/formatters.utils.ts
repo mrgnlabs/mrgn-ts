@@ -154,7 +154,7 @@ const percentFormatterMod = (
   });
 
   if (value === 0) {
-    return "0";
+    return "0%";
   } else {
     return percentFormatter.format(value);
   }
