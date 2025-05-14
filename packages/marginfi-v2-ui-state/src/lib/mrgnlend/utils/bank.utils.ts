@@ -579,6 +579,9 @@ function getUserActiveEmodes(
     })
     .filter((deposit) => deposit.emodeTag);
 
+  // Get deposit emode tags
+  const depositEmodeTags = new Set(deposits.map((deposit) => deposit.emodeTag));
+
   // Get borrows (liabilities)
   const borrows = activeBalances.filter((balance) => balance.liabilityShares.gt(0)).map((balance) => balance.bankPk);
 
@@ -601,23 +604,29 @@ function getUserActiveEmodes(
   // If any borrow doesn't have an emode pair, all emodes are canceled
   if (!allBorrowsHaveEmodePairs) return [];
 
-  // Check if all potential emode pairs use the same collateral tag
-  const collateralTags = new Set(potentialEmodePairs.map((pair) => pair.collateralBankTag));
+  // Filter to only include pairs where the collateral tag matches one of user's deposits
+  const matchingEmodePairs = potentialEmodePairs.filter((pair) => depositEmodeTags.has(pair.collateralBankTag));
 
-  // If more than one collateral tag is needed, all emodes are canceled
-  if (collateralTags.size > 1) return [];
+  // If no matching pairs, return empty array
+  if (matchingEmodePairs.length === 0) return [];
 
-  // The single collateral tag that all emode pairs use
-  const requiredCollateralTag = [...collateralTags][0];
+  // Check if all borrows have at least one compatible emode pair
+  const allBorrowsHaveCompatiblePairs = borrows.every((borrowPk) =>
+    matchingEmodePairs.some((pair) => pair.liabilityBank.equals(borrowPk))
+  );
 
-  // Check if user has deposits that match the required collateral tag
-  const hasMatchingDeposit = deposits.some((deposit) => deposit.emodeTag === requiredCollateralTag);
+  // If any borrow doesn't have compatible emode pair, all emodes are canceled
+  if (!allBorrowsHaveCompatiblePairs) return [];
 
-  // If no matching deposit is found, no emode is active
-  if (!hasMatchingDeposit) return [];
+  // Get the collateral tags used by matching pairs
+  const activeCollateralTags = new Set(matchingEmodePairs.map((pair) => pair.collateralBankTag));
+
+  // If more than one collateral tag would be active, all emodes are canceled
+  // (this handles the case where different borrows require different collateral types)
+  if (activeCollateralTags.size > 1) return [];
 
   // All conditions are met, return the active emode pairs
-  return potentialEmodePairs;
+  return matchingEmodePairs;
 }
 
 /*
