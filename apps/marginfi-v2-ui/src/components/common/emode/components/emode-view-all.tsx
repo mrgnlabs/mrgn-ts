@@ -73,7 +73,7 @@ const EmodeViewAll = () => {
         </DialogHeader>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <Label>Group</Label>
+            <Label className="text-muted-foreground">Group</Label>
             <Select
               value={selectedEmodeGroup?.toString()}
               onValueChange={(value) => {
@@ -107,7 +107,7 @@ const EmodeViewAll = () => {
               (!selectedEmodeGroup || emodeBanks.length === 0) && "pointer-events-none opacity-50"
             )}
           >
-            <Label>Bank</Label>
+            <Label className="text-muted-foreground">Bank</Label>
             <Select
               value={selectedBank?.address.toBase58()}
               onValueChange={(value) => {
