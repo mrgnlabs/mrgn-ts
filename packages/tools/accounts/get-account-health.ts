@@ -15,6 +15,7 @@ import {
   BankRaw,
   buildFeedIdMap,
   findOracleKey,
+  HealthCacheRaw,
   MarginfiAccount,
   MarginfiAccountRaw,
   MarginfiAccountType,
@@ -37,7 +38,7 @@ async function main() {
   //     })
   //     .parseSync();
 
-  const accountPubkey = new PublicKey("2GMbwepeyW5xzgm3cQLivdPWLydrFevLy2iBbZab3pd6");
+  const accountPubkey = new PublicKey("7PNqUqfpdks8zLHCzpynNbiz6TTPKVqqBYAL83dJbX2w");
   const program = getMarginfiProgram("staging");
 
   const accountRaw: MarginfiAccountRaw = await program.account.marginfiAccount.fetch(accountPubkey);
@@ -59,7 +60,7 @@ async function main() {
 
   // Fetch bank metadata
 
-  const requestHeapIx = ComputeBudgetProgram.requestHeapFrame({ bytes: 256 * 1024 });
+  // const requestHeapIx = ComputeBudgetProgram.requestHeapFrame({ bytes: 256 * 1024 });
 
   const ixs = await program.methods
     .lendingAccountPulseHealth()
@@ -86,7 +87,7 @@ async function main() {
 
   const tx = new VersionedTransaction(
     new TransactionMessage({
-      instructions: [requestHeapIx, ixs],
+      instructions: [ixs],
       payerKey: accountRaw.authority,
       recentBlockhash: (await program.provider.connection.getLatestBlockhash()).blockhash,
     }).compileToV0Message([])
@@ -102,13 +103,21 @@ async function main() {
     program.idl
   );
 
-  console.log({ marginfiAccountPost: marginfiAccountPost.authority });
+  console.log({ marginfiAccountPost: marginfiAccountPost });
 
   const accPre: MarginfiAccountRaw = await program.account.marginfiAccount.fetch(accountPubkey);
-  const cachePre = accPre.healthCache;
+  const cachePre: HealthCacheRaw = accPre.healthCache;
 
   const assetValuePre = wrappedI80F48toBigNumber(cachePre.assetValue).toNumber();
   const assetValuePost = wrappedI80F48toBigNumber(marginfiAccountPost.healthCache.assetValue).toNumber();
+
+  const assetValueMaintPre = wrappedI80F48toBigNumber(cachePre.assetValueMaint).toNumber();
+  const assetValueMaintPost = wrappedI80F48toBigNumber(marginfiAccountPost.healthCache.assetValueMaint).toNumber();
+
+  const liabilityValueMaintPre = wrappedI80F48toBigNumber(cachePre.liabilityValueMaint).toNumber();
+  const liabilityValueMaintPost = wrappedI80F48toBigNumber(
+    marginfiAccountPost.healthCache.liabilityValueMaint
+  ).toNumber();
 
   const liabilityValuePre = wrappedI80F48toBigNumber(cachePre.liabilityValue).toNumber();
   const liabilityValuePost = wrappedI80F48toBigNumber(marginfiAccountPost.healthCache.liabilityValue).toNumber();
@@ -128,7 +137,7 @@ async function main() {
   console.groupCollapsed("%cPost State", "font-weight: bold");
   console.log(`AssetValue: ${assetValuePost}`);
   console.log(`LiabilityValue: ${liabilityValuePost}`);
-  console.log(`Health: ${(assetValuePost - liabilityValuePost) / assetValuePost}`);
+  console.log(`Health: ${(assetValueMaintPost - liabilityValueMaintPost) / assetValueMaintPost}`);
   console.log(`Timestamp: ${marginfiAccountPost.healthCache.timestamp}`);
   console.groupEnd();
 }
