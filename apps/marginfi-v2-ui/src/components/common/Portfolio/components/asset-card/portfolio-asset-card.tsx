@@ -136,8 +136,8 @@ export const PortfolioAssetCard = ({
                         <p className="text-center">
                           {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
                           <span className="text-muted-foreground text-xs">
-                            +(
-                            {percentFormatterMod(originalAssetWeight - assetWeight, {
+                            (+
+                            {percentFormatterMod(assetWeight - originalAssetWeight, {
                               minFractionDigits: 0,
                               maxFractionDigits: 2,
                             })}
@@ -219,8 +219,8 @@ export const PortfolioAssetCard = ({
                               <p>
                                 {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
                                 <span className="text-muted-foreground text-xs">
-                                  +(
-                                  {percentFormatterMod(originalAssetWeight - assetWeight, {
+                                  (+
+                                  {percentFormatterMod(assetWeight - originalAssetWeight, {
                                     minFractionDigits: 0,
                                     maxFractionDigits: 2,
                                   })}
