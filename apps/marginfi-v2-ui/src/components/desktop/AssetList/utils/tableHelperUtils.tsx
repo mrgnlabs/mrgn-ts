@@ -79,13 +79,7 @@ export const makeData = (
       "validator-rate": bank.meta.stakePool?.validatorRewards || "",
       price: getAssetPriceData(bank),
       rate: getRateData(bank, isInLendingMode),
-      weight: getAssetWeightData(
-        bank,
-        isInLendingMode,
-        bank.info.state.originalWeights.assetWeightInit,
-        collateralBanks,
-        liabilityBanks
-      ),
+      weight: getAssetWeightData(bank, isInLendingMode, undefined, collateralBanks, liabilityBanks),
       deposits: getDepositsData(bank, isInLendingMode),
       bankCap: getBankCapData(bank, isInLendingMode),
       utilization: getUtilizationData(bank),
