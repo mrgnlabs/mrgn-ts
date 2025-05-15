@@ -3,8 +3,9 @@ import React from "react";
 import { IconBolt, IconFilter, IconSearch, IconX } from "@tabler/icons-react";
 
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useUiStore } from "~/store";
+import { useUiStore, useMrgnlendStore } from "~/store";
 import { TokenFilters } from "~/store/uiStore";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -34,6 +35,7 @@ const AssetListNav = () => {
     state.tokenFilter,
     state.setTokenFilter,
   ]);
+  const [userActiveEmodes] = useMrgnlendStore((state) => [state.userActiveEmodes]);
   const [isSearchExpanded, setIsSearchExpanded] = React.useState(assetListSearch.length > 0);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -47,6 +49,8 @@ const AssetListNav = () => {
       disabled={poolFilter === PoolTypes.NATIVE_STAKE}
     />
   );
+
+  console.log(userActiveEmodes);
 
   return (
     <div className="relative">
@@ -72,7 +76,12 @@ const AssetListNav = () => {
           <ToggleGroupItem value="e_mode" aria-label="Toggle e-mode" className="relative gap-1 items-center">
             <IconBolt size={16} className="text-purple-300" />
             <span className="ml-0.5">e-mode</span>
-            <span className={cn("bg-gray-400 rounded-full h-2 w-2 animate-pulse ml-2", true && "bg-green-400/75")} />
+            <span
+              className={cn(
+                "bg-gray-400 rounded-full h-2 w-2 animate-pulse ml-2",
+                userActiveEmodes.length > 0 && "bg-green-400/75"
+              )}
+            />
           </ToggleGroupItem>
         </ToggleGroup>
         <div className="flex items-center gap-3 ml-10">

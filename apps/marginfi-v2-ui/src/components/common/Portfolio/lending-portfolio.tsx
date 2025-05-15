@@ -444,39 +444,41 @@ export const LendingPortfolio = () => {
             <LineConnectionSvg />
           </div>
           <div className="flex items-center gap-3 justify-between">
-            <div className="py-2 flex items-center gap-3">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <IconInfoCircle size={14} /> Active e-mode groups
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      For more information on e-mode, and available e-mode pairings, visit the{" "}
-                      <Link
-                        href="https://docs.marginfi.com/e-mode"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="underline"
-                      >
-                        marginfi docs
-                      </Link>
-                      .
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <div className="flex items-center gap-3">
-                {userActiveEmodes.map((pair) => (
-                  <Badge variant="emode" key={pair.collateralBankTag}>
-                    <IconBolt size={16} /> {EmodeTag[pair.collateralBankTag]}
-                  </Badge>
-                ))}
-                <EmodeViewAll />
+            {userActiveEmodes.length > 0 && (
+              <div className="py-2 flex items-center gap-3">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <IconInfoCircle size={14} /> Active e-mode groups
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        For more information on e-mode, and available e-mode pairings, visit the{" "}
+                        <Link
+                          href="https://docs.marginfi.com/e-mode"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline"
+                        >
+                          marginfi docs
+                        </Link>
+                        .
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <div className="flex items-center gap-3">
+                  {userActiveEmodes.map((pair) => (
+                    <Badge variant="emode" key={pair.collateralBankTag}>
+                      <IconBolt size={16} /> {EmodeTag[pair.collateralBankTag]}
+                    </Badge>
+                  ))}
+                  <EmodeViewAll />
+                </div>
               </div>
-            </div>
+            )}
             {userActiveEmodes.length > 0 && (
               <div className="flex items-center gap-2">
                 <Label htmlFor="pairings" className="text-sm text-muted-foreground flex items-center gap-1">
