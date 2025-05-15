@@ -64,9 +64,14 @@ const defaultColorPalette: LineColor[] = [
  * A hook that creates animated connecting lines between pairs of elements
  * @param refPairs Array of ref pairs to connect with lines
  * @param options Customization options for the lines
+ * @param highlightedIndex Index of the highlighted line
  * @returns JSX element with SVG lines
  */
-export function useEmodeLineConnections(refPairs: RefPair[], options: LineConnectionOptions = {}) {
+export function useEmodeLineConnections(
+  refPairs: RefPair[],
+  options: LineConnectionOptions = {},
+  highlightedIndex?: number
+) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [lineCoordinates, setLineCoordinates] = useState<LineCoordinates[]>([]);
 
@@ -278,26 +283,34 @@ export function useEmodeLineConnections(refPairs: RefPair[], options: LineConnec
     const { lineSpacing = defaultOptions.lineSpacing } = mergedOptions;
     const totalConnections = lineCoordinates.length;
     const numCurvedConnections = lineCoordinates.filter((l) => l.pathType !== "straight").length;
+    // Expanded color palette for better readability
+    const colorPalette = mergedOptions.colors || [
+      { base: "#A259EC", pulse: "#B388FF" }, // purple
+      { base: "#6C63FF", pulse: "#A5B4FC" }, // indigo
+      { base: "#43E6FC", pulse: "#38BDF8" }, // cyan
+      { base: "#F472B6", pulse: "#F9A8D4" }, // pink
+      { base: "#FBBF24", pulse: "#FDE68A" }, // yellow
+      { base: "#34D399", pulse: "#6EE7B7" }, // green
+    ];
 
     return (
       <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-10" style={{ overflow: "visible" }}>
         <defs>
-          {/* Create a filter for each color in the palette */}
-          {(mergedOptions.colors || defaultColorPalette).map((color, i) => (
+          {colorPalette.map((color, i) => (
             <filter key={i} id={`glow-${i}`} x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur stdDeviation="2" result="blur" />
               <feComposite in="SourceGraphic" in2="blur" operator="over" />
             </filter>
           ))}
         </defs>
-
-        {lineCoordinates.map((coords) => {
+        {lineCoordinates.map((coords, idx) => {
           // Get color for this line
-          const lineColor = getLineColor(coords.index, mergedOptions);
-
+          const lineColor = colorPalette[idx % colorPalette.length];
+          const isHighlighted = highlightedIndex === idx;
+          const fadedOpacity = highlightedIndex == null ? 1 : isHighlighted ? 1 : 0.12;
+          const pulseOpacity = highlightedIndex == null ? 1 : isHighlighted ? 1 : 0.18;
           return (
-            <g key={coords.index}>
-              {/* Base line */}
+            <g key={coords.index} style={{ zIndex: isHighlighted ? 2 : 1 }}>
               <path
                 d={getPathString(
                   coords,
@@ -307,15 +320,18 @@ export function useEmodeLineConnections(refPairs: RefPair[], options: LineConnec
                   numCurvedConnections
                 )}
                 stroke={lineColor.base}
-                strokeWidth={mergedOptions.strokeWidth}
+                strokeWidth={isHighlighted ? (mergedOptions.strokeWidth || 2) * 1.8 : mergedOptions.strokeWidth}
                 fill="none"
+                opacity={fadedOpacity}
+                style={{ transition: "opacity 0.5s ease, stroke-width 0.3s" }}
               />
-
-              {/* Animated pulse - using circles for all paths */}
+              {/* Animated pulse - always show, but faded if not highlighted */}
               <circle
                 r="4"
                 fill={lineColor.pulse}
-                filter={`url(#glow-${coords.index % (mergedOptions.colors || defaultColorPalette).length})`}
+                filter={`url(#glow-${coords.index % colorPalette.length})`}
+                opacity={pulseOpacity}
+                style={{ transition: "opacity 0.5s ease" }}
               >
                 <animateMotion
                   path={getPathString(
@@ -335,7 +351,7 @@ export function useEmodeLineConnections(refPairs: RefPair[], options: LineConnec
         })}
       </svg>
     );
-  }, [lineCoordinates, getPathString, getLineColor, options]);
+  }, [lineCoordinates, getPathString, options, highlightedIndex]);
 
   // Recalculate when refPairs change
   useEffect(() => {

@@ -79,6 +79,9 @@ export const LendingPortfolio = () => {
   const [filterEmode, setFilterEmode] = React.useState(false);
   const [openAccordions, setOpenAccordions] = React.useState<Record<string, boolean>>({});
 
+  // Highlighted emode line index for hover
+  const [hoveredPairIndex, setHoveredPairIndex] = React.useState<number | null>(null);
+
   // Rewards
   const [rewardsState, setRewardsState] = React.useState<RewardsType>(initialRewardsState);
   const [rewardsDialogOpen, setRewardsDialogOpen] = React.useState(false);
@@ -217,10 +220,12 @@ export const LendingPortfolio = () => {
   const borrowingRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
 
   // Build connection pairs: only connect assets in the same e-mode group
-  const refPairs = React.useMemo(() => {
-    if (!selectedAccount) return [];
+  // Also build a mapping from asset address to pair indices
+  const { refPairs, assetToPairIndices } = React.useMemo(() => {
+    if (!selectedAccount) return { refPairs: [], assetToPairIndices: {} };
     const pairs: [{ current: HTMLDivElement | null }, { current: HTMLDivElement | null }][] = [];
-
+    const assetToPairIndices: Record<string, number[]> = {};
+    let pairIdx = 0;
     userActiveEmodes.forEach((emodePair) => {
       lendingBanks
         .filter((bank) => bank.info.rawBank.emode.emodeTag === emodePair.collateralBankTag)
@@ -229,22 +234,33 @@ export const LendingPortfolio = () => {
           const borrowingRef = borrowingRefs.current[emodePair.liabilityBank.toBase58()];
           if (lendingRef && borrowingRef) {
             pairs.push([{ current: lendingRef }, { current: borrowingRef }]);
+            // Map both lending and borrowing asset addresses to this pair index
+            const lendAddr = lendingBank.address.toBase58();
+            const borrowAddr = emodePair.liabilityBank.toBase58();
+            if (!assetToPairIndices[lendAddr]) assetToPairIndices[lendAddr] = [];
+            if (!assetToPairIndices[borrowAddr]) assetToPairIndices[borrowAddr] = [];
+            assetToPairIndices[lendAddr].push(pairIdx);
+            assetToPairIndices[borrowAddr].push(pairIdx);
+            pairIdx++;
           }
         });
     });
-
-    return pairs;
+    return { refPairs: pairs, assetToPairIndices };
   }, [userActiveEmodes, selectedAccount, lendingBanks]);
 
   // Use the hook
-  const { containerRef, LineConnectionSvg } = useEmodeLineConnections(refPairs, {
-    color: "rgba(147, 51, 234, 0.3)",
-    pulseColor: "rgba(147, 51, 234, 0.8)",
-    pulseSpeed: 3,
-    cornerRadius: 10,
-    lineSpacing: 40,
-    useUniqueColors: false,
-  });
+  const { containerRef, LineConnectionSvg } = useEmodeLineConnections(
+    refPairs,
+    {
+      color: "rgba(147, 51, 234, 0.3)",
+      pulseColor: "rgba(147, 51, 234, 0.8)",
+      pulseSpeed: 3,
+      cornerRadius: 10,
+      lineSpacing: 40,
+      useUniqueColors: false,
+    },
+    hoveredPairIndex ?? undefined
+  );
 
   React.useEffect(() => {
     if (rewardsToastOpen || rewardsState.state !== "REWARDS_FETCHED" || rewardsState.totalRewardAmount === 0) return;
@@ -460,6 +476,7 @@ export const LendingPortfolio = () => {
                       const eModeActive = userActiveEmodes.some(
                         (pair) => pair.collateralBankTag === bank.info.rawBank.emode.emodeTag
                       );
+                      const pairIndices = assetToPairIndices[bank.address.toBase58()] || [];
                       return (
                         <div
                           key={bank.meta.tokenSymbol}
@@ -471,6 +488,12 @@ export const LendingPortfolio = () => {
                             filterEmode && "cursor-pointer",
                             filterEmode && !eModeActive && "opacity-25"
                           )}
+                          onMouseEnter={() => {
+                            if (pairIndices.length > 0) setHoveredPairIndex(pairIndices[0]);
+                          }}
+                          onMouseLeave={() => {
+                            setHoveredPairIndex(null);
+                          }}
                         >
                           <PortfolioAssetCard
                             bank={bank}
@@ -527,36 +550,45 @@ export const LendingPortfolio = () => {
               {isStoreInitialized ? (
                 borrowingBanks.length > 0 ? (
                   <div className="flex flex-col gap-4">
-                    {borrowingBanks.map((bank) => (
-                      <div
-                        key={bank.address.toBase58()}
-                        ref={(el) => {
-                          borrowingRefs.current[bank.address.toBase58()] = el;
-                        }}
-                      >
-                        <PortfolioAssetCard
-                          bank={bank}
-                          isInLendingMode={false}
-                          isBorrower={borrowingBanks.length > 0}
-                          accountLabels={accountLabels}
-                          variant={filterEmode ? "simple" : "accordion"}
-                          {...(!filterEmode && {
-                            disabled: filterEmode,
-                            open: !!openAccordions[bank.meta.tokenSymbol],
-                            onOpenChange: (isOpen: boolean) =>
-                              setOpenAccordions((prev) => ({
-                                ...prev,
-                                [bank.meta.tokenSymbol]: isOpen,
-                              })),
-                          })}
-                          {...(filterEmode && {
-                            onCardClick: () => {
-                              if (filterEmode) setFilterEmode(false);
-                            },
-                          })}
-                        />
-                      </div>
-                    ))}
+                    {borrowingBanks.map((bank) => {
+                      const pairIndices = assetToPairIndices[bank.address.toBase58()] || [];
+                      return (
+                        <div
+                          key={bank.address.toBase58()}
+                          ref={(el) => {
+                            borrowingRefs.current[bank.address.toBase58()] = el;
+                          }}
+                          onMouseEnter={() => {
+                            if (pairIndices.length > 0) setHoveredPairIndex(pairIndices[0]);
+                          }}
+                          onMouseLeave={() => {
+                            setHoveredPairIndex(null);
+                          }}
+                        >
+                          <PortfolioAssetCard
+                            bank={bank}
+                            isInLendingMode={false}
+                            isBorrower={borrowingBanks.length > 0}
+                            accountLabels={accountLabels}
+                            variant={filterEmode ? "simple" : "accordion"}
+                            {...(!filterEmode && {
+                              disabled: filterEmode,
+                              open: !!openAccordions[bank.meta.tokenSymbol],
+                              onOpenChange: (isOpen: boolean) =>
+                                setOpenAccordions((prev) => ({
+                                  ...prev,
+                                  [bank.meta.tokenSymbol]: isOpen,
+                                })),
+                            })}
+                            {...(filterEmode && {
+                              onCardClick: () => {
+                                if (filterEmode) setFilterEmode(false);
+                              },
+                            })}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-muted-foreground flex flex-wrap items-center gap-1">
