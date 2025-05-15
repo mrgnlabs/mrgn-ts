@@ -27,9 +27,15 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: Emode
         </div>
         <div className="flex items-center gap-3">
           {userActiveEmodes.map((pair) => (
-            <Badge variant="emode" key={pair.collateralBankTag}>
-              <IconBolt size={16} /> {EmodeTag[pair.collateralBankTag]}
-            </Badge>
+            <EmodeViewAll
+              key={pair.collateralBankTag}
+              trigger={
+                <Badge variant="emode">
+                  <IconBolt size={16} /> {EmodeTag[pair.collateralBankTag]}
+                </Badge>
+              }
+              initialEmodeTag={pair.collateralBankTag}
+            />
           ))}
           <EmodeViewAll />
         </div>

@@ -63,7 +63,7 @@ const EmodeViewAll = ({ trigger, initialEmodeTag, initialBank }: EmodeViewAllPro
       <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
       <DialogContent className="overflow-visible md:p-6" closeClassName="-top-8 -right-8 z-50">
         <DialogHeader>
-          <DialogTitle className="text-lg font-normal">E-mode Groups</DialogTitle>
+          <DialogTitle className="text-lg font-normal">e-mode Groups</DialogTitle>
           <DialogDescription className="text-sm">
             View all e-mode groups and their associated banks.
             <br />
@@ -96,15 +96,17 @@ const EmodeViewAll = ({ trigger, initialEmodeTag, initialBank }: EmodeViewAllPro
               <SelectContent>
                 <SelectGroup>
                   {Object.keys(groupedEmodeBanks)
-                    .filter((emodeTag) => emodeTag !== "0")
-                    .map((emodeTag) => (
-                      <SelectItem key={emodeTag} value={emodeTag.toString()}>
-                        <div className="flex items-center gap-1.5 lowercase">
-                          <IconBolt size={16} className="text-purple-300" />
-                          {EmodeTag[emodeTag as keyof typeof EmodeTag]}
-                        </div>
-                      </SelectItem>
-                    ))}
+                    .filter((emodeTag) => emodeTag !== EmodeTag[EmodeTag.UNSET])
+                    .map((emodeTag) => {
+                      return (
+                        <SelectItem key={emodeTag} value={emodeTag.toString()}>
+                          <div className="flex items-center gap-1.5 lowercase">
+                            <IconBolt size={16} className="text-purple-300" />
+                            {EmodeTag[emodeTag as keyof typeof EmodeTag]}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
                 </SelectGroup>
               </SelectContent>
             </Select>

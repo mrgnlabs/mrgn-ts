@@ -11,6 +11,7 @@ type EmodeHeaderProps = {
 };
 
 const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
+  console.log("emodeGroups", emodeGroups);
   return (
     <div className="flex items-center justify-between space-y-2">
       <div className="space-y-2">
@@ -38,17 +39,19 @@ const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
             <EmodeViewAll />
           </div>
           <div className="flex items-center gap-2.5">
-            {emodeGroups.map((group) => (
-              <EmodeViewAll
-                key={group}
-                trigger={
-                  <Badge variant="emode">
-                    <IconBolt size={16} /> {group}
-                  </Badge>
-                }
-                initialEmodeTag={EmodeTag[group as keyof typeof EmodeTag]}
-              />
-            ))}
+            {emodeGroups
+              .filter((group) => group !== EmodeTag[EmodeTag.UNSET])
+              .map((group) => (
+                <EmodeViewAll
+                  key={group}
+                  trigger={
+                    <Badge variant="emode">
+                      <IconBolt size={16} /> {group}
+                    </Badge>
+                  }
+                  initialEmodeTag={EmodeTag[group as keyof typeof EmodeTag]}
+                />
+              ))}
           </div>
         </div>
       )}
