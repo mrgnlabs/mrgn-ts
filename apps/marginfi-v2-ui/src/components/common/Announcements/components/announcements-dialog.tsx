@@ -15,10 +15,10 @@ export const AnnouncementsDialog = () => {
   }, []);
 
   React.useEffect(() => {
-    const announcementPopup = localStorage.getItem(`mrgnAnnouncementPopup-${announcementLabel}`);
-    if (!announcementPopup) {
-      setIsOpen(true);
-    }
+    // const announcementPopup = localStorage.getItem(`mrgnAnnouncementPopup-${announcementLabel}`);
+    // if (!announcementPopup) {
+    //   setIsOpen(true);
+    // }
   }, []);
 
   return (
