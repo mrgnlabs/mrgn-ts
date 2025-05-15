@@ -51,15 +51,6 @@ const defaultOptions: LineConnectionOptions = {
   useUniqueColors: true, // Default to using unique colors
 };
 
-// Default color palette for lines
-const defaultColorPalette: LineColor[] = [
-  { base: "rgba(147, 51, 234, 0.3)", pulse: "rgba(147, 51, 234, 0.8)" }, // Purple
-  { base: "rgba(59, 130, 246, 0.3)", pulse: "rgba(59, 130, 246, 0.8)" }, // Blue
-  { base: "rgba(16, 185, 129, 0.3)", pulse: "rgba(16, 185, 129, 0.8)" }, // Green
-  { base: "rgba(245, 158, 11, 0.3)", pulse: "rgba(245, 158, 11, 0.8)" }, // Amber
-  { base: "rgba(239, 68, 68, 0.3)", pulse: "rgba(239, 68, 68, 0.8)" }, // Red
-];
-
 /**
  * A hook that creates animated connecting lines between pairs of elements
  * @param refPairs Array of ref pairs to connect with lines
@@ -270,7 +261,13 @@ export function useEmodeLineConnections(
     }
 
     // Use provided colors array if available
-    const colorPalette = mergedOptions.colors || defaultColorPalette;
+    const colorPalette = mergedOptions.colors || [
+      { base: "hsl(273.6 65.6% 32%)", pulse: "hsl(273.6 65.6% 42%)" },
+      { base: "hsl(263.5 67.4% 34.9%)", pulse: "hsl(263.5 67.4% 44.9%)" },
+      { base: "hsl(242.2 47.4% 34.3%)", pulse: "hsl(242.2 47.4% 44.3%)" },
+      { base: "hsl(224.4 64.3% 32.9%)", pulse: "hsl(224.4 64.3% 42.9%)" },
+      { base: "hsl(202 80.3% 23.9%)", pulse: "hsl(202 80.3% 23.9%)" },
+    ];
 
     // Get color based on index, wrapping around if needed
     const colorIndex = index % colorPalette.length;
@@ -285,12 +282,11 @@ export function useEmodeLineConnections(
     const numCurvedConnections = lineCoordinates.filter((l) => l.pathType !== "straight").length;
     // Expanded color palette for better readability
     const colorPalette = mergedOptions.colors || [
-      { base: "#A259EC", pulse: "#B388FF" }, // purple
-      { base: "#6C63FF", pulse: "#A5B4FC" }, // indigo
-      { base: "#43E6FC", pulse: "#38BDF8" }, // cyan
-      { base: "#F472B6", pulse: "#F9A8D4" }, // pink
-      { base: "#FBBF24", pulse: "#FDE68A" }, // yellow
-      { base: "#34D399", pulse: "#6EE7B7" }, // green
+      { base: "hsl(273.6 65.6% 32%)", pulse: "hsl(273.6 65.6% 42%)" },
+      { base: "hsl(263.5 67.4% 34.9%)", pulse: "hsl(263.5 67.4% 44.9%)" },
+      { base: "hsl(242.2 47.4% 34.3%)", pulse: "hsl(242.2 47.4% 44.3%)" },
+      { base: "hsl(224.4 64.3% 32.9%)", pulse: "hsl(224.4 64.3% 42.9%)" },
+      { base: "hsl(202 80.3% 23.9%)", pulse: "hsl(202 80.3% 23.9%)" },
     ];
 
     return (
