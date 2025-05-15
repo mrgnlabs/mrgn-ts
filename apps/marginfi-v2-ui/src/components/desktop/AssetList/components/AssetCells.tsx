@@ -33,6 +33,7 @@ import { PublicKey } from "@solana/web3.js";
 import { Badge } from "~/components/ui/badge";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Table } from "~/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 
 export const getAssetCell = (asset: AssetData) => {
   return (
@@ -251,126 +252,127 @@ export const getAssetWeightCell = ({
   liabilityBanks,
 }: AssetWeightData) => {
   return (
-    <div className="flex justify-end">
+    <div className="flex justify-end items-center">
       {(emodeActive && originalAssetWeight) || collateralBanks || liabilityBanks ? (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger className={cn("flex items-center gap-1", emodeActive && "text-purple-300")}>
-              <IconBolt size={12} className={cn(emodeActive && "text-purple-300")} />
-              {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
-            </TooltipTrigger>
-            <TooltipContent>
-              {isInLendingMode && emodeActive && originalAssetWeight ? (
-                <div className="flex flex-col gap-2">
-                  <div className="flex gap-1 items-center">
-                    <IconBolt size={12} className="text-purple-300 translate-y-px" /> <p>e-mode weights active</p>
-                  </div>
-                  <p className="text-center">
-                    {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
-                    <span className="text-muted-foreground text-xs">
-                      (+
-                      {percentFormatterMod(assetWeight - originalAssetWeight, {
-                        minFractionDigits: 0,
-                        maxFractionDigits: 2,
-                      })}
-                      )
-                    </span>
-                  </p>
+        <Popover>
+          <PopoverTrigger className={cn("flex items-center gap-1", emodeActive && "text-purple-300")}>
+            <IconBolt size={12} className={cn(emodeActive && "text-purple-300")} />
+            {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
+            <IconExternalLink size={12} className={cn(emodeActive && "text-purple-300")} />
+          </PopoverTrigger>
+          <PopoverContent className="w-auto text-xs">
+            {isInLendingMode && emodeActive && originalAssetWeight ? (
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-1 items-center">
+                  <IconBolt size={12} className="text-purple-300 translate-y-px" /> <p>e-mode weights active</p>
                 </div>
-              ) : isInLendingMode && liabilityBanks ? (
-                <div className="flex flex-col gap-4">
-                  <p className="w-4/5">e-mode pairings available when borrowing from the following banks:</p>
-                  <Table>
-                    <TableHeader>
+                <p className="text-center">
+                  {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
+                  <span className="text-muted-foreground text-xs">
+                    (+
+                    {percentFormatterMod(assetWeight - originalAssetWeight, {
+                      minFractionDigits: 0,
+                      maxFractionDigits: 2,
+                    })}
+                    )
+                  </span>
+                </p>
+              </div>
+            ) : isInLendingMode && liabilityBanks ? (
+              <div className="flex flex-col gap-4">
+                <p className="w-4/5">e-mode pairings available when borrowing from the following banks:</p>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="text-xs">
+                      <TableHead className="h-6">Bank</TableHead>
+                      <TableHead className="h-6">Init</TableHead>
+                      <TableHead className="h-6">Maint</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {liabilityBanks?.map((liabilityBankItem) => (
                       <TableRow className="text-xs">
-                        <TableHead className="h-6">Bank</TableHead>
-                        <TableHead className="h-6">Init</TableHead>
-                        <TableHead className="h-6">Maint</TableHead>
+                        <TableCell className="py-1">
+                          <div className="flex items-center gap-1.5">
+                            <Image
+                              src={liabilityBankItem.liabilityBank.meta.tokenLogoUri}
+                              width={22}
+                              height={22}
+                              alt={liabilityBankItem.liabilityBank.meta.tokenSymbol}
+                              className="rounded-full"
+                            />
+                            {liabilityBankItem.liabilityBank.meta.tokenSymbol}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-1">
+                          {percentFormatterMod(liabilityBankItem.emodePair.assetWeightInt.toNumber(), {
+                            minFractionDigits: 0,
+                            maxFractionDigits: 2,
+                          })}
+                        </TableCell>
+                        <TableCell className="py-1">
+                          {percentFormatterMod(liabilityBankItem.emodePair.assetWeightMaint.toNumber(), {
+                            minFractionDigits: 0,
+                            maxFractionDigits: 2,
+                          })}
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {liabilityBanks?.map((liabilityBankItem) => (
-                        <TableRow className="text-xs">
-                          <TableCell className="py-1">
-                            <div className="flex items-center gap-1.5">
-                              <Image
-                                src={liabilityBankItem.liabilityBank.meta.tokenLogoUri}
-                                width={22}
-                                height={22}
-                                alt={liabilityBankItem.liabilityBank.meta.tokenSymbol}
-                                className="rounded-full"
-                              />
-                              {liabilityBankItem.liabilityBank.meta.tokenSymbol}
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-1">
-                            {percentFormatterMod(liabilityBankItem.emodePair.assetWeightInt.toNumber(), {
-                              minFractionDigits: 0,
-                              maxFractionDigits: 2,
-                            })}
-                          </TableCell>
-                          <TableCell className="py-1">
-                            {percentFormatterMod(liabilityBankItem.emodePair.assetWeightMaint.toNumber(), {
-                              minFractionDigits: 0,
-                              maxFractionDigits: 2,
-                            })}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : !isInLendingMode && collateralBanks ? (
-                <div className="flex flex-col gap-4">
-                  <p className="w-4/5">e-mode pairings available when lending to the following banks:</p>
-                  <Table>
-                    <TableHeader>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : !isInLendingMode && collateralBanks ? (
+              <div className="flex flex-col gap-4">
+                <p className="w-4/5">e-mode pairings available when lending to the following banks:</p>
+                <Table>
+                  <TableHeader>
+                    <TableRow className="text-xs">
+                      <TableHead className="h-6">Bank</TableHead>
+                      <TableHead className="h-6">Init</TableHead>
+                      <TableHead className="h-6">Maint</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {collateralBanks?.map((collateralBankItem) => (
                       <TableRow className="text-xs">
-                        <TableHead className="h-6">Bank</TableHead>
-                        <TableHead className="h-6">Init</TableHead>
-                        <TableHead className="h-6">Maint</TableHead>
+                        <TableCell className="py-1">
+                          <div className="flex items-center gap-1.5">
+                            <Image
+                              src={collateralBankItem.collateralBank.meta.tokenLogoUri}
+                              width={20}
+                              height={20}
+                              alt={collateralBankItem.collateralBank.meta.tokenSymbol}
+                              className="rounded-full"
+                            />
+                            {collateralBankItem.collateralBank.meta.tokenSymbol}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-1">
+                          {percentFormatterMod(collateralBankItem.emodePair.assetWeightInt.toNumber(), {
+                            minFractionDigits: 0,
+                            maxFractionDigits: 2,
+                          })}
+                        </TableCell>
+                        <TableCell className="py-1">
+                          {percentFormatterMod(collateralBankItem.emodePair.assetWeightMaint.toNumber(), {
+                            minFractionDigits: 0,
+                            maxFractionDigits: 2,
+                          })}
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {collateralBanks?.map((collateralBankItem) => (
-                        <TableRow className="text-xs">
-                          <TableCell className="py-1">
-                            <div className="flex items-center gap-1.5">
-                              <Image
-                                src={collateralBankItem.collateralBank.meta.tokenLogoUri}
-                                width={20}
-                                height={20}
-                                alt={collateralBankItem.collateralBank.meta.tokenSymbol}
-                                className="rounded-full"
-                              />
-                              {collateralBankItem.collateralBank.meta.tokenSymbol}
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-1">
-                            {percentFormatterMod(collateralBankItem.emodePair.assetWeightInt.toNumber(), {
-                              minFractionDigits: 0,
-                              maxFractionDigits: 2,
-                            })}
-                          </TableCell>
-                          <TableCell className="py-1">
-                            {percentFormatterMod(collateralBankItem.emodePair.assetWeightMaint.toNumber(), {
-                              minFractionDigits: 0,
-                              maxFractionDigits: 2,
-                            })}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <>{(assetWeight * 100).toFixed(0) + "%"}</>
-              )}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <>{(assetWeight * 100).toFixed(0) + "%"}</>
+            )}
+          </PopoverContent>
+        </Popover>
       ) : (
-        <>{(assetWeight * 100).toFixed(0) + "%"}</>
+        <div className="flex justify-end items-center">
+          {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}
+        </div>
       )}
     </div>
   );
