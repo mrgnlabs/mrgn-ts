@@ -27,14 +27,11 @@ import { RewardsDialog } from "./components/rewards";
 
 import { PortfolioAssetCard, PortfolioAssetCardSkeleton, PortfolioUserStats } from "./components";
 import { RewardsType } from "./types";
-import { useRewardSimulation, useLineConnection } from "./hooks";
-import { EmodeViewAll } from "~/components/common/emode/components";
+import { useRewardSimulation } from "./hooks";
+import { EmodePortfolio } from "~/components/common/emode/components";
+import { useEmodeLineConnections } from "~/components/common/emode/hooks";
 import { IconLoader } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
-import { Switch } from "~/components/ui/switch";
-import { Label } from "~/components/ui/label";
-import { Badge } from "~/components/ui/badge";
-import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 
 const initialRewardsState: RewardsType = {
   state: "NOT_FETCHED",
@@ -240,7 +237,7 @@ export const LendingPortfolio = () => {
   }, [userActiveEmodes, selectedAccount, lendingBanks]);
 
   // Use the hook
-  const { containerRef, LineConnectionSvg } = useLineConnection(refPairs, {
+  const { containerRef, LineConnectionSvg } = useEmodeLineConnections(refPairs, {
     color: "rgba(147, 51, 234, 0.3)",
     pulseColor: "rgba(147, 51, 234, 0.8)",
     pulseSpeed: 3,
@@ -443,55 +440,13 @@ export const LendingPortfolio = () => {
           >
             <LineConnectionSvg />
           </div>
-          <div className="flex items-center gap-3 justify-between">
-            {userActiveEmodes.length > 0 && (
-              <div className="py-2 flex items-center gap-3">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <IconInfoCircle size={14} /> Active e-mode groups
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>
-                        For more information on e-mode, and available e-mode pairings, visit the{" "}
-                        <Link
-                          href="https://docs.marginfi.com/e-mode"
-                          target="_blank"
-                          rel="noreferrer"
-                          className="underline"
-                        >
-                          marginfi docs
-                        </Link>
-                        .
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <div className="flex items-center gap-3">
-                  {userActiveEmodes.map((pair) => (
-                    <Badge variant="emode" key={pair.collateralBankTag}>
-                      <IconBolt size={16} /> {EmodeTag[pair.collateralBankTag]}
-                    </Badge>
-                  ))}
-                  <EmodeViewAll />
-                </div>
-              </div>
-            )}
-            {userActiveEmodes.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Label htmlFor="pairings" className="text-sm text-muted-foreground flex items-center gap-1">
-                  <IconSparkles size={14} /> Highlight e-mode
-                </Label>
-                <Switch
-                  checked={filterEmode}
-                  onCheckedChange={(checked) => setFilterEmode(checked)}
-                  className="ml-2 data-[state=unchecked]:bg-background-gray-light data-[state=checked]:bg-purple-400"
-                />
-              </div>
-            )}
-          </div>
+          {userActiveEmodes.length > 0 && (
+            <EmodePortfolio
+              userActiveEmodes={userActiveEmodes}
+              filterEmode={filterEmode}
+              setFilterEmode={setFilterEmode}
+            />
+          )}
           <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-40">
             <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
               <dl className="flex justify-between items-center gap-2 text-xl font-medium">

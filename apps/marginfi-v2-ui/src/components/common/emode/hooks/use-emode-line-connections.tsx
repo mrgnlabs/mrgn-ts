@@ -66,7 +66,7 @@ const defaultColorPalette: LineColor[] = [
  * @param options Customization options for the lines
  * @returns JSX element with SVG lines
  */
-export function useLineConnection(refPairs: RefPair[], options: LineConnectionOptions = {}) {
+export function useEmodeLineConnections(refPairs: RefPair[], options: LineConnectionOptions = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [lineCoordinates, setLineCoordinates] = useState<LineCoordinates[]>([]);
 
