@@ -34,6 +34,7 @@ import { Badge } from "~/components/ui/badge";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Table } from "~/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
+import { EmodePopover } from "~/components/common/emode/components/emode-popover";
 
 export const getAssetCell = (asset: AssetData) => {
   return (
@@ -42,9 +43,16 @@ export const getAssetCell = (asset: AssetData) => {
         <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
         <div>{asset.symbol}</div>
         {asset.hasEmode && asset.emodeTag && (
-          <Badge variant="emode">
-            <IconBolt size={14} /> {asset.emodeTag}
-          </Badge>
+          <EmodePopover
+            assetWeight={asset.assetWeight}
+            originalAssetWeight={asset.originalAssetWeight}
+            emodeActive={asset.emodeActive}
+            emodeTag={asset.emodeTag}
+            isInLendingMode={asset.isInLendingMode}
+            collateralBanks={asset.collateralBanks}
+            liabilityBanks={asset.liabilityBanks}
+            triggerType="tag"
+          />
         )}
       </div>
     </div>

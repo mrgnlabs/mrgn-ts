@@ -74,7 +74,7 @@ export const makeData = (
     const collateralBanks = collateralBanksByLiabilityBank?.[bank.address.toBase58()] || [];
     const liabilityBanks = liabilityBanksByCollateralBank?.[bank.address.toBase58()] || [];
     return {
-      asset: getAssetData(bank),
+      asset: getAssetData(bank, isInLendingMode, undefined, collateralBanks, liabilityBanks),
       validator: bank.meta.stakePool?.validatorVoteAccount || "",
       "validator-rate": bank.meta.stakePool?.validatorRewards || "",
       price: getAssetPriceData(bank),

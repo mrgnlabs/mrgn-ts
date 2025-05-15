@@ -27,6 +27,18 @@ export interface AssetData {
   stakePool?: StakePoolMetadata;
   hasEmode: boolean;
   emodeTag: string;
+  isInLendingMode?: boolean;
+  assetWeight: number;
+  originalAssetWeight: number;
+  emodeActive: boolean;
+  collateralBanks: {
+    collateralBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[];
+  liabilityBanks: {
+    liabilityBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[];
 }
 
 export interface RateData {
@@ -101,14 +113,36 @@ export interface PositionData {
   isUserPositionPoorHealth: boolean;
 }
 
-export const getAssetData = (bank: ExtendedBankInfo): AssetData => ({
-  symbol: bank.meta.tokenSymbol,
-  name: bank.meta.tokenName,
-  image: bank.meta.tokenLogoUri,
-  stakePool: bank.meta.stakePool,
-  hasEmode: bank.info.state.hasEmode,
-  emodeTag: bank.info.state.hasEmode ? EmodeTag[bank.info.rawBank.emode.emodeTag] : "",
-});
+export const getAssetData = (
+  bank: ExtendedBankInfo,
+  isInLendingMode: boolean,
+  assetWeightInitOverride?: BigNumber,
+  collateralBanks?: {
+    collateralBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[],
+  liabilityBanks?: {
+    liabilityBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[]
+): AssetData => {
+  return {
+    symbol: bank.meta.tokenSymbol,
+    name: bank.meta.tokenName,
+    image: bank.meta.tokenLogoUri,
+    stakePool: bank.meta.stakePool,
+    hasEmode: bank.info.state.hasEmode,
+    emodeTag: bank.info.state.hasEmode ? EmodeTag[bank.info.rawBank.emode.emodeTag] : "",
+    isInLendingMode,
+    assetWeight: bank.info.rawBank
+      .getAssetWeight(MarginRequirementType.Initial, bank.info.oraclePrice, false, assetWeightInitOverride)
+      .toNumber(),
+    originalAssetWeight: bank.info.state.originalWeights.assetWeightInit.toNumber(),
+    emodeActive: bank.isActive && bank.position.emodeActive,
+    collateralBanks: collateralBanks ?? [],
+    liabilityBanks: liabilityBanks ?? [],
+  };
+};
 
 export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): RateData => {
   const { lendingRate, borrowingRate, emissionsRate, emissions } = bank.info.state;
