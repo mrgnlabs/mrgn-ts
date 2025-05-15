@@ -7,7 +7,7 @@ import { AnnouncementEmode } from "./announcement-dialog-contents";
 const announcementLabel = "rlb-notice" as const;
 
 export const AnnouncementsDialog = () => {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(true);
 
   const closeDialog = React.useCallback(() => {
     // localStorage.setItem(`mrgnAnnouncementPopup-${announcementLabel}`, announcementLabel);
@@ -32,7 +32,7 @@ export const AnnouncementsDialog = () => {
         }
       }}
     >
-      <DialogContent className="md:max-w-4xl">
+      <DialogContent className="md:max-w-4xl md:p-0 bg-transparent">
         <DialogHeader className="sr-only">
           <DialogTitle>Marginfi Announcement</DialogTitle>
         </DialogHeader>
