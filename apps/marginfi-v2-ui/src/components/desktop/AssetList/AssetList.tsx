@@ -366,18 +366,33 @@ export const AssetsList = () => {
         </>
       )}
       {poolFilter === PoolTypes.E_MODE && emodePoolTableData.length > 0 && (
-        <div className="space-y-8 py-2">
-          <div className="space-y-2">
+        <div className="space-y-8 py-4">
+          <div className="flex items-center justify-between space-y-2">
             <div className="space-y-2">
               <h2 className="flex items-center gap-1.5 text-lg font-medium">
                 <IconBolt size={24} /> marginfi e-mode
               </h2>
-              <p className="text-muted-foreground">Banks with e-mode pairings get boosted weights.</p>
+              <p className="text-muted-foreground text-sm">
+                Banks with e-mode pairings get boosted weights.
+                <br className="hidden lg:block" /> Explore the groups and pairings or{" "}
+                <Link
+                  href="https://docs.marginfi.com/emode"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="border-b border-foreground/50 transition-colors hover:border-foreground hover:text-foreground"
+                >
+                  read the docs
+                </Link>{" "}
+                for more information.
+              </p>
             </div>
             {emodeGroups.length > 0 && (
-              <div className="py-2 flex items-center gap-3">
-                <p className="text-sm text-muted-foreground">E-mode groups</p>
-                <div className="flex items-center gap-3">
+              <div className="py-2 flex flex-col items-end gap-2.5">
+                <div className="text-sm text-muted-foreground flex items-center gap-2.5">
+                  <p>E-mode groups</p>
+                  <EmodeViewAll />
+                </div>
+                <div className="flex items-center gap-2.5">
                   {emodeGroups.map((group) => (
                     <EmodeViewAll
                       key={group}
@@ -389,7 +404,6 @@ export const AssetsList = () => {
                       initialEmodeTag={EmodeTag[group as keyof typeof EmodeTag]}
                     />
                   ))}
-                  <EmodeViewAll />
                 </div>
               </div>
             )}
