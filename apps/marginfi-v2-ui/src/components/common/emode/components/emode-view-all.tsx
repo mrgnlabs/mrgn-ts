@@ -3,7 +3,7 @@ import Image from "next/image";
 
 import { IconBolt, IconSearch } from "@tabler/icons-react";
 import { EmodeEntry, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { EmodePair, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatterMod } from "@mrgnlabs/mrgn-common";
 
 import { cn } from "~/theme";
@@ -24,28 +24,32 @@ import Link from "next/link";
 
 interface EmodeViewAllProps {
   trigger?: React.ReactNode;
-  initialEmodeTag?: EmodeTag;
   initialBank?: ExtendedBankInfo;
+  emodeTag?: EmodeTag;
 }
 
-const EmodeViewAll = ({ trigger, initialEmodeTag, initialBank }: EmodeViewAllProps) => {
-  const [emodePairs, groupedEmodeBanks] = useMrgnlendStore((state) => [state.emodePairs, state.groupedEmodeBanks]);
-  const [selectedEmodeGroup, setSelectedEmodeGroup] = React.useState<EmodeTag | undefined>(initialEmodeTag);
-  const [emodeBanks, setEmodeBanks] = React.useState<ExtendedBankInfo[]>([]);
+const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => {
+  const [extendedBankInfos, emodePairs, collateralBanksByLiabilityBank] = useMrgnlendStore((state) => [
+    state.extendedBankInfos,
+    state.emodePairs,
+    state.collateralBanksByLiabilityBank,
+  ]);
   const [selectedBank, setSelectedBank] = React.useState<ExtendedBankInfo | undefined>(initialBank);
-  const [emodeEntries, setEmodeEntries] = React.useState<EmodeEntry[]>([]);
 
-  React.useEffect(() => {
-    if (selectedEmodeGroup) {
-      setEmodeBanks(groupedEmodeBanks[selectedEmodeGroup as unknown as keyof typeof groupedEmodeBanks]);
-    }
-  }, [selectedEmodeGroup, groupedEmodeBanks]);
+  const emodeBanks = React.useMemo(() => {
+    return Array.from(
+      new Set(
+        emodePairs
+          .filter((pair) => (emodeTag ? pair.collateralBankTag === emodeTag : true))
+          .map((pair) => extendedBankInfos.find((bank) => bank.address.toBase58() === pair.liabilityBank.toString()))
+          .filter((bank) => bank !== undefined)
+      )
+    );
+  }, [emodePairs, extendedBankInfos, emodeTag]);
 
-  React.useEffect(() => {
-    if (selectedBank) {
-      setEmodeEntries(selectedBank.info.rawBank.emode.emodeEntries);
-    }
-  }, [selectedBank]);
+  const collateralBanks = React.useMemo(() => {
+    return collateralBanksByLiabilityBank[selectedBank?.address.toBase58() as string];
+  }, [selectedBank, collateralBanksByLiabilityBank]);
 
   const defaultTrigger = (
     <Button
@@ -61,11 +65,20 @@ const EmodeViewAll = ({ trigger, initialEmodeTag, initialBank }: EmodeViewAllPro
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
-      <DialogContent className="overflow-visible md:p-6" closeClassName="-top-8 -right-8 z-50">
+      <DialogContent className="overflow-visible md:p-6 md:py-8" closeClassName="-top-8 -right-8 z-50">
         <DialogHeader>
-          <DialogTitle className="text-lg font-normal">e-mode Groups</DialogTitle>
+          <DialogTitle className="text-2xl font-normal flex items-center gap-2">
+            Explore{" "}
+            <div className="flex items-center gap-1">
+              <IconBolt size={18} />
+              e-mode
+            </div>
+            {emodeTag && <span className="lowercase"> {EmodeTag[emodeTag]}</span>}
+            parings
+          </DialogTitle>
           <DialogDescription className="text-sm">
-            View all e-mode groups and their associated banks.
+            View e-mode {emodeTag && <span className="lowercase"> {EmodeTag[emodeTag]}</span>} group and the boosted
+            banks.
             <br />
             For more information on e-mode{" "}
             <Link
@@ -79,101 +92,75 @@ const EmodeViewAll = ({ trigger, initialEmodeTag, initialBank }: EmodeViewAllPro
             .
           </DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label className="text-muted-foreground">Group</Label>
-            <Select
-              value={selectedEmodeGroup?.toString()}
-              onValueChange={(value) => {
-                const emodeTag = value as unknown as EmodeTag;
-                setSelectedEmodeGroup(emodeTag);
-                setSelectedBank(groupedEmodeBanks[emodeTag].length > 0 ? groupedEmodeBanks[emodeTag][0] : undefined);
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select an e-mode group" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {Object.keys(groupedEmodeBanks)
-                    .filter((emodeTag) => emodeTag !== EmodeTag[EmodeTag.UNSET])
-                    .map((emodeTag) => {
-                      return (
-                        <SelectItem key={emodeTag} value={emodeTag.toString()}>
-                          <div className="flex items-center gap-1.5 lowercase">
-                            <IconBolt size={16} className="text-purple-300" />
-                            {EmodeTag[emodeTag as keyof typeof EmodeTag]}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-          <div
-            className={cn(
-              "space-y-1 w-full",
-              (!selectedEmodeGroup || emodeBanks.length === 0) && "pointer-events-none opacity-50"
-            )}
+        <div className="space-y-1 w-full flex flex-col gap-2 justify-center items-center max-w-xs mx-auto">
+          <Label className="text-muted-foreground">I would like to borrow:</Label>
+          <Select
+            value={selectedBank?.address.toBase58()}
+            onValueChange={(value) => {
+              const bank = emodeBanks.find((bank) => bank.address.toBase58() === value);
+              setSelectedBank(bank);
+            }}
           >
-            <Label className="text-muted-foreground">Bank</Label>
-            <Select
-              value={selectedBank?.address.toBase58()}
-              onValueChange={(value) => {
-                const bank = emodeBanks.find((bank) => bank.address.toBase58() === value);
-                setSelectedBank(bank);
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a bank" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {emodeBanks.map((bank) => (
-                    <SelectItem key={bank.address.toBase58()} value={bank.address.toBase58()}>
-                      <div className="flex items-center gap-2">
-                        <Image
-                          src={bank.meta.tokenLogoUri}
-                          alt={bank.meta.tokenSymbol}
-                          width={20}
-                          height={20}
-                          className="rounded-full"
-                        />
-                        {bank.meta.tokenSymbol}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+            <SelectTrigger className="w-full flex">
+              <SelectValue placeholder="Select a borrowing bank" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {emodeBanks.map((bank) => (
+                  <SelectItem key={bank.address.toBase58()} value={bank.address.toBase58()}>
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={bank.meta.tokenLogoUri}
+                        alt={bank.meta.tokenSymbol}
+                        width={20}
+                        height={20}
+                        className="rounded-full"
+                      />
+                      {bank.meta.tokenSymbol}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
-
         {selectedBank && (
           <Table className="w-full mt-1">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Group</TableHead>
-                <TableHead>Weight Init</TableHead>
-                <TableHead>Weight Maint</TableHead>
+                <TableHead className="w-1/4">Borrowing</TableHead>
+                <TableHead className="w-1/4">Tag</TableHead>
+                <TableHead className="w-1/4">Weight Init</TableHead>
+                <TableHead className="w-1/4">Weight Maint</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {emodeEntries.map((entry) => (
+              {collateralBanks?.map((collateralBank) => (
                 <TableRow
-                  key={entry.collateralBankEmodeTag}
+                  key={collateralBank.collateralBank.address.toBase58()}
                   className="odd:bg-background-gray-light/50 hover:bg-transparent hover:odd:bg-background-gray-light/50"
                 >
-                  <TableCell className="font-medium">{EmodeTag[entry.collateralBankEmodeTag]}</TableCell>
                   <TableCell>
-                    {percentFormatterMod(entry.assetWeightInit.toNumber(), {
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={collateralBank.collateralBank.meta.tokenLogoUri}
+                        alt={collateralBank.collateralBank.meta.tokenSymbol}
+                        width={20}
+                        height={20}
+                        className="rounded-full"
+                      />
+                      {collateralBank.collateralBank.meta.tokenSymbol}
+                    </div>
+                  </TableCell>
+                  <TableCell className="lowercase">{EmodeTag[collateralBank.emodePair.collateralBankTag]}</TableCell>
+                  <TableCell>
+                    {percentFormatterMod(collateralBank.emodePair.assetWeightInt.toNumber(), {
                       minFractionDigits: 0,
                       maxFractionDigits: 2,
                     })}
                   </TableCell>
                   <TableCell>
-                    {percentFormatterMod(entry.assetWeightMaint.toNumber(), {
+                    {percentFormatterMod(collateralBank.emodePair.assetWeightMaint.toNumber(), {
                       minFractionDigits: 0,
                       maxFractionDigits: 2,
                     })}

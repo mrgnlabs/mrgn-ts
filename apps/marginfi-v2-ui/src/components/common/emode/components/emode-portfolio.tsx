@@ -34,7 +34,7 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: Emode
                   <IconBolt size={16} /> {EmodeTag[pair.collateralBankTag]}
                 </Badge>
               }
-              initialEmodeTag={pair.collateralBankTag}
+              emodeTag={pair.collateralBankTag}
             />
           ))}
           <EmodeViewAll />

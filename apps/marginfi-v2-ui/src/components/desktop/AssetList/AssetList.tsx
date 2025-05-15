@@ -118,7 +118,9 @@ export const AssetsList = () => {
       connected,
       walletContextState,
       solPrice,
-      fetchMrgnlendState
+      fetchMrgnlendState,
+      collateralBanksByLiabilityBank,
+      liabilityBanksByCollateralBank
     );
   }, [
     connected,
@@ -129,6 +131,8 @@ export const AssetsList = () => {
     selectedAccount,
     solPrice,
     fetchMrgnlendState,
+    collateralBanksByLiabilityBank,
+    liabilityBanksByCollateralBank,
   ]);
 
   const isolatedPoolTableData = React.useMemo(() => {
@@ -140,7 +144,9 @@ export const AssetsList = () => {
       connected,
       walletContextState,
       solPrice,
-      fetchMrgnlendState
+      fetchMrgnlendState,
+      collateralBanksByLiabilityBank,
+      liabilityBanksByCollateralBank
     );
   }, [
     connected,
@@ -151,6 +157,8 @@ export const AssetsList = () => {
     selectedAccount,
     solPrice,
     fetchMrgnlendState,
+    collateralBanksByLiabilityBank,
+    liabilityBanksByCollateralBank,
   ]);
 
   const stakedPoolTableData = React.useMemo(() => {
@@ -255,7 +263,9 @@ export const AssetsList = () => {
 
   const emodeGroups = React.useMemo(() => {
     const deduped = Array.from(new Set(emodePairs.map((pair) => EmodeTag[pair.collateralBankTag])));
-    return deduped;
+    return deduped
+      .map((group) => emodePairs.find((pair) => EmodeTag[pair.collateralBankTag] === group))
+      .filter((group) => group !== undefined);
   }, [emodePairs]);
 
   React.useEffect(() => {

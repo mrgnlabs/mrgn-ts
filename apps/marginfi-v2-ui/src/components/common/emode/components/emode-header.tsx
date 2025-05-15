@@ -5,9 +5,10 @@ import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 
 import { EmodeViewAll } from "~/components/common/emode/components";
 import { Badge } from "~/components/ui/badge";
+import { EmodePair } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type EmodeHeaderProps = {
-  emodeGroups: string[];
+  emodeGroups: EmodePair[];
 };
 
 const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
@@ -20,7 +21,15 @@ const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
         </h2>
         <p className="text-muted-foreground text-sm">
           Banks with e-mode pairings get boosted weights.
-          <br className="hidden lg:block" /> Explore the groups and pairings or{" "}
+          <br className="hidden lg:block" />{" "}
+          <EmodeViewAll
+            trigger={
+              <span className="border-b border-foreground/50 transition-colors cursor-pointer hover:border-foreground hover:text-foreground">
+                Explore the groups
+              </span>
+            }
+          />{" "}
+          and pairings or{" "}
           <Link
             href="https://docs.marginfi.com/emode"
             target="_blank"
@@ -40,16 +49,16 @@ const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
           </div>
           <div className="flex items-center gap-2.5">
             {emodeGroups
-              .filter((group) => group !== EmodeTag[EmodeTag.UNSET])
+              .filter((group) => group.collateralBankTag !== EmodeTag.UNSET)
               .map((group) => (
                 <EmodeViewAll
-                  key={group}
+                  key={group.collateralBankTag}
                   trigger={
                     <Badge variant="emode">
-                      <IconBolt size={16} /> {group}
+                      <IconBolt size={16} /> {EmodeTag[group.collateralBankTag]}
                     </Badge>
                   }
-                  initialEmodeTag={EmodeTag[group as keyof typeof EmodeTag]}
+                  emodeTag={group.collateralBankTag}
                 />
               ))}
           </div>
