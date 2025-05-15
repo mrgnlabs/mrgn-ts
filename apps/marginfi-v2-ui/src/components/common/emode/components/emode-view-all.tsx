@@ -22,11 +22,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~
 import { Label } from "~/components/ui/label";
 import Link from "next/link";
 
-const EmodeViewAll = () => {
+interface EmodeViewAllProps {
+  trigger?: React.ReactNode;
+  initialEmodeTag?: EmodeTag;
+  initialBank?: ExtendedBankInfo;
+}
+
+const EmodeViewAll = ({ trigger, initialEmodeTag, initialBank }: EmodeViewAllProps) => {
   const [emodePairs, groupedEmodeBanks] = useMrgnlendStore((state) => [state.emodePairs, state.groupedEmodeBanks]);
-  const [selectedEmodeGroup, setSelectedEmodeGroup] = React.useState<EmodeTag>();
+  const [selectedEmodeGroup, setSelectedEmodeGroup] = React.useState<EmodeTag | undefined>(initialEmodeTag);
   const [emodeBanks, setEmodeBanks] = React.useState<ExtendedBankInfo[]>([]);
-  const [selectedBank, setSelectedBank] = React.useState<ExtendedBankInfo>();
+  const [selectedBank, setSelectedBank] = React.useState<ExtendedBankInfo | undefined>(initialBank);
   const [emodeEntries, setEmodeEntries] = React.useState<EmodeEntry[]>([]);
 
   React.useEffect(() => {
@@ -41,18 +47,20 @@ const EmodeViewAll = () => {
     }
   }, [selectedBank]);
 
+  const defaultTrigger = (
+    <Button
+      variant="outline"
+      size="sm"
+      className="bg-background-gray h-auto py-1 text-xs font-normal hover:bg-background-gray-light"
+    >
+      <IconSearch size={12} />
+      View all
+    </Button>
+  );
+
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="bg-background-gray h-auto py-1 text-xs font-normal hover:bg-background-gray-light"
-        >
-          <IconSearch size={12} />
-          View all
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
       <DialogContent className="overflow-visible md:p-6" closeClassName="-top-8 -right-8 z-50">
         <DialogHeader>
           <DialogTitle className="text-lg font-normal">E-mode Groups</DialogTitle>
@@ -116,7 +124,7 @@ const EmodeViewAll = () => {
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select an e-mode group" />
+                <SelectValue placeholder="Select a bank" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>

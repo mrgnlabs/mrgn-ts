@@ -366,42 +366,34 @@ export const AssetsList = () => {
         </>
       )}
       {poolFilter === PoolTypes.E_MODE && emodePoolTableData.length > 0 && (
-        <div className="space-y-4">
-          {emodeGroups.length > 0 && (
-            <div className="py-2 flex items-center gap-3">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <IconInfoCircle size={14} /> E-mode groups
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      For more information on e-mode, and available e-mode pairings, visit the{" "}
-                      <Link
-                        href="https://docs.marginfi.com/e-mode"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="underline"
-                      >
-                        marginfi docs
-                      </Link>
-                      .
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <div className="flex items-center gap-3">
-                {emodeGroups.map((group) => (
-                  <Badge variant="emode" key={group}>
-                    <IconBolt size={16} /> {group}
-                  </Badge>
-                ))}
-                <EmodeViewAll />
-              </div>
+        <div className="space-y-8 py-2">
+          <div className="space-y-2">
+            <div className="space-y-2">
+              <h2 className="flex items-center gap-1.5 text-lg font-medium">
+                <IconBolt size={24} /> marginfi e-mode
+              </h2>
+              <p className="text-muted-foreground">Banks with e-mode pairings get boosted weights.</p>
             </div>
-          )}
+            {emodeGroups.length > 0 && (
+              <div className="py-2 flex items-center gap-3">
+                <p className="text-sm text-muted-foreground">E-mode groups</p>
+                <div className="flex items-center gap-3">
+                  {emodeGroups.map((group) => (
+                    <EmodeViewAll
+                      key={group}
+                      trigger={
+                        <Badge variant="emode">
+                          <IconBolt size={16} /> {group}
+                        </Badge>
+                      }
+                      initialEmodeTag={EmodeTag[group as keyof typeof EmodeTag]}
+                    />
+                  ))}
+                  <EmodeViewAll />
+                </div>
+              </div>
+            )}
+          </div>
           <Table>
             <TableHeader>
               {eModeTable.getHeaderGroups().map((headerGroup) => (
