@@ -310,8 +310,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
           banks = adjustedBanks;
           bankWeightsPreEmode = originalWeights;
-
-          set({ userActiveEmodes });
         }
       }
 
@@ -477,6 +475,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         groupedEmodeBanks: banksByEmodeTag,
         collateralBanksByLiabilityBank,
         liabilityBanksByCollateralBank,
+        userActiveEmodes,
       });
 
       const pointSummary = await getPointsSummary();
