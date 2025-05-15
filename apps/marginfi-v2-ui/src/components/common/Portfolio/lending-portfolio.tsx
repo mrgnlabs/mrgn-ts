@@ -318,8 +318,8 @@ export const LendingPortfolio = () => {
   }
 
   return (
-    <div className="py-4 md:py-6 flex flex-col items-center md:items-start w-full mb-10 gap-4">
-      <div className="p-4 md:p-6 md:pt-4 rounded-xl space-y-3 w-full bg-muted/25">
+    <div className="flex flex-col items-center md:items-start w-full gap-4">
+      <div className="p-4 md:p-6 rounded-xl w-full bg-muted/25">
         <div className="flex items-center gap-4 w-full">
           <WalletAuthAccounts
             initialized={true}
@@ -381,8 +381,8 @@ export const LendingPortfolio = () => {
             </TooltipProvider>
           </div>
         </div>
-        <div className="text-muted-foreground">
-          <dl className="flex justify-between items-center gap-2">
+        <div className="text-muted-foreground mt-8">
+          <dl className="flex justify-between items-center gap-1.5">
             <dt className="flex items-center gap-1.5 text-sm">
               Lend/borrow health factor
               <TooltipProvider>
@@ -415,7 +415,7 @@ export const LendingPortfolio = () => {
               {numeralFormatter(accountSummary.healthFactor * 100)}%
             </dd>
           </dl>
-          <div className="h-2 bg-background-gray-light rounded-full">
+          <div className="h-2 bg-background-gray-light rounded-full mt-1 mb-4">
             <div
               className="h-2 rounded-full"
               style={{
@@ -431,7 +431,7 @@ export const LendingPortfolio = () => {
             points={numeralFormatter(userPointsData.totalPoints)}
           />
         </div>
-        <div ref={containerRef} className="relative flex flex-col gap-6">
+        <div ref={containerRef} className="relative flex flex-col gap-6 mt-8">
           <div
             className={cn(
               "transition-opacity duration-500 absolute inset-0 pointer-events-none z-10",
