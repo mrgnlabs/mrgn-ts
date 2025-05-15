@@ -16,7 +16,7 @@ import {
   AnnouncementCustomItem,
   AnnouncementBankItem,
   AnnouncementsDialog,
-} from "~/components/common/Announcements";
+} from "~/components/common/Announcements/components";
 
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
