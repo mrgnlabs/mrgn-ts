@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Table } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
+import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 
 interface EmodePopoverProps {
   assetWeight: number;
@@ -73,6 +74,7 @@ export const EmodePopover = ({
               <TableHeader>
                 <TableRow className="text-xs">
                   <TableHead className="h-6">Bank</TableHead>
+                  <TableHead className="h-6">Tag</TableHead>
                   <TableHead className="h-6">Init</TableHead>
                   <TableHead className="h-6">Maint</TableHead>
                 </TableRow>
@@ -91,6 +93,9 @@ export const EmodePopover = ({
                         />
                         {liabilityBankItem.liabilityBank.meta.tokenSymbol}
                       </div>
+                    </TableCell>
+                    <TableCell className="py-1 lowercase">
+                      {EmodeTag[liabilityBankItem.emodePair.liabilityBankTag]}
                     </TableCell>
                     <TableCell className="py-1">
                       {percentFormatterMod(liabilityBankItem.emodePair.assetWeightInt.toNumber(), {
@@ -116,6 +121,7 @@ export const EmodePopover = ({
               <TableHeader>
                 <TableRow className="text-xs">
                   <TableHead className="h-6">Bank</TableHead>
+                  <TableHead className="h-6">Tag</TableHead>
                   <TableHead className="h-6">Init</TableHead>
                   <TableHead className="h-6">Maint</TableHead>
                 </TableRow>
@@ -134,6 +140,9 @@ export const EmodePopover = ({
                         />
                         {collateralBankItem.collateralBank.meta.tokenSymbol}
                       </div>
+                    </TableCell>
+                    <TableCell className="py-1 lowercase">
+                      {EmodeTag[collateralBankItem.emodePair.collateralBankTag]}
                     </TableCell>
                     <TableCell className="py-1">
                       {percentFormatterMod(collateralBankItem.emodePair.assetWeightInt.toNumber(), {
