@@ -50,8 +50,6 @@ const AssetListNav = () => {
     />
   );
 
-  console.log(userActiveEmodes);
-
   return (
     <div className="relative">
       <div className="flex justify-between items-center rounded-lg">

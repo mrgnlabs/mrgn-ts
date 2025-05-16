@@ -82,7 +82,7 @@ export const EmodePopover = ({
                     isInLendingMode
                   );
                   return (
-                    <TableRow className="text-xs">
+                    <TableRow key={liabilityBankItem.liabilityBank.address.toBase58()} className="text-xs">
                       <TableCell className="py-1">
                         <div className="flex items-center gap-1.5">
                           <Image
@@ -141,7 +141,7 @@ export const EmodePopover = ({
                     isInLendingMode
                   );
                   return (
-                    <TableRow className="text-xs">
+                    <TableRow key={collateralBankItem.collateralBank.address.toBase58()} className="text-xs">
                       <TableCell className="py-1">
                         <div className="flex items-center gap-1.5">
                           <Image

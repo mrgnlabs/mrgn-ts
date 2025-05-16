@@ -12,7 +12,6 @@ type EmodeHeaderProps = {
 };
 
 const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
-  console.log("emodeGroups", emodeGroups);
   return (
     <div className="flex items-center justify-between space-y-2">
       <div className="space-y-2">
