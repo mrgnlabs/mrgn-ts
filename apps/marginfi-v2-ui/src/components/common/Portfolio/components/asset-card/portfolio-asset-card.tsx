@@ -32,6 +32,7 @@ import { MovePositionDialog } from "../move-position";
 import { TooltipProvider } from "~/components/ui/tooltip";
 import { TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Tooltip } from "~/components/ui/tooltip";
+import { EmodeDiff } from "~/components/common/emode/components";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -60,6 +61,8 @@ export const PortfolioAssetCard = ({
     extendedBankInfos,
     nativeSolBalance,
     accountSummary,
+    userActiveEmodes,
+    collateralBanksByLiabilityBank,
   ] = useMrgnlendStore((state) => [
     state.selectedAccount,
     state.marginfiAccounts,
@@ -68,9 +71,20 @@ export const PortfolioAssetCard = ({
     state.extendedBankInfos,
     state.nativeSolBalance,
     state.accountSummary,
+    state.userActiveEmodes,
+    state.collateralBanksByLiabilityBank,
   ]);
   const [priorityFees] = useUiStore((state) => [state.priorityFees]);
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
+
+  const collateralBanks = React.useMemo(() => {
+    const banks = collateralBanksByLiabilityBank[bank.address.toBase58()] || [];
+    return banks.length > 0 ? banks.filter((bank) => bank.collateralBank.isActive) : [];
+  }, [collateralBanksByLiabilityBank, bank]);
+
+  const isEmodeActive = React.useMemo(() => {
+    return (isInLendingMode && bank.position.emodeActive) || (!isInLendingMode && collateralBanks.length > 0);
+  }, [bank.position.emodeActive, collateralBanks, isInLendingMode]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
     if (!bank || !bank?.position?.liquidationPrice) {
@@ -133,17 +147,11 @@ export const PortfolioAssetCard = ({
                         <div className="flex gap-1 items-center">
                           <IconBolt size={12} className="text-purple-300 translate-y-px" /> <p>e-mode weights active</p>
                         </div>
-                        <p className="text-center">
-                          {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
-                          <span className="text-muted-foreground text-xs">
-                            (+
-                            {percentFormatterMod(assetWeight - originalAssetWeight, {
-                              minFractionDigits: 0,
-                              maxFractionDigits: 2,
-                            })}
-                            )
-                          </span>
-                        </p>
+                        <EmodeDiff
+                          assetWeight={assetWeight}
+                          originalAssetWeight={originalAssetWeight}
+                          className="text-center"
+                        />
                       </div>
                     </TooltipContent>
                   </Tooltip>
@@ -201,37 +209,12 @@ export const PortfolioAssetCard = ({
                 <div className="flex justify-between items-center w-full">
                   <div className="flex items-center gap-3 font-medium text-lg">
                     {bank.meta.tokenSymbol}{" "}
-                    {bank.position.emodeActive && isInLendingMode ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="text-purple-300 text-xs flex items-center gap-1 lowercase">
-                              <IconBolt size={12} />
-                              {EmodeTag[bank.info.rawBank.emode.emodeTag]}
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div className="flex flex-col gap-2">
-                              <div className="flex gap-1 items-center">
-                                <IconBolt size={12} className="text-purple-300 translate-y-px" />{" "}
-                                <p>e-mode weights active</p>
-                              </div>
-                              <p>
-                                {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
-                                <span className="text-muted-foreground text-xs">
-                                  (+
-                                  {percentFormatterMod(assetWeight - originalAssetWeight, {
-                                    minFractionDigits: 0,
-                                    maxFractionDigits: 2,
-                                  })}
-                                  )
-                                </span>
-                              </p>
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : !isInLendingMode ? (
+                    {isInLendingMode && bank.position.emodeActive ? (
+                      <div className="text-purple-300 text-xs flex items-center gap-1 lowercase">
+                        <IconBolt size={12} />
+                        {EmodeTag[bank.info.rawBank.emode.emodeTag]}
+                      </div>
+                    ) : !isInLendingMode && collateralBanks.length > 0 ? (
                       <span className="text-purple-300 text-xs flex items-center gap-1 lowercase">
                         <IconBolt size={12} />
                         {EmodeTag[bank.info.rawBank.emode.emodeTag]}
@@ -338,6 +321,38 @@ export const PortfolioAssetCard = ({
                   </dd>
                 </>
               )}
+              <dt className="text-muted-foreground">Weight</dt>
+              <dd className="text-right text-white">
+                {bank.position || collateralBanks.length > 0 ? (
+                  <div className={cn("flex items-center justify-end gap-1", isEmodeActive && "text-purple-300")}>
+                    {!isInLendingMode && collateralBanks.length > 0 && (
+                      <ul className="flex items-center gap-1">
+                        {collateralBanks.map((bank) => (
+                          <li key={bank.collateralBank.address.toBase58()}>
+                            <Image
+                              src={bank.collateralBank.meta.tokenLogoUri}
+                              className="rounded-full"
+                              alt={bank.collateralBank.meta.tokenSymbol}
+                              height={16}
+                              width={16}
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {isEmodeActive && <IconBolt size={12} className="translate-y-px" />}
+                    {isInLendingMode && isEmodeActive ? (
+                      <EmodeDiff assetWeight={assetWeight} originalAssetWeight={originalAssetWeight} />
+                    ) : (
+                      percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-end gap-1">
+                    {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}
+                  </div>
+                )}
+              </dd>
               <dt className="text-muted-foreground">Value</dt>
               <dd className="text-right text-white">
                 {bank.position.amount > 1000

@@ -44,7 +44,18 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: Emode
               emodeTag={pair.collateralBankTag}
             />
           ))}
-          <EmodeViewAll />
+          <EmodeViewAll
+            trigger={
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full bg-background-gray h-auto py-1 text-xs font-normal hover:bg-background-gray-light"
+              >
+                <IconSearch size={12} />
+                Explore e-mode
+              </Button>
+            }
+          />
         </div>
       </div>
       {emodeActive && (
