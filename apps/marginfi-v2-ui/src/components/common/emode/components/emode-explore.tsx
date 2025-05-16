@@ -2,8 +2,8 @@ import React from "react";
 import Image from "next/image";
 
 import { IconBolt, IconSearch } from "@tabler/icons-react";
-import { EmodeEntry, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
-import { EmodePair, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { EmodeTag, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatterMod } from "@mrgnlabs/mrgn-common";
 
 import { cn } from "~/theme";
@@ -149,7 +149,12 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
             </TableHeader>
             <TableBody>
               {collateralBanks?.map((collateralBank) => {
-                const { assetWeight, originalAssetWeight } = getAssetWeightData(collateralBank.collateralBank, true);
+                const { assetWeight, originalAssetWeight } = getAssetWeightData(
+                  collateralBank.collateralBank,
+                  true,
+                  collateralBank.emodePair.assetWeightInt
+                );
+                const normalWeight = originalAssetWeight ?? assetWeight;
                 return (
                   <TableRow
                     key={collateralBank.collateralBank.address.toBase58()}
@@ -169,7 +174,7 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
                     </TableCell>
                     <TableCell className="lowercase">{EmodeTag[collateralBank.emodePair.collateralBankTag]}</TableCell>
                     <TableCell>
-                      {percentFormatterMod(assetWeight, {
+                      {percentFormatterMod(normalWeight, {
                         minFractionDigits: 0,
                         maxFractionDigits: 2,
                       })}
@@ -177,7 +182,7 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
                     <TableCell>
                       <EmodeDiff
                         assetWeight={assetWeight}
-                        originalAssetWeight={originalAssetWeight}
+                        originalAssetWeight={normalWeight}
                         className="text-purple-300"
                         diffClassName="text-foreground"
                       />
