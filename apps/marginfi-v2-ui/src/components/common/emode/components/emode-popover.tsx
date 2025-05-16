@@ -77,10 +77,6 @@ export const EmodePopover = ({
               </TableHeader>
               <TableBody>
                 {liabilityBanks?.map((liabilityBankItem) => {
-                  const { assetWeight, originalAssetWeight } = getAssetWeightData(
-                    liabilityBankItem.liabilityBank,
-                    isInLendingMode
-                  );
                   return (
                     <TableRow key={liabilityBankItem.liabilityBank.address.toBase58()} className="text-xs">
                       <TableCell className="py-1">
@@ -99,7 +95,7 @@ export const EmodePopover = ({
                         {EmodeTag[liabilityBankItem.emodePair.liabilityBankTag]}
                       </TableCell>
                       <TableCell className="py-1">
-                        {percentFormatterMod(originalAssetWeight || 0, {
+                        {percentFormatterMod(assetWeight || 0, {
                           minFractionDigits: 0,
                           maxFractionDigits: 2,
                         })}
@@ -138,7 +134,8 @@ export const EmodePopover = ({
                 {collateralBanks?.map((collateralBankItem) => {
                   const { assetWeight, originalAssetWeight } = getAssetWeightData(
                     collateralBankItem.collateralBank,
-                    isInLendingMode
+                    isInLendingMode,
+                    collateralBankItem.emodePair.assetWeightInit
                   );
                   return (
                     <TableRow key={collateralBankItem.collateralBank.address.toBase58()} className="text-xs">
