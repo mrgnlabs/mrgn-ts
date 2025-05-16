@@ -21,6 +21,8 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Label } from "~/components/ui/label";
 import Link from "next/link";
+import { getAssetWeightData } from "~/bank-data.utils";
+import { EmodeDiff } from "./emode-diff";
 
 interface EmodeViewAllProps {
   trigger?: React.ReactNode;
@@ -40,7 +42,7 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
     return Array.from(
       new Set(
         emodePairs
-          .filter((pair) => (emodeTag ? pair.collateralBankTag === emodeTag : true))
+          .filter((pair) => (emodeTag ? pair.liabilityBankTag === emodeTag : true))
           .map((pair) => extendedBankInfos.find((bank) => bank.address.toBase58() === pair.liabilityBank.toString()))
           .filter((bank) => bank !== undefined)
       )
@@ -50,6 +52,12 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
   const collateralBanks = React.useMemo(() => {
     return collateralBanksByLiabilityBank[selectedBank?.address.toBase58() as string];
   }, [selectedBank, collateralBanksByLiabilityBank]);
+
+  React.useEffect(() => {
+    if (emodeBanks.length === 1) {
+      setSelectedBank(emodeBanks[0]);
+    }
+  }, [emodeBanks]);
 
   const defaultTrigger = (
     <Button
@@ -102,7 +110,7 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
             }}
           >
             <SelectTrigger className="w-full flex">
-              <SelectValue placeholder="Select a borrowing bank" />
+              <SelectValue placeholder="Select a bank" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -128,45 +136,55 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
           <Table className="w-full mt-1">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-1/4">Borrowing</TableHead>
+                <TableHead className="w-1/4">Collateral</TableHead>
                 <TableHead className="w-1/4">Tag</TableHead>
-                <TableHead className="w-1/4">Weight Init</TableHead>
-                <TableHead className="w-1/4">Weight Maint</TableHead>
+                <TableHead className="w-1/4">Weight</TableHead>
+                <TableHead className="w-1/4">
+                  <div className="flex items-center gap-1 ">
+                    <IconBolt size={14} className="translate-y-px" />
+                    e-mode
+                  </div>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {collateralBanks?.map((collateralBank) => (
-                <TableRow
-                  key={collateralBank.collateralBank.address.toBase58()}
-                  className="odd:bg-background-gray-light/50 hover:bg-transparent hover:odd:bg-background-gray-light/50"
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Image
-                        src={collateralBank.collateralBank.meta.tokenLogoUri}
-                        alt={collateralBank.collateralBank.meta.tokenSymbol}
-                        width={20}
-                        height={20}
-                        className="rounded-full"
+              {collateralBanks?.map((collateralBank) => {
+                const { assetWeight, originalAssetWeight } = getAssetWeightData(collateralBank.collateralBank, true);
+                return (
+                  <TableRow
+                    key={collateralBank.collateralBank.address.toBase58()}
+                    className="odd:bg-background-gray-light/50 hover:bg-transparent hover:odd:bg-background-gray-light/50"
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Image
+                          src={collateralBank.collateralBank.meta.tokenLogoUri}
+                          alt={collateralBank.collateralBank.meta.tokenSymbol}
+                          width={20}
+                          height={20}
+                          className="rounded-full"
+                        />
+                        {collateralBank.collateralBank.meta.tokenSymbol}
+                      </div>
+                    </TableCell>
+                    <TableCell className="lowercase">{EmodeTag[collateralBank.emodePair.collateralBankTag]}</TableCell>
+                    <TableCell>
+                      {percentFormatterMod(assetWeight, {
+                        minFractionDigits: 0,
+                        maxFractionDigits: 2,
+                      })}
+                    </TableCell>
+                    <TableCell>
+                      <EmodeDiff
+                        assetWeight={assetWeight}
+                        originalAssetWeight={originalAssetWeight}
+                        className="text-purple-300"
+                        diffClassName="text-foreground"
                       />
-                      {collateralBank.collateralBank.meta.tokenSymbol}
-                    </div>
-                  </TableCell>
-                  <TableCell className="lowercase">{EmodeTag[collateralBank.emodePair.collateralBankTag]}</TableCell>
-                  <TableCell>
-                    {percentFormatterMod(collateralBank.emodePair.assetWeightInt.toNumber(), {
-                      minFractionDigits: 0,
-                      maxFractionDigits: 2,
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    {percentFormatterMod(collateralBank.emodePair.assetWeightMaint.toNumber(), {
-                      minFractionDigits: 0,
-                      maxFractionDigits: 2,
-                    })}
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         )}
