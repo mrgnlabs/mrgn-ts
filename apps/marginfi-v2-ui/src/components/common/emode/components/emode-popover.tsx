@@ -49,7 +49,7 @@ export const EmodePopover = ({
           </Badge>
         </PopoverTrigger>
       )}
-      <PopoverContent className="w-auto text-xs">
+      <PopoverContent className="w-auto text-xs" side="top">
         {isInLendingMode && emodeActive && originalAssetWeight ? (
           <div className="flex flex-col gap-2">
             <div className="flex gap-1 items-center">

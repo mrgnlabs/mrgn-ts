@@ -1,14 +1,16 @@
 import Link from "next/link";
 
-import { IconInfoCircle, IconSparkles, IconBolt } from "@tabler/icons-react";
+import { IconInfoCircle, IconSparkles, IconBolt, IconSearch } from "@tabler/icons-react";
 import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { EmodePair } from "@mrgnlabs/marginfi-v2-ui-state";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Badge } from "~/components/ui/badge";
 import { EmodeViewAll } from "~/components/common/emode/components";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
+import { Button } from "~/components/ui/button";
 
 type EmodePortfolioProps = {
   userActiveEmodes: EmodePair[];
@@ -17,13 +19,18 @@ type EmodePortfolioProps = {
 };
 
 const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: EmodePortfolioProps) => {
-  if (userActiveEmodes.length === 0) return null;
-
+  const emodeActive = userActiveEmodes.length > 0;
   return (
     <div className="flex items-center gap-3 justify-between">
       <div className="py-2 flex items-center gap-3">
-        <div className="flex items-center gap-1 text-sm mr-2">
-          <IconBolt size={14} className="text-purple-300" /> e-mode active
+        <div className="flex items-center gap-2 text-sm mr-2 text-muted-foreground">
+          <div
+            className={cn(
+              "w-2 h-2 bg-gray-400 rounded-full translate-y-px",
+              emodeActive && "bg-mrgn-success animate-pulsate"
+            )}
+          />{" "}
+          e-mode {!emodeActive && "in"}active
         </div>
         <div className="flex items-center gap-3">
           {userActiveEmodes.map((pair) => (
@@ -37,7 +44,20 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: Emode
               emodeTag={pair.collateralBankTag}
             />
           ))}
-          <EmodeViewAll />
+          <EmodeViewAll
+            trigger={
+              !emodeActive && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-background-gray h-auto py-1 text-xs font-normal hover:bg-background-gray-light"
+                >
+                  <IconSearch size={12} />
+                  Explore emode pairings
+                </Button>
+              )
+            }
+          />
         </div>
       </div>
       <div className="flex items-center gap-2">

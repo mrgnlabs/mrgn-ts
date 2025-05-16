@@ -337,21 +337,24 @@ export const LendingPortfolio = () => {
     <div className="flex flex-col items-center md:items-start w-full gap-4">
       <div className="p-4 md:p-6 rounded-xl w-full bg-muted/25">
         <div className="flex items-center gap-4 w-full">
-          <WalletAuthAccounts
-            initialized={true}
-            mfiClient={marginfiClient}
-            connection={marginfiClient?.provider.connection ?? null}
-            marginfiAccounts={marginfiAccounts}
-            selectedAccount={selectedAccount}
-            fetchMrgnlendState={fetchMrgnlendState}
-            closeOnSwitch={true}
-            popoverContentAlign="start"
-            processOpts={{
-              ...priorityFees,
-              broadcastType,
-            }}
-            accountLabels={accountLabels}
-          />
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-muted-foreground">Account</p>
+            <WalletAuthAccounts
+              initialized={true}
+              mfiClient={marginfiClient}
+              connection={marginfiClient?.provider.connection ?? null}
+              marginfiAccounts={marginfiAccounts}
+              selectedAccount={selectedAccount}
+              fetchMrgnlendState={fetchMrgnlendState}
+              closeOnSwitch={true}
+              popoverContentAlign="start"
+              processOpts={{
+                ...priorityFees,
+                broadcastType,
+              }}
+              accountLabels={accountLabels}
+            />
+          </div>
 
           <div className="flex text-sm items-center gap-1.5 ml-auto">
             <TooltipProvider>
@@ -456,13 +459,11 @@ export const LendingPortfolio = () => {
           >
             <LineConnectionSvg />
           </div>
-          {userActiveEmodes.length > 0 && (
-            <EmodePortfolio
-              userActiveEmodes={userActiveEmodes}
-              filterEmode={filterEmode}
-              setFilterEmode={setFilterEmode}
-            />
-          )}
+          <EmodePortfolio
+            userActiveEmodes={userActiveEmodes}
+            filterEmode={filterEmode}
+            setFilterEmode={setFilterEmode}
+          />
           <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-40">
             <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
               <dl className="flex justify-between items-center gap-2 text-xl font-medium">

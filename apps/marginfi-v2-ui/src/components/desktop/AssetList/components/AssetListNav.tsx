@@ -77,10 +77,7 @@ const AssetListNav = () => {
             <IconBolt size={16} className="text-purple-300" />
             <span className="ml-0.5">e-mode</span>
             <span
-              className={cn(
-                "bg-gray-400 rounded-full h-2 w-2 animate-pulse ml-2",
-                userActiveEmodes.length > 0 && "bg-green-400/75"
-              )}
+              className={cn("bg-gray-400 rounded-full h-2 w-2 ml-2", userActiveEmodes.length > 0 && "bg-mrgn-success")}
             />
           </ToggleGroupItem>
         </ToggleGroup>
