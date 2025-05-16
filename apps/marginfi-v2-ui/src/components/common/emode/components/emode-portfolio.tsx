@@ -23,11 +23,11 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: Emode
   return (
     <div className="flex items-center gap-3 justify-between">
       <div className="py-2 flex items-center gap-3">
-        <div className="flex items-center gap-2 text-sm mr-2 text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm mr-2">
           <div
             className={cn(
-              "w-2 h-2 bg-gray-400 rounded-full translate-y-px",
-              emodeActive && "bg-mrgn-success animate-pulsate"
+              "w-2 h-2 bg-gray-400 rounded-full translate-y-px text-muted-foreground",
+              emodeActive && "bg-mrgn-success animate-pulsate text-foreground"
             )}
           />{" "}
           e-mode {!emodeActive && "in"}active
@@ -44,32 +44,21 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: Emode
               emodeTag={pair.collateralBankTag}
             />
           ))}
-          <EmodeViewAll
-            trigger={
-              !emodeActive && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-background-gray h-auto py-1 text-xs font-normal hover:bg-background-gray-light"
-                >
-                  <IconSearch size={12} />
-                  Explore emode pairings
-                </Button>
-              )
-            }
-          />
+          <EmodeViewAll />
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <Label htmlFor="pairings" className="text-sm text-muted-foreground flex items-center gap-1">
-          <IconSparkles size={14} /> Highlight e-mode
-        </Label>
-        <Switch
-          checked={filterEmode}
-          onCheckedChange={(checked) => setFilterEmode(checked)}
-          className="ml-2 data-[state=unchecked]:bg-background-gray-light data-[state=checked]:bg-purple-400"
-        />
-      </div>
+      {emodeActive && (
+        <div className="flex items-center gap-2">
+          <Label htmlFor="pairings" className="text-sm text-muted-foreground flex items-center gap-1">
+            <IconSparkles size={14} /> Highlight e-mode
+          </Label>
+          <Switch
+            checked={filterEmode}
+            onCheckedChange={(checked) => setFilterEmode(checked)}
+            className="ml-2 data-[state=unchecked]:bg-background-gray-light data-[state=checked]:bg-purple-400"
+          />
+        </div>
+      )}
     </div>
   );
 };

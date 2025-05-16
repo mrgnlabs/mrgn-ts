@@ -63,10 +63,10 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
     <Button
       variant="outline"
       size="sm"
-      className="bg-background-gray h-auto py-1 text-xs font-normal hover:bg-background-gray-light"
+      className="w-full bg-background-gray h-auto py-1.5 text-xs font-normal hover:bg-background-gray-light"
     >
       <IconSearch size={12} />
-      View all
+      Explore e-mode
     </Button>
   );
 

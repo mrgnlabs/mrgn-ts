@@ -29,7 +29,7 @@ const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
               </span>
             }
           />{" "}
-          and pairings or{" "}
+          or{" "}
           <Link
             href="https://docs.marginfi.com/emode"
             target="_blank"
@@ -42,11 +42,7 @@ const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
         </p>
       </div>
       {emodeGroups.length > 0 && (
-        <div className="py-2 flex flex-col items-end gap-2.5">
-          <div className="text-sm text-muted-foreground flex items-center gap-2.5">
-            <p>E-mode groups</p>
-            <EmodeViewAll />
-          </div>
+        <div className="py-2 flex  items-end gap-2.5">
           <div className="flex items-center gap-2.5">
             {emodeGroups
               .filter((group) => group.collateralBankTag !== EmodeTag.UNSET)
@@ -62,6 +58,7 @@ const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
                 />
               ))}
           </div>
+          <EmodeViewAll />
         </div>
       )}
     </div>
