@@ -176,7 +176,7 @@ export const walletDeepLinkMap: WalletLinkMap = {
 export const walletInstallMap: WalletLinkMap = {
   Phantom: "https://phantom.app/download",
   Backpack: "https://backpack.app/download",
-  Solflare: "https://gamma.solflare.com/download#extension",
+  Solflare: "https://www.solflare.com/download/",
   Coinbase: "https://www.coinbase.com/wallet/downloads",
 };
 
