@@ -55,13 +55,13 @@ const defaultOptions: LineConnectionOptions = {
  * A hook that creates animated connecting lines between pairs of elements
  * @param refPairs Array of ref pairs to connect with lines
  * @param options Customization options for the lines
- * @param highlightedIndex Index of the highlighted line
+ * @param highlightedIndices Array of indices of the highlighted lines (or undefined/null)
  * @returns JSX element with SVG lines
  */
 export function useEmodeLineConnections(
   refPairs: RefPair[],
   options: LineConnectionOptions = {},
-  highlightedIndex?: number
+  highlightedIndices?: number[]
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [lineCoordinates, setLineCoordinates] = useState<LineCoordinates[]>([]);
@@ -209,20 +209,35 @@ export function useEmodeLineConnections(
         }
       }
 
-      // For multiple connections, use the distributed offset approach
-      // Calculate a more distributed offset based on the index
-      const baseOffset = lineSpacing * 0.8;
+      // Calculate the base position (0 to 1) for this connection
+      // This implements the "always take the half point" approach
+      let position = 0.5; // Default to center for the first connection
 
-      // Use a more sophisticated offset calculation that varies by index
-      // This creates a more distributed pattern of curves
-      const offsetMultiplier = (index % 5) - 2; // Results in -2, -1, 0, 1, 2
-      const offset = offsetMultiplier * baseOffset;
+      if (totalConnections > 1) {
+        // This implements the "always take the half point" logic
+        // by using the binary representation of the index to determine position
+        const binaryPos = (index + 1).toString(2).substring(1);
+        let currentLeft = 0;
+        let currentRight = 1;
 
-      // Adjust the midpoint position based on the horizontal distance
-      // For longer distances, move the curve point further from center
-      const distanceFactor = Math.min(Math.abs(horizontalDistance) / 500, 1); // Normalize to 0-1
-      const midPointOffset = 0.5 + offsetMultiplier * 0.05 * distanceFactor;
-      const midX = x1 + horizontalDistance * midPointOffset + offset;
+        for (let i = 0; i < binaryPos.length; i++) {
+          const mid = (currentLeft + currentRight) / 2;
+          if (binaryPos[i] === "1") {
+            currentLeft = mid;
+          } else {
+            currentRight = mid;
+          }
+        }
+        position = (currentLeft + currentRight) / 2;
+      }
+
+      // Apply some spacing between lines
+      const spacing = 0.1; // Adjust this value to control spacing between lines
+      const effectiveSpacing = spacing / Math.max(1, totalConnections - 1);
+      position = position * (1 - effectiveSpacing * 2) + effectiveSpacing;
+
+      // Calculate the midpoint
+      const midX = x1 + horizontalDistance * position;
 
       // For lines going down (start element is above end element)
       if (pathType === "down") {
@@ -289,6 +304,12 @@ export function useEmodeLineConnections(
       { base: "hsl(202 80.3% 23.9%)", pulse: "hsl(202 80.3% 23.9%)" },
     ];
 
+    // Helper: is this line highlighted?
+    const isLineHighlighted = (idx: number) => {
+      if (!highlightedIndices || highlightedIndices.length === 0) return null;
+      return highlightedIndices.includes(idx);
+    };
+
     return (
       <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-10" style={{ overflow: "visible" }}>
         <defs>
@@ -302,11 +323,11 @@ export function useEmodeLineConnections(
         {lineCoordinates.map((coords, idx) => {
           // Get color for this line
           const lineColor = colorPalette[idx % colorPalette.length];
-          const isHighlighted = highlightedIndex === idx;
-          const fadedOpacity = highlightedIndex == null ? 1 : isHighlighted ? 1 : 0.12;
-          const pulseOpacity = highlightedIndex == null ? 1 : isHighlighted ? 1 : 0.18;
+          const highlighted = isLineHighlighted(idx);
+          const fadedOpacity = highlightedIndices == null ? 1 : highlighted ? 1 : 0.12;
+          const pulseOpacity = highlightedIndices == null ? 1 : highlighted ? 1 : 0.18;
           return (
-            <g key={coords.index} style={{ zIndex: isHighlighted ? 2 : 1 }}>
+            <g key={coords.index} style={{ zIndex: highlighted ? 2 : 1 }}>
               <path
                 d={getPathString(
                   coords,
@@ -316,10 +337,12 @@ export function useEmodeLineConnections(
                   numCurvedConnections
                 )}
                 stroke={lineColor.base}
-                strokeWidth={isHighlighted ? (mergedOptions.strokeWidth || 2) * 1.8 : mergedOptions.strokeWidth}
+                strokeWidth={highlighted ? (mergedOptions.strokeWidth || 2) * 1.8 : mergedOptions.strokeWidth}
                 fill="none"
                 opacity={fadedOpacity}
-                style={{ transition: "opacity 0.5s ease, stroke-width 0.3s" }}
+                style={{
+                  transition: "opacity 0.5s cubic-bezier(0.4,0,0.2,1), stroke-width 0.3s cubic-bezier(0.4,0,0.2,1)",
+                }}
               />
               {/* Animated pulse - always show, but faded if not highlighted */}
               <circle
@@ -327,7 +350,7 @@ export function useEmodeLineConnections(
                 fill={lineColor.pulse}
                 filter={`url(#glow-${coords.index % colorPalette.length})`}
                 opacity={pulseOpacity}
-                style={{ transition: "opacity 0.5s ease" }}
+                style={{ transition: "opacity 0.5s cubic-bezier(0.4,0,0.2,1)" }}
               >
                 <animateMotion
                   path={getPathString(
@@ -347,7 +370,7 @@ export function useEmodeLineConnections(
         })}
       </svg>
     );
-  }, [lineCoordinates, getPathString, options, highlightedIndex]);
+  }, [lineCoordinates, getPathString, options, highlightedIndices]);
 
   // Recalculate when refPairs change
   useEffect(() => {

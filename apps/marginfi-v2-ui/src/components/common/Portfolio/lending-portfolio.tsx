@@ -79,8 +79,9 @@ export const LendingPortfolio = () => {
   const [filterEmode, setFilterEmode] = React.useState(false);
   const [openAccordions, setOpenAccordions] = React.useState<Record<string, boolean>>({});
 
-  // Highlighted emode line index for hover
-  const [hoveredPairIndex, setHoveredPairIndex] = React.useState<number | null>(null);
+  // Highlighted emode line indices for hover (array for multiple lines)
+  const [hoveredPairIndices, setHoveredPairIndices] = React.useState<number[] | null>(null);
+  const hoverDebounceRef = React.useRef<NodeJS.Timeout | null>(null);
 
   // Rewards
   const [rewardsState, setRewardsState] = React.useState<RewardsType>(initialRewardsState);
@@ -259,7 +260,7 @@ export const LendingPortfolio = () => {
       lineSpacing: 40,
       useUniqueColors: false,
     },
-    hoveredPairIndex ?? undefined
+    hoveredPairIndices ?? undefined
   );
 
   React.useEffect(() => {
@@ -490,10 +491,16 @@ export const LendingPortfolio = () => {
                             filterEmode && !eModeActive && "opacity-25"
                           )}
                           onMouseEnter={() => {
-                            if (pairIndices.length > 0) setHoveredPairIndex(pairIndices[0]);
+                            if (hoverDebounceRef.current) clearTimeout(hoverDebounceRef.current);
+                            hoverDebounceRef.current = setTimeout(() => {
+                              if (pairIndices.length > 0) setHoveredPairIndices(pairIndices);
+                            }, 120);
                           }}
                           onMouseLeave={() => {
-                            setHoveredPairIndex(null);
+                            if (hoverDebounceRef.current) clearTimeout(hoverDebounceRef.current);
+                            hoverDebounceRef.current = setTimeout(() => {
+                              setHoveredPairIndices(null);
+                            }, 120);
                           }}
                         >
                           <PortfolioAssetCard
@@ -560,10 +567,16 @@ export const LendingPortfolio = () => {
                             borrowingRefs.current[bank.address.toBase58()] = el;
                           }}
                           onMouseEnter={() => {
-                            if (pairIndices.length > 0) setHoveredPairIndex(pairIndices[0]);
+                            if (hoverDebounceRef.current) clearTimeout(hoverDebounceRef.current);
+                            hoverDebounceRef.current = setTimeout(() => {
+                              if (pairIndices.length > 0) setHoveredPairIndices(pairIndices);
+                            }, 120);
                           }}
                           onMouseLeave={() => {
-                            setHoveredPairIndex(null);
+                            if (hoverDebounceRef.current) clearTimeout(hoverDebounceRef.current);
+                            hoverDebounceRef.current = setTimeout(() => {
+                              setHoveredPairIndices(null);
+                            }, 120);
                           }}
                         >
                           <PortfolioAssetCard
