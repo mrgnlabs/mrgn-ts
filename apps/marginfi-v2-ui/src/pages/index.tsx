@@ -3,6 +3,7 @@ import React from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
+import { IconBolt } from "@tabler/icons-react";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { capture, Desktop, LendingModes, Mobile } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -62,6 +63,10 @@ export default function HomePage() {
 
     banks = banks.filter((bank): bank is ExtendedBankInfo => bank !== undefined);
     return [
+      {
+        text: "e-mode boosted weights now available!",
+        image: <IconBolt size={16} className="text-purple-400" />,
+      },
       ...banks.map((bank) => ({
         bank: bank,
       })),

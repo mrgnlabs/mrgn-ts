@@ -132,7 +132,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                             alt={`${item.bank.meta.tokenSymbol} logo`}
                             width={24}
                             height={24}
-                            className="rounded-full"
+                            className="rounded-full size-6 object-cover"
                           />
                           <p className="text-xs md:text-sm">
                             <strong className="font-medium mr-1.5">{item.bank.meta.tokenSymbol}</strong>
@@ -145,13 +145,13 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                     }}
                   />
                 ) : (
-                  <div className="flex items-center gap-2.5 md:gap-3 w-full font-normal">
+                  <div className="flex items-center gap-2 w-full font-normal">
                     {typeof item.image === "string" ? (
                       <Image src={item.image} alt={item.text} width={24} height={24} className="rounded-full" />
                     ) : (
                       item.image
                     )}
-                    <h2 className="text-center text-xs md:text-sm">{item.text}</h2>
+                    <h2 className="text-center text-xs md:text-sm font-normal">{item.text}</h2>
                     <IconArrowRight size={20} className="ml-auto text-muted-foreground" />
                   </div>
                 )}
