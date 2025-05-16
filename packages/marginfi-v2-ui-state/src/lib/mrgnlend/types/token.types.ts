@@ -21,7 +21,7 @@ interface TokenAccount {
 }
 
 interface AccountSummary {
-  healthFactor: number;
+  healthFactor: { riskEngineHealth: number; computedHealth: number };
   balance: number;
   lendingAmount: number;
   borrowingAmount: number;

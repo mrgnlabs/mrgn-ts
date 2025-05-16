@@ -33,9 +33,9 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: Emode
           e-mode {!emodeActive && "in"}active
         </div>
         <div className="flex items-center gap-3">
-          {userActiveEmodes.map((pair) => (
+          {userActiveEmodes.map((pair, idx) => (
             <EmodeViewAll
-              key={pair.collateralBankTag}
+              key={`${pair.collateralBankTag}-${idx}`}
               trigger={
                 <Badge variant="emode">
                   <IconBolt size={16} /> {EmodeTag[pair.collateralBankTag]}

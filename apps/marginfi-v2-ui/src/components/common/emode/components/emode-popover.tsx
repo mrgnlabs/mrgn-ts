@@ -140,7 +140,6 @@ export const EmodePopover = ({
                     collateralBankItem.collateralBank,
                     isInLendingMode
                   );
-                  console.log(collateralBankItem.collateralBank.meta.tokenSymbol, assetWeight, originalAssetWeight);
                   return (
                     <TableRow className="text-xs">
                       <TableCell className="py-1">

@@ -66,6 +66,7 @@ import {
   computeLoopingParams,
   makeWrapSolIxs,
   MarginfiAccountRaw,
+  createHealthPulseTx,
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType } from "./pure";
@@ -1104,12 +1105,27 @@ class MarginfiAccountWrapper {
    */
   async simulateBorrowLendTransaction(
     txs: (VersionedTransaction | Transaction)[],
-    banksToInspect: PublicKey[]
+    banksToInspect: PublicKey[],
+    healthSimOptions?: {
+      enabled: boolean;
+      mandatoryBanks: PublicKey[];
+      excludedBanks: PublicKey[];
+    }
   ): Promise<SimulationResult> {
-    const [mfiAccountData, ...bankData] = await this.client.simulateTransactions(txs, [
-      this.address,
-      ...banksToInspect,
-    ]);
+    const additionalTxs: VersionedTransaction[] = [];
+
+    if (healthSimOptions?.enabled) {
+      const healthPulseTx = await this.makeHealthPulseTx(
+        healthSimOptions.mandatoryBanks,
+        healthSimOptions.excludedBanks
+      );
+      additionalTxs.push(healthPulseTx);
+    }
+
+    const [mfiAccountData, ...bankData] = await this.client.simulateTransactions(
+      [...txs, ...additionalTxs],
+      [this.address, ...banksToInspect]
+    );
     if (!mfiAccountData || !bankData) throw new Error("Failed to simulate");
     const previewBanks = this.client.banks;
 
@@ -1917,6 +1933,33 @@ class MarginfiAccountWrapper {
     } else {
       return { instructions: [], luts: [] };
     }
+  }
+
+  async makeHealthPulseTx(mandatoryBanks: PublicKey[] = [], excludedBanks: PublicKey[] = []) {
+    const blockhash = await this._program.provider.connection.getLatestBlockhash("confirmed");
+
+    // Get active banks excluding the excluded ones
+    const activeBanks = this.activeBalances
+      .map((b) => this.client.banks.get(b.bankPk.toBase58()))
+      .filter((bank): bank is NonNullable<typeof bank> => !!bank)
+      .filter((b) => !excludedBanks.some((pk) => pk.equals(b.address)));
+
+    // Get mandatory banks that aren't already in active banks
+    const mandatoryBankObjs = mandatoryBanks
+      .map((bankPk) => this.client.banks.get(bankPk.toBase58()))
+      .filter((bank): bank is NonNullable<typeof bank> => !!bank)
+      .filter((bank) => !activeBanks.some((activeBank) => activeBank.address.equals(bank.address)));
+
+    // Combine active banks with mandatory banks
+    const allBanks = [...activeBanks, ...mandatoryBankObjs];
+
+    return createHealthPulseTx({
+      activeBanks: allBanks,
+      marginfiAccount: this.address,
+      feePayer: this.client.provider.publicKey,
+      program: this._program,
+      blockhash: blockhash.blockhash,
+    });
   }
 
   // --------------------------------------------------------------------------
