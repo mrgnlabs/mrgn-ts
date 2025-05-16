@@ -50,9 +50,9 @@ export const EmodePopover = ({
           </Badge>
         </PopoverTrigger>
       )}
-      <PopoverContent className="w-auto text-xs" side="top">
+      <PopoverContent className="w-auto text-xs md:py-3 md:px-4" side="top">
         {isInLendingMode && emodeActive && originalAssetWeight ? (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             <div className="flex gap-1 items-center">
               <IconBolt size={12} className="text-purple-300 translate-y-px" /> <p>e-mode weights active</p>
             </div>
