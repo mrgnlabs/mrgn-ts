@@ -8,7 +8,7 @@ import {
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
 
-import { Program, SolanaTransaction, bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
+import { Program, SolanaTransaction, bigNumberToWrappedI80F48, composeRemainingAccounts } from "@mrgnlabs/mrgn-common";
 
 import MarginfiClient from "../../clients/client";
 import { MarginfiAccountWrapper, MarginfiAccount } from "../../models/account";
@@ -24,32 +24,14 @@ export async function createHealthPulseTx(props: {
   blockhash: string;
   addressLookupTableAccounts?: AddressLookupTableAccount[];
 }): Promise<VersionedTransaction> {
-  const parsedPositions = props.activeBanks.map((bank) => ({
-    bank: bank.address,
-    oracleKey: bank.oracleKey,
-  }));
+  const remainingAccounts = composeRemainingAccounts(props.activeBanks.map((bank) => [bank.address, bank.oracleKey]));
 
   const ixs = await props.program.methods
     .lendingAccountPulseHealth()
     .accounts({
       marginfiAccount: props.marginfiAccount,
     })
-    .remainingAccounts(
-      parsedPositions
-        .map((p) => [
-          {
-            pubkey: p.bank,
-            isSigner: false,
-            isWritable: false,
-          },
-          {
-            pubkey: p.oracleKey,
-            isSigner: false,
-            isWritable: false,
-          },
-        ])
-        .flatMap((p) => p)
-    )
+    .remainingAccounts(remainingAccounts.map((account) => ({ pubkey: account, isSigner: false, isWritable: false })))
     .instruction();
 
   const tx = new VersionedTransaction(

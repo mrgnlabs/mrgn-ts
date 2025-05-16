@@ -1,4 +1,5 @@
 import { MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { HealthCache } from "@mrgnlabs/marginfi-client-v2/dist/models/health-cache";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 export enum SimulationStatus {
@@ -19,9 +20,23 @@ export function simulatedHealthFactor(simulationResult: SimulationResult) {
 
   const { assetValueMaint, liabilityValueMaint } = simulationResult.marginfiAccount.data.healthCache;
 
+  console.log({ healthCache: simulationResult.marginfiAccount.data.healthCache });
+
+  console.log({ assetValueMaint: assetValueMaint.toNumber(), assets: assets.toNumber() });
+
+  console.log({
+    liabilityValueMaint: liabilityValueMaint.toNumber(),
+    liabilities: liabilities.toNumber(),
+  });
+
   const riskEngineHealth = assetValueMaint.minus(liabilityValueMaint).dividedBy(assetValueMaint).toNumber();
 
   const computedHealth = assets.minus(liabilities).dividedBy(assets).toNumber();
+
+  console.log({
+    riskEngineHealth,
+    computedHealth,
+  });
 
   return {
     riskEngineHealth,
