@@ -482,7 +482,7 @@ function groupLiabilityBanksByCollateralBank(banks: ExtendedBankInfo[], emodePai
         return;
       }
 
-      if (bankRaw.emode.emodeTag === emodePair.collateralBankTag) {
+      if (potentialCollateralBank.info.state.hasEmode && bankRaw.emode.emodeTag === emodePair.collateralBankTag) {
         if (!result[collateralBankKey]) {
           result[collateralBankKey] = [];
         }
@@ -516,7 +516,7 @@ function groupCollateralBanksByLiabilityBank(banks: ExtendedBankInfo[], emodePai
         return;
       }
 
-      if (bankRaw.emode.emodeTag === emodePair.collateralBankTag) {
+      if (potentialCollateralBank.info.state.hasEmode && bankRaw.emode.emodeTag === emodePair.collateralBankTag) {
         if (!result[liabilityBankKey]) {
           result[liabilityBankKey] = [];
         }

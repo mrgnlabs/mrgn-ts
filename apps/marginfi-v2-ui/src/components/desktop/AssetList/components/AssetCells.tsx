@@ -261,7 +261,9 @@ export const getAssetWeightCell = ({
 }: AssetWeightData) => {
   return (
     <div className="flex justify-end items-center">
-      {(emodeActive && originalAssetWeight) || collateralBanks || liabilityBanks ? (
+      {(emodeActive && originalAssetWeight) ||
+      (collateralBanks && collateralBanks.length > 0) ||
+      (liabilityBanks && liabilityBanks.length > 0) ? (
         <EmodePopover
           assetWeight={assetWeight}
           originalAssetWeight={originalAssetWeight}
