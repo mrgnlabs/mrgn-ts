@@ -6,7 +6,7 @@ import Image from "next/image";
 import { IconBolt, IconExternalLink } from "@tabler/icons-react";
 import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { percentFormatterMod } from "@mrgnlabs/mrgn-common";
-import { cn } from "@mrgnlabs/mrgn-utils";
+import { cn, getAssetWeightData } from "@mrgnlabs/mrgn-utils";
 
 import { EmodeDiff } from "./emode-diff";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
@@ -66,42 +66,54 @@ export const EmodePopover = ({
                 <TableRow className="text-xs">
                   <TableHead className="h-6">Bank</TableHead>
                   <TableHead className="h-6">Tag</TableHead>
-                  <TableHead className="h-6">Init</TableHead>
-                  <TableHead className="h-6">Maint</TableHead>
+                  <TableHead className="h-6">Weight</TableHead>
+                  <TableHead className="h-6">
+                    <div className="flex items-center gap-1">
+                      <IconBolt size={12} />
+                      e-mode
+                    </div>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {liabilityBanks?.map((liabilityBankItem) => (
-                  <TableRow className="text-xs">
-                    <TableCell className="py-1">
-                      <div className="flex items-center gap-1.5">
-                        <Image
-                          src={liabilityBankItem.liabilityBank.meta.tokenLogoUri}
-                          width={22}
-                          height={22}
-                          alt={liabilityBankItem.liabilityBank.meta.tokenSymbol}
-                          className="rounded-full"
+                {liabilityBanks?.map((liabilityBankItem) => {
+                  const { assetWeight, originalAssetWeight } = getAssetWeightData(
+                    liabilityBankItem.liabilityBank,
+                    isInLendingMode
+                  );
+                  return (
+                    <TableRow className="text-xs">
+                      <TableCell className="py-1">
+                        <div className="flex items-center gap-1.5">
+                          <Image
+                            src={liabilityBankItem.liabilityBank.meta.tokenLogoUri}
+                            width={22}
+                            height={22}
+                            alt={liabilityBankItem.liabilityBank.meta.tokenSymbol}
+                            className="rounded-full"
+                          />
+                          {liabilityBankItem.liabilityBank.meta.tokenSymbol}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-1 lowercase">
+                        {EmodeTag[liabilityBankItem.emodePair.liabilityBankTag]}
+                      </TableCell>
+                      <TableCell className="py-1">
+                        {percentFormatterMod(originalAssetWeight || 0, {
+                          minFractionDigits: 0,
+                          maxFractionDigits: 2,
+                        })}
+                      </TableCell>
+                      <TableCell className="py-1">
+                        <EmodeDiff
+                          assetWeight={assetWeight}
+                          originalAssetWeight={originalAssetWeight}
+                          className="text-purple-300"
                         />
-                        {liabilityBankItem.liabilityBank.meta.tokenSymbol}
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-1 lowercase">
-                      {EmodeTag[liabilityBankItem.emodePair.liabilityBankTag]}
-                    </TableCell>
-                    <TableCell className="py-1">
-                      {percentFormatterMod(liabilityBankItem.emodePair.assetWeightInt.toNumber(), {
-                        minFractionDigits: 0,
-                        maxFractionDigits: 2,
-                      })}
-                    </TableCell>
-                    <TableCell className="py-1">
-                      {percentFormatterMod(liabilityBankItem.emodePair.assetWeightMaint.toNumber(), {
-                        minFractionDigits: 0,
-                        maxFractionDigits: 2,
-                      })}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -113,42 +125,55 @@ export const EmodePopover = ({
                 <TableRow className="text-xs">
                   <TableHead className="h-6">Bank</TableHead>
                   <TableHead className="h-6">Tag</TableHead>
-                  <TableHead className="h-6">Init</TableHead>
-                  <TableHead className="h-6">Maint</TableHead>
+                  <TableHead className="h-6">Weight</TableHead>
+                  <TableHead className="h-6">
+                    <div className="flex items-center gap-1">
+                      <IconBolt size={12} />
+                      e-mode
+                    </div>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {collateralBanks?.map((collateralBankItem) => (
-                  <TableRow className="text-xs">
-                    <TableCell className="py-1">
-                      <div className="flex items-center gap-1.5">
-                        <Image
-                          src={collateralBankItem.collateralBank.meta.tokenLogoUri}
-                          width={20}
-                          height={20}
-                          alt={collateralBankItem.collateralBank.meta.tokenSymbol}
-                          className="rounded-full"
+                {collateralBanks?.map((collateralBankItem) => {
+                  const { assetWeight, originalAssetWeight } = getAssetWeightData(
+                    collateralBankItem.collateralBank,
+                    isInLendingMode
+                  );
+                  console.log(collateralBankItem.collateralBank.meta.tokenSymbol, assetWeight, originalAssetWeight);
+                  return (
+                    <TableRow className="text-xs">
+                      <TableCell className="py-1">
+                        <div className="flex items-center gap-1.5">
+                          <Image
+                            src={collateralBankItem.collateralBank.meta.tokenLogoUri}
+                            width={20}
+                            height={20}
+                            alt={collateralBankItem.collateralBank.meta.tokenSymbol}
+                            className="rounded-full"
+                          />
+                          {collateralBankItem.collateralBank.meta.tokenSymbol}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-1 lowercase">
+                        {EmodeTag[collateralBankItem.emodePair.collateralBankTag]}
+                      </TableCell>
+                      <TableCell className="py-1">
+                        {percentFormatterMod(originalAssetWeight || 0, {
+                          minFractionDigits: 0,
+                          maxFractionDigits: 2,
+                        })}
+                      </TableCell>
+                      <TableCell className="py-1">
+                        <EmodeDiff
+                          assetWeight={assetWeight}
+                          originalAssetWeight={originalAssetWeight}
+                          className="text-purple-300"
                         />
-                        {collateralBankItem.collateralBank.meta.tokenSymbol}
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-1 lowercase">
-                      {EmodeTag[collateralBankItem.emodePair.collateralBankTag]}
-                    </TableCell>
-                    <TableCell className="py-1">
-                      {percentFormatterMod(collateralBankItem.emodePair.assetWeightInt.toNumber(), {
-                        minFractionDigits: 0,
-                        maxFractionDigits: 2,
-                      })}
-                    </TableCell>
-                    <TableCell className="py-1">
-                      {percentFormatterMod(collateralBankItem.emodePair.assetWeightMaint.toNumber(), {
-                        minFractionDigits: 0,
-                        maxFractionDigits: 2,
-                      })}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
