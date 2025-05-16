@@ -697,6 +697,17 @@ function getUserActiveEmodes(
   // If no matching pairs, return empty array
   if (matchingEmodePairs.length === 0) return [];
 
+  // Make sure all liability assets are present in the matching emode pairs
+  let allBorrowsPresent = true;
+
+  borrowEmodeTags.forEach((tag) => {
+    if (!matchingEmodePairs.some((pair) => pair.liabilityBankTag === tag)) {
+      allBorrowsPresent = false;
+    }
+  });
+
+  if (!allBorrowsPresent) return [];
+
   // if there is only one emode pair active, return it
   if (matchingEmodePairs.length === 1) return matchingEmodePairs;
 
@@ -707,6 +718,26 @@ function getUserActiveEmodes(
   if (matchedLiabilityTags.size === 1 || matchedCollateralTags.size === 1) {
     return matchingEmodePairs;
   }
+
+  // Check if there's a collateral tag that works for all liability tags
+  const compatibleCollateralTags: EmodeTag[] = [];
+
+  matchedCollateralTags.forEach((tag) => {
+    const worksForAllLiabilities = Array.from(borrowEmodeTags).every((liabilityTag) =>
+      matchingEmodePairs.some((pair) => pair.liabilityBankTag === liabilityTag && pair.collateralBankTag === tag)
+    );
+
+    if (worksForAllLiabilities) {
+      compatibleCollateralTags.push(tag);
+    }
+  });
+
+  // If we found compatible collateral tags, return pairs that use them
+  if (compatibleCollateralTags.length > 0) {
+    return matchingEmodePairs.filter((pair) => compatibleCollateralTags.includes(pair.collateralBankTag));
+  }
+
+  console.log({ matchingEmodePairs });
 
   return [];
 }
