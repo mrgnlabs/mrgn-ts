@@ -90,13 +90,13 @@ function generateLendingStats(
   }
 
   if (!hidePoolStats?.includes("health")) {
-    stats.push(
-      getHealthStat(
-        summary.actionPreview.health?.riskEngineHealth,
-        false,
-        summary.simulationPreview?.health?.riskEngineHealth
-      )
-    );
+    // stats.push(
+    //   getHealthStat(
+    //     summary.actionPreview.health?.riskEngineHealth,
+    //     false,
+    //     summary.simulationPreview?.health?.riskEngineHealth
+    //   )
+    // );
     stats.push(
       getHealthStat(
         summary.actionPreview.health?.computedHealth,

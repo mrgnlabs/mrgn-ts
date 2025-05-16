@@ -20,6 +20,7 @@ export function simulatedHealthFactor(simulationResult: SimulationResult) {
 
   const { assetValueMaint, liabilityValueMaint } = simulationResult.marginfiAccount.data.healthCache;
 
+  /*
   console.log({ healthCache: simulationResult.marginfiAccount.data.healthCache });
 
   console.log({ assetValueMaint: assetValueMaint.toNumber(), assets: assets.toNumber() });
@@ -28,15 +29,11 @@ export function simulatedHealthFactor(simulationResult: SimulationResult) {
     liabilityValueMaint: liabilityValueMaint.toNumber(),
     liabilities: liabilities.toNumber(),
   });
+  */
 
   const riskEngineHealth = assetValueMaint.minus(liabilityValueMaint).dividedBy(assetValueMaint).toNumber();
 
   const computedHealth = assets.minus(liabilities).dividedBy(assets).toNumber();
-
-  console.log({
-    riskEngineHealth,
-    computedHealth,
-  });
 
   return {
     riskEngineHealth,

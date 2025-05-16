@@ -33,7 +33,13 @@ export function generateTradingStats({
 
   const hasBanks = !!borrowBank && !!depositBank;
 
-  stats.push(getHealthStat(actionSummary.actionPreview.health, isLoading, actionSummary.simulationPreview?.health));
+  stats.push(
+    getHealthStat(
+      actionSummary.actionPreview.health.riskEngineHealth,
+      isLoading,
+      actionSummary.simulationPreview?.health.riskEngineHealth
+    )
+  );
   if (hasBanks) {
     stats.push(
       getLeverageStat(
