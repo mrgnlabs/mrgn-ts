@@ -177,8 +177,8 @@ export function useEmodeLineConnections(
 
       // For straight lines (elements on the same row)
       if (pathType === "straight") {
-        // Keep horizontal lines perfectly straight
-        return `M ${x1},${y1} H ${x2}`;
+        // Use L for straight lines, no y2 offset (truly straight)
+        return `M ${x1},${y1} L ${x2},${y2}`;
       }
 
       // Calculate the horizontal distance
@@ -265,30 +265,6 @@ export function useEmodeLineConnections(
     []
   );
 
-  // Get color for a specific line
-  const getLineColor = useCallback((index: number, mergedOptions: LineConnectionOptions): LineColor => {
-    // If unique colors are disabled, use the default color
-    if (mergedOptions.useUniqueColors === false) {
-      return {
-        base: mergedOptions.color || defaultOptions.color || "",
-        pulse: mergedOptions.pulseColor || defaultOptions.pulseColor || "",
-      };
-    }
-
-    // Use provided colors array if available
-    const colorPalette = mergedOptions.colors || [
-      { base: "hsl(273.6 65.6% 32%)", pulse: "hsl(273.6 65.6% 42%)" },
-      { base: "hsl(263.5 67.4% 34.9%)", pulse: "hsl(263.5 67.4% 44.9%)" },
-      { base: "hsl(242.2 47.4% 34.3%)", pulse: "hsl(242.2 47.4% 44.3%)" },
-      { base: "hsl(224.4 64.3% 32.9%)", pulse: "hsl(224.4 64.3% 42.9%)" },
-      { base: "hsl(202 80.3% 23.9%)", pulse: "hsl(202 80.3% 23.9%)" },
-    ];
-
-    // Get color based on index, wrapping around if needed
-    const colorIndex = index % colorPalette.length;
-    return colorPalette[colorIndex];
-  }, []);
-
   // Component to render the SVG lines
   const LineConnectionSvg = useCallback(() => {
     const mergedOptions = { ...defaultOptions, ...options };
@@ -313,59 +289,100 @@ export function useEmodeLineConnections(
     return (
       <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-10" style={{ overflow: "visible" }}>
         <defs>
-          {colorPalette.map((color, i) => (
-            <filter key={i} id={`glow-${i}`} x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="2" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          ))}
+          {/* No blur filters */}
+          {/* Add tightly-mapped gradient for each pulse (length = pulseLength) */}
+          {lineCoordinates.map((coords, idx) => {
+            const pulseLength = 80;
+            // We'll use the direction of the path's start and end for x1/y1/x2/y2
+            // For simplicity, use the start and end points of the path
+            const { x1, y1, x2, y2 } = coords;
+            return (
+              <linearGradient
+                key={`gradient-${idx}`}
+                id={`gradient-${idx}`}
+                gradientUnits="userSpaceOnUse"
+                x1={x1}
+                y1={y1}
+                x2={x1 + (x2 - x1) * (pulseLength / Math.max(1, Math.abs(x2 - x1)))}
+                y2={y1 + (y2 - y1) * (pulseLength / Math.max(1, Math.abs(y2 - y1)))}
+              >
+                <stop offset="0%" stopColor="#fff" stopOpacity="1" />
+                <stop offset="30%" stopColor={colorPalette[idx % colorPalette.length].pulse} stopOpacity="1" />
+                <stop offset="100%" stopColor={colorPalette[idx % colorPalette.length].base} stopOpacity="0" />
+              </linearGradient>
+            );
+          })}
         </defs>
         {lineCoordinates.map((coords, idx) => {
           // Get color for this line
           const lineColor = colorPalette[idx % colorPalette.length];
           const highlighted = isLineHighlighted(idx);
-          const fadedOpacity = highlightedIndices == null ? 1 : highlighted ? 1 : 0.12;
+          const fadedOpacity = highlightedIndices == null ? 1 : highlighted ? 1 : 0.4;
           const pulseOpacity = highlightedIndices == null ? 1 : highlighted ? 1 : 0.18;
+          const pathString = getPathString(
+            coords,
+            mergedOptions.cornerRadius || 10,
+            lineSpacing || 30,
+            totalConnections,
+            numCurvedConnections
+          );
+          const pathLength = coords.pathLength || 1;
+          const pulseLength = Math.max(10, Math.min(60, pathLength * 0.8));
+          const gapLength = Math.max(1, pathLength - pulseLength);
+
+          // DEBUG: Log pathString and pathLength for each line
+          console.log(`Line ${idx}: pathString=`, pathString, "pathLength=", coords.pathLength);
+
           return (
             <g key={coords.index} style={{ zIndex: highlighted ? 2 : 1 }}>
               <path
-                d={getPathString(
-                  coords,
-                  mergedOptions.cornerRadius || 10,
-                  lineSpacing || 30,
-                  totalConnections,
-                  numCurvedConnections
-                )}
+                d={pathString}
                 stroke={lineColor.base}
-                strokeWidth={highlighted ? (mergedOptions.strokeWidth || 2) * 1.8 : mergedOptions.strokeWidth}
+                strokeWidth={highlighted ? mergedOptions.strokeWidth || 1.8 : mergedOptions.strokeWidth}
                 fill="none"
                 opacity={fadedOpacity}
                 style={{
                   transition: "opacity 0.5s cubic-bezier(0.4,0,0.2,1), stroke-width 0.3s cubic-bezier(0.4,0,0.2,1)",
                 }}
               />
-              {/* Animated pulse - always show, but faded if not highlighted */}
-              <circle
-                r="4"
-                fill={lineColor.pulse}
-                filter={`url(#glow-${coords.index % colorPalette.length})`}
-                opacity={pulseOpacity}
-                style={{ transition: "opacity 0.5s cubic-bezier(0.4,0,0.2,1)" }}
-              >
-                <animateMotion
-                  path={getPathString(
-                    coords,
-                    mergedOptions.cornerRadius || 10,
-                    lineSpacing || 30,
-                    totalConnections,
-                    numCurvedConnections
-                  )}
-                  dur={`${mergedOptions.pulseSpeed}s`}
-                  repeatCount="indefinite"
-                  rotate="auto"
-                />
-              </circle>
             </g>
+          );
+        })}
+        {/* Render all pulses above all static lines */}
+        {lineCoordinates.map((coords, idx) => {
+          const pathString = getPathString(
+            coords,
+            mergedOptions.cornerRadius || 10,
+            lineSpacing || 30,
+            totalConnections,
+            numCurvedConnections
+          );
+          const pathLength = coords.pathLength || 1;
+          const pulseLength = 20;
+          const gapLength = Math.max(1, pathLength - pulseLength);
+          const highlighted = isLineHighlighted(idx);
+          const pulseOpacity = highlightedIndices == null ? 0.5 : highlighted ? 0.5 : 0.1;
+          // Unified animated pulse rendering for all lines
+          return (
+            <path
+              key={"pulse-unified-" + coords.index}
+              d={pathString}
+              stroke="#fff"
+              strokeWidth={3}
+              fill="none"
+              opacity={pulseOpacity}
+              strokeDasharray={`${pulseLength} ${gapLength}`}
+              strokeDashoffset={pathLength}
+              style={{ transition: "opacity 0.5s cubic-bezier(0.4,0,0.2,1)" }}
+            >
+              <animate
+                attributeName="stroke-dashoffset"
+                from={pathLength}
+                to="0"
+                dur={`${mergedOptions.pulseSpeed}s`}
+                repeatCount="indefinite"
+              />
+            </path>
           );
         })}
       </svg>
