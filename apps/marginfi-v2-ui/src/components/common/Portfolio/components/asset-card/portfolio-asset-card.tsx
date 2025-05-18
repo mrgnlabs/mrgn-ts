@@ -212,16 +212,18 @@ export const PortfolioAssetCard = ({
                 <div className="flex justify-between items-center w-full">
                   <div className="flex items-center gap-3 font-medium text-lg">
                     {bank.meta.tokenSymbol}{" "}
-                    {isInLendingMode && bank.position.emodeActive ? (
-                      <div className="text-purple-300 text-xs flex items-center gap-1 lowercase">
-                        <IconBolt size={12} />
-                        {EmodeTag[bank.info.rawBank.emode.emodeTag]}
-                      </div>
-                    ) : !isInLendingMode && collateralBanks.length > 0 ? (
-                      <span className="text-purple-300 text-xs flex items-center gap-1 lowercase">
-                        <IconBolt size={12} />
-                        {EmodeTag[bank.info.rawBank.emode.emodeTag]}
-                      </span>
+                    {bank.position.emodeActive ? (
+                      isInLendingMode ? (
+                        <div className="text-purple-300 text-xs flex items-center gap-1 lowercase">
+                          <IconBolt size={12} />
+                          {EmodeTag[bank.info.rawBank.emode.emodeTag]}
+                        </div>
+                      ) : (
+                        <span className="text-purple-300 text-xs flex items-center gap-1 lowercase">
+                          <IconBolt size={12} />
+                          {EmodeTag[bank.info.rawBank.emode.emodeTag]}
+                        </span>
+                      )
                     ) : null}
                   </div>
                   <div className="font-medium text-lg text-right">
