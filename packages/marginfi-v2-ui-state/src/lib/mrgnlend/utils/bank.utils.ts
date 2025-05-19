@@ -662,7 +662,7 @@ function adjustBankWeightsWithEmodePairs(
 }
 
 function getBorrowImpact(newEmodePair?: EmodePair, activeEmodePairs?: EmodePair[]): EmodeImpact {
-  if (!newEmodePair || !activeEmodePairs?.length) {
+  if (!newEmodePair && !activeEmodePairs?.length) {
     return {
       assetWeightMaintChange: new BigNumber(0),
       assetWeightInitChange: new BigNumber(0),
@@ -670,11 +670,19 @@ function getBorrowImpact(newEmodePair?: EmodePair, activeEmodePairs?: EmodePair[
     };
   }
 
-  if (!newEmodePair && activeEmodePairs.length) {
+  if (!newEmodePair && activeEmodePairs?.length) {
     return {
       assetWeightMaintChange: new BigNumber(0),
       assetWeightInitChange: new BigNumber(0),
       impactStatus: EmodeImpactStatus.RemoveEmode,
+    };
+  }
+
+  if (!newEmodePair || !activeEmodePairs?.length) {
+    return {
+      assetWeightMaintChange: new BigNumber(0),
+      assetWeightInitChange: new BigNumber(0),
+      impactStatus: EmodeImpactStatus.InactiveEmode,
     };
   }
 
