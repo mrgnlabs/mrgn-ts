@@ -219,18 +219,22 @@ function makeExtendedBankInfo(
   tokenMetadata: TokenMetadata,
   bank: Bank,
   oraclePrice: OraclePrice,
-  emodePairs: EmodePair[],
   emissionTokenPrice?: TokenPrice,
   userData?: UserDataProps,
   overrideIcon?: boolean,
   stakePoolMetadata?: StakePoolMetadata,
   originalWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber },
-  userActiveEmodes?: EmodePair[]
+  availableEmodePairByBorrowBank?: Record<string, EmodePair>
 ): ExtendedBankInfo {
   function isUserDataRawProps(userData: UserDataWrappedProps | UserDataRawProps): userData is UserDataRawProps {
     return (
       (userData as UserDataRawProps).banks !== undefined && (userData as UserDataRawProps).oraclePrices !== undefined
     );
+  }
+
+  if (bank.tokenSymbol === "USDC") {
+    console.log("USDC", bank);
+    console.log("availableEmodePairByBorrowBank", availableEmodePairByBorrowBank?.[bank.address.toBase58()]);
   }
 
   // Aggregate user-agnostic bank info
@@ -279,24 +283,36 @@ function makeExtendedBankInfo(
 
   let maxDeposit = floor(Math.max(0, Math.min(walletBalance, depositCapacity)), bankInfo.mintDecimals);
 
+  const availableEmodePair = availableEmodePairByBorrowBank?.[bank.address.toBase58()];
+
   let maxBorrow = 0;
   if (userData.marginfiAccount) {
-    let availableEmodePairByBorrowBank = getPossibleBorrowBanksForEmodes(
-      userData.marginfiAccount,
-      emodePairs,
-      userActiveEmodes
-    );
     let borrowPower: number;
     if (isUserDataRawProps(userData)) {
       borrowPower = userData.marginfiAccount
         .computeMaxBorrowForBank(userData.banks, userData.oraclePrices, bank.address, {
           volatilityFactor: VOLATILITY_FACTOR,
-          availableEmodePairByBorrowBank,
+          emodeWeights: availableEmodePair
+            ? {
+                assetWeightMaint: availableEmodePair.assetWeightMaint,
+                assetWeightInit: availableEmodePair.assetWeightInt,
+                collateralTag: availableEmodePair.collateralBankTag,
+              }
+            : undefined,
         })
         .toNumber();
     } else {
       borrowPower = userData.marginfiAccount
-        .computeMaxBorrowForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR })
+        .computeMaxBorrowForBank(bank.address, {
+          volatilityFactor: VOLATILITY_FACTOR,
+          emodeWeights: availableEmodePair
+            ? {
+                assetWeightMaint: availableEmodePair.assetWeightMaint,
+                assetWeightInit: availableEmodePair.assetWeightInt,
+                collateralTag: availableEmodePair.collateralBankTag,
+              }
+            : undefined,
+        })
         .toNumber();
     }
 
@@ -647,12 +663,16 @@ function adjustBankWeightsWithEmodePairs(
  * @returns A map of bank publickeys to their corresponding emode pairs
  */
 function getPossibleBorrowBanksForEmodes(
-  marginfiAccount: MarginfiAccountWrapper | MarginfiAccount,
   emodePairs: EmodePair[],
+  marginfiAccount?: MarginfiAccountWrapper | MarginfiAccount | null,
   activeEmodePairs?: EmodePair[]
 ) {
   // Is emode active right now?
   const pairByLiabilityBank: Record<string, EmodePair> = {};
+
+  if (!marginfiAccount) {
+    return pairByLiabilityBank;
+  }
 
   if (!activeEmodePairs || !activeEmodePairs.length) {
     // Is there a borrow
@@ -920,4 +940,5 @@ export {
   adjustBankWeightsWithEmodePairs,
   groupCollateralBanksByLiabilityBank,
   groupLiabilityBanksByCollateralBank,
+  getPossibleBorrowBanksForEmodes,
 };

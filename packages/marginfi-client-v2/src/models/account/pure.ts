@@ -270,22 +270,39 @@ class MarginfiAccount implements MarginfiAccountType {
     bankAddress: PublicKey,
     opts?: {
       volatilityFactor?: number;
-      availableEmodePairByBorrowBank?: Record<
-        string,
-        {
-          collateralBanks: PublicKey[];
-          collateralBankTag: EmodeTag;
-          liabilityBank: PublicKey;
-          liabilityBankTag: EmodeTag;
-          assetWeightMaint: BigNumber;
-          assetWeightInt: BigNumber;
-        }
-      >;
+      emodeWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber; collateralTag: EmodeTag };
     }
   ): BigNumber {
     const debug = require("debug")("mfi:computeMaxBorrowForBank");
     const bank = banks.get(bankAddress.toBase58());
+
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+
+    if (opts?.emodeWeights) {
+      const emodeWeights = opts.emodeWeights; // Create a local reference to avoid null checks
+      const collateralTag = emodeWeights.collateralTag;
+      const modifiedBanks = new Map(banks);
+
+      // Go through each bank and update the ones with matching tag
+      banks.forEach((existingBank, bankKey) => {
+        // Only apply to banks with matching tag
+        if (existingBank.emode?.emodeTag === collateralTag) {
+          modifiedBanks.set(
+            bankKey,
+            Bank.withEmodeWeights(existingBank, {
+              assetWeightMaint: emodeWeights.assetWeightMaint,
+              assetWeightInit: emodeWeights.assetWeightInit,
+            })
+          );
+          // Only update if the provided weights are lower (more favorable)
+          // TODO come back to this
+        }
+      });
+
+      // Use the modified banks map for computation
+      banks = modifiedBanks;
+    }
+
     const priceInfo = oraclePrices.get(bankAddress.toBase58());
     if (!priceInfo) throw Error(`Price info for ${bankAddress.toBase58()} not found`);
 

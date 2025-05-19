@@ -243,6 +243,18 @@ class Bank implements BankType {
     );
   }
 
+  static withEmodeWeights(bank: Bank, emodeWeights: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }): Bank {
+    const newBank = Object.create(Bank.prototype);
+
+    Object.assign(newBank, bank);
+
+    newBank.config = Object.assign({}, bank.config);
+    newBank.config.assetWeightInit = emodeWeights.assetWeightInit;
+    newBank.config.assetWeightMaint = emodeWeights.assetWeightMaint;
+
+    return newBank;
+  }
+
   getTotalAssetQuantity(): BigNumber {
     return this.totalAssetShares.times(this.assetShareValue);
   }

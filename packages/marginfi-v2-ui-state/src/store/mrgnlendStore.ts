@@ -38,6 +38,7 @@ import {
   adjustBankWeightsWithEmodePairs,
   groupCollateralBanksByLiabilityBank,
   groupLiabilityBanksByCollateralBank,
+  getPossibleBorrowBanksForEmodes,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -354,6 +355,14 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const mev = await getStakePoolMev(connection, validatorVoteAccounts);
       const validatorRates = await getValidatorRates(validatorVoteAccounts);
 
+      let availableEmodePairByBorrowBank = getPossibleBorrowBanksForEmodes(
+        emodePairs,
+        selectedAccount,
+        userActiveEmodes
+      );
+
+      console.log("availableEmodePairByBorrowBank", availableEmodePairByBorrowBank);
+
       let [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
         (acc, { bank, oraclePrice, tokenMetadata }) => {
           const emissionTokenPriceData = priceMap[bank.emissionsMint.toBase58()];
@@ -394,13 +403,12 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
               tokenMetadata,
               bank,
               oraclePrice,
-              emodePairs,
               emissionTokenPriceData,
               userData,
               false,
               stakedAssetMetadata,
               bankWeightsPreEmode?.[bank.address.toBase58()],
-              userActiveEmodes
+              availableEmodePairByBorrowBank
             )
           );
           acc[1].push(makeExtendedBankMetadata(bank, tokenMetadata, false, stakedAssetMetadata));

@@ -67,6 +67,7 @@ import {
   makeWrapSolIxs,
   MarginfiAccountRaw,
   createHealthPulseTx,
+  EmodeTag,
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType } from "./pure";
@@ -267,7 +268,13 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.computeAccountValue(this.client.banks, this.client.oraclePrices);
   }
 
-  public computeMaxBorrowForBank(bankAddress: PublicKey, opts?: { volatilityFactor?: number }): BigNumber {
+  public computeMaxBorrowForBank(
+    bankAddress: PublicKey,
+    opts?: {
+      volatilityFactor?: number;
+      emodeWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber; collateralTag: EmodeTag };
+    }
+  ): BigNumber {
     return this._marginfiAccount.computeMaxBorrowForBank(
       this.client.banks,
       this.client.oraclePrices,
