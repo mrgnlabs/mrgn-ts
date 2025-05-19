@@ -318,38 +318,46 @@ export const PortfolioAssetCard = ({
                   </dd>
                 </>
               )}
-              <dt className="text-muted-foreground">Weight</dt>
-              <dd className="text-right text-white">
-                {bank.position || collateralBanks.length > 0 ? (
-                  <div className={cn("flex items-center justify-end gap-1", isEmodeActive && "text-purple-300")}>
-                    {!isInLendingMode && collateralBanks.length > 0 && (
-                      <ul className="flex items-center gap-1">
-                        {collateralBanks.map((bank) => (
-                          <li key={bank.collateralBank.address.toBase58()}>
-                            <Image
-                              src={bank.collateralBank.meta.tokenLogoUri}
-                              className="rounded-full"
-                              alt={bank.collateralBank.meta.tokenSymbol}
-                              height={16}
-                              width={16}
-                            />
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {isEmodeActive && <IconBolt size={12} className="translate-y-px" />}
-                    {isInLendingMode && isEmodeActive ? (
-                      <EmodeDiff assetWeight={assetWeight} originalAssetWeight={originalAssetWeight} />
+              {isEmodeActive && (
+                <>
+                  <dt className={cn("text-muted-foreground", !isInLendingMode && "text-purple-300")}>
+                    {isInLendingMode ? (
+                      "Weight"
                     ) : (
-                      percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })
+                      <div className="flex items-center gap-1">
+                        <IconBolt size={14} /> e-mode boost
+                      </div>
                     )}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-end gap-1">
-                    {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}
-                  </div>
-                )}
-              </dd>
+                  </dt>
+                  <dd className="text-right text-white">
+                    {bank.position || collateralBanks.length > 0 ? (
+                      <div className={cn("flex items-center justify-end gap-1", isEmodeActive && "text-purple-300")}>
+                        {!isInLendingMode && collateralBanks.length > 0 && (
+                          <ul className="flex items-center gap-1">
+                            {collateralBanks.map((bank) => (
+                              <li key={bank.collateralBank.address.toBase58()}>
+                                <Image
+                                  src={bank.collateralBank.meta.tokenLogoUri}
+                                  className="rounded-full"
+                                  alt={bank.collateralBank.meta.tokenSymbol}
+                                  height={16}
+                                  width={16}
+                                />
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        {isInLendingMode && isEmodeActive && (
+                          <>
+                            <IconBolt size={12} className="translate-y-px" />
+                            <EmodeDiff assetWeight={assetWeight} originalAssetWeight={originalAssetWeight} />
+                          </>
+                        )}
+                      </div>
+                    ) : null}
+                  </dd>
+                </>
+              )}
               <dt className="text-muted-foreground">Value</dt>
               <dd className="text-right text-white">
                 {bank.position.amount > 1000
