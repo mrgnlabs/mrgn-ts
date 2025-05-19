@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@mrgnlabs/mrgn-ui/src/components/ui/dialog";
 import { useEffect, useState } from "react";
 import { useAppStore } from "../../../../store";
-import { ComputerSystemCallRequest } from "@mrgnlabs/mrgn-utils";
+import { ComputerSystemCallRequest } from "@mrgnlabs/mrgn-common";
 import { QrCode } from "../../../../components/common/QrCode/QrCode";
 
 interface MixinModalProps {

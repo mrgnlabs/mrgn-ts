@@ -14,7 +14,7 @@ import {
 
 import { ExtendedBankInfo, AccountSummary, TokenAccountMap, TokenAccount } from "../types";
 import { getStakeAccountsCached } from "./staked-collateral.utils";
-import { UserAssetBalance } from "@mrgnlabs/mrgn-utils";
+import { UserAssetBalance } from "@mrgnlabs/mrgn-common";
 
 function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: ExtendedBankInfo[]): AccountSummary {
   const equityComponents = marginfiAccount.computeHealthComponents(MarginRequirementType.Equity);

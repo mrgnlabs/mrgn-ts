@@ -151,6 +151,12 @@ export function composeExplorerUrl(signature?: string): string | undefined {
     : `https://solscan.io/tx/${signature}`;
 }
 
+export function composeMixinUrl(tx?: string): string | undefined {
+  if (!tx) return undefined;
+
+  return `https://computer.mixin.dev/system_calls/${tx}`;
+}
+
 export async function logActivity(
   type: string,
   txn: string,

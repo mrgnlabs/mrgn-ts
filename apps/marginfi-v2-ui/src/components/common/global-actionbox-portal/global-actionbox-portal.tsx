@@ -2,8 +2,7 @@
 
 import React from "react";
 import * as RadixPortal from "@radix-ui/react-portal";
-import { ActionBox } from "@mrgnlabs/mrgn-ui";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { useMrgnlendStore, useUiStore } from "~/store";
 

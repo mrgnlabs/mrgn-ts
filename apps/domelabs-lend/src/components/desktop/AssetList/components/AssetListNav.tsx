@@ -67,9 +67,9 @@ const AssetListNav = () => {
           <ToggleGroupItem value="isolated" aria-label="Toggle isolated">
             Isolated
           </ToggleGroupItem>
-          <ToggleGroupItem value="native_stake" aria-label="Toggle staked" className="relative">
+          {/* <ToggleGroupItem value="native_stake" aria-label="Toggle staked" className="relative">
             Native Stake
-          </ToggleGroupItem>
+          </ToggleGroupItem> */}
         </ToggleGroup>
         <div className="flex items-center gap-3 ml-10">
           <Label
@@ -162,7 +162,7 @@ const AssetListNav = () => {
           <SelectContent>
             <SelectItem value={TokenFilters.ALL}>All tokens</SelectItem>
             <SelectItem value={TokenFilters.STABLE}>Stablecoins</SelectItem>
-            <SelectItem value={TokenFilters.LST}>SOL / LST</SelectItem>
+            {/* <SelectItem value={TokenFilters.LST}>SOL / LST</SelectItem> */}
             <SelectItem value={TokenFilters.MEME}>Memes</SelectItem>
           </SelectContent>
         </Select>

@@ -49,7 +49,10 @@ interface RequiredLoopBoxProps
   extends Pick<LoopBoxProps, "onComplete" | "captureEvent" | "requestedBank" | "connected"> {}
 
 interface RequiredStakeBoxProps
-  extends Pick<StakeBoxProps, "captureEvent" | "onConnect" | "connected" | "requestedActionType" | "onComplete"> {}
+  extends Pick<
+    StakeBoxProps,
+    "captureEvent" | "onConnect" | "connected" | "requestedActionType" | "onComplete" | "requestedBank"
+  > {}
 
 interface RequiredDepositSwapBoxProps
   extends Pick<

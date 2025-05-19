@@ -37,7 +37,8 @@ export const ActionButton = ({
   }, [loaderType]);
 
   if (!connected) {
-    return <WalletButton className="w-full py-5" showWalletInfo={false} />;
+    return <></>;
+    // return <WalletButton className="w-full py-5" showWalletInfo={false} />;
   }
 
   return (

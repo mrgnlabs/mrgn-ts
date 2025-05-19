@@ -3,6 +3,7 @@ import { PublicKey } from "@solana/web3.js";
 import { ActionType, ExtendedBankInfo, ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionMessageType, ActionTxns } from "@mrgnlabs/mrgn-utils";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { ComputerSystemCallRequest } from "@mrgnlabs/mrgn-common";
 
 interface LendBoxState {
   // State
@@ -22,6 +23,8 @@ interface LendBoxState {
 
   errorMessage: ActionMessageType | null;
 
+  computerSystemCallRequest: ComputerSystemCallRequest[] | null;
+
   // Actions
   refreshState: (actionMode?: ActionType) => void;
   refreshSelectedBanks: (banks: ExtendedBankInfo[]) => void;
@@ -34,6 +37,7 @@ interface LendBoxState {
   setErrorMessage: (errorMessage: ActionMessageType | null) => void;
   setStakeAccounts: (stakeAccounts: ValidatorStakeGroup[]) => void;
   setSelectedStakeAccount: (stakeAccount: { address: PublicKey; balance: number } | null) => void;
+  setComputerSystemCallRequest: (computerSystemCallRequest: ComputerSystemCallRequest[] | null) => void;
 }
 
 function createLendBoxStore() {
@@ -49,6 +53,7 @@ const initialState = {
   errorMessage: null,
   selectedStakeAccount: null,
   stakeAccounts: [],
+  computerSystemCallRequest: [],
 };
 
 const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
@@ -173,6 +178,10 @@ const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
 
   setSelectedStakeAccount(stakeAccount) {
     set({ selectedStakeAccount: stakeAccount });
+  },
+
+  setComputerSystemCallRequest(computerSystemCallRequest) {
+    set({ computerSystemCallRequest });
   },
 });
 

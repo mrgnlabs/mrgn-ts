@@ -28,7 +28,7 @@ function useComputer() {
       5 * 60 * 1000
     );
     return () => window.clearInterval(id);
-  }, [user, account]);
+  }, [user, account, getComputerInfo, getComputerAssets, getComputerAccount]);
 
   useEffect(() => {
     if (!publicKey) return;

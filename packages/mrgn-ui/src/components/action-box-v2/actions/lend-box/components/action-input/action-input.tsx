@@ -28,6 +28,8 @@ type ActionInputProps = {
 
   setAmountRaw: (amount: string) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
+
+  isMixin?: boolean;
 };
 
 export const ActionInput = ({
@@ -48,6 +50,7 @@ export const ActionInput = ({
   onCloseDialog,
   setAmountRaw,
   setSelectedBank,
+  isMixin,
 }: ActionInputProps) => {
   const amountInputRef = React.useRef<HTMLInputElement>(null);
   const isMobile = useIsMobile();
@@ -113,6 +116,7 @@ export const ActionInput = ({
             onCloseDialog={() => {
               selectedBank === null && onCloseDialog?.();
             }}
+            isMixin={isMixin}
           />
         </div>
         <div className="flex-auto flex flex-col gap-0 items-end">

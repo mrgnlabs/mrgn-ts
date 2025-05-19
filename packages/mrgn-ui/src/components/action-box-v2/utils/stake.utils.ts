@@ -37,13 +37,6 @@ export async function fetchLstData(connection: Connection) {
       projectedApy = calcYield(priceRange).apy;
     }
 
-    // commenting out until authorization for stakeview url is approved
-    // if (projectedApy < 0.08) {
-    //   // temporarily use baseline validator APY waiting for a few epochs to pass
-    //   const baselineValidatorData = apyData.validators.find((validator: any) => validator.id === BASELINE_VALIDATOR_ID);
-    //   if (baselineValidatorData) projectedApy = baselineValidatorData.apy;
-    // }
-
     return {
       poolAddress: new PublicKey(stakePoolInfo.address),
       tvl: totalLamports / 1e9,
@@ -52,8 +45,11 @@ export async function fetchLstData(connection: Connection) {
       solDepositFee,
       accountData: stakePool,
       validatorList: stakePoolInfo.validatorList.map((v) => new PublicKey(v.voteAccountAddress)),
+      validatorListKey: stakePoolInfo.validatorListStorageAccount,
+      stakeAccounts: stakePoolInfo.details.stakeAccounts,
       updateRequired: stakePoolInfo.details.updateRequired,
       lastUpdateEpoch: stakePoolInfo.lastUpdateEpoch,
+      poolWithdrawAuthority: stakePoolInfo.poolWithdrawAuthority,
     };
   } catch (error) {
     console.error("Error fetching LST data", error);

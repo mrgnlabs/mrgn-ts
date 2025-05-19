@@ -26,7 +26,7 @@ import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterD
 import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 
 import { useWalletStore } from "~/components/wallet-v2/store/wallet.store";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 
 import {
   WalletButton,
@@ -100,7 +100,7 @@ const Wallet = ({
 }: WalletProps) => {
   const router = useRouter();
   const [isWalletOpen, setIsWalletOpen] = useWalletStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
-  const { wallet, connected, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConncected, isLoading } = useWallet();
+  const { wallet, connected, logout, pfp, requestPrivateKey, web3AuthPk, web3AuthConnected, isLoading } = useWallet();
   const [walletData, setWalletData] = React.useState<{
     address: string;
     shortAddress: string;
@@ -214,32 +214,32 @@ const Wallet = ({
 
   return (
     <>
-      {!isLoading && !connected && <WalletButton />}
+      {!connected && <WalletButton />}
 
-      {!isLoading && connected && (
+      {connected && (
         <Sheet open={isWalletOpen} onOpenChange={(open) => setIsWalletOpen(open)}>
-          <SheetTrigger asChild disabled={!userDataFetched}>
-            {wallet?.publicKey && (
-              <button
-                disabled={!userDataFetched}
-                className="flex items-center gap-2 hover:bg-accent/50 transition-colors rounded-full py-1 sm:pr-3 sm:pl-1 text-sm text-muted-foreground font-normal shrink-0"
-              >
-                <WalletAvatar pfp={pfp} address={wallet?.publicKey.toBase58()} size="sm" />
-                {userDataFetched && wallet?.publicKey ? (
-                  <>
-                    <div className="flex flex-col items-start">
-                      {shortenAddress(wallet?.publicKey)}
-                      <div className="text-muted-foreground/70 text-xs">
-                        {accountLabels?.[selectedAccount?.address.toBase58() ?? "Account"]}
-                      </div>
-                    </div>
-                    <IconChevronDown size={16} className="sm:ml-4 ml-2" />
-                  </>
-                ) : (
-                  "Loading..."
-                )}
-              </button>
-            )}
+          <SheetTrigger asChild disabled={!userDataFetched || isLoading}>
+            <button
+              className="flex items-center gap-2 hover:bg-accent/50 transition-colors rounded-full py-1 sm:pr-3 sm:pl-1 text-sm text-muted-foreground font-normal shrink-0"
+              disabled={!userDataFetched || isLoading}
+            >
+              {wallet?.publicKey && <WalletAvatar pfp={pfp} address={wallet?.publicKey.toBase58()} size="sm" />}
+
+              {!userDataFetched || isLoading ? (
+                <div className="flex flex-col items-start">
+                  <span>Loading...</span>
+                </div>
+              ) : (
+                <div className="flex flex-col items-start">
+                  {shortenAddress(wallet?.publicKey)}
+                  <div className="text-muted-foreground/70 text-xs">
+                    {accountLabels?.[selectedAccount?.address.toBase58() ?? "Account"]}
+                  </div>
+                </div>
+              )}
+
+              {!isLoading && userDataFetched && <IconChevronDown size={16} className="sm:ml-4 ml-2" />}
+            </button>
           </SheetTrigger>
           <SheetContent className="outline-none z-[50] px-4 bg-background border-0 pt-2">
             <SheetHeader className="sr-only">
@@ -248,7 +248,7 @@ const Wallet = ({
             </SheetHeader>
             {walletData.address ? (
               <div className="max-h-full">
-                <header className="flex items-center gap-2 h-16 items-center justify-between px-2">
+                <header className="flex items-center gap-2 h-16  justify-between px-2">
                   <WalletAvatar pfp={pfp} address={walletData.address} size="md" className=" " />
 
                   {!headerComponent && mfiClient && marginfiAccounts && selectedAccount && (
@@ -273,7 +273,7 @@ const Wallet = ({
                   {headerComponent && headerComponent}
 
                   <div className="flex items-center md:gap-1">
-                    {web3AuthConncected && (
+                    {web3AuthConnected && (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -618,7 +618,7 @@ const Wallet = ({
         </Sheet>
       )}
 
-      {web3AuthConncected && <WalletPkDialog pk={web3AuthPk} />}
+      {web3AuthConnected && <WalletPkDialog pk={web3AuthPk} />}
     </>
   );
 };

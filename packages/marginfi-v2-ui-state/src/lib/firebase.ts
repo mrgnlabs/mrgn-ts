@@ -12,7 +12,7 @@ import { SigningMethod } from "../types";
 import { v4 as uuidv4 } from "uuid";
 import { BlockhashWithExpiryBlockHeight, Transaction } from "@solana/web3.js";
 import { createMemoInstruction } from "@mrgnlabs/mrgn-common";
-import { WalletContextState } from "@solana/wallet-adapter-react";
+// import { WalletContextState } from "@solana/wallet-adapter-react";
 import base58 from "bs58";
 import { object, string, optional, Infer } from "superstruct";
 // import { FIREBASE_CONFIG } from "../config";

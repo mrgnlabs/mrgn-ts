@@ -13,6 +13,7 @@ type UseActionAmountsProps = {
   selectedBank: ExtendedBankInfo | null;
   maxAmountCollateral?: number;
   selectedStakeAccount?: { address: PublicKey; balance: number };
+  isMixin?: boolean;
 };
 
 export function useActionAmounts({
@@ -22,6 +23,7 @@ export function useActionAmounts({
   actionMode,
   maxAmountCollateral,
   selectedStakeAccount,
+  isMixin,
 }: UseActionAmountsProps) {
   const amount = React.useMemo(() => {
     const strippedAmount = amountRaw.replace(/,/g, "");
@@ -40,7 +42,11 @@ export function useActionAmounts({
     }
 
     if (selectedBank?.info.state.mint?.equals(WSOL_MINT)) {
-      return selectedBank?.userInfo.tokenAccount.balance + nativeSolBalance;
+      if (isMixin) {
+        return nativeSolBalance;
+      } else {
+        return selectedBank?.userInfo.tokenAccount.balance + nativeSolBalance;
+      }
     }
 
     return selectedBank?.userInfo.tokenAccount.balance;
@@ -68,13 +74,14 @@ export function useActionAmounts({
         return selectedBank?.userInfo.maxDeposit ?? 0;
       case ActionType.MintLST:
         return selectedBank?.userInfo.maxDeposit ?? 0;
+      case ActionType.InstantUnstakeLST:
+        return selectedBank?.userInfo.maxDeposit ?? 0;
       case ActionType.UnstakeLST:
         return selectedBank?.userInfo.maxDeposit ?? 0;
       default:
         return 0;
     }
   }, [selectedBank, actionMode, maxAmountCollateral, selectedStakeAccount]);
-
   return {
     amount,
     debouncedAmount,

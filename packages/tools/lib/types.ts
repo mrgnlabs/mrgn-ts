@@ -1,4 +1,5 @@
 export type Environment = "production" | "staging";
+import * as admin from "firebase-admin";
 
 export interface Config {
   PROGRAM_ID: string;
@@ -33,4 +34,20 @@ export type BirdeyePriceResponse = {
       updateHumanTime: string;
     };
   };
+};
+
+export type ActivityDetails = {
+  amount?: string;
+  symbol?: string;
+  secondaryAmount?: string;
+  secondarySymbol?: string;
+};
+
+export type Activity = {
+  id: string;
+  type: string;
+  details: ActivityDetails;
+  account?: string;
+  timestamp: admin.firestore.Timestamp;
+  txn: string;
 };

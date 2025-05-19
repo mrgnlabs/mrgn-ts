@@ -6,12 +6,13 @@ import {
   ComputerAssetResponse,
   ComputerInfoResponse,
   ComputerUserResponse,
-} from "@mrgnlabs/mrgn-utils";
-import { add, initComputerClient } from "../utils";
-import { SOL_ASSET_ID } from "../utils/constants";
+  initComputerClient,
+  SOL_ASSET_ID,
+  add,
+  NATIVE_MINT,
+} from "@mrgnlabs/mrgn-common";
 import { create, StateCreator } from "zustand";
 import { persist, PersistOptions } from "zustand/middleware";
-import { NATIVE_MINT } from "@mrgnlabs/mrgn-common";
 
 export type MixinClient = ReturnType<typeof MixinApi>;
 
@@ -156,10 +157,7 @@ const createAppStore = () => {
             },
             {} as Record<string, UserAssetBalance>
           );
-          // for (const key in fbm) {
-          //   console.log("key: ", key);
-          //   console.log("fbm[key]: ", fbm[key]);
-          // }
+          
           const bs = Object.values(fbm).filter((b) => b.address);
           // const am = Object.fromEntries(bs.map((b) => [b.address, b])) as Record<string, UserAssetBalance>;
           // 转换地址
@@ -168,12 +166,6 @@ const createAppStore = () => {
             address: b.address === "11111111111111111111111111111111" ? NATIVE_MINT.toBase58() : b.address,
           }));
           const am = Object.fromEntries(convertedBs.map((b) => [b.address, b])) as Record<string, UserAssetBalance>;
-          for (const key in am) {
-            if (key === NATIVE_MINT.toBase58()) {
-              console.log("key: ", key);
-              console.log("am[key]: ", am[key]);
-            }
-          }
 
           set({ balances: fbm, balanceAddressMap: am });
         },

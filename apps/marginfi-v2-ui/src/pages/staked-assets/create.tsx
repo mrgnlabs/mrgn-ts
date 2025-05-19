@@ -14,11 +14,11 @@ import {
   validateAssetSymbol,
 } from "@mrgnlabs/mrgn-utils";
 import { MarginfiClient, vendor } from "@mrgnlabs/marginfi-client-v2";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
 import { useWindowSize } from "@uidotdev/usehooks";
 import Confetti from "react-confetti";
 
 import { PageHeading } from "~/components/common/PageHeading";
-import { useWallet } from "~/components/wallet-v2/hooks";
 import { useConnection } from "~/hooks/use-connection";
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { CreateStakedPoolDialog, CreateStakedPoolForm } from "~/components/common/create-staked-pool";

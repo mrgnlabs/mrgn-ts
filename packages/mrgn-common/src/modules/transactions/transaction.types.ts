@@ -1,4 +1,11 @@
 import { VersionedTransaction, Transaction, Signer, AddressLookupTableAccount, PublicKey } from "@solana/web3.js";
+// import {
+//   MARGINFI_ACCOUNT_INITIALIZE_RENT_SIZES,
+//   MARGINFI_ACCOUNT_DEPOSIT_RENT_SIZES,
+//   MARGINFI_ACCOUNT_WITHDRAW_RENT_SIZES,
+//   MARGINFI_ACCOUNT_REPAY_RENT_SIZES,
+//   MARGINFI_ACCOUNT_BORROW_RENT_SIZES,
+// } from "../../constants";
 
 export enum TransactionType {
   // BASE LENDING ACTIONS
@@ -40,6 +47,7 @@ export enum TransactionType {
   MINT_LST_NATIVE = "MINT_LST_NATIVE",
   SWAP_TO_SOL = "SWAP_TO_SOL",
   SOL_TO_LST = "SOL_TO_LST",
+  UNSTAKE_LST = "UNSTAKE_LST",
 
   // EMISSIONS
   WITHDRAW_EMISSIONS = "WITHDRAW_EMISSIONS",
@@ -52,6 +60,90 @@ export enum TransactionType {
   CREATE_GROUP = "CREATE_GROUP",
   JUPITER_SWAP = "JUPITER_SWAP",
 }
+
+// interface TransactionRent {
+//   rents: number[];
+// }
+
+// export const TransactionRentMap: Record<TransactionType, TransactionRent> = {
+//   [TransactionType.CREATE_ACCOUNT]: { rents: MARGINFI_ACCOUNT_INITIALIZE_RENT_SIZES },
+//   [TransactionType.DEPOSIT]: {
+//     rents: MARGINFI_ACCOUNT_DEPOSIT_RENT_SIZES,
+//   },
+//   [TransactionType.WITHDRAW]: {
+//     rents: MARGINFI_ACCOUNT_WITHDRAW_RENT_SIZES,
+//   },
+//   [TransactionType.REPAY]: {
+//     rents: MARGINFI_ACCOUNT_REPAY_RENT_SIZES,
+//   },
+//   [TransactionType.BORROW]: {
+//     rents: MARGINFI_ACCOUNT_BORROW_RENT_SIZES,
+//   },
+//   [TransactionType.FLASHLOAN]: {
+//     rents: [165],
+//   },
+//   [TransactionType.LOOP]: {
+//     rents: [165],
+//   },
+//   [TransactionType.REPAY_COLLAT]: {
+//     rents: [165],
+//   },
+//   [TransactionType.LONG]: {
+//     rents: [165],
+//   },
+//   [TransactionType.SHORT]: {
+//     rents: [165],
+//   },
+//   [TransactionType.CLOSE_POSITION]: {
+//     rents: [165],
+//   },
+//   [TransactionType.MOVE_POSITION_WITHDRAW]: {
+//     rents: [165],
+//   },
+//   [TransactionType.MOVE_POSITION_DEPOSIT]: {
+//     rents: [165],
+//   },
+//   [TransactionType.WITHDRAW_ALL]: {
+//     rents: [165],
+//   },
+//   [TransactionType.WITHDRAW_STAKE]: {
+//     rents: [165],
+//   },
+//   [TransactionType.INITIALIZE_STAKED_POOL]: {
+//     rents: [165],
+//   },
+//   [TransactionType.ADD_STAKED_BANK]: {
+//     rents: [165],
+//   },
+//   [TransactionType.STAKE_TO_STAKE]: {
+//     rents: [165],
+//   },
+//   [TransactionType.MINT_LST_NATIVE]: {
+//     rents: [165],
+//   },
+//   [TransactionType.UNSTAKE_LST]: {
+//     rents: [165],
+//   },
+//   [TransactionType.WITHDRAW_EMISSIONS]: {
+//     rents: [165],
+//   },
+//   [TransactionType.LIQUIDATE_ACCOUNT]: {
+//     rents: [165],
+//   },
+//   [TransactionType.CREATE_PERM_BANK]: {
+//     rents: [165],
+//   },
+//   [TransactionType.JUPITER_SWAP]: { rents: [165] },
+//   [TransactionType.CREATE_ATA]: { rents: [165] },
+//   [TransactionType.CLOSE_ACCOUNT]: { rents: [165] },
+//   [TransactionType.TRANSFER_AUTH]: { rents: [165] },
+//   [TransactionType.CRANK]: { rents: [165] },
+//   [TransactionType.DEPOSIT_STAKE]: { rents: [165] },
+//   [TransactionType.SWAP_TO_SOL]: { rents: [165] },
+//   [TransactionType.SOL_TO_LST]: { rents: [165] },
+//   [TransactionType.CREATE_GROUP]: { rents: [165] },
+// };
+
 interface TransactionConfig {
   label: (infoProps?: Record<string, any>) => string; // Always a function
   fallback?: string; // Only for dynamic messages
@@ -143,7 +235,7 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
   [TransactionType.SOL_TO_LST]: {
     label: ({ amount } = {}) => (amount ? `Mint LST with ${amount} SOL` : "Mint LST with SOL"),
   },
-
+  [TransactionType.UNSTAKE_LST]: { label: ({ amount } = {}) => (amount ? `Unstake ${amount} LST` : "Unstake LST") },
   // EMISSIONS
   [TransactionType.WITHDRAW_EMISSIONS]: { label: () => "Withdraw emissions" },
 

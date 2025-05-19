@@ -4,6 +4,6 @@
     "resolveJsonModule": true,
     "outDir": "dist"
   },
-  "include": [".", "src/constants/constants.ts"],
+  "include": [".", "src/constants/computer.consts.ts"],
   "exclude": ["dist", "node_modules", "*.spec.ts"]
 }

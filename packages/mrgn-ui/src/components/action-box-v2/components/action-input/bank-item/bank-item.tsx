@@ -20,6 +20,7 @@ type BankItemProps = {
   isRepay?: boolean;
   available?: boolean;
   showStakedAssetLabel?: boolean;
+  isMixin?: boolean;
 };
 
 export const BankItem = ({
@@ -32,9 +33,13 @@ export const BankItem = ({
   isRepay,
   available = true,
   showStakedAssetLabel = false,
+  isMixin,
 }: BankItemProps) => {
   const balance = React.useMemo(() => {
     const isWSOL = bank.info.state.mint?.equals ? bank.info.state.mint.equals(WSOL_MINT) : false;
+    if (isMixin) {
+      return isWSOL ? nativeSolBalance : bank.userInfo.tokenAccount.balance;
+    }
 
     return isWSOL ? bank.userInfo.tokenAccount.balance + nativeSolBalance : bank.userInfo.tokenAccount.balance;
   }, [bank, nativeSolBalance]);
@@ -46,7 +51,7 @@ export const BankItem = ({
   const balancePrice = React.useMemo(() => {
     const isStakedWithPythPush = bank.info.rawBank.config.oracleSetup === OracleSetup.StakedWithPythPush;
 
-    const price = isStakedWithPythPush ? solPrice ?? 0 : bank.info.state.price;
+    const price = isStakedWithPythPush ? (solPrice ?? 0) : bank.info.state.price;
     return price * balance > 0.000001
       ? usdFormatter.format(price * balance)
       : `$${(balance * bank.info.state.price).toExponential(2)}`;

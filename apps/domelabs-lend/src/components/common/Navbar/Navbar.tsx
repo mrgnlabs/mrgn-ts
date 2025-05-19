@@ -14,6 +14,9 @@ import {
   IconChevronDown,
   IconChevronRightPipe,
   IconChevronRight,
+  IconLogout,
+  IconKey,
+  IconInfoCircleFilled,
 } from "@tabler/icons-react";
 import { Button } from "~/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
@@ -24,6 +27,16 @@ import { Drawer, DrawerPortal, DrawerContent, DrawerTrigger, DrawerOverlay, Draw
 import { LoginModal } from "../MixinWallet";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { useConnection } from "~/hooks/use-connection";
+import {
+  Sheet,
+  SheetPortal,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "~/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
@@ -72,6 +85,9 @@ export const Navbar: FC = () => {
 
   const isLoggedIn = !!user;
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isWalletOpen, setIsWalletOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("assets");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleAvatarClick = () => {
     if (!isLoggedIn) {
@@ -84,11 +100,47 @@ export const Navbar: FC = () => {
     return;
   };
 
+  const filteredBalances = Object.values(balances).filter(
+    (balance) =>
+      balance.asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      balance.asset.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getAssetUsdValue = (balance: any) => {
+    return Number(balance.total_amount) * (Number(balance.asset.price_usd) || 0);
+  };
+
+  const sortedBalances = [...filteredBalances].sort((a, b) => {
+    const aUsdValue = getAssetUsdValue(a);
+    const bUsdValue = getAssetUsdValue(b);
+
+    return bUsdValue - aUsdValue;
+  });
+
+  const totalBalance = Object.values(balances).reduce(
+    (acc, balance) => acc + Number(balance.total_amount) * (Number(balance.asset.price_usd) || 0),
+    0
+  );
+
   return (
     <header className="h-[64px] mb-4 md:mb-8 lg:mb-14">
       <nav className="fixed w-full top-0 h-[64px] z-50 bg-background">
         <div className="w-full flex justify-between items-center h-16 text-sm font-[500] text-[#868E95] z-10 border-b-[0.5px] border-[#1C2125] px-4">
           <div className="h-full w-1/2 z-10 flex items-center gap-8">
+            {!isLoggedIn && (
+              <>
+                <Button
+                  variant="default"
+                  size="default"
+                  className="flex items-center gap-2 bg-accent hover:bg-accent/70 text-secondary-foreground transition-all rounded-full py-2 px-6 text-sm font-medium"
+                  aria-label="Login"
+                  onClick={handleAvatarClick}
+                >
+                  {/* <IconUserCircle size={20} className="text-primary-foreground" stroke={1.5} /> */}
+                  Connect Wallet
+                </Button>
+              </>
+            )}
             {/* <Link
               href="/"
               className="h-[35.025px] w-[31.0125px] min-h-[35.025px] min-w-[31.0125px] flex justify-center items-center text-white"
@@ -97,9 +149,9 @@ export const Navbar: FC = () => {
             </Link> */}
 
             <div className="flex items-center md:pl-12">
-              {isLoggedIn ? (
-                <Drawer direction="left">
-                  <DrawerTrigger asChild>
+              {isLoggedIn && (
+                <Sheet open={isWalletOpen} onOpenChange={setIsWalletOpen}>
+                  <SheetTrigger asChild>
                     <Button
                       variant="ghost"
                       className="flex items-center h-full gap-3 bg-accent/50 hover:bg-accent/80 transition-all rounded-full py-2 px-4 text-sm text-muted-foreground font-normal shrink-0"
@@ -122,77 +174,89 @@ export const Navbar: FC = () => {
                       </div>
                       <IconChevronDown size={16} className="ml-2" />
                     </Button>
-                  </DrawerTrigger>
-                  <DrawerPortal>
-                    <DrawerOverlay className="fixed inset-0 z-50 bg-black/80" />
-                    <DrawerContent className="fixed bottom-0 max-w-md h-screen">
-                      <div className="flex h-full w-full flex-col">
-                        <div className="flex items-center justify-between p-4">
-                          <DrawerClose asChild>
-                            <Button variant="outline" size="icon" className="hover:bg-transparent rounded-full">
-                              <IconX className="h-6 w-6" />
-                            </Button>
-                          </DrawerClose>
-                        </div>
-                        <div className="flex-1 min-h-0 space-y-6 overflow-y-auto px-4">
+                  </SheetTrigger>
+
+                  <SheetContent side="left" className="w-full h-full">
+                    <div className="flex items-center justify-between mb-6">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full hover:bg-accent/50 transition-all"
+                        onClick={() => setIsWalletOpen(false)}
+                      >
+                        <IconX className="h-5 w-5" />
+                      </Button>
+                      <SheetHeader>
+                        <SheetTitle>钱包</SheetTitle>
+                        <SheetDescription>管理你的资产和设置</SheetDescription>
+                      </SheetHeader>
+                      <div className="w-8" />
+                    </div>
+
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="assets">资产</TabsTrigger>
+                        <TabsTrigger value="settings">设置</TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="assets" className="mt-6">
+                        <div className="space-y-4">
                           <div className="text-center">
-                            <h2 className="text-xl font-medium">管理账户</h2>
-                            <div className="mt-2 inline-block px-4 py-1 rounded-full text-sm">
-                              {user.full_name || "账户 1"}
-                            </div>
+                            <h3 className="text-2xl font-bold">资产概览</h3>
+                            <p className="text-muted-foreground mt-2">总资产: ${totalBalance.toFixed(2)}</p>
                           </div>
 
-                          <div className="space-y-4">
-                            <h3 className="text-lg font-medium">资产概览</h3>
-                            <div className="space-y-2">
-                              {Object.values(balances).map((balance) => (
-                                <div
-                                  key={balance.asset.symbol}
-                                  className="flex items-center justify-between p-4 bg-background-gray rounded-lg"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <Avatar>
-                                      <AvatarImage src={balance.asset.icon_url} />
-                                      <AvatarFallback>
-                                        <IconUserCircle
-                                          size={24}
-                                          className="text-nav-light-text dark:text-nav-dark-text"
-                                        />
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <span>{balance.asset.name}</span>
+                          <div className="space-y-2 h-[calc(100vh-280px)] overflow-y-auto pr-2">
+                            {sortedBalances.map((balance) => (
+                              <div
+                                key={balance.asset.symbol}
+                                className="flex items-center justify-between p-4 bg-accent/50 rounded-lg hover:bg-accent/70 transition-colors"
+                              >
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                  <Avatar className="h-8 w-8 shrink-0">
+                                    <AvatarImage src={balance.asset.icon_url} />
+                                    <AvatarFallback>{balance.asset.symbol[0]}</AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex flex-col min-w-0">
+                                    <span className="font-medium truncate max-w-[150px]" title={balance.asset.name}>
+                                      {balance.asset.name}
+                                    </span>
+                                    <span
+                                      className="text-sm text-muted-foreground truncate max-w-[150px]"
+                                      title={balance.asset.symbol}
+                                    >
+                                      {balance.asset.symbol}
+                                    </span>
                                   </div>
-                                  <span>{balance.total_amount}</span>
                                 </div>
-                              ))}
-                            </div>
+                                <div className="text-right shrink-0">
+                                  <div className="font-medium truncate max-w-[120px]" title={balance.total_amount}>
+                                    {balance.total_amount}
+                                  </div>
+                                  <div
+                                    className="text-sm text-muted-foreground truncate max-w-[120px]"
+                                    title={`≈ $${getAssetUsdValue(balance).toFixed(2)}`}
+                                  >
+                                    ≈ ${getAssetUsdValue(balance).toFixed(2)}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
+                      </TabsContent>
 
-                        <div className="mt-auto p-4">
-                          <Button
-                            variant="outline"
-                            className="w-full rounded-full mb-4 hover:bg-destructive hover:text-destructive-foreground transition-all"
-                            onClick={handleLogout}
-                          >
+                      <TabsContent value="settings">
+                        <div className="mt-6 space-y-4">
+                          <Button variant="outline" className="w-full justify-between" onClick={handleLogout}>
                             断开连接
+                            <IconLogout size={18} />
                           </Button>
                         </div>
-                      </div>
-                    </DrawerContent>
-                  </DrawerPortal>
-                </Drawer>
-              ) : (
-                <Button
-                  variant="default"
-                  size="default"
-                  className="flex items-center gap-2 bg-accent hover:bg-accent/70 text-secondary-foreground transition-all rounded-full py-2 px-6 text-sm font-medium"
-                  aria-label="Login"
-                  onClick={handleAvatarClick}
-                >
-                  {/* <IconUserCircle size={20} className="text-primary-foreground" stroke={1.5} /> */}
-                  Connect Wallet
-                </Button>
+                      </TabsContent>
+                    </Tabs>
+                  </SheetContent>
+                </Sheet>
               )}
             </div>
 
@@ -261,6 +325,10 @@ export const Navbar: FC = () => {
               <Button
                 variant="ghost"
                 size="icon"
+                onClick={() => {
+                  console.log("globalActionBoxProps", globalActionBoxProps);
+                  setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: !globalActionBoxProps.isOpen });
+                }}
                 className="w-10 h-10 shrink-0 flex lg:hidden rounded-full hover:bg-accent/50 transition-all"
               >
                 <IconSearch size={20} className="text-muted-foreground" />
@@ -269,7 +337,8 @@ export const Navbar: FC = () => {
               <Button
                 variant="ghost"
                 onClick={() => {
-                  // setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: !globalActionBoxProps.isOpen });
+                  console.log("globalActionBoxProps", globalActionBoxProps);
+                  setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: !globalActionBoxProps.isOpen });
                 }}
                 className="hidden lg:flex items-center justify-between w-56 h-10 px-4 rounded-full bg-accent/50 hover:bg-accent/80 text-muted-foreground transition-all"
               >

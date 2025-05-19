@@ -18,7 +18,7 @@ import {
 } from "@mrgnlabs/mrgn-utils";
 
 import { useActionAmounts } from "~/components/action-box-v2/hooks";
-import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { WalletContextStateOverride } from "~/components/wallet-v2";
 import { ActionMessage } from "~/components";
 import {
   ActionBoxContentWrapper,
@@ -44,6 +44,7 @@ export type StakeBoxProps = {
   marginfiClient: MarginfiClient | null;
   banks: ExtendedBankInfo[];
   requestedBank?: ExtendedBankInfo;
+  lstBank?: ExtendedBankInfo;
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
   requestedActionType: ActionType;
@@ -157,8 +158,12 @@ export const StakeBox = ({
         } else if (selectedBank.meta.tokenSymbol !== "SOL" && actionTxns?.actionQuote?.outAmount && lstData) {
           return nativeToUi(Number(actionTxns?.actionQuote?.outAmount) / lstData?.lstSolValue, 9);
         }
+      } else if (requestedActionType === ActionType.InstantUnstakeLST) {
+        const _debouncedAmount = uiToNative(debouncedAmount, 9).toNumber();
+        return nativeToUi(_debouncedAmount / lstData.lstSolValue, 9);
       } else if (requestedActionType === ActionType.UnstakeLST) {
-        return nativeToUi(Number(actionTxns?.actionQuote?.outAmount), 9);
+        const _debouncedAmount = uiToNative(debouncedAmount, 9).toNumber();
+        return nativeToUi(_debouncedAmount / lstData.lstSolValue, 9);
       }
     }
     return 0; // Default value if conditions are not met
@@ -190,10 +195,10 @@ export const StakeBox = ({
     return {
       commission: lstData.solDepositFee,
       currentPrice: lstData.lstSolValue,
-      projectedApy: lstData.projectedApy,
+      projectedApy: actionMode === ActionType.MintLST ? lstData.projectedApy : undefined,
       supply: lstData.tvl * solPriceUsd,
     };
-  }, [lstData, solPriceUsd]);
+  }, [lstData, solPriceUsd, actionMode]);
 
   const actionMessages = React.useMemo(() => {
     return checkStakeActionAvailable({
@@ -301,6 +306,13 @@ export const StakeBox = ({
       refreshSelectedBanks(banks);
     }
   }, [marginfiClient, banks, refreshSelectedBanks]);
+
+  // when switching from unstake to stake the bank is set to LST so we need to reset
+  React.useEffect(() => {
+    if (actionMode === ActionType.MintLST && selectedBank?.meta.tokenSymbol === "LST") {
+      setSelectedBank(null);
+    }
+  }, [actionMode, selectedBank, setSelectedBank]);
 
   return (
     <ActionBoxContentWrapper>

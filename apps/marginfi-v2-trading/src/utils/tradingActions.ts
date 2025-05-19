@@ -33,11 +33,11 @@ import {
   JupiterOptions,
 } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
 import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
-import { TradeSide } from "~/components/common/trade-box-v2";
 import { toastManager } from "@mrgnlabs/mrgn-toasts";
+
+import { TradeSide } from "~/components/common/trade-box-v2";
 
 export async function createMarginfiGroup({
   marginfiClient,

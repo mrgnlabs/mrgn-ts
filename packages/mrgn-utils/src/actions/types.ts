@@ -60,6 +60,18 @@ export interface LstData {
   solDepositFee: number;
   accountData: solanaStakePool.StakePool;
   validatorList: PublicKey[];
+  stakeAccounts: {
+    voteAccountAddress: string;
+    stakeAccountAddress: string;
+    validatorActiveStakeLamports: string;
+    validatorLastUpdateEpoch: string;
+    validatorLamports: string;
+    validatorTransientStakeAccountAddress: string;
+    validatorTransientStakeLamports: string;
+    updateRequired: boolean;
+  }[];
+  poolWithdrawAuthority: string;
+  validatorListKey: string;
   updateRequired: boolean;
   lastUpdateEpoch: string;
 }
@@ -104,7 +116,10 @@ export interface CalculateTradingProps extends CalculateLoopingProps {
 }
 
 export interface CalculateLoopingProps
-  extends Pick<LoopingProps, "marginfiAccount" | "borrowBank" | "depositBank" | "depositAmount" | "connection"> {
+  extends Pick<
+    LoopingProps,
+    "marginfiAccount" | "borrowBank" | "depositBank" | "depositAmount" | "connection" | "overrideInferAccounts"
+  > {
   targetLeverage: number;
   marginfiClient: MarginfiClient;
   slippageBps: number;
@@ -176,12 +191,16 @@ export type LoopingProps = {
   depositAmount: number;
   borrowAmount: BigNumber;
   actualDepositAmount: number;
-  depositBank: ExtendedBankInfo; // previously bank
+  depositBank: ExtendedBankInfo;
   borrowBank: ExtendedBankInfo;
   quote: QuoteResponse;
   connection: Connection;
   setupBankAddresses?: PublicKey[];
   multiStepToast?: MultiStepToastController;
+  overrideInferAccounts?: {
+    group?: PublicKey;
+    authority?: PublicKey;
+  };
 };
 
 export type MarginfiActionParams = {

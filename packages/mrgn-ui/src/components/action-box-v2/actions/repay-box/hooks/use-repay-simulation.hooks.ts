@@ -87,7 +87,14 @@ export function useRepaySimulation({
       };
       callbacks.setErrorMessage(_actionMessage);
     } else {
-      callbacks.setErrorMessage(actionMessage);
+      if (actionMessage.code && (actionMessage.code === 149 || actionMessage.code === 134)) {
+        // callbacks.setSimulationResult(null);
+        // callbacks.setActionTxns({ transactions: [], actionQuote: null });
+        // callbacks.setIsLoading({ isLoading: false, status: SimulationStatus.COMPLETE });
+        return;
+      } else {
+        callbacks.setErrorMessage(actionMessage);
+      }
     }
     callbacks.setSimulationResult(null);
     callbacks.setActionTxns({ transactions: [], actionQuote: null });

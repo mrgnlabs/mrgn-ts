@@ -14,8 +14,8 @@ import {
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Desktop, Mobile, cn, capture, ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 import { IconChevronDown, IconExternalLink } from "@tabler/icons-react";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
 
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { useTradeStoreV2, useUiStore } from "~/store";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";

@@ -18,6 +18,7 @@ type BankSelectProps = {
   setSelectedBank: (selectedBank: ExtendedBankInfo | null) => void;
   isInitialOpen?: boolean;
   onCloseDialog?: () => void;
+  isMixin?: boolean;
 };
 
 export const BankSelect = ({
@@ -31,6 +32,7 @@ export const BankSelect = ({
   setSelectedBank,
   isInitialOpen = false,
   onCloseDialog,
+  isMixin,
 }: BankSelectProps) => {
   // idea check list if banks[] == 1 make it unselectable
   const [isOpen, setIsOpen] = React.useState(isInitialOpen);
@@ -80,6 +82,7 @@ export const BankSelect = ({
               nativeSolBalance={nativeSolBalance}
               connected={connected}
               selectionGroups={selectionGroups}
+              isMixin={isMixin}
             />
           }
         />

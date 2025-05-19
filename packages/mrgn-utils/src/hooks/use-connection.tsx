@@ -9,6 +9,7 @@ export interface ConnectionProviderProps {
   children: ReactNode;
   endpoint: string;
   config?: ConnectionConfig;
+  connection?: Connection;
 }
 
 export const ConnectionContext = createContext<ConnectionContextState>({} as ConnectionContextState);
@@ -21,8 +22,13 @@ export const ConnectionProvider: FC<ConnectionProviderProps> = ({
   children,
   endpoint,
   config = { commitment: "confirmed" },
+  connection,
 }) => {
-  const connection = useMemo(() => new Connection(endpoint, config), [endpoint, config]);
+  if (connection) {
+    return <ConnectionContext.Provider value={{ connection }}>{children}</ConnectionContext.Provider>;
+  }
 
-  return <ConnectionContext.Provider value={{ connection }}>{children}</ConnectionContext.Provider>;
+  const conn = useMemo(() => new Connection(endpoint, config), [endpoint, config]);
+
+  return <ConnectionContext.Provider value={{ connection: conn }}>{children}</ConnectionContext.Provider>;
 };

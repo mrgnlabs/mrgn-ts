@@ -17,10 +17,10 @@ import {
 import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, capture, ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 import { Wallet } from "@mrgnlabs/mrgn-common";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useTradeStoreV2, useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { mfiAddresses } from "~/utils/arenaUtils";
 
 import { ActionBox, ActionBoxProvider } from "~/components/action-box-v2";

@@ -16,6 +16,12 @@
       "@mrgnlabs/mrgn-utils": ["../../packages/mrgn-utils/src"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "../../packages/mrgn-common/src/mixin.ts",
+    "../../packages/mrgn-common/src/number.ts"
+  ],
   "exclude": ["node_modules"]
 }

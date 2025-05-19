@@ -13,6 +13,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { Desktop, Mobile, init as initAnalytics } from "@mrgnlabs/mrgn-utils";
 import { generateEndpoint } from "~/rpc.utils";
 import { ToastProvider } from "@mrgnlabs/mrgn-toasts";
+import { WalletProvider as MrgnWalletProvider } from "@mrgnlabs/mrgn-ui";
 
 import config from "~/config";
 import { StaticArenaProps } from "~/utils";
@@ -20,7 +21,6 @@ import { getArenaStaticProps } from "~/utils";
 import { useUiStore } from "~/store";
 import { TradePovider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
-import { WalletProvider as MrgnWalletProvider } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { ConnectionProvider } from "~/hooks/use-connection";
 
 import { ActionProvider } from "~/components/action-box-v2";
@@ -121,8 +121,8 @@ export default function MrgnApp({ Component, pageProps }: AppProps & StaticArena
                       <Analytics />
 
                       <AuthDialog onboardingEnabled={false} />
-                      <ToastProvider theme="light" />
                     </div>
+                    <ToastProvider theme="light" />
                   </ActionProvider>
                 </TradePovider>
               </MrgnWalletProvider>

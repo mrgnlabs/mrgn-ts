@@ -2,7 +2,7 @@ import React from "react";
 
 import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
+import { useWallet } from "~/components/wallet-v2";
 
 const Debridge = () => {
   const { wallet } = useWallet();

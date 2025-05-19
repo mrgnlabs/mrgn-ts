@@ -1,7 +1,6 @@
 import React from "react";
 
-import { ActionBox } from "@mrgnlabs/mrgn-ui";
-import { PublicKey } from "@solana/web3.js";
+import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { useConnection } from "~/hooks/use-connection";
 
@@ -9,7 +8,6 @@ import { useMrgnlendStore } from "~/store";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { Loader } from "~/components/ui/loader";
-import { useWallet } from "~/components/wallet-v2";
 import { WalletToken } from "@mrgnlabs/mrgn-common";
 
 export default function DepositSwapPage() {

@@ -21,6 +21,7 @@ type BankListProps = {
   selectionGroups?: LendSelectionGroups[];
   onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: (hasSetBank: boolean) => void;
+  isMixin?: boolean;
 };
 
 const ALL_GROUPS = [
@@ -42,6 +43,7 @@ export const BankList = ({
   isOpen,
   onClose,
   onSetSelectedBank,
+  isMixin,
 }: BankListProps) => {
   const router = useRouter();
   const lendingMode = React.useMemo(
@@ -231,6 +233,7 @@ export const BankList = ({
                       nativeSolBalance={nativeSolBalance}
                       showStakedAssetLabel={true}
                       solPrice={solPrice}
+                      isMixin={isMixin}
                     />
                   </CommandItem>
                 );

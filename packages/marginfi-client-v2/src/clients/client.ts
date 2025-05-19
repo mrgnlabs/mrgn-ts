@@ -180,16 +180,12 @@ class MarginfiClient {
       wallet.publicKey = new PublicKey(clientOptions.mixinPublicKey);
     }
     console.log("clientOptions.mixinPublicKey: ", clientOptions?.mixinPublicKey);
-    console.log("wallet: ", wallet);
-    console.log("wallet.publicKey: ", wallet.publicKey.toBase58());
 
     const provider = new AnchorProvider(connection, wallet, {
       ...AnchorProvider.defaultOptions(),
       commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
       ...confirmOpts,
     });
-
-    console.log("provider.publicKey: ", provider.publicKey.toBase58());
 
     const idl = { ...programIdl, address: config.programId.toBase58() };
 
@@ -945,9 +941,6 @@ class MarginfiClient {
       bundleSimRpcEndpoint: this.bundleSimRpcEndpoint,
       dynamicStrategy: processOpts?.dynamicStrategy ?? this.processTransactionStrategy,
     };
-
-    console.log("processOpts", processOpts);
-    console.log("processTransactions", options);
 
     return await processTransactions({
       transactions,

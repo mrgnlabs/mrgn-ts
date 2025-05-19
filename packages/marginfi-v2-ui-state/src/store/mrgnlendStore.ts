@@ -43,7 +43,7 @@ import type {
 } from "@mrgnlabs/mrgn-common";
 import type { MarginfiAccountWrapper, ProcessTransactionStrategy } from "@mrgnlabs/marginfi-client-v2";
 import type { MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
-import type { UserAssetBalance } from "@mrgnlabs/mrgn-utils";
+import type { UserAssetBalance } from "@mrgnlabs/mrgn-common";
 
 interface ProtocolStats {
   deposits: number;
@@ -227,7 +227,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
       const wallet = args?.wallet ?? get().marginfiClient?.provider?.wallet;
       const publicKey = args?.mixinPublicKey ?? wallet?.publicKey;
-      console.log("publicKey: ", publicKey);
 
       const marginfiConfig = args?.marginfiConfig ?? get().marginfiClient?.config;
       if (!marginfiConfig) throw new Error("Marginfi config must be provided at least once");
@@ -243,12 +242,18 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       let tokenMetadataMap: { [symbol: string]: TokenMetadata };
 
       if (marginfiConfig.environment === "production") {
-        let results = await Promise.all([
-          loadBankMetadatas(process.env.NEXT_PUBLIC_BANKS_MAP),
-          loadTokenMetadatas(process.env.NEXT_PUBLIC_TOKENS_MAP),
-        ]);
-        bankMetadataMap = results[0];
-        tokenMetadataMap = results[1];
+        // let results = await Promise.all([
+        //   loadBankMetadatas(process.env.NEXT_PUBLIC_BANKS_MAP),
+        //   loadTokenMetadatas(process.env.NEXT_PUBLIC_TOKENS_MAP),
+        // ]);
+        // bankMetadataMap = results[0];
+        // tokenMetadataMap = results[1];
+        const bankMetadataJson = (await import("./mainnet-domelend-meta.json")) as {
+          bankMetadata: BankMetadataMap;
+          tokenMetadata: TokenMetadataMap;
+        };
+        bankMetadataMap = bankMetadataJson.bankMetadata;
+        tokenMetadataMap = bankMetadataJson.tokenMetadata;
       } else if (marginfiConfig.environment === "staging") {
         if (process.env.NEXT_PUBLIC_BANKS_MAP && process.env.NEXT_PUBLIC_TOKENS_MAP) {
           let results = await Promise.all([
@@ -276,13 +281,18 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         throw new Error("Unknown environment");
       }
 
-      // fetch staked asset metadata
-      const stakedAssetBankMetadataMap = await loadStakedBankMetadatas(
-        `${process.env.NEXT_PUBLIC_STAKING_BANKS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json"}?t=${new Date().getTime()}`
-      );
-      const stakedAssetTokenMetadataMap = await loadTokenMetadatas(
-        `${process.env.NEXT_PUBLIC_STAKING_TOKENS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json"}?t=${new Date().getTime()}`
-      );
+      let stakedAssetBankMetadataMap: BankMetadataMap = {};
+      let stakedAssetTokenMetadataMap: TokenMetadataMap = {};
+      if (args && args.mixinPublicKey) {
+      } else {
+        // fetch staked asset metadata
+        stakedAssetBankMetadataMap = await loadStakedBankMetadatas(
+          `${process.env.NEXT_PUBLIC_STAKING_BANKS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json"}?t=${new Date().getTime()}`
+        );
+        stakedAssetTokenMetadataMap = await loadTokenMetadatas(
+          `${process.env.NEXT_PUBLIC_STAKING_TOKENS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json"}?t=${new Date().getTime()}`
+        );
+      }
 
       // merge staked asset metadata with main group metadata
       bankMetadataMap = {
@@ -345,7 +355,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         nativeSolBalance = tokenData.nativeSolBalance;
         tokenAccountMap = tokenData.tokenAccountMap;
         marginfiAccounts = marginfiAccountWrappers;
-
         //@ts-ignore
         const selectedAccountAddress = localStorage.getItem("mfiAccount");
         if (!selectedAccountAddress && marginfiAccounts.length > 0) {
@@ -408,8 +417,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         });
       const stakePoolActiveStates = await getStakePoolActiveStates(connection, validatorVoteAccounts);
       const mev = await getStakePoolMev(connection, validatorVoteAccounts);
-      const validatorRates = await getValidatorRates(validatorVoteAccounts);
-
+      // const validatorRates = await getValidatorRates(validatorVoteAccounts);
+      const validatorRates = new Map<string, number>();
       let [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
         (acc, { bank, oraclePrice, tokenMetadata }) => {
           const emissionTokenPriceData = priceMap[bank.emissionsMint.toBase58()];
@@ -455,7 +464,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
               emissionTokenPriceData,
               userData,
               false,
-              stakedAssetMetadata
+              stakedAssetMetadata,
+              args?.mixinPublicKey ? true : false
             )
           );
           acc[1].push(makeExtendedBankMetadata(bank, tokenMetadata, false, stakedAssetMetadata));
@@ -518,7 +528,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           pointsTotal: pointsTotal,
         },
         selectedAccount,
-        nativeSolBalance: args?.mixinPublicKey ? 0 : nativeSolBalance,
+        nativeSolBalance: nativeSolBalance,
+        // nativeSolBalance: args?.mixinPublicKey ? 0 : nativeSolBalance,
         accountSummary,
         birdEyeApiKey,
         bundleSimRpcEndpoint,

@@ -34,6 +34,16 @@ export function getCachedAccounts(): PublicKey[] {
   return accounts.sort(() => Math.random() - 0.5);
 }
 
+export function getCachedActivity(): Record<string, any[]> {
+  const CACHE_FILE = path.join(__dirname, "../activity-cache.json");
+
+  if (!fs.existsSync(CACHE_FILE)) {
+    throw new Error("Activity cache not found. Please run 'pnpm activity:cache' first.");
+  }
+
+  return JSON.parse(fs.readFileSync(CACHE_FILE, "utf-8"));
+}
+
 function u16ToArrayBufferLE(value: number): Uint8Array {
   // Create a buffer of 2 bytes
   const buffer = new ArrayBuffer(2);

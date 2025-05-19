@@ -168,11 +168,12 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
 
     const fetchLabel = async (account: MarginfiAccountWrapper) => {
       try {
-        const response = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
-        if (!response.ok) throw new Error(`Error fetching account label for ${account.address.toBase58()}`);
+        // const response = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
+        // if (!response.ok) throw new Error(`Error fetching account label for ${account.address.toBase58()}`);
 
-        const { data } = await response.json();
-        return data.label || `Account`;
+        // const { data } = await response.json();
+        // return data.label || `Account`;
+        return `Account`;
       } catch (error) {
         console.error(error);
         return `Account`;
@@ -195,9 +196,13 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
       if (isAAccountLabel && !isBAccountLabel) return 1;
 
       if (isAAccountLabel && isBAccountLabel) {
-        const numA = parseInt(a.label.match(/^Account (\d+)$/)[1], 10);
-        const numB = parseInt(b.label.match(/^Account (\d+)$/)[1], 10);
-        return numA - numB;
+        const matchA = a.label.match(/^Account (\d+)$/);
+        const matchB = b.label.match(/^Account (\d+)$/);
+        if (matchA && matchB) {
+          const numA = parseInt(matchA[1], 10);
+          const numB = parseInt(matchB[1], 10);
+          return numA - numB;
+        }
       }
 
       return a.label.localeCompare(b.label, undefined, { sensitivity: "base" });

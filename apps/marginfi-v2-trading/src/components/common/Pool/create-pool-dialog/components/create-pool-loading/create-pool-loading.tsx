@@ -21,10 +21,10 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 import { cn, getFeeAccount, createReferalTokenAccountIxs } from "@mrgnlabs/mrgn-utils";
 import { addTransactionMetadata, SolanaTransaction, TransactionType } from "@mrgnlabs/mrgn-common";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { Button } from "~/components/ui/button";
 import { useConnection } from "~/hooks/use-connection";
-import { useWallet } from "~/components/wallet-v2";
 import { createPoolLookupTable, createOracleIx } from "~/utils";
 
 import { PoolData, CreatePoolState } from "../../types";

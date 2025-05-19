@@ -95,9 +95,6 @@ export async function simulateBundle(
     // Prepare transaction data
     const encodedTransactions = encodeTransactions(transactions);
     const config = createBundleConfig(transactions, includeAccounts);
-    console.log("rpcEndpoint: ", rpcEndpoint);
-    console.log("encodedTransactions: ", encodedTransactions);
-    console.log("config: ", config);
     // Execute simulation
     const result = await executeBundleSimulation(rpcEndpoint, encodedTransactions, config);
 

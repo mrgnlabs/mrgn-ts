@@ -1,5 +1,5 @@
 export * from "./sign-up";
-// export * from "./wallet-auth-accounts";
+export * from "./wallet-auth-accounts";
 export * from "./wallet-avatar";
 export * from "./wallet-button";
 export * from "./wallet-onramp";

@@ -9,6 +9,8 @@ export * from "./modules";
 export * from "./spl";
 export * from "./priority";
 export { NodeWallet };
-
-// constants
 export * from "./constants";
+export * from "./computer";
+export * from "./computer.types";
+export * from "./number";
+export * from "./mixin";

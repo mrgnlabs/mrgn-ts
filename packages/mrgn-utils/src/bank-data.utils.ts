@@ -237,16 +237,20 @@ export const getPositionData = (
   bank: ExtendedBankInfo,
   nativeSolBalance: number,
   isInLendingMode: boolean,
-  solPrice: number | null
+  solPrice: number | null,
+  isMixin?: boolean
 ): PositionData => {
   let positionAmount,
     liquidationPrice,
     positionUsd,
     isUserPositionPoorHealth = false;
 
-  const walletAmount = bank.info.state.mint.equals(WSOL_MINT)
+  let walletAmount = bank.info.state.mint.equals(WSOL_MINT)
     ? bank.userInfo.tokenAccount.balance + nativeSolBalance
     : bank.userInfo.tokenAccount.balance;
+  if (isMixin) {
+    walletAmount = bank.info.state.mint.equals(WSOL_MINT) ? nativeSolBalance : bank.userInfo.tokenAccount.balance;
+  }
 
   if (bank.isActive && bank.position.isLending === isInLendingMode) {
     positionAmount = bank.position.amount;

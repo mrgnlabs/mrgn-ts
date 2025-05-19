@@ -65,7 +65,15 @@ export function useLendSimulation({
       };
       callbacks.setErrorMessage(_actionMessage);
     } else {
-      callbacks.setErrorMessage(actionMessage);
+      if (actionMessage.code && actionMessage.code === 119) {
+        return;
+      } else {
+        // const _actionMessage: ActionMessageType = {
+        //   isEnabled: true,
+        //   description: "Insufficient balance",
+        // };
+        // callbacks.setErrorMessage(_actionMessage);
+      }
     }
     callbacks.setSimulationResult(null);
     callbacks.setActionTxns({ transactions: [] });
@@ -130,20 +138,10 @@ export function useLendSimulation({
           actionMode: lendMode,
           amount: amount,
         });
-
-        console.log("actionTxns: ", actionTxns.actionTxns);
-        console.log("finalAccount: ", actionTxns.finalAccount);
-        console.log("selectedBank: ", selectedBank);
-        console.log("lendMode: ", lendMode);
-        console.log("amount: ", amount);
-
-        console.log("simulationResult: ", simulationResult);
-
         setSimulationResult(simulationResult);
         setActionTxns(actionTxns.actionTxns);
         setErrorMessage(null);
       } catch (error) {
-        console.log("error: ", error);
         if (error instanceof ActionProcessingError) {
           handleError(error.details, {
             setErrorMessage,

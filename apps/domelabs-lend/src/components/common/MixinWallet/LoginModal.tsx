@@ -3,6 +3,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@mrgnlabs/mrgn-ui/src/components/ui/dialog";
+import { Button } from "@mrgnlabs/mrgn-ui/src/components/ui/button";
 import QRCode from "react-qr-code";
 import {
   AuthorizationResponse,
@@ -12,8 +13,9 @@ import {
   type OAuthKeystore,
 } from "@mixin.dev/mixin-node-sdk";
 import { useAuthorization } from "../../../hooks";
-import { BOT } from "../../../utils";
 import { useAppStore } from "../../../store";
+import { BOT } from "@mrgnlabs/mrgn-common";
+import Link from "next/link";
 
 interface LoginModalProps {
   open: boolean;
@@ -95,10 +97,34 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[378px] bg-gray-700 border-nav-dark-border">
+      <DialogContent className="sm:max-w-[378px] bg-background-gray border-nav-dark-border">
         <div className="w-[300px] h-[300px] mx-auto">
           {loginCode ? (
-            <QRCode value={loginCode} level="H" size={300} className="w-full h-full dark:bg-white p-4 rounded-lg" />
+            <>
+              <QRCode value={loginCode} level="H" size={300} className="w-full h-full dark:bg-white p-4 rounded-lg" />
+              <Button
+                variant="default"
+                size="lg"
+                className="mt-4 w-full"
+                onClick={() => window.open(loginCode, "_blank", "noopener,noreferrer")}
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                  />
+                </svg>
+                Connect Wallet
+              </Button>
+            </>
           ) : (
             <div className="w-full h-full bg-gray-100 dark:bg-gray-800 animate-pulse rounded-lg" />
           )}

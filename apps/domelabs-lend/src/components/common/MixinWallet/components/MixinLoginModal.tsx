@@ -21,6 +21,7 @@ export function MixinLoginModal(props: { isOpen: boolean; onClose: () => void })
 
   const [loginCode, setLoginCode] = useState("");
   const [error, setError] = useState<string>();
+  const [isConnecting, setIsConnecting] = useState(true);
 
   const clientId = process.env.NEXT_PUBLIC_CLIENT_ID as string;
   const scope = "PROFILE:READ ASSETS:READ SNAPSHOTS:READ";
@@ -61,6 +62,7 @@ export function MixinLoginModal(props: { isOpen: boolean; onClose: () => void })
     let ws: ReconnectingWebSocket | null = null;
 
     if (props.isOpen) {
+      setIsConnecting(true);
       const endpoint = "wss://blaze.mixin.one";
       ws = new ReconnectingWebSocket(endpoint, "Mixin-OAuth-1", {
         maxReconnectionDelay: 5000,
@@ -73,9 +75,14 @@ export function MixinLoginModal(props: { isOpen: boolean; onClose: () => void })
 
       const send = (msg: any) => {
         try {
-          if (ws) ws.send(pako.gzip(JSON.stringify(msg)));
+          if (ws && ws.readyState === ws.OPEN) {
+            ws.send(pako.gzip(JSON.stringify(msg)));
+          }
         } catch (e) {
-          if (!(e instanceof DOMException)) console.error(e);
+          if (!(e instanceof DOMException)) {
+            console.error("WebSocket send error:", e);
+            setError("连接出错，请重试");
+          }
         }
       };
 
@@ -94,29 +101,46 @@ export function MixinLoginModal(props: { isOpen: boolean; onClose: () => void })
 
       ws.onopen = () => {
         console.log("WebSocket connected");
+        setIsConnecting(false);
         sendRefreshCode("");
+      };
+
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        setError("连接出错，请重试");
+        setIsConnecting(false);
+      };
+
+      ws.onclose = () => {
+        console.log("WebSocket closed");
+        setIsConnecting(false);
       };
 
       ws.onmessage = (event) => {
         const fileReader = new FileReader();
         fileReader.onload = function () {
-          const msg = this.result ? pako.ungzip(new Uint8Array(this.result as ArrayBuffer), { to: "string" }) : "{}";
-          const authorization = JSON.parse(msg);
-          console.log("Received authorization:", authorization);
+          try {
+            const msg = this.result ? pako.ungzip(new Uint8Array(this.result as ArrayBuffer), { to: "string" }) : "{}";
+            const authorization = JSON.parse(msg);
+            console.log("Received authorization:", authorization);
 
-          if (authorization.data) {
-            if (!loginCode) {
-              setLoginCode(`mixin://codes/${authorization.data.code_id}`);
+            if (authorization.data) {
+              if (!loginCode) {
+                setLoginCode(`mixin://codes/${authorization.data.code_id}`);
+              }
+
+              if (authorization.data.authorization_code && authorization.data.authorization_code.length > 16) {
+                handleLogin(authorization.data.authorization_code);
+                return;
+              }
+
+              setTimeout(() => {
+                sendRefreshCode(authorization.data);
+              }, 1000);
             }
-
-            if (authorization.data.authorization_code && authorization.data.authorization_code.length > 16) {
-              handleLogin(authorization.data.authorization_code);
-              return;
-            }
-
-            setTimeout(() => {
-              sendRefreshCode(authorization.data);
-            }, 1000);
+          } catch (e) {
+            console.error("Message processing error:", e);
+            setError("处理消息出错，请重试");
           }
         };
         fileReader.readAsArrayBuffer(event.data);
@@ -129,6 +153,7 @@ export function MixinLoginModal(props: { isOpen: boolean; onClose: () => void })
       }
       setLoginCode("");
       setError(undefined);
+      setIsConnecting(false);
     };
   }, [props.isOpen]);
 
@@ -140,12 +165,20 @@ export function MixinLoginModal(props: { isOpen: boolean; onClose: () => void })
   return (
     <Dialog open={props.isOpen} onOpenChange={props.onClose}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+        <DialogHeader className="relative">
           <DialogTitle className="text-center text-xl font-medium">登录 Mixin</DialogTitle>
+          <Button variant="ghost" className="absolute right-0 top-0 rounded-full p-2" onClick={props.onClose}>
+            <IconX size={20} />
+          </Button>
         </DialogHeader>
         <div className="flex flex-col items-center justify-center space-y-4 py-4">
           {error ? (
-            <div className="text-red-500 text-center">{error}</div>
+            <div className="text-red-500 text-center">
+              {error}
+              <Button variant="outline" className="ml-4" onClick={() => window.location.reload()}>
+                重试
+              </Button>
+            </div>
           ) : loginCode ? (
             <div className="text-center space-y-4">
               <p className="text-sm text-muted-foreground">请使用 Mixin Messenger 扫描二维码登录</p>
@@ -163,7 +196,7 @@ export function MixinLoginModal(props: { isOpen: boolean; onClose: () => void })
             </div>
           ) : (
             <div className="text-center">
-              <p className="text-sm text-muted-foreground">正在生成登录二维码...</p>
+              <p className="text-sm text-muted-foreground">{isConnecting ? "正在连接..." : "正在生成登录二维码..."}</p>
             </div>
           )}
         </div>

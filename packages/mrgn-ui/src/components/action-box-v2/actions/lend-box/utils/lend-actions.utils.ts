@@ -21,8 +21,6 @@ export async function generateActionTxns(props: {
       marginfiAccount: props.marginfiAccount,
       marginfiClient: props.marginfiClient,
     });
-    console.log("newAccount: ", newAccount.authority.toBase58());
-    console.log("tx: ", tx);
     account = newAccount;
     accountCreationTx = tx;
   }
@@ -30,7 +28,6 @@ export async function generateActionTxns(props: {
   if (!account) {
     throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.ACCOUNT_NOT_INITIALIZED);
   }
-
   switch (props.lendMode) {
     case ActionType.Deposit:
       let depositTx: SolanaTransaction;
@@ -38,9 +35,6 @@ export async function generateActionTxns(props: {
         if (!props.stakeAccount || !props.bank.meta.stakePool?.validatorVoteAccount) {
           throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.NATIVE_STAKE_NOT_FOUND);
         }
-        console.log("account: ", account);
-        console.log("props.amount: ", props.amount);
-        console.log("props.bank.address: ", props.bank.address);
 
         depositTx = await account.makeDepositStakedTx(
           props.amount,
@@ -75,7 +69,7 @@ export async function generateActionTxns(props: {
     case ActionType.Borrow:
       const borrowTxObject = await account.makeBorrowTx(props.amount, props.bank.address, {
         createAtas: true,
-        wrapAndUnwrapSol: false,
+        wrapAndUnwrapSol: true,
       });
 
       return {

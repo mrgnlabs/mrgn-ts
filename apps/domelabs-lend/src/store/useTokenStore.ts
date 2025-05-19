@@ -1,8 +1,9 @@
-import { initComputerClient } from "../utils";
+import { initComputerClient } from "@mrgnlabs/mrgn-common";
 import { create, StateCreator } from "zustand";
 import { persist, PersistOptions } from "zustand/middleware";
 import { useAppStore } from ".";
-import { ComputerAsset, ComputerAssetResponse } from "@mrgnlabs/mrgn-utils";
+import { ComputerAsset, ComputerAssetResponse } from "@mrgnlabs/mrgn-common";
+import { SafeAsset } from "@mixin.dev/mixin-node-sdk";
 
 interface TokenStore {
   // State
@@ -54,7 +55,10 @@ const createTokenStore = () => {
             }, {});
 
             const mixinClient = getMixinClient();
-            const mas = await mixinClient.safe.fetchAssets(ids);
+            let mas: SafeAsset[] = [];
+            try {
+              mas = await mixinClient.safe.fetchAssets(ids);
+            } catch (e) {}
             const fas = mas.map((a: any) => ({
               ...assets[mp[a.asset_id]],
               asset: a,

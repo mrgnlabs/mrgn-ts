@@ -13,7 +13,7 @@ const useMixin = () => {
       updateBalances(computerAssets);
     }, 60 * 1000);
     return () => window.clearInterval(id);
-  }, [user, computerAssets]);
+  }, [user, computerAssets, updateBalances]);
 };
 
 export { useMixin };

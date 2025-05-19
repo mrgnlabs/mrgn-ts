@@ -1,24 +1,29 @@
-import { AppProps } from "next/app";
 import dynamic from "next/dynamic";
-import React from "react";
+import { AppProps } from "next/app";
+import React, { useMemo } from "react";
 import { Desktop, Mobile } from "~/mediaQueryUtils";
 
 import { Meta } from "~/components/common/Meta";
 import { cn } from "~/theme";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar/MobileNavbar";
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useAppStore, useMrgnlendStore, useUiStore } from "~/store";
 import { MixinProvider } from "~/context";
 import { generateEndpoint } from "~/rpc.utils";
 
 import config from "~/config";
-import { ConnectionProvider } from "~/hooks/use-connection";
+import { ConnectionProvider, useConnection } from "~/hooks/use-connection";
 import { DomelendProvider } from "~/context/DomelendProvider";
 import { ActionProvider } from "~/components/action-box-v2/contexts/action";
 import { ActionBoxProvider } from "~/components/action-box-v2/contexts/actionbox";
+import { Connection } from "@solana/web3.js";
+import { ToastProvider } from "@mrgnlabs/mrgn-toasts";
+import { GlobalActionBoxPortal } from "~/components/common/global-actionbox-portal/global-actionbox-portal";
 
 // Use require instead of import since order matters
 require("~/styles/globals.css");
 require("~/styles/fonts.css");
+
+const Footer = dynamic(async () => (await import("~/components/desktop/Footer")).Footer, { ssr: false });
 
 const Navbar = dynamic(async () => (await import("~/components/common/Navbar")).Navbar, {
   ssr: false,
@@ -64,6 +69,26 @@ export default function App({ Component, pageProps, path }: AppProps & MrgnAppPr
     state.nativeSolBalance,
     state.accountSummary,
   ]);
+  const connection = useMemo(() => new Connection(config.rpcEndpoint, { commitment: "confirmed" }), [config]);
+
+  const [
+    connected,
+    getUserMix,
+    computerInfo,
+    computerAccount,
+    getComputerRecipient,
+    balanceAddressMap,
+    getMixinClient,
+  ] = useAppStore((state) => [
+    state.connected,
+    state.getUserMix,
+    state.info,
+    state.account,
+    state.getComputerRecipient,
+    state.balanceAddressMap,
+    state.getMixinClient,
+  ]);
+  const mixinClient = getMixinClient();
 
   const [ready, setReady] = React.useState(false);
   const [rpcEndpoint, setRpcEndpoint] = React.useState("");
@@ -84,7 +109,7 @@ export default function App({ Component, pageProps, path }: AppProps & MrgnAppPr
       {ready && rpcEndpoint && (
         <>
           <MixinProvider>
-            <ConnectionProvider endpoint={rpcEndpoint}>
+            <ConnectionProvider endpoint={rpcEndpoint} connection={connection}>
               <DomelendProvider>
                 <ActionProvider
                   transactionSettings={{
@@ -101,9 +126,17 @@ export default function App({ Component, pageProps, path }: AppProps & MrgnAppPr
                     nativeSolBalance={nativeSolBalance}
                     marginfiClient={marginfiClient}
                     selectedAccount={selectedAccount}
-                    connected={false}
+                    connected={connected}
                     accountSummaryArg={accountSummary}
                     setDisplaySettings={setDisplaySettings}
+                    isMixinLend={true}
+                    getUserMix={getUserMix}
+                    computerInfo={computerInfo}
+                    connection={connection}
+                    computerAccount={computerAccount}
+                    getComputerRecipient={getComputerRecipient}
+                    balanceAddressMap={balanceAddressMap}
+                    fetchTransaction={mixinClient.utxo.fetchTransaction}
                   >
                     <Navbar />
                     <Desktop>
@@ -111,8 +144,8 @@ export default function App({ Component, pageProps, path }: AppProps & MrgnAppPr
                       <div className={cn("w-full flex flex-col justify-center items-center")}>
                         <Component {...pageProps} />
                       </div>
-                      {/* <Footer />
-            </WalletModalProvider> */}
+                      <Footer />
+                      {/* </WalletModalProvider> */}
                     </Desktop>
 
                     <Mobile>
@@ -121,6 +154,9 @@ export default function App({ Component, pageProps, path }: AppProps & MrgnAppPr
                       </div>
                       <MobileNavbar />
                     </Mobile>
+
+                    <ToastProvider />
+                    {globalActionBoxProps.isOpen && <GlobalActionBoxPortal />}
                   </ActionBoxProvider>
                 </ActionProvider>
               </DomelendProvider>

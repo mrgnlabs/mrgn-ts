@@ -3,6 +3,7 @@
 import * as nodeFetch from 'node-fetch';
 
 export {Response} from 'node-fetch';
+// eslint-disable-next-line import/no-anonymous-default-export
 export default async function (
   input: nodeFetch.RequestInfo,
   init?: nodeFetch.RequestInit

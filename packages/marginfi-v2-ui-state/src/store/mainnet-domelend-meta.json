@@ -1,0 +1,58 @@
+{
+  "bankMetadata": {
+    "CK1Qnz6C6uZEiJFrTSkkgV485UuDJidaSxqewzYeCU7x": {
+      "tokenAddress": "So11111111111111111111111111111111111111112",
+      "tokenName": "Wrapped SOL",
+      "tokenSymbol": "SOL"
+    },
+    "CnMFqmJhMdbXPAixtVfwwR3xwTid8zjTanrFbRWboFhx": {
+      "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "tokenName": "USD Coin",
+      "tokenSymbol": "USDC"
+    },
+    "FJyfHYZeUzUyNzuPxABdFXMkX8D4fdrqjbLWZi9hjSFg": {
+      "tokenAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "tokenName": "USDT",
+      "tokenSymbol": "USDT"
+    }
+  },
+  "tokenMetadata": {
+    "SOL": {
+      "symbol": "SOL",
+      "address": "So11111111111111111111111111111111111111112",
+      "chainId": 103,
+      "decimals": 9,
+      "name": "Wrapped SOL",
+      "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
+      "extensions": {
+        "coingeckoId": "solana"
+      }
+    },
+    "USDC": {
+      "symbol": "USDC",
+      "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "chainId": 101,
+      "decimals": 6,
+      "name": "USD Coin",
+      "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png",
+      "extensions": {
+        "coingeckoId": "usd-coin",
+        "serumV3Usdt": "77quYg4MGneUdjgXCunt9GgM1usmrxKY31twEy3WHwcS",
+        "website": "https://www.centre.io/"
+      }
+    },
+    "USDT": {
+      "symbol": "USDT",
+      "address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+      "chainId": 101,
+      "decimals": 6,
+      "name": "USDT",
+      "logoURI": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.svg",
+      "extensions": {
+        "coingeckoId": "tether",
+        "serumV3Usdc": "77quYg4MGneUdjgXCunt9GgM1usmrxKY31twEy3WHwcS",
+        "website": "https://tether.to/"
+      }
+    }
+  }
+}

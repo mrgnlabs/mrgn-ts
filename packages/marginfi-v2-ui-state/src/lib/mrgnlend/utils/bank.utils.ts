@@ -147,7 +147,7 @@ async function makeEmissionsPriceMap(
   const emissionsPrices = banksWithEmissions.map((bank, i) => ({
     mint: bank.emissionsMint,
     price: emissionTokenMap
-      ? emissionTokenMap[bank.emissionsMint.toBase58()]?.price ?? new BigNumber(0)
+      ? (emissionTokenMap[bank.emissionsMint.toBase58()]?.price ?? new BigNumber(0))
       : new BigNumber(0),
     decimals: mint[0].decimals,
   }));
@@ -179,7 +179,8 @@ function makeExtendedBankMetadata(
     tokenSymbol: tokenMetadata.symbol,
     tokenName: tokenMetadata.name,
     tokenLogoUri: overrideIcon
-      ? tokenMetadata.icon ?? "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png"
+      ? (tokenMetadata.icon ??
+        "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png")
       : `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png`,
     stakePool: stakedAsset,
   };
@@ -192,7 +193,8 @@ function makeExtendedBankInfo(
   emissionTokenPrice?: TokenPrice,
   userData?: UserDataProps,
   overrideIcon?: boolean,
-  stakePoolMetadata?: StakePoolMetadata
+  stakePoolMetadata?: StakePoolMetadata,
+  isMixin?: boolean
 ): ExtendedBankInfo {
   function isUserDataRawProps(userData: UserDataWrappedProps | UserDataRawProps): userData is UserDataRawProps {
     return (
@@ -233,12 +235,19 @@ function makeExtendedBankInfo(
   // Calculate user-specific info relevant regardless of whether they have an active position in this bank
   const isWrappedSol = bankInfo.mint.equals(WSOL_MINT);
 
-  const walletBalance = floor(
+  let walletBalance = floor(
     isWrappedSol
       ? Math.max(userData.tokenAccount.balance + userData.nativeSolBalance - FEE_MARGIN, 0)
       : userData.tokenAccount.balance,
     bankInfo.mintDecimals
   );
+
+  if (isMixin) {
+    walletBalance = floor(
+      isWrappedSol ? Math.max(userData.nativeSolBalance - FEE_MARGIN, 0) : userData.tokenAccount.balance,
+      bankInfo.mintDecimals
+    );
+  }
 
   const { depositCapacity: depositCapacityBN, borrowCapacity: borrowCapacityBN } = bank.computeRemainingCapacity();
   const depositCapacity = nativeToUi(depositCapacityBN, bankInfo.mintDecimals);
@@ -328,6 +337,9 @@ function makeExtendedBankInfo(
   if (position) {
     const debtAmount = ceil(position.amount, bankInfo.mintDecimals);
     maxRepay = Math.min(debtAmount, walletBalance);
+    if (isMixin) {
+      maxRepay = debtAmount;
+    }
   }
 
   const userInfo = {

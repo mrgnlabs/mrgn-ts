@@ -35,6 +35,10 @@ const broadcastTypes: { type: TransactionBroadcastType; label: string; isDisable
   { type: "RPC", label: "RPC", isDisabled: false },
 ];
 
+const mixinBroadcastTypes: { type: TransactionBroadcastType; label: string; isDisabled: boolean }[] = [
+  { type: "RPC", label: "RPC", isDisabled: false },
+];
+
 const maxCapTypes: { type: MaxCapType; label: string }[] = [
   { type: "MANUAL", label: "Manual" },
   { type: "DYNAMIC", label: "Dynamic" },
@@ -68,7 +72,7 @@ export const Settings = ({
   jupiterOptions,
   onTransactionOptionsChange,
   onJupiterOptionsChange,
-  recommendedBroadcastType = "BUNDLE",
+  recommendedBroadcastType = "RPC",
 }: SettingsProps) => {
   const [activeTab, setActiveTab] = React.useState<"transaction" | "swap">("transaction");
 
@@ -153,7 +157,7 @@ export const Settings = ({
                         defaultValue={field.value.toString()}
                         className="flex justify-between"
                       >
-                        {broadcastTypes.map((option) => (
+                        {mixinBroadcastTypes.map((option) => (
                           <div
                             key={option.type}
                             className={cn(
@@ -472,9 +476,9 @@ export const Settings = ({
                   <TabsTrigger value="transaction" className="">
                     Transaction
                   </TabsTrigger>
-                  <TabsTrigger value="swap" className="">
+                  {/* <TabsTrigger value="swap" className="">
                     Swap
-                  </TabsTrigger>
+                  </TabsTrigger> */}
                 </TabsList>
               </Tabs>
             </div>

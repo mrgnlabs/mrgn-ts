@@ -38,6 +38,9 @@ import {
 } from "../components";
 import { getAction } from "./columnDataUtils";
 import Link from "next/link";
+import { Connection } from "@solana/web3.js";
+import { ComputerInfoResponse, ComputerUserResponse, UserAssetBalance } from "@mrgnlabs/mrgn-common";
+import { SequencerTransactionRequest } from "@mixin.dev/mixin-node-sdk";
 
 export interface AssetListModel {
   asset: AssetData;
@@ -58,9 +61,10 @@ export const makeData = (
   nativeSolBalance: number,
   marginfiAccount: MarginfiAccountWrapper | null,
   connected: boolean,
-  walletContextState: WalletContextStateOverride | WalletContextState,
+  // walletContextState: WalletContextStateOverride | WalletContextState,
   solPrice: number | null,
-  fetchMrgnlendState: () => void
+  fetchMrgnlendState: () => void,
+  isMixin?: boolean
 ) => {
   return data.map(
     (bank) =>
@@ -74,8 +78,8 @@ export const makeData = (
         deposits: getDepositsData(bank, isInLendingMode),
         bankCap: getBankCapData(bank, isInLendingMode),
         utilization: getUtilizationData(bank),
-        position: getPositionData(bank, nativeSolBalance, isInLendingMode, solPrice),
-        action: getAction(bank, isInLendingMode, marginfiAccount, connected, walletContextState, fetchMrgnlendState),
+        position: getPositionData(bank, nativeSolBalance, isInLendingMode, solPrice, isMixin),
+        action: getAction(bank, isInLendingMode, marginfiAccount, connected, fetchMrgnlendState),
       }) as AssetListModel
   );
 };

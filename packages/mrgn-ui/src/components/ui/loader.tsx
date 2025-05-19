@@ -13,7 +13,7 @@ export const Loader = ({ label = "Loading...", className, iconSize }: LoaderProp
     <div
       className={cn("flex flex-col items-center justify-center gap-2 text-muted-foreground animate-pulsate", className)}
     >
-      <IconMrgn size={iconSize} />
+      {/* <IconMrgn size={iconSize} /> */}
       <p>{label}</p>
     </div>
   );

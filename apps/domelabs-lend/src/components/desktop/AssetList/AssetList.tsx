@@ -4,21 +4,22 @@ import Link from "next/link";
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
 import { IconExternalLink } from "@tabler/icons-react";
 
-import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
+import { cn, LendingModes, PoolTypes, useConnection } from "@mrgnlabs/mrgn-utils";
 
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useAppStore, useMrgnlendStore, useUiStore } from "~/store";
 import { STABLECOINS, LSTS, MEMES } from "~/config/constants";
 
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./components";
-import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { Button } from "~/components/ui/button";
 import { TokenFilters } from "~/store/uiStore";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 export const AssetsList = () => {
+  const [connected] = useAppStore((state) => [state.connected]);
+
   const [extendedBankInfos, nativeSolBalance, selectedAccount, fetchMrgnlendState, stakedAssetBankInfos] =
     useMrgnlendStore((state) => [
       state.extendedBankInfos,
@@ -34,7 +35,6 @@ export const AssetsList = () => {
     state.tokenFilter,
     state.setTokenFilter,
   ]);
-  const { connected, walletContextState } = useWallet();
 
   const [isLSTDialogOpen, setIsLSTDialogOpen] = React.useState(false);
   const [lstDialogVariant, setLSTDialogVariant] = React.useState<LSTDialogVariants | null>(null);
@@ -97,13 +97,14 @@ export const AssetsList = () => {
       nativeSolBalance,
       selectedAccount,
       connected,
-      walletContextState,
+      // walletContextState,
       solPrice,
-      fetchMrgnlendState
+      fetchMrgnlendState,
+      true
     );
   }, [
     connected,
-    walletContextState,
+    // walletContextState,
     globalBanks,
     isInLendingMode,
     nativeSolBalance,
@@ -119,13 +120,14 @@ export const AssetsList = () => {
       nativeSolBalance,
       selectedAccount,
       connected,
-      walletContextState,
+      // walletContextState,
       solPrice,
-      fetchMrgnlendState
+      fetchMrgnlendState,
+      true
     );
   }, [
     connected,
-    walletContextState,
+    // walletContextState,
     isolatedBanks,
     isInLendingMode,
     nativeSolBalance,
@@ -141,13 +143,14 @@ export const AssetsList = () => {
       nativeSolBalance,
       selectedAccount,
       connected,
-      walletContextState,
+      // walletContextState,
       solPrice,
-      fetchMrgnlendState
+      fetchMrgnlendState,
+      true
     );
   }, [
     connected,
-    walletContextState,
+    // walletContextState,
     stakedAssetBanks,
     isInLendingMode,
     nativeSolBalance,
@@ -163,13 +166,14 @@ export const AssetsList = () => {
       nativeSolBalance,
       selectedAccount,
       connected,
-      walletContextState,
+      // walletContextState,
       solPrice,
-      fetchMrgnlendState
+      fetchMrgnlendState,
+      true
     );
   }, [
     connected,
-    walletContextState,
+    // walletContextState,
     stakedAssetBankInfos,
     isInLendingMode,
     nativeSolBalance,

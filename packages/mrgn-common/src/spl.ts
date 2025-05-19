@@ -383,10 +383,6 @@ export function getAssociatedTokenAddressSync(
   associatedTokenProgramId = ASSOCIATED_TOKEN_PROGRAM_ID
 ): PublicKey {
   if (!allowOwnerOffCurve && !PublicKey.isOnCurve(owner.toBuffer())) throw new TokenOwnerOffCurveError();
-  console.log("owner: ", owner.toBase58());
-  console.log("programId: ", programId);
-  console.log("mint: ", mint);
-  console.log("associatedTokenProgramId: ", associatedTokenProgramId);
 
   const [address] = PublicKey.findProgramAddressSync(
     [owner.toBuffer(), programId.toBuffer(), mint.toBuffer()],

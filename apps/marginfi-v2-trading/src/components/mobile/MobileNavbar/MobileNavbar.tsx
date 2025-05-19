@@ -41,13 +41,17 @@ export const mobileLinks: NavLinkInfo[] = [
     label: "Portfolio",
     Icon: IconChartPie,
   },
-  {
-    href: "/",
-    alt: "Create pool icon",
-    label: "Create Pool",
-    trigger: CreatePoolTrigger,
-    Icon: IconPlus,
-  },
+  ...(process.env.NEXT_PUBLIC_HIDE_ARENA_FEATURES
+    ? [
+        {
+          href: "/",
+          alt: "Create pool icon",
+          label: "Create Pool",
+          trigger: CreatePoolTrigger,
+          Icon: IconPlus,
+        },
+      ]
+    : []),
 ];
 
 const MobileNavbar = () => {
