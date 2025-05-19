@@ -623,7 +623,6 @@ export const handleError = (
 
       if (
         checkErrorCodeMatch(error.message, 6047) ||
-        checkErrorCodeMatch(error.message, 6048) ||
         error.message?.toLowerCase().includes("can only deposit staked assets")
       ) {
         return STATIC_SIMULATION_ERRORS.STAKED_ONLY_SOL_CHECK;
