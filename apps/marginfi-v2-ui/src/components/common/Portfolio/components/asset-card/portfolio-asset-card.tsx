@@ -79,7 +79,9 @@ export const PortfolioAssetCard = ({
 
   const collateralBanks = React.useMemo(() => {
     const banks = collateralBanksByLiabilityBank[bank.address.toBase58()] || [];
-    return banks.length > 0 ? banks.filter((bank) => bank.collateralBank.isActive) : [];
+    return banks.length > 0
+      ? banks.filter((bank) => bank.collateralBank.isActive && bank.collateralBank.position.isLending)
+      : [];
   }, [collateralBanksByLiabilityBank, bank]);
 
   const isEmodeActive = React.useMemo(() => {
