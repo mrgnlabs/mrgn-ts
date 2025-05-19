@@ -118,6 +118,12 @@ export const PortfolioAssetCard = ({
     [bank, isInLendingMode]
   );
 
+  if (bank.meta.tokenSymbol === "SOL") {
+    console.log("bank", bank);
+    console.log("assetWeight", assetWeight);
+    console.log("originalAssetWeight", originalAssetWeight);
+  }
+
   if (variant === "simple") {
     return (
       <div
@@ -214,7 +220,7 @@ export const PortfolioAssetCard = ({
                 <div className="flex justify-between items-center w-full">
                   <div className="flex items-center gap-3 font-medium text-lg">
                     {bank.meta.tokenSymbol}{" "}
-                    {bank.position.emodeActive ? (
+                    {isEmodeActive ? (
                       isInLendingMode ? (
                         <div className="text-purple-300 text-xs flex items-center gap-1 lowercase">
                           <IconBolt size={12} />
