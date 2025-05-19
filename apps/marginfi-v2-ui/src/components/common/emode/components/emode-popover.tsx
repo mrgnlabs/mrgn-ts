@@ -77,10 +77,6 @@ export const EmodePopover = ({
               </TableHeader>
               <TableBody>
                 {liabilityBanks?.map((liabilityBankItem) => {
-                  const { assetWeight, originalAssetWeight } = getAssetWeightData(
-                    liabilityBankItem.liabilityBank,
-                    isInLendingMode
-                  );
                   return (
                     <TableRow key={liabilityBankItem.liabilityBank.address.toBase58()} className="text-xs">
                       <TableCell className="py-1">
