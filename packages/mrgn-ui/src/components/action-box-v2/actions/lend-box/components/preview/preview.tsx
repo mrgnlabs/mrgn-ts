@@ -90,20 +90,20 @@ function generateLendingStats(
   }
 
   if (!hidePoolStats?.includes("health")) {
-    // stats.push(
-    //   getHealthStat(
-    //     summary.actionPreview.health?.riskEngineHealth,
-    //     false,
-    //     summary.simulationPreview?.health?.riskEngineHealth
-    //   )
-    // );
     stats.push(
       getHealthStat(
-        summary.actionPreview.health?.computedHealth,
+        summary.actionPreview.health?.riskEngineHealth,
         false,
-        summary.simulationPreview?.health?.computedHealth
+        summary.simulationPreview?.health?.riskEngineHealth
       )
     );
+    // stats.push(
+    //   getHealthStat(
+    //     summary.actionPreview.health?.computedHealth,
+    //     false,
+    //     summary.simulationPreview?.health?.computedHealth
+    //   )
+    // );
   }
 
   if (summary.simulationPreview?.liquidationPrice && bank.isActive && !hidePoolStats?.includes("liquidation")) {

@@ -355,13 +355,11 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const mev = await getStakePoolMev(connection, validatorVoteAccounts);
       const validatorRates = await getValidatorRates(validatorVoteAccounts);
 
-      let availableEmodePairByBorrowBank = getPossibleBorrowBanksForEmodes(
+      const availableEmodePairByBorrowBank = getPossibleBorrowBanksForEmodes(
         emodePairs,
         selectedAccount,
         userActiveEmodes
       );
-
-      console.log("availableEmodePairByBorrowBank", availableEmodePairByBorrowBank);
 
       let [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
         (acc, { bank, oraclePrice, tokenMetadata }) => {
@@ -408,7 +406,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
               false,
               stakedAssetMetadata,
               bankWeightsPreEmode?.[bank.address.toBase58()],
-              availableEmodePairByBorrowBank
+              availableEmodePairByBorrowBank,
+              userActiveEmodes
             )
           );
           acc[1].push(makeExtendedBankMetadata(bank, tokenMetadata, false, stakedAssetMetadata));

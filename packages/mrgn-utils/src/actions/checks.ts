@@ -7,9 +7,9 @@ import {
   MarginRequirementType,
   RiskTier,
 } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, ActiveBankInfo, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActiveBankInfo, FEE_MARGIN, EmodeImpactStatus } from "@mrgnlabs/marginfi-v2-ui-state";
 import { PublicKey } from "@solana/web3.js";
-import { DYNAMIC_SIMULATION_ERRORS, STATIC_SIMULATION_ERRORS } from "../errors";
+import { DYNAMIC_SIMULATION_ERRORS, STATIC_INFO_MESSAGES, STATIC_SIMULATION_ERRORS } from "../errors";
 import { ArenaGroupStatus } from "../types";
 
 type QuoteResponseMeta = {
@@ -306,6 +306,38 @@ function canBeBorrowed(
 
   if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Borrows"));
+  }
+
+  console.log("targetBank", targetBankInfo.meta.tokenSymbol);
+  console.log("borrowImpact", targetBankInfo.userInfo.emodeImpact?.borrowImpact);
+
+  if (targetBankInfo.userInfo.emodeImpact?.borrowImpact) {
+    const borrowImpact = targetBankInfo.userInfo.emodeImpact?.borrowImpact;
+
+    switch (borrowImpact.impactStatus) {
+      case EmodeImpactStatus.ExtendEmode:
+        checks.push(STATIC_INFO_MESSAGES.EMODE_EXTEND_IMPACT);
+        break;
+      case EmodeImpactStatus.IncreaseEmode:
+        checks.push(
+          DYNAMIC_SIMULATION_ERRORS.EMODE_INCREASE_CHECK(
+            Math.abs(borrowImpact.assetWeightMaintChange.times(100).toNumber())
+          )
+        );
+        break;
+      case EmodeImpactStatus.ReduceEmode:
+        checks.push(
+          DYNAMIC_SIMULATION_ERRORS.EMODE_REDUCE_CHECK(
+            Math.abs(borrowImpact.assetWeightMaintChange.times(100).toNumber())
+          )
+        );
+        break;
+      case EmodeImpactStatus.RemoveEmode:
+        checks.push(STATIC_SIMULATION_ERRORS.REMOVE_E_MODE_CHECK);
+        break;
+      case EmodeImpactStatus.InactiveEmode:
+        break;
+    }
   }
 
   return checks;

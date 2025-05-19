@@ -65,12 +65,33 @@ interface MakeLendingPositionRawProps {
   emodeActive: boolean;
 }
 
+enum EmodeImpactStatus {
+  ExtendEmode,
+  IncreaseEmode,
+  ReduceEmode,
+  RemoveEmode,
+  InactiveEmode,
+}
+
+type EmodeImpact = {
+  assetWeightMaintChange: BigNumber;
+  assetWeightInitChange: BigNumber;
+  impactStatus: EmodeImpactStatus;
+};
+
+type ActionEmodeImpact = {
+  borrowImpact?: EmodeImpact;
+  repayImpact?: EmodeImpact;
+  withdrawImpact?: EmodeImpact;
+};
+
 interface UserInfo {
   tokenAccount: TokenAccount;
   maxDeposit: number;
   maxRepay: number;
   maxWithdraw: number;
   maxBorrow: number;
+  emodeImpact?: ActionEmodeImpact;
 }
 
 type UserDataProps = UserDataWrappedProps | UserDataRawProps;
@@ -103,4 +124,7 @@ export type {
   UserDataProps,
   UserDataWrappedProps,
   UserDataRawProps,
+  EmodeImpact,
 };
+
+export { EmodeImpactStatus };

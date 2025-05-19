@@ -1,6 +1,7 @@
 import { MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { HealthCache } from "@mrgnlabs/marginfi-client-v2/dist/models/health-cache";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import BigNumber from "bignumber.js";
 
 export enum SimulationStatus {
   IDLE = "idle",
@@ -19,18 +20,6 @@ export function simulatedHealthFactor(simulationResult: SimulationResult) {
   );
 
   const { assetValueMaint, liabilityValueMaint } = simulationResult.marginfiAccount.data.healthCache;
-
-  /*
-  console.log({ healthCache: simulationResult.marginfiAccount.data.healthCache });
-
-  console.log({ assetValueMaint: assetValueMaint.toNumber(), assets: assets.toNumber() });
-
-  console.log({
-    liabilityValueMaint: liabilityValueMaint.toNumber(),
-    liabilities: liabilities.toNumber(),
-  });
-  */
-
   const riskEngineHealth = assetValueMaint.minus(liabilityValueMaint).dividedBy(assetValueMaint).toNumber();
 
   const computedHealth = assets.minus(liabilities).dividedBy(assets).toNumber();
@@ -64,14 +53,19 @@ export function simulatedPositionSize(simulationResult: SimulationResult, bank: 
   The available collateral is the amount of collateral that the bank has available to cover the position.
 */
 export function simulatedCollateral(simulationResult: SimulationResult) {
-  const { assets: assetsInit } = simulationResult.marginfiAccount.computeHealthComponents(
-    MarginRequirementType.Initial
-  );
+  // const { assets: assetsInit } = simulationResult.marginfiAccount.computeHealthComponents(
+  //   MarginRequirementType.Initial
+  // );
+  // const availableCollateralCompued = simulationResult.marginfiAccount.computeFreeCollateral().toNumber();
 
-  const availableCollateral = simulationResult.marginfiAccount.computeFreeCollateral().toNumber();
+  const { assetValue: riskEngineInitAssetValue, liabilityValue: riskEngineInitLiabilityValue } =
+    simulationResult.marginfiAccount.data.healthCache;
+  const signedFreeCollateral = riskEngineInitAssetValue.minus(riskEngineInitLiabilityValue);
+  const availableCollateral = BigNumber.max(0, signedFreeCollateral).toNumber();
+
   return {
     amount: availableCollateral,
-    ratio: availableCollateral / assetsInit.toNumber(),
+    ratio: availableCollateral / riskEngineInitAssetValue.toNumber(),
   };
 }
 

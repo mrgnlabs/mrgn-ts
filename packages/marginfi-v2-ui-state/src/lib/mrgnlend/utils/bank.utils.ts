@@ -46,6 +46,8 @@ import {
   MakeLendingPositionWrappedProps,
   StakePoolMetadata,
   EmodePair,
+  EmodeImpact,
+  EmodeImpactStatus,
 } from "../types";
 import { fetchBirdeyePrices } from "./account.utils";
 import { stagingStaticBankMetadata, stagingStaticTokenMetadata, VOLATILITY_FACTOR } from "../consts";
@@ -224,17 +226,13 @@ function makeExtendedBankInfo(
   overrideIcon?: boolean,
   stakePoolMetadata?: StakePoolMetadata,
   originalWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber },
-  availableEmodePairByBorrowBank?: Record<string, EmodePair>
+  availableEmodePairByBorrowBank?: Record<string, EmodePair>,
+  userActiveEmodes: EmodePair[] = []
 ): ExtendedBankInfo {
   function isUserDataRawProps(userData: UserDataWrappedProps | UserDataRawProps): userData is UserDataRawProps {
     return (
       (userData as UserDataRawProps).banks !== undefined && (userData as UserDataRawProps).oraclePrices !== undefined
     );
-  }
-
-  if (bank.tokenSymbol === "USDC") {
-    console.log("USDC", bank);
-    console.log("availableEmodePairByBorrowBank", availableEmodePairByBorrowBank?.[bank.address.toBase58()]);
   }
 
   // Aggregate user-agnostic bank info
@@ -284,6 +282,7 @@ function makeExtendedBankInfo(
   let maxDeposit = floor(Math.max(0, Math.min(walletBalance, depositCapacity)), bankInfo.mintDecimals);
 
   const availableEmodePair = availableEmodePairByBorrowBank?.[bank.address.toBase58()];
+  const borrowEmodeImpact = getBorrowImpact(availableEmodePair, userActiveEmodes);
 
   let maxBorrow = 0;
   if (userData.marginfiAccount) {
@@ -332,6 +331,9 @@ function makeExtendedBankInfo(
       maxRepay: 0,
       maxWithdraw: 0,
       maxBorrow,
+      emodeImpact: {
+        borrowImpact: borrowEmodeImpact,
+      },
     };
 
     return {
@@ -398,6 +400,9 @@ function makeExtendedBankInfo(
     maxRepay,
     maxWithdraw,
     maxBorrow,
+    emodeImpact: {
+      borrowImpact: borrowEmodeImpact,
+    },
   };
 
   return {
@@ -654,6 +659,111 @@ function adjustBankWeightsWithEmodePairs(
   }
 
   return { adjustedBanks, originalWeights };
+}
+
+function getBorrowImpact(newEmodePair?: EmodePair, activeEmodePairs?: EmodePair[]): EmodeImpact {
+  if (!newEmodePair || !activeEmodePairs?.length) {
+    return {
+      assetWeightMaintChange: new BigNumber(0),
+      assetWeightInitChange: new BigNumber(0),
+      impactStatus: EmodeImpactStatus.InactiveEmode,
+    };
+  }
+
+  if (!newEmodePair && activeEmodePairs.length) {
+    return {
+      assetWeightMaintChange: new BigNumber(0),
+      assetWeightInitChange: new BigNumber(0),
+      impactStatus: EmodeImpactStatus.RemoveEmode,
+    };
+  }
+
+  // Find the emode pair with the lowest asset weight
+  const lowestWeightPair = activeEmodePairs.reduce((lowest, current) => {
+    return current.assetWeightMaint.lt(lowest.assetWeightMaint) ? current : lowest;
+  }, activeEmodePairs[0]);
+
+  if (newEmodePair.assetWeightMaint.lt(lowestWeightPair.assetWeightMaint)) {
+    return {
+      assetWeightMaintChange: new BigNumber(newEmodePair.assetWeightMaint.minus(lowestWeightPair.assetWeightMaint)),
+      assetWeightInitChange: new BigNumber(newEmodePair.assetWeightInt.minus(lowestWeightPair.assetWeightInt)),
+      impactStatus: EmodeImpactStatus.ReduceEmode,
+    };
+  }
+
+  if (newEmodePair.assetWeightMaint.gte(lowestWeightPair.assetWeightMaint)) {
+    return {
+      assetWeightMaintChange: new BigNumber(0),
+      assetWeightInitChange: new BigNumber(0),
+      impactStatus: EmodeImpactStatus.ExtendEmode,
+    };
+  }
+
+  return {
+    assetWeightMaintChange: new BigNumber(0),
+    assetWeightInitChange: new BigNumber(0),
+    impactStatus: EmodeImpactStatus.ExtendEmode,
+  };
+}
+
+/*
+ *
+ *
+ */
+function getEmodeRepayImpact(
+  emodePairs: EmodePair[],
+  marginfiAccount?: MarginfiAccountWrapper | MarginfiAccount | null,
+  activeEmodePairs?: EmodePair[]
+) {
+  // if (!activeEmodePairs || !activeEmodePairs.length) {
+  //   return [];
+  // }
+
+  // Is emode active right now?
+  const pairByLiabilityBank: Record<string, EmodePair> = {};
+
+  // Return if empty account
+  if (!marginfiAccount) {
+    return pairByLiabilityBank;
+  }
+
+  // Does the user have borrows?
+  if (marginfiAccount.activeBalances.some((b) => b.liabilityShares.eq(0))) {
+    return pairByLiabilityBank;
+  } else {
+    const activeLiabilities = marginfiAccount.activeBalances
+      .filter((b) => b.liabilityShares.gt(0))
+      .map((balance) => balance.bankPk);
+
+    // check if the user does not have any emodes
+    if (!activeEmodePairs || !activeEmodePairs.length) {
+    } else {
+      // the user has emode enabled
+      const activeLiabilities = marginfiAccount.activeBalances;
+      if (activeLiabilities.length === 1) {
+        return pairByLiabilityBank;
+      }
+      // Find the best (highest) weights
+      let maxMaint = activeEmodePairs[0]?.assetWeightMaint;
+      let maxInt = activeEmodePairs[0]?.assetWeightInt;
+
+      for (const p of activeEmodePairs) {
+        if (p.assetWeightMaint.gt(maxMaint)) maxMaint = p.assetWeightMaint;
+        if (p.assetWeightInt.gt(maxInt)) maxInt = p.assetWeightInt;
+      }
+
+      //Keep any pair that is lower in *either* metric
+      const lowerWeightPairs = activeEmodePairs.filter(
+        (p) => p.assetWeightMaint.lt(maxMaint) || p.assetWeightInt.lt(maxInt)
+      );
+
+      if (lowerWeightPairs.length === 1) {
+        const [outlierPair] = lowerWeightPairs;
+        pairByLiabilityBank[outlierPair.liabilityBank.toBase58()] = outlierPair;
+      }
+    }
+  }
+  return pairByLiabilityBank;
 }
 /**
  * Collects all possible borrow banks that would enable or continue active emodes for the user

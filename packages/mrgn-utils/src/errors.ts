@@ -5,6 +5,16 @@ import { ActionMessageType } from "./actions";
 import { MAX_SLIPPAGE_PERCENTAGE } from "./slippage.consts";
 import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/common";
 
+// Static info messages
+export const STATIC_INFO_MESSAGES: { [key: string]: ActionMessageType } = {
+  EMODE_EXTEND_IMPACT: {
+    isEnabled: true,
+    actionMethod: "INFO",
+    description: "This action will keep e-mode active",
+    code: 1001,
+  },
+};
+
 // Static errors that are not expected to change
 export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   NOT_INITIALIZED: {
@@ -301,7 +311,27 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     isEnabled: false,
     code: 154,
   },
+  REMOVE_E_MODE_CHECK: {
+    description: "This action will disable e-mode and reset boosted weights.",
+    isEnabled: false,
+    actionMethod: "WARNING",
+    code: 157,
+  },
 };
+
+const createEmodeReduceCheck = (changePercentage: number): ActionMessageType => ({
+  description: `This action will reduce your e-mode advantage by ${changePercentage}%`,
+  isEnabled: true,
+  actionMethod: "WARNING",
+  code: 156,
+});
+
+const createEmodeIncreaseCheck = (changePercentage: number): ActionMessageType => ({
+  description: `This action will increase your e-mode advantage by  ${changePercentage}%`,
+  isEnabled: true,
+  actionMethod: "INFO",
+  code: 155,
+});
 
 const createProcessingTxFailedCheck = (info?: string): ActionMessageType => ({
   description: `Error processing transaction. Please try again. ${info ? `Details: ${info}` : ""}`,
@@ -505,6 +535,8 @@ export const DYNAMIC_SIMULATION_ERRORS = {
   TRADE_FAILED_CHECK: createTradeFailedCheck,
   PROCESSING_TX_FAILED_CHECK: createProcessingTxFailedCheck,
   SIMULATION_FAILED_CHECK: createSimulationFailedCheck,
+  EMODE_REDUCE_CHECK: createEmodeReduceCheck,
+  EMODE_INCREASE_CHECK: createEmodeIncreaseCheck,
 };
 
 const createCustomError = (description: string): ActionMessageType => ({
