@@ -206,12 +206,12 @@ export const PortfolioAssetCard = ({
                     {bank.meta.tokenSymbol}{" "}
                     {isEmodeActive ? (
                       isInLendingMode ? (
-                        <div className="text-purple-300 text-xs flex items-center gap-1 lowercase">
+                        <div className="text-purple-300 text-xs items-center gap-1 lowercase hidden md:flex">
                           <IconBolt size={12} />
                           {EmodeTag[bank.info.rawBank.emode.emodeTag]}
                         </div>
                       ) : (
-                        <span className="text-purple-300 text-xs flex items-center gap-1 lowercase">
+                        <span className="text-purple-300 text-xs items-center gap-1 lowercase hidden md:flex">
                           <IconBolt size={12} />
                           {EmodeTag[bank.info.rawBank.emode.emodeTag]}
                         </span>

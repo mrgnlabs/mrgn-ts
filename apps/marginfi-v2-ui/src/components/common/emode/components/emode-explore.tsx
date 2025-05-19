@@ -73,7 +73,7 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
-      <DialogContent className="overflow-visible md:p-6 md:py-8" closeClassName="-top-8 -right-8 z-50">
+      <DialogContent className="overflow-visible p-2 md:p-6 md:py-8" closeClassName="md:-top-8 md:-right-8 md:z-50">
         <DialogHeader>
           <DialogTitle className="text-2xl font-normal flex items-center gap-2">
             Explore{" "}
@@ -156,7 +156,7 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
                     className="odd:bg-background-gray-light/50 hover:bg-transparent hover:odd:bg-background-gray-light/50"
                   >
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 text-xs md:text-sm">
                         <Image
                           src={collateralBank.collateralBank.meta.tokenLogoUri}
                           alt={collateralBank.collateralBank.meta.tokenSymbol}

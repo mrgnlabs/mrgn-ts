@@ -21,14 +21,14 @@ type EmodePortfolioProps = {
 const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: EmodePortfolioProps) => {
   const emodeActive = userActiveEmodes.length > 0;
   return (
-    <div className="flex items-center gap-3 justify-between">
+    <div className="flex flex-col md:flex-row items-center gap-3 justify-between">
       <div
         className={cn(
-          "py-2 flex items-center gap-3 transition-opacity duration-500",
+          "py-2 w-full flex items-center justify-between md:justify-start gap-3 transition-opacity duration-500",
           filterEmode && "opacity-10 pointer-events-none"
         )}
       >
-        <div className="flex items-center gap-2 text-sm mr-2">
+        <div className="flex items-center justify-between text-sm mr-2 gap-2 shrink-0">
           <div
             className={cn(
               "w-2 h-2 bg-gray-400 rounded-full translate-y-px text-muted-foreground",
@@ -42,7 +42,7 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: Emode
             <EmodeViewAll
               key={`${pair.collateralBankTag}-${idx}`}
               trigger={
-                <Badge variant="emode">
+                <Badge variant="emode" className="hidden md:flex">
                   <IconBolt size={16} /> {EmodeTag[pair.collateralBankTag]}
                 </Badge>
               }
@@ -64,7 +64,7 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: Emode
         </div>
       </div>
       {emodeActive && (
-        <div className="flex items-center gap-2">
+        <div className="items-center gap-2 shrink-0 hidden md:flex">
           <Label htmlFor="pairings" className="text-sm text-muted-foreground flex items-center gap-1">
             <IconSparkles size={14} /> Highlight e-mode
           </Label>

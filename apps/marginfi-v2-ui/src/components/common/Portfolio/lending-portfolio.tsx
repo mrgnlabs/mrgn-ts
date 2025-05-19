@@ -336,11 +336,11 @@ export const LendingPortfolio = () => {
 
   return (
     <div className="flex flex-col items-center md:items-start w-full gap-4">
-      <div className="p-4 md:p-6 rounded-xl w-full bg-muted/25">
+      <div className="pb-6 md:p-6 rounded-xl w-full md:bg-muted/25">
         <div className={cn("transition-opacity duration-500", filterEmode && "opacity-10 pointer-events-none")}>
           <div className="flex items-center gap-4 w-full">
             <div className="flex items-center gap-2">
-              <p className="text-sm text-muted-foreground">Account</p>
+              <p className="text-sm text-muted-foreground hidden md:block">Account</p>
               <WalletAuthAccounts
                 initialized={true}
                 mfiClient={marginfiClient}
