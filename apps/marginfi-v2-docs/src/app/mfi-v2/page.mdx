@@ -307,185 +307,307 @@ The marginfi-v2 program is deployed on mainnet-beta, and can be referenced by th
 
 ## Errors {{ tag: '', label: '' }}
 
+## Errors {{ tag: '', label: '' }}
+
 <Properties>
-  <Property name="MathError" type="6000">
-    **An error occurred during a mathematical operation**. Double-check the inputs and operations being performed, and ensure that there are no overflows or underflows.
+  <Property name="InternalLogicError" type="6000">
+    **Internal Marginfi logic error**. Indicates an unexpected internal failure.
   </Property>
 
   <Property name="BankNotFound" type="6001">
-    **The specified bank index is invalid or does not exist**. Verify that the bank index being used is correct and that the bank has been properly initialized.
+    **Invalid bank index**. The specified bank index is not recognized.
   </Property>
 
   <Property name="LendingAccountBalanceNotFound" type="6002">
-    **The lending account balance was not found**. Ensure that the lending account balance has been properly initialized and that the account data is correct.
+    **Lending account balance not found**. Ensure the account is properly initialized.
   </Property>
 
   <Property name="BankAssetCapacityExceeded" type="6003">
-    **The deposit exceeds the bank's asset capacity**. Check the bank's asset capacity and ensure that the deposit amount does not exceed it.
+    **Bank deposit capacity exceeded**. The deposit surpasses the allowed limit.
   </Property>
 
   <Property name="InvalidTransfer" type="6004">
-    **The transfer operation is invalid**. Verify the transfer parameters and ensure that the accounts involved have the correct ownership and balances.
+    **Invalid transfer**. Verify ownership and transfer parameters.
   </Property>
 
   <Property name="MissingPythOrBankAccount" type="6005">
-    **Either the Pyth or Bank account is missing**. Ensure that both the Pyth and Bank accounts are properly provided and initialized.
+    **Missing Oracle, Bank, LST mint, or Sol Pool**. Required accounts not provided.
   </Property>
 
   <Property name="MissingPythAccount" type="6006">
-    **The Pyth account is missing**. Provide a valid Pyth account.
+    **Missing Pyth account**. Provide a valid oracle feed.
   </Property>
 
-  <Property name="InvalidOracleAccount" type="6007">
-    **The provided oracle account is invalid**. Verify that the oracle account is correct and properly initialized.
+  <Property name="MissingBankAccount" type="6007">
+    **Missing Bank account**. Required for the operation.
   </Property>
 
-  <Property name="MissingBankAccount" type="6008">
-    **The Bank account is missing**. Provide a valid Bank account.
+  <Property name="InvalidBankAccount" type="6008">
+    **Invalid Bank account**. Ensure it's correct and initialized.
   </Property>
 
-  <Property name="InvalidBankAccount" type="6009">
-    **The provided Bank account is invalid**. Verify that the Bank account is correct and properly initialized.
+  <Property name="RiskEngineInitRejected" type="6009">
+    **Rejected due to bad health or stale oracles**. Check account health and data freshness.
   </Property>
 
-  <Property name="RiskEngineInitRejected" type="6010">
-    **The account's health is bad or the oracles are stale**. Check the account's balances and ensure that it is not bankrupt or in an unhealthy state. Also, ensure that the oracle data is fresh.
+  <Property name="LendingAccountBalanceSlotsFull" type="6010">
+    **Lending balance slots full**. Free up space before proceeding.
   </Property>
 
-  <Property name="LendingAccountBalanceSlotsFull" type="6011">
-    **The lending account balance slots are full**. Close or manage existing lending account balances to free up slots.
+  <Property name="BankAlreadyExists" type="6011">
+    **Bank already exists**. Use a different identifier.
   </Property>
 
-  <Property name="BankAlreadyExists" type="6012">
-    **The bank already exists**. Use an existing bank or create a new one with a different name or identifier.
+  <Property name="ZeroLiquidationAmount" type="6012">
+    **Liquidation amount must be positive**. Adjust your input value.
   </Property>
 
-  <Property name="IllegalLiquidation" type="6013">
-    **The liquidation operation is illegal**. Verify that the account meets the criteria for liquidation and that the liquidation parameters are correct.
+  <Property name="AccountNotBankrupt" type="6013">
+    **Account is not bankrupt**. Check criteria before proceeding.
   </Property>
 
-  <Property name="AccountNotBankrupt" type="6014">
-    **The account is not bankrupt**. Check the account's balances and ensure that it meets the criteria for bankruptcy before attempting any bankruptcy-related operations.
+  <Property name="BalanceNotBadDebt" type="6014">
+    **Balance not bad debt**. Operation only valid for bad debt.
   </Property>
 
-  <Property name="BalanceNotBadDebt" type="6015">
-    **The account balance is not considered bad debt**. Verify that the account balance meets the criteria for bad debt before attempting any bad debt-related operations.
+  <Property name="InvalidConfig" type="6015">
+    **Invalid group config**. Verify configuration parameters.
   </Property>
 
-  <Property name="InvalidConfig" type="6016">
-    **The group configuration is invalid**. Check the group configuration parameters and ensure that they are correct and valid.
+  <Property name="BankPaused" type="6016">
+    **Bank paused**. Operation temporarily disabled.
   </Property>
 
-  <Property name="StaleOracle" type="6017">
-    **The oracle data is stale or outdated**. Update the oracle data or wait for fresh data to become available.
+  <Property name="BankReduceOnly" type="6017">
+    **Bank in reduce-only mode**. Only reduction actions allowed.
   </Property>
 
-  <Property name="BankPaused" type="6018">
-    **The bank is currently paused**. Wait for the bank to be unpaused or check the pause status before attempting any operations.
+  <Property name="BankAccountNotFound" type="6018">
+    **Bank is missing**. Ensure the account exists.
   </Property>
 
-  <Property name="BankReduceOnly" type="6019">
-    **The bank is in reduce-only mode**. Only perform operations that reduce the bank's exposure or wait for the mode to change.
+  <Property name="OperationDepositOnly" type="6019">
+    **Deposit-only operation**. Other operations not permitted.
   </Property>
 
-  <Property name="BankAccoutNotFound" type="6020">
-    **The bank account was not found**. Verify that the bank account exists and is properly initialized.
+  <Property name="OperationWithdrawOnly" type="6020">
+    **Withdraw-only operation**. Only withdrawals are allowed.
   </Property>
 
-  <Property name="OperationDepositOnly" type="6021">
-    **The operation is deposit-only**. Ensure that the operation being performed is a deposit operation.
+  <Property name="OperationBorrowOnly" type="6021">
+    **Borrow-only operation**. Restriction in place for borrowing.
   </Property>
 
-  <Property name="OperationWithdrawOnly" type="6022">
-    **The operation is withdraw-only**. Ensure that the operation being performed is a withdrawal operation.
+  <Property name="OperationRepayOnly" type="6022">
+    **Repay-only operation**. Action must be a repayment.
   </Property>
 
-  <Property name="OperationBorrowOnly" type="6023">
-    **The operation is borrow-only**. Ensure that the operation being performed is a borrow operation.
+  <Property name="NoAssetFound" type="6023">
+    **No asset found**. Ensure the referenced asset exists.
   </Property>
 
-  <Property name="OperationRepayOnly" type="6024">
-    **The operation is repay-only**. Ensure that the operation being performed is a repayment operation.
+  <Property name="NoLiabilityFound" type="6024">
+    **No liability found**. Ensure the liability is initialized.
   </Property>
 
-  <Property name="NoAssetFound" type="6025">
-    **No asset was found**. Verify that the asset being referenced exists and is properly initialized.
+  <Property name="InvalidOracleSetup" type="6025">
+    **Invalid oracle setup**. Configuration parameters are incorrect.
   </Property>
 
-  <Property name="NoLiabilityFound" type="6026">
-    **No liability was found**. Verify that the liability being referenced exists and is properly initialized.
+  <Property name="IllegalUtilizationRatio" type="6026">
+    **Invalid bank utilization ratio**. Check bounds and limits.
   </Property>
 
-  <Property name="InvalidOracleSetup" type="6027">
-    **The oracle setup is invalid**. Check the oracle setup parameters and ensure that they are correct and valid.
+  <Property name="BankLiabilityCapacityExceeded" type="6027">
+    **Bank borrow cap exceeded**. Reduce borrow amount.
   </Property>
 
-  <Property name="IllegalUtilizationRatio" type="6028">
-    **The bank utilization ratio is illegal**. Verify that the utilization ratio is within the allowed range and adjust the parameters if necessary.
+  <Property name="InvalidPrice" type="6028">
+    **Invalid price**. Ensure price value is within range.
   </Property>
 
-  <Property name="BankLiabilityCapacityExceeded" type="6029">
-    **The bank's liability capacity has been exceeded**. Check the bank's liability capacity and ensure that the borrow amount does not exceed it.
+  <Property name="IsolatedAccountIllegalState" type="6029">
+    **Illegal isolated account state**. Only one liability allowed.
   </Property>
 
-  <Property name="InvalidPrice" type="6030">
-    **The price provided is invalid**. Verify that the price data is correct and within valid ranges.
+  <Property name="EmissionsAlreadySetup" type="6030">
+    **Emissions already setup**. Cannot repeat setup.
   </Property>
 
-  <Property name="IsolatedAccountIllegalState" type="6031">
-    **The isolated account is in an illegal state (e.g., having more than one liability)**. Ensure that the isolated account follows the correct state rules.
+  <Property name="OracleNotSetup" type="6031">
+    **Oracle not set up**. Initialize before use.
   </Property>
 
-  <Property name="EmissionsAlreadySetup" type="6032">
-    **Emissions have already been set up**. Check if emissions have been set up before attempting to set them up again.
+  <Property name="InvalidSwitchboardDecimalConversion" type="6032">
+    **Invalid Switchboard decimal conversion**. Check conversion values.
   </Property>
 
-  <Property name="OracleNotSetup" type="6033">
-    **The oracle has not been set up**. Set up the oracle before attempting operations that require it.
+  <Property name="CannotCloseOutstandingEmissions" type="6033">
+    **Outstanding emissions prevent balance closure**. Settle emissions first.
   </Property>
 
-  <Property name="InvalidSwitchboardDecimalConversion" type="6034">
-    **The Switchboard decimal conversion is invalid**. Verify the Switchboard decimal conversion parameters and ensure that they are correct.
+  <Property name="EmissionsUpdateError" type="6034">
+    **Error during emissions update**. Review parameters.
   </Property>
 
-  <Property name="CannotCloseOutstandingEmissions" type="6035">
-    **Cannot close a balance with outstanding emissions**. Settle or clear any outstanding emissions before attempting to close the balance.
+  <Property name="AccountDisabled" type="6035">
+    **Account is disabled**. Reactivate to continue.
   </Property>
 
-  <Property name="EmissionsUpdateError" type="6036">
-    **An error occurred during emissions update**. Check the emissions update parameters and ensure that they are correct.
+  <Property name="AccountTempActiveBalanceLimitExceeded" type="6036">
+    **Temporary active balance limit exceeded**. Close existing balances.
   </Property>
 
-  <Property name="AccountDisabled" type="6037">
-    **The account is currently disabled**. Enable the account before attempting any operations.
+  <Property name="AccountInFlashloan" type="6037">
+    **Account in flashloan**. Wait or validate state.
   </Property>
 
-  <Property name="AccountTempActiveBalanceLimitExceeded" type="6038">
-    **The temporary active balance limit for the account has been exceeded**. Close an existing balance before attempting to open a new one.
+  <Property name="IllegalFlashloan" type="6038">
+    **Illegal flashloan**. Check parameters and permissions.
   </Property>
 
-  <Property name="AccountInFlashloan" type="6039">
-    **The account is currently in a flashloan state**. Wait for the flashloan to complete or ensure that the operation is permitted during a flashloan.
+  <Property name="IllegalFlag" type="6039">
+    **Illegal flag**. Value is not permitted.
   </Property>
 
-  <Property name="IllegalFlashloan" type="6040">
-    **The flashloan operation is illegal**. Verify that the flashloan parameters and conditions are correct.
+  <Property name="IllegalBalanceState" type="6040">
+    **Illegal balance state**. Confirm state validity.
   </Property>
 
-  <Property name="IllegalFlag" type="6041">
-    **The provided flag is illegal**. Check the flag value and ensure that it is valid and permitted.
+  <Property name="IllegalAccountAuthorityTransfer" type="6041">
+    **Illegal authority transfer**. Validate permission and setup.
   </Property>
 
-  <Property name="IllegalBalanceState" type="6043">
-    **The balance state is illegal**. Verify that the balance state is valid and permitted for the intended operation.
+  <Property name="Unauthorized" type="6042">
+    **Unauthorized**. Missing necessary permissions.
   </Property>
 
-  <Property name="IllegalAccountAuthorityTransfer" type="6044">
-    **The account authority transfer is illegal**. Check the account authority transfer parameters and ensure that the transfer is permitted.
+  <Property name="IllegalAction" type="6043">
+    **Invalid account authority**. Not authorized for this action.
   </Property>
 
-  <Property name="Unauthorized" type="6045">
-    **The operation is unauthorized**. Verify that the account or authority has the necessary permissions to perform the intended operation.
+  <Property name="T22MintRequired" type="6044">
+    **Missing mint account for Token22 bank**. Provide it as the first remaining account.
+  </Property>
+
+  <Property name="InvalidFeeAta" type="6045">
+    **Invalid ATA for global fee account**. Must match expected account.
+  </Property>
+
+  <Property name="AddedStakedPoolManually" type="6046">
+    **Manual pool addition not allowed**. Use permissionless add method.
+  </Property>
+
+  <Property name="AssetTagMismatch" type="6047">
+    **Staked SOL accounts restricted to staking assets and borrowing SOL**.
+  </Property>
+
+  <Property name="StakePoolValidationFailed" type="6048">
+    **Stake pool validation failed**. Check stake pool, mint, and sol pool setup.
+  </Property>
+
+  <Property name="SwitchboardStalePrice" type="6049">
+    **Stale price from Switchboard oracle**. Refresh the feed.
+  </Property>
+
+  <Property name="PythPushStalePrice" type="6050">
+    **Stale price from Pyth Push oracle**. Update required.
+  </Property>
+
+  <Property name="WrongNumberOfOracleAccounts" type="6051">
+    **Incorrect number of oracle accounts**. Review account list.
+  </Property>
+
+  <Property name="WrongOracleAccountKeys" type="6052">
+    **Incorrect oracle account keys**. Ensure the keys are valid.
+  </Property>
+
+  <Property name="PythPushWrongAccountOwner" type="6053">
+    **Wrong account owner for Pyth Push oracle**. Check account ownership.
+  </Property>
+
+  <Property name="StakedPythPushWrongAccountOwner" type="6054">
+    **Wrong owner for Staked Pyth Push oracle account**. Check setup.
+  </Property>
+
+  <Property name="PythPushMismatchedFeedId" type="6055">
+    **Mismatched feed ID in Pyth Push oracle**. Must match expected value.
+  </Property>
+
+  <Property name="PythPushInsufficientVerificationLevel" type="6056">
+    **Insufficient verification level in Pyth Push oracle**.
+  </Property>
+
+  <Property name="PythPushFeedIdMustBe32Bytes" type="6057">
+    **Feed ID must be 32 bytes for Pyth Push oracle**.
+  </Property>
+
+  <Property name="PythPushFeedIdNonHexCharacter" type="6058">
+    **Feed ID contains non-hex characters in Pyth Push oracle**.
+  </Property>
+
+  <Property name="SwitchboardWrongAccountOwner" type="6059">
+    **Wrong account owner for Switchboard oracle**.
+  </Property>
+
+  <Property name="PythPushInvalidAccount" type="6060">
+    **Invalid account for Pyth Push oracle**.
+  </Property>
+
+  <Property name="SwitchboardInvalidAccount" type="6061">
+    **Invalid account for Switchboard oracle**.
+  </Property>
+
+  <Property name="MathError" type="6062">
+    **Math error**. Check for overflows or invalid operations.
+  </Property>
+
+  <Property name="InvalidEmissionsDestinationAccount" type="6063">
+    **Invalid emissions destination account**. Ensure it's correctly configured.
+  </Property>
+
+  <Property name="SameAssetAndLiabilityBanks" type="6064">
+    **Asset and liability banks must differ**.
+  </Property>
+
+  <Property name="OverliquidationAttempt" type="6065">
+    **Withdrawal exceeds available assets**. Reduce withdrawal amount.
+  </Property>
+
+  <Property name="NoLiabilitiesInLiabilityBank" type="6066">
+    **No liabilities exist in liability bank**.
+  </Property>
+
+  <Property name="AssetsInLiabilityBank" type="6067">
+    **Liability bank contains assets**. Invalid configuration.
+  </Property>
+
+  <Property name="HealthyAccount" type="6068">
+    **Account is healthy**. Cannot proceed with liquidation.
+  </Property>
+
+  <Property name="ExhaustedLiability" type="6069">
+    **Liability payoff too severe**. No more liability remains.
+  </Property>
+
+  <Property name="TooSeverePayoff" type="6070">
+    **Liability balance has assets**. Payoff is overly aggressive.
+  </Property>
+
+  <Property name="TooSevereLiquidation" type="6071">
+    **Liquidation exceeds requirements**. Account above maintenance.
+  </Property>
+
+  <Property name="WorseHealthPostLiquidation" type="6072">
+    **Liquidation worsens account health**. Not allowed.
+  </Property>
+
+  <Property name="ArenaBankLimit" type="6073">
+    **Arena groups support max two banks**. Reduce bank count.
+  </Property>
+
+  <Property name="ArenaSettingCannotChange" type="6074">
+    **Arena groups cannot revert to non-arena**. Setting is immutable.
   </Property>
 </Properties>
 
