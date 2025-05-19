@@ -312,6 +312,31 @@ export function useEmodeLineConnections(
               </linearGradient>
             );
           })}
+          {/* Add a linearGradient for each pulse (white to line color) */}
+          {lineCoordinates.map((coords, idx) => {
+            const { x1, y1, x2, y2 } = coords;
+            const lineColor = (options.colors || [
+              { base: "hsl(273.6 65.6% 32%)", pulse: "hsl(273.6 65.6% 42%)" },
+              { base: "hsl(263.5 67.4% 34.9%)", pulse: "hsl(263.5 67.4% 44.9%)" },
+              { base: "hsl(242.2 47.4% 34.3%)", pulse: "hsl(242.2 47.4% 44.3%)" },
+              { base: "hsl(224.4 64.3% 32.9%)", pulse: "hsl(224.4 64.3% 42.9%)" },
+              { base: "hsl(202 80.3% 23.9%)", pulse: "hsl(202 80.3% 23.9%)" },
+            ])[idx % 5].base;
+            return (
+              <linearGradient
+                key={`pulse-gradient-${idx}`}
+                id={`pulse-gradient-${idx}`}
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop offset="0%" stopColor={lineColor} />
+                <stop offset="50%" stopColor="#fff" />
+              </linearGradient>
+            );
+          })}
         </defs>
         {lineCoordinates.map((coords, idx) => {
           // Get color for this line
@@ -367,7 +392,7 @@ export function useEmodeLineConnections(
             <path
               key={"pulse-unified-" + coords.index}
               d={pathString}
-              stroke="#fff"
+              stroke={`url(#pulse-gradient-${idx})`}
               strokeWidth={3}
               fill="none"
               opacity={pulseOpacity}
