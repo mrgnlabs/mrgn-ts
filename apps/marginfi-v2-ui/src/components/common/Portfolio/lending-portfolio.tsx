@@ -337,119 +337,120 @@ export const LendingPortfolio = () => {
   return (
     <div className="flex flex-col items-center md:items-start w-full gap-4">
       <div className="p-4 md:p-6 rounded-xl w-full bg-muted/25">
-        <div className="flex items-center gap-4 w-full">
-          <div className="flex items-center gap-2">
-            <p className="text-sm text-muted-foreground">Account</p>
-            <WalletAuthAccounts
-              initialized={true}
-              mfiClient={marginfiClient}
-              connection={marginfiClient?.provider.connection ?? null}
-              marginfiAccounts={marginfiAccounts}
-              selectedAccount={selectedAccount}
-              fetchMrgnlendState={fetchMrgnlendState}
-              closeOnSwitch={true}
-              popoverContentAlign="start"
-              processOpts={{
-                ...priorityFees,
-                broadcastType,
-              }}
-              accountLabels={accountLabels}
-            />
-          </div>
-
-          <div className="flex text-sm items-center gap-1.5 ml-auto">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger className="inline-flex items-center gap-1">
-                  {rewardsState.state === "NOT_FETCHED" && (
-                    <span className="cursor-default text-muted-foreground flex gap-1 items-center">
-                      Calculating rewards <IconLoader size={16} />
-                    </span>
-                  )}
-                  {rewardsState.state === "NO_REWARDS" && (
-                    <span className="cursor-default text-muted-foreground">No outstanding rewards</span>
-                  )}
-                  {rewardsState.state === "REWARDS_FETCHED" && (
-                    <button
-                      className={cn(
-                        rewardsState.totalRewardAmount === 0
-                          ? "cursor-default text-muted-foreground"
-                          : "cursor-pointer underline hover:text-muted-foreground"
-                      )}
-                      disabled={rewardsState.totalRewardAmount === 0}
-                      onClick={() => {
-                        setRewardsDialogOpen(true);
-                      }}
-                    >
-                      Collect rewards
-                    </button>
-                  )}
-                  {rewardsState.state === "EARNING_REWARDS" && (
-                    <span className="cursor-default text-muted-foreground">Earning rewards</span>
-                  )}
-                  {rewardsState.state === "ERROR" && (
-                    <span className="cursor-default text-muted-foreground">No outstanding rewards</span>
-                  )}
-                  {rewardsState.state !== "NOT_FETCHED" && (
-                    <IconInfoCircle size={16} className="text-muted-foreground" />
-                  )}
-                </TooltipTrigger>
-                <TooltipContent>
-                  <span>{rewardsState.tooltipContent}</span>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </div>
-        <div className="text-muted-foreground mt-8">
-          <dl className="flex justify-between items-center gap-1.5">
-            <dt className="flex items-center gap-1.5 text-sm">
-              Lend/borrow health factor
+        <div className={cn("transition-opacity duration-500", filterEmode && "opacity-10 pointer-events-none")}>
+          <div className="flex items-center gap-4 w-full">
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">Account</p>
+              <WalletAuthAccounts
+                initialized={true}
+                mfiClient={marginfiClient}
+                connection={marginfiClient?.provider.connection ?? null}
+                marginfiAccounts={marginfiAccounts}
+                selectedAccount={selectedAccount}
+                fetchMrgnlendState={fetchMrgnlendState}
+                closeOnSwitch={true}
+                popoverContentAlign="start"
+                processOpts={{
+                  ...priorityFees,
+                  broadcastType,
+                }}
+                accountLabels={accountLabels}
+              />
+            </div>
+            <div className="flex text-sm items-center gap-1.5 ml-auto">
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    <IconInfoCircle size={16} />
+                  <TooltipTrigger className="inline-flex items-center gap-1">
+                    {rewardsState.state === "NOT_FETCHED" && (
+                      <span className="cursor-default text-muted-foreground flex gap-1 items-center">
+                        Calculating rewards <IconLoader size={16} />
+                      </span>
+                    )}
+                    {rewardsState.state === "NO_REWARDS" && (
+                      <span className="cursor-default text-muted-foreground">No outstanding rewards</span>
+                    )}
+                    {rewardsState.state === "REWARDS_FETCHED" && (
+                      <button
+                        className={cn(
+                          rewardsState.totalRewardAmount === 0
+                            ? "cursor-default text-muted-foreground"
+                            : "cursor-pointer underline hover:text-muted-foreground"
+                        )}
+                        disabled={rewardsState.totalRewardAmount === 0}
+                        onClick={() => {
+                          setRewardsDialogOpen(true);
+                        }}
+                      >
+                        Collect rewards
+                      </button>
+                    )}
+                    {rewardsState.state === "EARNING_REWARDS" && (
+                      <span className="cursor-default text-muted-foreground">Earning rewards</span>
+                    )}
+                    {rewardsState.state === "ERROR" && (
+                      <span className="cursor-default text-muted-foreground">No outstanding rewards</span>
+                    )}
+                    {rewardsState.state !== "NOT_FETCHED" && (
+                      <IconInfoCircle size={16} className="text-muted-foreground" />
+                    )}
                   </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <div className="flex flex-col gap-2 pb-2">
-                      <p>
-                        Health factor is based off <b>price biased</b> and <b>weighted</b> asset and liability values.
-                      </p>
-                      <div className="font-medium">
-                        When your account health reaches 0% or below, you are exposed to liquidation.
-                      </div>
-                      <p>The formula is:</p>
-                      <p className="text-sm italic text-center">{"(assets - liabilities) / (assets)"}</p>
-                      <p>Your math is:</p>
-                      <p className="text-sm italic text-center">{`(${usdFormatter.format(
-                        accountSummary.lendingAmountWithBiasAndWeighted
-                      )} - ${usdFormatter.format(
-                        accountSummary.borrowingAmountWithBiasAndWeighted
-                      )}) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)})`}</p>
-                    </div>
+                  <TooltipContent>
+                    <span>{rewardsState.tooltipContent}</span>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-            </dt>
-            <dd className="text-xl md:text-2xl font-medium" style={{ color: healthColor }}>
-              {numeralFormatter(accountSummary.healthFactor.riskEngineHealth * 100)}%
-            </dd>
-          </dl>
-          <div className="h-2 bg-background-gray-light rounded-full mt-1 mb-4">
-            <div
-              className="h-2 rounded-full"
-              style={{
-                backgroundColor: healthColor,
-                width: `${accountSummary.healthFactor.riskEngineHealth * 100}%`,
-              }}
+            </div>
+          </div>
+          <div className="text-muted-foreground mt-8">
+            <dl className="flex justify-between items-center gap-1.5">
+              <dt className="flex items-center gap-1.5 text-sm">
+                Lend/borrow health factor
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <IconInfoCircle size={16} />
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <div className="flex flex-col gap-2 pb-2">
+                        <p>
+                          Health factor is based off <b>price biased</b> and <b>weighted</b> asset and liability values.
+                        </p>
+                        <div className="font-medium">
+                          When your account health reaches 0% or below, you are exposed to liquidation.
+                        </div>
+                        <p>The formula is:</p>
+                        <p className="text-sm italic text-center">{"(assets - liabilities) / (assets)"}</p>
+                        <p>Your math is:</p>
+                        <p className="text-sm italic text-center">{`(${usdFormatter.format(
+                          accountSummary.lendingAmountWithBiasAndWeighted
+                        )} - ${usdFormatter.format(
+                          accountSummary.borrowingAmountWithBiasAndWeighted
+                        )}) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)})`}</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </dt>
+              <dd className="text-xl md:text-2xl font-medium" style={{ color: healthColor }}>
+                {numeralFormatter(accountSummary.healthFactor.riskEngineHealth * 100)}%
+              </dd>
+            </dl>
+            <div className="h-2 bg-background-gray-light rounded-full mt-1 mb-4">
+              <div
+                className="h-2 rounded-full"
+                style={{
+                  backgroundColor: healthColor,
+                  width: `${accountSummary.healthFactor.riskEngineHealth * 100}%`,
+                }}
+              />
+            </div>
+            <PortfolioUserStats
+              supplied={accountSupplied}
+              borrowed={accountBorrowed}
+              netValue={accountNetValue}
+              points={numeralFormatter(userPointsData.totalPoints)}
             />
           </div>
-          <PortfolioUserStats
-            supplied={accountSupplied}
-            borrowed={accountBorrowed}
-            netValue={accountNetValue}
-            points={numeralFormatter(userPointsData.totalPoints)}
-          />
         </div>
         <div ref={containerRef} className="relative flex flex-col gap-6 mt-8">
           <div
@@ -488,7 +489,7 @@ export const LendingPortfolio = () => {
                           className={cn(
                             "transition-opacity duration-500",
                             filterEmode && "cursor-pointer",
-                            filterEmode && !eModeActive && "opacity-25"
+                            filterEmode && !eModeActive && "opacity-10"
                           )}
                           onMouseEnter={() => {
                             if (hoverDebounceRef.current) clearTimeout(hoverDebounceRef.current);

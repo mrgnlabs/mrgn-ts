@@ -22,7 +22,12 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: Emode
   const emodeActive = userActiveEmodes.length > 0;
   return (
     <div className="flex items-center gap-3 justify-between">
-      <div className="py-2 flex items-center gap-3">
+      <div
+        className={cn(
+          "py-2 flex items-center gap-3 transition-opacity duration-500",
+          filterEmode && "opacity-10 pointer-events-none"
+        )}
+      >
         <div className="flex items-center gap-2 text-sm mr-2">
           <div
             className={cn(
