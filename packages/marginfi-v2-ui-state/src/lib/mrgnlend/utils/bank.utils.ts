@@ -10,6 +10,7 @@ import {
   MarginRequirementType,
   EmodeTag,
   MarginfiConfig,
+  AssetTag,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   nativeToUi,
@@ -628,6 +629,91 @@ function adjustBankWeightsWithEmodePairs(
   }
 
   return { adjustedBanks, originalWeights };
+}
+/**
+ * Collects all possible borrow banks that would enable or continue active emodes for the user
+ * @param marginfiAccount The user's marginfi account wrapper
+ * @param emodePairs All available emode pairs
+ * @param activeEmodePairs Currently active emode pairs (optional)
+ * @returns A map of bank publickeys to their corresponding emode pairs
+ */
+function getPossibleBorrowBanksForEmodes(
+  marginfiAccount: MarginfiAccountWrapper,
+  emodePairs: EmodePair[],
+  activeEmodePairs?: EmodePair[]
+) {
+  // Is emode active right now?
+  const pairByLiabilityBank: Record<string, EmodePair> = {};
+
+  if (!activeEmodePairs || !activeEmodePairs.length) {
+    // Is there a borrow
+    if (marginfiAccount.activeBalances.some((b) => b.liabilityShares.gt(0))) {
+      return pairByLiabilityBank;
+    } else {
+      // Create a lookup map of bank public keys (base58) to quickly check collateral banks
+      const depositBankPkStrings = new Set(
+        marginfiAccount.activeBalances
+          .filter((balance) => balance.assetShares.gt(0))
+          .map((balance) => balance.bankPk.toBase58())
+      );
+
+      // Single pass through emodePairs
+      emodePairs.forEach((pair) => {
+        // Check if any of the collateral banks match the user's deposits
+        const hasMatchingCollateral = pair.collateralBanks.some((collateralBankPk) =>
+          depositBankPkStrings.has(collateralBankPk.toBase58())
+        );
+
+        if (hasMatchingCollateral) {
+          const liabilityBankKey = pair.liabilityBank.toBase58();
+          if (
+            !pairByLiabilityBank[liabilityBankKey] ||
+            pair.assetWeightMaint.lt(pairByLiabilityBank[liabilityBankKey].assetWeightMaint)
+          ) {
+            pairByLiabilityBank[liabilityBankKey] = pair;
+          }
+        }
+      });
+    }
+  } else {
+    const allPairsByLiabilityBank: Record<string, EmodePair[]> = {};
+    const mandatoryCollateralTags = new Set<EmodeTag>(activeEmodePairs.map((pair) => pair.collateralBankTag));
+
+    emodePairs.forEach((pair) => {
+      const liabilityBankKey = pair.liabilityBank.toBase58();
+      if (!allPairsByLiabilityBank[liabilityBankKey]) {
+        allPairsByLiabilityBank[liabilityBankKey] = [pair];
+      } else {
+        allPairsByLiabilityBank[liabilityBankKey].push(pair);
+      }
+    });
+
+    Object.values(allPairsByLiabilityBank).forEach((pairs) => {
+      let allPresent = true;
+
+      mandatoryCollateralTags.forEach((tag) => {
+        if (!pairs.some((pair) => pair.collateralBankTag === tag)) {
+          allPresent = false;
+        }
+      });
+
+      if (allPresent) {
+        const filteredPairs = pairs.filter((pair) => mandatoryCollateralTags.has(pair.collateralBankTag));
+
+        filteredPairs.forEach((finalPair) => {
+          const liabilityBankKey = finalPair.liabilityBank.toBase58();
+          if (
+            !pairByLiabilityBank[liabilityBankKey] ||
+            finalPair.assetWeightMaint.lt(pairByLiabilityBank[liabilityBankKey].assetWeightMaint)
+          ) {
+            pairByLiabilityBank[liabilityBankKey] = finalPair;
+          }
+        });
+      }
+    });
+  }
+
+  return pairByLiabilityBank;
 }
 
 function getUserActiveEmodes(
