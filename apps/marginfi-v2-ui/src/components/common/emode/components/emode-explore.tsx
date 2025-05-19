@@ -149,12 +149,7 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
             </TableHeader>
             <TableBody>
               {collateralBanks?.map((collateralBank) => {
-                const { assetWeight, originalAssetWeight } = getAssetWeightData(
-                  collateralBank.collateralBank,
-                  true,
-                  collateralBank.emodePair.assetWeightInt
-                );
-                const normalWeight = originalAssetWeight ?? assetWeight;
+                const { assetWeight, originalAssetWeight } = getAssetWeightData(collateralBank.collateralBank, true);
                 return (
                   <TableRow
                     key={collateralBank.collateralBank.address.toBase58()}
@@ -174,15 +169,15 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
                     </TableCell>
                     <TableCell className="lowercase">{EmodeTag[collateralBank.emodePair.collateralBankTag]}</TableCell>
                     <TableCell>
-                      {percentFormatterMod(normalWeight, {
+                      {percentFormatterMod(originalAssetWeight || assetWeight, {
                         minFractionDigits: 0,
                         maxFractionDigits: 2,
                       })}
                     </TableCell>
                     <TableCell>
                       <EmodeDiff
-                        assetWeight={assetWeight}
-                        originalAssetWeight={normalWeight}
+                        assetWeight={collateralBank.emodePair.assetWeightInt.toNumber()}
+                        originalAssetWeight={originalAssetWeight || assetWeight}
                         className="text-purple-300"
                         diffClassName="text-foreground"
                       />
