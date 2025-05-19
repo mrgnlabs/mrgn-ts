@@ -734,6 +734,20 @@ function getUserActiveEmodes(
 
   const activeBalances = selectedAccount.activeBalances;
 
+  // check all borrows have emode pairs
+  const allBorrows = activeBalances.filter((balance) => balance.liabilityShares.gt(0));
+
+  const allBorrowsHaveEmode = allBorrows.every((balance) => {
+    const bankWithEmode = Object.entries(banksByEmodeTag).find(([_, banks]) =>
+      banks.some((bank) => bank.address.equals(balance.bankPk))
+    );
+
+    // If bank is found in an emode group, check if it has a corresponding emode pair
+    return bankWithEmode ? emodePairs.some((pair) => pair.liabilityBank.equals(balance.bankPk)) : false;
+  });
+
+  if (!allBorrowsHaveEmode) return [];
+
   // Get deposits (assets) and their corresponding emode tags
   const deposits = activeBalances
     .filter((balance) => balance.assetShares.gt(0))
