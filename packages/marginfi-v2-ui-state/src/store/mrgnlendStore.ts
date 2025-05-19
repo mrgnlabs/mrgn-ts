@@ -394,11 +394,13 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
               tokenMetadata,
               bank,
               oraclePrice,
+              emodePairs,
               emissionTokenPriceData,
               userData,
               false,
               stakedAssetMetadata,
-              bankWeightsPreEmode?.[bank.address.toBase58()]
+              bankWeightsPreEmode?.[bank.address.toBase58()],
+              userActiveEmodes
             )
           );
           acc[1].push(makeExtendedBankMetadata(bank, tokenMetadata, false, stakedAssetMetadata));

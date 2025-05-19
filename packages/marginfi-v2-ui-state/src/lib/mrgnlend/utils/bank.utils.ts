@@ -11,6 +11,7 @@ import {
   EmodeTag,
   MarginfiConfig,
   AssetTag,
+  MarginfiAccount,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   nativeToUi,
@@ -218,11 +219,13 @@ function makeExtendedBankInfo(
   tokenMetadata: TokenMetadata,
   bank: Bank,
   oraclePrice: OraclePrice,
+  emodePairs: EmodePair[],
   emissionTokenPrice?: TokenPrice,
   userData?: UserDataProps,
   overrideIcon?: boolean,
   stakePoolMetadata?: StakePoolMetadata,
-  originalWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }
+  originalWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber },
+  userActiveEmodes?: EmodePair[]
 ): ExtendedBankInfo {
   function isUserDataRawProps(userData: UserDataWrappedProps | UserDataRawProps): userData is UserDataRawProps {
     return (
@@ -278,11 +281,17 @@ function makeExtendedBankInfo(
 
   let maxBorrow = 0;
   if (userData.marginfiAccount) {
+    let availableEmodePairByBorrowBank = getPossibleBorrowBanksForEmodes(
+      userData.marginfiAccount,
+      emodePairs,
+      userActiveEmodes
+    );
     let borrowPower: number;
     if (isUserDataRawProps(userData)) {
       borrowPower = userData.marginfiAccount
         .computeMaxBorrowForBank(userData.banks, userData.oraclePrices, bank.address, {
           volatilityFactor: VOLATILITY_FACTOR,
+          availableEmodePairByBorrowBank,
         })
         .toNumber();
     } else {
@@ -638,7 +647,7 @@ function adjustBankWeightsWithEmodePairs(
  * @returns A map of bank publickeys to their corresponding emode pairs
  */
 function getPossibleBorrowBanksForEmodes(
-  marginfiAccount: MarginfiAccountWrapper,
+  marginfiAccount: MarginfiAccountWrapper | MarginfiAccount,
   emodePairs: EmodePair[],
   activeEmodePairs?: EmodePair[]
 ) {

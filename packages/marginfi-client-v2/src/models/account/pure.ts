@@ -32,6 +32,7 @@ import {
   MarginfiAccountType,
   AccountFlags,
   getActiveAccountFlags,
+  EmodeTag,
 } from "../..";
 import BN from "bn.js";
 import { Address, BorshCoder, BorshInstructionCoder, translateAddress } from "@coral-xyz/anchor";
@@ -267,7 +268,20 @@ class MarginfiAccount implements MarginfiAccountType {
     banks: Map<string, Bank>,
     oraclePrices: Map<string, OraclePrice>,
     bankAddress: PublicKey,
-    opts?: { volatilityFactor?: number }
+    opts?: {
+      volatilityFactor?: number;
+      availableEmodePairByBorrowBank?: Record<
+        string,
+        {
+          collateralBanks: PublicKey[];
+          collateralBankTag: EmodeTag;
+          liabilityBank: PublicKey;
+          liabilityBankTag: EmodeTag;
+          assetWeightMaint: BigNumber;
+          assetWeightInt: BigNumber;
+        }
+      >;
+    }
   ): BigNumber {
     const debug = require("debug")("mfi:computeMaxBorrowForBank");
     const bank = banks.get(bankAddress.toBase58());
