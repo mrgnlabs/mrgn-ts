@@ -85,8 +85,11 @@ export const PortfolioAssetCard = ({
   }, [collateralBanksByLiabilityBank, bank]);
 
   const isEmodeActive = React.useMemo(() => {
-    return (isInLendingMode && bank.position.emodeActive) || (!isInLendingMode && collateralBanks.length > 0);
-  }, [bank.position.emodeActive, collateralBanks, isInLendingMode]);
+    return (
+      (isInLendingMode && bank.position.emodeActive) ||
+      (!isInLendingMode && collateralBanks.length > 0 && userActiveEmodes.length > 0)
+    );
+  }, [bank.position.emodeActive, collateralBanks, isInLendingMode, userActiveEmodes]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
     if (!bank || !bank?.position?.liquidationPrice) {
@@ -141,31 +144,12 @@ export const PortfolioAssetCard = ({
           <div className="flex flex-col flex-1 -translate-y-0.5">
             <div className="flex items-center gap-3 font-medium text-lg">
               {bank.meta.tokenSymbol}
-              {bank.position.emodeActive ? (
+              {isEmodeActive ? (
                 isInLendingMode ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="text-purple-300 text-xs flex items-center gap-1 lowercase">
-                          <IconBolt size={12} />
-                          {EmodeTag[bank.info.rawBank.emode.emodeTag]}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <div className="flex flex-col gap-2">
-                          <div className="flex gap-1 items-center">
-                            <IconBolt size={12} className="text-purple-300 translate-y-px" />{" "}
-                            <p>e-mode weights active</p>
-                          </div>
-                          <EmodeDiff
-                            assetWeight={assetWeight}
-                            originalAssetWeight={originalAssetWeight}
-                            className="text-center"
-                          />
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <div className="text-purple-300 text-xs flex items-center gap-1 lowercase">
+                    <IconBolt size={12} />
+                    {EmodeTag[bank.info.rawBank.emode.emodeTag]}
+                  </div>
                 ) : (
                   <span className="text-purple-300 text-xs flex items-center gap-1 lowercase">
                     <IconBolt size={12} />
