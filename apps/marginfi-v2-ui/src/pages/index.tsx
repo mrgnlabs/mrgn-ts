@@ -21,6 +21,7 @@ import {
 
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
+import { EmodeHeader, EmodePortfolio } from "~/components/common/emode/components";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
   ssr: false,
@@ -39,6 +40,8 @@ export default function HomePage() {
     fetchMrgnlendState,
     marginfiClient,
     stakeAccounts,
+    userActiveEmodes,
+    emodePairs,
   ] = useMrgnlendStore((state) => [
     state.initialized,
     state.isRefreshingStore,
@@ -47,6 +50,8 @@ export default function HomePage() {
     state.fetchMrgnlendState,
     state.marginfiClient,
     state.stakeAccounts,
+    state.userActiveEmodes,
+    state.emodePairs,
   ]);
 
   const annoucements = React.useMemo(() => {
@@ -122,7 +127,8 @@ export default function HomePage() {
           <>
             <Announcements items={annoucements} />
             <AnnouncementsDialog />
-            <div className="p-4 space-y-4 w-full">
+            <div className="p-4 space-y-1 w-full">
+              <EmodePortfolio userActiveEmodes={userActiveEmodes} />
               <ActionBox.BorrowLend
                 useProvider={true}
                 lendProps={{

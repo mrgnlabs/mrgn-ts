@@ -14,11 +14,11 @@ import { Button } from "~/components/ui/button";
 
 type EmodePortfolioProps = {
   userActiveEmodes: EmodePair[];
-  filterEmode: boolean;
-  setFilterEmode: (filterEmode: boolean) => void;
+  filterEmode?: boolean;
+  setFilterEmode?: (filterEmode: boolean) => void;
 };
 
-const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: EmodePortfolioProps) => {
+const EmodePortfolio = ({ userActiveEmodes, filterEmode = false, setFilterEmode }: EmodePortfolioProps) => {
   const emodeActive = userActiveEmodes.length > 0;
   return (
     <div className="flex flex-col md:flex-row items-center gap-3 justify-between">
@@ -28,7 +28,7 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: Emode
           filterEmode && "opacity-10 pointer-events-none"
         )}
       >
-        <div className="flex items-center justify-between text-sm mr-2 gap-2 shrink-0">
+        <div className="flex items-center justify-between text-sm mr-2 gap-2 shrink-0 text-muted-foreground">
           <div
             className={cn(
               "w-2 h-2 bg-gray-400 rounded-full translate-y-px text-muted-foreground",
@@ -63,7 +63,7 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode, setFilterEmode }: Emode
           />
         </div>
       </div>
-      {emodeActive && (
+      {emodeActive && setFilterEmode && (
         <div className="items-center gap-2 shrink-0 hidden md:flex">
           <Label htmlFor="pairings" className="text-sm text-muted-foreground flex items-center gap-1">
             <IconSparkles size={14} /> Highlight e-mode
