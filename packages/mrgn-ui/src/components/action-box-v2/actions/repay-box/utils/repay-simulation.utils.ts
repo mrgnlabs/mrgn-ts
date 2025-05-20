@@ -1,9 +1,9 @@
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { QuoteResponse } from "@jup-ag/api";
 
 import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
-import { ActionProcessingError, ActionTxns, handleSimulationError } from "@mrgnlabs/mrgn-utils";
+import { ActionProcessingError, ActionTxns, handleSimulationError, isWholePosition } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import {
@@ -25,6 +25,7 @@ export interface SimulateRepayActionProps {
   txns: (VersionedTransaction | Transaction)[];
   account: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
+  amount: number;
 }
 
 export function calculateSummary({
@@ -50,7 +51,27 @@ export function calculateSummary({
 
 export const getRepaySimulationResult = async (props: SimulateRepayActionProps) => {
   try {
-    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address]);
+    let mandatoryBanks: PublicKey[] = [];
+    let excludedBanks: PublicKey[] = [];
+    const isWhole = isWholePosition(props.bank as unknown as any, props.amount);
+    console.log("isWhole", isWhole);
+    console.log("bank.address", props.bank.address);
+    console.log("props.amount", props.amount);
+    console.log("isActive", props.bank.isActive);
+
+    if (props.bank.isActive) {
+      mandatoryBanks = isWhole ? [] : [props.bank.address];
+      excludedBanks = isWhole ? [props.bank.address] : [];
+    }
+
+    console.log("mandatoryBanks", mandatoryBanks);
+    console.log("excludedBanks", excludedBanks);
+
+    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address], {
+      enabled: true,
+      mandatoryBanks,
+      excludedBanks,
+    });
   } catch (error: any) {
     const actionString = "Repaying Collateral";
     const actionMethod = handleSimulationError(error, props.bank, false, actionString);

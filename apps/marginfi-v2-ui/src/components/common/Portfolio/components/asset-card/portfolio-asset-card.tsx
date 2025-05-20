@@ -121,12 +121,6 @@ export const PortfolioAssetCard = ({
     [bank, isInLendingMode]
   );
 
-  if (bank.meta.tokenSymbol === "SOL") {
-    console.log("bank", bank);
-    console.log("assetWeight", assetWeight);
-    console.log("originalAssetWeight", originalAssetWeight);
-  }
-
   if (variant === "simple") {
     return (
       <div

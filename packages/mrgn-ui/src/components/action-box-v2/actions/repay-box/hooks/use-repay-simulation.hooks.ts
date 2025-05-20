@@ -149,6 +149,7 @@ export function useRepaySimulation({
           txns: [...repayActionTxns.actionTxns.repayCollatObject.transactions],
           account: selectedAccount,
           bank: selectedBank,
+          amount: amount,
         });
 
         setSimulationResult(simulationResult);

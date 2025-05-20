@@ -355,9 +355,6 @@ export function useEmodeLineConnections(
           const pulseLength = Math.max(10, Math.min(60, pathLength * 0.8));
           const gapLength = Math.max(1, pathLength - pulseLength);
 
-          // DEBUG: Log pathString and pathLength for each line
-          console.log(`Line ${idx}: pathString=`, pathString, "pathLength=", coords.pathLength);
-
           return (
             <g key={coords.index} style={{ zIndex: highlighted ? 2 : 1 }}>
               <path

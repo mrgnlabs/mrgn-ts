@@ -756,9 +756,11 @@ class MarginfiAccount implements MarginfiAccountType {
     // Add repay-related instructions
     const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true, mintData.tokenProgram); // We allow off curve addresses here to support Fuse.
 
-    const remainingAccounts = mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)
-      ? [{ pubkey: mintData.mint, isSigner: false, isWritable: false }]
-      : [];
+    const remainingAccounts: PublicKey[] = [];
+
+    if (mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
+      remainingAccounts.push(mintData.mint);
+    }
 
     if (bank.mint.equals(NATIVE_MINT) && wrapAndUnwrapSol) {
       repayIxs.push(...makeWrapSolIxs(this.authority, new BigNumber(amount).minus(wSolBalanceUi)));
@@ -776,7 +778,7 @@ class MarginfiAccount implements MarginfiAccountType {
         liquidityVault: opts.overrideInferAccounts?.liquidityVault,
       },
       { amount: uiToNative(amount, bank.mintDecimals), repayAll },
-      remainingAccounts
+      remainingAccounts.map((account) => ({ pubkey: account, isSigner: false, isWritable: false }))
     );
     repayIxs.push(repayIx);
 
