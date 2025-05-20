@@ -15,7 +15,6 @@ import {
 import { useAuthorization } from "../../../hooks";
 import { useAppStore } from "../../../store";
 import { BOT } from "@mrgnlabs/mrgn-common";
-import Link from "next/link";
 
 interface LoginModalProps {
   open: boolean;
@@ -93,7 +92,7 @@ export const LoginModal = ({ open, onClose }: LoginModalProps) => {
       setLoginCode("");
       setError(undefined);
     };
-  }, [open]);
+  }, [open, handleLogin, loginCode]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
