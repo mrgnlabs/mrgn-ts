@@ -317,7 +317,7 @@ const Wallet = ({
                           Tokens
                         </span>
                       </TabsTrigger>
-                      {userPointsData && (
+                      {/* {userPointsData && (
                         <TabsTrigger
                           value="points"
                           className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
@@ -336,7 +336,7 @@ const Wallet = ({
                             Activity
                           </span>
                         </TabsTrigger>
-                      )}
+                      )} */}
                     </TabsList>
                   )}
                   <TabsContent value="tokens">

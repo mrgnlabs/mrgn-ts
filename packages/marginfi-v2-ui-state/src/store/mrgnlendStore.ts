@@ -285,13 +285,13 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       let stakedAssetTokenMetadataMap: TokenMetadataMap = {};
       if (args && args.mixinPublicKey) {
       } else {
-        // fetch staked asset metadata
-        stakedAssetBankMetadataMap = await loadStakedBankMetadatas(
-          `${process.env.NEXT_PUBLIC_STAKING_BANKS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json"}?t=${new Date().getTime()}`
-        );
-        stakedAssetTokenMetadataMap = await loadTokenMetadatas(
-          `${process.env.NEXT_PUBLIC_STAKING_TOKENS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json"}?t=${new Date().getTime()}`
-        );
+        // // fetch staked asset metadata
+        // stakedAssetBankMetadataMap = await loadStakedBankMetadatas(
+        //   `${process.env.NEXT_PUBLIC_STAKING_BANKS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json"}?t=${new Date().getTime()}`
+        // );
+        // stakedAssetTokenMetadataMap = await loadTokenMetadatas(
+        //   `${process.env.NEXT_PUBLIC_STAKING_TOKENS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json"}?t=${new Date().getTime()}`
+        // );
       }
 
       // merge staked asset metadata with main group metadata

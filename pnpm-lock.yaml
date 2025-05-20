@@ -68,7 +68,344 @@ importers:
         specifier: ^5.5.2
         version: 5.7.3
 
-  apps/domelabs-lend:
+  apps/domefi-ui:
+    dependencies:
+      '@bonfida/spl-name-service':
+        specifier: 2.5.4
+        version: 2.5.4(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@coral-xyz/anchor':
+        specifier: ^0.30.1
+        version: 0.30.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@coral-xyz/borsh':
+        specifier: ^0.30.1
+        version: 0.30.1(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      '@emotion/react':
+        specifier: ^11.11.4
+        version: 11.14.0(@types/react@18.3.18)(react@18.3.1)
+      '@emotion/styled':
+        specifier: ^11.11.5
+        version: 11.14.0(@emotion/react@11.14.0(@types/react@18.3.18)(react@18.3.1))(@types/react@18.3.18)(react@18.3.1)
+      '@google-cloud/storage':
+        specifier: ^7.15.1
+        version: 7.15.1
+      '@grpc/grpc-js':
+        specifier: ^1.12.2
+        version: 1.12.6
+      '@jup-ag/api':
+        specifier: ^6.0.38
+        version: 6.0.39
+      '@jup-ag/common':
+        specifier: ^6.1.0
+        version: 6.1.0(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bn.js@5.2.1)(bufferutil@4.0.9)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.7.3)(utf-8-validate@5.0.10)
+      '@meso-network/meso-js':
+        specifier: ^0.1.2
+        version: 0.1.10
+      '@mixin.dev/mixin-node-sdk':
+        specifier: ^7.4.1
+        version: 7.4.1(bufferutil@4.0.9)(debug@4.4.0)(utf-8-validate@5.0.10)
+      '@moongate/moongate-adapter':
+        specifier: ^0.6.2
+        version: 0.6.3(@react-native-async-storage/async-storage@1.24.0(react-native@0.71.8(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(bufferutil@4.0.9)(react@18.3.1)(utf-8-validate@5.0.10)))(@solana/wallet-adapter-base@0.9.26(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)))(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@types/react@18.3.18)(bufferutil@4.0.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.7.3)(use-sync-external-store@1.5.0(react@18.3.1))(utf-8-validate@5.0.10)(zod@3.24.2)
+      '@moonpay/moonpay-js':
+        specifier: ^0.1.0
+        version: 0.1.0
+      '@mrgnlabs/marginfi-client-v2':
+        specifier: workspace:*
+        version: link:../../packages/marginfi-client-v2
+      '@mrgnlabs/marginfi-v2-ui-state':
+        specifier: workspace:*
+        version: link:../../packages/marginfi-v2-ui-state
+      '@mrgnlabs/mrgn-common':
+        specifier: workspace:*
+        version: link:../../packages/mrgn-common
+      '@mrgnlabs/mrgn-toasts':
+        specifier: workspace:*
+        version: link:../../packages/mrgn-toasts
+      '@mrgnlabs/mrgn-ui':
+        specifier: workspace:*
+        version: link:../../packages/mrgn-ui
+      '@mrgnlabs/mrgn-utils':
+        specifier: workspace:*
+        version: link:../../packages/mrgn-utils
+      '@next/bundle-analyzer':
+        specifier: ^13.4.19
+        version: 13.5.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@next/third-parties':
+        specifier: ^15.1.7
+        version: 15.1.7(next@14.2.21(@babel/core@7.26.9)(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+      '@noble/ed25519':
+        specifier: ^2.1.0
+        version: 2.2.3
+      '@radix-ui/react-dialog':
+        specifier: ^1.0.5
+        version: 1.1.6(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-portal':
+        specifier: ^1.1.4
+        version: 1.1.4(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@solana-mobile/wallet-adapter-mobile':
+        specifier: ^2.1.5
+        version: 2.1.5(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(react-native@0.71.8(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(bufferutil@4.0.9)(react@18.3.1)(utf-8-validate@5.0.10))(react@18.3.1)
+      '@solana/buffer-layout':
+        specifier: ^4.0.1
+        version: 4.0.1
+      '@solana/spl-stake-pool':
+        specifier: ^0.6.5
+        version: 0.6.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@solana/spl-token':
+        specifier: ^0.4.6
+        version: 0.4.12(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.7.3)(utf-8-validate@5.0.10)
+      '@solana/spl-token-registry':
+        specifier: ^0.2.4574
+        version: 0.2.4574
+      '@solana/wallet-adapter-base':
+        specifier: ^0.9.24
+        version: 0.9.26(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      '@solana/wallet-adapter-react':
+        specifier: ^0.15.36
+        version: 0.15.38(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bs58@5.0.0)(react-native@0.71.8(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(bufferutil@4.0.9)(react@18.3.1)(utf-8-validate@5.0.10))(react@18.3.1)
+      '@solana/wallet-adapter-react-ui':
+        specifier: ^0.9.34
+        version: 0.9.35(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bs58@5.0.0)(react-dom@18.3.1(react@18.3.1))(react-native@0.71.8(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(bufferutil@4.0.9)(react@18.3.1)(utf-8-validate@5.0.10))(react@18.3.1)
+      '@solana/wallet-adapter-wallets':
+        specifier: ^0.19.10
+        version: 0.19.32(@babel/runtime@7.26.9)(@react-native-async-storage/async-storage@1.24.0(react-native@0.71.8(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(bufferutil@4.0.9)(react@18.3.1)(utf-8-validate@5.0.10)))(@sentry/types@7.120.3)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bs58@5.0.0)(bufferutil@4.0.9)(react-dom@18.3.1(react@18.3.1))(react-native@0.71.8(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(bufferutil@4.0.9)(react@18.3.1)(utf-8-validate@5.0.10))(react@18.3.1)(tslib@2.8.1)(utf-8-validate@5.0.10)
+      '@solana/web3.js':
+        specifier: ^1.91.3
+        version: 1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@tabler/icons-react':
+        specifier: ^2.40.0
+        version: 2.47.0(react@18.3.1)
+      '@tanstack/react-table':
+        specifier: ^8.15.3
+        version: 8.21.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tanstack/solid-table':
+        specifier: ^8.15.3
+        version: 8.21.2(solid-js@1.9.4)
+      '@tiplink/wallet-adapter':
+        specifier: ^2.1.13
+        version: 2.1.21(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      '@tiplink/wallet-adapter-react-ui':
+        specifier: ^0.1.11
+        version: 0.1.12(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@tiplink/wallet-adapter@2.1.21(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)))(bs58@5.0.0)(react-dom@18.3.1(react@18.3.1))(react-native@0.71.8(@babel/core@7.26.9)(@babel/preset-env@7.26.9(@babel/core@7.26.9))(bufferutil@4.0.9)(react@18.3.1)(utf-8-validate@5.0.10))(react@18.3.1)
+      '@types/md5':
+        specifier: ^2.3.5
+        version: 2.3.5
+      '@uidotdev/usehooks':
+        specifier: ^2.4.1
+        version: 2.4.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@vercel/analytics':
+        specifier: ^1.0.0
+        version: 1.5.0(next@14.2.21(@babel/core@7.26.9)(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+      '@vercel/og':
+        specifier: ^0.6.2
+        version: 0.6.5
+      '@vercel/speed-insights':
+        specifier: ^1.0.12
+        version: 1.2.0(next@14.2.21(@babel/core@7.26.9)(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+      '@walletconnect/modal':
+        specifier: ^2.6.2
+        version: 2.7.0(@types/react@18.3.18)(react@18.3.1)
+      '@web3auth/no-modal':
+        specifier: ^7.0.4
+        version: 7.3.2(@babel/runtime@7.26.9)(@sentry/types@7.120.3)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@web3auth/openlogin-adapter':
+        specifier: ^7.0.4
+        version: 7.3.2(@babel/runtime@7.26.9)(@sentry/types@7.120.3)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@web3auth/solana-provider':
+        specifier: ^7.0.4
+        version: 7.3.2(@babel/runtime@7.26.9)(@sentry/types@7.120.3)(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@web3auth/solana-wallet-connector-plugin':
+        specifier: ^7.0.4
+        version: 7.3.2(@babel/runtime@7.26.9)(@sentry/types@7.120.3)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      axios:
+        specifier: ^1.9.0
+        version: 1.9.0(debug@4.4.0)
+      axios-retry:
+        specifier: ^4.5.0
+        version: 4.5.0(axios@1.9.0(debug@4.4.0))
+      bignumber.js:
+        specifier: ^9.1.1
+        version: 9.1.2
+      bn.js:
+        specifier: ^5.2.1
+        version: 5.2.1
+      bs58:
+        specifier: ^5.0.0
+        version: 5.0.0
+      clsx:
+        specifier: ^2.0.0
+        version: 2.1.1
+      cmdk:
+        specifier: ^0.2.0
+        version: 0.2.1(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      csv-parse:
+        specifier: ^5.5.5
+        version: 5.6.0
+      lodash.debounce:
+        specifier: ^4.0.8
+        version: 4.0.8
+      lodash.shuffle:
+        specifier: ^4.2.0
+        version: 4.2.0
+      long:
+        specifier: ^5.3.0
+        version: 5.3.1
+      md5:
+        specifier: ^2.3.0
+        version: 2.3.0
+      minidenticons:
+        specifier: ^4.2.0
+        version: 4.2.1
+      next:
+        specifier: 14.2.21
+        version: 14.2.21(@babel/core@7.26.9)(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next-pwa:
+        specifier: ^5.6.0
+        version: 5.6.0(@babel/core@7.26.9)(@types/babel__core@7.20.5)(next@14.2.21(@babel/core@7.26.9)(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(webpack@5.98.0)
+      node-cache:
+        specifier: ^5.1.2
+        version: 5.1.2
+      pako:
+        specifier: ^2.1.0
+        version: 2.1.0
+      posthog-js:
+        specifier: ^1.104.4
+        version: 1.219.6
+      protobufjs:
+        specifier: ^6.11.4
+        version: 6.11.4
+      qr-code-styling:
+        specifier: ^1.9.2
+        version: 1.9.2
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+      react-confetti:
+        specifier: ^6.1.0
+        version: 6.2.2(react@18.3.1)
+      react-cookie:
+        specifier: ^6.1.1
+        version: 6.1.3(react@18.3.1)
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.3.1(react@18.3.1)
+      react-dropzone:
+        specifier: ^14.3.5
+        version: 14.3.5(react@18.3.1)
+      react-hook-form:
+        specifier: ^7.50.1
+        version: 7.54.2(react@18.3.1)
+      react-hotkeys-hook:
+        specifier: ^4.4.1
+        version: 4.6.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-responsive:
+        specifier: ^9.0.2
+        version: 9.0.2(react@18.3.1)
+      reconnecting-websocket:
+        specifier: ^4.4.0
+        version: 4.4.0
+      superstruct:
+        specifier: ^1.0.3
+        version: 1.0.4
+      swiper:
+        specifier: ^11.0.7
+        version: 11.2.4
+      tailwind-merge:
+        specifier: ^1.14.0
+        version: 1.14.0
+      tailwindcss-animate:
+        specifier: ^1.0.7
+        version: 1.0.7(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@20.17.19)(typescript@5.7.3)))
+      tweetnacl:
+        specifier: ^1.0.3
+        version: 1.0.3
+      uuid:
+        specifier: ^9.0.0
+        version: 9.0.1
+      vaul:
+        specifier: ^0.9.0
+        version: 0.9.9(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      zustand:
+        specifier: ^4.4.1
+        version: 4.5.6(@types/react@18.3.18)(react@18.3.1)
+    devDependencies:
+      '@mrgnlabs/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@tailwindcss/typography':
+        specifier: ^0.5.10
+        version: 0.5.16(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@20.17.19)(typescript@5.7.3)))
+      '@types/bn.js':
+        specifier: ^5.1.6
+        version: 5.1.6
+      '@types/google-protobuf':
+        specifier: ^3.15.6
+        version: 3.15.12
+      '@types/lodash.debounce':
+        specifier: ^4.0.7
+        version: 4.0.9
+      '@types/lodash.shuffle':
+        specifier: ^4.2.9
+        version: 4.2.9
+      '@types/node':
+        specifier: ^20.12.2
+        version: 20.17.19
+      '@types/node-fetch':
+        specifier: ^2.6
+        version: 2.6.12
+      '@types/numeral':
+        specifier: ^2.0.2
+        version: 2.0.5
+      '@types/pako':
+        specifier: ^2.0.3
+        version: 2.0.3
+      '@types/react':
+        specifier: ^18.2.61
+        version: 18.3.18
+      '@types/react-copy-to-clipboard':
+        specifier: ^5.0.5
+        version: 5.0.7
+      '@types/react-dom':
+        specifier: ^18.2.19
+        version: 18.3.5(@types/react@18.3.18)
+      '@types/uuid':
+        specifier: ^9.0.2
+        version: 9.0.8
+      autoprefixer:
+        specifier: ^10.4.13
+        version: 10.4.20(postcss@8.5.3)
+      dayjs:
+        specifier: ^1.11.13
+        version: 1.11.13
+      grpc-tools:
+        specifier: ^1.12.3
+        version: 1.13.0
+      next-transpile-modules:
+        specifier: ^10.0.0
+        version: 10.0.1
+      node-fetch:
+        specifier: ^2.6.7
+        version: 2.7.0
+      postcss:
+        specifier: ^8.4.20
+        version: 8.5.3
+      protoc-gen-ts:
+        specifier: ^0.8.5
+        version: 0.8.7
+      tailwindcss:
+        specifier: ^3.2.4
+        version: 3.4.17(ts-node@10.9.2(@types/node@20.17.19)(typescript@5.7.3))
+      ts-proto:
+        specifier: ~1.138.0
+        version: 1.138.0
+      ts-protoc-gen:
+        specifier: ~0.15.0
+        version: 0.15.0
+      typescript:
+        specifier: '5'
+        version: 5.7.3
+
+  apps/domefi-ui-sol:
     dependencies:
       '@bonfida/spl-name-service':
         specifier: 2.5.4
