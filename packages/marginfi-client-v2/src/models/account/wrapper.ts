@@ -66,8 +66,8 @@ import {
   computeLoopingParams,
   makeWrapSolIxs,
   MarginfiAccountRaw,
-  createHealthPulseTx,
   EmodeTag,
+  createHealthPulseIx,
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType } from "./pure";
@@ -1122,18 +1122,34 @@ class MarginfiAccountWrapper {
     const additionalTxs: VersionedTransaction[] = [];
 
     if (healthSimOptions?.enabled) {
-      const healthPulseTx = await this.makeHealthPulseTx(
+      const updateFeedIx = await this.makeUpdateFeedIx(healthSimOptions.mandatoryBanks);
+      const healthPulseIx = await this.makeHealthPulseIx(
         healthSimOptions.mandatoryBanks,
         healthSimOptions.excludedBanks
       );
-      additionalTxs.push(healthPulseTx);
+
+      const blockhash = (await this.client.provider.connection.getLatestBlockhash("confirmed")).blockhash;
+
+      const tx = new VersionedTransaction(
+        new TransactionMessage({
+          instructions: [...updateFeedIx.instructions, healthPulseIx],
+          payerKey: this.client.provider.publicKey,
+          recentBlockhash: blockhash,
+        }).compileToV0Message([...this.client.addressLookupTables, ...updateFeedIx.luts])
+      );
+
+      additionalTxs.push(tx);
     }
 
     const [mfiAccountData, ...bankData] = await this.client.simulateTransactions(
       [...txs, ...additionalTxs],
       [this.address, ...banksToInspect]
     );
-    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate");
+
+    if (!mfiAccountData) throw new Error("Failed to simulate");
+    const mfiAccount = MarginfiAccount.decode(mfiAccountData, this._program.idl);
+    console.log("simulated account", mfiAccount);
+    if (!bankData) throw new Error("Failed to simulate");
     const previewBanks = this.client.banks;
 
     banksToInspect.forEach((bankAddress, idx) => {
@@ -1942,7 +1958,7 @@ class MarginfiAccountWrapper {
     }
   }
 
-  async makeHealthPulseTx(mandatoryBanks: PublicKey[] = [], excludedBanks: PublicKey[] = []) {
+  async makeHealthPulseIx(mandatoryBanks: PublicKey[] = [], excludedBanks: PublicKey[] = []) {
     const blockhash = await this._program.provider.connection.getLatestBlockhash("confirmed");
 
     // Get active banks excluding the excluded ones
@@ -1960,7 +1976,9 @@ class MarginfiAccountWrapper {
     // Combine active banks with mandatory banks
     const allBanks = [...activeBanks, ...mandatoryBankObjs];
 
-    return createHealthPulseTx({
+    console.log("allBanks", allBanks);
+
+    return createHealthPulseIx({
       activeBanks: allBanks,
       marginfiAccount: this.address,
       feePayer: this.client.provider.publicKey,

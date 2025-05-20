@@ -2,6 +2,7 @@ import {
   AddressLookupTableAccount,
   Keypair,
   PublicKey,
+  TransactionInstruction,
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
@@ -16,17 +17,17 @@ import { BalanceRaw, MarginfiAccountRaw } from "./types";
 import { Bank } from "../../models/bank";
 import { MarginfiIdlType } from "../../idl";
 
-export async function createHealthPulseTx(props: {
+export async function createHealthPulseIx(props: {
   activeBanks: Bank[];
   marginfiAccount: PublicKey;
   feePayer: PublicKey;
   program: Program<MarginfiIdlType>;
   blockhash: string;
   addressLookupTableAccounts?: AddressLookupTableAccount[];
-}): Promise<VersionedTransaction> {
+}): Promise<TransactionInstruction> {
   const remainingAccounts = composeRemainingAccounts(props.activeBanks.map((bank) => [bank.address, bank.oracleKey]));
 
-  const ixs = await props.program.methods
+  const healthPulseIx = await props.program.methods
     .lendingAccountPulseHealth()
     .accounts({
       marginfiAccount: props.marginfiAccount,
@@ -34,15 +35,7 @@ export async function createHealthPulseTx(props: {
     .remainingAccounts(remainingAccounts.map((account) => ({ pubkey: account, isSigner: false, isWritable: false })))
     .instruction();
 
-  const tx = new VersionedTransaction(
-    new TransactionMessage({
-      instructions: [ixs],
-      payerKey: props.feePayer,
-      recentBlockhash: props.blockhash,
-    }).compileToV0Message(props.addressLookupTableAccounts)
-  );
-
-  return tx;
+  return healthPulseIx;
 }
 
 /**

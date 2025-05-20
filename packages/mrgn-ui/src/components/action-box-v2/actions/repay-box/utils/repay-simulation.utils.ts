@@ -54,18 +54,11 @@ export const getRepaySimulationResult = async (props: SimulateRepayActionProps) 
     let mandatoryBanks: PublicKey[] = [];
     let excludedBanks: PublicKey[] = [];
     const isWhole = isWholePosition(props.bank as unknown as any, props.amount);
-    console.log("isWhole", isWhole);
-    console.log("bank.address", props.bank.address);
-    console.log("props.amount", props.amount);
-    console.log("isActive", props.bank.isActive);
 
     if (props.bank.isActive) {
       mandatoryBanks = isWhole ? [] : [props.bank.address];
       excludedBanks = isWhole ? [props.bank.address] : [];
     }
-
-    console.log("mandatoryBanks", mandatoryBanks);
-    console.log("excludedBanks", excludedBanks);
 
     return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address], {
       enabled: true,
