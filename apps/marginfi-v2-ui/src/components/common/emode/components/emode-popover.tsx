@@ -6,6 +6,7 @@ import Image from "next/image";
 import { IconBolt, IconExternalLink } from "@tabler/icons-react";
 import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { percentFormatterMod } from "@mrgnlabs/mrgn-common";
+import { ExtendedBankInfo, EmodePair } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, getAssetWeightData } from "@mrgnlabs/mrgn-utils";
 
 import { EmodeDiff } from "./emode-diff";
@@ -20,8 +21,14 @@ interface EmodePopoverProps {
   emodeActive?: boolean;
   emodeTag?: string;
   isInLendingMode?: boolean;
-  collateralBanks?: any[];
-  liabilityBanks?: any[];
+  collateralBanks?: {
+    collateralBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[];
+  liabilityBanks?: {
+    liabilityBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[];
   triggerType?: "weight" | "tag";
 }
 
@@ -102,7 +109,7 @@ export const EmodePopover = ({
                       </TableCell>
                       <TableCell className="py-1">
                         <EmodeDiff
-                          assetWeight={assetWeight}
+                          assetWeight={liabilityBankItem.emodePair.assetWeightInt.toNumber()}
                           originalAssetWeight={originalAssetWeight}
                           className="text-purple-300"
                         />
