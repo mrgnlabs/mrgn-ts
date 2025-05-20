@@ -1,7 +1,7 @@
 import React from "react";
 
 import Link from "next/link";
-import { IconAlertTriangle, IconExternalLink } from "@tabler/icons-react";
+import { IconAlertTriangle, IconBolt, IconExternalLink } from "@tabler/icons-react";
 import { ActionMessageType, cn } from "@mrgnlabs/mrgn-utils";
 
 import { IconLoader } from "~/components/ui/icons";
@@ -14,6 +14,13 @@ type ActionMessageProps = {
 };
 
 export const ActionMessage = ({ _actionMessage, isRetrying = false, retry }: ActionMessageProps) => {
+  const isEmode = _actionMessage.actionMethod === "EMODE" || _actionMessage.actionMethod === "EMODE_WARNING";
+  const title =
+    _actionMessage.actionMethod === "EMODE"
+      ? "e-mode"
+      : _actionMessage.actionMethod === "EMODE_WARNING"
+        ? "e-mode warning"
+        : _actionMessage.actionMethod || "WARNING";
   return (
     <div
       className={cn(
@@ -22,15 +29,25 @@ export const ActionMessage = ({ _actionMessage, isRetrying = false, retry }: Act
         (!_actionMessage.actionMethod || _actionMessage.actionMethod === "WARNING") &&
           "bg-alert border border-alert-foreground/20 text-alert-foreground",
         _actionMessage.actionMethod === "ERROR" &&
-          "bg-destructive border border-destructive-foreground/10 text-destructive-foreground"
+          "bg-destructive border border-destructive-foreground/10 text-destructive-foreground",
+        isEmode && "text-purple-300 border border-purple-300/40 pr-0"
       )}
     >
-      <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
+      {_actionMessage.actionMethod === "EMODE" ? (
+        <IconBolt className="shrink-0 translate-y-0.5" size={18} />
+      ) : (
+        <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
+      )}
       <div className="w-full">
         {_actionMessage.actionMethod !== "INFO" && (
-          <h3 className="font-normal capitalize mb-1.5">{(_actionMessage.actionMethod || "WARNING").toLowerCase()}</h3>
+          <h3 className={cn("font-normal mb-1.5", !isEmode && "capitalize")}>{title.toLowerCase()}</h3>
         )}
-        <div className={cn("space-y-2.5 text-sm w-4/5", _actionMessage.actionMethod !== "INFO" && "text-primary/50")}>
+        <div
+          className={cn(
+            "space-y-2.5 text-sm w-4/5",
+            _actionMessage.actionMethod !== "INFO" && !isEmode && "text-primary/50"
+          )}
+        >
           <p>{_actionMessage.description}</p>
           {_actionMessage.link && (
             <p>
@@ -53,7 +70,7 @@ export const ActionMessage = ({ _actionMessage, isRetrying = false, retry }: Act
           </Button>
         )}
       </div>
-      {_actionMessage.code && (
+      {_actionMessage.code && !isEmode && (
         <small className="text-primary/50 absolute top-2 right-3 text-[10px]">Code {_actionMessage.code}</small>
       )}
     </div>

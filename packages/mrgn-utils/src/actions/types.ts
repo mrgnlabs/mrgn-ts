@@ -30,7 +30,7 @@ export enum YbxType {
   RepayYbx = "Repay",
 }
 
-export type ActionMessageUIType = "WARNING" | "ERROR" | "INFO";
+export type ActionMessageUIType = "WARNING" | "ERROR" | "INFO" | "EMODE" | "EMODE_WARNING";
 export interface ActionMessageType {
   isEnabled: boolean;
   actionMethod?: ActionMessageUIType;

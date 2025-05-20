@@ -9,8 +9,8 @@ import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/common";
 export const STATIC_INFO_MESSAGES: { [key: string]: ActionMessageType } = {
   EMODE_EXTEND_IMPACT: {
     isEnabled: true,
-    actionMethod: "INFO",
-    description: "This action will keep e-mode active",
+    actionMethod: "EMODE",
+    description: "This action will keep e-mode active on your account",
     code: 1001,
   },
 };
@@ -312,9 +312,9 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     code: 154,
   },
   REMOVE_E_MODE_CHECK: {
-    description: "This action will disable e-mode and reset boosted weights.",
+    description: "This action will disable e-mode on your account and reset boosted weights.",
     isEnabled: false,
-    actionMethod: "WARNING",
+    actionMethod: "EMODE_WARNING",
     code: 157,
   },
 };
@@ -322,14 +322,14 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
 const createEmodeReduceCheck = (changePercentage: number): ActionMessageType => ({
   description: `This action will reduce your e-mode advantage by ${changePercentage}%`,
   isEnabled: true,
-  actionMethod: "WARNING",
+  actionMethod: "EMODE",
   code: 156,
 });
 
 const createEmodeIncreaseCheck = (changePercentage: number): ActionMessageType => ({
   description: `This action will increase your e-mode advantage by  ${changePercentage}%`,
   isEnabled: true,
-  actionMethod: "INFO",
+  actionMethod: "EMODE",
   code: 155,
 });
 
