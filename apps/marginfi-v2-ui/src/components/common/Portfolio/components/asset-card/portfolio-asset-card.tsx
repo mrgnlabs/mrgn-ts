@@ -32,7 +32,8 @@ import { MovePositionDialog } from "../move-position";
 import { TooltipProvider } from "~/components/ui/tooltip";
 import { TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Tooltip } from "~/components/ui/tooltip";
-import { EmodeDiff } from "~/components/common/emode/components";
+import { EmodeDiff, EmodePopover } from "~/components/common/emode/components";
+import { Badge } from "~/components/ui/badge";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -63,6 +64,7 @@ export const PortfolioAssetCard = ({
     accountSummary,
     userActiveEmodes,
     collateralBanksByLiabilityBank,
+    liabilityBanksByCollateralBank,
   ] = useMrgnlendStore((state) => [
     state.selectedAccount,
     state.marginfiAccounts,
@@ -73,6 +75,7 @@ export const PortfolioAssetCard = ({
     state.accountSummary,
     state.userActiveEmodes,
     state.collateralBanksByLiabilityBank,
+    state.liabilityBanksByCollateralBank,
   ]);
   const [priorityFees] = useUiStore((state) => [state.priorityFees]);
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
@@ -83,6 +86,11 @@ export const PortfolioAssetCard = ({
       ? banks.filter((bank) => bank.collateralBank.isActive && bank.collateralBank.position.isLending)
       : [];
   }, [collateralBanksByLiabilityBank, bank]);
+
+  const liabilityBanks = React.useMemo(() => {
+    const banks = liabilityBanksByCollateralBank[bank.address.toBase58()] || [];
+    return banks;
+  }, [liabilityBanksByCollateralBank, bank]);
 
   const isEmodeActive = React.useMemo(() => {
     return (
@@ -210,7 +218,18 @@ export const PortfolioAssetCard = ({
                           {EmodeTag[bank.info.rawBank.emode.emodeTag]}
                         </span>
                       )
-                    ) : null}
+                    ) : (
+                      !isEmodeActive &&
+                      bank.info.state.hasEmode && (
+                        <Badge
+                          variant="emode"
+                          className="text-foreground bg-background-gray-light hover:bg-background-gray-light"
+                        >
+                          <IconBolt size={12} />
+                          {EmodeTag[bank.info.rawBank.emode.emodeTag]}
+                        </Badge>
+                      )
+                    )}
                   </div>
                   <div className="font-medium text-lg text-right">
                     {dynamicNumeralFormatter(bank.position.amount, {
@@ -312,7 +331,7 @@ export const PortfolioAssetCard = ({
                   </dd>
                 </>
               )}
-              {isEmodeActive && (
+              {isEmodeActive ? (
                 <>
                   <dt className={cn("text-muted-foreground", !isInLendingMode && "text-purple-300")}>
                     {isInLendingMode ? (
@@ -349,6 +368,26 @@ export const PortfolioAssetCard = ({
                         )}
                       </div>
                     ) : null}
+                  </dd>
+                </>
+              ) : null}
+              {(!isEmodeActive || !isInLendingMode) && (
+                <>
+                  <dt className="text-muted-foreground">{isInLendingMode ? "Weight" : "LTV"}</dt>
+                  <dd className="text-right text-white flex items-center justify-end">
+                    {!isEmodeActive ? (
+                      <EmodePopover
+                        assetWeight={assetWeight}
+                        originalAssetWeight={originalAssetWeight}
+                        emodeActive={isEmodeActive}
+                        isInLendingMode={isInLendingMode}
+                        collateralBanks={collateralBanks}
+                        liabilityBanks={liabilityBanks}
+                        triggerType="weight"
+                      />
+                    ) : (
+                      percentFormatter.format(assetWeight)
+                    )}
                   </dd>
                 </>
               )}
