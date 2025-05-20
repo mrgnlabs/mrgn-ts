@@ -68,8 +68,8 @@ export const BankItem = ({
           <div className="flex items-center">
             <p className="font-medium">{bank.meta.tokenSymbol}</p>
             {bank.info.state.hasEmode && (
-              <span className="flex items-center gap-0.5 text-sm text-purple-300 lowercase ml-2">
-                <IconBolt size={14} /> e-mode
+              <span className="flex items-center gap-0.5 text-xs text-purple-300 lowercase ml-2">
+                <IconBolt size={12} /> {EmodeTag[bank.info.rawBank.emode.emodeTag]}
               </span>
             )}
             {!available && <span className="text-[11px] ml-1 font-light">(currently unavailable)</span>}
