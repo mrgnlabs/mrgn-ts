@@ -100,6 +100,76 @@ const IconMrgn = ({ size = 24, className }: IconProps) => (
   </svg>
 );
 
+const IconFluxor = ({ size = 24, className }: IconProps) => {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+      <foreignObject width="100%" height="100%" x="0" y="0" externalResourcesRequired="true">
+        <div
+          className="bg-transparent w-screen max-w-full aspect-square md:w-[350px] md:h-[350px] lg:w-[400px] lg:h-[400px] xl:w-[600px] xl:h-[600px]"
+          style={{
+            backgroundColor: "transparent",
+            width: "100vw",
+            maxWidth: "100%",
+            aspectRatio: "1",
+          }}
+        >
+          <div
+            className="w-full aspect-square overflow-hidden flex justify-center items-center shadow-none"
+            style={{
+              background:
+                "linear-gradient(135deg, rgb(107, 130, 165) 0%, rgb(63, 62, 63) 9%, rgb(9, 9, 121) 35%, rgb(0, 212, 255) 100%)",
+              borderRadius: "300px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              width: "100%",
+              height: "100%",
+              overflow: "hidden",
+            }}
+          >
+            <span
+              style={{
+                transform: "matrix(0.707107, -0.707107, 0.707107, 0.707107, 0, 0)",
+                display: "block",
+                width: "292px",
+                height: "292px",
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="292"
+                height="292"
+                viewBox="0 0 24 24"
+                fill="#ffffff"
+                stroke="rgb(238, 238, 234)"
+                strokeWidth="1.46"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="lucide lucide-network"
+                fillOpacity="0"
+                style={{
+                  fill: "#ffffff",
+                  fillOpacity: 0,
+                  stroke: "rgb(238, 238, 234)",
+                  strokeWidth: 1.46,
+                  strokeLinecap: "round",
+                  strokeLinejoin: "round",
+                }}
+              >
+                <rect x="16" y="16" width="6" height="6" rx="1" />
+                <rect x="2" y="16" width="6" height="6" rx="1" />
+                <rect x="9" y="2" width="6" height="6" rx="1" />
+                <path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3" />
+                <path d="M12 12V8" />
+              </svg>
+            </span>
+          </div>
+        </div>
+      </foreignObject>
+    </svg>
+  );
+};
+
 const IconBackpackWallet = ({ size = 24, className }: IconProps) => (
   <svg
     width={size}
@@ -691,6 +761,7 @@ export {
   IconPyth,
   IconSwitchboard,
   IconMrgn,
+  IconFluxor,
   IconBackpackWallet,
   IconWalletConnectWallet,
   IconGlowWallet,
