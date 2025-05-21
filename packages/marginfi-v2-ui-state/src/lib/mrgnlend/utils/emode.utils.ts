@@ -9,15 +9,15 @@ function getEmodeState(
   activeCollateral: PublicKey[]
 ): EmodePair[] {
   // 1) Turn active lists into O(1) lookups
-  const liabilitySet = new Set(activeLiabilities.map((k) => k.toBase58()));
-  const collateralSet = new Set(activeCollateral.map((k) => k.toBase58()));
+  const liabilitySet = new Set(activeLiabilities.map((liabilityBank) => liabilityBank.toBase58()));
+  const collateralSet = new Set(activeCollateral.map((collateralBank) => collateralBank.toBase58()));
 
   // 2) Filter only those pairs that actually match both sides
   const possible: EmodePair[] = [];
   for (const pair of emodePairs) {
     if (
       liabilitySet.has(pair.liabilityBank.toBase58()) &&
-      pair.collateralBanks.some((b) => collateralSet.has(b.toBase58()))
+      pair.collateralBanks.some((collateralBank) => collateralSet.has(collateralBank.toBase58()))
     ) {
       possible.push(pair);
     }
@@ -52,85 +52,104 @@ function getEmodeState(
   return [];
 }
 
-/*
- *
- *
- */
-function getEmodeRepayImpact(
+interface EmodeImpact {
+  status: EmodeImpactStatus;
+  resultingPairs: EmodePair[];
+  lowestAssetWeight?: BigNumber;
+}
+
+interface ActionEmodeImpact {
+  borrowImpact?: EmodeImpact;
+  supplyImpact?: EmodeImpact;
+  repayAllImpact?: EmodeImpact;
+  withdrawAllImpact?: EmodeImpact;
+}
+
+function computeEmodeImpacts(
   emodePairs: EmodePair[],
-  marginfiAccount?: MarginfiAccountWrapper | MarginfiAccount | null,
-  activeEmodePairs?: EmodePair[]
-) {
-  // Is emode active right now?
-  const repayAllImpactByLiabilityBank: Record<
-    string,
-    {
-      assetWeightMaint: BigNumber;
-      assetWeightInit: BigNumber;
-      impactStatus: EmodeImpactStatus;
-      collateralTags: EmodeTag[];
-    }
-  > = {};
+  activeLiabilities: PublicKey[],
+  activeCollateral: PublicKey[],
+  allBanks: PublicKey[]
+): Record<string, ActionEmodeImpact> {
+  const toKey = (k: PublicKey) => k.toBase58();
 
-  // Return if empty account
-  if (!marginfiAccount) {
-    return repayAllImpactByLiabilityBank;
-  }
+  // 1) baseline EMODE state
+  const basePairs = getEmodeState(emodePairs, activeLiabilities, activeCollateral);
 
-  // Return if no borrows
-  if (!marginfiAccount.activeBalances.some((b) => b.liabilityShares.gt(0))) {
-    return repayAllImpactByLiabilityBank;
-  }
-
-  // Get all active borrows
-  const activeLiabilities = marginfiAccount.activeBalances
-    .filter((b) => b.liabilityShares.gt(0))
-    .map((balance) => balance.bankPk);
-
-  const activeAssets = marginfiAccount.activeBalances
-    .filter((b) => b.assetShares.gt(0))
-    .map((balance) => balance.bankPk);
-
-  // check if the user does not have any emodes
-  if (!activeEmodePairs || !activeEmodePairs.length) {
-    const possiblePairsByLiabilityBank: Record<string, EmodePair[]> = {};
-
-    emodePairs.forEach((pair) => {
-      const liabilityBankKey = pair.liabilityBank.toBase58();
-      if (!possiblePairsByLiabilityBank[liabilityBankKey]) {
-        possiblePairsByLiabilityBank[liabilityBankKey] = [pair];
-      } else {
-        possiblePairsByLiabilityBank[liabilityBankKey].push(pair);
+  // 2) helper to find the minimum assetWeight in a non-empty array
+  function minWeight(pairs: EmodePair[]): BigNumber {
+    let min = pairs[0].assetWeightMaint;
+    for (const p of pairs) {
+      if (p.assetWeightMaint.lt(min)) {
+        min = p.assetWeightMaint;
       }
-    });
-  } else {
-    // the user has emode enabled
-    const emodePairByLiabilityBank: Record<string, EmodePair> = {};
-
-    activeEmodePairs.forEach((p) => {
-      emodePairByLiabilityBank[p.liabilityBank.toBase58()] = p;
-    });
-
-    // check if there are more then one banks preventing emode
-
-    // Find the best (highest) weights
-    let maxMaint = activeEmodePairs[0]?.assetWeightMaint;
-    let maxInt = activeEmodePairs[0]?.assetWeightInt;
-
-    for (const p of activeEmodePairs) {
-      if (p.assetWeightMaint.gt(maxMaint)) maxMaint = p.assetWeightMaint;
-      if (p.assetWeightInt.gt(maxInt)) maxInt = p.assetWeightInt;
     }
-
-    //Keep any pair that is lower in *either* metric
-    const lowerWeightPairs = activeEmodePairs.filter(
-      (p) => p.assetWeightMaint.lt(maxMaint) || p.assetWeightInt.lt(maxInt)
-    );
-
-    if (lowerWeightPairs.length === 1) {
-      const [outlierPair] = lowerWeightPairs;
-      pairByLiabilityBank[outlierPair.liabilityBank.toBase58()] = outlierPair;
-    }
+    return min;
   }
-  return pairByLiabilityBank;
+
+  // 3) diff helper now using BigNumber comparisons
+  function diffState(before: EmodePair[], after: EmodePair[]): EmodeImpactStatus {
+    const wasOn = before.length > 0;
+    const isOn = after.length > 0;
+
+    if (!wasOn && !isOn) return EmodeImpactStatus.InactiveEmode;
+    if (!wasOn && isOn) return EmodeImpactStatus.ActivateEmode;
+    if (wasOn && !isOn) return EmodeImpactStatus.RemoveEmode;
+
+    // both ON
+    const beforeMin = minWeight(before);
+    const afterMin = minWeight(after);
+
+    if (afterMin.lt(beforeMin)) return EmodeImpactStatus.IncreaseEmode;
+    if (afterMin.gt(beforeMin)) return EmodeImpactStatus.ReduceEmode;
+    return EmodeImpactStatus.ExtendEmode;
+  }
+
+  // 4) simulation of one action on one bank
+  function simulate(bank: PublicKey, action: "borrow" | "repay" | "supply" | "withdraw"): EmodeImpact {
+    let newLiabs = activeLiabilities.slice();
+    let newColls = activeCollateral.slice();
+
+    switch (action) {
+      case "borrow":
+        if (!newLiabs.some((l) => l.equals(bank))) newLiabs.push(bank);
+        break;
+      case "repay":
+        newLiabs = newLiabs.filter((l) => !l.equals(bank));
+        break;
+      case "supply":
+        if (!newColls.some((c) => c.equals(bank))) newColls.push(bank);
+        break;
+      case "withdraw":
+        newColls = newColls.filter((c) => !c.equals(bank));
+        break;
+    }
+
+    const after = getEmodeState(emodePairs, newLiabs, newColls);
+    const status = diffState(basePairs, after);
+    const lowest = after.length > 0 ? minWeight(after) : undefined;
+
+    return { status, resultingPairs: after, lowestAssetWeight: lowest };
+  }
+
+  // 5) run through every bank
+  const result: Record<string, ActionEmodeImpact> = {};
+  for (const bank of allBanks) {
+    const key = toKey(bank);
+    const impact: ActionEmodeImpact = {};
+
+    impact.borrowImpact = simulate(bank, "borrow");
+    impact.supplyImpact = simulate(bank, "supply");
+
+    if (activeLiabilities.some((l) => l.equals(bank))) {
+      impact.repayAllImpact = simulate(bank, "repay");
+    }
+    if (activeCollateral.some((c) => c.equals(bank))) {
+      impact.withdrawAllImpact = simulate(bank, "withdraw");
+    }
+
+    result[key] = impact;
+  }
+
+  return result;
 }
