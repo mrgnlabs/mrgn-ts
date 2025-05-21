@@ -66,6 +66,7 @@ interface MakeLendingPositionRawProps {
 }
 
 enum EmodeImpactStatus {
+  ActivateEmode,
   ExtendEmode,
   IncreaseEmode,
   ReduceEmode,
@@ -81,8 +82,9 @@ type EmodeImpact = {
 
 type ActionEmodeImpact = {
   borrowImpact?: EmodeImpact;
-  repayImpact?: EmodeImpact;
-  withdrawImpact?: EmodeImpact;
+  supplyImpact?: EmodeImpact;
+  repayAllImpact?: EmodeImpact;
+  withdrawAllImpact?: EmodeImpact;
 };
 
 interface UserInfo {
