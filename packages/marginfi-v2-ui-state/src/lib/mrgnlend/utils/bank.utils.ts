@@ -714,100 +714,6 @@ function getBorrowImpact(newEmodePair?: EmodePair, activeEmodePairs?: EmodePair[
   };
 }
 
-/*
- *
- *
- */
-function getEmodeRepayImpact(
-  emodePairs: EmodePair[],
-  marginfiAccount?: MarginfiAccountWrapper | MarginfiAccount | null,
-  activeEmodePairs?: EmodePair[]
-) {
-  // Is emode active right now?
-  const repayAllImpactByLiabilityBank: Record<
-    string,
-    {
-      assetWeightMaint: BigNumber;
-      assetWeightInit: BigNumber;
-      impactStatus: EmodeImpactStatus;
-      collateralTags: EmodeTag[];
-    }
-  > = {};
-
-  // Return if empty account
-  if (!marginfiAccount) {
-    return repayAllImpactByLiabilityBank;
-  }
-
-  // Return if no borrows
-  if (!marginfiAccount.activeBalances.some((b) => b.liabilityShares.gt(0))) {
-    return repayAllImpactByLiabilityBank;
-  }
-
-  // Get all active borrows
-  const activeLiabilities = marginfiAccount.activeBalances
-    .filter((b) => b.liabilityShares.gt(0))
-    .map((balance) => balance.bankPk);
-
-  const activeAssets = marginfiAccount.activeBalances
-    .filter((b) => b.assetShares.gt(0))
-    .map((balance) => balance.bankPk);
-
-  // check if the user does not have any emodes
-  if (!activeEmodePairs || !activeEmodePairs.length) {
-    const possiblePairsByLiabilityBank: Record<string, EmodePair[]> = {};
-
-    emodePairs.forEach((pair) => {
-      const liabilityBankKey = pair.liabilityBank.toBase58();
-      if (!possiblePairsByLiabilityBank[liabilityBankKey]) {
-        possiblePairsByLiabilityBank[liabilityBankKey] = [pair];
-      } else {
-        possiblePairsByLiabilityBank[liabilityBankKey].push(pair);
-      }
-    });
-  } else {
-    // the user has emode enabled
-    const emodePairByLiabilityBank: Record<string, EmodePair> = {};
-
-    activeEmodePairs.forEach((p) => {
-      emodePairByLiabilityBank[p.liabilityBank.toBase58()] = p;
-    });
-
-    // check if there are more then one banks preventing emode
-    if (activeLiabilities.length + 1 > Object.keys(emodePairByLiabilityBank).length) {
-      activeLiabilities.forEach((bankPk) => {
-        repayAllImpactByLiabilityBank[bankPk.toBase58()] = {
-          assetWeightMaint: new BigNumber(0),
-          assetWeightInit: new BigNumber(0),
-          impactStatus: EmodeImpactStatus.InactiveEmode,
-          collateralTags: [],
-        };
-      });
-
-      return activeEmodePairs;
-    }
-
-    // Find the best (highest) weights
-    let maxMaint = activeEmodePairs[0]?.assetWeightMaint;
-    let maxInt = activeEmodePairs[0]?.assetWeightInt;
-
-    for (const p of activeEmodePairs) {
-      if (p.assetWeightMaint.gt(maxMaint)) maxMaint = p.assetWeightMaint;
-      if (p.assetWeightInt.gt(maxInt)) maxInt = p.assetWeightInt;
-    }
-
-    //Keep any pair that is lower in *either* metric
-    const lowerWeightPairs = activeEmodePairs.filter(
-      (p) => p.assetWeightMaint.lt(maxMaint) || p.assetWeightInt.lt(maxInt)
-    );
-
-    if (lowerWeightPairs.length === 1) {
-      const [outlierPair] = lowerWeightPairs;
-      pairByLiabilityBank[outlierPair.liabilityBank.toBase58()] = outlierPair;
-    }
-  }
-  return pairByLiabilityBank;
-}
 /**
  * Collects all possible borrow banks that would enable or continue active emodes for the user
  * @param marginfiAccount The user's marginfi account wrapper
@@ -898,18 +804,110 @@ function getPossibleBorrowBanksForEmodes(
   return pairByLiabilityBank;
 }
 
-function getEmodeState(emodePairs: EmodePair[], activeLiabilities: PublicKey[], activeAssets: PublicKey[]) {
-  const possiblePairByLiabilityBank: Record<string, EmodePair> = {};
+function getEmodeStateGoodComplexity(
+  emodePairs: EmodePair[],
+  activeLiabilities: PublicKey[],
+  activeCollateral: PublicKey[]
+): EmodePair[] {
+  // 1) Turn active lists into O(1) lookups
+  const liabilitySet = new Set(activeLiabilities.map((k) => k.toBase58()));
+  const collateralSet = new Set(activeCollateral.map((k) => k.toBase58()));
 
+  // 2) Filter only those pairs that actually match both sides
+  const possible: EmodePair[] = [];
+  for (const pair of emodePairs) {
+    if (
+      liabilitySet.has(pair.liabilityBank.toBase58()) &&
+      pair.collateralBanks.some((b) => collateralSet.has(b.toBase58()))
+    ) {
+      possible.push(pair);
+    }
+  }
+  if (possible.length === 0) return [];
+
+  // 3) Build a map: collateralTag → set of liabilityTags it supports
+  const collatToLiabMap = new Map<string, Set<string>>();
+  const allLiabTags = new Set<string>();
+
+  for (const p of possible) {
+    const liabTag = p.liabilityBankTag.toString();
+    const collTag = p.collateralBankTag.toString();
+    allLiabTags.add(liabTag);
+
+    let liabSet = collatToLiabMap.get(collTag);
+    if (!liabSet) {
+      liabSet = new Set<string>();
+      collatToLiabMap.set(collTag, liabSet);
+    }
+    liabSet.add(liabTag);
+  }
+
+  // 4) Check for any collateralTag whose liab-set covers allLiabTags
+  const totalLiabs = allLiabTags.size;
+  for (const liabSet of collatToLiabMap.values()) {
+    if (liabSet.size === totalLiabs) {
+      // found one collateralTag that works for every liabilityTag
+      return possible;
+    }
+  }
+  return [];
+}
+
+function getEmodeState(emodePairs: EmodePair[], activeLiabilities: PublicKey[], activeCollateral: PublicKey[]) {
+  const possibleEmodePairs: EmodePair[] = [];
+
+  // gets all pairs that have active liabilities and at least one active collateral
   emodePairs.forEach((pair) => {
     const hasMatchingLiability = activeLiabilities.some((liability) => liability.equals(pair.liabilityBank));
-    const hasMatchingCollateral = pair.collateralBanks.some((bank) => activeAssets.some((asset) => asset.equals(bank)));
+    const hasMatchingCollateral = pair.collateralBanks.some((bank) =>
+      activeCollateral.some((asset) => asset.equals(bank))
+    );
     if (hasMatchingLiability && hasMatchingCollateral) {
-      possiblePairByLiabilityBank[pair.liabilityBank.toBase58()] = pair;
+      // possiblePairByLiabilityBank[pair.liabilityBank.toBase58()] = pair;
+      possibleEmodePairs.push(pair);
     }
   });
 
-  return possiblePairByLiabilityBank;
+  // if there are no possible pairs, return empty object
+  if (!possibleEmodePairs.length) {
+    return [];
+  }
+
+  // Group pairs by collateral tag and liability tag
+  const pairsByCollateralTag: Record<string, EmodePair[]> = {};
+  const liabilityTagsSet = new Set<EmodeTag>();
+
+  possibleEmodePairs.forEach((pair) => {
+    // Track all liability tags
+    liabilityTagsSet.add(pair.liabilityBankTag);
+
+    // Group by collateral tag
+    const collateralTagKey = pair.collateralBankTag.toString();
+    if (!pairsByCollateralTag[collateralTagKey]) {
+      pairsByCollateralTag[collateralTagKey] = [];
+    }
+    pairsByCollateralTag[collateralTagKey].push(pair);
+  });
+
+  // Check if there's a collateral tag that works for all liability tags
+  // For emode to be enabled, we need at least one collateral tag that can work with all liability tags
+  const allLiabilityTags = Array.from(liabilityTagsSet);
+
+  for (const [_, pairsWithSameCollateral] of Object.entries(pairsByCollateralTag)) {
+    // Get all liability tags that this collateral tag can work with
+    const compatibleLiabilityTags = new Set(pairsWithSameCollateral.map((pair) => pair.liabilityBankTag));
+
+    // Check if this collateral tag works for all liability tags
+    const worksForAllLiabilities = allLiabilityTags.every((tag) => compatibleLiabilityTags.has(tag));
+
+    if (worksForAllLiabilities) {
+      // If we found a collateral tag that works for all liability tags, return all possible pairs
+      return possibleEmodePairs;
+    }
+  }
+
+  // If no collateral tag works for all liability tags, emode is disabled
+  return [];
 }
 
 function getUserActiveEmodes(
