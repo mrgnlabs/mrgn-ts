@@ -33,6 +33,10 @@ import {
   AccountFlags,
   getActiveAccountFlags,
   EmodeTag,
+  EmodePair,
+  computeEmodeImpacts,
+  computeActiveEmodePairs,
+  ActionEmodeImpact,
 } from "../..";
 import BN from "bn.js";
 import { Address, BorshCoder, BorshInstructionCoder, translateAddress } from "@coral-xyz/anchor";
@@ -673,6 +677,46 @@ class MarginfiAccount implements MarginfiAccountType {
     return projectedActiveBanks;
 
     // return makeHealthAccountMetas(banks, projectedActiveBanks, bankMetadataMap);
+  }
+
+  /**
+   * Determines which E-mode pairs are currently active for this account based on its balances
+   *
+   * @param emodePairs - All available E-mode pairs to check against the account's balances
+   * @returns Array of active E-mode pairs for this account, or empty array if no E-mode is active
+   */
+  computeActiveEmodePairs(emodePairs: EmodePair[]): EmodePair[] {
+    const activeLiabilities = this.activeBalances
+      .filter((balance) => balance.liabilityShares.gt(0))
+      .map((balance) => balance.bankPk);
+    const activeCollateral = this.activeBalances
+      .filter((balance) => balance.assetShares.gt(0))
+      .map((balance) => balance.bankPk);
+    return computeActiveEmodePairs(emodePairs, activeLiabilities, activeCollateral);
+  }
+
+  /**
+   * Calculates the impact of different actions on E-mode status for each bank
+   *
+   * For each bank, this method simulates the following actions and their effect on E-mode:
+   * - Borrowing from the bank (for banks not currently borrowed from)
+   * - Supplying to the bank (for supported collateral banks not currently supplied)
+   * - Repaying all borrowing from the bank (for banks with active liabilities)
+   * - Withdrawing all supply from the bank (for banks with active collateral)
+   *
+   * @param emodePairs - All available E-mode pairs to check against
+   * @param banks - Array of bank PublicKeys to calculate impacts for
+   * @returns Object mapping bank PublicKey strings to impact analysis for each possible action
+   */
+  computeEmodeImpacts(emodePairs: EmodePair[], banks: PublicKey[]): Record<string, ActionEmodeImpact> {
+    const activeLiabilities = this.activeBalances
+      .filter((balance) => balance.liabilityShares.gt(0))
+      .map((balance) => balance.bankPk);
+    const activeCollateral = this.activeBalances
+      .filter((balance) => balance.assetShares.gt(0))
+      .map((balance) => balance.bankPk);
+
+    return computeEmodeImpacts(emodePairs, activeLiabilities, activeCollateral, banks);
   }
 
   // ----------------------------------------------------------------------------

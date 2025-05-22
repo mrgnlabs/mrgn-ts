@@ -1,4 +1,4 @@
-import { Balance, MarginfiAccountWrapper, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
+import { ActionEmodeImpact, Balance, MarginfiAccountWrapper, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
 import { Bank } from "@mrgnlabs/marginfi-client-v2";
 import { PublicKey } from "@solana/web3.js";
@@ -65,28 +65,6 @@ interface MakeLendingPositionRawProps {
   emodeActive: boolean;
 }
 
-enum EmodeImpactStatus {
-  ActivateEmode,
-  ExtendEmode,
-  IncreaseEmode,
-  ReduceEmode,
-  RemoveEmode,
-  InactiveEmode,
-}
-
-type EmodeImpact = {
-  assetWeightMaintChange: BigNumber;
-  assetWeightInitChange: BigNumber;
-  impactStatus: EmodeImpactStatus;
-};
-
-type ActionEmodeImpact = {
-  borrowImpact?: EmodeImpact;
-  supplyImpact?: EmodeImpact;
-  repayAllImpact?: EmodeImpact;
-  withdrawAllImpact?: EmodeImpact;
-};
-
 interface UserInfo {
   tokenAccount: TokenAccount;
   maxDeposit: number;
@@ -126,7 +104,4 @@ export type {
   UserDataProps,
   UserDataWrappedProps,
   UserDataRawProps,
-  EmodeImpact,
 };
-
-export { EmodeImpactStatus };

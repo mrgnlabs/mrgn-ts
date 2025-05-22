@@ -249,8 +249,8 @@ class Bank implements BankType {
     Object.assign(newBank, bank);
 
     newBank.config = Object.assign({}, bank.config);
-    newBank.config.assetWeightInit = emodeWeights.assetWeightInit;
-    newBank.config.assetWeightMaint = emodeWeights.assetWeightMaint;
+    newBank.config.assetWeightInit = BigNumber.max(bank.config.assetWeightInit, emodeWeights.assetWeightInit);
+    newBank.config.assetWeightMaint = BigNumber.max(bank.config.assetWeightMaint, emodeWeights.assetWeightMaint);
 
     return newBank;
   }

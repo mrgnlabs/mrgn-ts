@@ -1,11 +1,7 @@
-import Link from "next/link";
-
-import { IconInfoCircle, IconSparkles, IconBolt, IconSearch } from "@tabler/icons-react";
-import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
-import { EmodePair } from "@mrgnlabs/marginfi-v2-ui-state";
+import { IconSparkles, IconBolt, IconSearch } from "@tabler/icons-react";
+import { EmodeTag, EmodePair } from "@mrgnlabs/marginfi-client-v2";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Badge } from "~/components/ui/badge";
 import { EmodeViewAll } from "~/components/common/emode/components";
 import { Label } from "~/components/ui/label";

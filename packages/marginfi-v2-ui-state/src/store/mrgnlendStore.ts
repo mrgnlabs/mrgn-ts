@@ -32,15 +32,10 @@ import {
   groupBanksByEmodeTag,
   fetchStateMetaData,
   getEmodePairs,
-  EmodePair,
   groupRawBankByEmodeTag,
-  getUserActiveEmodes,
   adjustBankWeightsWithEmodePairs,
   groupCollateralBanksByLiabilityBank,
   groupLiabilityBanksByCollateralBank,
-  getPossibleBorrowBanksForEmodes,
-  computeEmodeImpacts,
-  computeEmodeImpactsAccount,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -56,7 +51,7 @@ import type {
   WalletToken,
 } from "@mrgnlabs/mrgn-common";
 import { EmodeTag, MarginfiAccountWrapper, ProcessTransactionStrategy } from "@mrgnlabs/marginfi-client-v2";
-import type { MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
+import type { ActionEmodeImpact, EmodePair, MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
 import BigNumber from "bignumber.js";
 
 interface ProtocolStats {
@@ -302,11 +297,15 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         userDataFetched = true;
       }
 
-      const groupedEmodeBanks = groupRawBankByEmodeTag(banks);
-
       let userActiveEmodes: EmodePair[] = [];
+      let emodeImpactByBank: Record<string, ActionEmodeImpact> = {};
       if (selectedAccount) {
-        userActiveEmodes = getUserActiveEmodes(selectedAccount, emodePairs, groupedEmodeBanks);
+        userActiveEmodes = selectedAccount.data.computeActiveEmodePairs(emodePairs);
+
+        emodeImpactByBank = selectedAccount.data.computeEmodeImpacts(
+          emodePairs,
+          banks.map((bank) => bank.address)
+        );
 
         if (userActiveEmodes.length > 0) {
           const { adjustedBanks, originalWeights } = adjustBankWeightsWithEmodePairs(banks, userActiveEmodes);
@@ -357,21 +356,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       const mev = await getStakePoolMev(connection, validatorVoteAccounts);
       const validatorRates = await getValidatorRates(validatorVoteAccounts);
 
-      const availableEmodePairByBorrowBank = getPossibleBorrowBanksForEmodes(
-        emodePairs,
-        selectedAccount,
-        userActiveEmodes
-      );
-
-      if (selectedAccount) {
-        const theBigTest = computeEmodeImpactsAccount(
-          emodePairs,
-          banks.map((bank) => bank.address),
-          selectedAccount
-        );
-        console.log("theBigTest", theBigTest);
-      }
-
       let [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
         (acc, { bank, oraclePrice, tokenMetadata }) => {
           const emissionTokenPriceData = priceMap[bank.emissionsMint.toBase58()];
@@ -417,8 +401,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
               false,
               stakedAssetMetadata,
               bankWeightsPreEmode?.[bank.address.toBase58()],
-              availableEmodePairByBorrowBank,
-              userActiveEmodes
+              emodeImpactByBank
             )
           );
           acc[1].push(makeExtendedBankMetadata(bank, tokenMetadata, false, stakedAssetMetadata));

@@ -79,7 +79,7 @@ export function checkActionAvailable({
         if (lentChecks.length) checks.push(...lentChecks);
         break;
       case ActionType.Withdraw:
-        const withdrawChecks = canBeWithdrawn(selectedBank, marginfiAccount);
+        const withdrawChecks = canBeWithdrawn(selectedBank, marginfiAccount, amount);
         if (withdrawChecks.length) checks.push(...withdrawChecks);
         break;
       case ActionType.Borrow:
@@ -93,7 +93,7 @@ export function checkActionAvailable({
       case ActionType.Repay:
         let repayChecks;
         if (repayMode === RepayType.RepayRaw) {
-          repayChecks = canBeRepaid(selectedBank);
+          repayChecks = canBeRepaid(selectedBank, undefined, amount);
         } else if (repayMode === RepayType.RepayCollat) {
           repayChecks = canBeRepaidCollat(selectedBank, selectedRepayBank, repayCollatQuote);
         }

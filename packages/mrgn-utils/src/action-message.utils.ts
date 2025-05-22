@@ -75,7 +75,7 @@ export function checkLendActionAvailable({
         if (lentChecks.length) checks.push(...lentChecks);
         break;
       case ActionType.Withdraw:
-        const withdrawChecks = canBeWithdrawn(selectedBank, marginfiAccount);
+        const withdrawChecks = canBeWithdrawn(selectedBank, marginfiAccount, amount);
         if (withdrawChecks.length) checks.push(...withdrawChecks);
         break;
       case ActionType.Borrow:
@@ -83,7 +83,7 @@ export function checkLendActionAvailable({
         if (borrowChecks.length) checks.push(...borrowChecks);
         break;
       case ActionType.Repay:
-        const repayChecks = canBeRepaid(selectedBank);
+        const repayChecks = canBeRepaid(selectedBank, undefined, amount);
         if (repayChecks) checks.push(...repayChecks);
         break;
     }
@@ -158,7 +158,7 @@ export function checkRepayActionAvailable({
     selectedSecondaryBank &&
     selectedBank.address.toString().toLowerCase() === selectedSecondaryBank.address.toString().toLowerCase()
   ) {
-    repayChecks = canBeRepaid(selectedBank, true);
+    repayChecks = canBeRepaid(selectedBank, true, amount);
   } else if (selectedBank && selectedSecondaryBank) {
     repayChecks = canBeRepaidCollat(selectedBank, selectedSecondaryBank, actionQuote, maxOverflowHit);
   }

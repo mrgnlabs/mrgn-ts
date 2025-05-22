@@ -11,8 +11,15 @@ export const STATIC_INFO_MESSAGES: { [key: string]: ActionMessageType } = {
     isEnabled: true,
     actionMethod: "INFO",
     actionSubType: "EMODE",
-    description: "This action will keep e-mode active on your account",
+    description: "This action will keep e-mode active on your account.",
     code: 1001,
+  },
+  EMODE_ACTIVATE_IMPACT: {
+    isEnabled: true,
+    actionMethod: "INFO",
+    actionSubType: "EMODE",
+    description: "This action will activate e-mode on your account.",
+    code: 1002,
   },
 };
 
@@ -330,16 +337,16 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   },
 };
 
-const createEmodeReduceCheck = (changePercentage: number): ActionMessageType => ({
-  description: `This action will reduce your e-mode advantage by ${changePercentage}%`,
+const createEmodeReduceCheck = (): ActionMessageType => ({
+  description: `This action will reduce your e-mode advantage.`,
   isEnabled: true,
   actionMethod: "INFO",
   actionSubType: "EMODE",
   code: 156,
 });
 
-const createEmodeIncreaseCheck = (changePercentage: number): ActionMessageType => ({
-  description: `This action will increase your e-mode advantage by  ${changePercentage}%`,
+const createEmodeIncreaseCheck = (): ActionMessageType => ({
+  description: `This action will increase your e-mode advantage.`,
   isEnabled: true,
   actionMethod: "INFO",
   actionSubType: "EMODE",

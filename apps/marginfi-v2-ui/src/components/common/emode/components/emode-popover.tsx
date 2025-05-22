@@ -4,9 +4,9 @@ import React from "react";
 
 import Image from "next/image";
 import { IconBolt, IconExternalLink } from "@tabler/icons-react";
-import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
+import { EmodePair, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { percentFormatterMod } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, EmodePair } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, getAssetWeightData } from "@mrgnlabs/mrgn-utils";
 
 import { EmodeDiff } from "./emode-diff";
@@ -109,7 +109,7 @@ export const EmodePopover = ({
                       </TableCell>
                       <TableCell className="py-1">
                         <EmodeDiff
-                          assetWeight={liabilityBankItem.emodePair.assetWeightInt.toNumber()}
+                          assetWeight={liabilityBankItem.emodePair.assetWeightInit.toNumber()}
                           originalAssetWeight={originalAssetWeight}
                           className="text-purple-300"
                         />
@@ -168,7 +168,7 @@ export const EmodePopover = ({
                       </TableCell>
                       <TableCell className="py-1">
                         <EmodeDiff
-                          assetWeight={collateralBankItem.emodePair.assetWeightInt.toNumber()}
+                          assetWeight={collateralBankItem.emodePair.assetWeightInit.toNumber()}
                           originalAssetWeight={collateralAssetWeight}
                           className="text-purple-300"
                         />

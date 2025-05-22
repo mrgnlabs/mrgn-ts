@@ -72,22 +72,5 @@ enum Emissions {
   Borrowing,
 }
 
-type EmodePair = {
-  collateralBanks: PublicKey[];
-  collateralBankTag: EmodeTag;
-  liabilityBank: PublicKey;
-  liabilityBankTag: EmodeTag;
-  assetWeightMaint: BigNumber;
-  assetWeightInt: BigNumber;
-};
-
 export { Emissions };
-export type {
-  ActiveBankInfo,
-  ExtendedBankInfo,
-  BankInfo,
-  BankState,
-  ExtendedBankMetadata,
-  StakePoolMetadata,
-  EmodePair,
-};
+export type { ActiveBankInfo, ExtendedBankInfo, BankInfo, BankState, ExtendedBankMetadata, StakePoolMetadata };

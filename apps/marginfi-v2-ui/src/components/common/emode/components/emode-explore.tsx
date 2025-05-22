@@ -2,11 +2,10 @@ import React from "react";
 import Image from "next/image";
 
 import { IconBolt, IconSearch } from "@tabler/icons-react";
-import { EmodeTag, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
+import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { percentFormatterMod } from "@mrgnlabs/mrgn-common";
 
-import { cn } from "~/theme";
 import { useMrgnlendStore } from "~/store";
 import { Button } from "~/components/ui/button";
 import {
@@ -176,7 +175,7 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
                     </TableCell>
                     <TableCell>
                       <EmodeDiff
-                        assetWeight={collateralBank.emodePair.assetWeightInt.toNumber()}
+                        assetWeight={collateralBank.emodePair.assetWeightInit.toNumber()}
                         originalAssetWeight={originalAssetWeight || assetWeight}
                         className="text-purple-300"
                         diffClassName="text-foreground"

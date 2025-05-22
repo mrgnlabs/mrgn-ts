@@ -4,15 +4,9 @@ import {
   PriceBias,
   MarginRequirementType,
   EmodeTag,
-} from "@mrgnlabs/marginfi-client-v2";
-import {
-  ExtendedBankInfo,
-  ExtendedBankMetadata,
-  Emissions,
-  StakePoolMetadata,
-  BankState,
   EmodePair,
-} from "@mrgnlabs/marginfi-v2-ui-state";
+} from "@mrgnlabs/marginfi-client-v2";
+import { ExtendedBankInfo, Emissions, StakePoolMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
 import { aprToApy, nativeToUi, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { isBankOracleStale } from "./mrgnUtils";

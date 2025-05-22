@@ -1,8 +1,8 @@
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { EmodePair, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { MarginfiAccountWrapper, EmodePair } from "@mrgnlabs/marginfi-client-v2";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
 import {
   AssetData,

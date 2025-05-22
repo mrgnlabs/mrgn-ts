@@ -1,11 +1,10 @@
 import Link from "next/link";
 
 import { IconBolt } from "@tabler/icons-react";
-import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
+import { EmodeTag, EmodePair } from "@mrgnlabs/marginfi-client-v2";
 
 import { EmodeViewAll } from "~/components/common/emode/components";
 import { Badge } from "~/components/ui/badge";
-import { EmodePair } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type EmodeHeaderProps = {
   emodeGroups: EmodePair[];

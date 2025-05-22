@@ -6,11 +6,13 @@ import {
   OperationalState,
   MarginRequirementType,
   RiskTier,
+  EmodeImpactStatus,
 } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, ActiveBankInfo, FEE_MARGIN, EmodeImpactStatus } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActiveBankInfo, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
 import { PublicKey } from "@solana/web3.js";
 import { DYNAMIC_SIMULATION_ERRORS, STATIC_INFO_MESSAGES, STATIC_SIMULATION_ERRORS } from "../errors";
 import { ArenaGroupStatus } from "../types";
+import { isWholePosition } from "../mrgnUtils";
 
 type QuoteResponseMeta = {
   quoteResponse: QuoteResponse;
@@ -37,7 +39,8 @@ export {
 
 function canBeWithdrawn(
   targetBankInfo: ExtendedBankInfo,
-  marginfiAccount: MarginfiAccountWrapper | null
+  marginfiAccount: MarginfiAccountWrapper | null,
+  amount: number | null
 ): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
@@ -62,10 +65,41 @@ function canBeWithdrawn(
     checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Withdrawals"));
   }
 
+  if (amount && targetBankInfo.userInfo.emodeImpact?.withdrawAllImpact && targetBankInfo.isActive) {
+    const isWithdrawingAll = isWholePosition(targetBankInfo, amount);
+
+    if (isWithdrawingAll) {
+      const withdrawAllImpact = targetBankInfo.userInfo.emodeImpact?.withdrawAllImpact;
+      switch (withdrawAllImpact.status) {
+        case EmodeImpactStatus.ActivateEmode:
+          checks.push(STATIC_INFO_MESSAGES.EMODE_ACTIVATE_IMPACT);
+          break;
+        case EmodeImpactStatus.ExtendEmode:
+          checks.push(STATIC_INFO_MESSAGES.EMODE_EXTEND_IMPACT);
+          break;
+        case EmodeImpactStatus.IncreaseEmode:
+          checks.push(DYNAMIC_SIMULATION_ERRORS.EMODE_INCREASE_CHECK());
+          break;
+        case EmodeImpactStatus.ReduceEmode:
+          checks.push(DYNAMIC_SIMULATION_ERRORS.EMODE_REDUCE_CHECK());
+          break;
+        case EmodeImpactStatus.RemoveEmode:
+          checks.push(STATIC_SIMULATION_ERRORS.REMOVE_E_MODE_CHECK);
+          break;
+        case EmodeImpactStatus.InactiveEmode:
+          break;
+      }
+    }
+  }
+
   return checks;
 }
 
-function canBeRepaid(targetBankInfo: ExtendedBankInfo, repayCollatAction: boolean = false): ActionMessageType[] {
+function canBeRepaid(
+  targetBankInfo: ExtendedBankInfo,
+  repayCollatAction: boolean = false,
+  amount: number | null
+): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
   if (isPaused) {
@@ -82,6 +116,33 @@ function canBeRepaid(targetBankInfo: ExtendedBankInfo, repayCollatAction: boolea
 
   if (targetBankInfo.userInfo.maxRepay === 0) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.SUFFICIENT_LIQ_CHECK(targetBankInfo.meta.tokenSymbol, repayCollatAction));
+  }
+
+  if (amount && targetBankInfo.userInfo.emodeImpact?.repayAllImpact && targetBankInfo.isActive) {
+    const isRepayingAll = isWholePosition(targetBankInfo, amount);
+    const repayAllImpact = targetBankInfo.userInfo.emodeImpact?.repayAllImpact;
+
+    if (isRepayingAll) {
+      switch (repayAllImpact.status) {
+        case EmodeImpactStatus.ActivateEmode:
+          checks.push(STATIC_INFO_MESSAGES.EMODE_ACTIVATE_IMPACT);
+          break;
+        case EmodeImpactStatus.ExtendEmode:
+          checks.push(STATIC_INFO_MESSAGES.EMODE_EXTEND_IMPACT);
+          break;
+        case EmodeImpactStatus.IncreaseEmode:
+          checks.push(DYNAMIC_SIMULATION_ERRORS.EMODE_INCREASE_CHECK());
+          break;
+        case EmodeImpactStatus.ReduceEmode:
+          checks.push(DYNAMIC_SIMULATION_ERRORS.EMODE_REDUCE_CHECK());
+          break;
+        case EmodeImpactStatus.RemoveEmode:
+          checks.push(STATIC_SIMULATION_ERRORS.REMOVE_E_MODE_CHECK);
+          break;
+        case EmodeImpactStatus.InactiveEmode:
+          break;
+      }
+    }
   }
 
   return checks;
@@ -308,29 +369,21 @@ function canBeBorrowed(
     checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Borrows"));
   }
 
-  console.log("targetBank", targetBankInfo.meta.tokenSymbol);
-  console.log("borrowImpact", targetBankInfo.userInfo.emodeImpact?.borrowImpact);
-
   if (targetBankInfo.userInfo.emodeImpact?.borrowImpact) {
     const borrowImpact = targetBankInfo.userInfo.emodeImpact?.borrowImpact;
 
-    switch (borrowImpact.impactStatus) {
+    switch (borrowImpact.status) {
+      case EmodeImpactStatus.ActivateEmode:
+        checks.push(STATIC_INFO_MESSAGES.EMODE_ACTIVATE_IMPACT);
+        break;
       case EmodeImpactStatus.ExtendEmode:
         checks.push(STATIC_INFO_MESSAGES.EMODE_EXTEND_IMPACT);
         break;
       case EmodeImpactStatus.IncreaseEmode:
-        checks.push(
-          DYNAMIC_SIMULATION_ERRORS.EMODE_INCREASE_CHECK(
-            Math.abs(borrowImpact.assetWeightMaintChange.times(100).toNumber())
-          )
-        );
+        checks.push(DYNAMIC_SIMULATION_ERRORS.EMODE_INCREASE_CHECK());
         break;
       case EmodeImpactStatus.ReduceEmode:
-        checks.push(
-          DYNAMIC_SIMULATION_ERRORS.EMODE_REDUCE_CHECK(
-            Math.abs(borrowImpact.assetWeightMaintChange.times(100).toNumber())
-          )
-        );
+        checks.push(DYNAMIC_SIMULATION_ERRORS.EMODE_REDUCE_CHECK());
         break;
       case EmodeImpactStatus.RemoveEmode:
         checks.push(STATIC_SIMULATION_ERRORS.REMOVE_E_MODE_CHECK);
@@ -392,6 +445,30 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
     checks.push(DYNAMIC_SIMULATION_ERRORS.INSUFFICIENT_BALANCE_CHECK(targetBankInfo.meta.tokenSymbol));
   } else if (walletBalance === 0 && targetBankInfo.info.rawBank.config.assetTag === 2) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.INSUFFICIENT_STAKE_BALANCE_CHECK(targetBankInfo.meta.tokenName));
+  }
+
+  if (targetBankInfo.userInfo.emodeImpact?.supplyImpact) {
+    const supplyImpact = targetBankInfo.userInfo.emodeImpact?.supplyImpact;
+
+    switch (supplyImpact.status) {
+      case EmodeImpactStatus.ActivateEmode:
+        checks.push(STATIC_INFO_MESSAGES.EMODE_ACTIVATE_IMPACT);
+        break;
+      case EmodeImpactStatus.ExtendEmode:
+        checks.push(STATIC_INFO_MESSAGES.EMODE_EXTEND_IMPACT);
+        break;
+      case EmodeImpactStatus.IncreaseEmode:
+        checks.push(DYNAMIC_SIMULATION_ERRORS.EMODE_INCREASE_CHECK());
+        break;
+      case EmodeImpactStatus.ReduceEmode:
+        checks.push(DYNAMIC_SIMULATION_ERRORS.EMODE_REDUCE_CHECK());
+        break;
+      case EmodeImpactStatus.RemoveEmode:
+        checks.push(STATIC_SIMULATION_ERRORS.REMOVE_E_MODE_CHECK);
+        break;
+      case EmodeImpactStatus.InactiveEmode:
+        break;
+    }
   }
 
   return checks;

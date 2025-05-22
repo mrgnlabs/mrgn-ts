@@ -16,11 +16,9 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./components";
-import { EmodeHeader, EmodeViewAll } from "~/components/common/emode/components";
+import { EmodeHeader } from "~/components/common/emode/components";
 import { Button } from "~/components/ui/button";
 import { TokenFilters } from "~/store/uiStore";
-import { TooltipProvider, TooltipContent, Tooltip, TooltipTrigger } from "~/components/ui/tooltip";
-import { Badge } from "~/components/ui/badge";
 
 export const AssetsList = () => {
   const [

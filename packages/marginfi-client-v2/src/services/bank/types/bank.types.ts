@@ -179,3 +179,34 @@ export interface OracleConfigOpt {
   setup: OracleSetup;
   keys: PublicKey[];
 }
+
+export type EmodePair = {
+  collateralBanks: PublicKey[];
+  collateralBankTag: EmodeTag;
+  liabilityBank: PublicKey;
+  liabilityBankTag: EmodeTag;
+  assetWeightMaint: BigNumber;
+  assetWeightInit: BigNumber;
+};
+
+export enum EmodeImpactStatus {
+  ActivateEmode,
+  ExtendEmode,
+  IncreaseEmode,
+  ReduceEmode,
+  RemoveEmode,
+  InactiveEmode,
+}
+
+export interface EmodeImpact {
+  status: EmodeImpactStatus;
+  resultingPairs: EmodePair[];
+  activePair?: EmodePair;
+}
+
+export interface ActionEmodeImpact {
+  borrowImpact?: EmodeImpact;
+  supplyImpact?: EmodeImpact;
+  repayAllImpact?: EmodeImpact;
+  withdrawAllImpact?: EmodeImpact;
+}
