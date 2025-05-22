@@ -2,9 +2,9 @@ import React from "react";
 import Image from "next/image";
 
 import { IconBolt, IconSearch } from "@tabler/icons-react";
-import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
+import { computeMaxLeverage, EmodeTag, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { percentFormatterMod } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter, percentFormatterMod } from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore } from "~/store";
 import { Button } from "~/components/ui/button";
@@ -23,13 +23,13 @@ import Link from "next/link";
 import { getAssetWeightData } from "~/bank-data.utils";
 import { EmodeDiff } from "./emode-diff";
 
-interface EmodeViewAllProps {
+interface EmodeExploreProps {
   trigger?: React.ReactNode;
   initialBank?: ExtendedBankInfo;
   emodeTag?: EmodeTag;
 }
 
-const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => {
+const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => {
   const [extendedBankInfos, emodePairs, collateralBanksByLiabilityBank] = useMrgnlendStore((state) => [
     state.extendedBankInfos,
     state.emodePairs,
@@ -72,7 +72,10 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
-      <DialogContent className="overflow-visible p-2 md:p-6 md:py-8" closeClassName="md:-top-8 md:-right-8 md:z-50">
+      <DialogContent
+        className="overflow-visible p-2 md:p-6 md:py-8 md:max-w-2xl"
+        closeClassName="md:-top-8 md:-right-8 md:z-50"
+      >
         <DialogHeader>
           <DialogTitle className="text-2xl font-normal flex items-center gap-2">
             Explore{" "}
@@ -135,20 +138,25 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
           <Table className="w-full mt-1">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-1/4">Collateral</TableHead>
-                <TableHead className="w-1/4">Tag</TableHead>
-                <TableHead className="w-1/4">Weight</TableHead>
-                <TableHead className="w-1/4">
+                <TableHead className="w-1/5">Collateral</TableHead>
+                <TableHead className="w-1/5">Tag</TableHead>
+                <TableHead className="w-1/5">Weight</TableHead>
+                <TableHead className="w-1/5">
                   <div className="flex items-center gap-1 ">
                     <IconBolt size={14} className="translate-y-px" />
                     e-mode
                   </div>
                 </TableHead>
+                <TableHead className="w-1/5">Max Leverage</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {collateralBanks?.map((collateralBank) => {
                 const { assetWeight, originalAssetWeight } = getAssetWeightData(collateralBank.collateralBank, true);
+                const { maxLeverage } = computeMaxLeverage(
+                  collateralBank.collateralBank.info.rawBank,
+                  selectedBank.info.rawBank
+                );
                 return (
                   <TableRow
                     key={collateralBank.collateralBank.address.toBase58()}
@@ -181,6 +189,7 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
                         diffClassName="text-foreground"
                       />
                     </TableCell>
+                    <TableCell>{numeralFormatter(maxLeverage)}x</TableCell>
                   </TableRow>
                 );
               })}
@@ -192,4 +201,4 @@ const EmodeViewAll = ({ trigger, initialBank, emodeTag }: EmodeViewAllProps) => 
   );
 };
 
-export { EmodeViewAll };
+export { EmodeExplore };

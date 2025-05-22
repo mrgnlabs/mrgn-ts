@@ -3,7 +3,7 @@ import { EmodeTag, EmodePair } from "@mrgnlabs/marginfi-client-v2";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Badge } from "~/components/ui/badge";
-import { EmodeViewAll } from "~/components/common/emode/components";
+import { EmodeExplore } from "~/components/common/emode/components";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Button } from "~/components/ui/button";
@@ -35,7 +35,7 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode = false, setFilterEmode 
         </div>
         <div className="flex items-center gap-3">
           {userActiveEmodes.map((pair, idx) => (
-            <EmodeViewAll
+            <EmodeExplore
               key={`${pair.collateralBankTag}-${idx}`}
               trigger={
                 <Badge variant="emode" className="hidden md:flex">
@@ -45,7 +45,7 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode = false, setFilterEmode 
               emodeTag={pair.collateralBankTag}
             />
           ))}
-          <EmodeViewAll
+          <EmodeExplore
             trigger={
               <Button
                 variant="outline"

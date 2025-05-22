@@ -14,6 +14,7 @@ type LeverageSliderProps = {
   amountRaw: string;
   leverageAmount: number;
   maxLeverage: number;
+  emode?: boolean;
   setLeverageAmount: (amount: number) => void;
 };
 
@@ -24,6 +25,7 @@ export const LeverageSlider = ({
   leverageAmount,
   maxLeverage,
   setLeverageAmount,
+  emode = false,
 }: LeverageSliderProps) => {
   const bothBanksSelected = React.useMemo(
     () => Boolean(selectedBank && selectedSecondaryBank),
@@ -48,6 +50,7 @@ export const LeverageSlider = ({
             min={1}
             step={0.01}
             value={[leverageAmount]}
+            emode={emode}
             onValueChange={(value) => {
               if (value[0] > maxLeverage || value[0] <= 1) return;
               setLeverageAmount(value[0]);

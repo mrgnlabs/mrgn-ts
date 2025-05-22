@@ -3,7 +3,7 @@ import Link from "next/link";
 import { IconBolt } from "@tabler/icons-react";
 import { EmodeTag, EmodePair } from "@mrgnlabs/marginfi-client-v2";
 
-import { EmodeViewAll } from "~/components/common/emode/components";
+import { EmodeExplore } from "~/components/common/emode/components";
 import { Badge } from "~/components/ui/badge";
 
 type EmodeHeaderProps = {
@@ -20,7 +20,7 @@ const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
         <p className="text-muted-foreground text-sm">
           Banks with e-mode pairings get boosted weights.
           <br className="hidden lg:block" />{" "}
-          <EmodeViewAll
+          <EmodeExplore
             trigger={
               <span className="border-b border-foreground/50 transition-colors cursor-pointer hover:border-foreground hover:text-foreground">
                 Explore the groups
@@ -45,7 +45,7 @@ const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
             {emodeGroups
               .filter((group) => group.collateralBankTag !== EmodeTag.UNSET)
               .map((group) => (
-                <EmodeViewAll
+                <EmodeExplore
                   key={group.collateralBankTag}
                   trigger={
                     <Badge variant="emode">
@@ -56,7 +56,7 @@ const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
                 />
               ))}
           </div>
-          <EmodeViewAll />
+          <EmodeExplore />
         </div>
       )}
     </div>

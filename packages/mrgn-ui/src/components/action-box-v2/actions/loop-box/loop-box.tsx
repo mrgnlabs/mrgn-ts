@@ -9,7 +9,7 @@ import {
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { EmodeTag, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
   checkLoopActionAvailable,
@@ -34,6 +34,7 @@ import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
 import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
+import { IconBolt } from "@tabler/icons-react";
 
 export type LoopBoxProps = {
   nativeSolBalance: number;
@@ -89,6 +90,8 @@ export const LoopBox = ({
     setMaxLeverage,
     setLeverage,
     refreshSelectedBanks,
+    isEmodeLoop,
+    setIsEmodeLoop,
   ] = useLoopBoxStore((state) => [
     state.leverage,
     state.maxLeverage,
@@ -111,6 +114,8 @@ export const LoopBox = ({
     state.setMaxLeverage,
     state.setLeverage,
     state.refreshSelectedBanks,
+    state.isEmodeLoop,
+    state.setIsEmodeLoop,
   ]);
 
   const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
@@ -181,6 +186,20 @@ export const LoopBox = ({
     actionMessages: actionMessages,
   });
 
+  React.useEffect(() => {
+    if (!selectedBank || !selectedSecondaryBank || !selectedBank.info.state.hasEmode) {
+      setIsEmodeLoop(false);
+      return;
+    }
+    const isEmodeLoop = selectedBank.info.rawBank.emode.emodeEntries.some((entry) => {
+      return (
+        entry.collateralBankEmodeTag !== 0 &&
+        entry.collateralBankEmodeTag === selectedSecondaryBank.info.rawBank.emode.emodeTag
+      );
+    });
+    setIsEmodeLoop(isEmodeLoop);
+  }, [selectedBank, selectedSecondaryBank, setIsEmodeLoop]);
+
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
     if (debouncedAmount === 0 && simulationResult) {
@@ -226,6 +245,7 @@ export const LoopBox = ({
       setQuoteActionMessage([]);
     }
   }, [actionTxns.actionQuote]);
+
   /*
   Cleaing additional action messages when the bank or amount changes. This is to prevent outdated errors from being displayed.
   */
@@ -338,7 +358,7 @@ export const LoopBox = ({
           </TooltipProvider>
         </div>
       )} */}
-      <div className="mb-6">
+      <div className="mb-4 border">
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
@@ -355,8 +375,16 @@ export const LoopBox = ({
           isLoading={simulationStatus.isLoading}
           walletAmount={walletAmount}
           actionTxns={actionTxns}
+          isEmodeLoop={isEmodeLoop}
         />
       </div>
+
+      {isEmodeLoop && selectedBank && (
+        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
+          <IconBolt size={14} className="text-purple-300" />
+          <p>e-mode looping active</p>
+        </div>
+      )}
 
       <div className="px-1 space-y-6 mb-4">
         <LeverageSlider
@@ -366,6 +394,7 @@ export const LoopBox = ({
           leverageAmount={leverage}
           maxLeverage={maxLeverage}
           setLeverageAmount={setLeverage}
+          emode={isEmodeLoop}
         />
 
         <ApyStat
