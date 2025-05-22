@@ -273,7 +273,7 @@ export const MovePositionDialog = ({
           (actionMessage, idx) =>
             actionMessage.description && (
               <div key={idx}>
-                <ActionMessage _actionMessage={actionMessage} />
+                <ActionMessage actionMessage={actionMessage} />
               </div>
             )
         )}

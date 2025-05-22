@@ -9,7 +9,8 @@ import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/common";
 export const STATIC_INFO_MESSAGES: { [key: string]: ActionMessageType } = {
   EMODE_EXTEND_IMPACT: {
     isEnabled: true,
-    actionMethod: "EMODE",
+    actionMethod: "INFO",
+    actionSubType: "EMODE",
     description: "This action will keep e-mode active on your account",
     code: 1001,
   },
@@ -113,22 +114,26 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   },
   ALREADY_LENDING: {
     isEnabled: false,
+    actionMethod: "WARNING",
     description: "You cannot borrow an asset you are already lending. Please withdraw first to start borrowing.",
     code: 115,
   },
   ALREADY_BORROWING: {
     isEnabled: false,
+    actionMethod: "WARNING",
     description: "You cannot lend an asset you are already borrowing. Please repay first to start lending.",
     code: 116,
   },
   EXISTING_BORROW: {
     isEnabled: false,
+    actionMethod: "WARNING",
     description:
       "Borrows of isolated assets can not be combined with other borrows. Please create a new sub account to take out this borrow.",
     code: 117,
   },
   TRANSACTION_EXPIRED: {
     isEnabled: false,
+    actionMethod: "WARNING",
     description: "Transaction expired, please try again.",
     retry: true,
     code: 118,
@@ -180,6 +185,7 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   },
   TRADE_FAILED: {
     description: `Unable to execute trade, please try again.`,
+    actionMethod: "WARNING",
     isEnabled: false,
     code: 142,
   },
@@ -239,11 +245,13 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   },
   STAKED_ONLY_DEPOSIT_CHECK: {
     description: "Staked assets can not be borrowed at this time.",
+    actionMethod: "WARNING",
     isEnabled: false,
     code: 137,
   },
   REPAY_COLLAT_FAILED: {
     description: "Unable to repay using collateral, please select another collateral.",
+    actionMethod: "WARNING",
     isEnabled: false,
     code: 138,
   },
@@ -303,18 +311,21 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
   },
   ADD_POSITION_FAILED: {
     description: "Unable to add position, please try again.",
+    actionMethod: "WARNING",
     isEnabled: false,
     code: 153,
   },
   STAKE_UNSTAKE_VALIDATOR_NOT_FOUND: {
     description: "Validator stake account not found, please try again.",
+    actionMethod: "WARNING",
     isEnabled: false,
     code: 154,
   },
   REMOVE_E_MODE_CHECK: {
     description: "This action will disable e-mode on your account and reset boosted weights.",
-    isEnabled: false,
-    actionMethod: "EMODE_WARNING",
+    isEnabled: true,
+    actionMethod: "WARNING",
+    actionSubType: "EMODE",
     code: 157,
   },
 };
@@ -322,56 +333,65 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
 const createEmodeReduceCheck = (changePercentage: number): ActionMessageType => ({
   description: `This action will reduce your e-mode advantage by ${changePercentage}%`,
   isEnabled: true,
-  actionMethod: "EMODE",
+  actionMethod: "INFO",
+  actionSubType: "EMODE",
   code: 156,
 });
 
 const createEmodeIncreaseCheck = (changePercentage: number): ActionMessageType => ({
   description: `This action will increase your e-mode advantage by  ${changePercentage}%`,
   isEnabled: true,
-  actionMethod: "EMODE",
+  actionMethod: "INFO",
+  actionSubType: "EMODE",
   code: 155,
 });
 
 const createProcessingTxFailedCheck = (info?: string): ActionMessageType => ({
   description: `Error processing transaction. Please try again. ${info ? `Details: ${info}` : ""}`,
   isEnabled: false,
+  actionMethod: "WARNING",
   code: 150,
 });
 
 const createSimulationFailedCheck = (info?: string): ActionMessageType => ({
   description: `Simulating transaction failed. Please try again. ${info ? `Details: ${info}` : ""}`,
   isEnabled: false,
+  actionMethod: "WARNING",
   code: 149,
 });
 
 const createInsufficientStakeBalanceCheck = (tokenName?: string): ActionMessageType => ({
   description: `You need active native stake with the ${tokenName} validator to deposit to this bank`,
   isEnabled: false,
+  actionMethod: "WARNING",
   code: 143,
 });
 
 const createTradeFailedCheck = (): ActionMessageType => ({
   description: `Unable to execute trade, please try again.`,
   isEnabled: false,
+  actionMethod: "WARNING",
   code: 142,
 });
 
 const createRepayCollatFailedCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `Unable to repay using ${tokenSymbol}, please select another collateral.`,
   isEnabled: false,
+  actionMethod: "WARNING",
   code: 141,
 });
 
 const createInsufficientBalanceCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `Insufficient ${tokenSymbol} in wallet.`,
   isEnabled: false,
+  actionMethod: "WARNING",
   code: 140,
 });
 
 const createExistingIsolatedBorrowCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `You have an active isolated borrow (${tokenSymbol}) which cannot be combined with other borrows.`,
   isEnabled: false,
+  actionMethod: "WARNING",
   code: 139,
 });
 
@@ -384,6 +404,7 @@ const createBorrowCapacityCheck = (tokenSymbol?: string): ActionMessageType => (
 const createBankRetiredCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `The ${tokenSymbol}  bank is being retired. You may only withdraw a deposit or repay a loan.`,
   isEnabled: false,
+  actionMethod: "WARNING",
   code: 137,
 });
 
@@ -405,24 +426,28 @@ const createSufficientLiqCheck = (tokenSymbol?: string, repayCollatAction: boole
     repayCollatAction ? "Change the token to repay with collateral." : ""
   }`,
   isEnabled: false,
+  actionMethod: "WARNING",
   code: 134,
 });
 
 const createIfBorrowingCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `You&apos;re not borrowing ${tokenSymbol}.`,
   isEnabled: false,
+  actionMethod: "WARNING",
   code: 133,
 });
 
 const createIfLendingCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `You&apos;re not lending ${tokenSymbol}.`,
   isEnabled: false,
+  actionMethod: "WARNING",
   code: 132,
 });
 
 const createBankPausedCheck = (tokenSymbol?: string): ActionMessageType => ({
   description: `The ${tokenSymbol} bank is paused at this time.`,
   isEnabled: false,
+  actionMethod: "WARNING",
 });
 
 const createStaleCheck = (action: string): ActionMessageType => ({
@@ -439,6 +464,7 @@ const createWithdrawCheck = (
   tokenBank: ExtendedBankInfo
 ): ActionMessageType => ({
   isEnabled: false,
+  actionMethod: "WARNING",
   description: `Before you can ${tradeSide} this asset, you'll need to withdraw your supplied ${
     tradeSide === "long" ? stableBank.meta.tokenSymbol : tokenBank.meta.tokenSymbol
   }.`,
@@ -455,6 +481,7 @@ const createRepayCheck = (
   tokenBank: ExtendedBankInfo
 ): ActionMessageType => ({
   isEnabled: false,
+  actionMethod: "WARNING",
   description: `Before you can ${tradeSide} this asset, you'll need to repay your borrowed ${
     tradeSide === "long" ? tokenBank : stableBank
   }.`,
@@ -471,6 +498,7 @@ const createLoopCheck = (
   tokenBank: ExtendedBankInfo
 ): ActionMessageType => ({
   isEnabled: false,
+  actionMethod: "WARNING",
   description: `You are already ${tradeSide} this asset, you need to close that position before you can go ${
     tradeSide === "long" ? "short" : "long"
   }.`,
@@ -494,6 +522,7 @@ const createPriceImpactWarningCheck = (priceImpactPct: number): ActionMessageTyp
   return {
     description: `Price impact is ${percentFormatter.format(Number(priceImpactPct))}.`,
     isEnabled: true,
+    actionMethod: "WARNING",
     code: 129,
   };
 };

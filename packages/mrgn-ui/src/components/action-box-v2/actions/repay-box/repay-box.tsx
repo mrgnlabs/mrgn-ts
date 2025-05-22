@@ -379,7 +379,7 @@ export const RepayBox = ({
           actionMessage.description && (
             <div className="pb-6" key={idx}>
               <ActionMessage
-                _actionMessage={actionMessage}
+                actionMessage={actionMessage}
                 retry={refreshSimulation}
                 isRetrying={simulationStatus.isLoading}
               />

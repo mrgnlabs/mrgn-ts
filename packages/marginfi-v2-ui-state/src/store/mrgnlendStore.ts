@@ -39,6 +39,8 @@ import {
   groupCollateralBanksByLiabilityBank,
   groupLiabilityBanksByCollateralBank,
   getPossibleBorrowBanksForEmodes,
+  computeEmodeImpacts,
+  computeEmodeImpactsAccount,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -360,6 +362,15 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         selectedAccount,
         userActiveEmodes
       );
+
+      if (selectedAccount) {
+        const theBigTest = computeEmodeImpactsAccount(
+          emodePairs,
+          banks.map((bank) => bank.address),
+          selectedAccount
+        );
+        console.log("theBigTest", theBigTest);
+      }
 
       let [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
         (acc, { bank, oraclePrice, tokenMetadata }) => {
