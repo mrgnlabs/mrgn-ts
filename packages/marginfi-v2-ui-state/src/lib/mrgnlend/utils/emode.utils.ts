@@ -3,42 +3,6 @@ import { EmodeImpactStatus, EmodePair } from "../types";
 import { EmodeTag, MarginfiAccount, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import BigNumber from "bignumber.js";
 
-export function getEmodeState(
-  emodePairs: EmodePair[],
-  activeLiabilities: PublicKey[],
-  activeCollateral: PublicKey[]
-): EmodePair[] {
-  // 1) quickly filter to pairs that touch at least one active liability AND one active collateral
-  const possible: EmodePair[] = emodePairs.filter((pair) => {
-    const hasLiab = activeLiabilities.some((l) => l.equals(pair.liabilityBank));
-    const hasColl = pair.collateralBanks.some((c) => activeCollateral.some((a) => a.equals(c)));
-    return hasLiab && hasColl;
-  });
-  if (possible.length === 0) return [];
-
-  // 2) group by collateral‐tag, track all liability tags
-  const byCollTag: Record<string, EmodePair[]> = {};
-  const liabTags = new Set<string>();
-  for (const p of possible) {
-    const collTag = p.collateralBankTag.toString();
-    byCollTag[collTag] = byCollTag[collTag] || [];
-    byCollTag[collTag].push(p);
-    liabTags.add(p.liabilityBankTag.toString());
-  }
-  const allLiabTags = Array.from(liabTags);
-
-  // 3) find a collateral tag that covers every liability tag, and return only its pairs
-  for (const [collTag, pairs] of Object.entries(byCollTag)) {
-    const supports = new Set(pairs.map((p) => p.liabilityBankTag.toString()));
-    if (allLiabTags.every((tag) => supports.has(tag))) {
-      return pairs;
-    }
-  }
-
-  // 4) no single collateral tag can handle all liabilities → EMODE off
-  return [];
-}
-
 interface EmodeImpact {
   status: EmodeImpactStatus;
   resultingPairs: EmodePair[];
@@ -66,9 +30,67 @@ export function computeEmodeImpactsAccount(
     .filter((balance) => balance.assetShares.gt(0))
     .map((balance) => balance.bankPk);
 
-  const doesThis = getEmodeState(emodePairs, activeLiabilities, activeCollateral);
-  console.log("doesThis", doesThis);
   return computeEmodeImpacts(emodePairs, activeLiabilities, activeCollateral, banks);
+}
+
+function getEmodeState(
+  emodePairs: EmodePair[],
+  activeLiabilities: PublicKey[],
+  activeCollateral: PublicKey[]
+): EmodePair[] {
+  // 1) Drop any pairs with an “unset” tag (0)
+  const configured = emodePairs.filter(
+    (p) => p.collateralBankTag !== EmodeTag.UNSET && p.liabilityBankTag !== EmodeTag.UNSET
+  );
+
+  // 2) Build the set of required liability‐tags from _all_ active liabilities
+  //    If any liability has no configured entry at all, EMODE is off.
+  const liabTagByBank = new Map<string, string>();
+  for (const p of configured) {
+    liabTagByBank.set(p.liabilityBank.toBase58(), p.liabilityBankTag.toString());
+  }
+  const requiredTags = new Set<string>();
+  for (const liab of activeLiabilities) {
+    const tag = liabTagByBank.get(liab.toBase58());
+    if (!tag) {
+      // a liability with no entries kills EMODE immediately
+      return [];
+    }
+    requiredTags.add(tag);
+  }
+
+  // 3) Of those configured pairs, keep only ones touching both an active liability AND collateral
+  const possible = configured.filter(
+    (p) =>
+      activeLiabilities.some((l) => l.equals(p.liabilityBank)) &&
+      p.collateralBanks.some((c) => activeCollateral.some((a) => a.equals(c)))
+  );
+  if (possible.length === 0) return [];
+
+  // 4) Group by collateral-tag
+  const byCollTag: Record<string, EmodePair[]> = {};
+  for (const p of possible) {
+    const ct = p.collateralBankTag.toString();
+    (byCollTag[ct] ||= []).push(p);
+  }
+
+  // 5) Return the group whose liability-tags cover _every_ requiredTag
+  for (const group of Object.values(byCollTag)) {
+    const supports = new Set(group.map((p) => p.liabilityBankTag.toString()));
+    let coversAll = true;
+    for (const rt of requiredTags) {
+      if (!supports.has(rt)) {
+        coversAll = false;
+        break;
+      }
+    }
+    if (coversAll) {
+      return group;
+    }
+  }
+
+  // 6) Nothing can cover all liabilities → EMODE off
+  return [];
 }
 
 function computeEmodeImpacts(
@@ -79,86 +101,72 @@ function computeEmodeImpacts(
 ): Record<string, ActionEmodeImpact> {
   const toKey = (k: PublicKey) => k.toBase58();
 
-  // 1) baseline EMODE state
+  // ─── Baseline state ───
   const basePairs = getEmodeState(emodePairs, activeLiabilities, activeCollateral);
   const baseOn = basePairs.length > 0;
 
-  // 2) map each liability bank to its emode tag
+  // ─── Liability tag map & existing tags ───
   const liabTagMap = new Map<string, string>();
   for (const p of emodePairs) {
     liabTagMap.set(p.liabilityBank.toBase58(), p.liabilityBankTag.toString());
   }
-
-  // 3) set of tags currently borrowed
   const existingTags = new Set<string>(
     activeLiabilities.map((l) => liabTagMap.get(l.toBase58())).filter((t): t is string => !!t)
   );
 
-  // 4) helper to find minimum BigNumber weight
-  function minWeight(pairs: EmodePair[]): BigNumber {
-    let m = pairs[0].assetWeightInt;
-    for (const p of pairs) {
-      if (p.assetWeightInt.lt(m)) m = p.assetWeightInt;
-    }
+  // ─── Helpers ───
+  function minWeight(ps: EmodePair[]): BigNumber {
+    let m = ps[0].assetWeightInt;
+    for (const x of ps) if (x.assetWeightInt.lt(m)) m = x.assetWeightInt;
     return m;
   }
-
-  // 5) generic diff for repay/borrow (off→on, on→off, weight changes)
   function diffState(before: EmodePair[], after: EmodePair[]): EmodeImpactStatus {
-    const wasOn = before.length > 0;
-    const isOn = after.length > 0;
-    if (!wasOn && !isOn) return EmodeImpactStatus.InactiveEmode;
-    if (!wasOn && isOn) return EmodeImpactStatus.ActivateEmode;
-    if (wasOn && !isOn) return EmodeImpactStatus.RemoveEmode;
+    const was = before.length > 0,
+      isOn = after.length > 0;
+    if (!was && !isOn) return EmodeImpactStatus.InactiveEmode;
+    if (!was && isOn) return EmodeImpactStatus.ActivateEmode;
+    if (was && !isOn) return EmodeImpactStatus.RemoveEmode;
 
-    // both on → compare worst-case weights
-    const bMin = minWeight(before);
-    const aMin = minWeight(after);
+    const bMin = minWeight(before),
+      aMin = minWeight(after);
     if (aMin.gt(bMin)) return EmodeImpactStatus.IncreaseEmode;
     if (aMin.lt(bMin)) return EmodeImpactStatus.ReduceEmode;
     return EmodeImpactStatus.ExtendEmode;
   }
 
-  // 6) simulate one action
+  // ─── Simulation ───
   function simulate(bank: PublicKey, action: "borrow" | "repay" | "supply" | "withdraw"): EmodeImpact {
-    let newLiabs = [...activeLiabilities];
-    let newColls = [...activeCollateral];
-
+    let L = [...activeLiabilities],
+      C = [...activeCollateral];
     switch (action) {
       case "borrow":
-        if (!newLiabs.some((l) => l.equals(bank))) newLiabs.push(bank);
+        if (!L.some((x) => x.equals(bank))) L.push(bank);
         break;
       case "repay":
-        newLiabs = newLiabs.filter((l) => !l.equals(bank));
+        L = L.filter((x) => !x.equals(bank));
         break;
       case "supply":
-        if (!newColls.some((c) => c.equals(bank))) newColls.push(bank);
+        if (!C.some((x) => x.equals(bank))) C.push(bank);
         break;
       case "withdraw":
-        newColls = newColls.filter((c) => !c.equals(bank));
+        C = C.filter((x) => !x.equals(bank));
         break;
     }
 
-    const after = getEmodeState(emodePairs, newLiabs, newColls);
+    const after = getEmodeState(emodePairs, L, C);
     let status = diffState(basePairs, after);
 
-    // ─── borrow overrides ───
+    // borrow override
     if (action === "borrow") {
-      const key = bank.toBase58();
-      const bankTag = liabTagMap.get(key);
-
-      // non-EMODE bank always kills EMODE
-      if (!bankTag) {
+      const tag = liabTagMap.get(bank.toBase58());
+      if (!tag) {
         status = baseOn ? EmodeImpactStatus.RemoveEmode : EmodeImpactStatus.InactiveEmode;
-
-        // if EMODE is on, only same-tag new borrow keeps it
       } else if (baseOn) {
-        status = existingTags.has(bankTag) ? EmodeImpactStatus.ExtendEmode : EmodeImpactStatus.RemoveEmode;
+        status = existingTags.has(tag) ? EmodeImpactStatus.ExtendEmode : EmodeImpactStatus.RemoveEmode;
       }
-      // if EMODE was off, leave the diffState result (possibly ActivateEmode)
     }
 
-    // ─── supply overrides ───
+    // supply override
     if (action === "supply") {
       const isOn = after.length > 0;
       status =
@@ -169,43 +177,61 @@ function computeEmodeImpacts(
             : EmodeImpactStatus.InactiveEmode;
     }
 
-    // ─── withdraw overrides ───
+    // withdraw override
     if (action === "withdraw") {
-      const isOn = after.length > 0;
-      status =
-        baseOn && !isOn
-          ? EmodeImpactStatus.RemoveEmode
-          : baseOn && isOn
-            ? EmodeImpactStatus.ExtendEmode
-            : EmodeImpactStatus.InactiveEmode;
+      if (!baseOn) {
+        status = EmodeImpactStatus.InactiveEmode;
+      } else if (after.length === 0) {
+        status = EmodeImpactStatus.RemoveEmode;
+      } else {
+        const b = minWeight(basePairs),
+          a = minWeight(after);
+        if (a.gt(b)) status = EmodeImpactStatus.IncreaseEmode;
+        else if (a.lt(b)) status = EmodeImpactStatus.ReduceEmode;
+        else status = EmodeImpactStatus.ExtendEmode;
+      }
     }
 
     const lowest = after.length > 0 ? minWeight(after) : undefined;
     return { status, resultingPairs: after, lowestAssetWeight: lowest };
   }
 
-  // 7) run simulations for each bank
+  // ─── NEW: build the set of all collateral‐eligible banks ───
+  const collateralSet = new Set<string>();
+  emodePairs.forEach((p) => {
+    if (p.collateralBankTag !== EmodeTag.UNSET && p.liabilityBankTag !== EmodeTag.UNSET) {
+      p.collateralBanks.forEach((c) => collateralSet.add(c.toBase58()));
+    }
+  });
+
   const result: Record<string, ActionEmodeImpact> = {};
   for (const bank of allBanks) {
     const key = toKey(bank);
-    const impact: ActionEmodeImpact = {};
+    const imp: ActionEmodeImpact = {};
 
-    // only simulate new borrows
-    if (!activeLiabilities.some((l) => l.equals(bank))) {
-      impact.borrowImpact = simulate(bank, "borrow");
+    // 1) borrowImpact: as before, but guard out any active positions
+    if (!activeLiabilities.some((l) => l.equals(bank)) && !activeCollateral.some((c) => c.equals(bank))) {
+      imp.borrowImpact = simulate(bank, "borrow");
     }
 
-    impact.supplyImpact = simulate(bank, "supply");
+    // 2) supplyImpact: *only* for collateral‐configured banks **and** not already in play
+    if (
+      collateralSet.has(key) &&
+      !activeCollateral.some((c) => c.equals(bank)) &&
+      !activeLiabilities.some((l) => l.equals(bank))
+    ) {
+      imp.supplyImpact = simulate(bank, "supply");
+    }
 
+    // 3) repayAll/withdrawAll: unchanged
     if (activeLiabilities.some((l) => l.equals(bank))) {
-      impact.repayAllImpact = simulate(bank, "repay");
+      imp.repayAllImpact = simulate(bank, "repay");
     }
-
     if (activeCollateral.some((c) => c.equals(bank))) {
-      impact.withdrawAllImpact = simulate(bank, "withdraw");
+      imp.withdrawAllImpact = simulate(bank, "withdraw");
     }
 
-    result[key] = impact;
+    result[key] = imp;
   }
 
   return result;
