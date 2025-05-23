@@ -24,3 +24,4 @@ export * from "./validation";
 export * from "./jup-swap.utils";
 export * from "./trade.utils";
 export * from "./auth";
+export * from "./emode.utils";

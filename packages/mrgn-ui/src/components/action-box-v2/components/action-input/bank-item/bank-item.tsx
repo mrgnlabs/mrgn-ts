@@ -15,8 +15,9 @@ type BankItemProps = {
   rate?: string;
   lendingMode?: LendingModes;
   isRepay?: boolean;
-  available?: boolean;
   showStakedAssetLabel?: boolean;
+  highlightEmodeLabel?: boolean;
+  available?: boolean;
 };
 
 export const BankItem = ({
@@ -27,8 +28,9 @@ export const BankItem = ({
   rate,
   lendingMode,
   isRepay,
+  showStakedAssetLabel,
+  highlightEmodeLabel,
   available = true,
-  showStakedAssetLabel = false,
 }: BankItemProps) => {
   const balance = React.useMemo(() => {
     const isWSOL = bank.info.state.mint?.equals ? bank.info.state.mint.equals(WSOL_MINT) : false;
@@ -68,7 +70,12 @@ export const BankItem = ({
           <div className="flex items-center">
             <p className="font-medium">{bank.meta.tokenSymbol}</p>
             {bank.info.state.hasEmode && (
-              <span className="flex items-center gap-0.5 text-xs text-purple-300 lowercase ml-2">
+              <span
+                className={cn(
+                  "flex items-center gap-0.5 text-xs lowercase ml-2",
+                  highlightEmodeLabel && "text-purple-300"
+                )}
+              >
                 <IconBolt size={12} /> {EmodeTag[bank.info.rawBank.emode.emodeTag]}
               </span>
             )}
