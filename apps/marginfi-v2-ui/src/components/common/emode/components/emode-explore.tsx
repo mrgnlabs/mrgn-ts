@@ -49,7 +49,7 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
   }, [emodePairs, extendedBankInfos, emodeTag]);
 
   const collateralBanks = React.useMemo(() => {
-    return collateralBanksByLiabilityBank[selectedBank?.address.toBase58() as string];
+    return selectedBank ? collateralBanksByLiabilityBank[selectedBank.address.toBase58()] : [];
   }, [selectedBank, collateralBanksByLiabilityBank]);
 
   React.useEffect(() => {
@@ -151,11 +151,13 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {collateralBanks?.map((collateralBank) => {
+              {collateralBanks.map((collateralBank) => {
+                const emodePair = collateralBank.emodePair;
                 const { assetWeight, originalAssetWeight } = getAssetWeightData(collateralBank.collateralBank, true);
                 const { maxLeverage } = computeMaxLeverage(
                   collateralBank.collateralBank.info.rawBank,
-                  selectedBank.info.rawBank
+                  selectedBank.info.rawBank,
+                  { assetWeightInit: emodePair.assetWeightInit }
                 );
                 return (
                   <TableRow
@@ -174,7 +176,7 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
                         {collateralBank.collateralBank.meta.tokenSymbol}
                       </div>
                     </TableCell>
-                    <TableCell className="lowercase">{EmodeTag[collateralBank.emodePair.collateralBankTag]}</TableCell>
+                    <TableCell className="lowercase">{EmodeTag[emodePair.collateralBankTag]}</TableCell>
                     <TableCell>
                       {percentFormatterMod(originalAssetWeight || assetWeight, {
                         minFractionDigits: 0,
@@ -183,7 +185,7 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
                     </TableCell>
                     <TableCell>
                       <EmodeDiff
-                        assetWeight={collateralBank.emodePair.assetWeightInit.toNumber()}
+                        assetWeight={emodePair.assetWeightInit.toNumber()}
                         originalAssetWeight={originalAssetWeight || assetWeight}
                         className="text-purple-300"
                         diffClassName="text-foreground"

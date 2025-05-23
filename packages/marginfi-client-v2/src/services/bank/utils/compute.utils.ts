@@ -6,9 +6,13 @@ import { ActionEmodeImpact, BankType, EmodeImpact, EmodeImpactStatus, EmodePair,
 import { MarginfiAccountType } from "../../account";
 import { PublicKey } from "@solana/web3.js";
 
-function computeMaxLeverage(depositBank: BankType, borrowBank: BankType): { maxLeverage: number; ltv: number } {
-  const assetWeightInit = depositBank.config.assetWeightInit;
-  const liabilityWeightInit = borrowBank.config.liabilityWeightInit;
+function computeMaxLeverage(
+  depositBank: BankType,
+  borrowBank: BankType,
+  maxLeverageOpts?: { assetWeightInit?: BigNumber; liabilityWeightInit?: BigNumber }
+): { maxLeverage: number; ltv: number } {
+  const assetWeightInit = maxLeverageOpts?.assetWeightInit || depositBank.config.assetWeightInit;
+  const liabilityWeightInit = maxLeverageOpts?.liabilityWeightInit || borrowBank.config.liabilityWeightInit;
 
   const ltv = assetWeightInit.div(liabilityWeightInit).toNumber();
   const maxLeverage = 1 / (1 - ltv);
