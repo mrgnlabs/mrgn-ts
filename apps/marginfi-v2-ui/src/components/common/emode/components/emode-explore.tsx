@@ -22,6 +22,7 @@ import { Label } from "~/components/ui/label";
 import Link from "next/link";
 import { getAssetWeightData } from "~/bank-data.utils";
 import { EmodeDiff } from "./emode-diff";
+import BigNumber from "bignumber.js";
 
 interface EmodeExploreProps {
   trigger?: React.ReactNode;
@@ -157,7 +158,12 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
                 const { maxLeverage } = computeMaxLeverage(
                   collateralBank.collateralBank.info.rawBank,
                   selectedBank.info.rawBank,
-                  { assetWeightInit: emodePair.assetWeightInit }
+                  {
+                    assetWeightInit: BigNumber.max(
+                      emodePair.assetWeightInit,
+                      collateralBank.collateralBank.info.rawBank.config.assetWeightInit
+                    ),
+                  }
                 );
                 return (
                   <TableRow
