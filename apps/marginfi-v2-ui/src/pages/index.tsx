@@ -128,7 +128,11 @@ export default function HomePage() {
             <Announcements items={annoucements} />
             <AnnouncementsDialog />
             <div className="p-4 space-y-1 w-full">
-              <EmodePortfolio userActiveEmodes={userActiveEmodes} />
+              {emodePairs.length > 0 && (
+                <div className="max-w-[480px] mx-auto">
+                  <EmodePortfolio userActiveEmodes={userActiveEmodes} />
+                </div>
+              )}
               <ActionBox.BorrowLend
                 useProvider={true}
                 lendProps={{

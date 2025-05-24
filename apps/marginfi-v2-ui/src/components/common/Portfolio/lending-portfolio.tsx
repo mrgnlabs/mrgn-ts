@@ -48,6 +48,7 @@ export const LendingPortfolio = () => {
     marginfiAccounts,
     fetchMrgnlendState,
     userActiveEmodes,
+    emodePairs,
   ] = useMrgnlendStore((state) => [
     state.initialized,
     state.extendedBankInfos,
@@ -58,6 +59,7 @@ export const LendingPortfolio = () => {
     state.marginfiAccounts,
     state.fetchMrgnlendState,
     state.userActiveEmodes,
+    state.emodePairs,
   ]);
   const [priorityFees, broadcastType, accountLabels, setGlobalActionBoxProps, globalActionBoxProps] = useUiStore(
     (state) => [
@@ -455,11 +457,13 @@ export const LendingPortfolio = () => {
           >
             <LineConnectionSvg />
           </div>
-          <EmodePortfolio
-            userActiveEmodes={userActiveEmodes}
-            filterEmode={filterEmode}
-            setFilterEmode={setFilterEmode}
-          />
+          {emodePairs.length > 0 && (
+            <EmodePortfolio
+              userActiveEmodes={userActiveEmodes}
+              filterEmode={filterEmode}
+              setFilterEmode={setFilterEmode}
+            />
+          )}
           <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-40">
             <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
               <dl className="flex justify-between items-center gap-2 text-xl font-medium">

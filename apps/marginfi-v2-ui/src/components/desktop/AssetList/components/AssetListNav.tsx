@@ -35,7 +35,7 @@ const AssetListNav = () => {
     state.tokenFilter,
     state.setTokenFilter,
   ]);
-  const [userActiveEmodes] = useMrgnlendStore((state) => [state.userActiveEmodes]);
+  const [userActiveEmodes, emodePairs] = useMrgnlendStore((state) => [state.userActiveEmodes, state.emodePairs]);
   const [isSearchExpanded, setIsSearchExpanded] = React.useState(assetListSearch.length > 0);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -71,13 +71,18 @@ const AssetListNav = () => {
           <ToggleGroupItem value="native_stake" aria-label="Toggle staked" className="relative">
             Native Stake
           </ToggleGroupItem>
-          <ToggleGroupItem value="e_mode" aria-label="Toggle e-mode" className="relative gap-1 items-center">
-            <IconBolt size={16} className="text-purple-300" />
-            <span className="ml-0.5">e-mode</span>
-            <span
-              className={cn("bg-gray-400 rounded-full h-2 w-2 ml-2", userActiveEmodes.length > 0 && "bg-mrgn-success")}
-            />
-          </ToggleGroupItem>
+          {emodePairs.length > 0 && (
+            <ToggleGroupItem value="e_mode" aria-label="Toggle e-mode" className="relative gap-1 items-center">
+              <IconBolt size={16} className="text-purple-300" />
+              <span className="ml-0.5">e-mode</span>
+              <span
+                className={cn(
+                  "bg-gray-400 rounded-full h-2 w-2 ml-2",
+                  userActiveEmodes.length > 0 && "bg-mrgn-success"
+                )}
+              />
+            </ToggleGroupItem>
+          )}
         </ToggleGroup>
         <div className="flex items-center gap-3 ml-10">
           <Label
