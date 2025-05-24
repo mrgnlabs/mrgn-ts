@@ -105,6 +105,10 @@
     "SOL": {
       "name": "Solana",
       "symbol": "SOL"
+    },
+    "LST": {
+      "name": "LST",
+      "symbol": "LST"
     }
   }
 }
