@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { capture, Desktop, LendingModes, Mobile } from "@mrgnlabs/mrgn-utils";
+import { capture, Desktop, getEmodeStrategies, LendingModes, Mobile } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 
@@ -53,6 +53,10 @@ export default function HomePage() {
     state.userActiveEmodes,
     state.emodePairs,
   ]);
+
+  const emodeStrategies = React.useMemo(() => {
+    return getEmodeStrategies(extendedBankInfos);
+  }, [extendedBankInfos]);
 
   const annoucements = React.useMemo(() => {
     let banks: (ExtendedBankInfo | undefined)[] = [];

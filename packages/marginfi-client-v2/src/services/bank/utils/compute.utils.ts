@@ -119,10 +119,19 @@ function computeEmodeImpacts(
     // Borrow override
     if (action === "borrow") {
       const tag = liabTagMap.get(bank.toBase58());
+
+      // Borrowing an unconfigured bank => EMODE off / inactive
       if (!tag) {
         status = baseOn ? EmodeImpactStatus.RemoveEmode : EmodeImpactStatus.InactiveEmode;
+
+        // EMODE was ON; keep the diffState result unless EMODE really turns OFF
       } else if (baseOn) {
-        status = existingTags.has(tag) ? EmodeImpactStatus.ExtendEmode : EmodeImpactStatus.RemoveEmode;
+        if (after.length === 0) {
+          status = EmodeImpactStatus.RemoveEmode;
+        } else if (existingTags.has(tag)) {
+          status = EmodeImpactStatus.ExtendEmode; // same tag ⇒ extend
+          // else keep diffState (Increase/Reduce) which is already correct
+        }
       }
     }
 
@@ -177,7 +186,7 @@ function computeEmodeImpacts(
     const impact: ActionEmodeImpact = {};
 
     // Only new borrows
-    if (!activeLiabilities.some((x) => x.equals(bank)) && !activeCollateral.some((x) => x.equals(bank))) {
+    if (!activeCollateral.some((x) => x.equals(bank))) {
       impact.borrowImpact = simulate(bank, "borrow");
     }
 

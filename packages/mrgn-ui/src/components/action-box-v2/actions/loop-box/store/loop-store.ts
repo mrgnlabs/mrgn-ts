@@ -4,7 +4,6 @@ import BigNumber from "bignumber.js";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ActionMessageType, calculateLstYield, LoopActionTxns, LSTS_SOLANA_COMPASS_MAP } from "@mrgnlabs/mrgn-utils";
-
 interface LoopBoxState {
   // State
   amountRaw: string;
@@ -23,8 +22,6 @@ interface LoopBoxState {
 
   errorMessage: ActionMessageType | null;
 
-  isEmodeLoop: boolean;
-
   // Actions
   refreshState: (actionMode?: ActionType) => void;
   refreshSelectedBanks: (banks: ExtendedBankInfo[]) => void;
@@ -40,7 +37,6 @@ interface LoopBoxState {
   setSelectedSecondaryBank: (bank: ExtendedBankInfo | null) => void;
   setDepositLstApy: (bank: ExtendedBankInfo) => void;
   setBorrowLstApy: (bank: ExtendedBankInfo) => void;
-  setIsEmodeLoop: (isEmodeLoop: boolean) => void;
 }
 
 function createLoopBoxStore() {
@@ -57,7 +53,6 @@ const initialState = {
   selectedBank: null,
   selectedSecondaryBank: null,
   simulationResult: null,
-  isEmodeLoop: false,
 
   actionTxns: {
     transactions: [],
@@ -200,10 +195,6 @@ const stateCreator: StateCreator<LoopBoxState, [], []> = (set, get) => ({
     } else {
       set({ selectedSecondaryBank: secondaryBank });
     }
-  },
-
-  setIsEmodeLoop(isEmodeLoop) {
-    set({ isEmodeLoop });
   },
 
   async setDepositLstApy(bank: ExtendedBankInfo) {

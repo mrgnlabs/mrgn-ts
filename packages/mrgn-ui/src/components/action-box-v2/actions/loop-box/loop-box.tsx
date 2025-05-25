@@ -8,8 +8,15 @@ import {
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
+  getEmodePairs,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { EmodeTag, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import {
+  ActionEmodeImpact,
+  computeEmodeImpacts,
+  EmodeImpactStatus,
+  MarginfiAccountWrapper,
+  MarginfiClient,
+} from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
   checkLoopActionAvailable,
@@ -35,6 +42,7 @@ import { useLoopSimulation } from "./hooks";
 import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
 import { IconEmode } from "~/components/ui/icons";
+import { PublicKey } from "@solana/web3.js";
 
 export type LoopBoxProps = {
   nativeSolBalance: number;
@@ -90,8 +98,6 @@ export const LoopBox = ({
     setMaxLeverage,
     setLeverage,
     refreshSelectedBanks,
-    isEmodeLoop,
-    setIsEmodeLoop,
   ] = useLoopBoxStore((state) => [
     state.leverage,
     state.maxLeverage,
@@ -114,8 +120,6 @@ export const LoopBox = ({
     state.setMaxLeverage,
     state.setLeverage,
     state.refreshSelectedBanks,
-    state.isEmodeLoop,
-    state.setIsEmodeLoop,
   ]);
 
   const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
@@ -123,6 +127,91 @@ export const LoopBox = ({
     priorityFees: null,
     jupiterOptions: null,
   };
+  const emodePairs = React.useMemo(() => {
+    return getEmodePairs(allBanks?.map((bank) => bank.info.rawBank) ?? []);
+  }, [allBanks]);
+
+  const [emodeSupplyState, setEmodeSupplyState] = React.useState<{
+    supplyBank?: PublicKey;
+    emodeBorrowBanks: PublicKey[];
+    emodeImpactByBank: Record<string, ActionEmodeImpact>;
+  }>({
+    supplyBank: undefined,
+    emodeBorrowBanks: [],
+    emodeImpactByBank: {},
+  });
+
+  /**
+   * UseEffect to trigger to track emode state of selected bank
+   * In actionboxV3, this logic will be moved to a better place
+   */
+  React.useEffect(() => {
+    if (!emodePairs.length || !allBanks?.length) {
+      return;
+    }
+
+    if (!selectedBank) {
+      setEmodeSupplyState({
+        supplyBank: undefined,
+        emodeBorrowBanks: [],
+        emodeImpactByBank: {},
+      });
+      return;
+    }
+
+    if (!emodeSupplyState?.supplyBank || !selectedBank.address.equals(emodeSupplyState.supplyBank)) {
+      const activeLiabilities =
+        selectedAccount?.activeBalances.filter((b) => b.liabilityShares.gt(0)).map((b) => b.bankPk) ?? [];
+      // Build active collateral list, appending selectedBank.address only if it's not already present
+      const activeCollateralBase =
+        selectedAccount?.activeBalances.filter((b) => b.assetShares.gt(0)).map((b) => b.bankPk) ?? [];
+      const activeCollateral = activeCollateralBase.some((pk) => pk.equals(selectedBank.address))
+        ? activeCollateralBase
+        : [...activeCollateralBase, selectedBank.address];
+
+      const emodeImpact = computeEmodeImpacts(
+        emodePairs,
+        activeLiabilities,
+        activeCollateral,
+        allBanks.map((bank) => bank.address)
+      );
+
+      // Extract banks where borrowImpact results in one of the active EMODE statuses
+      const allowedBorrowBanks = Object.entries(emodeImpact)
+        .filter(([_, impact]) => {
+          const status = impact.borrowImpact?.status;
+          return (
+            status === EmodeImpactStatus.ActivateEmode ||
+            status === EmodeImpactStatus.ExtendEmode ||
+            status === EmodeImpactStatus.IncreaseEmode ||
+            status === EmodeImpactStatus.ReduceEmode
+          );
+        })
+        .map(([address]) => new PublicKey(address));
+
+      setEmodeSupplyState({
+        supplyBank: selectedBank.address,
+        emodeBorrowBanks: allowedBorrowBanks,
+        emodeImpactByBank: emodeImpact,
+      });
+    }
+  }, [selectedBank, selectedAccount, emodePairs, allBanks, emodeSupplyState.supplyBank]);
+
+  const emodeImpact = React.useMemo(() => {
+    if (!selectedBank || !selectedSecondaryBank) {
+      return null;
+    }
+
+    return emodeSupplyState?.emodeImpactByBank[selectedSecondaryBank.address.toBase58()].borrowImpact ?? null;
+  }, [selectedBank, selectedSecondaryBank, emodeSupplyState?.emodeImpactByBank]);
+
+  const isEmodeLoop = React.useMemo(() => {
+    if (!selectedSecondaryBank) {
+      return emodeSupplyState.emodeBorrowBanks.length > 0;
+    }
+
+    return !!emodeImpact?.activePair;
+  }, [selectedSecondaryBank, emodeImpact?.activePair, emodeSupplyState.emodeBorrowBanks.length]);
 
   const [simulationStatus, setSimulationStatus] = React.useState<{
     isLoading: boolean;
@@ -164,6 +253,7 @@ export const LoopBox = ({
       selectedSecondaryBank,
       actionQuote: actionTxns.actionQuote,
       banks: allBanks ?? [],
+      emodeImpact,
     });
   }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote, allBanks]);
 
@@ -178,6 +268,7 @@ export const LoopBox = ({
     actionTxns,
     simulationResult,
     jupiterOptions,
+    emodeImpact,
     setMaxLeverage,
     setSimulationResult,
     setActionTxns,
@@ -185,20 +276,6 @@ export const LoopBox = ({
     setIsLoading: setSimulationStatus,
     actionMessages: actionMessages,
   });
-
-  React.useEffect(() => {
-    if (!selectedBank || !selectedSecondaryBank || !selectedBank.info.state.hasEmode) {
-      setIsEmodeLoop(false);
-      return;
-    }
-    const isEmodeLoop = selectedBank.info.rawBank.emode.emodeEntries.some((entry) => {
-      return (
-        entry.collateralBankEmodeTag !== 0 &&
-        entry.collateralBankEmodeTag === selectedSecondaryBank.info.rawBank.emode.emodeTag
-      );
-    });
-    setIsEmodeLoop(isEmodeLoop);
-  }, [selectedBank, selectedSecondaryBank, setIsEmodeLoop]);
 
   // Cleanup the store when the wallet disconnects
   React.useEffect(() => {
@@ -372,6 +449,7 @@ export const LoopBox = ({
           setSelectedSecondaryBank={(bank) => {
             setSelectedSecondaryBank(bank);
           }}
+          highlightedEmodeBanks={emodeSupplyState.emodeBorrowBanks}
           isLoading={simulationStatus.isLoading}
           walletAmount={walletAmount}
           actionTxns={actionTxns}
@@ -394,7 +472,7 @@ export const LoopBox = ({
           leverageAmount={leverage}
           maxLeverage={maxLeverage}
           setLeverageAmount={setLeverage}
-          emode={isEmodeLoop}
+          isEmodeLoop={isEmodeLoop}
         />
 
         <ApyStat

@@ -15,7 +15,7 @@ import {
   ArenaGroupStatus,
 } from ".";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { EmodeImpact, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { QuoteResponse } from "@jup-ag/api";
 import { WalletToken } from "@mrgnlabs/mrgn-common";
 
@@ -103,6 +103,7 @@ interface CheckLoopActionAvailableProps {
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
   actionQuote: QuoteResponse | null;
+  emodeImpact: EmodeImpact | null;
   banks?: ExtendedBankInfo[];
 }
 
@@ -113,6 +114,7 @@ export function checkLoopActionAvailable({
   selectedSecondaryBank,
   banks,
   actionQuote,
+  emodeImpact,
 }: CheckLoopActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
@@ -124,7 +126,7 @@ export function checkLoopActionAvailable({
 
   // alert checks
   if (selectedBank) {
-    const loopChecks = canBeLooped(selectedBank, selectedSecondaryBank, actionQuote, banks);
+    const loopChecks = canBeLooped(selectedBank, selectedSecondaryBank, emodeImpact, actionQuote, banks);
     if (loopChecks.length) checks.push(...loopChecks);
   }
 
@@ -337,7 +339,7 @@ export function checkTradeActionAvailable({
   if (tradeSpecificChecks) checks.push(...tradeSpecificChecks);
 
   if (depositBank) {
-    const tradeChecks = canBeLooped(depositBank, borrowBank, actionQuote);
+    const tradeChecks = canBeLooped(depositBank, borrowBank, null, actionQuote);
     if (tradeChecks.length) checks.push(...tradeChecks);
   }
 

@@ -22,7 +22,7 @@ export interface CalculatePreviewProps {
 export interface SimulateActionProps {
   txns: (VersionedTransaction | Transaction)[];
   account: MarginfiAccountWrapper;
-  bank: ExtendedBankInfo;
+  banks: ExtendedBankInfo[];
 }
 
 export function calculateSummary({
@@ -47,10 +47,15 @@ export function calculateSummary({
 
 export const getSimulationResult = async (props: SimulateActionProps) => {
   try {
-    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address]);
+    const bankAddresses = props.banks.map((bank) => bank.address);
+    return await props.account.simulateBorrowLendTransaction(props.txns, bankAddresses, {
+      enabled: true,
+      mandatoryBanks: bankAddresses,
+      excludedBanks: [],
+    });
   } catch (error: any) {
     const actionString = "Looping";
-    const actionMethod = handleSimulationError(error, props.bank, false, actionString);
+    const actionMethod = handleSimulationError(error, props.banks[0], false, actionString);
     if (actionMethod) {
       throw new ActionProcessingError(actionMethod);
     } else {
