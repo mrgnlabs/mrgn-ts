@@ -129,7 +129,6 @@ export function formatTransactions(
         bundleTipIndex = i;
       }
     }
-
     if (flashloanIndex === i || baseTxSize + PRIORITY_TX_SIZE < MAX_TX_SIZE) {
       priorityFeeIndexes.push(i);
     }

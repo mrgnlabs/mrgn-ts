@@ -132,11 +132,20 @@ export function useAvailableWallets(preset?: WalletPreset): ExtendedWallet[] {
       installLink: walletInstallMap[wallet.adapter.name],
     };
   }, []);
+  // const filteredWallets = React.useMemo(() => {
+  //   let formattedWallets: ExtendedWallet[] = wallets;
+
+  //   // formattedWallets = formattedWallets.filter(installedFilter);
+
+  //   // formattedWallets = addAbsentWallets(formattedWallets);
+
+  //   return formattedWallets;
+  // }, [wallets]);
 
   const filteredWallets = React.useMemo(() => {
     let formattedWallets: ExtendedWallet[] = wallets;
 
-    formattedWallets = formattedWallets.filter(installedFilter);
+    // formattedWallets = formattedWallets.filter(installedFilter);
 
     if (selectedPreset && (preset === "social" || preset === "pwa"))
       formattedWallets = formattedWallets.filter(presetFilter);

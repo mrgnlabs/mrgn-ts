@@ -340,51 +340,54 @@ export const RepayBox = ({
           ...priorityFees,
         },
       });
-      setComputerSystemCallRequest(systemCallRequest);
-      setShouldShowMixinPayModal(true);
+      if (systemCallRequest.length > 0) {
+        setComputerSystemCallRequest(systemCallRequest);
+        setShouldShowMixinPayModal(true);
 
-      const params: ExecuteMixinRepayActionProps = {
-        actionTxns,
-        attemptUuid: uuidv4(),
-        marginfiClient,
-        processOpts: { ...priorityFees, broadcastType: transactionSettings.broadcastType },
-        txOpts: {},
-        callbacks: {
-          captureEvent: captureEvent,
-          onComplete: (txnSig: string) => {
-            onComplete?.();
-            // Log the activity
-            const activityDetails: Record<string, any> = {
-              amount: actionMode === ActionType.RepayCollat ? repayAmount : amount,
-              symbol: selectedBank.meta.tokenSymbol,
-              mint: selectedBank.info.rawBank.mint.toBase58(),
-            };
+        const params: ExecuteMixinRepayActionProps = {
+          actionTxns,
+          attemptUuid: uuidv4(),
+          marginfiClient,
+          processOpts: { ...priorityFees, broadcastType: transactionSettings.broadcastType },
+          txOpts: {},
+          callbacks: {
+            captureEvent: captureEvent,
+            onComplete: (txnSig: string) => {
+              onComplete?.();
+              // Log the activity
+              const activityDetails: Record<string, any> = {
+                amount: actionMode === ActionType.RepayCollat ? repayAmount : amount,
+                symbol: selectedBank.meta.tokenSymbol,
+                mint: selectedBank.info.rawBank.mint.toBase58(),
+              };
 
-            if (actionMode === ActionType.RepayCollat) {
-              activityDetails.secondaryAmount = amount;
-              activityDetails.secondarySymbol = selectedSecondaryBank.meta.tokenSymbol;
-              activityDetails.secondaryMint = selectedSecondaryBank.info.rawBank.mint.toBase58();
-            }
+              if (actionMode === ActionType.RepayCollat) {
+                activityDetails.secondaryAmount = amount;
+                activityDetails.secondarySymbol = selectedSecondaryBank.meta.tokenSymbol;
+                activityDetails.secondaryMint = selectedSecondaryBank.info.rawBank.mint.toBase58();
+              }
 
-            logActivity(actionMode, txnSig, activityDetails, selectedAccount?.address).catch((error) => {
-              console.error("Failed to log activity:", error);
-            });
+              logActivity(actionMode, txnSig, activityDetails, selectedAccount?.address).catch((error) => {
+                console.error("Failed to log activity:", error);
+              });
+            },
           },
-        },
-        actionType: actionMode,
-        infoProps: {
-          repayAmount: dynamicNumeralFormatter(repayAmount),
-          repayToken: selectedSecondaryBank.meta.tokenSymbol,
-          amount: dynamicNumeralFormatter(amount),
-          token: selectedBank.meta.tokenSymbol,
-        },
-        traceId: systemCallRequest[systemCallRequest.length - 1].trace,
-        getComputerSystemCallStatus: getComputerSystemCallStatus,
-      };
+          actionType: actionMode,
+          infoProps: {
+            repayAmount: dynamicNumeralFormatter(repayAmount),
+            repayToken: selectedSecondaryBank.meta.tokenSymbol,
+            amount: dynamicNumeralFormatter(amount),
+            token: selectedBank.meta.tokenSymbol,
+          },
+          traceId: systemCallRequest[systemCallRequest.length - 1].trace,
+          getComputerSystemCallStatus: getComputerSystemCallStatus,
+        };
 
-      executeMixinRepayAction(params);
+        executeMixinRepayAction(params);
 
-      setAmountRaw("");
+        setAmountRaw("");
+      }
+
       return;
     }
 

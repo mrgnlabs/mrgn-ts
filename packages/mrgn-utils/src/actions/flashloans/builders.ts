@@ -99,6 +99,7 @@ export async function calculateRepayCollateralParams({
       ...repayProps,
       quote: swapQuote,
       repayAmount: amountToRepay,
+      isMixin: repayProps.isMixin,
     });
 
     if (txn.transactions.length) {
@@ -384,6 +385,7 @@ export async function repayWithCollatBuilder({
   withdrawAmount,
   quote,
   connection,
+  isMixin,
 }: RepayWithCollatProps): Promise<FlashloanBuilderResponse> {
   const jupiterQuoteApi = createJupiterApiClient();
   let feeAccountInfo: AccountInfo<any> | null = null;
@@ -423,6 +425,7 @@ export async function repayWithCollatBuilder({
       lookupTables: swapLUTs,
     },
     blockhash,
+    isMixin,
   });
 
   return { transactions, txOverflown, lastValidBlockHeight };

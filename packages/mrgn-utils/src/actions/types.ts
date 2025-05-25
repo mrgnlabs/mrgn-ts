@@ -136,6 +136,7 @@ export interface CalculateRepayCollateralProps
   slippageBps: number;
   slippageMode: "DYNAMIC" | "FIXED";
   platformFeeBps: number;
+  isMixin?: boolean;
 }
 
 export interface CalculateClosePositionProps
@@ -172,7 +173,7 @@ export type RepayWithCollatProps = {
   depositBank: ExtendedBankInfo;
   quote: QuoteResponse;
   connection: Connection;
-
+  isMixin?: boolean;
   multiStepToast?: MultiStepToastController;
 };
 

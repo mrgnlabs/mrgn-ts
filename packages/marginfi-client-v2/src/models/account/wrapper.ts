@@ -97,6 +97,7 @@ export interface FlashLoanArgs {
   signers?: Signer[];
   addressLookupTableAccounts?: AddressLookupTableAccount[];
   blockhash?: string;
+  isMixin?: boolean;
 }
 
 class MarginfiAccountWrapper {
@@ -564,6 +565,7 @@ class MarginfiAccountWrapper {
     repayAll = false,
     swap,
     blockhash: blockhashArg,
+    isMixin,
   }: RepayWithCollateralProps): Promise<FlashloanActionResult> {
     const blockhash =
       blockhashArg ?? (await this._program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
@@ -629,6 +631,7 @@ class MarginfiAccountWrapper {
 
     const addressLookupTableAccounts = [...clientLookupTables, ...swapLookupTables];
 
+    console.log("isMixin: ", isMixin);
     // if cuRequestIxs are not present, priority fee ix is needed
     // wallets add a priority fee ix by default breaking the flashloan tx so we need to add a placeholder priority fee ix
     // docs: https://docs.phantom.app/developer-powertools/solana-priority-fees
@@ -636,6 +639,7 @@ class MarginfiAccountWrapper {
       ixs: [...cuRequestIxs, priorityFeeIx, ...withdrawIxs.instructions, ...swapIxs, ...repayIxs.instructions],
       addressLookupTableAccounts,
       blockhash,
+      isMixin: isMixin,
     });
 
     const txSize = getTxSize(flashloanTx);
@@ -651,6 +655,7 @@ class MarginfiAccountWrapper {
         ixs: [...cuRequestIxs, ...withdrawIxs.instructions, ...swapIxs, ...repayIxs.instructions],
         addressLookupTableAccounts,
         blockhash,
+        isMixin: isMixin,
       });
 
       const txSize = getTxSize(flashloanTx);
@@ -1816,8 +1821,10 @@ class MarginfiAccountWrapper {
     args: FlashLoanArgs,
     lookupTables?: AddressLookupTableAccount[]
   ): Promise<ExtendedV0Transaction> {
-    const endIndex = args.ixs.length + 1;
-
+    let endIndex = args.ixs.length + 1;
+    if (args.isMixin) {
+      endIndex = args.ixs.length + 2;
+    }
     const projectedActiveBalances: PublicKey[] = this._marginfiAccount.projectActiveBalancesNoCpi(
       this._program,
       args.ixs

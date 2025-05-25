@@ -20,6 +20,7 @@ export interface CalculateRepayTransactionsProps {
   platformFeeBps: number;
   jupiterOptions: JupiterOptions;
   repayAmount: number;
+  isMixin?: boolean;
 }
 
 export async function calculateRepayTransactions(props: CalculateRepayTransactionsProps): Promise<{
@@ -50,6 +51,7 @@ export async function calculateRepayTransactions(props: CalculateRepayTransactio
       slippageMode: props.jupiterOptions?.slippageMode,
       slippageBps: props.jupiterOptions?.slippageBps,
       withdrawAmount: props.repayAmount,
+      isMixin: props.isMixin,
     });
 
     return {

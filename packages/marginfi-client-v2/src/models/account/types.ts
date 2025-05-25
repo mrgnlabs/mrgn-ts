@@ -58,6 +58,7 @@ export type LoopTxProps = {
 export interface RepayWithCollateralProps extends RepayWithCollateralTxProps {
   processOpts?: ProcessTransactionsClientOpts;
   txOpts?: TransactionOptions;
+  isMixin?: boolean;
 }
 
 export type RepayWithCollateralTxProps = {

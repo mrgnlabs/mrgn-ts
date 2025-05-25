@@ -195,9 +195,9 @@ async function handleRepayMixinSimulation({
       actionType = ActionType.RepayCollat;
     }
 
-    if (actionType === ActionType.RepayCollat) {
-      throw new Error("Repay collateral not supported");
-    }
+    // if (actionType === ActionType.RepayCollat) {
+    //   throw new Error("Repay collateral not supported");
+    // }
 
     const props: CalculateRepayTransactionsProps = {
       marginfiAccount: selectedAccount,
@@ -208,6 +208,7 @@ async function handleRepayMixinSimulation({
       jupiterOptions,
       repayAmount: amount,
       actionType,
+      isMixin: true,
     };
 
     const repayActionTxns = await fetchRepayActionTxns(props);
@@ -290,13 +291,13 @@ async function handleRepayMixinSimulation({
 
     // 这里假设 ata 已经创建过了,所以只处理系统调用
     const rentMap: Record<string, number> = {};
-    // const sizes = Array.from(
-    //   new Set([...MARGINFI_ACCOUNT_REPAY_RENT_SIZES, ...MARGINFI_ACCOUNT_REPAY_COLLATERAL_RENT_SIZES])
-    // );
-    // const rents = await Promise.all(sizes.map((size) => connection.getMinimumBalanceForRentExemption(size)));
-    // sizes.forEach((size, index) => {
-    //   rentMap[size] = rents[index];
-    // });
+    const sizes = Array.from(
+      new Set([...MARGINFI_ACCOUNT_REPAY_RENT_SIZES, ...MARGINFI_ACCOUNT_REPAY_COLLATERAL_RENT_SIZES])
+    );
+    const rents = await Promise.all(sizes.map((size) => connection.getMinimumBalanceForRentExemption(size)));
+    sizes.forEach((size, index) => {
+      rentMap[size] = rents[index];
+    });
 
     // 4. 构建最终交易
     const invoice = newMixinInvoice(getComputerRecipient());
@@ -335,7 +336,6 @@ async function handleRepayMixinSimulation({
         throw new Error("signers not found");
       }
       repayTx.sign(updatedTransactions[0].signers);
-      console.log("repayTx: ", repayTx);
 
       // 5. 检查交易大小
       const repayTxBuf = Buffer.from(repayTx.serialize());
@@ -362,8 +362,6 @@ async function handleRepayMixinSimulation({
         hash_references: [],
       });
 
-      console.log("repayExtra: ", repayExtra);
-      console.log("repayTrace: ", repayTrace);
       resultTrace = repayTrace;
 
       attachInvoiceEntry(invoice, {
@@ -374,209 +372,206 @@ async function handleRepayMixinSimulation({
         index_references: [0, 1],
         hash_references: [],
       });
-      // } else if (actionType === ActionType.RepayCollat) {
-      //   // 这里需要判断是否有 ata 创建
-      //   for (const t of updatedTransactions) {
-      //     if (t.type === TransactionType.CRANK) {
-      //       // if crank then retry
-      //       throw new Error("Retry to repay collateral");
-      //     }
-      //   }
-      //   if (
-      //     updatedTransactions.length === 2 &&
-      //     updatedTransactions[0].type === TransactionType.CREATE_ATA &&
-      //     updatedTransactions[1].type === TransactionType.REPAY_COLLAT
-      //   ) {
-      //     // 1. 创建 ata
-      //     // 1. init account
-      //     const initAccountAddressLookupsRes = await Promise.all(
-      //       (versionedTransactions[0] as VersionedTransaction).message.addressTableLookups.map((a) =>
-      //         connection.getAddressLookupTable(a.accountKey)
-      //       )
-      //     );
-      //     const initAccountAddressLookups = initAccountAddressLookupsRes
-      //       .filter((r) => r.value)
-      //       .map((r) => r.value) as AddressLookupTableAccount[];
+    } else if (actionType === ActionType.RepayCollat) {
+      // 这里需要判断是否有 ata 创建
+      for (const t of updatedTransactions) {
+        if (t.type === TransactionType.CRANK) {
+          // if crank then retry
+          throw new Error("Retry to repay collateral");
+        }
+      }
+      if (
+        updatedTransactions.length === 2 &&
+        updatedTransactions[0].type === TransactionType.CREATE_ATA &&
+        updatedTransactions[1].type === TransactionType.REPAY_COLLAT
+      ) {
+        // 1. 创建 ata
+        // 1. init account
+        const initAccountAddressLookupsRes = await Promise.all(
+          (versionedTransactions[0] as VersionedTransaction).message.addressTableLookups.map((a) =>
+            connection.getAddressLookupTable(a.accountKey)
+          )
+        );
+        const initAccountAddressLookups = initAccountAddressLookupsRes
+          .filter((r) => r.value)
+          .map((r) => r.value) as AddressLookupTableAccount[];
 
-      //     const createAccountInx = TransactionMessage.decompile(versionedTransactions[0].message, {
-      //       addressLookupTableAccounts: initAccountAddressLookups,
-      //     }).instructions;
-      //     const nonce1 = await client.getNonce(getUserMix());
-      //     const nonce1Ins = SystemProgram.nonceAdvance({
-      //       noncePubkey: new PublicKey(nonce1.nonce_address),
-      //       authorizedPubkey: new PublicKey(computerInfo.payer),
-      //     });
-      //     const createAccountMessage = new TransactionMessage({
-      //       payerKey: new PublicKey(computerInfo.payer),
-      //       recentBlockhash: nonce1.nonce_hash,
-      //       instructions: [nonce1Ins, ...createAccountInx],
-      //     }).compileToV0Message();
+        const createAccountInx = TransactionMessage.decompile(versionedTransactions[0].message, {
+          addressLookupTableAccounts: initAccountAddressLookups,
+        }).instructions;
+        const nonce1 = await client.getNonce(getUserMix());
+        const nonce1Ins = SystemProgram.nonceAdvance({
+          noncePubkey: new PublicKey(nonce1.nonce_address),
+          authorizedPubkey: new PublicKey(computerInfo.payer),
+        });
+        const createAccountMessage = new TransactionMessage({
+          payerKey: new PublicKey(computerInfo.payer),
+          recentBlockhash: nonce1.nonce_hash,
+          instructions: [nonce1Ins, ...createAccountInx],
+        }).compileToV0Message(initAccountAddressLookups);
 
-      //     const createAccountTx = new VersionedTransaction(createAccountMessage);
-      //     console.log("updatedTransactions[0]: ", updatedTransactions[0]);
-      //     if (updatedTransactions[0].signers) {
-      //       createAccountTx.sign(updatedTransactions[0].signers);
-      //     }
+        const createAccountTx = new VersionedTransaction(createAccountMessage);
+        if (updatedTransactions[0].signers) {
+          createAccountTx.sign(updatedTransactions[0].signers);
+        }
 
-      //     const createAccountTxBuf = Buffer.from(createAccountTx.serialize());
-      //     if (!checkSystemCallSize(createAccountTxBuf)) {
-      //       throw new Error("Transaction size exceeds limit");
-      //     }
+        const createAccountTxBuf = Buffer.from(createAccountTx.serialize());
+        if (!checkSystemCallSize(createAccountTxBuf)) {
+          throw new Error("Transaction size exceeds limit");
+        }
 
-      //     const createAccountTrace = uniqueConversationID(createAccountTxBuf.toString("hex"), "system call");
-      //     const solAmount = formatUnits(
-      //       MARGINFI_ACCOUNT_REPAY_COLLATERAL_RENT_SIZES.reduce((prev, cur) => {
-      //         const total = prev + rentMap[cur];
-      //         return total;
-      //       }, 0).toString(),
-      //       SOL_DECIMAL
-      //     ).toString();
-      //     const fee = await client.getFeeOnXin(solAmount);
-      //     const initAccountExtra = buildComputerExtra(
-      //       computerInfo.members.app_id,
-      //       OperationTypeSystemCall,
-      //       buildSystemCallInvoiceExtra(computerAccount.id, createAccountTrace, false, fee.fee_id)
-      //     );
+        const createAccountTrace = uniqueConversationID(createAccountTxBuf.toString("hex"), "system call");
+        const solAmount = formatUnits(
+          MARGINFI_ACCOUNT_REPAY_COLLATERAL_RENT_SIZES.reduce((prev, cur) => {
+            const total = prev + rentMap[cur];
+            return total;
+          }, 0).toString(),
+          SOL_DECIMAL
+        ).toString();
+        const fee = await client.getFeeOnXin(solAmount);
+        const initAccountExtra = buildComputerExtra(
+          computerInfo.members.app_id,
+          OperationTypeSystemCall,
+          buildSystemCallInvoiceExtra(computerAccount.id, createAccountTrace, false, fee.fee_id)
+        );
 
-      //     attachStorageEntry(invoice, uniqueConversationID(createAccountTrace, "storage"), createAccountTxBuf);
-      //     attachInvoiceEntry(invoice, {
-      //       trace_id: createAccountTrace,
-      //       asset_id: XIN_ASSET_ID,
-      //       amount: add(computerInfo.params.operation.price, fee.xin_amount).toFixed(8, BigNumber.ROUND_CEIL),
-      //       extra: Buffer.from(initAccountExtra),
-      //       index_references: [0],
-      //       hash_references: [],
-      //     });
+        attachStorageEntry(invoice, uniqueConversationID(createAccountTrace, "storage"), createAccountTxBuf);
+        attachInvoiceEntry(invoice, {
+          trace_id: createAccountTrace,
+          asset_id: XIN_ASSET_ID,
+          amount: add(computerInfo.params.operation.price, fee.xin_amount).toFixed(8, BigNumber.ROUND_CEIL),
+          extra: Buffer.from(initAccountExtra),
+          index_references: [0],
+          hash_references: [],
+        });
 
-      //     // repay collateral
-      //     const nonce2 = await client.getNonce(getUserMix());
-      //     const nonce2Ins = SystemProgram.nonceAdvance({
-      //       noncePubkey: new PublicKey(nonce2.nonce_address),
-      //       authorizedPubkey: new PublicKey(computerInfo.payer),
-      //     });
-      //     const repayCollatAddressLookupsRes = await Promise.all(
-      //       (versionedTransactions[1] as VersionedTransaction).message.addressTableLookups.map((a) =>
-      //         connection.getAddressLookupTable(a.accountKey)
-      //       )
-      //     );
-      //     const repayCollatAddressLookups = repayCollatAddressLookupsRes
-      //       .filter((r) => r.value)
-      //       .map((r) => r.value) as AddressLookupTableAccount[];
+        // repay collateral
+        const nonce2 = await client.getNonce(getUserMix());
+        const nonce2Ins = SystemProgram.nonceAdvance({
+          noncePubkey: new PublicKey(nonce2.nonce_address),
+          authorizedPubkey: new PublicKey(computerInfo.payer),
+        });
+        const repayCollatAddressLookupsRes = await Promise.all(
+          (versionedTransactions[1] as VersionedTransaction).message.addressTableLookups.map((a) =>
+            connection.getAddressLookupTable(a.accountKey)
+          )
+        );
+        const repayCollatAddressLookups = repayCollatAddressLookupsRes
+          .filter((r) => r.value)
+          .map((r) => r.value) as AddressLookupTableAccount[];
 
-      //     const repayCollatInx = TransactionMessage.decompile(versionedTransactions[1].message, {
-      //       addressLookupTableAccounts: repayCollatAddressLookups,
-      //     }).instructions;
+        const repayCollatInx = TransactionMessage.decompile(versionedTransactions[1].message, {
+          addressLookupTableAccounts: repayCollatAddressLookups,
+        }).instructions;
 
-      //     const repayCollatMessage = new TransactionMessage({
-      //       payerKey: new PublicKey(computerInfo.payer),
-      //       recentBlockhash: nonce2.nonce_hash,
-      //       instructions: [nonce2Ins, ...repayCollatInx],
-      //     }).compileToV0Message();
+        const repayCollatMessage = new TransactionMessage({
+          payerKey: new PublicKey(computerInfo.payer),
+          recentBlockhash: nonce2.nonce_hash,
+          instructions: [nonce2Ins, ...repayCollatInx],
+        }).compileToV0Message(repayCollatAddressLookups);
 
-      //     const repayCollatTx = new VersionedTransaction(repayCollatMessage);
-      //     if (updatedTransactions[1].signers) {
-      //       repayCollatTx.sign(updatedTransactions[1].signers);
-      //     }
+        const repayCollatTx = new VersionedTransaction(repayCollatMessage);
+        if (updatedTransactions[1].signers) {
+          repayCollatTx.sign(updatedTransactions[1].signers);
+        }
 
-      //     const repayCollatTxBuf = Buffer.from(repayCollatTx.serialize());
-      //     if (!checkSystemCallSize(repayCollatTxBuf)) {
-      //       throw new Error("Transaction size exceeds limit");
-      //     }
-      //     const repayCollatTrace = uniqueConversationID(repayCollatTxBuf.toString("hex"), "system call");
-      //     const repayCollatExtra = buildComputerExtra(
-      //       computerInfo.members.app_id,
-      //       OperationTypeSystemCall,
-      //       buildSystemCallInvoiceExtra(computerAccount.id, repayCollatTrace, false)
-      //     );
-      //     attachStorageEntry(invoice, uniqueConversationID(repayCollatTrace, "storage"), repayCollatTxBuf);
+        const repayCollatTxBuf = Buffer.from(repayCollatTx.serialize());
+        if (!checkSystemCallSize(repayCollatTxBuf)) {
+          throw new Error("Transaction size exceeds limit");
+        }
+        const repayCollatTrace = uniqueConversationID(repayCollatTxBuf.toString("hex"), "system call");
+        const repayCollatExtra = buildComputerExtra(
+          computerInfo.members.app_id,
+          OperationTypeSystemCall,
+          buildSystemCallInvoiceExtra(computerAccount.id, repayCollatTrace, false)
+        );
+        attachStorageEntry(invoice, uniqueConversationID(repayCollatTrace, "storage"), repayCollatTxBuf);
 
-      //     const balance = balanceAddressMap[selectedSecondaryBank.info.rawBank.mint.toBase58()];
-      //     console.log("balance: ", balance);
+        const balance = balanceAddressMap[selectedSecondaryBank.info.rawBank.mint.toBase58()];
+        attachInvoiceEntry(invoice, {
+          trace_id: uniqueConversationID(repayCollatTrace, balance.asset_id),
+          asset_id: balance.asset_id,
+          amount: amount.toString(),
+          extra: computerEmptyExtra,
+          index_references: [],
+          hash_references: [],
+        });
 
-      //     attachInvoiceEntry(invoice, {
-      //       trace_id: uniqueConversationID(repayCollatTrace, balance.asset_id),
-      //       asset_id: balance.asset_id,
-      //       amount: amount.toString(),
-      //       extra: computerEmptyExtra,
-      //       index_references: [],
-      //       hash_references: [],
-      //     });
+        resultTrace = repayCollatTrace;
+        attachInvoiceEntry(invoice, {
+          trace_id: repayCollatTrace,
+          asset_id: XIN_ASSET_ID,
+          amount: BigNumber(computerInfo.params.operation.price).toFixed(8, BigNumber.ROUND_CEIL),
+          extra: Buffer.from(repayCollatExtra),
+          index_references: [2, 3],
+          hash_references: [],
+        });
+      } else if (updatedTransactions.length === 1 && updatedTransactions[0].type === TransactionType.REPAY_COLLAT) {
+        // repay collateral
+        const nonce = await client.getNonce(getUserMix());
+        const nonceIns = SystemProgram.nonceAdvance({
+          noncePubkey: new PublicKey(nonce.nonce_address),
+          authorizedPubkey: new PublicKey(computerInfo.payer),
+        });
+        const repayCollatAddressLookupsRes = await Promise.all(
+          (versionedTransactions[0] as VersionedTransaction).message.addressTableLookups.map((a) =>
+            connection.getAddressLookupTable(a.accountKey)
+          )
+        );
+        const repayCollatAddressLookups = repayCollatAddressLookupsRes
+          .filter((r) => r.value)
+          .map((r) => r.value) as AddressLookupTableAccount[];
 
-      //     resultTrace = repayCollatTrace;
-      //     attachInvoiceEntry(invoice, {
-      //       trace_id: repayCollatTrace,
-      //       asset_id: XIN_ASSET_ID,
-      //       amount: BigNumber(computerInfo.params.operation.price).toFixed(8, BigNumber.ROUND_CEIL),
-      //       extra: Buffer.from(repayCollatExtra),
-      //       index_references: [2, 3],
-      //       hash_references: [],
-      //     });
-      //   } else if (updatedTransactions.length === 1 && updatedTransactions[0].type === TransactionType.REPAY_COLLAT) {
-      //     // repay collateral
-      //     const nonce = await client.getNonce(getUserMix());
-      //     const nonceIns = SystemProgram.nonceAdvance({
-      //       noncePubkey: new PublicKey(nonce.nonce_address),
-      //       authorizedPubkey: new PublicKey(computerInfo.payer),
-      //     });
-      //     const repayCollatAddressLookupsRes = await Promise.all(
-      //       (versionedTransactions[1] as VersionedTransaction).message.addressTableLookups.map((a) =>
-      //         connection.getAddressLookupTable(a.accountKey)
-      //       )
-      //     );
-      //     const repayCollatAddressLookups = repayCollatAddressLookupsRes
-      //       .filter((r) => r.value)
-      //       .map((r) => r.value) as AddressLookupTableAccount[];
+        const repayCollatInx = TransactionMessage.decompile(versionedTransactions[0].message, {
+          addressLookupTableAccounts: repayCollatAddressLookups,
+        }).instructions;
 
-      //     const repayCollatInx = TransactionMessage.decompile(versionedTransactions[1].message, {
-      //       addressLookupTableAccounts: repayCollatAddressLookups,
-      //     }).instructions;
+        const repayCollatMessage = new TransactionMessage({
+          payerKey: new PublicKey(computerInfo.payer),
+          recentBlockhash: nonce.nonce_hash,
+          instructions: [nonceIns, ...repayCollatInx],
+        }).compileToV0Message(repayCollatAddressLookups);
+        console.log("repayCollatMessage: ", repayCollatMessage);
 
-      //     const repayCollatMessage = new TransactionMessage({
-      //       payerKey: new PublicKey(computerInfo.payer),
-      //       recentBlockhash: nonce.nonce_hash,
-      //       instructions: [nonceIns, ...repayCollatInx],
-      //     }).compileToV0Message();
+        const repayCollatTx = new VersionedTransaction(repayCollatMessage);
+        if (updatedTransactions[0].signers) {
+          repayCollatTx.sign(updatedTransactions[0].signers);
+        }
 
-      //     const repayCollatTx = new VersionedTransaction(repayCollatMessage);
-      //     if (!updatedTransactions[1].signers) {
-      //       throw new Error("signers not found");
-      //     }
-      //     repayCollatTx.sign(updatedTransactions[1].signers);
+        const repayCollatTxBuf = Buffer.from(repayCollatTx.serialize());
+        if (!checkSystemCallSize(repayCollatTxBuf)) {
+          throw new Error("Transaction size exceeds limit");
+        }
+        const repayCollatTrace = uniqueConversationID(repayCollatTxBuf.toString("hex"), "system call");
 
-      //     const repayCollatTxBuf = Buffer.from(repayCollatTx.serialize());
-      //     if (!checkSystemCallSize(repayCollatTxBuf)) {
-      //       throw new Error("Transaction size exceeds limit");
-      //     }
-      //     const repayCollatTrace = uniqueConversationID(repayCollatTxBuf.toString("hex"), "system call");
+        const repayCollatExtra = buildComputerExtra(
+          computerInfo.members.app_id,
+          OperationTypeSystemCall,
+          buildSystemCallInvoiceExtra(computerAccount.id, repayCollatTrace, false)
+        );
 
-      //     const repayCollatExtra = buildComputerExtra(
-      //       computerInfo.members.app_id,
-      //       OperationTypeSystemCall,
-      //       buildSystemCallInvoiceExtra(computerAccount.id, repayCollatTrace, false)
-      //     );
+        attachStorageEntry(invoice, uniqueConversationID(repayCollatTrace, "storage"), repayCollatTxBuf);
 
-      //     attachStorageEntry(invoice, uniqueConversationID(repayCollatTrace, "storage"), repayCollatTxBuf);
+        const balance = balanceAddressMap[selectedSecondaryBank.info.rawBank.mint.toBase58()];
+        attachInvoiceEntry(invoice, {
+          trace_id: uniqueConversationID(repayCollatTrace, balance.asset_id),
+          asset_id: balance.asset_id,
+          amount: amount.toString(),
+          extra: computerEmptyExtra,
+          index_references: [],
+          hash_references: [],
+        });
 
-      //     const balance = balanceAddressMap[selectedSecondaryBank.info.rawBank.mint.toBase58()];
-      //     attachInvoiceEntry(invoice, {
-      //       trace_id: uniqueConversationID(repayCollatTrace, balance.asset_id),
-      //       asset_id: balance.asset_id,
-      //       amount: amount.toString(),
-      //       extra: computerEmptyExtra,
-      //       index_references: [],
-      //       hash_references: [],
-      //     });
-
-      //     resultTrace = repayCollatTrace;
-      //     attachInvoiceEntry(invoice, {
-      //       trace_id: repayCollatTrace,
-      //       asset_id: XIN_ASSET_ID,
-      //       amount: amount.toString(),
-      //       extra: Buffer.from(repayCollatExtra),
-      //       index_references: [0, 1],
-      //       hash_references: [],
-      //     });
-      //   }
+        resultTrace = repayCollatTrace;
+        attachInvoiceEntry(invoice, {
+          trace_id: repayCollatTrace,
+          asset_id: XIN_ASSET_ID,
+          amount: amount.toString(),
+          extra: Buffer.from(repayCollatExtra),
+          index_references: [0, 1],
+          hash_references: [],
+        });
+      }
     } else {
       throw new Error("Invalid action type");
     }
