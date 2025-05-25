@@ -69,7 +69,7 @@ export async function generateActionTxns(props: {
     case ActionType.Borrow:
       const borrowTxObject = await account.makeBorrowTx(props.amount, props.bank.address, {
         createAtas: true,
-        wrapAndUnwrapSol: false,
+        wrapAndUnwrapSol: true,
       });
 
       return {
