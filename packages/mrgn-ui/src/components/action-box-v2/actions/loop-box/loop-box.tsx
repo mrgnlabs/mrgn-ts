@@ -202,7 +202,7 @@ export const LoopBox = ({
       return null;
     }
 
-    return emodeSupplyState?.emodeImpactByBank[selectedSecondaryBank.address.toBase58()].borrowImpact ?? null;
+    return emodeSupplyState?.emodeImpactByBank[selectedSecondaryBank.address.toBase58()]?.borrowImpact ?? null;
   }, [selectedBank, selectedSecondaryBank, emodeSupplyState?.emodeImpactByBank]);
 
   const isEmodeLoop = React.useMemo(() => {
