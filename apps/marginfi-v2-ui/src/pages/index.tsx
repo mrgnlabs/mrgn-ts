@@ -72,10 +72,10 @@ export default function HomePage() {
 
     banks = banks.filter((bank): bank is ExtendedBankInfo => bank !== undefined);
     return [
-      {
-        text: "e-mode boosted weights now available!",
-        image: <IconEmode size={26} className="text-purple-400" />,
-      },
+      // {
+      //   text: "e-mode boosted weights now available!",
+      //   image: <IconEmode size={26} className="text-purple-400" />,
+      // },
       ...banks.map((bank) => ({
         bank: bank,
       })),
