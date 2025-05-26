@@ -1,6 +1,6 @@
 import React from "react";
 
-import { IconBolt, IconFilter, IconSearch, IconX } from "@tabler/icons-react";
+import { IconFilter, IconSearch, IconX } from "@tabler/icons-react";
 
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -14,6 +14,7 @@ import { Switch } from "~/components/ui/switch";
 import { Input } from "~/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
+import { IconEmode } from "~/components/ui/icons";
 
 const AssetListNav = () => {
   const [
@@ -72,8 +73,8 @@ const AssetListNav = () => {
             Native Stake
           </ToggleGroupItem>
           {emodePairs.length > 0 && (
-            <ToggleGroupItem value="e_mode" aria-label="Toggle e-mode" className="relative gap-1 items-center">
-              <IconBolt size={16} className="text-purple-300" />
+            <ToggleGroupItem value="e_mode" aria-label="Toggle e-mode" className="relative gap-1 items-center pl-1.5">
+              <IconEmode size={24} className="text-mfi-emode" />
               <span className="ml-0.5">e-mode</span>
               <span
                 className={cn(

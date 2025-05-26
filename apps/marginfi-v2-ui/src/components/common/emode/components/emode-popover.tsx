@@ -3,7 +3,7 @@
 import React from "react";
 
 import Image from "next/image";
-import { IconBolt, IconExternalLink } from "@tabler/icons-react";
+import { IconExternalLink } from "@tabler/icons-react";
 import { EmodePair, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { percentFormatterMod } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Table } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
+import { IconEmode } from "~/components/ui/icons";
 
 interface EmodePopoverProps {
   assetWeight: number;
@@ -45,15 +46,15 @@ export const EmodePopover = ({
   return (
     <Popover>
       {triggerType === "weight" ? (
-        <PopoverTrigger className={cn("flex items-center gap-1", emodeActive && "text-purple-300")}>
-          <IconBolt size={12} className={cn(emodeActive && "text-purple-300")} />
+        <PopoverTrigger className={cn("flex items-center gap-1", emodeActive && "text-mfi-emode")}>
+          <IconEmode size={20} />
           {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
-          <IconExternalLink size={12} className={cn(emodeActive && "text-purple-300")} />
+          <IconExternalLink size={12} className={cn(emodeActive && "text-mfi-emode")} />
         </PopoverTrigger>
       ) : (
-        <PopoverTrigger className={cn("flex items-center gap-1", emodeActive && "text-purple-300")}>
-          <Badge variant="emode" className={cn(!emodeActive && "text-foreground")}>
-            <IconBolt size={14} /> {emodeTag}
+        <PopoverTrigger className="flex items-center gap-1">
+          <Badge variant="emode" className={cn("pr-2.5", !emodeActive && "text-foreground")}>
+            <IconEmode size={18} /> {emodeTag}
           </Badge>
         </PopoverTrigger>
       )}
@@ -61,7 +62,7 @@ export const EmodePopover = ({
         {isInLendingMode && emodeActive && originalAssetWeight ? (
           <div className="flex flex-col gap-1">
             <div className="flex gap-1 items-center">
-              <IconBolt size={12} className="text-purple-300 translate-y-px" /> <p>e-mode weights active</p>
+              <IconEmode size={18} /> <p>e-mode weights active</p>
             </div>
             <EmodeDiff assetWeight={assetWeight} originalAssetWeight={originalAssetWeight} className="text-center" />
           </div>
@@ -76,7 +77,7 @@ export const EmodePopover = ({
                   <TableHead className="h-6">Weight</TableHead>
                   <TableHead className="h-6">
                     <div className="flex items-center gap-1">
-                      <IconBolt size={12} />
+                      <IconEmode size={18} className="-ml-1.5" />
                       e-mode
                     </div>
                   </TableHead>
@@ -111,7 +112,7 @@ export const EmodePopover = ({
                         <EmodeDiff
                           assetWeight={liabilityBankItem.emodePair.assetWeightInit.toNumber()}
                           originalAssetWeight={originalAssetWeight}
-                          className="text-purple-300"
+                          className="text-mfi-emode"
                         />
                       </TableCell>
                     </TableRow>
@@ -131,7 +132,7 @@ export const EmodePopover = ({
                   <TableHead className="h-6">Weight</TableHead>
                   <TableHead className="h-6">
                     <div className="flex items-center gap-1">
-                      <IconBolt size={12} />
+                      <IconEmode size={12} />
                       e-mode
                     </div>
                   </TableHead>
@@ -170,7 +171,7 @@ export const EmodePopover = ({
                         <EmodeDiff
                           assetWeight={collateralBankItem.emodePair.assetWeightInit.toNumber()}
                           originalAssetWeight={collateralAssetWeight}
-                          className="text-purple-300"
+                          className="text-mfi-emode"
                         />
                       </TableCell>
                     </TableRow>

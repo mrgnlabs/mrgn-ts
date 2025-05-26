@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { IconAlertTriangle, IconBolt, IconExternalLink, IconFolderShare, IconInfoCircle } from "@tabler/icons-react";
+import { IconAlertTriangle, IconExternalLink, IconFolderShare, IconInfoCircle } from "@tabler/icons-react";
 import { Transaction } from "@solana/web3.js";
 import {
   usdFormatter,
@@ -34,6 +34,7 @@ import { TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Tooltip } from "~/components/ui/tooltip";
 import { EmodeDiff, EmodePopover } from "~/components/common/emode/components";
 import { Badge } from "~/components/ui/badge";
+import { IconEmode } from "~/components/ui/icons";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -144,21 +145,9 @@ export const PortfolioAssetCard = ({
         />
         <div className="flex items-center gap-1 w-full">
           <div className="flex flex-col flex-1 -translate-y-0.5">
-            <div className="flex items-center gap-3 font-medium text-lg">
+            <div className="flex items-center gap-2 font-medium text-lg">
               {bank.meta.tokenSymbol}
-              {isEmodeActive ? (
-                isInLendingMode ? (
-                  <div className="text-purple-300 text-xs flex items-center gap-1 lowercase">
-                    <IconBolt size={12} />
-                    {EmodeTag[bank.info.rawBank.emode.emodeTag]}
-                  </div>
-                ) : (
-                  <span className="text-purple-300 text-xs flex items-center gap-1 lowercase">
-                    <IconBolt size={12} />
-                    {EmodeTag[bank.info.rawBank.emode.emodeTag]}
-                  </span>
-                )
-              ) : null}
+              {isEmodeActive && <IconEmode size={22} className="-translate-y-1" />}
             </div>
             <div className="flex items-center gap-4 text-sm">
               <span className={isInLendingMode ? "text-success" : "text-warning"}>{rateAP} APY</span>
@@ -204,29 +193,8 @@ export const PortfolioAssetCard = ({
               </div>
               <div className="flex flex-col w-full">
                 <div className="flex justify-between items-center w-full">
-                  <div className="flex items-center gap-3 font-medium text-lg">
-                    {bank.meta.tokenSymbol}{" "}
-                    {isEmodeActive ? (
-                      isInLendingMode ? (
-                        <div className="flex text-purple-300 text-xs items-center gap-1 lowercase">
-                          <IconBolt size={12} />
-                          {EmodeTag[bank.info.rawBank.emode.emodeTag]}
-                        </div>
-                      ) : (
-                        <span className="flex text-purple-300 text-xs items-center gap-1 lowercase">
-                          <IconBolt size={12} />
-                          {EmodeTag[bank.info.rawBank.emode.emodeTag]}
-                        </span>
-                      )
-                    ) : (
-                      !isEmodeActive &&
-                      bank.info.state.hasEmode && (
-                        <span className="flex items-center gap-1 text-xs text-foreground lowercase">
-                          <IconBolt size={12} />
-                          {EmodeTag[bank.info.rawBank.emode.emodeTag]}
-                        </span>
-                      )
-                    )}
+                  <div className="flex items-center gap-2 font-medium text-lg">
+                    {bank.meta.tokenSymbol} {isEmodeActive && <IconEmode size={22} className="-translate-y-1" />}
                   </div>
                   <div className="font-medium text-lg text-right">
                     {dynamicNumeralFormatter(bank.position.amount, {
@@ -330,36 +298,31 @@ export const PortfolioAssetCard = ({
               )}
               {isEmodeActive ? (
                 <>
-                  <dt className={cn("text-muted-foreground", !isInLendingMode && "text-purple-300")}>
-                    {isInLendingMode ? (
-                      "Weight"
-                    ) : (
-                      <div className="flex items-center gap-1">
-                        <IconBolt size={14} /> e-mode boost
-                      </div>
-                    )}
-                  </dt>
+                  <dt className="text-muted-foreground">{isInLendingMode ? "Weight" : "e-mode boost"}</dt>
                   <dd className="text-right text-white">
                     {bank.position || collateralBanks.length > 0 ? (
-                      <div className={cn("flex items-center justify-end gap-1", isEmodeActive && "text-purple-300")}>
+                      <div className={cn("flex items-center justify-end gap-1", isEmodeActive && "text-mfi-emode")}>
                         {!isInLendingMode && collateralBanks.length > 0 && (
-                          <ul className="flex items-center gap-1">
-                            {collateralBanks.map((bank) => (
-                              <li key={bank.collateralBank.address.toBase58()}>
-                                <Image
-                                  src={bank.collateralBank.meta.tokenLogoUri}
-                                  className="rounded-full"
-                                  alt={bank.collateralBank.meta.tokenSymbol}
-                                  height={16}
-                                  width={16}
-                                />
-                              </li>
-                            ))}
-                          </ul>
+                          <div className="flex items-center">
+                            <IconEmode size={18} />
+                            <ul className="flex items-center gap-1">
+                              {collateralBanks.map((bank) => (
+                                <li key={bank.collateralBank.address.toBase58()}>
+                                  <Image
+                                    src={bank.collateralBank.meta.tokenLogoUri}
+                                    className="rounded-full"
+                                    alt={bank.collateralBank.meta.tokenSymbol}
+                                    height={18}
+                                    width={18}
+                                  />
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
                         )}
                         {isInLendingMode && isEmodeActive && (
                           <>
-                            <IconBolt size={12} className="translate-y-px" />
+                            <IconEmode size={18} />
                             <EmodeDiff assetWeight={assetWeight} originalAssetWeight={originalAssetWeight} />
                           </>
                         )}

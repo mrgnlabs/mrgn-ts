@@ -3,7 +3,6 @@ import React from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
-import { IconBolt } from "@tabler/icons-react";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { capture, Desktop, LendingModes, Mobile } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
@@ -22,6 +21,7 @@ import {
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
 import { EmodeHeader, EmodePortfolio } from "~/components/common/emode/components";
+import { IconEmode } from "~/components/ui/icons";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
   ssr: false,
@@ -70,7 +70,7 @@ export default function HomePage() {
     return [
       {
         text: "e-mode boosted weights now available!",
-        image: <IconBolt size={16} className="text-purple-400" />,
+        image: <IconEmode size={26} className="text-purple-400" />,
       },
       ...banks.map((bank) => ({
         bank: bank,

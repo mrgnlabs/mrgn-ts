@@ -11,7 +11,7 @@ import {
   shortenAddress,
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
-import { IconAlertTriangle, IconBolt, IconExternalLink, IconInfoCircle } from "@tabler/icons-react";
+import { IconAlertTriangle, IconExternalLink, IconInfoCircle } from "@tabler/icons-react";
 
 import {
   AssetData,
@@ -35,6 +35,7 @@ import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/compon
 import { Table } from "~/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { EmodePopover } from "~/components/common/emode/components/emode-popover";
+import { IconEmode } from "~/components/ui/icons";
 
 export const getAssetCell = (asset: AssetData) => {
   return (
@@ -42,7 +43,7 @@ export const getAssetCell = (asset: AssetData) => {
       <div className="flex items-center gap-4">
         <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
         <div>{asset.symbol}</div>
-        {asset.hasEmode && asset.emodeTag && (
+        {/* {asset.hasEmode && asset.emodeTag && (
           <EmodePopover
             assetWeight={asset.assetWeight}
             originalAssetWeight={asset.originalAssetWeight}
@@ -53,7 +54,7 @@ export const getAssetCell = (asset: AssetData) => {
             liabilityBanks={asset.liabilityBanks}
             triggerType="tag"
           />
-        )}
+        )} */}
       </div>
     </div>
   );

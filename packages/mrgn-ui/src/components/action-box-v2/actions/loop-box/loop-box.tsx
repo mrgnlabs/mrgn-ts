@@ -34,7 +34,7 @@ import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
 import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
-import { IconBolt } from "@tabler/icons-react";
+import { IconEmode } from "~/components/ui/icons";
 
 export type LoopBoxProps = {
   nativeSolBalance: number;
@@ -381,7 +381,7 @@ export const LoopBox = ({
 
       {isEmodeLoop && selectedBank && (
         <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
-          <IconBolt size={14} className="text-purple-300" />
+          <IconEmode size={14} className="text-mfi-emode" />
           <p>e-mode looping active</p>
         </div>
       )}

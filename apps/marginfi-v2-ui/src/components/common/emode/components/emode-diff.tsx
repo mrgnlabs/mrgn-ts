@@ -6,16 +6,23 @@ type EmodeDiffProps = {
   originalAssetWeight?: number;
   className?: string;
   diffClassName?: string;
+  diffOnly?: boolean;
 };
 
-const EmodeDiff = ({ assetWeight, originalAssetWeight, className, diffClassName }: EmodeDiffProps) => {
+const EmodeDiff = ({
+  assetWeight,
+  originalAssetWeight,
+  className,
+  diffClassName,
+  diffOnly = false,
+}: EmodeDiffProps) => {
   const diff = Math.max(assetWeight - (originalAssetWeight || 0), 0);
   const diffCheck = Number(diff.toFixed(2));
   const finalEmodeWeight = Math.max(assetWeight, originalAssetWeight || 0);
 
   return (
     <div className={className}>
-      {percentFormatterMod(finalEmodeWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
+      {!diffOnly && percentFormatterMod(finalEmodeWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
       {originalAssetWeight && (
         <span className={cn("text-muted-foreground text-xs", diffClassName)}>
           <>

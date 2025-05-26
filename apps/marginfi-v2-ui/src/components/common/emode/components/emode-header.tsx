@@ -1,9 +1,9 @@
 import Link from "next/link";
 
-import { IconBolt } from "@tabler/icons-react";
 import { EmodeTag, EmodePair } from "@mrgnlabs/marginfi-client-v2";
 
 import { EmodeExplore } from "~/components/common/emode/components";
+import { IconEmode } from "~/components/ui/icons";
 import { Badge } from "~/components/ui/badge";
 
 type EmodeHeaderProps = {
@@ -15,7 +15,7 @@ const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
     <div className="flex items-center justify-between space-y-2">
       <div className="space-y-2">
         <h2 className="flex items-center gap-1.5 text-lg font-medium">
-          <IconBolt size={24} /> marginfi e-mode
+          <IconEmode size={32} /> marginfi e-mode
         </h2>
         <p className="text-muted-foreground text-sm">
           Banks with e-mode pairings get boosted weights.
@@ -41,7 +41,7 @@ const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
       </div>
       {emodeGroups.length > 0 && (
         <div className="py-2 flex  items-end gap-2.5">
-          <div className="flex items-center gap-2.5">
+          {/* <div className="flex items-center gap-2.5">
             {emodeGroups
               .filter((group) => group.collateralBankTag !== EmodeTag.UNSET)
               .map((group) => (
@@ -49,13 +49,13 @@ const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
                   key={group.collateralBankTag}
                   trigger={
                     <Badge variant="emode">
-                      <IconBolt size={16} /> {EmodeTag[group.collateralBankTag]}
+                      <IconEmode size={16} /> {EmodeTag[group.collateralBankTag]}
                     </Badge>
                   }
                   emodeTag={group.collateralBankTag}
                 />
               ))}
-          </div>
+          </div> */}
           <EmodeExplore />
         </div>
       )}

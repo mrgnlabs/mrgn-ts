@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 
-import { IconBolt, IconInfoCircle, IconSearch, IconSparkles, IconX } from "@tabler/icons-react";
+import { IconInfoCircle, IconSearch, IconSparkles, IconX } from "@tabler/icons-react";
 
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
@@ -24,7 +24,7 @@ import { RewardsType } from "./types";
 import { useRewardSimulation } from "./hooks";
 import { EmodePortfolio } from "~/components/common/emode/components";
 import { useEmodeLineConnections } from "~/components/common/emode/hooks";
-import { IconLoader } from "~/components/ui/icons";
+import { IconLoader, IconEmode } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 
 const initialRewardsState: RewardsType = {

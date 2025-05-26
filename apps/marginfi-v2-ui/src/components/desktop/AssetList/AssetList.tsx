@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
-import { IconBolt, IconExternalLink, IconInfoCircle, IconSearch } from "@tabler/icons-react";
+import { IconExternalLink, IconInfoCircle, IconSearch } from "@tabler/icons-react";
 
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
@@ -19,6 +19,7 @@ import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./componen
 import { EmodeHeader, EmodeExplore } from "~/components/common/emode/components";
 import { Button } from "~/components/ui/button";
 import { TokenFilters } from "~/store/uiStore";
+import { IconEmode } from "~/components/ui/icons";
 
 export const AssetsList = () => {
   const [

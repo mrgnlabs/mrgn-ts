@@ -114,6 +114,7 @@ module.exports = {
           toast: {
             background: "hsl(var(--mfi-toast-background))",
           },
+          emode: "hsl(var(--mfi-emode))",
         },
       },
       screens: {

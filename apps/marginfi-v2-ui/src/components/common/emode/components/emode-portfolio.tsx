@@ -1,4 +1,4 @@
-import { IconSparkles, IconBolt, IconSearch } from "@tabler/icons-react";
+import { IconSparkles, IconSearch } from "@tabler/icons-react";
 import { EmodeTag, EmodePair } from "@mrgnlabs/marginfi-client-v2";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
@@ -7,6 +7,7 @@ import { EmodeExplore } from "~/components/common/emode/components";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Button } from "~/components/ui/button";
+import { IconEmode } from "~/components/ui/icons";
 
 type EmodePortfolioProps = {
   userActiveEmodes: EmodePair[];
@@ -20,7 +21,7 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode = false, setFilterEmode 
     <div className="flex flex-col lg:flex-row items-center gap-3 justify-between">
       <div
         className={cn(
-          "py-2 w-full flex items-center justify-between lg:justify-start gap-3 transition-opacity duration-500",
+          "py-1 w-full flex items-center justify-between lg:justify-start gap-3 transition-opacity duration-500",
           filterEmode && "opacity-10 pointer-events-none"
         )}
       >
@@ -34,26 +35,26 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode = false, setFilterEmode 
           e-mode {!emodeActive && "in"}active
         </div>
         <div className="flex items-center gap-3">
-          {userActiveEmodes.map((pair, idx) => (
+          {/* {userActiveEmodes.map((pair, idx) => (
             <EmodeExplore
               key={`${pair.collateralBankTag}-${idx}`}
               trigger={
                 <Badge variant="emode" className="hidden lg:flex">
-                  <IconBolt size={16} /> {EmodeTag[pair.collateralBankTag]}
+                  <IconEmode size={16} /> {EmodeTag[pair.collateralBankTag]}
                 </Badge>
               }
               emodeTag={pair.collateralBankTag}
             />
-          ))}
+          ))} */}
           <EmodeExplore
             trigger={
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full bg-background-gray h-auto py-1 text-xs font-normal hover:bg-background-gray-light"
+                className="w-full bg-background-gray h-auto py-1.5 text-xs font-normal hover:bg-background-gray-light"
               >
                 <IconSearch size={12} />
-                Explore e-mode
+                Explore e-mode pairs
               </Button>
             }
           />

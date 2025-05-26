@@ -14,8 +14,7 @@ const badgeVariants = cva(
         outline: "text-foreground",
         long: "bg-mrgn-green text-mrgn-green-foreground border-none",
         short: "bg-mrgn-red text-mrgn-red-foreground border-none",
-        emode:
-          "bg-background-gray text-purple-200 gap-1 px-2 py-1 lowercase cursor-pointer hover:bg-background-gray-light",
+        emode: "bg-background-gray gap-1 px-2 py-1 lowercase cursor-pointer hover:bg-background-gray-light",
       },
     },
     defaultVariants: {
@@ -29,6 +28,6 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, Varian
 const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(({ className, variant, ...props }, ref) => {
   return <div className={cn(badgeVariants({ variant }), className)} ref={ref} {...props} />;
 });
-Badge.displayName = 'Badge';
+Badge.displayName = "Badge";
 
 export { Badge, badgeVariants };

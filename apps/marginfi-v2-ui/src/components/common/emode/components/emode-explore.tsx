@@ -1,13 +1,14 @@
 import React from "react";
 import Image from "next/image";
 
-import { IconBolt, IconSearch } from "@tabler/icons-react";
+import { IconSearch } from "@tabler/icons-react";
 import { computeMaxLeverage, EmodeTag, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, percentFormatterMod } from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore } from "~/store";
 import { Button } from "~/components/ui/button";
+import { IconEmode } from "~/components/ui/icons";
 import {
   Dialog,
   DialogContent,
@@ -60,13 +61,9 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
   }, [emodeBanks]);
 
   const defaultTrigger = (
-    <Button
-      variant="outline"
-      size="sm"
-      className="w-full bg-background-gray h-auto py-1.5 text-xs font-normal hover:bg-background-gray-light"
-    >
+    <Button variant="outline" className="w-full bg-background-gray text-xs font-normal hover:bg-background-gray-light">
       <IconSearch size={12} />
-      Explore e-mode
+      Explore e-mode pairs
     </Button>
   );
 
@@ -81,7 +78,7 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
           <DialogTitle className="text-2xl font-normal flex items-center gap-2">
             Explore{" "}
             <div className="flex items-center gap-1">
-              <IconBolt size={18} />
+              <IconEmode size={32} />
               e-mode
             </div>
             {emodeTag && <span className="lowercase"> {EmodeTag[emodeTag]}</span>}
@@ -143,8 +140,8 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
                 <TableHead className="w-1/5">Tag</TableHead>
                 <TableHead className="w-1/5">Weight</TableHead>
                 <TableHead className="w-1/5">
-                  <div className="flex items-center gap-1 ">
-                    <IconBolt size={14} className="translate-y-px" />
+                  <div className="flex items-center gap-1">
+                    <IconEmode size={20} className="-ml-1.5" />
                     e-mode
                   </div>
                 </TableHead>
@@ -193,7 +190,7 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
                       <EmodeDiff
                         assetWeight={emodePair.assetWeightInit.toNumber()}
                         originalAssetWeight={originalAssetWeight || assetWeight}
-                        className="text-purple-300"
+                        className="text-mfi-emode"
                         diffClassName="text-foreground"
                       />
                     </TableCell>

@@ -6,7 +6,7 @@ import { useMrgnlendStore } from "~/store";
 import { PageHeading } from "~/components/common/PageHeading";
 import { EmodeExplore } from "~/components/common/emode/components";
 import { Loader } from "~/components/ui/loader";
-import { IconBolt } from "@tabler/icons-react";
+import { IconEmode } from "~/components/ui/icons";
 
 export default function LooperPage() {
   const [initialized, extendedBankInfosWithoutStakedAssets, extendedBankInfos] = useMrgnlendStore((state) => [
@@ -28,8 +28,8 @@ export default function LooperPage() {
               <div className="flex flex-col items-center">
                 <p>Leverage your deposits to maximize yield.</p>
                 <div className="flex items-center gap-2">
-                  <div className="inline-flex items-center gap-1 text-purple-300">
-                    <IconBolt size={16} className="translate-y-px" /> e-mode
+                  <div className="inline-flex items-center gap-1 text-mfi-emode">
+                    <IconEmode size={16} className="translate-y-px" /> e-mode
                   </div>
                   <p>
                     pairs enable increased leverage,{" "}

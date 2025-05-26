@@ -1,7 +1,7 @@
 import React from "react";
-import { IconBolt, IconCheck } from "@tabler/icons-react";
+import { IconCheck } from "@tabler/icons-react";
 import { Button } from "~/components/ui/button";
-import { IconMrgn } from "~/components/ui/icons";
+import { IconMrgn, IconEmode } from "~/components/ui/icons";
 
 const AnnouncementEmode = () => {
   return (
@@ -12,7 +12,7 @@ const AnnouncementEmode = () => {
           <h1 className="text-4xl font-medium flex items-center gap-2">
             Introducing{" "}
             <div className="flex items-center gap-0.5 text-purple-400">
-              <IconBolt size={32} className="translate-y-0.5" />
+              <IconEmode size={32} className="translate-y-0.5" />
               <span>e-mode</span>
             </div>
           </h1>

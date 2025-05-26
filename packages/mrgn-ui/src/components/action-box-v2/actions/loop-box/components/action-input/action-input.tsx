@@ -82,7 +82,7 @@ export const ActionInput = ({
           className={cn(
             "bg-background rounded-lg p-2.5 mb-6",
             ((!selectedSecondaryBank && selectedBank?.info.state.hasEmode) || isEmodeLoop) &&
-              "bg-purple-900/5 border border-purple-300/20"
+              "bg-purple-900/5 border border-mfi-emode/20"
           )}
         >
           <div className="flex justify-center gap-1 items-center font-medium text-3xl">
@@ -130,7 +130,7 @@ export const ActionInput = ({
         <div
           className={cn(
             "bg-background rounded-lg p-2.5 mb-6",
-            isEmodeLoop && "bg-purple-900/5 border border-purple-300/20"
+            isEmodeLoop && "bg-purple-900/5 border border-mfi-emode/20"
           )}
         >
           <div className="flex gap-1 items-center font-medium text-3xl">
