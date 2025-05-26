@@ -642,12 +642,7 @@ class MarginfiAccount implements MarginfiAccountType {
     return maxLiquidatableUsdValue.div(priceAssetLower);
   }
 
-  getHealthCheckAccounts(
-    banks: Map<string, Bank>,
-    mandatoryBanks: Bank[] = [],
-    excludedBanks: Bank[] = [],
-    bankMetadataMap: BankMetadataMap
-  ): PublicKey[] {
+  getHealthCheckAccounts(mandatoryBanks: Bank[] = [], excludedBanks: Bank[] = []): PublicKey[] {
     const mandatoryBanksSet = new Set(mandatoryBanks.map((b) => b.address.toBase58()));
     const excludedBanksSet = new Set(excludedBanks.map((b) => b.address.toBase58()));
     const activeBanks = new Set(this.activeBalances.map((b) => b.bankPk.toBase58()));
@@ -675,8 +670,6 @@ class MarginfiAccount implements MarginfiAccountType {
       });
 
     return projectedActiveBanks;
-
-    // return makeHealthAccountMetas(banks, projectedActiveBanks, bankMetadataMap);
   }
 
   /**
@@ -870,8 +863,8 @@ class MarginfiAccount implements MarginfiAccountType {
     }
 
     const healthAccounts = withdrawAll
-      ? this.getHealthCheckAccounts(banks, [], [bank], bankMetadataMap)
-      : this.getHealthCheckAccounts(banks, [bank], [], bankMetadataMap);
+      ? this.getHealthCheckAccounts([], [bank])
+      : this.getHealthCheckAccounts([bank], []);
 
     // Add withdraw-related instructions
     const remainingAccounts: PublicKey[] = [];
@@ -942,7 +935,7 @@ class MarginfiAccount implements MarginfiAccountType {
       borrowIxs.push(createAtaIdempotentIx);
     }
 
-    const healthAccounts = this.getHealthCheckAccounts(banks, [bank], [], bankMetadataMap);
+    const healthAccounts = this.getHealthCheckAccounts([bank], []);
 
     const remainingAccounts: PublicKey[] = [];
     if (mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
@@ -1041,18 +1034,19 @@ class MarginfiAccount implements MarginfiAccountType {
 
     let ixs = [];
 
+    const healthAccounts = [
+      ...this.getHealthCheckAccounts([liabilityBank, assetBank], []),
+      ...liquidateeMarginfiAccount.getHealthCheckAccounts([], []),
+    ];
+
     let remainingAccounts: PublicKey[] = [];
+
     if (liabilityMintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
       remainingAccounts.push(liabilityMintData.mint);
     }
-    remainingAccounts.push(
-      ...[
-        assetBank.oracleKey,
-        liabilityBank.oracleKey,
-        ...this.getHealthCheckAccounts(banks, [liabilityBank, assetBank], [], bankMetadataMap),
-        ...liquidateeMarginfiAccount.getHealthCheckAccounts(banks, [], [], bankMetadataMap),
-      ]
-    );
+
+    const accountMetas = makeHealthAccountMetas(banks, healthAccounts, bankMetadataMap);
+    remainingAccounts.push(...accountMetas);
 
     ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }));
     const liquidateIx = await instructions.makeLendingAccountLiquidateIx(
