@@ -24,6 +24,7 @@ import Link from "next/link";
 import { getAssetWeightData } from "~/bank-data.utils";
 import { EmodeDiff } from "./emode-diff";
 import BigNumber from "bignumber.js";
+import { cn } from "~/theme";
 
 interface EmodeExploreProps {
   trigger?: React.ReactNode;
@@ -32,11 +33,14 @@ interface EmodeExploreProps {
 }
 
 const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => {
-  const [extendedBankInfos, emodePairs, collateralBanksByLiabilityBank] = useMrgnlendStore((state) => [
-    state.extendedBankInfos,
-    state.emodePairs,
-    state.collateralBanksByLiabilityBank,
-  ]);
+  const [extendedBankInfos, emodePairs, collateralBanksByLiabilityBank, liabilityBanksByCollateralBank] =
+    useMrgnlendStore((state) => [
+      state.extendedBankInfos,
+      state.emodePairs,
+      state.collateralBanksByLiabilityBank,
+      state.liabilityBanksByCollateralBank,
+    ]);
+  const [selectedSide, setSelectedSide] = React.useState<"lend" | "borrow">("borrow");
   const [selectedBank, setSelectedBank] = React.useState<ExtendedBankInfo | undefined>(initialBank);
 
   const emodeBanks = React.useMemo(() => {
@@ -53,6 +57,19 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
   const collateralBanks = React.useMemo(() => {
     return selectedBank ? collateralBanksByLiabilityBank[selectedBank.address.toBase58()] : [];
   }, [selectedBank, collateralBanksByLiabilityBank]);
+
+  const liabilityBanks = React.useMemo(() => {
+    return selectedBank ? liabilityBanksByCollateralBank[selectedBank.address.toBase58()] : [];
+  }, [selectedBank, liabilityBanksByCollateralBank]);
+
+  const banks = React.useMemo(() => {
+    const banks = selectedSide === "lend" ? collateralBanks : liabilityBanks;
+    return banks.sort((a, b) => {
+      const aWeight = a.emodePair.assetWeightInit.toNumber();
+      const bWeight = b.emodePair.assetWeightInit.toNumber();
+      return bWeight - aWeight;
+    });
+  }, [selectedSide, collateralBanks, liabilityBanks]);
 
   React.useEffect(() => {
     if (emodeBanks.length === 1) {
@@ -82,26 +99,41 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
               e-mode
             </div>
             {emodeTag && <span className="lowercase"> {EmodeTag[emodeTag]}</span>}
-            parings
+            pairs
           </DialogTitle>
           <DialogDescription className="text-sm">
-            View e-mode {emodeTag && <span className="lowercase"> {EmodeTag[emodeTag]}</span>} group and the boosted
-            banks.
+            View e-mode pairs and boosted weights.
             <br />
-            For more information on e-mode{" "}
+            For more information{" "}
             <Link
               href="https://docs.marginfi.app"
               target="_blank"
               rel="noreferrer"
-              className="border-b border-foreground/50"
+              className="border-b border-foreground/50 transition-colors hover:border-transparent"
             >
-              read the docs
+              read the documentation
             </Link>
             .
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-1 w-full flex flex-col gap-2 justify-center items-center max-w-xs mx-auto">
-          <Label className="text-muted-foreground">I would like to borrow:</Label>
+        <div className="flex items-center justify-center gap-3 text-lg">
+          <p>I would like to</p>
+          <Select
+            value={selectedSide}
+            onValueChange={(value) => {
+              setSelectedSide(value as "lend" | "borrow");
+            }}
+          >
+            <SelectTrigger className="bg-transparent max-w-fit h-6 rounded-none px-0 text-lg">
+              <p className="pr-2">{selectedSide}</p>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="lend">lend</SelectItem>
+                <SelectItem value="borrow">borrow</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
           <Select
             value={selectedBank?.address.toBase58()}
             onValueChange={(value) => {
@@ -109,8 +141,21 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
               setSelectedBank(bank);
             }}
           >
-            <SelectTrigger className="w-full flex">
-              <SelectValue placeholder="Select a bank" />
+            <SelectTrigger className="bg-transparent max-w-fit h-6 rounded-none px-0 text-lg">
+              <p className={cn("pr-2", !selectedBank && "min-w-[84px] border-b border-foreground/30 h-3.5")}>
+                {selectedBank && (
+                  <div className="flex items-center gap-2 text-base">
+                    <Image
+                      src={selectedBank.meta.tokenLogoUri}
+                      alt={selectedBank.meta.tokenSymbol}
+                      width={20}
+                      height={20}
+                      className="rounded-full"
+                    />
+                    {selectedBank.meta.tokenSymbol}
+                  </div>
+                )}
+              </p>
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -130,13 +175,13 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
                 ))}
               </SelectGroup>
             </SelectContent>
-          </Select>
+          </Select>{" "}
         </div>
         {selectedBank && (
           <Table className="w-full mt-1">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-1/5">Collateral</TableHead>
+                <TableHead className="w-1/5">{selectedSide === "lend" ? "Borrow" : "Lend"}</TableHead>
                 <TableHead className="w-1/5">Tag</TableHead>
                 <TableHead className="w-1/5">Weight</TableHead>
                 <TableHead className="w-1/5">
@@ -149,37 +194,44 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {collateralBanks.map((collateralBank) => {
-                const emodePair = collateralBank.emodePair;
-                const { assetWeight, originalAssetWeight } = getAssetWeightData(collateralBank.collateralBank, true);
-                const { maxLeverage } = computeMaxLeverage(
-                  collateralBank.collateralBank.info.rawBank,
-                  selectedBank.info.rawBank,
-                  {
-                    assetWeightInit: BigNumber.max(
-                      emodePair.assetWeightInit,
-                      collateralBank.collateralBank.info.rawBank.config.assetWeightInit
-                    ),
-                  }
-                );
+              {banks.map((bank) => {
+                const bnk =
+                  selectedSide === "lend"
+                    ? "collateralBank" in bank
+                      ? bank.collateralBank
+                      : null
+                    : "liabilityBank" in bank
+                      ? bank.liabilityBank
+                      : null;
+
+                if (!bnk) return null;
+
+                const emodePair = bank.emodePair;
+                const bankWeight = selectedSide === "lend" ? selectedBank : bnk;
+                const { assetWeight, originalAssetWeight } = getAssetWeightData(bankWeight, true);
+                const { maxLeverage } = computeMaxLeverage(bnk.info.rawBank, selectedBank.info.rawBank, {
+                  assetWeightInit: BigNumber.max(emodePair.assetWeightInit, bnk.info.rawBank.config.assetWeightInit),
+                });
                 return (
                   <TableRow
-                    key={collateralBank.collateralBank.address.toBase58()}
+                    key={bnk.address.toBase58()}
                     className="odd:bg-background-gray-light/50 hover:bg-transparent hover:odd:bg-background-gray-light/50"
                   >
                     <TableCell>
                       <div className="flex items-center gap-2 text-xs md:text-sm">
                         <Image
-                          src={collateralBank.collateralBank.meta.tokenLogoUri}
-                          alt={collateralBank.collateralBank.meta.tokenSymbol}
+                          src={bnk.meta.tokenLogoUri}
+                          alt={bnk.meta.tokenSymbol}
                           width={20}
                           height={20}
                           className="rounded-full"
                         />
-                        {collateralBank.collateralBank.meta.tokenSymbol}
+                        {bnk.meta.tokenSymbol}
                       </div>
                     </TableCell>
-                    <TableCell className="lowercase">{EmodeTag[emodePair.collateralBankTag]}</TableCell>
+                    <TableCell className="lowercase">
+                      {EmodeTag[emodePair.collateralBankTag || emodePair.liabilityBankTag]}
+                    </TableCell>
                     <TableCell>
                       {percentFormatterMod(originalAssetWeight || assetWeight, {
                         minFractionDigits: 0,
