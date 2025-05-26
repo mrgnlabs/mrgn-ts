@@ -35,11 +35,7 @@ function generateReducePositionStats(summary: ActionSummary, bank: ExtendedBankI
   if (summary.actionPreview.slippageBps) stats.push(getSlippageStat(summary.actionPreview.slippageBps));
 
   stats.push(
-    getHealthStat(
-      summary.actionPreview.health.computedHealth,
-      false,
-      summary.simulationPreview?.health?.riskEngcomputedHealthineHealth
-    )
+    getHealthStat(summary.actionPreview.health.computedHealth, false, summary.simulationPreview?.health?.computedHealth)
   );
 
   if (summary.simulationPreview?.liquidationPrice && bank.isActive)
