@@ -465,6 +465,13 @@ const createStaleCheck = (action: string): ActionMessageType => ({
   linkText: "Learn more about marginfi's decentralized oracles.",
 });
 
+const createStaleOrHealthCheck = (action: string): ActionMessageType => ({
+  isEnabled: true,
+  actionMethod: "WARNING",
+  description: `${action} may fail due to stale price data or poor account health. Check oracle status and collateral before retrying.`,
+  code: 108,
+});
+
 const createWithdrawCheck = (
   tradeSide: string,
   stableBank: ExtendedBankInfo,
@@ -672,7 +679,11 @@ export const handleError = (
         checkErrorCodeMatch(error.message, 6009) ||
         error.message?.toLowerCase().includes("bad health or stale oracle")
       ) {
-        return STATIC_SIMULATION_ERRORS.STALE_TRADING_OR_HEALTH;
+        if (isArena) {
+          return STATIC_SIMULATION_ERRORS.STALE_TRADING_OR_HEALTH;
+        } else {
+          return DYNAMIC_SIMULATION_ERRORS.STALE_CHECK(action ?? "The action");
+        }
       }
 
       if (checkErrorCodeMatch(error.message, 6026) || error.message?.toLowerCase().includes("utilization ratio")) {
