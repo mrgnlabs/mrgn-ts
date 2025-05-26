@@ -25,6 +25,7 @@ export interface SimulateRepayActionProps {
   txns: (VersionedTransaction | Transaction)[];
   account: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
+  secondaryBank: ExtendedBankInfo;
   amount: number;
 }
 
@@ -51,16 +52,27 @@ export function calculateSummary({
 
 export const getRepaySimulationResult = async (props: SimulateRepayActionProps) => {
   try {
+    if (!props.bank.isActive) {
+      throw new ActionProcessingError({
+        isEnabled: false,
+        description: "Bank is not active",
+      });
+    }
     let mandatoryBanks: PublicKey[] = [];
     let excludedBanks: PublicKey[] = [];
-    const isWhole = isWholePosition(props.bank as unknown as any, props.amount);
+    const isWhole = isWholePosition(props.bank, props.amount);
+    let additionalBanks = [];
+
+    if (!props.bank.address.equals(props.secondaryBank.address)) {
+      additionalBanks.push(props.secondaryBank.address);
+    }
 
     if (props.bank.isActive) {
-      mandatoryBanks = isWhole ? [] : [props.bank.address];
+      mandatoryBanks = isWhole ? [] : [props.bank.address, ...additionalBanks];
       excludedBanks = isWhole ? [props.bank.address] : [];
     }
 
-    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address], {
+    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address, ...additionalBanks], {
       enabled: true,
       mandatoryBanks,
       excludedBanks,
