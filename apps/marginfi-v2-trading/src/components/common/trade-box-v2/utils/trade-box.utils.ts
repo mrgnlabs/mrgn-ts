@@ -36,7 +36,7 @@ export function checkTradeActionAvailable({
   if (tradeSpecificChecks) checks.push(...tradeSpecificChecks);
 
   if (depositBank) {
-    const tradeChecks = canBeLooped(depositBank, borrowBank, actionQuote);
+    const tradeChecks = canBeLooped(depositBank, borrowBank, null, actionQuote);
     if (tradeChecks.length) checks.push(...tradeChecks);
   }
 
