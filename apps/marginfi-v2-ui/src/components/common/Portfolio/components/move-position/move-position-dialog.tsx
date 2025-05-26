@@ -260,8 +260,7 @@ export const MovePositionDialog = ({
                 }`}
               >
                 <>
-                  {accountSummary?.healthFactor &&
-                    percentFormatter.format(accountSummary?.healthFactor.riskEngineHealth)}
+                  {accountSummary?.healthFactor && percentFormatter.format(accountSummary?.healthFactor.computedHealth)}
                   <IconArrowRight width={12} height={12} />
                   {percentFormatter.format(actionSummary.health)}
                 </>

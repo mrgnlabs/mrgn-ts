@@ -35,9 +35,9 @@ export function generateTradingStats({
 
   stats.push(
     getHealthStat(
-      actionSummary.actionPreview.health.riskEngineHealth,
+      actionSummary.actionPreview.health.computedHealth,
       isLoading,
-      actionSummary.simulationPreview?.health.riskEngineHealth
+      actionSummary.simulationPreview?.health.computedHealth
     )
   );
   if (hasBanks) {

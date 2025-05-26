@@ -36,9 +36,9 @@ function generateReducePositionStats(summary: ActionSummary, bank: ExtendedBankI
 
   stats.push(
     getHealthStat(
-      summary.actionPreview.health.riskEngineHealth,
+      summary.actionPreview.health.computedHealth,
       false,
-      summary.simulationPreview?.health?.riskEngineHealth
+      summary.simulationPreview?.health?.riskEngcomputedHealthineHealth
     )
   );
 

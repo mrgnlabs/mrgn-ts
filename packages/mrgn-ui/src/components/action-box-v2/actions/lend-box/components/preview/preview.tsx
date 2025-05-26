@@ -92,18 +92,11 @@ function generateLendingStats(
   if (!hidePoolStats?.includes("health")) {
     stats.push(
       getHealthStat(
-        summary.actionPreview.health?.riskEngineHealth,
+        summary.actionPreview.health?.computedHealth,
         false,
-        summary.simulationPreview?.health?.riskEngineHealth
+        summary.simulationPreview?.health?.computedHealth
       )
     );
-    // stats.push(
-    //   getHealthStat(
-    //     summary.actionPreview.health?.computedHealth,
-    //     false,
-    //     summary.simulationPreview?.health?.computedHealth
-    //   )
-    // );
   }
 
   if (summary.simulationPreview?.liquidationPrice && bank.isActive && !hidePoolStats?.includes("liquidation")) {

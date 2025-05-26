@@ -95,11 +95,7 @@ function generateRepayCollatStats(summary: ActionSummary, bank: ExtendedBankInfo
   if (summary.actionPreview.slippageBps) stats.push(getSlippageStat(summary.actionPreview.slippageBps));
 
   stats.push(
-    getHealthStat(
-      summary.actionPreview.health.riskEngineHealth,
-      false,
-      summary.simulationPreview?.health.riskEngineHealth
-    )
+    getHealthStat(summary.actionPreview.health.computedHealth, false, summary.simulationPreview?.health.computedHealth)
   );
 
   if (summary.simulationPreview?.liquidationPrice && bank.isActive)
