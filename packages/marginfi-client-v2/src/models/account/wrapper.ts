@@ -218,11 +218,7 @@ class MarginfiAccountWrapper {
 
   public canBeLiquidated(): boolean {
     const debugLogger = require("debug")(`mfi:margin-account:${this.address.toString()}:canBeLiquidated`);
-    const { assets, liabilities } = this._marginfiAccount.computeHealthComponents(
-      this.client.banks,
-      this.client.oraclePrices,
-      MarginRequirementType.Maintenance
-    );
+    const { assets, liabilities } = this._marginfiAccount.computeHealthComponents(MarginRequirementType.Maintenance);
 
     debugLogger(
       "Account %s, maint assets: %s, maint liabilities: %s, maint healt: %s",
@@ -234,38 +230,30 @@ class MarginfiAccountWrapper {
     return assets.lt(liabilities);
   }
 
-  public computeHealthComponents(
-    marginRequirement: MarginRequirementType,
-    excludedBanks: PublicKey[] = []
-  ): {
+  public computeHealthComponents(marginRequirement: MarginRequirementType): {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
-    return this._marginfiAccount.computeHealthComponents(
-      this.client.banks,
-      this.client.oraclePrices,
-      marginRequirement,
-      excludedBanks
-    );
+    return this._marginfiAccount.computeHealthComponents(marginRequirement);
   }
 
   public computeFreeCollateral(opts?: { clamped?: boolean }): BigNumber {
-    return this._marginfiAccount.computeFreeCollateral(this.client.banks, this.client.oraclePrices, opts);
+    return this._marginfiAccount.computeFreeCollateral(opts);
   }
 
-  public computeHealthComponentsWithoutBias(marginRequirement: MarginRequirementType): {
-    assets: BigNumber;
-    liabilities: BigNumber;
-  } {
-    return this._marginfiAccount.computeHealthComponentsWithoutBias(
-      this.client.banks,
-      this.client.oraclePrices,
-      marginRequirement
-    );
-  }
+  // public computeHealthComponentsWithoutBias(marginRequirement: MarginRequirementType): {
+  //   assets: BigNumber;
+  //   liabilities: BigNumber;
+  // } {
+  //   return this._marginfiAccount.computeHealthComponentsWithoutBias(
+  //     this.client.banks,
+  //     this.client.oraclePrices,
+  //     marginRequirement
+  //   );
+  // }
 
   public computeAccountValue(): BigNumber {
-    return this._marginfiAccount.computeAccountValue(this.client.banks, this.client.oraclePrices);
+    return this._marginfiAccount.computeAccountValue();
   }
 
   public computeMaxBorrowForBank(

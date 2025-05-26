@@ -71,7 +71,7 @@ class MarginfiAccount implements MarginfiAccountType {
   }
 
   static async fetch(address: PublicKey, client: MarginfiClient): Promise<MarginfiAccount> {
-    const data: MarginfiAccountRaw = (await client.program.account.marginfiAccount.fetch(address)) as any;
+    const data: MarginfiAccountRaw = await client.program.account.marginfiAccount.fetch(address);
     return new MarginfiAccount(address, data);
   }
 
@@ -112,20 +112,31 @@ class MarginfiAccount implements MarginfiAccountType {
     return this.accountFlags.includes(AccountFlags.ACCOUNT_TRANSFER_AUTHORITY_ALLOWED);
   }
 
-  computeFreeCollateral(
-    banks: Map<string, Bank>,
-    oraclePrices: Map<string, OraclePrice>,
-    opts?: { clamped?: boolean }
-  ): BigNumber {
+  computeFreeCollateral(opts?: { clamped?: boolean }): BigNumber {
     const _clamped = opts?.clamped ?? true;
 
-    const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Initial);
+    const { assets, liabilities } = this.computeHealthComponents(MarginRequirementType.Initial);
     const signedFreeCollateral = assets.minus(liabilities);
 
     return _clamped ? BigNumber.max(0, signedFreeCollateral) : signedFreeCollateral;
   }
 
-  computeHealthComponents(
+  computeHealthComponents(marginReqType: MarginRequirementType): {
+    assets: BigNumber;
+    liabilities: BigNumber;
+  } {
+    // check if health cache failed
+    switch (marginReqType) {
+      case MarginRequirementType.Equity:
+        return { assets: this.healthCache.assetValueEquity, liabilities: this.healthCache.liabilityValueEquity };
+      case MarginRequirementType.Initial:
+        return { assets: this.healthCache.assetValue, liabilities: this.healthCache.liabilityValue };
+      case MarginRequirementType.Maintenance:
+        return { assets: this.healthCache.assetValueMaint, liabilities: this.healthCache.liabilityValueMaint };
+    }
+  }
+
+  computeHealthComponentsLegacy(
     banks: Map<string, Bank>,
     oraclePrices: Map<string, OraclePrice>,
     marginReqType: MarginRequirementType,
@@ -137,6 +148,7 @@ class MarginfiAccount implements MarginfiAccountType {
     const filteredBalances = this.activeBalances.filter(
       (accountBalance) => !excludedBanks.find((b) => b.equals(accountBalance.bankPk))
     );
+
     const [assets, liabilities] = filteredBalances
       .map((accountBalance) => {
         const bank = banks.get(accountBalance.bankPk.toBase58());
@@ -166,7 +178,7 @@ class MarginfiAccount implements MarginfiAccountType {
     return { assets, liabilities };
   }
 
-  computeHealthComponentsWithoutBias(
+  computeHealthComponentsWithoutBiasLegacy(
     banks: Map<string, Bank>,
     oraclePrices: Map<string, OraclePrice>,
     marginReqType: MarginRequirementType
@@ -203,21 +215,13 @@ class MarginfiAccount implements MarginfiAccountType {
     return { assets, liabilities };
   }
 
-  computeAccountValue(banks: Map<string, Bank>, oraclePrices: Map<string, OraclePrice>): BigNumber {
-    const { assets, liabilities } = this.computeHealthComponentsWithoutBias(
-      banks,
-      oraclePrices,
-      MarginRequirementType.Equity
-    );
+  computeAccountValue(): BigNumber {
+    const { assets, liabilities } = this.computeHealthComponents(MarginRequirementType.Equity);
     return assets.minus(liabilities);
   }
 
   computeNetApy(banks: Map<string, Bank>, oraclePrices: Map<string, OraclePrice>): number {
-    const { assets, liabilities } = this.computeHealthComponentsWithoutBias(
-      banks,
-      oraclePrices,
-      MarginRequirementType.Equity
-    );
+    const { assets, liabilities } = this.computeHealthComponents(MarginRequirementType.Equity);
     const totalUsdValue = assets.minus(liabilities);
     const apr = this.activeBalances
       .reduce((weightedApr, balance) => {
@@ -314,11 +318,11 @@ class MarginfiAccount implements MarginfiAccountType {
     // isolated asset constraints //
     // -------------------------- //
 
+    const hasLiabilitiesAlready =
+      this.activeBalances.filter((b) => b.liabilityShares.gt(0) || !b.bankPk.equals(bankAddress)).length > 0;
+
     const attemptingToBorrowIsolatedAssetWithActiveDebt =
-      bank.config.riskTier === RiskTier.Isolated &&
-      !this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Equity, [
-        bankAddress,
-      ]).liabilities.isZero();
+      bank.config.riskTier === RiskTier.Isolated && hasLiabilitiesAlready;
 
     debug("attemptingToBorrowIsolatedAssetWithActiveDebt: %s", attemptingToBorrowIsolatedAssetWithActiveDebt);
 
@@ -345,7 +349,7 @@ class MarginfiAccount implements MarginfiAccountType {
 
     const balance = this.getBalance(bankAddress);
 
-    const freeCollateral = this.computeFreeCollateral(banks, oraclePrices).times(_volatilityFactor);
+    const freeCollateral = this.computeFreeCollateral().times(_volatilityFactor);
 
     debug("Free collateral: %d", freeCollateral.toFixed(6));
 
@@ -390,7 +394,7 @@ class MarginfiAccount implements MarginfiAccountType {
     const maintAssetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance, priceInfo);
     const balance = this.getBalance(bankAddress);
 
-    const freeCollateral = this.computeFreeCollateral(banks, oraclePrices);
+    const freeCollateral = this.computeFreeCollateral();
     const initCollateralForBank = bank.computeAssetUsdValue(
       priceInfo,
       balance.assetShares,
@@ -400,11 +404,7 @@ class MarginfiAccount implements MarginfiAccountType {
 
     const entireBalance = balance.computeQuantityUi(bank).assets;
 
-    const { liabilities: liabilitiesInit } = this.computeHealthComponents(
-      banks,
-      oraclePrices,
-      MarginRequirementType.Initial
-    );
+    const { liabilities: liabilitiesInit } = this.computeHealthComponents(MarginRequirementType.Initial);
 
     // -------------------------------------------------- //
     // isolated bank (=> init weight = maint weight = 0)  //
@@ -433,8 +433,6 @@ class MarginfiAccount implements MarginfiAccountType {
         return new BigNumber(0); // inefficient, but reflective of contract which does not look at action delta, but only end state
       } else {
         const { liabilities: maintLiabilities, assets: maintAssets } = this.computeHealthComponents(
-          banks,
-          oraclePrices,
           MarginRequirementType.Maintenance
         );
         const maintUntiedCollateral = maintAssets.minus(maintLiabilities);
@@ -481,13 +479,20 @@ class MarginfiAccount implements MarginfiAccountType {
 
     if (!balance.active) return null;
 
-    const isLending = balance.liabilityShares.isZero();
-    const { assets, liabilities } = this.computeHealthComponents(
-      banks,
-      oraclePrices,
-      MarginRequirementType.Maintenance,
-      [bankAddress]
+    const { assets: assetBank, liabilities: liabilitiesBank } = balance.computeUsdValue(
+      bank,
+      priceInfo,
+      MarginRequirementType.Maintenance
     );
+
+    const { assets: assetsAccount, liabilities: liabilitiesAccount } = this.computeHealthComponents(
+      MarginRequirementType.Maintenance
+    );
+
+    const assets = assetsAccount.minus(assetBank);
+    const liabilities = liabilitiesAccount.minus(liabilitiesBank);
+
+    const isLending = balance.liabilityShares.isZero();
     const { assets: assetQuantityUi, liabilities: liabQuantitiesUi } = balance.computeQuantityUi(bank);
 
     let liquidationPrice: BigNumber;
@@ -505,6 +510,64 @@ class MarginfiAccount implements MarginfiAccountType {
         .getPrice(priceInfo, PriceBias.Highest, false)
         .minus(bank.getPrice(priceInfo, PriceBias.None, false));
       liquidationPrice = assets.minus(liabilities).div(liabQuantitiesUi.times(liabWeight)).minus(priceConfidence);
+    }
+    if (liquidationPrice.isNaN() || liquidationPrice.lt(0) || !liquidationPrice.isFinite()) return null;
+    return liquidationPrice.toNumber();
+  }
+
+  /**
+   * Calculate the price at which the user position for the given bank will lead to liquidation, all other prices constant.
+   */
+  public computeLiquidationPriceForBankHealth(
+    banks: Map<string, Bank>,
+    oraclePrices: Map<string, OraclePrice>,
+    bankAddress: PublicKey,
+    opts?: {
+      assetWeightMaint: BigNumber;
+    }
+  ): number | null {
+    const bank = banks.get(bankAddress.toBase58());
+    if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+    const priceInfo = oraclePrices.get(bankAddress.toBase58());
+    if (!priceInfo) throw Error(`Price info for ${bankAddress.toBase58()} not found`);
+
+    const balance = this.getBalance(bankAddress);
+
+    if (!balance.active) return null;
+
+    const isLending = balance.liabilityShares.isZero();
+
+    let assetValueMaint = this.healthCache.assetValueMaint;
+    let liabValueMaint = this.healthCache.liabilityValueMaint;
+
+    const { assets: assetQuantityUi, liabilities: liabQuantitiesUi } = balance.computeQuantityUi(bank);
+
+    let liquidationPrice: BigNumber;
+    if (isLending) {
+      if (liabValueMaint.eq(0)) return null;
+
+      const assetWeight = bank.getAssetWeight(
+        MarginRequirementType.Maintenance,
+        priceInfo,
+        undefined,
+        opts?.assetWeightMaint
+      );
+      const priceConfidence = bank
+        .getPrice(priceInfo, PriceBias.None, false)
+        .minus(bank.getPrice(priceInfo, PriceBias.Lowest, false));
+      liquidationPrice = liabValueMaint
+        .minus(assetValueMaint)
+        .div(assetQuantityUi.times(assetWeight))
+        .plus(priceConfidence);
+    } else {
+      const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maintenance);
+      const priceConfidence = bank
+        .getPrice(priceInfo, PriceBias.Highest, false)
+        .minus(bank.getPrice(priceInfo, PriceBias.None, false));
+      liquidationPrice = assetValueMaint
+        .minus(liabValueMaint)
+        .div(liabQuantitiesUi.times(liabWeight))
+        .minus(priceConfidence);
     }
     if (liquidationPrice.isNaN() || liquidationPrice.lt(0) || !liquidationPrice.isFinite()) return null;
     return liquidationPrice.toNumber();
@@ -529,12 +592,19 @@ class MarginfiAccount implements MarginfiAccountType {
 
     if (!balance.active) return null;
 
-    const { assets, liabilities } = this.computeHealthComponents(
-      banks,
-      oraclePrices,
-      MarginRequirementType.Maintenance,
-      [bankAddress]
+    const { assets: assetBank, liabilities: liabilitiesBank } = balance.computeUsdValue(
+      bank,
+      priceInfo,
+      MarginRequirementType.Maintenance
     );
+
+    const { assets: assetsAccount, liabilities: liabilitiesAccount } = this.computeHealthComponents(
+      MarginRequirementType.Maintenance
+    );
+
+    const assets = assetsAccount.minus(assetBank);
+    const liabilities = liabilitiesAccount.minus(liabilitiesBank);
+
     const amountBn = new BigNumber(amount);
 
     let liquidationPrice: BigNumber;
@@ -580,11 +650,7 @@ class MarginfiAccount implements MarginfiAccountType {
     const liabilityPriceInfo = oraclePrices.get(liabilityBankAddress.toBase58());
     if (!liabilityPriceInfo) throw Error(`Price info for ${liabilityBankAddress.toBase58()} not found`);
 
-    const { assets, liabilities } = this.computeHealthComponents(
-      banks,
-      oraclePrices,
-      MarginRequirementType.Maintenance
-    );
+    const { assets, liabilities } = this.computeHealthComponents(MarginRequirementType.Maintenance);
     const currentHealth = assets.minus(liabilities);
 
     const priceAssetLower = assetBank.getPrice(assetPriceInfo, PriceBias.Lowest, false);
@@ -1176,15 +1242,11 @@ class MarginfiAccount implements MarginfiAccountType {
   }
 
   public describe(banks: BankMap, oraclePrices: OraclePriceMap): string {
-    const { assets, liabilities } = this.computeHealthComponents(banks, oraclePrices, MarginRequirementType.Equity);
+    const { assets, liabilities } = this.computeHealthComponents(MarginRequirementType.Equity);
     const { assets: assetsMaint, liabilities: liabilitiesMaint } = this.computeHealthComponents(
-      banks,
-      oraclePrices,
       MarginRequirementType.Maintenance
     );
     const { assets: assetsInit, liabilities: liabilitiesInit } = this.computeHealthComponents(
-      banks,
-      oraclePrices,
       MarginRequirementType.Initial
     );
     let description = `
