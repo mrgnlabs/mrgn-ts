@@ -39,8 +39,8 @@ const IconEmode = ({ size = 24, className }: IconProps) => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(70.0667 70.9762) rotate(22.5) scale(50.4225 50.1378)"
       >
-        <stop stop-color="#C084FC" />
-        <stop offset="1" stop-color="#40126D" />
+        <stop stopColor="#C084FC" />
+        <stop offset="1" stopColor="#40126D" />
       </radialGradient>
       <clipPath id="clip0_1015_5">
         <rect width="76" height="120" fill="white" transform="translate(57.922 1) rotate(22.5)" />
