@@ -68,7 +68,7 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode = false, setFilterEmode 
           <Switch
             checked={filterEmode}
             onCheckedChange={(checked) => setFilterEmode(checked)}
-            className="ml-2 data-[state=unchecked]:bg-background-gray-light data-[state=checked]:bg-purple-400"
+            className="ml-2 data-[state=unchecked]:bg-background-gray-light data-[state=checked]:bg-mfi-emode"
           />
         </div>
       )}

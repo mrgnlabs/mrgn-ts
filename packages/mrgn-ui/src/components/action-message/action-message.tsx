@@ -18,14 +18,14 @@ export const ActionMessage = ({ actionMessage, isRetrying = false, retry }: Acti
   const title = isEmode ? "e-mode warning" : actionMessage.actionMethod || "WARNING";
 
   const getActionStyles = () => {
-    const baseStyles = "relative flex items-center space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm";
+    const baseStyles = "relative flex space-x-2 py-2.5 px-3.5 rounded-lg gap-1 text-sm";
 
     const actionMethod = actionMessage?.actionSubType || actionMessage.actionMethod || "WARNING";
     // Style based on action method
     let methodStyles = "";
     switch (actionMethod) {
       case "EMODE":
-        methodStyles = "text-mfi-emode border border-mfi-emode/40 pr-0";
+        methodStyles = "text-mfi-emode border border-mfi-emode/40 pr-0 pb-2";
         break;
       case "INFO":
         methodStyles = "bg-info text-info-foreground";
@@ -45,9 +45,9 @@ export const ActionMessage = ({ actionMessage, isRetrying = false, retry }: Acti
   return (
     <div className={getActionStyles()}>
       {isEmode ? (
-        <IconEmode className="shrink-0" size={24} />
+        <IconEmode className="shrink-0 -translate-y-1" size={24} />
       ) : (
-        <IconAlertTriangle className="shrink-0 translate-y-0.5 self-start" size={16} />
+        <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
       )}
       <div className="w-full">
         {actionMessage.actionMethod !== "INFO" && (
