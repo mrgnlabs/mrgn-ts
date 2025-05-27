@@ -1148,7 +1148,6 @@ class MarginfiAccountWrapper {
 
     if (!mfiAccountData) throw new Error("Failed to simulate");
     const mfiAccount = MarginfiAccount.decode(mfiAccountData, this._program.idl);
-    console.log("simulated account", mfiAccount);
     if (!bankData) throw new Error("Failed to simulate");
     const previewBanks = this.client.banks;
 
@@ -1975,8 +1974,6 @@ class MarginfiAccountWrapper {
 
     // Combine active banks with mandatory banks
     const allBanks = [...activeBanks, ...mandatoryBankObjs];
-
-    console.log("allBanks", allBanks);
 
     return createHealthPulseIx({
       activeBanks: allBanks,
