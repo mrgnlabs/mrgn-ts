@@ -1122,6 +1122,7 @@ class MarginfiAccountWrapper {
     const additionalTxs: VersionedTransaction[] = [];
 
     if (healthSimOptions?.enabled) {
+      const computeIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 });
       const updateFeedIx = await this.makeUpdateFeedIx(healthSimOptions.mandatoryBanks);
       const healthPulseIx = await this.makeHealthPulseIx(
         healthSimOptions.mandatoryBanks,
@@ -1132,7 +1133,7 @@ class MarginfiAccountWrapper {
 
       const tx = new VersionedTransaction(
         new TransactionMessage({
-          instructions: [...updateFeedIx.instructions, healthPulseIx],
+          instructions: [computeIx, ...updateFeedIx.instructions, healthPulseIx],
           payerKey: this.client.provider.publicKey,
           recentBlockhash: blockhash,
         }).compileToV0Message([...this.client.addressLookupTables, ...updateFeedIx.luts])
