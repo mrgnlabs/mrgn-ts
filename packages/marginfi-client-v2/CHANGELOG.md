@@ -1,5 +1,37 @@
 # @mrgnlabs/marginfi-client-v2
 
+## 6.1.0
+
+### Minor Changes
+
+- 757451d: ### 🔄 Behavior Updates & Integration Notes
+
+  - **Account Health Caches Invalidated** 🧠
+    The account health cache introduced in `0.1.2` is no longer valid. The cache now contains **richer internal risk state data**.
+    Liquidators, indexers, and analytics consumers **must discard old caches** and recompute from fresh data.
+    → See [#325](https://github.com/mrgnlabs/marginfi/issues/325) for the full list of changes.
+  - **Gapless Account Support + Sorted Balances** 📚
+    All remaining accounts and user lending balances are now packed in **sorted order by pubkey**, with **no gaps**.
+
+    #### Benefits:
+
+    - No more guessing the order of user balances.
+    - Simplifies database indexing and stateless client logic.
+    - Improves determinism and parsing of `MarginfiAccount`s.
+
+    #### Behavior Details:
+
+    - Accounts that are **not currently sorted** will sort themselves during the next interaction (e.g. `deposit`, `withdraw`, `repay`, etc.).
+    - When adding **new positions** (e.g. during `borrow` or `liquidation`), the account becomes fully sorted.
+    - You can also **manually sort** an account using `lending_account_sort_balances`.
+    - When parsing user accounts:
+      - You may safely assume that once you encounter an empty slot in lending balances, **the rest are also empty**.
+      - All consumers **must pass remaining accounts in sorted order by pubkey**.
+
+  - **Updated Instruction Constraints** ⚠️
+    - The `bank_liquidity_vault_authority` account is **no longer `mut`** in the `withdraw` instruction.
+      This should not affect consumers using the latest IDL and should help reduce instruction size slightly.
+
 ## 6.0.2
 
 ### Patch Changes
