@@ -1,5 +1,11 @@
 # @mrgnlabs/mrgn-common
 
+## 2.0.3
+
+### Patch Changes
+
+- 6df661e: Support for gapless accounts - remaining accounts are now always packed in sorted orde
+
 ## 2.0.2
 
 ### Patch Changes
