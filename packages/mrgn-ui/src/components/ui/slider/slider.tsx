@@ -43,7 +43,7 @@ const Slider = React.forwardRef<React.ElementRef<typeof SliderPrimitive.Root>, S
     const colorFrom = emode ? "#E1C8FF" : "#75ba81";
 
     const toGradient = React.useMemo(() => {
-      const colorTo = emode ? "#5F2D89" : "#B686F4";
+      const colorTo = emode ? "#5F2D89" : "#8E281D";
       const colorFrom = emode ? "#E1C8FF" : "#DCE85D";
       return blendHexColors(colorFrom, colorTo, progress);
     }, [progress, emode]);
