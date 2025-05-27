@@ -14,16 +14,17 @@ import {
   shortenAddress,
   TransactionType,
   addTransactionMetadata,
+  percentFormatterMod,
 } from "@mrgnlabs/mrgn-common";
 import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
-import { capture, cn, composeExplorerUrl, executeActionWrapper } from "@mrgnlabs/mrgn-utils";
+import { AssetTag, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
+import { capture, cn, composeExplorerUrl, executeActionWrapper, getAssetWeightData } from "@mrgnlabs/mrgn-utils";
 import { ActionBox, SVSPMEV, useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useAssetItemData } from "~/hooks/useAssetItemData";
 import { useMrgnlendStore, useUiStore } from "~/store";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ChevronDown } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 
@@ -31,12 +32,18 @@ import { MovePositionDialog } from "../move-position";
 import { TooltipProvider } from "~/components/ui/tooltip";
 import { TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Tooltip } from "~/components/ui/tooltip";
+import { EmodeDiff, EmodePopover } from "~/components/common/emode/components";
+import { Badge } from "~/components/ui/badge";
+import { IconEmode } from "~/components/ui/icons";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
   isInLendingMode: boolean;
   isBorrower?: boolean;
   accountLabels?: Record<string, string>;
+  variant?: "accordion" | "simple";
+
+  onCardClick?: () => void;
 }
 
 export const PortfolioAssetCard = ({
@@ -44,6 +51,8 @@ export const PortfolioAssetCard = ({
   isInLendingMode,
   isBorrower = true,
   accountLabels,
+  variant = "accordion",
+  onCardClick,
 }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
   const [
@@ -54,6 +63,9 @@ export const PortfolioAssetCard = ({
     extendedBankInfos,
     nativeSolBalance,
     accountSummary,
+    userActiveEmodes,
+    collateralBanksByLiabilityBank,
+    liabilityBanksByCollateralBank,
   ] = useMrgnlendStore((state) => [
     state.selectedAccount,
     state.marginfiAccounts,
@@ -62,9 +74,31 @@ export const PortfolioAssetCard = ({
     state.extendedBankInfos,
     state.nativeSolBalance,
     state.accountSummary,
+    state.userActiveEmodes,
+    state.collateralBanksByLiabilityBank,
+    state.liabilityBanksByCollateralBank,
   ]);
   const [priorityFees] = useUiStore((state) => [state.priorityFees]);
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
+
+  const collateralBanks = React.useMemo(() => {
+    const banks = collateralBanksByLiabilityBank[bank.address.toBase58()] || [];
+    return banks.length > 0
+      ? banks.filter((bank) => bank.collateralBank.isActive && bank.collateralBank.position.isLending)
+      : [];
+  }, [collateralBanksByLiabilityBank, bank]);
+
+  const liabilityBanks = React.useMemo(() => {
+    const banks = liabilityBanksByCollateralBank[bank.address.toBase58()] || [];
+    return banks;
+  }, [liabilityBanksByCollateralBank, bank]);
+
+  const isEmodeActive = React.useMemo(() => {
+    return (
+      (isInLendingMode && bank.position.emodeActive) ||
+      (!isInLendingMode && collateralBanks.length > 0 && userActiveEmodes.length > 0)
+    );
+  }, [bank.position.emodeActive, collateralBanks, isInLendingMode, userActiveEmodes]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
     if (!bank || !bank?.position?.liquidationPrice) {
@@ -85,6 +119,56 @@ export const PortfolioAssetCard = ({
     () => marginfiAccounts.length > 1 && bank.position.isLending,
     [marginfiAccounts.length, bank]
   );
+
+  const assetWeight = React.useMemo(
+    () => getAssetWeightData(bank, isInLendingMode).assetWeight,
+    [bank, isInLendingMode]
+  );
+
+  const originalAssetWeight = React.useMemo(
+    () => getAssetWeightData(bank, isInLendingMode, bank.info.state.originalWeights.assetWeightInit).assetWeight,
+    [bank, isInLendingMode]
+  );
+
+  if (variant === "simple") {
+    return (
+      <div
+        className="bg-background-gray rounded-xl px-3 py-3.5 flex gap-3 items-center cursor-pointer hover:bg-background-gray-light transition"
+        onClick={onCardClick}
+      >
+        <Image
+          src={bank.meta.tokenLogoUri}
+          className="rounded-full -translate-y-0.5"
+          alt={bank.meta.tokenSymbol}
+          height={36}
+          width={36}
+        />
+        <div className="flex items-center gap-1 w-full">
+          <div className="flex flex-col flex-1 -translate-y-0.5">
+            <div className="flex items-center gap-2 font-medium text-lg">
+              {bank.meta.tokenSymbol}
+              {isEmodeActive && <IconEmode size={22} className="-translate-y-1" />}
+            </div>
+            <div className="flex items-center gap-4 text-sm">
+              <span className={isInLendingMode ? "text-success" : "text-warning"}>{rateAP} APY</span>
+            </div>
+          </div>
+          <div className="text-right pr-2 leading-none space-y-0 -translate-y-0.5">
+            <div className="font-medium text-lg">
+              {dynamicNumeralFormatter(bank.position.amount, {
+                tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
+              })}
+              {" " + bank.meta.tokenSymbol}
+            </div>
+            <span className="text-muted-foreground text-sm font-normal">
+              {usdFormatter.format(bank.position.usdValue)}
+            </span>
+          </div>
+          <ChevronDown className="h-4 w-4 self-start translate-y-1 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Accordion type="single" collapsible>
@@ -109,7 +193,9 @@ export const PortfolioAssetCard = ({
               </div>
               <div className="flex flex-col w-full">
                 <div className="flex justify-between items-center w-full">
-                  <div className="font-medium text-lg">{bank.meta.tokenSymbol}</div>
+                  <div className="flex items-center gap-2 font-medium text-lg">
+                    {bank.meta.tokenSymbol} {isEmodeActive && <IconEmode size={22} className="-translate-y-1" />}
+                  </div>
                   <div className="font-medium text-lg text-right">
                     {dynamicNumeralFormatter(bank.position.amount, {
                       tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
@@ -143,7 +229,7 @@ export const PortfolioAssetCard = ({
                         )}
                       </div>
                     ) : (
-                      <div className={cn("text-sm font-normal", isInLendingMode ? "text-success" : "text-warning")}>
+                      <div className={cn("text-sm font-light", isInLendingMode ? "text-success" : "text-warning")}>
                         {rateAP.concat(...[" ", "APY"])}
                       </div>
                     )}
@@ -207,6 +293,61 @@ export const PortfolioAssetCard = ({
                       <IconExternalLink size={14} className="text-muted-foreground" />
                       {shortenAddress(bank.meta.stakePool?.validatorVoteAccount)}
                     </Link>
+                  </dd>
+                </>
+              )}
+              {isEmodeActive ? (
+                <>
+                  <dt className="text-muted-foreground">{isInLendingMode ? "Weight" : "e-mode boost"}</dt>
+                  <dd className="text-right text-white">
+                    {bank.position || collateralBanks.length > 0 ? (
+                      <div className={cn("flex items-center justify-end gap-1", isEmodeActive && "text-mfi-emode")}>
+                        {!isInLendingMode && collateralBanks.length > 0 && (
+                          <div className="flex items-center">
+                            <IconEmode size={18} />
+                            <ul className="flex items-center gap-1">
+                              {collateralBanks.map((bank) => (
+                                <li key={bank.collateralBank.address.toBase58()}>
+                                  <Image
+                                    src={bank.collateralBank.meta.tokenLogoUri}
+                                    className="rounded-full"
+                                    alt={bank.collateralBank.meta.tokenSymbol}
+                                    height={18}
+                                    width={18}
+                                  />
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {isInLendingMode && isEmodeActive && (
+                          <>
+                            <IconEmode size={18} />
+                            <EmodeDiff assetWeight={assetWeight} originalAssetWeight={originalAssetWeight} />
+                          </>
+                        )}
+                      </div>
+                    ) : null}
+                  </dd>
+                </>
+              ) : null}
+              {(!isEmodeActive || !isInLendingMode) && (
+                <>
+                  <dt className="text-muted-foreground">{isInLendingMode ? "Weight" : "LTV"}</dt>
+                  <dd className="text-right text-white flex items-center justify-end">
+                    {!isEmodeActive ? (
+                      <EmodePopover
+                        assetWeight={assetWeight}
+                        originalAssetWeight={originalAssetWeight}
+                        emodeActive={isEmodeActive}
+                        isInLendingMode={isInLendingMode}
+                        collateralBanks={collateralBanks}
+                        liabilityBanks={liabilityBanks}
+                        triggerType="weight"
+                      />
+                    ) : (
+                      percentFormatter.format(assetWeight)
+                    )}
                   </dd>
                 </>
               )}

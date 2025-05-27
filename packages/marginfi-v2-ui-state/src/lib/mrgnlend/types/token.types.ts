@@ -1,4 +1,4 @@
-import { Balance, MarginfiAccountWrapper, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
+import { ActionEmodeImpact, Balance, MarginfiAccountWrapper, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
 import { Bank } from "@mrgnlabs/marginfi-client-v2";
 import { PublicKey } from "@solana/web3.js";
@@ -21,7 +21,7 @@ interface TokenAccount {
 }
 
 interface AccountSummary {
-  healthFactor: number;
+  healthFactor: { riskEngineHealth: number; computedHealth: number };
   balance: number;
   lendingAmount: number;
   borrowingAmount: number;
@@ -37,6 +37,7 @@ interface AccountSummary {
 
 interface LendingPosition {
   isLending: boolean;
+  emodeActive: boolean;
   amount: number;
   usdValue: number;
   weightedUSDValue: number;
@@ -51,6 +52,7 @@ interface MakeLendingPositionWrappedProps {
   bankInfo: BankState;
   oraclePrice: OraclePrice;
   marginfiAccount: MarginfiAccountWrapper;
+  emodeActive: boolean;
 }
 interface MakeLendingPositionRawProps {
   balance: Balance;
@@ -60,6 +62,7 @@ interface MakeLendingPositionRawProps {
   marginfiAccount: MarginfiAccount;
   banks: Map<string, Bank>;
   oraclePrices: Map<string, OraclePrice>;
+  emodeActive: boolean;
 }
 
 interface UserInfo {
@@ -68,6 +71,7 @@ interface UserInfo {
   maxRepay: number;
   maxWithdraw: number;
   maxBorrow: number;
+  emodeImpact?: ActionEmodeImpact;
 }
 
 type UserDataProps = UserDataWrappedProps | UserDataRawProps;

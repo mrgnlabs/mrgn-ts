@@ -1,8 +1,8 @@
 {
-  "address": "",
+  "address": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   "metadata": {
     "name": "marginfi",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "spec": "0.1.0",
     "description": "Created with Anchor"
   },
@@ -47,9 +47,7 @@
     },
     {
       "name": "edit_global_fee_state",
-      "docs": [
-        "(global fee admin only) Adjust fees, admin, or the destination wallet"
-      ],
+      "docs": ["(global fee admin only) Adjust fees, admin, or the destination wallet"],
       "discriminator": [52, 62, 35, 129, 93, 69, 165, 202],
       "accounts": [
         {
@@ -229,10 +227,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  115, 116, 97, 107, 101, 100, 95, 115, 101, 116, 116, 105, 110,
-                  103, 115
-                ]
+                "value": [115, 116, 97, 107, 101, 100, 95, 115, 101, 116, 116, 105, 110, 103, 115]
               },
               {
                 "kind": "account",
@@ -294,8 +289,7 @@
               {
                 "kind": "const",
                 "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
+                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104
                 ]
               },
               {
@@ -410,19 +404,12 @@
     },
     {
       "name": "lending_account_liquidate",
-      "docs": [
-        "Liquidate a lending account balance of an unhealthy marginfi account"
-      ],
+      "docs": ["Liquidate a lending account balance of an unhealthy marginfi account"],
       "discriminator": [214, 169, 151, 213, 251, 167, 86, 219],
       "accounts": [
         {
           "name": "group",
-          "relations": [
-            "asset_bank",
-            "liab_bank",
-            "liquidator_marginfi_account",
-            "liquidatee_marginfi_account"
-          ]
+          "relations": ["asset_bank", "liab_bank", "liquidator_marginfi_account", "liquidatee_marginfi_account"]
         },
         {
           "name": "asset_bank",
@@ -453,8 +440,7 @@
               {
                 "kind": "const",
                 "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
+                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104
                 ]
               },
               {
@@ -471,10 +457,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -490,10 +473,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -594,6 +574,23 @@
       "args": []
     },
     {
+      "name": "lending_account_sort_balances",
+      "docs": [
+        "(Permissionless) Sorts the lending account balances in descending order and removes the \"gaps\"",
+        "(i.e. inactive balances in between the active ones), if any.",
+        "This is necessary to ensure any legacy marginfi accounts are compliant with the",
+        "\"gapless and sorted\" requirements we now have."
+      ],
+      "discriminator": [187, 194, 110, 84, 82, 170, 204, 9],
+      "accounts": [
+        {
+          "name": "marginfi_account",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "lending_account_start_flashloan",
       "discriminator": [14, 131, 33, 220, 81, 186, 180, 107],
       "accounts": [
@@ -645,14 +642,12 @@
         },
         {
           "name": "bank_liquidity_vault_authority",
-          "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
+                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104
                 ]
               },
               {
@@ -715,10 +710,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 97, 117, 116,
-                  104, 95, 115, 101, 101, 100
-                ]
+                "value": [101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 97, 117, 116, 104, 95, 115, 101, 101, 100]
               },
               {
                 "kind": "account",
@@ -739,9 +731,8 @@
               {
                 "kind": "const",
                 "value": [
-                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 116, 111,
-                  107, 101, 110, 95, 97, 99, 99, 111, 117, 110, 116, 95, 115,
-                  101, 101, 100
+                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 116, 111, 107, 101, 110, 95, 97, 99, 99, 111, 117,
+                  110, 116, 95, 115, 101, 101, 100
                 ]
               },
               {
@@ -791,10 +782,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 97, 117, 116,
-                  104, 95, 115, 101, 101, 100
-                ]
+                "value": [101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 97, 117, 116, 104, 95, 115, 101, 101, 100]
               },
               {
                 "kind": "account",
@@ -815,9 +803,8 @@
               {
                 "kind": "const",
                 "value": [
-                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 116, 111,
-                  107, 101, 110, 95, 97, 99, 99, 111, 117, 110, 116, 95, 115,
-                  101, 101, 100
+                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 116, 111, 107, 101, 110, 95, 97, 99, 99, 111, 117,
+                  110, 116, 95, 115, 101, 101, 100
                 ]
               },
               {
@@ -873,9 +860,7 @@
         },
         {
           "name": "fee_payer",
-          "docs": [
-            "Pays to init accounts and pays `fee_state.bank_init_flat_sol_fee` lamports to the protocol"
-          ],
+          "docs": ["Pays to init accounts and pays `fee_state.bank_init_flat_sol_fee` lamports to the protocol"],
           "writable": true,
           "signer": true
         },
@@ -910,8 +895,7 @@
               {
                 "kind": "const",
                 "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
+                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104
                 ]
               },
               {
@@ -928,10 +912,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -946,10 +927,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -965,10 +943,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -983,10 +958,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116,
-                  104
-                ]
+                "value": [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1099,8 +1071,7 @@
               {
                 "kind": "const",
                 "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
+                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104
                 ]
               },
               {
@@ -1117,10 +1088,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1135,10 +1103,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1154,10 +1119,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1172,10 +1134,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116,
-                  104
-                ]
+                "value": [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1240,9 +1199,7 @@
         },
         {
           "name": "fee_payer",
-          "docs": [
-            "Pays to init accounts and pays `fee_state.bank_init_flat_sol_fee` lamports to the protocol"
-          ],
+          "docs": ["Pays to init accounts and pays `fee_state.bank_init_flat_sol_fee` lamports to the protocol"],
           "writable": true,
           "signer": true
         },
@@ -1292,8 +1249,7 @@
               {
                 "kind": "const",
                 "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
+                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104
                 ]
               },
               {
@@ -1310,10 +1266,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1328,10 +1281,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1347,10 +1297,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1365,10 +1312,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116,
-                  104
-                ]
+                "value": [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1439,8 +1383,7 @@
               {
                 "kind": "const",
                 "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
+                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104
                 ]
               },
               {
@@ -1457,10 +1400,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1476,10 +1416,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1560,6 +1497,44 @@
       ]
     },
     {
+      "name": "lending_pool_configure_bank_emode",
+      "discriminator": [17, 175, 91, 57, 239, 86, 49, 71],
+      "accounts": [
+        {
+          "name": "group",
+          "relations": ["bank"]
+        },
+        {
+          "name": "emode_admin",
+          "signer": true,
+          "relations": ["group"]
+        },
+        {
+          "name": "bank",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "emode_tag",
+          "type": "u16"
+        },
+        {
+          "name": "entries",
+          "type": {
+            "array": [
+              {
+                "defined": {
+                  "name": "EmodeEntry"
+                }
+              },
+              10
+            ]
+          }
+        }
+      ]
+    },
+    {
       "name": "lending_pool_configure_bank_oracle",
       "discriminator": [209, 82, 255, 171, 124, 21, 71, 81],
       "accounts": [
@@ -1590,9 +1565,7 @@
     },
     {
       "name": "lending_pool_handle_bankruptcy",
-      "docs": [
-        "Handle bad debt of a bankrupt marginfi account for a given bank."
-      ],
+      "docs": ["Handle bad debt of a bankrupt marginfi account for a given bank."],
       "discriminator": [162, 11, 56, 139, 90, 128, 70, 173],
       "accounts": [
         {
@@ -1619,10 +1592,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1638,10 +1608,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1656,10 +1623,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1702,10 +1666,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 97, 117, 116,
-                  104, 95, 115, 101, 101, 100
-                ]
+                "value": [101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 97, 117, 116, 104, 95, 115, 101, 101, 100]
               },
               {
                 "kind": "account",
@@ -1726,9 +1687,8 @@
               {
                 "kind": "const",
                 "value": [
-                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 116, 111,
-                  107, 101, 110, 95, 97, 99, 99, 111, 117, 110, 116, 95, 115,
-                  101, 101, 100
+                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 116, 111, 107, 101, 110, 95, 97, 99, 99, 111, 117,
+                  110, 116, 95, 115, 101, 101, 100
                 ]
               },
               {
@@ -1744,10 +1704,7 @@
         },
         {
           "name": "emissions_funding_account",
-          "docs": [
-            "NOTE: This is a TokenAccount, spl transfer will validate it.",
-            ""
-          ],
+          "docs": ["NOTE: This is a TokenAccount, spl transfer will validate it.", ""],
           "writable": true
         },
         {
@@ -1803,9 +1760,8 @@
               {
                 "kind": "const",
                 "value": [
-                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 116, 111,
-                  107, 101, 110, 95, 97, 99, 99, 111, 117, 110, 116, 95, 115,
-                  101, 101, 100
+                  101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 116, 111, 107, 101, 110, 95, 97, 99, 99, 111, 117,
+                  110, 116, 95, 115, 101, 101, 100
                 ]
               },
               {
@@ -1886,10 +1842,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116,
-                  104
-                ]
+                "value": [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -1936,10 +1889,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116]
               },
               {
                 "kind": "account",
@@ -1954,10 +1904,7 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117,
-                  108, 116, 95, 97, 117, 116, 104
-                ]
+                "value": [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104]
               },
               {
                 "kind": "account",
@@ -2046,10 +1993,7 @@
         },
         {
           "name": "destination_account",
-          "docs": [
-            "User's earned emissions will be sent to the cannonical ATA of this wallet.",
-            ""
-          ]
+          "docs": ["User's earned emissions will be sent to the cannonical ATA of this wallet.", ""]
         }
       ],
       "args": []
@@ -2071,6 +2015,10 @@
       "args": [
         {
           "name": "new_admin",
+          "type": "pubkey"
+        },
+        {
+          "name": "new_emode_admin",
           "type": "pubkey"
         },
         {
@@ -2118,9 +2066,7 @@
     },
     {
       "name": "propagate_fee_state",
-      "docs": [
-        "(Permissionless) Force any group to adopt the current FeeState settings"
-      ],
+      "docs": ["(Permissionless) Force any group to adopt the current FeeState settings"],
       "discriminator": [64, 3, 166, 194, 129, 21, 101, 155],
       "accounts": [
         {
@@ -2136,9 +2082,7 @@
         },
         {
           "name": "marginfi_group",
-          "docs": [
-            "Any group, this ix is permisionless and can propogate the fee to any group"
-          ],
+          "docs": ["Any group, this ix is permisionless and can propogate the fee to any group"],
           "writable": true
         }
       ],
@@ -2261,6 +2205,80 @@
     {
       "name": "StakedSettings",
       "discriminator": [157, 140, 6, 77, 89, 173, 173, 125]
+    }
+  ],
+  "events": [
+    {
+      "name": "EditStakedSettingsEvent",
+      "discriminator": [29, 58, 155, 191, 75, 220, 145, 206]
+    },
+    {
+      "name": "HealthPulseEvent",
+      "discriminator": [183, 159, 218, 110, 61, 220, 65, 1]
+    },
+    {
+      "name": "LendingAccountBorrowEvent",
+      "discriminator": [223, 96, 81, 10, 156, 99, 26, 59]
+    },
+    {
+      "name": "LendingAccountDepositEvent",
+      "discriminator": [161, 54, 237, 217, 105, 248, 122, 151]
+    },
+    {
+      "name": "LendingAccountLiquidateEvent",
+      "discriminator": [166, 160, 249, 154, 183, 39, 23, 242]
+    },
+    {
+      "name": "LendingAccountRepayEvent",
+      "discriminator": [16, 220, 55, 111, 7, 80, 16, 25]
+    },
+    {
+      "name": "LendingAccountWithdrawEvent",
+      "discriminator": [3, 220, 148, 243, 33, 249, 54, 88]
+    },
+    {
+      "name": "LendingPoolBankAccrueInterestEvent",
+      "discriminator": [104, 117, 187, 156, 111, 154, 106, 186]
+    },
+    {
+      "name": "LendingPoolBankCollectFeesEvent",
+      "discriminator": [101, 119, 97, 250, 169, 175, 156, 253]
+    },
+    {
+      "name": "LendingPoolBankConfigureEvent",
+      "discriminator": [246, 35, 233, 110, 93, 152, 235, 40]
+    },
+    {
+      "name": "LendingPoolBankConfigureFrozenEvent",
+      "discriminator": [24, 10, 55, 18, 49, 150, 157, 179]
+    },
+    {
+      "name": "LendingPoolBankConfigureOracleEvent",
+      "discriminator": [119, 140, 110, 253, 150, 64, 210, 62]
+    },
+    {
+      "name": "LendingPoolBankCreateEvent",
+      "discriminator": [236, 220, 201, 63, 239, 126, 136, 249]
+    },
+    {
+      "name": "LendingPoolBankHandleBankruptcyEvent",
+      "discriminator": [166, 77, 41, 140, 36, 94, 10, 57]
+    },
+    {
+      "name": "MarginfiAccountCreateEvent",
+      "discriminator": [183, 5, 117, 104, 122, 199, 68, 51]
+    },
+    {
+      "name": "MarginfiAccountTransferAccountAuthorityEvent",
+      "discriminator": [112, 61, 140, 132, 251, 92, 90, 202]
+    },
+    {
+      "name": "MarginfiGroupConfigureEvent",
+      "discriminator": [241, 104, 172, 167, 41, 195, 199, 170]
+    },
+    {
+      "name": "MarginfiGroupCreateEvent",
+      "discriminator": [233, 125, 61, 14, 98, 240, 136, 253]
     }
   ],
   "errors": [
@@ -2638,6 +2656,16 @@
       "code": 6074,
       "name": "ArenaSettingCannotChange",
       "msg": "Arena groups cannot return to non-arena status"
+    },
+    {
+      "code": 6075,
+      "name": "BadEmodeConfig",
+      "msg": "The Emode config was invalid"
+    },
+    {
+      "code": 6076,
+      "name": "PythPushInvalidWindowSize",
+      "msg": "TWAP window size does not match expected duration"
     }
   ],
   "types": [
@@ -2809,9 +2837,7 @@
           },
           {
             "name": "collected_insurance_fees_outstanding",
-            "docs": [
-              "Fees collected and pending withdraw for the `insurance_vault`"
-            ],
+            "docs": ["Fees collected and pending withdraw for the `insurance_vault`"],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -2889,8 +2915,8 @@
           {
             "name": "emissions_rate",
             "docs": [
-              "Emissions APR.",
-              "Number of emitted tokens (emissions_mint) per 1e(bank.mint_decimal) tokens (bank mint) (native amount) per 1 YEAR."
+              "Emissions APR. Number of emitted tokens (emissions_mint) per 1e(bank.mint_decimal) tokens",
+              "(bank mint) (native amount) per 1 YEAR."
             ],
             "type": "u64"
           },
@@ -2918,14 +2944,21 @@
             }
           },
           {
+            "name": "emode",
+            "docs": [
+              "Controls this bank's emode configuration, which enables some banks to treat the assets of",
+              "certain other banks more preferentially as collateral."
+            ],
+            "type": {
+              "defined": {
+                "name": "EmodeSettings"
+              }
+            }
+          },
+          {
             "name": "_padding_0",
             "type": {
-              "array": [
-                {
-                  "array": ["u64", 2]
-                },
-                27
-              ]
+              "array": ["u8", 8]
             }
           },
           {
@@ -2944,9 +2977,7 @@
     },
     {
       "name": "BankConfig",
-      "docs": [
-        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
-      ],
+      "docs": ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
       "repr": {
         "kind": "c"
       },
@@ -3073,9 +3104,7 @@
           },
           {
             "name": "oracle_max_age",
-            "docs": [
-              "Time window in seconds for the oracle price feed to be considered live."
-            ],
+            "docs": ["Time window in seconds for the oracle price feed to be considered live."],
             "type": "u16"
           },
           {
@@ -3095,9 +3124,7 @@
     },
     {
       "name": "BankConfigCompact",
-      "docs": [
-        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"
-      ],
+      "docs": ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"],
       "repr": {
         "kind": "c"
       },
@@ -3204,9 +3231,7 @@
           },
           {
             "name": "oracle_max_age",
-            "docs": [
-              "Time window in seconds for the oracle price feed to be considered live."
-            ],
+            "docs": ["Time window in seconds for the oracle price feed to be considered live."],
             "type": "u16"
           }
         ]
@@ -3373,6 +3398,144 @@
       }
     },
     {
+      "name": "EmodeConfig",
+      "docs": [
+        "An emode configuration. Each bank has one such configuration, but this may also be the",
+        "intersection of many configurations (see `reconcile_emode_configs`). For example, the risk",
+        "engine creates such an intersection from all the emode config of all banks the user is borrowing",
+        "from."
+      ],
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "entries",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "EmodeEntry"
+                  }
+                },
+                10
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "EmodeEntry",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "collateral_bank_emode_tag",
+            "docs": ["emode_tag of the bank(s) whose collateral you wish to treat preferentially."],
+            "type": "u16"
+          },
+          {
+            "name": "flags",
+            "docs": [
+              "* APPLIES_TO_ISOLATED (1) - (NOT YET IMPLEMENTED) if set, isolated banks with this tag",
+              "also benefit. If not set, isolated banks continue to offer zero collateral, even if they",
+              "use this tag.",
+              "* 2, 4, 8, 16, 32, etc - reserved for future use"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "pad0",
+            "type": {
+              "array": ["u8", 5]
+            }
+          },
+          {
+            "name": "asset_weight_init",
+            "docs": ["Note: If set below the collateral bank's weight, does nothing."],
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "asset_weight_maint",
+            "docs": ["Note: If set below the collateral bank's weight, does nothing."],
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "EmodeSettings",
+      "docs": [
+        "Controls the bank's e-mode configuration, allowing certain collateral sources to be treated more",
+        "favorably as collateral when used to borrow from this bank."
+      ],
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "emode_tag",
+            "docs": [
+              "This bank's NON-unique id that other banks will use to determine what emode rate to use when",
+              "this bank is offered as collateral.",
+              "",
+              "For example, all stablecoin banks might share the same emode_tag, and in their entries, each",
+              "such stablecoin bank will recognize that collateral sources with this \"stable\" tag get",
+              "preferential weights. When a new stablecoin is added that is considered riskier, it may get",
+              "a new, less favorable emode tag, and eventually get upgraded to the same one as the other",
+              "stables",
+              "",
+              "* 0 is in an invalid tag and will do nothing."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "pad0",
+            "type": {
+              "array": ["u8", 6]
+            }
+          },
+          {
+            "name": "timestamp",
+            "docs": ["Unix timestamp from the system clock when emode state was last updated"],
+            "type": "i64"
+          },
+          {
+            "name": "flags",
+            "docs": [
+              "EMODE_ON (1) - If set, at least one entry is configured",
+              "2, 4, 8, etc, Reserved for future use"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "emode_config",
+            "type": {
+              "defined": {
+                "name": "EmodeConfig"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
       "name": "FeeState",
       "docs": [
         "Unique per-program. The Program Owner uses this account to administrate fees collected by the protocol"
@@ -3386,9 +3549,7 @@
         "fields": [
           {
             "name": "key",
-            "docs": [
-              "The fee state's own key. A PDA derived from just `b\"feestate\"`"
-            ],
+            "docs": ["The fee state's own key. A PDA derived from just `b\"feestate\"`"],
             "type": "pubkey"
           },
           {
@@ -3410,10 +3571,7 @@
           },
           {
             "name": "bank_init_flat_sol_fee",
-            "docs": [
-              "Flat fee assessed when a new bank is initialized, in lamports.",
-              "* In SOL, in native decimals."
-            ],
+            "docs": ["Flat fee assessed when a new bank is initialized, in lamports.", "* In SOL, in native decimals."],
             "type": "u32"
           },
           {
@@ -3519,7 +3677,9 @@
       "docs": [
         "A read-only cache of the internal risk engine's information. Only valid in borrow/withdraw if",
         "the tx does not fail. To see the state in any context, e.g. to figure out if the risk engine is",
-        "failing due to some bad price information, use `pulse_health`."
+        "failing due to some bad price information, use `pulse_health`.",
+        "",
+        "Note:"
       ],
       "repr": {
         "kind": "c"
@@ -3529,6 +3689,12 @@
         "fields": [
           {
             "name": "asset_value",
+            "docs": [
+              "Internal risk engine asset value, using initial weight (e.g. what is used for borrowing",
+              "purposes), with all confidence adjustments, and other discounts on price.",
+              "* Uses EMA price",
+              "* In dollars"
+            ],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -3537,6 +3703,72 @@
           },
           {
             "name": "liability_value",
+            "docs": [
+              "Internal risk engine liability value, using initial weight (e.g. what is used for borrowing",
+              "purposes), with all confidence adjustments, and other discounts on price.",
+              "* Uses EMA price",
+              "* In dollars"
+            ],
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "asset_value_maint",
+            "docs": [
+              "Internal risk engine asset value, using maintenance weight (e.g. what is used for",
+              "liquidation purposes), with all confidence adjustments.",
+              "* Zero if the risk engine failed to load",
+              "* Uses SPOT price",
+              "* In dollars"
+            ],
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "liability_value_maint",
+            "docs": [
+              "Internal risk engine liability value, using maintenance weight (e.g. what is used for",
+              "liquidation purposes), with all confidence adjustments.",
+              "* Zero if the risk engine failed to load",
+              "* Uses SPOT price",
+              "* In dollars"
+            ],
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "asset_value_equity",
+            "docs": [
+              "The \"true\" value of assets without any confidence or weight adjustments. Internally, used",
+              "only for bankruptcies.",
+              "* Zero if the risk engine failed to load",
+              "* Uses EMA price",
+              "* In dollars"
+            ],
+            "type": {
+              "defined": {
+                "name": "WrappedI80F48"
+              }
+            }
+          },
+          {
+            "name": "liability_value_equity",
+            "docs": [
+              "The \"true\" value of liabilities without any confidence or weight adjustments.",
+              "Internally, used only for bankruptcies.",
+              "* Zero if the risk engine failed to load",
+              "* Uses EMA price",
+              "* In dollars"
+            ],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -3545,42 +3777,116 @@
           },
           {
             "name": "timestamp",
-            "docs": [
-              "Unix timestamp from the system clock when this cache was last updated"
-            ],
+            "docs": ["Unix timestamp from the system clock when this cache was last updated"],
             "type": "i64"
           },
           {
             "name": "flags",
             "docs": [
-              "The flags that indicate the state of the health cache This is u64 bitfield, where each bit",
-              "represents a flag.",
+              "The flags that indicate the state of the health cache. This is a u64 bitfield, where each",
+              "bit represents a flag.",
               "",
               "* HEALTHY = 1 - If set, the account cannot be liquidated. If 0, the account is unhealthy and",
               "can be liquidated.",
               "* ENGINE STATUS = 2 - If set, the engine did not error during the last health pulse. If 0,",
-              "the engine would have errored and this cache is likely invalid.",
-              "* 4, 8, 16, 32, 64, 128, etc - reserved for future use"
+              "the engine would have errored and this cache is likely invalid. `RiskEngineInitRejected`",
+              "is ignored and will allow the flag to be set anyways.",
+              "* ORACLE OK = 4 - If set, the engine did not error due to an oracle issue. If 0, engine was",
+              "passed a bad bank or oracle account, or an oracle was stale. Check the order in which",
+              "accounts were passed and ensure each balance has the correct banks/oracles, and that",
+              "oracle cranks ran recently enough. Check `internal_err` and `err_index` for more details",
+              "in some circumstances. Invalid if generated after borrow/withdraw (these instructions will",
+              "ignore oracle issues if health is still satisfactory with some balance zeroed out).",
+              "* 8, 16, 32, 64, 128, etc - reserved for future use"
             ],
-            "type": "u64"
+            "type": "u32"
+          },
+          {
+            "name": "mrgn_err",
+            "docs": [
+              "If the engine errored, look here for the error code. If the engine returns ok, you may also",
+              "check here to see if the risk engine rejected this tx (3009)."
+            ],
+            "type": "u32"
           },
           {
             "name": "prices",
             "docs": [
               "Each price corresponds to that index of Balances in the LendingAccount. Useful for debugging",
               "or liquidator consumption, to determine how a user's position is priced internally.",
-              "* If a price overflows u64, shows u64::MAX",
-              "* If a price is negative for some reason (as several oracles support), pulse will panic"
+              "* An f64 stored as bytes"
             ],
             "type": {
               "array": [
                 {
-                  "defined": {
-                    "name": "WrappedI80F48"
-                  }
+                  "array": ["u8", 8]
                 },
                 16
               ]
+            }
+          },
+          {
+            "name": "internal_err",
+            "docs": [
+              "Errors in asset oracles are ignored (with prices treated as zero). If you see a zero price",
+              "and the `ORACLE_OK` flag is not set, check here to see what error was ignored internally."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "err_index",
+            "docs": ["Index in `balances` where `internal_err` appeared"],
+            "type": "u8"
+          },
+          {
+            "name": "program_version",
+            "docs": ["Since 0.1.3, the version will be encoded here. See PROGRAM_VERSION."],
+            "type": "u8"
+          },
+          {
+            "name": "pad0",
+            "type": {
+              "array": ["u8", 2]
+            }
+          },
+          {
+            "name": "internal_liq_err",
+            "type": "u32"
+          },
+          {
+            "name": "internal_bankruptcy_err",
+            "type": "u32"
+          },
+          {
+            "name": "reserved0",
+            "type": {
+              "array": ["u8", 32]
+            }
+          },
+          {
+            "name": "reserved1",
+            "type": {
+              "array": ["u8", 16]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "HealthPulseEvent",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "account",
+            "type": "pubkey"
+          },
+          {
+            "name": "health_cache",
+            "type": {
+              "defined": {
+                "name": "HealthCache"
+              }
             }
           }
         ]
@@ -3620,9 +3926,7 @@
           },
           {
             "name": "insurance_fee_fixed_apr",
-            "docs": [
-              "Goes to insurance, funds `collected_insurance_fees_outstanding`"
-            ],
+            "docs": ["Goes to insurance, funds `collected_insurance_fees_outstanding`"],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -3631,9 +3935,7 @@
           },
           {
             "name": "insurance_ir_fee",
-            "docs": [
-              "Goes to insurance, funds `collected_insurance_fees_outstanding`"
-            ],
+            "docs": ["Goes to insurance, funds `collected_insurance_fees_outstanding`"],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -3642,9 +3944,7 @@
           },
           {
             "name": "protocol_fixed_fee_apr",
-            "docs": [
-              "Earned by the group, goes to `collected_group_fees_outstanding`"
-            ],
+            "docs": ["Earned by the group, goes to `collected_group_fees_outstanding`"],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -3653,9 +3953,7 @@
           },
           {
             "name": "protocol_ir_fee",
-            "docs": [
-              "Earned by the group, goes to `collected_group_fees_outstanding`"
-            ],
+            "docs": ["Earned by the group, goes to `collected_group_fees_outstanding`"],
             "type": {
               "defined": {
                 "name": "WrappedI80F48"
@@ -4453,9 +4751,7 @@
           },
           {
             "name": "fee_state_cache",
-            "docs": [
-              "Caches information from the global `FeeState` so the FeeState can be omitted on certain ixes"
-            ],
+            "docs": ["Caches information from the global `FeeState` so the FeeState can be omitted on certain ixes"],
             "type": {
               "defined": {
                 "name": "FeeStateCache"
@@ -4473,13 +4769,22 @@
             }
           },
           {
+            "name": "emode_admin",
+            "docs": [
+              "This admin can configure collateral ratios above (but not below) the collateral ratio of",
+              "certain banks , e.g. allow SOL to count as 90% collateral when borrowing an LST instead of",
+              "the default rate."
+            ],
+            "type": "pubkey"
+          },
+          {
             "name": "_padding_0",
             "type": {
               "array": [
                 {
                   "array": ["u64", 2]
                 },
-                26
+                24
               ]
             }
           },
@@ -4609,9 +4914,7 @@
         "fields": [
           {
             "name": "key",
-            "docs": [
-              "This account's own key. A PDA derived from `marginfi_group` and `STAKED_SETTINGS_SEED`"
-            ],
+            "docs": ["This account's own key. A PDA derived from `marginfi_group` and `STAKED_SETTINGS_SEED`"],
             "type": "pubkey"
           },
           {

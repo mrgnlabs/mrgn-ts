@@ -3,6 +3,7 @@ import BigNumber from "bignumber.js";
 
 import {
   computeMaxLeverage,
+  EmodeImpact,
   MarginfiAccountWrapper,
   MarginfiClient,
   SimulationResult,
@@ -35,6 +36,7 @@ type LoopSimulationProps = {
   actionTxns: LoopActionTxns;
   simulationResult: SimulationResult | null;
   jupiterOptions: JupiterOptions | null;
+  emodeImpact: EmodeImpact | null;
   actionMessages: ActionMessageType[];
 
   setSimulationResult: (simulationResult: SimulationResult | null) => void;
@@ -55,6 +57,7 @@ export function useLoopSimulation({
   actionTxns,
   simulationResult,
   jupiterOptions,
+  emodeImpact,
   actionMessages,
   setSimulationResult,
   setActionTxns,
@@ -170,7 +173,7 @@ export function useLoopSimulation({
         const simulationResult = await getSimulationResult({
           txns: loopActionTxns.actionTxns.transactions,
           account: selectedAccount,
-          bank: selectedBank,
+          banks: [selectedBank, selectedSecondaryBank],
         });
 
         setActionTxns(loopActionTxns.actionTxns);
@@ -233,7 +236,11 @@ export function useLoopSimulation({
   // Fetch max repayable collateral and max leverage based when the secondary bank changes
   const fetchMaxLeverage = React.useCallback(async () => {
     if (selectedBank && selectedSecondaryBank) {
-      const { maxLeverage, ltv } = computeMaxLeverage(selectedBank.info.rawBank, selectedSecondaryBank.info.rawBank);
+      const { maxLeverage, ltv } = computeMaxLeverage(selectedBank.info.rawBank, selectedSecondaryBank.info.rawBank, {
+        assetWeightInit: emodeImpact?.activePair?.assetWeightInit
+          ? BigNumber.max(emodeImpact.activePair.assetWeightInit, selectedBank.info.rawBank.config.assetWeightInit)
+          : undefined,
+      });
 
       if (!maxLeverage) {
         const errorMessage = DYNAMIC_SIMULATION_ERRORS.REPAY_COLLAT_FAILED_CHECK(
@@ -244,7 +251,7 @@ export function useLoopSimulation({
         setMaxLeverage(maxLeverage);
       }
     }
-  }, [selectedBank, selectedSecondaryBank, setErrorMessage, setMaxLeverage]);
+  }, [selectedBank, emodeImpact, selectedSecondaryBank, setErrorMessage, setMaxLeverage]);
 
   React.useEffect(() => {
     if (!selectedSecondaryBank) {

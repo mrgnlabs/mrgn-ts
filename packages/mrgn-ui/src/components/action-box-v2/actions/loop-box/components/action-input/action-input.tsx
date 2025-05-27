@@ -1,4 +1,5 @@
 import React from "react";
+import { PublicKey } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, formatAmount, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
@@ -23,6 +24,8 @@ type ActionInputProps = {
 
   isDialog?: boolean;
   isMini?: boolean;
+  isEmodeLoop?: boolean;
+  highlightedEmodeBanks?: PublicKey[];
 
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
@@ -39,7 +42,9 @@ export const ActionInput = ({
   isLoading,
   selectedBank,
   selectedSecondaryBank,
+  highlightedEmodeBanks = [],
   actionTxns,
+  isEmodeLoop,
   setAmountRaw,
   setSelectedBank,
   setSelectedSecondaryBank,
@@ -73,10 +78,15 @@ export const ActionInput = ({
   );
 
   return (
-    <div className="space-y-2">
-      <div className={cn("space-y-2 ")}>
+    <div className="space-y-4">
+      <div className="space-y-2">
         <p className="text-sm font-normal text-muted-foreground">You supply</p>
-        <div className="bg-background rounded-lg p-2.5 mb-6">
+        <div
+          className={cn(
+            "bg-background rounded-lg p-2.5 mb-6",
+            isEmodeLoop && "bg-purple-900/15 border border-mfi-emode/20"
+          )}
+        >
           <div className="flex justify-center gap-1 items-center font-medium text-3xl">
             <div className="w-full flex-auto max-w-[162px]">
               <BankSelect
@@ -86,6 +96,7 @@ export const ActionInput = ({
                 banks={banks}
                 nativeSolBalance={nativeSolBalance}
                 setTokenBank={(bank) => setSelectedBank(bank)}
+                emodeConfig={{ highlightedEmodeBanks, highlightAll: true }}
               />
             </div>
             <div className="flex-auto flex flex-col gap-0 items-end">
@@ -119,7 +130,12 @@ export const ActionInput = ({
       </div>
       <div className={cn("space-y-2", !selectedBank && "pointer-events-none opacity-75")}>
         <p className="text-sm font-normal text-muted-foreground">You borrow</p>
-        <div className="bg-background rounded-lg p-2.5 mb-6">
+        <div
+          className={cn(
+            "bg-background rounded-lg p-2.5 mb-6",
+            isEmodeLoop && selectedSecondaryBank && "bg-purple-900/15 border border-mfi-emode/20"
+          )}
+        >
           <div className="flex gap-1 items-center font-medium text-3xl">
             <div className={cn("w-full flex-auto max-w-[162px]", !selectedBank && "opacity-60")}>
               <BankSelect
@@ -129,6 +145,7 @@ export const ActionInput = ({
                 banks={banks}
                 nativeSolBalance={nativeSolBalance}
                 setTokenBank={(bank) => setSelectedSecondaryBank(bank)}
+                emodeConfig={{ highlightedEmodeBanks, highlightAll: false }}
               />
             </div>
             <div className="flex-auto flex flex-col gap-0 items-end">

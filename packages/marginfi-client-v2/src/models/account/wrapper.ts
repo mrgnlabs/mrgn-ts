@@ -65,9 +65,12 @@ import {
   makeUnwrapSolIx,
   computeLoopingParams,
   makeWrapSolIxs,
+  MarginfiAccountRaw,
+  EmodeTag,
+  createHealthPulseIx,
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
-import { MarginfiAccount, MarginRequirementType, MarginfiAccountRaw } from "./pure";
+import { MarginfiAccount, MarginRequirementType } from "./pure";
 import { Bank } from "../bank";
 import { Balance } from "../balance";
 import {
@@ -265,7 +268,13 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.computeAccountValue(this.client.banks, this.client.oraclePrices);
   }
 
-  public computeMaxBorrowForBank(bankAddress: PublicKey, opts?: { volatilityFactor?: number }): BigNumber {
+  public computeMaxBorrowForBank(
+    bankAddress: PublicKey,
+    opts?: {
+      volatilityFactor?: number;
+      emodeWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber; collateralTag: EmodeTag };
+    }
+  ): BigNumber {
     return this._marginfiAccount.computeMaxBorrowForBank(
       this.client.banks,
       this.client.oraclePrices,
@@ -1103,13 +1112,44 @@ class MarginfiAccountWrapper {
    */
   async simulateBorrowLendTransaction(
     txs: (VersionedTransaction | Transaction)[],
-    banksToInspect: PublicKey[]
+    banksToInspect: PublicKey[],
+    healthSimOptions?: {
+      enabled: boolean;
+      mandatoryBanks: PublicKey[];
+      excludedBanks: PublicKey[];
+    }
   ): Promise<SimulationResult> {
-    const [mfiAccountData, ...bankData] = await this.client.simulateTransactions(txs, [
-      this.address,
-      ...banksToInspect,
-    ]);
-    if (!mfiAccountData || !bankData) throw new Error("Failed to simulate");
+    const additionalTxs: VersionedTransaction[] = [];
+
+    if (healthSimOptions?.enabled) {
+      const updateFeedIx = await this.makeUpdateFeedIx(healthSimOptions.mandatoryBanks);
+      const healthPulseIx = await this.makeHealthPulseIx(
+        healthSimOptions.mandatoryBanks,
+        healthSimOptions.excludedBanks
+      );
+
+      const blockhash = (await this.client.provider.connection.getLatestBlockhash("confirmed")).blockhash;
+
+      const tx = new VersionedTransaction(
+        new TransactionMessage({
+          instructions: [...updateFeedIx.instructions, healthPulseIx],
+          payerKey: this.client.provider.publicKey,
+          recentBlockhash: blockhash,
+        }).compileToV0Message([...this.client.addressLookupTables, ...updateFeedIx.luts])
+      );
+
+      additionalTxs.push(tx);
+    }
+
+    const [mfiAccountData, ...bankData] = await this.client.simulateTransactions(
+      [...txs, ...additionalTxs],
+      [this.address, ...banksToInspect]
+    );
+
+    if (!mfiAccountData) throw new Error("Failed to simulate");
+    const mfiAccount = MarginfiAccount.decode(mfiAccountData, this._program.idl);
+    console.log("simulated account", mfiAccount);
+    if (!bankData) throw new Error("Failed to simulate");
     const previewBanks = this.client.banks;
 
     banksToInspect.forEach((bankAddress, idx) => {
@@ -1918,23 +1958,38 @@ class MarginfiAccountWrapper {
     }
   }
 
+  async makeHealthPulseIx(mandatoryBanks: PublicKey[] = [], excludedBanks: PublicKey[] = []) {
+    const blockhash = await this._program.provider.connection.getLatestBlockhash("confirmed");
+
+    // Get active banks excluding the excluded ones
+    const activeBanks = this.activeBalances
+      .map((b) => this.client.banks.get(b.bankPk.toBase58()))
+      .filter((bank): bank is NonNullable<typeof bank> => !!bank)
+      .filter((b) => !excludedBanks.some((pk) => pk.equals(b.address)));
+
+    // Get mandatory banks that aren't already in active banks
+    const mandatoryBankObjs = mandatoryBanks
+      .map((bankPk) => this.client.banks.get(bankPk.toBase58()))
+      .filter((bank): bank is NonNullable<typeof bank> => !!bank)
+      .filter((bank) => !activeBanks.some((activeBank) => activeBank.address.equals(bank.address)));
+
+    // Combine active banks with mandatory banks
+    const allBanks = [...activeBanks, ...mandatoryBankObjs];
+
+    console.log("allBanks", allBanks);
+
+    return createHealthPulseIx({
+      activeBanks: allBanks,
+      marginfiAccount: this.address,
+      feePayer: this.client.provider.publicKey,
+      program: this._program,
+      blockhash: blockhash.blockhash,
+    });
+  }
+
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
-
-  getHealthCheckAccounts(
-    mandatoryBanks: Bank[] = [],
-    excludedBanks: Bank[] = [],
-    bankMetadataMap: BankMetadataMap,
-    authority: PublicKey
-  ): AccountMeta[] {
-    return this._marginfiAccount.getHealthCheckAccounts(
-      this.client.banks,
-      mandatoryBanks,
-      excludedBanks,
-      bankMetadataMap
-    );
-  }
 
   private static async _fetchAccountData(
     accountAddress: Address,

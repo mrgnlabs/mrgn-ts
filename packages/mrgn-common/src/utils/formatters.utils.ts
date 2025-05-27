@@ -154,7 +154,7 @@ const percentFormatterMod = (
   });
 
   if (value === 0) {
-    return "0";
+    return "0%";
   } else {
     return percentFormatter.format(value);
   }
@@ -188,8 +188,8 @@ const tokenPriceFormatter = (price: number, style: "currency" | "decimal" = "cur
     reformatNum > 1
       ? { minFractionDigits: 2, maxFractionDigits: 2 }
       : reformatNum > 0.000001
-      ? { minFractionDigits: 2, maxFractionDigits: 7 }
-      : { minFractionDigits: 7, maxFractionDigits: 10 };
+        ? { minFractionDigits: 2, maxFractionDigits: 7 }
+        : { minFractionDigits: 7, maxFractionDigits: 10 };
 
   const formatter = new Intl.NumberFormat("en-US", {
     style: style,

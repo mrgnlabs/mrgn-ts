@@ -18,6 +18,7 @@ import {
   getConfig,
   freezeBankConfigIx,
   Bank,
+  makePoolAddBankIx,
 } from "@mrgnlabs/marginfi-client-v2";
 import { cn, getFeeAccount, createReferalTokenAccountIxs } from "@mrgnlabs/mrgn-utils";
 import { addTransactionMetadata, SolanaTransaction, TransactionType } from "@mrgnlabs/mrgn-common";
@@ -192,27 +193,23 @@ export const CreatePoolLoading = ({ poolData, setPoolData, setCreatePoolState }:
       const groupIxWrapped = await client.makeCreateMarginfiGroupIx(seeds.marginfiGroupSeed.publicKey);
 
       // create bank ix wrapper (quote)
-      const quoteBankIxWrapper = await client.group.makePoolAddBankIx(
+      const quoteBankIxWrapper = await makePoolAddBankIx(
         client.program,
+        seeds.marginfiGroupSeed.publicKey,
         seeds.stableBankSeed.publicKey,
+        wallet.publicKey,
         quoteMint,
-        updatedQuoteBankConfig,
-        {
-          admin: wallet.publicKey,
-          groupAddress: seeds.marginfiGroupSeed.publicKey,
-        }
+        updatedQuoteBankConfig
       );
 
       // create bank ix wrapper (token)
-      const tokenBankIxWrapper = await client.group.makePoolAddBankIx(
+      const tokenBankIxWrapper = await makePoolAddBankIx(
         client.program,
+        seeds.marginfiGroupSeed.publicKey,
         seeds.tokenBankSeed.publicKey,
+        wallet.publicKey,
         tokenMint,
-        updatedTokenBankConfig,
-        {
-          admin: wallet.publicKey,
-          groupAddress: seeds.marginfiGroupSeed.publicKey,
-        }
+        updatedTokenBankConfig
       );
 
       // add oracle to banks

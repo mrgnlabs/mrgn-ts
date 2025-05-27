@@ -1,6 +1,6 @@
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 
-import { ExtendedBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActionType, AccountSummary, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionMessageType, ActionProcessingError, handleSimulationError, isWholePosition } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
@@ -49,9 +49,22 @@ export function calculateSummary({
   } as ActionSummary;
 }
 
-export const getLendSimulationResult = async (props: SimulateActionProps) => {
+export const getLendSimulationResult = async (props: SimulateActionProps): Promise<SimulationResult> => {
   try {
-    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address]);
+    let mandatoryBanks: PublicKey[] = [props.bank.address];
+    let excludedBanks: PublicKey[] = [];
+
+    if (props.actionMode === ActionType.Withdraw && props.bank.isActive) {
+      const isWhole = isWholePosition(props.bank, props.amount);
+      mandatoryBanks = isWhole ? [] : mandatoryBanks;
+      excludedBanks = isWhole ? [props.bank.address] : [];
+    }
+
+    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address], {
+      enabled: true,
+      mandatoryBanks,
+      excludedBanks,
+    });
   } catch (error: any) {
     const actionString = getActionString(props.actionMode);
     const actionMethod = handleSimulationError(error, props.bank, false, actionString);
@@ -95,7 +108,10 @@ function calculateActionPreview(
 ): ActionPreview {
   const isLending = [ActionType.Deposit, ActionType.Withdraw].includes(actionMode);
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
-  const health = accountSummary.balance && accountSummary.healthFactor ? accountSummary.healthFactor : 1;
+  const health =
+    accountSummary.balance && accountSummary.healthFactor
+      ? accountSummary.healthFactor
+      : { riskEngineHealth: 1, computedHealth: 1 };
   const liquidationPrice =
     bank.isActive && bank.position.liquidationPrice && bank.position.liquidationPrice > 0.01
       ? bank.position.liquidationPrice

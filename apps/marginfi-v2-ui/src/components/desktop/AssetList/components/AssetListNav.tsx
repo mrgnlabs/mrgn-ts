@@ -3,8 +3,9 @@ import React from "react";
 import { IconFilter, IconSearch, IconX } from "@tabler/icons-react";
 
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
+import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useUiStore } from "~/store";
+import { useUiStore, useMrgnlendStore } from "~/store";
 import { TokenFilters } from "~/store/uiStore";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -13,6 +14,7 @@ import { Switch } from "~/components/ui/switch";
 import { Input } from "~/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
+import { IconEmode } from "~/components/ui/icons";
 
 const AssetListNav = () => {
   const [
@@ -34,6 +36,7 @@ const AssetListNav = () => {
     state.tokenFilter,
     state.setTokenFilter,
   ]);
+  const [userActiveEmodes, emodePairs] = useMrgnlendStore((state) => [state.userActiveEmodes, state.emodePairs]);
   const [isSearchExpanded, setIsSearchExpanded] = React.useState(assetListSearch.length > 0);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -69,6 +72,18 @@ const AssetListNav = () => {
           <ToggleGroupItem value="native_stake" aria-label="Toggle staked" className="relative">
             Native Stake
           </ToggleGroupItem>
+          {emodePairs.length > 0 && (
+            <ToggleGroupItem value="e_mode" aria-label="Toggle e-mode" className="relative gap-1 items-center pl-1.5">
+              <IconEmode size={24} className="text-mfi-emode" />
+              <span className="ml-0.5">e-mode</span>
+              <span
+                className={cn(
+                  "bg-gray-400 rounded-full h-2 w-2 ml-2",
+                  userActiveEmodes.length > 0 && "bg-mrgn-success"
+                )}
+              />
+            </ToggleGroupItem>
+          )}
         </ToggleGroup>
         <div className="flex items-center gap-3 ml-10">
           <Label
@@ -151,20 +166,22 @@ const AssetListNav = () => {
             />
           </div>
         </div>
-        <Select value={tokenFilter} onValueChange={setTokenFilter} disabled={poolFilter === PoolTypes.NATIVE_STAKE}>
-          <SelectTrigger className="md:w-[180px] shrink-0">
-            <div className="flex items-center gap-2">
-              <IconFilter size={18} />
-              <SelectValue defaultValue="all" placeholder="All tokens" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={TokenFilters.ALL}>All tokens</SelectItem>
-            <SelectItem value={TokenFilters.STABLE}>Stablecoins</SelectItem>
-            <SelectItem value={TokenFilters.LST}>SOL / LST</SelectItem>
-            <SelectItem value={TokenFilters.MEME}>Memes</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          <Select value={tokenFilter} onValueChange={setTokenFilter} disabled={poolFilter === PoolTypes.NATIVE_STAKE}>
+            <SelectTrigger className="md:w-[180px] shrink-0">
+              <div className="flex items-center gap-2">
+                <IconFilter size={18} />
+                <SelectValue defaultValue="all" placeholder="All tokens" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={TokenFilters.ALL}>All tokens</SelectItem>
+              <SelectItem value={TokenFilters.STABLE}>Stablecoins</SelectItem>
+              <SelectItem value={TokenFilters.LST}>SOL / LST</SelectItem>
+              <SelectItem value={TokenFilters.MEME}>Memes</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
   );

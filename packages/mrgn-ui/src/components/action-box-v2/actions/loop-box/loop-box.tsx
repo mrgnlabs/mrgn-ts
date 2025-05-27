@@ -8,8 +8,15 @@ import {
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
+  getEmodePairs,
 } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import {
+  ActionEmodeImpact,
+  computeEmodeImpacts,
+  EmodeImpactStatus,
+  MarginfiAccountWrapper,
+  MarginfiClient,
+} from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
   checkLoopActionAvailable,
@@ -34,6 +41,8 @@ import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
 import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
+import { IconEmode } from "~/components/ui/icons";
+import { PublicKey } from "@solana/web3.js";
 
 export type LoopBoxProps = {
   nativeSolBalance: number;
@@ -118,6 +127,91 @@ export const LoopBox = ({
     priorityFees: null,
     jupiterOptions: null,
   };
+  const emodePairs = React.useMemo(() => {
+    return getEmodePairs(allBanks?.map((bank) => bank.info.rawBank) ?? []);
+  }, [allBanks]);
+
+  const [emodeSupplyState, setEmodeSupplyState] = React.useState<{
+    supplyBank?: PublicKey;
+    emodeBorrowBanks: PublicKey[];
+    emodeImpactByBank: Record<string, ActionEmodeImpact>;
+  }>({
+    supplyBank: undefined,
+    emodeBorrowBanks: [],
+    emodeImpactByBank: {},
+  });
+
+  /**
+   * UseEffect to trigger to track emode state of selected bank
+   * In actionboxV3, this logic will be moved to a better place
+   */
+  React.useEffect(() => {
+    if (!emodePairs.length || !allBanks?.length) {
+      return;
+    }
+
+    if (!selectedBank) {
+      setEmodeSupplyState({
+        supplyBank: undefined,
+        emodeBorrowBanks: [],
+        emodeImpactByBank: {},
+      });
+      return;
+    }
+
+    if (!emodeSupplyState?.supplyBank || !selectedBank.address.equals(emodeSupplyState.supplyBank)) {
+      const activeLiabilities =
+        selectedAccount?.activeBalances.filter((b) => b.liabilityShares.gt(0)).map((b) => b.bankPk) ?? [];
+      // Build active collateral list, appending selectedBank.address only if it's not already present
+      const activeCollateralBase =
+        selectedAccount?.activeBalances.filter((b) => b.assetShares.gt(0)).map((b) => b.bankPk) ?? [];
+      const activeCollateral = activeCollateralBase.some((pk) => pk.equals(selectedBank.address))
+        ? activeCollateralBase
+        : [...activeCollateralBase, selectedBank.address];
+
+      const emodeImpact = computeEmodeImpacts(
+        emodePairs,
+        activeLiabilities,
+        activeCollateral,
+        allBanks.map((bank) => bank.address)
+      );
+
+      // Extract banks where borrowImpact results in one of the active EMODE statuses
+      const allowedBorrowBanks = Object.entries(emodeImpact)
+        .filter(([_, impact]) => {
+          const status = impact.borrowImpact?.status;
+          return (
+            status === EmodeImpactStatus.ActivateEmode ||
+            status === EmodeImpactStatus.ExtendEmode ||
+            status === EmodeImpactStatus.IncreaseEmode ||
+            status === EmodeImpactStatus.ReduceEmode
+          );
+        })
+        .map(([address]) => new PublicKey(address));
+
+      setEmodeSupplyState({
+        supplyBank: selectedBank.address,
+        emodeBorrowBanks: allowedBorrowBanks,
+        emodeImpactByBank: emodeImpact,
+      });
+    }
+  }, [selectedBank, selectedAccount, emodePairs, allBanks, emodeSupplyState.supplyBank]);
+
+  const emodeImpact = React.useMemo(() => {
+    if (!selectedBank || !selectedSecondaryBank) {
+      return null;
+    }
+
+    return emodeSupplyState?.emodeImpactByBank[selectedSecondaryBank.address.toBase58()]?.borrowImpact ?? null;
+  }, [selectedBank, selectedSecondaryBank, emodeSupplyState?.emodeImpactByBank]);
+
+  const isEmodeLoop = React.useMemo(() => {
+    if (!selectedSecondaryBank) {
+      return emodeSupplyState.emodeBorrowBanks.length > 0;
+    }
+
+    return !!emodeImpact?.activePair;
+  }, [selectedSecondaryBank, emodeImpact?.activePair, emodeSupplyState.emodeBorrowBanks.length]);
 
   const [simulationStatus, setSimulationStatus] = React.useState<{
     isLoading: boolean;
@@ -159,6 +253,7 @@ export const LoopBox = ({
       selectedSecondaryBank,
       actionQuote: actionTxns.actionQuote,
       banks: allBanks ?? [],
+      emodeImpact,
     });
   }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote, allBanks]);
 
@@ -173,6 +268,7 @@ export const LoopBox = ({
     actionTxns,
     simulationResult,
     jupiterOptions,
+    emodeImpact,
     setMaxLeverage,
     setSimulationResult,
     setActionTxns,
@@ -226,6 +322,7 @@ export const LoopBox = ({
       setQuoteActionMessage([]);
     }
   }, [actionTxns.actionQuote]);
+
   /*
   Cleaing additional action messages when the bank or amount changes. This is to prevent outdated errors from being displayed.
   */
@@ -338,7 +435,7 @@ export const LoopBox = ({
           </TooltipProvider>
         </div>
       )} */}
-      <div className="mb-6">
+      <div className="mb-4 border">
         <ActionInput
           banks={banks}
           nativeSolBalance={nativeSolBalance}
@@ -352,11 +449,20 @@ export const LoopBox = ({
           setSelectedSecondaryBank={(bank) => {
             setSelectedSecondaryBank(bank);
           }}
+          highlightedEmodeBanks={emodeSupplyState.emodeBorrowBanks}
           isLoading={simulationStatus.isLoading}
           walletAmount={walletAmount}
           actionTxns={actionTxns}
+          isEmodeLoop={isEmodeLoop}
         />
       </div>
+
+      {isEmodeLoop && selectedBank && (
+        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
+          <IconEmode size={14} className="text-mfi-emode" />
+          <p>e-mode looping active</p>
+        </div>
+      )}
 
       <div className="px-1 space-y-6 mb-4">
         <LeverageSlider
@@ -366,6 +472,7 @@ export const LoopBox = ({
           leverageAmount={leverage}
           maxLeverage={maxLeverage}
           setLeverageAmount={setLeverage}
+          isEmodeLoop={isEmodeLoop}
         />
 
         <ApyStat
@@ -384,7 +491,7 @@ export const LoopBox = ({
             actionMessage.description && (
               <div className="pb-6" key={idx}>
                 <ActionMessage
-                  _actionMessage={actionMessage}
+                  actionMessage={actionMessage}
                   retry={refreshSimulation}
                   isRetrying={simulationStatus.isLoading}
                 />

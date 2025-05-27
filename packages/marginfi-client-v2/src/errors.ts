@@ -1,6 +1,6 @@
 import { LangErrorMessage } from "@coral-xyz/anchor";
 import { JUPITER_V6_PROGRAM, SolanaTransaction, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
-import { MARGINFI_IDL_V0_1_2 } from "./idl";
+import { MARGINFI_IDL } from "./idl";
 import { PublicKey } from "@solana/web3.js";
 
 export enum ProcessTransactionErrorType {
@@ -63,9 +63,7 @@ export interface ProgramErrorWithDescription extends ProgramError {
   description: string;
 }
 
-const MFI_ERROR_CODE_MAP: Map<number, string> = new Map(
-  MARGINFI_IDL_V0_1_2.errors.map((error) => [error.code, error.msg])
-);
+const MFI_ERROR_CODE_MAP: Map<number, string> = new Map(MARGINFI_IDL.errors.map((error) => [error.code, error.msg]));
 
 export function parseTransactionError(error: any, mfiProgramId: PublicKey) {
   const logs = error?.logs;

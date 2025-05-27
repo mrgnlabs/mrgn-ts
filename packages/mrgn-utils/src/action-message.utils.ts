@@ -15,7 +15,7 @@ import {
   ArenaGroupStatus,
 } from ".";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { EmodeImpact, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { QuoteResponse } from "@jup-ag/api";
 import { WalletToken } from "@mrgnlabs/mrgn-common";
 
@@ -75,7 +75,7 @@ export function checkLendActionAvailable({
         if (lentChecks.length) checks.push(...lentChecks);
         break;
       case ActionType.Withdraw:
-        const withdrawChecks = canBeWithdrawn(selectedBank, marginfiAccount);
+        const withdrawChecks = canBeWithdrawn(selectedBank, marginfiAccount, amount);
         if (withdrawChecks.length) checks.push(...withdrawChecks);
         break;
       case ActionType.Borrow:
@@ -83,7 +83,7 @@ export function checkLendActionAvailable({
         if (borrowChecks.length) checks.push(...borrowChecks);
         break;
       case ActionType.Repay:
-        const repayChecks = canBeRepaid(selectedBank);
+        const repayChecks = canBeRepaid(selectedBank, undefined, amount);
         if (repayChecks) checks.push(...repayChecks);
         break;
     }
@@ -103,6 +103,7 @@ interface CheckLoopActionAvailableProps {
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
   actionQuote: QuoteResponse | null;
+  emodeImpact: EmodeImpact | null;
   banks?: ExtendedBankInfo[];
 }
 
@@ -113,6 +114,7 @@ export function checkLoopActionAvailable({
   selectedSecondaryBank,
   banks,
   actionQuote,
+  emodeImpact,
 }: CheckLoopActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
@@ -124,7 +126,7 @@ export function checkLoopActionAvailable({
 
   // alert checks
   if (selectedBank) {
-    const loopChecks = canBeLooped(selectedBank, selectedSecondaryBank, actionQuote, banks);
+    const loopChecks = canBeLooped(selectedBank, selectedSecondaryBank, emodeImpact, actionQuote, banks);
     if (loopChecks.length) checks.push(...loopChecks);
   }
 
@@ -158,7 +160,7 @@ export function checkRepayActionAvailable({
     selectedSecondaryBank &&
     selectedBank.address.toString().toLowerCase() === selectedSecondaryBank.address.toString().toLowerCase()
   ) {
-    repayChecks = canBeRepaid(selectedBank, true);
+    repayChecks = canBeRepaid(selectedBank, true, amount);
   } else if (selectedBank && selectedSecondaryBank) {
     repayChecks = canBeRepaidCollat(selectedBank, selectedSecondaryBank, actionQuote, maxOverflowHit);
   }
@@ -337,7 +339,7 @@ export function checkTradeActionAvailable({
   if (tradeSpecificChecks) checks.push(...tradeSpecificChecks);
 
   if (depositBank) {
-    const tradeChecks = canBeLooped(depositBank, borrowBank, actionQuote);
+    const tradeChecks = canBeLooped(depositBank, borrowBank, null, actionQuote);
     if (tradeChecks.length) checks.push(...tradeChecks);
   }
 

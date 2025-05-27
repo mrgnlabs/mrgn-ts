@@ -2,7 +2,7 @@ import { BN } from "@coral-xyz/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { TOKEN_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
-import { MarginfiAccountWrapper, MarginRequirementType, MintData } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient, MarginRequirementType, MintData } from "@mrgnlabs/marginfi-client-v2";
 
 import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, unpackAccount, nativeToUi } from "@mrgnlabs/mrgn-common";
 
@@ -37,7 +37,10 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: E
         .toNumber();
 
   return {
-    healthFactor,
+    healthFactor: {
+      riskEngineHealth: healthFactor,
+      computedHealth: healthFactor,
+    },
     balance: equityComponents.assets.minus(equityComponents.liabilities).toNumber(),
     lendingAmount: equityComponents.assets.toNumber(),
     borrowingAmount: equityComponents.liabilities.toNumber(),
@@ -197,6 +200,53 @@ async function fetchBirdeyePrices(mints: PublicKey[], apiKey?: string): Promise<
   throw new Error("Failed to fetch price");
 }
 
-// staked
+function createLocalStorageKey(authority: PublicKey): string {
+  return `marginfi_accounts-${authority.toString()}`;
+}
 
-export { fetchBirdeyePrices, fetchTokenAccounts, computeAccountSummary };
+async function getCachedMarginfiAccountsForAuthority(
+  authority: PublicKey,
+  client: MarginfiClient
+): Promise<MarginfiAccountWrapper[]> {
+  if (typeof window === "undefined") {
+    return client.getMarginfiAccountsForAuthority(authority);
+  }
+
+  const cacheKey = createLocalStorageKey(authority);
+  const cachedAccountsStr = window.localStorage.getItem(cacheKey);
+  let cachedAccounts: string[] = [];
+
+  if (cachedAccountsStr) {
+    cachedAccounts = JSON.parse(cachedAccountsStr);
+  }
+
+  if (cachedAccounts && cachedAccounts.length > 0) {
+    const accountAddresses: PublicKey[] = cachedAccounts.reduce((validAddresses: PublicKey[], address: string) => {
+      try {
+        const publicKey = new PublicKey(address);
+        validAddresses.push(publicKey);
+        return validAddresses;
+      } catch (error) {
+        console.warn(`Invalid public key: ${address}. Skipping.`);
+        return validAddresses;
+      }
+    }, []);
+
+    // Update local storage with valid addresses only
+    window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses.map((addr) => addr.toString())));
+    return client.getMultipleMarginfiAccounts(accountAddresses);
+  } else {
+    const accounts = await client.getMarginfiAccountsForAuthority(authority);
+    const accountAddresses = accounts.map((account) => account.address.toString());
+    window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses));
+    return accounts;
+  }
+}
+
+export {
+  fetchBirdeyePrices,
+  fetchTokenAccounts,
+  computeAccountSummary,
+  createLocalStorageKey,
+  getCachedMarginfiAccountsForAuthority,
+};

@@ -260,7 +260,7 @@ export const MovePositionDialog = ({
                 }`}
               >
                 <>
-                  {accountSummary?.healthFactor && percentFormatter.format(accountSummary?.healthFactor)}
+                  {accountSummary?.healthFactor && percentFormatter.format(accountSummary?.healthFactor.computedHealth)}
                   <IconArrowRight width={12} height={12} />
                   {percentFormatter.format(actionSummary.health)}
                 </>
@@ -272,7 +272,7 @@ export const MovePositionDialog = ({
           (actionMessage, idx) =>
             actionMessage.description && (
               <div key={idx}>
-                <ActionMessage _actionMessage={actionMessage} />
+                <ActionMessage actionMessage={actionMessage} />
               </div>
             )
         )}

@@ -1,5 +1,12 @@
-import { getPriceWithConfidence, OracleSetup, PriceBias, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, ExtendedBankMetadata, Emissions, StakePoolMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
+import {
+  getPriceWithConfidence,
+  OracleSetup,
+  PriceBias,
+  MarginRequirementType,
+  EmodeTag,
+  EmodePair,
+} from "@mrgnlabs/marginfi-client-v2";
+import { ExtendedBankInfo, Emissions, StakePoolMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
 import { aprToApy, nativeToUi, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { isBankOracleStale } from "./mrgnUtils";
@@ -12,6 +19,20 @@ export interface AssetData {
   name: string;
   image: string;
   stakePool?: StakePoolMetadata;
+  hasEmode: boolean;
+  emodeTag: string;
+  isInLendingMode?: boolean;
+  assetWeight: number;
+  originalAssetWeight: number;
+  emodeActive: boolean;
+  collateralBanks: {
+    collateralBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[];
+  liabilityBanks: {
+    liabilityBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[];
 }
 
 export interface RateData {
@@ -35,6 +56,17 @@ export interface AssetPriceData {
 
 export interface AssetWeightData {
   assetWeight: number;
+  originalAssetWeight?: number;
+  emodeActive?: boolean;
+  isInLendingMode?: boolean;
+  collateralBanks?: {
+    collateralBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[];
+  liabilityBanks?: {
+    liabilityBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[];
 }
 
 export interface DepositsData {
@@ -75,12 +107,36 @@ export interface PositionData {
   isUserPositionPoorHealth: boolean;
 }
 
-export const getAssetData = (asset: ExtendedBankMetadata): AssetData => ({
-  symbol: asset.tokenSymbol,
-  name: asset.tokenName,
-  image: asset.tokenLogoUri,
-  stakePool: asset.stakePool,
-});
+export const getAssetData = (
+  bank: ExtendedBankInfo,
+  isInLendingMode: boolean,
+  assetWeightInitOverride?: BigNumber,
+  collateralBanks?: {
+    collateralBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[],
+  liabilityBanks?: {
+    liabilityBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[]
+): AssetData => {
+  return {
+    symbol: bank.meta.tokenSymbol,
+    name: bank.meta.tokenName,
+    image: bank.meta.tokenLogoUri,
+    stakePool: bank.meta.stakePool,
+    hasEmode: bank.info.state.hasEmode,
+    emodeTag: bank.info.state.hasEmode ? EmodeTag[bank.info.rawBank.emode.emodeTag] : "",
+    isInLendingMode,
+    assetWeight: bank.info.rawBank
+      .getAssetWeight(MarginRequirementType.Initial, bank.info.oraclePrice, false, assetWeightInitOverride)
+      .toNumber(),
+    originalAssetWeight: bank.info.state.originalWeights.assetWeightInit.toNumber(),
+    emodeActive: bank.isActive && bank.position.emodeActive,
+    collateralBanks: collateralBanks ?? [],
+    liabilityBanks: liabilityBanks ?? [],
+  };
+};
 
 export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): RateData => {
   const { lendingRate, borrowingRate, emissionsRate, emissions } = bank.info.state;
@@ -150,19 +206,36 @@ export const getAssetPriceData = (bank: ExtendedBankInfo): AssetPriceData => {
   };
 };
 
-export const getAssetWeightData = (bank: ExtendedBankInfo, isInLendingMode: boolean): AssetWeightData => {
+export const getAssetWeightData = (
+  bank: ExtendedBankInfo,
+  isInLendingMode: boolean,
+  assetWeightInitOverride?: BigNumber,
+  collateralBanks?: {
+    collateralBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[],
+  liabilityBanks?: {
+    liabilityBank: ExtendedBankInfo;
+    emodePair: EmodePair;
+  }[]
+): AssetWeightData => {
   if (!bank?.info?.rawBank?.getAssetWeight) {
     return {
       assetWeight: 0,
+      isInLendingMode,
     };
   }
   const assetWeightInit = bank.info.rawBank
-    .getAssetWeight(MarginRequirementType.Initial, bank.info.oraclePrice)
+    .getAssetWeight(MarginRequirementType.Initial, bank.info.oraclePrice, false, assetWeightInitOverride)
     .toNumber();
+
+  const originalAssetWeight = bank.info.state.originalWeights.assetWeightInit.toNumber();
 
   if (assetWeightInit <= 0) {
     return {
       assetWeight: 0,
+      originalAssetWeight,
+      isInLendingMode,
     };
   }
 
@@ -170,6 +243,11 @@ export const getAssetWeightData = (bank: ExtendedBankInfo, isInLendingMode: bool
 
   return {
     assetWeight,
+    originalAssetWeight,
+    emodeActive: bank.isActive && bank.position.emodeActive,
+    collateralBanks: collateralBanks,
+    liabilityBanks: liabilityBanks,
+    isInLendingMode,
   };
 };
 

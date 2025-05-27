@@ -1,9 +1,9 @@
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { QuoteResponse } from "@jup-ag/api";
 
 import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
-import { ActionProcessingError, ActionTxns, handleSimulationError } from "@mrgnlabs/mrgn-utils";
+import { ActionProcessingError, ActionTxns, handleSimulationError, isWholePosition } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 
 import {
@@ -25,6 +25,8 @@ export interface SimulateRepayActionProps {
   txns: (VersionedTransaction | Transaction)[];
   account: MarginfiAccountWrapper;
   bank: ExtendedBankInfo;
+  secondaryBank: ExtendedBankInfo;
+  amount: number;
 }
 
 export function calculateSummary({
@@ -50,7 +52,31 @@ export function calculateSummary({
 
 export const getRepaySimulationResult = async (props: SimulateRepayActionProps) => {
   try {
-    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address]);
+    if (!props.bank.isActive) {
+      throw new ActionProcessingError({
+        isEnabled: false,
+        description: "Bank is not active",
+      });
+    }
+    let mandatoryBanks: PublicKey[] = [];
+    let excludedBanks: PublicKey[] = [];
+    const isWhole = isWholePosition(props.bank, props.amount);
+    let additionalBanks = [];
+
+    if (!props.bank.address.equals(props.secondaryBank.address)) {
+      additionalBanks.push(props.secondaryBank.address);
+    }
+
+    if (props.bank.isActive) {
+      mandatoryBanks = isWhole ? [] : [props.bank.address, ...additionalBanks];
+      excludedBanks = isWhole ? [props.bank.address] : [];
+    }
+
+    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address, ...additionalBanks], {
+      enabled: true,
+      mandatoryBanks,
+      excludedBanks,
+    });
   } catch (error: any) {
     const actionString = "Repaying Collateral";
     const actionMethod = handleSimulationError(error, props.bank, false, actionString);
@@ -69,7 +95,10 @@ function calculateActionPreview(
   actionQuote?: QuoteResponse | null
 ): ActionPreview {
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
-  const health = accountSummary.balance && accountSummary.healthFactor ? accountSummary.healthFactor : 1;
+  const health =
+    accountSummary.balance && accountSummary.healthFactor
+      ? accountSummary.healthFactor
+      : { riskEngineHealth: 1, computedHealth: 1 };
   const liquidationPrice =
     bank.isActive && bank.position.liquidationPrice && bank.position.liquidationPrice > 0.01
       ? bank.position.liquidationPrice

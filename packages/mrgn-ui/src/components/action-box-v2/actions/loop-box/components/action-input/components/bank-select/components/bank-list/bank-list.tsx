@@ -1,4 +1,5 @@
 import React from "react";
+import { PublicKey } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
@@ -16,6 +17,10 @@ type BankListProps = {
   nativeSolBalance: number;
   isOpen: boolean;
   actionMode: ActionType;
+  emodeConfig: {
+    highlightedEmodeBanks: PublicKey[];
+    highlightAll: boolean;
+  };
 
   onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: () => void;
@@ -25,6 +30,7 @@ export const BankList = ({
   selectedBank,
   otherBank,
   banks,
+  emodeConfig,
   nativeSolBalance,
   isOpen,
   actionMode,
@@ -112,6 +118,11 @@ export const BankList = ({
                   bank.info.state.mint.equals(WSOL_MINT) ? nativeSolBalance > 0 : bank.userInfo.tokenAccount.balance > 0
                 }
                 nativeSolBalance={nativeSolBalance}
+                highlightEmodeLabel={
+                  emodeConfig.highlightAll
+                    ? true
+                    : emodeConfig.highlightedEmodeBanks.some((bankAddress) => bankAddress.equals(bank.address))
+                }
               />
             </CommandItem>
           );

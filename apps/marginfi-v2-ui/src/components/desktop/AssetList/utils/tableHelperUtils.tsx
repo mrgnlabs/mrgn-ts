@@ -1,7 +1,7 @@
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, EmodePair } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
 import {
@@ -60,24 +60,33 @@ export const makeData = (
   connected: boolean,
   walletContextState: WalletContextStateOverride | WalletContextState,
   solPrice: number | null,
-  fetchMrgnlendState: () => void
+  fetchMrgnlendState: () => void,
+  collateralBanksByLiabilityBank?: Record<
+    string,
+    {
+      collateralBank: ExtendedBankInfo;
+      emodePair: EmodePair;
+    }[]
+  >,
+  liabilityBanksByCollateralBank?: Record<string, { liabilityBank: ExtendedBankInfo; emodePair: EmodePair }[]>
 ) => {
-  return data.map(
-    (bank) =>
-      ({
-        asset: getAssetData(bank.meta),
-        validator: bank.meta.stakePool?.validatorVoteAccount || "",
-        "validator-rate": bank.meta.stakePool?.validatorRewards || "",
-        price: getAssetPriceData(bank),
-        rate: getRateData(bank, isInLendingMode),
-        weight: getAssetWeightData(bank, isInLendingMode),
-        deposits: getDepositsData(bank, isInLendingMode),
-        bankCap: getBankCapData(bank, isInLendingMode),
-        utilization: getUtilizationData(bank),
-        position: getPositionData(bank, nativeSolBalance, isInLendingMode, solPrice),
-        action: getAction(bank, isInLendingMode, marginfiAccount, connected, walletContextState, fetchMrgnlendState),
-      }) as AssetListModel
-  );
+  return data.map((bank) => {
+    const collateralBanks = collateralBanksByLiabilityBank?.[bank.address.toBase58()] || [];
+    const liabilityBanks = liabilityBanksByCollateralBank?.[bank.address.toBase58()] || [];
+    return {
+      asset: getAssetData(bank, isInLendingMode, undefined, collateralBanks, liabilityBanks),
+      validator: bank.meta.stakePool?.validatorVoteAccount || "",
+      "validator-rate": bank.meta.stakePool?.validatorRewards || "",
+      price: getAssetPriceData(bank),
+      rate: getRateData(bank, isInLendingMode),
+      weight: getAssetWeightData(bank, isInLendingMode, undefined, collateralBanks, liabilityBanks),
+      deposits: getDepositsData(bank, isInLendingMode),
+      bankCap: getBankCapData(bank, isInLendingMode),
+      utilization: getUtilizationData(bank),
+      position: getPositionData(bank, nativeSolBalance, isInLendingMode, solPrice),
+      action: getAction(bank, isInLendingMode, marginfiAccount, connected, walletContextState, fetchMrgnlendState),
+    } as AssetListModel;
+  });
 };
 
 export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) => {

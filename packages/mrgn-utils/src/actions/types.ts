@@ -31,9 +31,12 @@ export enum YbxType {
 }
 
 export type ActionMessageUIType = "WARNING" | "ERROR" | "INFO";
+export type ActionMessageUISubType = "EMODE";
+
 export interface ActionMessageType {
   isEnabled: boolean;
   actionMethod?: ActionMessageUIType;
+  actionSubType?: ActionMessageUISubType;
   description?: string;
   link?: string;
   linkText?: string;

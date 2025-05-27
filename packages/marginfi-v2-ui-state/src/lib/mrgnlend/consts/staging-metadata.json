@@ -54,6 +54,11 @@
       "tokenAddress": "SOL11111111111111111111111111111111111111112",
       "tokenName": "SOL",
       "tokenSymbol": "SOL"
+    },
+    "3ZumPvYAJYBmEbXn9GdE4XSkdzF8qtXg5owG9EB8o4ty": {
+      "tokenAddress": "LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp",
+      "tokenName": "LST",
+      "tokenSymbol": "LST"
     }
   },
   "tokenMetadata": {
@@ -100,6 +105,10 @@
     "SOL": {
       "name": "Solana",
       "symbol": "SOL"
+    },
+    "LST": {
+      "name": "LST",
+      "symbol": "LST"
     }
   }
 }

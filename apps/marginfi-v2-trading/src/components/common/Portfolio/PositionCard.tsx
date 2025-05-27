@@ -46,9 +46,9 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
     if (accountSummary?.healthFactor) {
       let color: string;
 
-      if (accountSummary.healthFactor >= 0.5) {
+      if (accountSummary.healthFactor.computedHealth >= 0.5) {
         color = "#7ed3a4";
-      } else if (accountSummary.healthFactor >= 0.25) {
+      } else if (accountSummary.healthFactor.computedHealth >= 0.25) {
         color = "#ffba00";
       } else {
         color = "#f08f84";
@@ -168,7 +168,7 @@ export const PositionCard = ({ size = "lg", arenaPool }: PositionCardProps) => {
               color: healthColor,
             }}
           >
-            {accountSummary && percentFormatter.format(accountSummary.healthFactor)}
+            {accountSummary && percentFormatter.format(accountSummary.healthFactor.computedHealth)}
           </dd>
           {!process.env.NEXT_PUBLIC_HIDE_ARENA_FEATURES && (
             <>

@@ -1,7 +1,8 @@
-import { Bank, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
+import { Bank, EmodeTag, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import { PublicKey } from "@solana/web3.js";
 
 import { LendingPosition, UserInfo } from "./token.types";
+import BigNumber from "bignumber.js";
 
 interface StakePoolMetadata {
   validatorVoteAccount: PublicKey;
@@ -36,6 +37,8 @@ interface BankState {
   availableLiquidity: number;
   utilizationRate: number;
   isIsolated: boolean;
+  originalWeights: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber };
+  hasEmode: boolean;
 }
 
 interface BankInfo {

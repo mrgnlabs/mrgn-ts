@@ -817,10 +817,7 @@ class MarginfiClient {
     const dbg = require("debug")("mfi:client");
 
     const keypair = seed ?? Keypair.generate();
-    const bankIxs = await this.group.makePoolAddBankIx(this.program, keypair.publicKey, mint, bankConfig, {
-      admin,
-      groupAddress: group,
-    });
+    const bankIxs = await this.group.makePoolAddBankIx(this.program, keypair.publicKey, mint, bankConfig, admin);
 
     const signers = [...bankIxs.keys, keypair];
 
@@ -891,7 +888,7 @@ class MarginfiClient {
 
     const bankKeypair = seed ?? Keypair.generate();
 
-    const ixs = await this.group.makePoolAddBankIx(this.program, bankKeypair.publicKey, bankMint, bankConfig, {});
+    const ixs = await this.group.makePoolAddBankIx(this.program, bankKeypair.publicKey, bankMint, bankConfig);
     const signers = [...ixs.keys, bankKeypair];
     const tx = new Transaction().add(...ixs.instructions);
 

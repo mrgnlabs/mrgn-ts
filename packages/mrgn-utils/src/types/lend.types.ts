@@ -21,6 +21,7 @@ export enum PoolTypes {
   STABLE = "stable",
   LST = "lst",
   NATIVE_STAKE = "native_stake",
+  E_MODE = "e_mode",
 }
 
 export type QuoteResponseMeta = {

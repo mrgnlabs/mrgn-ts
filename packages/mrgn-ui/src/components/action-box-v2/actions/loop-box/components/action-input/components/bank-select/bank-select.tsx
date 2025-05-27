@@ -1,4 +1,5 @@
 import React from "react";
+import { PublicKey } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
@@ -13,6 +14,10 @@ interface BankSelectProps {
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   actionMode: ActionType;
+  emodeConfig: {
+    highlightedEmodeBanks: PublicKey[];
+    highlightAll: boolean;
+  };
 
   setTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
 }
@@ -23,6 +28,7 @@ export const BankSelect = ({
   banks,
   nativeSolBalance,
   actionMode,
+  emodeConfig,
   setTokenBank,
 }: BankSelectProps) => {
   // idea check list if banks[] == 1 make it unselectable
@@ -65,6 +71,7 @@ export const BankSelect = ({
               onSetSelectedBank={(bank) => setTokenBank(bank)}
               selectedBank={selectedBank}
               otherBank={otherBank}
+              emodeConfig={emodeConfig}
             />
           }
         />

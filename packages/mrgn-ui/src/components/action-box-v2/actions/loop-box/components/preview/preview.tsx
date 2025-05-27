@@ -42,8 +42,8 @@ export const Preview = ({ actionSummary, selectedBank, isLoading }: PreviewProps
                   (stat.color === "SUCCESS"
                     ? "text-success"
                     : stat.color === "ALERT"
-                    ? "text-alert-foreground"
-                    : "text-destructive-foreground")
+                      ? "text-alert-foreground"
+                      : "text-destructive-foreground")
               )}
             >
               <stat.value />
@@ -61,7 +61,9 @@ function generateLoopStats(summary: ActionSummary, bank: ExtendedBankInfo, isLoa
   if (summary.actionPreview.priceImpactPct) stats.push(getPriceImpactStat(summary.actionPreview.priceImpactPct));
   if (summary.actionPreview.slippageBps) stats.push(getSlippageStat(summary.actionPreview.slippageBps));
 
-  stats.push(getHealthStat(summary.actionPreview.health, false, summary.simulationPreview?.health));
+  stats.push(
+    getHealthStat(summary.actionPreview.health.computedHealth, false, summary.simulationPreview?.health.computedHealth)
+  );
 
   if (summary.simulationPreview?.liquidationPrice && bank.isActive)
     stats.push(getLiquidationStat(bank, false, summary.simulationPreview?.liquidationPrice));

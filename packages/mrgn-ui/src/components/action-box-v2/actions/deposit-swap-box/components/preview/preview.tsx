@@ -53,8 +53,8 @@ export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode, hide
                   (stat.color === "SUCCESS"
                     ? "text-success"
                     : stat.color === "ALERT"
-                    ? "text-alert-foreground"
-                    : "text-destructive-foreground")
+                      ? "text-alert-foreground"
+                      : "text-destructive-foreground")
               )}
             >
               <stat.value />
@@ -95,7 +95,13 @@ function generateLendingStats(
   }
 
   if (!hidePoolStats?.includes("health")) {
-    stats.push(getHealthStat(summary.actionPreview.health, false, summary.simulationPreview?.health));
+    stats.push(
+      getHealthStat(
+        summary.actionPreview.health.computedHealth,
+        false,
+        summary.simulationPreview?.health.computedHealth
+      )
+    );
   }
 
   if (summary.actionPreview.bankCap && !hidePoolStats?.includes("size")) {

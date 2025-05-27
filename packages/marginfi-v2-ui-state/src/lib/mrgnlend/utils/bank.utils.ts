@@ -8,8 +8,28 @@ import {
   RiskTier,
   MarginfiAccountWrapper,
   MarginRequirementType,
+  EmodeTag,
+  MarginfiConfig,
+  AssetTag,
+  MarginfiAccount,
+  EmodePair,
+  ActionEmodeImpact,
 } from "@mrgnlabs/marginfi-client-v2";
-import { nativeToUi, MintLayout, TokenMetadata, WSOL_MINT, floor, ceil, uiToNative } from "@mrgnlabs/mrgn-common";
+import {
+  nativeToUi,
+  MintLayout,
+  TokenMetadata,
+  WSOL_MINT,
+  floor,
+  ceil,
+  uiToNative,
+  loadBankMetadatas,
+  BankMetadataMap,
+  TokenMetadataMap,
+  loadTokenMetadatas,
+  BankMetadata,
+  loadStakedBankMetadatas,
+} from "@mrgnlabs/mrgn-common";
 
 import {
   TokenPrice,
@@ -29,10 +49,15 @@ import {
   StakePoolMetadata,
 } from "../types";
 import { fetchBirdeyePrices } from "./account.utils";
-import { VOLATILITY_FACTOR } from "../consts";
+import { stagingStaticBankMetadata, stagingStaticTokenMetadata, VOLATILITY_FACTOR } from "../consts";
 import { FEE_MARGIN } from "../../../constants";
 
-function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: TokenPrice): BankState {
+function makeBankInfo(
+  bank: Bank,
+  oraclePrice: OraclePrice,
+  emissionTokenData?: TokenPrice,
+  originalWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }
+): BankState {
   const { lendingRate, borrowingRate } = bank.computeInterestRates();
   const totalDeposits = nativeToUi(bank.getTotalAssetQuantity(), bank.mintDecimals);
   const totalBorrows = nativeToUi(bank.getTotalLiabilityQuantity(), bank.mintDecimals);
@@ -69,6 +94,11 @@ function makeBankInfo(bank: Bank, oraclePrice: OraclePrice, emissionTokenData?: 
     availableLiquidity: liquidity,
     utilizationRate,
     isIsolated: bank.config.riskTier === RiskTier.Isolated,
+    originalWeights: originalWeights ?? {
+      assetWeightMaint: bank.config.assetWeightMaint,
+      assetWeightInit: bank.config.assetWeightInit,
+    },
+    hasEmode: bank.emode.emodeTag !== EmodeTag.UNSET,
   };
 }
 
@@ -147,7 +177,7 @@ async function makeEmissionsPriceMap(
   const emissionsPrices = banksWithEmissions.map((bank, i) => ({
     mint: bank.emissionsMint,
     price: emissionTokenMap
-      ? emissionTokenMap[bank.emissionsMint.toBase58()]?.price ?? new BigNumber(0)
+      ? (emissionTokenMap[bank.emissionsMint.toBase58()]?.price ?? new BigNumber(0))
       : new BigNumber(0),
     decimals: mint[0].decimals,
   }));
@@ -179,7 +209,8 @@ function makeExtendedBankMetadata(
     tokenSymbol: tokenMetadata.symbol,
     tokenName: tokenMetadata.name,
     tokenLogoUri: overrideIcon
-      ? tokenMetadata.icon ?? "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png"
+      ? (tokenMetadata.icon ??
+        "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png")
       : `https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${bank.mint.toBase58()}.png`,
     stakePool: stakedAsset,
   };
@@ -192,7 +223,9 @@ function makeExtendedBankInfo(
   emissionTokenPrice?: TokenPrice,
   userData?: UserDataProps,
   overrideIcon?: boolean,
-  stakePoolMetadata?: StakePoolMetadata
+  stakePoolMetadata?: StakePoolMetadata,
+  originalWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber },
+  emodeImpactByBank?: Record<string, ActionEmodeImpact>
 ): ExtendedBankInfo {
   function isUserDataRawProps(userData: UserDataWrappedProps | UserDataRawProps): userData is UserDataRawProps {
     return (
@@ -202,7 +235,7 @@ function makeExtendedBankInfo(
 
   // Aggregate user-agnostic bank info
   const meta = makeExtendedBankMetadata(bank, tokenMetadata, overrideIcon, stakePoolMetadata);
-  const bankInfo = makeBankInfo(bank, oraclePrice, emissionTokenPrice);
+  const bankInfo = makeBankInfo(bank, oraclePrice, emissionTokenPrice, originalWeights);
   let state: BankInfo = {
     rawBank: bank,
     oraclePrice,
@@ -246,6 +279,10 @@ function makeExtendedBankInfo(
 
   let maxDeposit = floor(Math.max(0, Math.min(walletBalance, depositCapacity)), bankInfo.mintDecimals);
 
+  const availableEmodePair = emodeImpactByBank?.[bank.address.toBase58()];
+
+  const borrowImpact = availableEmodePair?.borrowImpact;
+
   let maxBorrow = 0;
   if (userData.marginfiAccount) {
     let borrowPower: number;
@@ -253,11 +290,27 @@ function makeExtendedBankInfo(
       borrowPower = userData.marginfiAccount
         .computeMaxBorrowForBank(userData.banks, userData.oraclePrices, bank.address, {
           volatilityFactor: VOLATILITY_FACTOR,
+          emodeWeights: borrowImpact?.activePair
+            ? {
+                assetWeightMaint: borrowImpact.activePair.assetWeightMaint,
+                assetWeightInit: borrowImpact.activePair.assetWeightInit,
+                collateralTag: borrowImpact.activePair.collateralBankTag,
+              }
+            : undefined,
         })
         .toNumber();
     } else {
       borrowPower = userData.marginfiAccount
-        .computeMaxBorrowForBank(bank.address, { volatilityFactor: VOLATILITY_FACTOR })
+        .computeMaxBorrowForBank(bank.address, {
+          volatilityFactor: VOLATILITY_FACTOR,
+          emodeWeights: borrowImpact?.activePair
+            ? {
+                assetWeightMaint: borrowImpact.activePair.assetWeightMaint,
+                assetWeightInit: borrowImpact.activePair.assetWeightInit,
+                collateralTag: borrowImpact.activePair.collateralBankTag,
+              }
+            : undefined,
+        })
         .toNumber();
     }
 
@@ -277,6 +330,7 @@ function makeExtendedBankInfo(
       maxRepay: 0,
       maxWithdraw: 0,
       maxBorrow,
+      emodeImpact: availableEmodePair,
     };
 
     return {
@@ -307,7 +361,14 @@ function makeExtendedBankInfo(
       marginfiAccount: userData.marginfiAccount,
     };
   }
-  const position = makeLendingPosition({ balance: positionRaw, bank, bankInfo, oraclePrice, ...props });
+  const position = makeLendingPosition({
+    balance: positionRaw,
+    bank,
+    bankInfo,
+    oraclePrice,
+    emodeActive: !!originalWeights,
+    ...props,
+  });
   let withdrawPower: number;
   if (isUserDataRawProps(userData)) {
     withdrawPower = userData.marginfiAccount
@@ -336,6 +397,7 @@ function makeExtendedBankInfo(
     maxRepay,
     maxWithdraw,
     maxBorrow,
+    emodeImpact: availableEmodePair,
   };
 
   return {
@@ -383,6 +445,268 @@ function makeLendingPosition(props: MakeLendingPositionProps): LendingPosition {
     liquidationPrice,
     isLending,
     isDust,
+    emodeActive: props.emodeActive,
+  };
+}
+function groupRawBankByEmodeTag(banks: Bank[]) {
+  const groupedBanks: Record<EmodeTag, Bank[]> = {} as Record<EmodeTag, Bank[]>;
+
+  for (const bank of banks) {
+    const emodeTag = bank.emode.emodeTag;
+
+    if (!groupedBanks[emodeTag]) {
+      groupedBanks[emodeTag] = [];
+    }
+
+    // Add the bank to its emodeTag group
+    groupedBanks[emodeTag].push(bank);
+  }
+
+  return groupedBanks;
+}
+
+function groupBanksByEmodeTag(banks: ExtendedBankInfo[]) {
+  const groupedBanks: Record<EmodeTag, ExtendedBankInfo[]> = {} as Record<EmodeTag, ExtendedBankInfo[]>;
+
+  for (const bank of banks) {
+    const emodeTag = bank.info.rawBank.emode.emodeTag;
+
+    if (!groupedBanks[emodeTag]) {
+      groupedBanks[emodeTag] = [];
+    }
+
+    // Add the bank to its emodeTag group
+    groupedBanks[emodeTag].push(bank);
+  }
+
+  return groupedBanks;
+}
+
+function groupLiabilityBanksByCollateralBank(banks: ExtendedBankInfo[], emodePairs: EmodePair[]) {
+  const bankMap = new Map<string, ExtendedBankInfo>();
+  banks.forEach((bank) => {
+    bankMap.set(bank.info.rawBank.address.toString(), bank);
+  });
+
+  const result: Record<string, { liabilityBank: ExtendedBankInfo; emodePair: EmodePair }[]> = {};
+
+  emodePairs.forEach((emodePair) => {
+    const liabilityBankKey = emodePair.liabilityBank.toString();
+
+    const liabilityBank = bankMap.get(liabilityBankKey);
+
+    if (!liabilityBank) {
+      console.error(`Liability bank ${liabilityBankKey} referenced in emode pair not found in banks array`);
+      return;
+    }
+
+    banks.forEach((potentialCollateralBank) => {
+      const bankRaw = potentialCollateralBank.info.rawBank;
+      const collateralBankKey = bankRaw.address.toString();
+
+      if (bankRaw.address.equals(emodePair.liabilityBank)) {
+        return;
+      }
+
+      if (potentialCollateralBank.info.state.hasEmode && bankRaw.emode.emodeTag === emodePair.collateralBankTag) {
+        if (!result[collateralBankKey]) {
+          result[collateralBankKey] = [];
+        }
+
+        result[collateralBankKey].push({
+          liabilityBank: liabilityBank,
+          emodePair,
+        });
+      }
+    });
+  });
+
+  return result;
+}
+
+function groupCollateralBanksByLiabilityBank(banks: ExtendedBankInfo[], emodePairs: EmodePair[]) {
+  // Create a map of bank PublicKey string to the ExtendedBankInfo
+  const bankMap = new Map<string, ExtendedBankInfo>();
+  banks.forEach((bank) => {
+    bankMap.set(bank.info.rawBank.address.toString(), bank);
+  });
+
+  const result: Record<string, { collateralBank: ExtendedBankInfo; emodePair: EmodePair }[]> = {};
+
+  emodePairs.forEach((emodePair) => {
+    const liabilityBankKey = emodePair.liabilityBank.toString();
+
+    banks.forEach((potentialCollateralBank) => {
+      const bankRaw = potentialCollateralBank.info.rawBank;
+      if (bankRaw.address.equals(emodePair.liabilityBank)) {
+        return;
+      }
+
+      if (potentialCollateralBank.info.state.hasEmode && bankRaw.emode.emodeTag === emodePair.collateralBankTag) {
+        if (!result[liabilityBankKey]) {
+          result[liabilityBankKey] = [];
+        }
+
+        result[liabilityBankKey].push({
+          collateralBank: potentialCollateralBank,
+          emodePair,
+        });
+      }
+    });
+
+    if (!bankMap.has(liabilityBankKey)) {
+      console.error(`Liability bank ${liabilityBankKey} referenced in emode pair not found in banks array`);
+    }
+  });
+
+  return result;
+}
+
+function getEmodePairs(banks: Bank[]) {
+  const emodePairs: EmodePair[] = [];
+
+  banks.forEach((bank) => {
+    const emodeTag = bank.emode.emodeTag;
+
+    if (emodeTag === EmodeTag.UNSET) {
+      return;
+    }
+
+    bank.emode.emodeEntries.forEach((emodeEntry) => {
+      emodePairs.push({
+        collateralBanks: banks
+          .filter((bank) => bank.emode.emodeTag === emodeEntry.collateralBankEmodeTag)
+          .map((bank) => bank.address),
+        collateralBankTag: emodeEntry.collateralBankEmodeTag,
+        liabilityBank: bank.address,
+        liabilityBankTag: emodeTag,
+        assetWeightMaint: emodeEntry.assetWeightMaint,
+        assetWeightInit: emodeEntry.assetWeightInit,
+      });
+    });
+  });
+
+  return emodePairs;
+}
+
+function adjustBankWeightsWithEmodePairs(
+  banks: Bank[],
+  emodePairs: EmodePair[]
+): {
+  adjustedBanks: Bank[];
+  originalWeights: Record<string, { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }>;
+} {
+  if (!emodePairs.length) return { adjustedBanks: banks, originalWeights: {} };
+
+  const originalWeights: Record<string, { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }> = {};
+
+  const lowestWeights: Map<string, { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }> = new Map();
+
+  // For each emode pair, find the collateral banks and track their lowest possible weights
+  emodePairs.forEach((emodePair) => {
+    emodePair.collateralBanks.forEach((collateralBankPk) => {
+      const bankPkStr = collateralBankPk.toString();
+
+      // If we haven't seen this bank yet, initialize with current emode pair weights
+      if (!lowestWeights.has(bankPkStr)) {
+        lowestWeights.set(bankPkStr, {
+          assetWeightMaint: emodePair.assetWeightMaint,
+          assetWeightInit: emodePair.assetWeightInit,
+        });
+      } else {
+        // If we've seen this bank before, use the lower weights
+        const currentLowest = lowestWeights.get(bankPkStr)!;
+        lowestWeights.set(bankPkStr, {
+          assetWeightMaint: BigNumber.min(currentLowest.assetWeightMaint, emodePair.assetWeightMaint),
+          assetWeightInit: BigNumber.min(currentLowest.assetWeightInit, emodePair.assetWeightInit),
+        });
+      }
+    });
+  });
+
+  // Make a copy of the banks array to avoid modifying the original array reference
+  // but keep the original Bank objects (with their methods intact)
+  const adjustedBanks = [...banks];
+
+  // Apply the lowest weights to each bank
+  for (const bank of adjustedBanks) {
+    const bankPkStr = bank.address.toString();
+    const lowestWeight = lowestWeights.get(bankPkStr);
+
+    if (lowestWeight) {
+      // Store original weights before modifying
+      originalWeights[bankPkStr] = {
+        assetWeightMaint: bank.config.assetWeightMaint,
+        assetWeightInit: bank.config.assetWeightInit,
+      };
+
+      // Apply new weights only if they're higher than current weights
+      if (lowestWeight.assetWeightMaint.gt(bank.config.assetWeightMaint)) {
+        // Use the emode weight directly since it's already a BigNumber
+        bank.config.assetWeightMaint = lowestWeight.assetWeightMaint;
+      }
+
+      if (lowestWeight.assetWeightInit.gt(bank.config.assetWeightInit)) {
+        // Use the emode weight directly since it's already a BigNumber
+        bank.config.assetWeightInit = lowestWeight.assetWeightInit;
+      }
+    }
+  }
+
+  return { adjustedBanks, originalWeights };
+}
+
+/*
+TODO: leverage env vars for all staging/production paths
+*/
+async function fetchStateMetaData(marginfiConfig: MarginfiConfig) {
+  let bankMetadataMap: { [address: string]: BankMetadata };
+  let tokenMetadataMap: { [symbol: string]: TokenMetadata };
+
+  if (marginfiConfig.environment === "production") {
+    let results = await Promise.all([
+      loadBankMetadatas(process.env.NEXT_PUBLIC_BANKS_MAP),
+      loadTokenMetadatas(process.env.NEXT_PUBLIC_TOKENS_MAP),
+    ]);
+    bankMetadataMap = results[0];
+    tokenMetadataMap = results[1];
+  } else if (marginfiConfig.environment === "staging") {
+    if (process.env.NEXT_PUBLIC_BANKS_MAP && process.env.NEXT_PUBLIC_TOKENS_MAP) {
+      let results = await Promise.all([
+        loadBankMetadatas(process.env.NEXT_PUBLIC_BANKS_MAP),
+        loadTokenMetadatas(process.env.NEXT_PUBLIC_TOKENS_MAP),
+      ]);
+      bankMetadataMap = results[0];
+      tokenMetadataMap = results[1];
+    } else {
+      bankMetadataMap = stagingStaticBankMetadata;
+      tokenMetadataMap = stagingStaticTokenMetadata;
+    }
+  } else {
+    throw new Error("Unknown environment");
+  }
+
+  // fetch staked asset metadata
+  const stakedAssetBankMetadataMap = await loadStakedBankMetadatas(
+    `${process.env.NEXT_PUBLIC_STAKING_BANKS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json"}?t=${new Date().getTime()}`
+  );
+  const stakedAssetTokenMetadataMap = await loadTokenMetadatas(
+    `${process.env.NEXT_PUBLIC_STAKING_TOKENS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json"}?t=${new Date().getTime()}`
+  );
+
+  // merge staked asset metadata with main group metadata
+  bankMetadataMap = {
+    ...bankMetadataMap,
+    ...stakedAssetBankMetadataMap,
+  };
+  tokenMetadataMap = {
+    ...tokenMetadataMap,
+    ...stakedAssetTokenMetadataMap,
+  };
+
+  return {
+    bankMetadataMap,
+    tokenMetadataMap,
   };
 }
 
@@ -393,4 +717,11 @@ export {
   makeLendingPosition,
   makeEmissionsPriceMap,
   makeExtendedBankEmission,
+  groupBanksByEmodeTag,
+  fetchStateMetaData,
+  getEmodePairs,
+  groupRawBankByEmodeTag,
+  adjustBankWeightsWithEmodePairs,
+  groupCollateralBanksByLiabilityBank,
+  groupLiabilityBanksByCollateralBank,
 };

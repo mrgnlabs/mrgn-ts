@@ -251,9 +251,3 @@ function u16ToArrayBufferLE(value: number): Uint8Array {
   // Return the buffer
   return new Uint8Array(buffer);
 }
-
-// Helper function to check if a program is using MarginfiIdl version 0.1.2
-export function isV0_1_2Program(program: MarginfiProgram): boolean {
-  if (!program || !program.idl || !program.idl.metadata) return false;
-  return program.idl.metadata.version === "0.1.2";
-}

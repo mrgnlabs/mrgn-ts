@@ -22,7 +22,7 @@ export interface CalculatePreviewProps {
 export interface SimulateActionProps {
   txns: (VersionedTransaction | Transaction)[];
   account: MarginfiAccountWrapper;
-  bank: ExtendedBankInfo;
+  banks: ExtendedBankInfo[];
 }
 
 export function calculateSummary({
@@ -47,10 +47,15 @@ export function calculateSummary({
 
 export const getSimulationResult = async (props: SimulateActionProps) => {
   try {
-    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address]);
+    const bankAddresses = props.banks.map((bank) => bank.address);
+    return await props.account.simulateBorrowLendTransaction(props.txns, bankAddresses, {
+      enabled: true,
+      mandatoryBanks: bankAddresses,
+      excludedBanks: [],
+    });
   } catch (error: any) {
     const actionString = "Looping";
-    const actionMethod = handleSimulationError(error, props.bank, false, actionString);
+    const actionMethod = handleSimulationError(error, props.banks[0], false, actionString);
     if (actionMethod) {
       throw new ActionProcessingError(actionMethod);
     } else {
@@ -65,7 +70,10 @@ function calculateActionPreview(
   actionTxns: LoopActionTxns
 ): ActionPreview {
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
-  const health = accountSummary.balance && accountSummary.healthFactor ? accountSummary.healthFactor : 1;
+  const health =
+    accountSummary.balance && accountSummary.healthFactor
+      ? accountSummary.healthFactor
+      : { riskEngineHealth: 1, computedHealth: 1 };
   const liquidationPrice =
     bank.isActive && bank.position.liquidationPrice && bank.position.liquidationPrice > 0.01
       ? bank.position.liquidationPrice

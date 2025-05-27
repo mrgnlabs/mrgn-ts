@@ -2,11 +2,12 @@ import React from "react";
 import Link from "next/link";
 
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
-import { IconExternalLink } from "@tabler/icons-react";
+import { IconExternalLink, IconInfoCircle, IconSearch } from "@tabler/icons-react";
 
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 import { STABLECOINS, LSTS, MEMES } from "~/config/constants";
@@ -15,18 +16,31 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./components";
+import { EmodeHeader, EmodeExplore } from "~/components/common/emode/components";
 import { Button } from "~/components/ui/button";
 import { TokenFilters } from "~/store/uiStore";
+import { IconEmode } from "~/components/ui/icons";
 
 export const AssetsList = () => {
-  const [extendedBankInfos, nativeSolBalance, selectedAccount, fetchMrgnlendState, stakedAssetBankInfos] =
-    useMrgnlendStore((state) => [
-      state.extendedBankInfos,
-      state.nativeSolBalance,
-      state.selectedAccount,
-      state.fetchMrgnlendState,
-      state.stakedAssetBankInfos,
-    ]);
+  const [
+    extendedBankInfos,
+    nativeSolBalance,
+    selectedAccount,
+    fetchMrgnlendState,
+    emodePairs,
+    groupedEmodeBanks,
+    collateralBanksByLiabilityBank,
+    liabilityBanksByCollateralBank,
+  ] = useMrgnlendStore((state) => [
+    state.extendedBankInfos,
+    state.nativeSolBalance,
+    state.selectedAccount,
+    state.fetchMrgnlendState,
+    state.emodePairs,
+    state.groupedEmodeBanks,
+    state.collateralBanksByLiabilityBank,
+    state.liabilityBanksByCollateralBank,
+  ]);
   const [poolFilter, isFilteredUserPositions, lendingMode, tokenFilter, setTokenFilter] = useUiStore((state) => [
     state.poolFilter,
     state.isFilteredUserPositions,
@@ -88,6 +102,10 @@ export const AssetsList = () => {
     return filterBanksByTokenType(banks);
   }, [isFilteredUserPositions, extendedBankInfos, filterBanksByTokenType]);
 
+  const emodeBanks = React.useMemo(() => {
+    return extendedBankInfos.filter((b) => b.info.state.hasEmode);
+  }, [extendedBankInfos]);
+
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
   const globalPoolTableData = React.useMemo(() => {
@@ -99,7 +117,9 @@ export const AssetsList = () => {
       connected,
       walletContextState,
       solPrice,
-      fetchMrgnlendState
+      fetchMrgnlendState,
+      collateralBanksByLiabilityBank,
+      liabilityBanksByCollateralBank
     );
   }, [
     connected,
@@ -110,6 +130,8 @@ export const AssetsList = () => {
     selectedAccount,
     solPrice,
     fetchMrgnlendState,
+    collateralBanksByLiabilityBank,
+    liabilityBanksByCollateralBank,
   ]);
 
   const isolatedPoolTableData = React.useMemo(() => {
@@ -121,7 +143,9 @@ export const AssetsList = () => {
       connected,
       walletContextState,
       solPrice,
-      fetchMrgnlendState
+      fetchMrgnlendState,
+      collateralBanksByLiabilityBank,
+      liabilityBanksByCollateralBank
     );
   }, [
     connected,
@@ -132,6 +156,8 @@ export const AssetsList = () => {
     selectedAccount,
     solPrice,
     fetchMrgnlendState,
+    collateralBanksByLiabilityBank,
+    liabilityBanksByCollateralBank,
   ]);
 
   const stakedPoolTableData = React.useMemo(() => {
@@ -156,26 +182,30 @@ export const AssetsList = () => {
     fetchMrgnlendState,
   ]);
 
-  const allStakedAssetsTableData = React.useMemo(() => {
+  const emodePoolTableData = React.useMemo(() => {
     return makeData(
-      stakedAssetBankInfos,
+      emodeBanks,
       isInLendingMode,
       nativeSolBalance,
       selectedAccount,
       connected,
       walletContextState,
       solPrice,
-      fetchMrgnlendState
+      fetchMrgnlendState,
+      collateralBanksByLiabilityBank,
+      liabilityBanksByCollateralBank
     );
   }, [
     connected,
     walletContextState,
-    stakedAssetBankInfos,
+    emodeBanks,
     isInLendingMode,
     nativeSolBalance,
     selectedAccount,
     solPrice,
     fetchMrgnlendState,
+    collateralBanksByLiabilityBank,
+    liabilityBanksByCollateralBank,
   ]);
 
   const tableColumns = React.useMemo(() => {
@@ -217,6 +247,25 @@ export const AssetsList = () => {
     },
     onSortingChange: setSorting,
   });
+
+  const eModeTable = useReactTable<AssetListModel>({
+    data: emodePoolTableData,
+    columns: tableColumns,
+    getRowCanExpand: () => true,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+  });
+
+  const emodeGroups = React.useMemo(() => {
+    const deduped = Array.from(new Set(emodePairs.map((pair) => EmodeTag[pair.collateralBankTag])));
+    return deduped
+      .map((group) => emodePairs.find((pair) => EmodeTag[pair.collateralBankTag] === group))
+      .filter((group) => group !== undefined);
+  }, [emodePairs]);
 
   React.useEffect(() => {
     if (poolFilter === PoolTypes.NATIVE_STAKE && tokenFilter !== TokenFilters.ALL) {
@@ -324,6 +373,34 @@ export const AssetsList = () => {
             </div>
           </div>
         </>
+      )}
+      {poolFilter === PoolTypes.E_MODE && emodePoolTableData.length > 0 && (
+        <div className="space-y-8 py-4">
+          <EmodeHeader emodeGroups={emodeGroups} />
+          <Table>
+            <TableHeader>
+              {eModeTable.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      style={{
+                        width: header.column.getSize(),
+                      }}
+                    >
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {eModeTable.getRowModel().rows.map((row) => {
+                return <AssetRow key={row.id} {...row} />;
+              })}
+            </TableBody>
+          </Table>
+        </div>
       )}
       <LSTDialog
         variant={lstDialogVariant}

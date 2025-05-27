@@ -38,8 +38,9 @@ interface BankRaw {
 
   flags: BN;
   emissionsRate: BN;
-  emissionsMint: PublicKey;
   emissionsRemaining: WrappedI80F48;
+  emissionsMint: PublicKey;
+  emode: EmodeSettingsRaw;
 }
 
 interface BankConfigRaw {
@@ -50,20 +51,18 @@ interface BankConfigRaw {
   liabilityWeightMaint: WrappedI80F48;
 
   depositLimit: BN;
-  borrowLimit: BN;
-  riskTier: RiskTierRaw;
-  totalAssetValueInitLimit: BN;
-  oracleMaxAge: number;
-  assetTag: number;
-
   interestRateConfig: InterestRateConfigRaw;
   operationalState: OperationalStateRaw;
 
   oracleSetup: OracleSetupRaw;
   oracleKeys: PublicKey[];
 
-  permissionlessBadDebtSettlement: boolean;
-  freezeSettings: boolean;
+  borrowLimit: BN;
+  riskTier: RiskTierRaw;
+  assetTag: number;
+
+  totalAssetValueInitLimit: BN;
+  oracleMaxAge: number;
 }
 
 interface BankConfigOptRaw {
@@ -123,6 +122,24 @@ type OracleSetupRaw =
 interface OracleConfigOptRaw {
   setup: OracleSetupRaw;
   keys: PublicKey[];
+}
+
+interface EmodeEntryRaw {
+  collateralBankEmodeTag: number;
+  flags: number;
+  assetWeightInit: WrappedI80F48;
+  assetWeightMaint: WrappedI80F48;
+}
+
+export interface EmodeSettingsRaw {
+  emodeTag: number;
+  timestamp: BN;
+  flags: BN;
+  emodeConfig: EmodeConfigRaw;
+}
+
+export interface EmodeConfigRaw {
+  entries: EmodeEntryRaw[];
 }
 
 export type {

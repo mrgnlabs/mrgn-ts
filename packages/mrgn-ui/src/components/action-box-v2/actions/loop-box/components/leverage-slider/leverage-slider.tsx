@@ -1,9 +1,5 @@
 import React from "react";
 
-import { MarginfiAccountWrapper, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
-
-import { ActionSummary } from "~/components/action-box-v2/utils";
-import { ActionProgressBar } from "~/components/action-box-v2/components";
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Slider } from "~/components/ui/slider";
@@ -14,6 +10,7 @@ type LeverageSliderProps = {
   amountRaw: string;
   leverageAmount: number;
   maxLeverage: number;
+  isEmodeLoop: boolean;
   setLeverageAmount: (amount: number) => void;
 };
 
@@ -23,6 +20,7 @@ export const LeverageSlider = ({
   amountRaw,
   leverageAmount,
   maxLeverage,
+  isEmodeLoop,
   setLeverageAmount,
 }: LeverageSliderProps) => {
   const bothBanksSelected = React.useMemo(
@@ -48,6 +46,7 @@ export const LeverageSlider = ({
             min={1}
             step={0.01}
             value={[leverageAmount]}
+            emode={isEmodeLoop}
             onValueChange={(value) => {
               if (value[0] > maxLeverage || value[0] <= 1) return;
               setLeverageAmount(value[0]);

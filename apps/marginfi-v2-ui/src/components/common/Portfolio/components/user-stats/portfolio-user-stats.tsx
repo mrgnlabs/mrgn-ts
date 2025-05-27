@@ -9,7 +9,7 @@ interface PortfolioUserStatsProps {
 
 export const PortfolioUserStats = ({ supplied, borrowed, netValue }: PortfolioUserStatsProps) => {
   return (
-    <div className="flex justify-between flex-wrap mt-5 mb-10 gap-y-4">
+    <div className="flex justify-between flex-wrap gap-y-4">
       <Stat label="Supplied" value={supplied} />
       <Stat label="Borrowed" value={borrowed} />
       <Stat label="Net value" value={netValue} />

@@ -27,6 +27,15 @@ import {
   ValidatorStakeGroup,
   getValidatorRates,
   getStakePoolMev,
+  createLocalStorageKey,
+  getCachedMarginfiAccountsForAuthority,
+  groupBanksByEmodeTag,
+  fetchStateMetaData,
+  getEmodePairs,
+  groupRawBankByEmodeTag,
+  adjustBankWeightsWithEmodePairs,
+  groupCollateralBanksByLiabilityBank,
+  groupLiabilityBanksByCollateralBank,
 } from "../lib";
 import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
@@ -41,8 +50,9 @@ import type {
   BankMetadata,
   WalletToken,
 } from "@mrgnlabs/mrgn-common";
-import type { MarginfiAccountWrapper, ProcessTransactionStrategy } from "@mrgnlabs/marginfi-client-v2";
-import type { MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
+import { EmodeTag, MarginfiAccountWrapper, ProcessTransactionStrategy } from "@mrgnlabs/marginfi-client-v2";
+import type { ActionEmodeImpact, EmodePair, MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
+import BigNumber from "bignumber.js";
 
 interface ProtocolStats {
   deposits: number;
@@ -77,6 +87,24 @@ interface MrgnlendState {
 
   walletTokens: WalletToken[] | null;
 
+  groupedEmodeBanks: Record<EmodeTag, ExtendedBankInfo[]>;
+  emodePairs: EmodePair[];
+  userActiveEmodes: EmodePair[];
+  collateralBanksByLiabilityBank: Record<
+    string,
+    {
+      collateralBank: ExtendedBankInfo;
+      emodePair: EmodePair;
+    }[]
+  >;
+  liabilityBanksByCollateralBank: Record<
+    string,
+    {
+      liabilityBank: ExtendedBankInfo;
+      emodePair: EmodePair;
+    }[]
+  >;
+
   // Actions
   fetchMrgnlendState: (args?: {
     marginfiConfig?: MarginfiConfig;
@@ -110,49 +138,6 @@ function createPersistentMrgnlendStore() {
       },
     })
   );
-}
-
-function createLocalStorageKey(authority: PublicKey): string {
-  return `marginfi_accounts-${authority.toString()}`;
-}
-
-async function getCachedMarginfiAccountsForAuthority(
-  authority: PublicKey,
-  client: MarginfiClient
-): Promise<MarginfiAccountWrapper[]> {
-  if (typeof window === "undefined") {
-    return client.getMarginfiAccountsForAuthority(authority);
-  }
-
-  const cacheKey = createLocalStorageKey(authority);
-  const cachedAccountsStr = window.localStorage.getItem(cacheKey);
-  let cachedAccounts: string[] = [];
-
-  if (cachedAccountsStr) {
-    cachedAccounts = JSON.parse(cachedAccountsStr);
-  }
-
-  if (cachedAccounts && cachedAccounts.length > 0) {
-    const accountAddresses: PublicKey[] = cachedAccounts.reduce((validAddresses: PublicKey[], address: string) => {
-      try {
-        const publicKey = new PublicKey(address);
-        validAddresses.push(publicKey);
-        return validAddresses;
-      } catch (error) {
-        console.warn(`Invalid public key: ${address}. Skipping.`);
-        return validAddresses;
-      }
-    }, []);
-
-    // Update local storage with valid addresses only
-    window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses.map((addr) => addr.toString())));
-    return client.getMultipleMarginfiAccounts(accountAddresses);
-  } else {
-    const accounts = await client.getMarginfiAccountsForAuthority(authority);
-    const accountAddresses = accounts.map((account) => account.address.toString());
-    window.localStorage.setItem(cacheKey, JSON.stringify(accountAddresses));
-    return accounts;
-  }
 }
 
 export function clearAccountCache(authority: PublicKey) {
@@ -200,6 +185,12 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
   walletTokens: null,
 
+  groupedEmodeBanks: {} as Record<EmodeTag, ExtendedBankInfo[]>,
+  emodePairs: [],
+  userActiveEmodes: [],
+  collateralBanksByLiabilityBank: {},
+  liabilityBanksByCollateralBank: {},
+
   // Actions
   fetchMrgnlendState: async (args?: {
     marginfiConfig?: MarginfiConfig;
@@ -213,79 +204,22 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
   }) => {
     try {
       const { MarginfiClient } = await import("@mrgnlabs/marginfi-client-v2");
-      const { loadBankMetadatas, loadStakedBankMetadatas, loadTokenMetadatas } = await import("@mrgnlabs/mrgn-common");
-
       let userDataFetched = false;
 
       const connection = args?.connection ?? get().marginfiClient?.provider.connection;
       if (!connection) throw new Error("Connection not found");
 
-      const wallet = args?.wallet ?? get().marginfiClient?.provider?.wallet;
-
       const marginfiConfig = args?.marginfiConfig ?? get().marginfiClient?.config;
       if (!marginfiConfig) throw new Error("Marginfi config must be provided at least once");
 
+      const wallet = args?.wallet ?? get().marginfiClient?.provider?.wallet;
       const stageTokens = args?.stageTokens ?? get().stageTokens;
-
-      const isReadOnly = args?.isOverride !== undefined ? args.isOverride : (get().marginfiClient?.isReadOnly ?? false);
+      const isReadOnly = args?.isOverride !== undefined ? !!args.isOverride : get().marginfiClient?.isReadOnly;
       const bundleSimRpcEndpoint = args?.bundleSimRpcEndpoint ?? get().bundleSimRpcEndpoint ?? undefined;
       const processTransactionStrategy =
         args?.processTransactionStrategy ?? get().processTransactionStrategy ?? undefined;
 
-      let bankMetadataMap: { [address: string]: BankMetadata };
-      let tokenMetadataMap: { [symbol: string]: TokenMetadata };
-
-      if (marginfiConfig.environment === "production") {
-        let results = await Promise.all([
-          loadBankMetadatas(process.env.NEXT_PUBLIC_BANKS_MAP),
-          loadTokenMetadatas(process.env.NEXT_PUBLIC_TOKENS_MAP),
-        ]);
-        bankMetadataMap = results[0];
-        tokenMetadataMap = results[1];
-      } else if (marginfiConfig.environment === "staging") {
-        if (process.env.NEXT_PUBLIC_BANKS_MAP && process.env.NEXT_PUBLIC_TOKENS_MAP) {
-          let results = await Promise.all([
-            loadBankMetadatas(process.env.NEXT_PUBLIC_BANKS_MAP),
-            loadTokenMetadatas(process.env.NEXT_PUBLIC_TOKENS_MAP),
-          ]);
-          bankMetadataMap = results[0];
-          tokenMetadataMap = results[1];
-        } else {
-          const bankMetadataJson = (await import("./staging-metadata.json")) as {
-            bankMetadata: BankMetadataMap;
-            tokenMetadata: TokenMetadataMap;
-          };
-          bankMetadataMap = bankMetadataJson.bankMetadata;
-          tokenMetadataMap = bankMetadataJson.tokenMetadata;
-        }
-      } else if (marginfiConfig.environment === "mainnet-test-1") {
-        const bankMetadataJson = (await import("./mainnet-test-1-metadata.json")) as {
-          bankMetadata: BankMetadataMap;
-          tokenMetadata: TokenMetadataMap;
-        };
-        bankMetadataMap = bankMetadataJson.bankMetadata;
-        tokenMetadataMap = bankMetadataJson.tokenMetadata;
-      } else {
-        throw new Error("Unknown environment");
-      }
-
-      // fetch staked asset metadata
-      const stakedAssetBankMetadataMap = await loadStakedBankMetadatas(
-        `${process.env.NEXT_PUBLIC_STAKING_BANKS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-bank-metadata-cache.json"}?t=${new Date().getTime()}`
-      );
-      const stakedAssetTokenMetadataMap = await loadTokenMetadatas(
-        `${process.env.NEXT_PUBLIC_STAKING_TOKENS || "https://storage.googleapis.com/mrgn-public/mrgn-staked-token-metadata-cache.json"}?t=${new Date().getTime()}`
-      );
-
-      // merge staked asset metadata with main group metadata
-      bankMetadataMap = {
-        ...bankMetadataMap,
-        ...stakedAssetBankMetadataMap,
-      };
-      tokenMetadataMap = {
-        ...tokenMetadataMap,
-        ...stakedAssetTokenMetadataMap,
-      };
+      const { bankMetadataMap, tokenMetadataMap } = await fetchStateMetaData(marginfiConfig);
 
       const bankAddresses = Object.keys(bankMetadataMap).map((address) => new PublicKey(address));
 
@@ -299,11 +233,13 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       });
       const clientBanks = [...marginfiClient.banks.values()];
 
-      const banks = stageTokens
+      let banks = stageTokens
         ? clientBanks.filter(
             (bank) => bank.tokenSymbol && !stageTokens.find((a) => a.toLowerCase() == bank?.tokenSymbol?.toLowerCase())
           )
         : clientBanks;
+
+      const emodePairs = getEmodePairs(banks);
 
       const birdEyeApiKey = args?.birdEyeApiKey ?? get().birdEyeApiKey;
       const emissionsTokenMap = get().emissionTokenMap ?? null;
@@ -314,6 +250,8 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       let marginfiAccounts: MarginfiAccountWrapper[] = [];
       let selectedAccount: MarginfiAccountWrapper | null = null;
       let stakeAccounts: ValidatorStakeGroup[] = [];
+      let bankWeightsPreEmode: Record<string, { assetWeightMaint: BigNumber; assetWeightInit: BigNumber }> = {};
+
       if (wallet?.publicKey) {
         const [tokenData, marginfiAccountWrappers] = await Promise.all([
           fetchTokenAccounts(
@@ -357,6 +295,24 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         }
 
         userDataFetched = true;
+      }
+
+      let userActiveEmodes: EmodePair[] = [];
+      let emodeImpactByBank: Record<string, ActionEmodeImpact> = {};
+      if (selectedAccount) {
+        userActiveEmodes = selectedAccount.data.computeActiveEmodePairs(emodePairs);
+
+        emodeImpactByBank = selectedAccount.data.computeEmodeImpacts(
+          emodePairs,
+          banks.map((bank) => bank.address)
+        );
+
+        if (userActiveEmodes.length > 0) {
+          const { adjustedBanks, originalWeights } = adjustBankWeightsWithEmodePairs(banks, userActiveEmodes);
+
+          banks = adjustedBanks;
+          bankWeightsPreEmode = originalWeights;
+        }
       }
 
       const banksWithPriceAndToken: {
@@ -443,7 +399,9 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
               emissionTokenPriceData,
               userData,
               false,
-              stakedAssetMetadata
+              stakedAssetMetadata,
+              bankWeightsPreEmode?.[bank.address.toBase58()],
+              emodeImpactByBank
             )
           );
           acc[1].push(makeExtendedBankMetadata(bank, tokenMetadata, false, stakedAssetMetadata));
@@ -484,9 +442,14 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
       const pointsTotal = get().protocolStats.pointsTotal;
 
+      const banksByEmodeTag = groupBanksByEmodeTag(sortedExtendedBankInfos);
+      const collateralBanksByLiabilityBank = groupCollateralBanksByLiabilityBank(sortedExtendedBankInfos, emodePairs);
+      const liabilityBanksByCollateralBank = groupLiabilityBanksByCollateralBank(sortedExtendedBankInfos, emodePairs);
+
       set({
         initialized: true,
         userDataFetched,
+        emodePairs,
         isRefreshingStore: false,
         marginfiClient,
         marginfiAccounts,
@@ -512,6 +475,10 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         bundleSimRpcEndpoint,
         processTransactionStrategy,
         stageTokens: stageTokens ?? null,
+        groupedEmodeBanks: banksByEmodeTag,
+        collateralBanksByLiabilityBank,
+        liabilityBanksByCollateralBank,
+        userActiveEmodes,
       });
 
       const pointSummary = await getPointsSummary();
@@ -553,6 +520,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           mint: extendedBankInfo.info.state.mint,
           balance: 0,
         },
+        emodeActive: false,
         maxDeposit: 0,
         maxRepay: 0,
         maxWithdraw: 0,

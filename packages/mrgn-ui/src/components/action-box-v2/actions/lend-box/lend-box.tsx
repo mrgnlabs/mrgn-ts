@@ -361,11 +361,7 @@ export const LendBox = ({
   ]);
 
   const hasErrorsWarnings = React.useMemo(() => {
-    return (
-      additionalActionMessages
-        .concat(actionMessages)
-        .filter((value) => value.actionMethod !== "INFO" && value.description).length > 0
-    );
+    return additionalActionMessages.concat(actionMessages).filter((value) => value.isEnabled === false).length > 0;
   }, [additionalActionMessages, actionMessages]);
 
   // store users stake accounts in state on load
@@ -507,7 +503,7 @@ export const LendBox = ({
           actionMessage.description && (
             <div className="pb-6" key={idx}>
               <ActionMessage
-                _actionMessage={actionMessage}
+                actionMessage={actionMessage}
                 retry={refreshSimulation}
                 isRetrying={simulationStatus.isLoading}
               />

@@ -30,6 +30,12 @@ import { IMAGE_CDN_URL } from "~/config/constants";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, TooltipPortal } from "~/components/ui/tooltip";
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
 import { PublicKey } from "@solana/web3.js";
+import { Badge } from "~/components/ui/badge";
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
+import { Table } from "~/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
+import { EmodePopover } from "~/components/common/emode/components/emode-popover";
+import { IconEmode } from "~/components/ui/icons";
 
 export const getAssetCell = (asset: AssetData) => {
   return (
@@ -37,6 +43,18 @@ export const getAssetCell = (asset: AssetData) => {
       <div className="flex items-center gap-4">
         <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
         <div>{asset.symbol}</div>
+        {/* {asset.hasEmode && asset.emodeTag && (
+          <EmodePopover
+            assetWeight={asset.assetWeight}
+            originalAssetWeight={asset.originalAssetWeight}
+            emodeActive={asset.emodeActive}
+            emodeTag={asset.emodeTag}
+            isInLendingMode={asset.isInLendingMode}
+            collateralBanks={asset.collateralBanks}
+            liabilityBanks={asset.liabilityBanks}
+            triggerType="tag"
+          />
+        )} */}
       </div>
     </div>
   );
@@ -234,9 +252,36 @@ export const getRateCell = ({
   );
 };
 
-export const getAssetWeightCell = ({ assetWeight }: AssetWeightData) => (
-  <div className="flex justify-end">{!assetWeight ? <>-</> : <>{(assetWeight * 100).toFixed(0) + "%"}</>}</div>
-);
+export const getAssetWeightCell = ({
+  assetWeight,
+  originalAssetWeight,
+  emodeActive,
+  isInLendingMode,
+  collateralBanks,
+  liabilityBanks,
+}: AssetWeightData) => {
+  return (
+    <div className="flex justify-end items-center">
+      {(emodeActive && originalAssetWeight) ||
+      (collateralBanks && collateralBanks.length > 0) ||
+      (liabilityBanks && liabilityBanks.length > 0) ? (
+        <EmodePopover
+          assetWeight={assetWeight}
+          originalAssetWeight={originalAssetWeight}
+          emodeActive={emodeActive}
+          isInLendingMode={isInLendingMode}
+          collateralBanks={collateralBanks}
+          liabilityBanks={liabilityBanks}
+          triggerType="weight"
+        />
+      ) : (
+        <div className="flex justify-end items-center">
+          {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const getDepositsCell = (depositsData: DepositsData) => {
   return (
