@@ -26,7 +26,6 @@ interface AccountSummary {
   lendingAmountEquity: number;
   borrowingAmountEquity: number;
   apy: number;
-  outstandingUxpEmissions: number;
   lendingAmountMaintenance: number;
   borrowingAmountMaintenance: number;
   signedFreeCollateral: number;

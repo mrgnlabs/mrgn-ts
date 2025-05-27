@@ -12,7 +12,6 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   borrowingAmountMaintenance: 0,
   apy: 0,
   positions: [],
-  outstandingUxpEmissions: 0,
   signedFreeCollateral: 0,
 };
 

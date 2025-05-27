@@ -15,17 +15,6 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: E
 
   const signedFreeCollateral = marginfiAccount.computeFreeCollateral({ clamped: false });
 
-  let outstandingUxpEmissions = new BigNumber(0);
-  const uxpBank = banks.find((bank) => bank.meta.tokenSymbol === "UXD");
-  const uxpBalance = marginfiAccount.activeBalances.find((balance) =>
-    balance.bankPk.equals(uxpBank?.address ?? PublicKey.default)
-  );
-  if (uxpBank && uxpBalance) {
-    outstandingUxpEmissions = uxpBalance
-      .computeTotalOutstandingEmissions(uxpBank.info.rawBank)
-      .div(new BigNumber(10).pow(9));
-  }
-
   const healthFactor = maintenanceComponents.assets.isZero()
     ? 1
     : maintenanceComponents.assets
@@ -44,7 +33,6 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: E
     lendingAmountMaintenance: maintenanceComponents.assets.toNumber(),
     borrowingAmountMaintenance: maintenanceComponents.liabilities.toNumber(),
     apy: marginfiAccount.computeNetApy(),
-    outstandingUxpEmissions: outstandingUxpEmissions.toNumber(),
     signedFreeCollateral: signedFreeCollateral.toNumber(),
   };
 }
