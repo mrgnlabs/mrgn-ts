@@ -61,7 +61,7 @@ export const getLendSimulationResult = async (props: SimulateActionProps): Promi
     }
 
     return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address], {
-      enabled: true,
+      enabled: false,
       mandatoryBanks,
       excludedBanks,
     });
