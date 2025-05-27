@@ -43,18 +43,6 @@ export const getAssetCell = (asset: AssetData) => {
       <div className="flex items-center gap-4">
         <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
         <div>{asset.symbol}</div>
-        {/* {asset.hasEmode && asset.emodeTag && (
-          <EmodePopover
-            assetWeight={asset.assetWeight}
-            originalAssetWeight={asset.originalAssetWeight}
-            emodeActive={asset.emodeActive}
-            emodeTag={asset.emodeTag}
-            isInLendingMode={asset.isInLendingMode}
-            collateralBanks={asset.collateralBanks}
-            liabilityBanks={asset.liabilityBanks}
-            triggerType="tag"
-          />
-        )} */}
       </div>
     </div>
   );
