@@ -335,7 +335,7 @@ export const PortfolioAssetCard = ({
                 <>
                   <dt className="text-muted-foreground">{isInLendingMode ? "Weight" : "LTV"}</dt>
                   <dd className="text-right text-white flex items-center justify-end">
-                    {!isEmodeActive ? (
+                    {/* {!isEmodeActive ? (
                       <EmodePopover
                         assetWeight={assetWeight}
                         originalAssetWeight={originalAssetWeight}
@@ -347,7 +347,8 @@ export const PortfolioAssetCard = ({
                       />
                     ) : (
                       percentFormatter.format(assetWeight)
-                    )}
+                    )} */}
+                    {percentFormatter.format(assetWeight)}
                   </dd>
                 </>
               )}
