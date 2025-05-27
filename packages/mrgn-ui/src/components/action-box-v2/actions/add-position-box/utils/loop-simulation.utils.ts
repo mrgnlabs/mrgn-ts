@@ -66,7 +66,7 @@ function calculateActionPreview(
 ): ActionPreview {
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
   const health =
-    accountSummary.balance && accountSummary.healthFactor
+    accountSummary.balanceEquity && accountSummary.healthFactor
       ? accountSummary.healthFactor
       : { riskEngineHealth: 1, computedHealth: 1 };
   const liquidationPrice =

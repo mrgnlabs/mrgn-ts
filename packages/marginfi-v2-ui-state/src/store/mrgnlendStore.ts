@@ -300,12 +300,9 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
       let userActiveEmodes: EmodePair[] = [];
       let emodeImpactByBank: Record<string, ActionEmodeImpact> = {};
       if (selectedAccount) {
-        userActiveEmodes = selectedAccount.data.computeActiveEmodePairs(emodePairs);
+        userActiveEmodes = selectedAccount.computeActiveEmodePairs(emodePairs);
 
-        emodeImpactByBank = selectedAccount.data.computeEmodeImpacts(
-          emodePairs,
-          banks.map((bank) => bank.address)
-        );
+        emodeImpactByBank = selectedAccount.computeEmodeImpacts(emodePairs);
 
         if (userActiveEmodes.length > 0) {
           const { adjustedBanks, originalWeights } = adjustBankWeightsWithEmodePairs(banks, userActiveEmodes);

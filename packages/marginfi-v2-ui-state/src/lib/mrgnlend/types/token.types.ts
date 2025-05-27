@@ -22,16 +22,13 @@ interface TokenAccount {
 
 interface AccountSummary {
   healthFactor: { riskEngineHealth: number; computedHealth: number };
-  balance: number;
-  lendingAmount: number;
-  borrowingAmount: number;
+  balanceEquity: number;
+  lendingAmountEquity: number;
+  borrowingAmountEquity: number;
   apy: number;
   outstandingUxpEmissions: number;
-  balanceUnbiased: number;
-  lendingAmountUnbiased: number;
-  borrowingAmountUnbiased: number;
-  lendingAmountWithBiasAndWeighted: number;
-  borrowingAmountWithBiasAndWeighted: number;
+  lendingAmountMaintenance: number;
+  borrowingAmountMaintenance: number;
   signedFreeCollateral: number;
 }
 

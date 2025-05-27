@@ -160,27 +160,27 @@ export const LendingPortfolio = () => {
   const accountSupplied = React.useMemo(
     () =>
       accountSummary
-        ? Math.round(accountSummary.lendingAmountUnbiased) > 10000
-          ? usdFormatterDyn.format(Math.round(accountSummary.lendingAmountUnbiased))
-          : usdFormatter.format(accountSummary.lendingAmountUnbiased)
+        ? Math.round(accountSummary.lendingAmountEquity) > 10000
+          ? usdFormatterDyn.format(Math.round(accountSummary.lendingAmountEquity))
+          : usdFormatter.format(accountSummary.lendingAmountEquity)
         : "-",
     [accountSummary]
   );
   const accountBorrowed = React.useMemo(
     () =>
       accountSummary
-        ? Math.round(accountSummary.borrowingAmountUnbiased) > 10000
-          ? usdFormatterDyn.format(Math.round(accountSummary.borrowingAmountUnbiased))
-          : usdFormatter.format(accountSummary.borrowingAmountUnbiased)
+        ? Math.round(accountSummary.borrowingAmountEquity) > 10000
+          ? usdFormatterDyn.format(Math.round(accountSummary.borrowingAmountEquity))
+          : usdFormatter.format(accountSummary.borrowingAmountEquity)
         : "-",
     [accountSummary]
   );
   const accountNetValue = React.useMemo(
     () =>
       accountSummary
-        ? Math.round(accountSummary.balanceUnbiased) > 10000
-          ? usdFormatterDyn.format(Math.round(accountSummary.balanceUnbiased))
-          : usdFormatter.format(accountSummary.balanceUnbiased)
+        ? Math.round(accountSummary.balanceEquity) > 10000
+          ? usdFormatterDyn.format(Math.round(accountSummary.balanceEquity))
+          : usdFormatter.format(accountSummary.balanceEquity)
         : "-",
     [accountSummary]
   );
@@ -208,10 +208,17 @@ export const LendingPortfolio = () => {
       (!isStoreInitialized ||
         walletConnectionDelay ||
         isRefreshingStore ||
-        (!isStoreInitialized && accountSummary.balance === 0)) &&
+        (!isStoreInitialized && accountSummary.balanceEquity === 0)) &&
       !lendingBanks.length &&
       !borrowingBanks.length,
-    [isStoreInitialized, walletConnectionDelay, isRefreshingStore, accountSummary.balance, lendingBanks, borrowingBanks]
+    [
+      isStoreInitialized,
+      walletConnectionDelay,
+      isRefreshingStore,
+      accountSummary.balanceEquity,
+      lendingBanks,
+      borrowingBanks,
+    ]
   ); // Create refs for each lending and borrowing card, keyed by address
   const lendingRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
   const borrowingRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
@@ -427,10 +434,10 @@ export const LendingPortfolio = () => {
                         <p className="text-sm italic text-center">{"(assets - liabilities) / (assets)"}</p>
                         <p>Your math is:</p>
                         <p className="text-sm italic text-center">{`(${usdFormatter.format(
-                          accountSummary.lendingAmountWithBiasAndWeighted
-                        )} - ${usdFormatter.format(
-                          accountSummary.borrowingAmountWithBiasAndWeighted
-                        )}) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)})`}</p>
+                          accountSummary.lendingAmountMaintenance
+                        )} - ${usdFormatter.format(accountSummary.borrowingAmountMaintenance)}) / (${usdFormatter.format(
+                          accountSummary.lendingAmountMaintenance
+                        )})`}</p>
                       </div>
                     </TooltipContent>
                   </Tooltip>

@@ -68,6 +68,8 @@ import {
   MarginfiAccountRaw,
   EmodeTag,
   createHealthPulseIx,
+  EmodePair,
+  ActionEmodeImpact,
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType } from "./pure";
@@ -241,19 +243,19 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.computeFreeCollateral(opts);
   }
 
-  // public computeHealthComponentsWithoutBias(marginRequirement: MarginRequirementType): {
-  //   assets: BigNumber;
-  //   liabilities: BigNumber;
-  // } {
-  //   return this._marginfiAccount.computeHealthComponentsWithoutBias(
-  //     this.client.banks,
-  //     this.client.oraclePrices,
-  //     marginRequirement
-  //   );
-  // }
-
   public computeAccountValue(): BigNumber {
     return this._marginfiAccount.computeAccountValue();
+  }
+
+  public computeActiveEmodePairs(emodePairs: EmodePair[]): EmodePair[] {
+    return this._marginfiAccount.computeActiveEmodePairs(emodePairs);
+  }
+
+  public computeEmodeImpacts(emodePairs: EmodePair[]): Record<string, ActionEmodeImpact> {
+    return this._marginfiAccount.computeEmodeImpacts(
+      emodePairs,
+      Array.from(this.client.banks.keys()).map((b) => new PublicKey(b))
+    );
   }
 
   public computeMaxBorrowForBank(

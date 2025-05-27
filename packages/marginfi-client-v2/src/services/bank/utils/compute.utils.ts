@@ -3,7 +3,6 @@ import BigNumber from "bignumber.js";
 
 import { OraclePrice } from "../../../models/price";
 import { ActionEmodeImpact, BankType, EmodeImpact, EmodeImpactStatus, EmodePair, EmodeTag } from "../types";
-import { MarginfiAccountType } from "../../account";
 import { PublicKey } from "@solana/web3.js";
 
 function computeMaxLeverage(
