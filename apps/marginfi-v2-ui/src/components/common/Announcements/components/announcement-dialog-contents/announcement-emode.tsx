@@ -41,8 +41,7 @@ const AnnouncementSlide = ({
   return (
     <div className="flex h-full bg-background">
       {/* Left Panel - Image or Video */}
-      <div className="flex-1 bg-gradient-to-br from-purple-600 via-purple-700 to-purple-900 flex items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/20" />
+      <div className="flex-1 bg-gradient-to-br flex items-center justify-center relative overflow-hidden">
         <div className="relative z-10 w-full h-full flex items-center justify-center">
           {video && (
             <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
@@ -104,8 +103,10 @@ const AnnouncementSlide = ({
 
             {isLast && (
               <div className="pt-4">
-                <Button className="w-full mb-4">View Documentation</Button>
-                <Button variant="outline" className="w-full">
+                <Button className="w-full mb-4" onClick={() => onClose?.()}>
+                  View Documentation
+                </Button>
+                <Button variant="outline" className="w-full" onClick={() => onClose?.()}>
                   Get Started
                 </Button>
               </div>

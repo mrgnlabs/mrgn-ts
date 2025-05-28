@@ -78,16 +78,12 @@ const AssetListNav = () => {
               aria-label="Toggle e-mode"
               className={cn(
                 "relative h-9 pr-1.5 rounded-lg",
-                userActiveEmodes.length > 0 && "data-[state=on]:bg-gradient-to-r to-[#423252] from-[#292E32]"
+                userActiveEmodes.length > 0 && "data-[state=on]:bg-gradient-to-r to-[#483975] from-[#292E32]"
               )}
             >
               <div className="flex items-center gap-1 w-full">
                 <span>e-mode</span>
-                {userActiveEmodes.length > 0 ? (
-                  <IconEmodeSimple size={18} className="text-mfi-emode" />
-                ) : (
-                  <IconEmodeSimpleInactive size={24} className="text-mfi-emode" />
-                )}
+                {userActiveEmodes.length > 0 ? <IconEmodeSimple size={18} /> : <IconEmodeSimpleInactive size={18} />}
               </div>
             </ToggleGroupItem>
           )}

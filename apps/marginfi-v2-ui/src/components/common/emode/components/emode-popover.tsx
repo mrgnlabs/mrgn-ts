@@ -48,7 +48,7 @@ export const EmodePopover = ({
       {triggerType === "weight" ? (
         <PopoverTrigger className={cn("flex items-center", emodeActive && "text-mfi-emode")}>
           {emodeActive ? <IconEmodeSimple size={20} /> : <IconEmodeSimpleInactive size={18} />}
-          <span className="min-w-[30px] text-right mr-1.5 ml-0.5">
+          <span className="min-w-[33px] text-right mr-1.5 ml-0.5">
             {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}
           </span>
           <IconExternalLink size={12} className={cn(emodeActive && "text-mfi-emode")} />
