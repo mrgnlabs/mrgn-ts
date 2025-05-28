@@ -227,19 +227,28 @@ export const LendingPortfolio = () => {
       lendingBanks
         .filter((bank) => bank.info.rawBank.emode.emodeTag === emodePair.collateralBankTag)
         .forEach((lendingBank) => {
-          const lendingRef = lendingRefs.current[lendingBank.address.toBase58()];
-          const borrowingRef = borrowingRefs.current[emodePair.liabilityBank.toBase58()];
-          if (lendingRef && borrowingRef) {
-            pairs.push([{ current: lendingRef }, { current: borrowingRef }]);
-            // Map both lending and borrowing asset addresses to this pair index
-            const lendAddr = lendingBank.address.toBase58();
-            const borrowAddr = emodePair.liabilityBank.toBase58();
-            if (!assetToPairIndices[lendAddr]) assetToPairIndices[lendAddr] = [];
-            if (!assetToPairIndices[borrowAddr]) assetToPairIndices[borrowAddr] = [];
-            assetToPairIndices[lendAddr].push(pairIdx);
-            assetToPairIndices[borrowAddr].push(pairIdx);
-            pairIdx++;
-          }
+          // Create ref objects that will be populated by the DOM elements
+          // Don't check if refs exist yet - they'll be populated when elements render
+          const lendingRefObj = {
+            get current() {
+              return lendingRefs.current[lendingBank.address.toBase58()] || null;
+            },
+          };
+          const borrowingRefObj = {
+            get current() {
+              return borrowingRefs.current[emodePair.liabilityBank.toBase58()] || null;
+            },
+          };
+
+          pairs.push([lendingRefObj, borrowingRefObj]);
+          // Map both lending and borrowing asset addresses to this pair index
+          const lendAddr = lendingBank.address.toBase58();
+          const borrowAddr = emodePair.liabilityBank.toBase58();
+          if (!assetToPairIndices[lendAddr]) assetToPairIndices[lendAddr] = [];
+          if (!assetToPairIndices[borrowAddr]) assetToPairIndices[borrowAddr] = [];
+          assetToPairIndices[lendAddr].push(pairIdx);
+          assetToPairIndices[borrowAddr].push(pairIdx);
+          pairIdx++;
         });
     });
     return { refPairs: pairs, assetToPairIndices };
