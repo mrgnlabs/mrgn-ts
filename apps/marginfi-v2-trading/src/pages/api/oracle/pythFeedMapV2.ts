@@ -6,6 +6,7 @@ import {
   MARGINFI_IDL,
   MarginfiIdlType,
   MarginfiProgram,
+  PythPushFeedIdMap,
 } from "@mrgnlabs/marginfi-client-v2";
 import { chunkedGetRawMultipleAccountInfoOrdered, loadBankMetadatas, Wallet } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
@@ -59,10 +60,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-function stringifyFeedIdMap(feedIdMap: Map<string, PublicKey>) {
-  let feedIdMap2: Record<string, string> = {};
+function stringifyFeedIdMap(feedIdMap: PythPushFeedIdMap) {
+  let feedIdMap2: Record<string, { feedId: string; shardId?: number }> = {};
+
   feedIdMap.forEach((value, key) => {
-    feedIdMap2[key] = value.toBase58();
+    feedIdMap2[key] = { feedId: value.feedId.toBase58(), shardId: value.shardId };
   });
   return feedIdMap2;
 }

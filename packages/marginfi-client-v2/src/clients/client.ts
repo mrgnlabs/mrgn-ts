@@ -350,7 +350,9 @@ class MarginfiClient {
     const emissionMintKeys = bankDatasKeyed
       .map((b) => b.data.emissionsMint)
       .filter((pk) => !pk.equals(PublicKey.default)) as PublicKey[];
-    const oracleKeys = bankDatasKeyed.map((b) => findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap));
+    const oracleKeys = bankDatasKeyed.map(
+      (b) => findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap).oracleKey
+    );
     // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
     const allAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection, [
       groupAddress.toBase58(),

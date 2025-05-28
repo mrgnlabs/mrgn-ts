@@ -11,6 +11,7 @@ export interface OraclePrice {
   priceRealtime: PriceWithConfidence;
   priceWeighted: PriceWithConfidence;
   timestamp: BigNumber;
+  pythShardId?: number;
 }
 
 export enum PriceBias {

@@ -82,7 +82,7 @@ export function parseBankRaw(
     ? wrappedI80F48toBigNumber(accountParsed.emissionsRemaining)
     : new BigNumber(0);
 
-  const oracleKey = findOracleKey(config, feedIdMap);
+  const { oracleKey, shardId: pythShardId } = findOracleKey(config, feedIdMap);
   const emode = EmodeSettings.from(accountParsed.emode);
 
   const tokenSymbol = bankMetadata?.tokenSymbol;
@@ -115,6 +115,7 @@ export function parseBankRaw(
     emissionsMint,
     emissionsRemaining,
     oracleKey,
+    pythShardId,
     emode,
     tokenSymbol,
   };

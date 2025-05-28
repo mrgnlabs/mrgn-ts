@@ -121,6 +121,7 @@ export interface BankType {
   emissionsRemaining: BigNumber;
 
   oracleKey: PublicKey;
+  pythShardId?: number;
   emode: EmodeSettingsType;
 }
 

@@ -48,11 +48,14 @@ async function fetchGroupData(
   }
 
   async function fetchPythFeedMap() {
-    const feedIdMapRaw: Record<string, string> = await fetch(
+    const feedIdMapRaw: Record<string, { feedId: string; shardId?: number }> = await fetch(
       `/api/oracle/pythFeedMap?groupPk=${groupAddress.toBase58()}`
     ).then((response) => response.json());
-    const feedIdMap: Map<string, PublicKey> = new Map(
-      Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)])
+    const feedIdMap: PythPushFeedIdMap = new Map(
+      Object.entries(feedIdMapRaw).map(([key, value]) => [
+        key,
+        { feedId: new PublicKey(value.feedId), shardId: value.shardId },
+      ])
     );
     return feedIdMap;
   }
@@ -90,6 +93,7 @@ async function fetchGroupData(
         highestPrice: BigNumber(oraclePrice.priceWeighted.highestPrice),
       },
       timestamp: oraclePrice.timestamp ? BigNumber(oraclePrice.timestamp) : null,
+      pythShardId: oraclePrice.pythShardId,
     })) as OraclePrice[];
 
     return oraclePrices;

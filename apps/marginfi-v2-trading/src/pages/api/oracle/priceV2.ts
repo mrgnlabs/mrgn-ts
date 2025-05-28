@@ -11,6 +11,7 @@ import {
   OracleSetup,
   parseOracleSetup,
   parsePriceInfo,
+  PythPushFeedIdMap,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   CrossbarSimulatePayload,
@@ -91,15 +92,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     }).then((response) => response.json());
 
-    const feedIdMap: Map<string, PublicKey> = new Map(
-      Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)])
+    const feedIdMap: PythPushFeedIdMap = new Map(
+      Object.entries(feedIdMapRaw).map(([key, value]) => [key, { feedId: new PublicKey(value) }])
     );
 
     const oracleMintMap = new Map<string, PublicKey>();
     const feedHashMintMap = new Map<string, PublicKey>();
 
     const requestedOraclesData = banksMap.map((b) => {
-      const oracleKey = findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap).toBase58();
+      const oracleKey = findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap).oracleKey.toBase58();
       oracleMintMap.set(oracleKey, b.data.mint);
 
       return {

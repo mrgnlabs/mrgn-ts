@@ -79,6 +79,7 @@ class Bank implements BankType {
     public readonly emissionsRemaining: BigNumber,
     public readonly oracleKey: PublicKey,
     public readonly emode: EmodeSettings,
+    public readonly pythShardId?: number,
     public readonly tokenSymbol?: string
   ) {}
 
@@ -127,6 +128,7 @@ class Bank implements BankType {
       props.emissionsRemaining,
       props.oracleKey,
       props.emode,
+      props.pythShardId,
       props.tokenSymbol
     );
   }

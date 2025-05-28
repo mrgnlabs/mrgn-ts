@@ -17,7 +17,7 @@ function capConfidenceInterval(price: BigNumber, confidence: BigNumber, maxConfi
   return BigNumber.min(confidence, maxConfidenceInterval);
 }
 
-function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): OraclePrice {
+function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, shardId?: number): OraclePrice {
   const debug = require("debug")("mfi:oracle-loader");
   switch (oracleSetup) {
     case OracleSetup.PythLegacy: {
@@ -77,6 +77,7 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
           highestPrice: pythHighestPrice,
         },
         timestamp: new BigNumber(Number(pythPriceData.timestamp)),
+        pythShardId: shardId,
       };
     }
     case OracleSetup.PythPushOracle:
@@ -124,6 +125,7 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
           highestPrice: highestPriceWeighted,
         },
         timestamp: new BigNumber(Number(data.priceMessage.publishTime)),
+        pythShardId: shardId,
       };
     }
 

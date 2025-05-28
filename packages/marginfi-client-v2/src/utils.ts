@@ -155,10 +155,10 @@ export function feedIdToString(feedId: PublicKey): string {
   return feedId.toBuffer().toString("hex");
 }
 
-export type PythPushFeedIdMap = Map<string, PublicKey>;
+export type PythPushFeedIdMap = Map<string, { feedId: PublicKey; shardId?: number }>;
 
 export async function buildFeedIdMap(bankConfigs: BankConfigRaw[], connection: Connection): Promise<PythPushFeedIdMap> {
-  const feedIdMap: PythPushFeedIdMap = new Map<string, PublicKey>();
+  const feedIdMap: PythPushFeedIdMap = new Map<string, { feedId: PublicKey; shardId?: number }>();
 
   const feedIdsWithAddresses = bankConfigs
     .filter((bankConfig) => parseOracleSetup(bankConfig.oracleSetup) == OracleSetup.PythPushOracle)
@@ -200,14 +200,14 @@ export async function buildFeedIdMap(bankConfigs: BankConfigRaw[], connection: C
       let mfiPublishTime = mfiPriceAccount.priceMessage.publishTime;
 
       if (pythPublishTime > mfiPublishTime) {
-        feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[0]);
+        feedIdMap.set(feedId, { feedId: feedIdsWithAddresses[i].addresses[0], shardId: PYTH_SPONSORED_SHARD_ID });
       } else {
-        feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[1]);
+        feedIdMap.set(feedId, { feedId: feedIdsWithAddresses[i].addresses[1], shardId: MARGINFI_SPONSORED_SHARD_ID });
       }
     } else if (pythSponsoredOracle) {
-      feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[0]);
+      feedIdMap.set(feedId, { feedId: feedIdsWithAddresses[i].addresses[0], shardId: PYTH_SPONSORED_SHARD_ID });
     } else if (mfiSponsoredOracle) {
-      feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[1]);
+      feedIdMap.set(feedId, { feedId: feedIdsWithAddresses[i].addresses[1], shardId: MARGINFI_SPONSORED_SHARD_ID });
     } else {
       throw new Error(`No oracle found for feedId: ${feedId}, either Pyth or MFI sponsored oracle must exist`);
     }
@@ -216,9 +216,13 @@ export async function buildFeedIdMap(bankConfigs: BankConfigRaw[], connection: C
   return feedIdMap;
 }
 
-export function findOracleKey(bankConfig: BankConfig, feedMap: PythPushFeedIdMap): PublicKey {
+export function findOracleKey(
+  bankConfig: BankConfig,
+  feedMap: PythPushFeedIdMap
+): { oracleKey: PublicKey; shardId?: number } {
   const oracleSetup = bankConfig.oracleSetup;
-  let oracleKey = bankConfig.oracleKeys[0];
+  let oracleKey: PublicKey = bankConfig.oracleKeys[0];
+  let shardId: number | undefined = undefined;
 
   if (oracleSetup == OracleSetup.PythPushOracle || oracleSetup == OracleSetup.StakedWithPythPush) {
     const feedId = feedIdToString(oracleKey);
@@ -226,10 +230,11 @@ export function findOracleKey(bankConfig: BankConfig, feedMap: PythPushFeedIdMap
     if (!maybeOracleKey) {
       throw new Error(`No oracle key found for feedId: ${feedId}`);
     }
-    oracleKey = maybeOracleKey;
+    oracleKey = maybeOracleKey.feedId;
+    shardId = maybeOracleKey.shardId;
   }
 
-  return oracleKey;
+  return { oracleKey, shardId };
 }
 
 export const PYTH_SPONSORED_SHARD_ID = 0;

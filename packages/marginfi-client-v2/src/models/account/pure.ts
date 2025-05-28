@@ -23,7 +23,7 @@ import BigNumber from "bignumber.js";
 import { Bank } from "../bank";
 import instructions from "../../instructions";
 import { MarginfiProgram } from "../../types";
-import { makeWrapSolIxs, makeUnwrapSolIx } from "../../utils";
+import { makeWrapSolIxs, makeUnwrapSolIx, feedIdToString } from "../../utils";
 import { Balance } from "../balance";
 import {
   BankMap,
@@ -53,6 +53,7 @@ import {
   createHealthPulseIx,
   OracleSetup,
   createUpdateFeedIx,
+  crankPythOracleIx,
 } from "../..";
 import BN from "bn.js";
 import { BorshInstructionCoder } from "@coral-xyz/anchor";
@@ -124,7 +125,7 @@ class MarginfiAccount implements MarginfiAccountType {
       return [b.address, b.oracleKey];
     });
 
-    const pythOracleKeys: PublicKey[] = [];
+    const pythFeedIds: { feedId: string; shardId: number }[] = [];
     const swbOracleKeys: PublicKey[] = [];
 
     // checks for duplicate oracle keys
@@ -133,19 +134,25 @@ class MarginfiAccount implements MarginfiAccountType {
 
     for (const b of banks) {
       const setup = b.config.oracleSetup;
-      const key = b.oracleKey;
-      const id = key.toBase58();
+      const oracleKey = b.oracleKey;
+      const feedIdKey = feedIdToString(b.config.oracleKeys[0]);
+      const oracleKeyBase = oracleKey.toBase58();
 
-      if ((setup === OracleSetup.PythPushOracle || setup === OracleSetup.StakedWithPythPush) && !seenPyth.has(id)) {
-        seenPyth.add(id);
-        pythOracleKeys.push(key);
+      if (
+        (setup === OracleSetup.PythPushOracle || setup === OracleSetup.StakedWithPythPush) &&
+        !seenPyth.has(feedIdKey)
+      ) {
+        seenPyth.add(feedIdKey);
+        pythFeedIds.push({ feedId: feedIdKey, shardId: b.pythShardId ?? 0 });
       }
 
-      if (setup === OracleSetup.SwitchboardPull && !seenSwb.has(id)) {
-        seenSwb.add(id);
-        swbOracleKeys.push(key);
+      if (setup === OracleSetup.SwitchboardPull && !seenSwb.has(oracleKeyBase)) {
+        seenSwb.add(oracleKeyBase);
+        swbOracleKeys.push(oracleKey);
       }
     }
+
+    // const crankPythIxs = await crankPythOracleIx(pythFeedIds, program.provider.publicKey, program.provider.connection);
 
     const computeIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 });
     const updateFeedIxs =
@@ -158,7 +165,12 @@ class MarginfiAccount implements MarginfiAccountType {
 
     const tx = new VersionedTransaction(
       new TransactionMessage({
-        instructions: [computeIx, ...updateFeedIxs.instructions, ...healthPulseIxs.instructions],
+        instructions: [
+          computeIx,
+          ...updateFeedIxs.instructions,
+          ...healthPulseIxs.instructions,
+          // ...crankPythIxs.instructions,
+        ],
         payerKey: program.provider.publicKey,
         recentBlockhash: blockhash,
       }).compileToV0Message([...updateFeedIxs.luts, ...healthPulseIxs.luts])
