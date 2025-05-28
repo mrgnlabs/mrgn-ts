@@ -13,7 +13,7 @@ type AnnouncementSlideProps = {
   title: string;
   description: string;
   features: string[];
-  imagePlaceholder: string;
+  video?: string;
   isFirst?: boolean;
   isLast?: boolean;
   nextSlideTitle?: string;
@@ -27,7 +27,7 @@ const AnnouncementSlide = ({
   title,
   description,
   features,
-  imagePlaceholder,
+  video,
   isFirst = false,
   isLast = false,
   nextSlideTitle,
@@ -40,16 +40,20 @@ const AnnouncementSlide = ({
 
   return (
     <div className="flex h-full bg-background">
-      {/* Left Panel - Image */}
+      {/* Left Panel - Image or Video */}
       <div className="flex-1 bg-gradient-to-br from-purple-600 via-purple-700 to-purple-900 flex items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20" />
-        <div className="relative z-10 text-white text-center">
-          <div className="w-32 h-32 bg-white/20 rounded-lg flex items-center justify-center mb-4 mx-auto">
-            <span className="text-sm font-medium">{imagePlaceholder}</span>
-          </div>
+        <div className="relative z-10 w-full h-full flex items-center justify-center">
+          {video && (
+            <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
+              <source src={`${video}.webm`} type="video/webm" />
+              <source src={`${video}.mp4`} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          )}
         </div>
         {/* Pagination dots */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
           <div className="flex space-x-2 items-center">
             {Array.from({ length: totalSlides }).map((_, index) => (
               <button
@@ -151,14 +155,14 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
       description:
         "We're excited to announce e-mode! Boosted weights and increased borrowing power for correlated assets.",
       features: ["Boosted collateral weights", "Incrased borrowing power", "Maximize your leverage"],
-      imagePlaceholder: "Intro Image",
+      video: "https://storage.googleapis.com/mrgn-public/e-mode-videos/2",
       nextSlideTitle: "Boosted weights",
     },
     {
       title: "Increased borrow power",
       description: "e-mode will apply boosted weights for correlated pairs, meaning increased borrowing power.",
       features: ["Boost your collateral weights", "Borrow more against correlated pairs"],
-      imagePlaceholder: "Strategy Image",
+      video: "https://storage.googleapis.com/mrgn-public/e-mode-videos/1",
       prevSlideTitle: "Introducing e-mode",
       nextSlideTitle: "Maximize leverage",
     },
@@ -167,7 +171,7 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
       description:
         "Experience improved capital efficiency with grouped assets and boosted weights for maximum borrowing power.",
       features: ["Grouped assets with boosted weights", "Increased collateral efficiency", "More borrowing power"],
-      imagePlaceholder: "Benefits Image",
+      video: "https://storage.googleapis.com/mrgn-public/e-mode-videos/3",
       prevSlideTitle: "Strategy",
       nextSlideTitle: "Get Started",
     },
@@ -176,7 +180,7 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
       description:
         "Join thousands of users already maximizing their capital efficiency with e-mode. Get started today and unlock your borrowing potential.",
       features: ["Easy setup process", "Immediate access to enhanced borrowing", "24/7 community support"],
-      imagePlaceholder: "CTA Image",
+      video: "https://storage.googleapis.com/mrgn-public/e-mode-videos/4",
       prevSlideTitle: "Benefits",
     },
   ];
@@ -200,7 +204,7 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
               title={slide.title}
               description={slide.description}
               features={slide.features}
-              imagePlaceholder={slide.imagePlaceholder}
+              video={slide.video}
               isFirst={index === 0}
               isLast={index === slides.length - 1}
               nextSlideTitle={slide.nextSlideTitle}
