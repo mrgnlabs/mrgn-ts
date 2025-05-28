@@ -327,6 +327,11 @@ input::-webkit-inner-spin-button {
   align-items: center;
 }
 
+.swiper-slide-visible {
+  position: relative;
+  z-index: 50;
+}
+
 @media (max-width: 768px) {
   .MuiPaper-root {
     height: 100% !important;
