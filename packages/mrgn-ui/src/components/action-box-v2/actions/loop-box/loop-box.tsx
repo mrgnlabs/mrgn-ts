@@ -41,7 +41,7 @@ import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
 import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
-import { IconEmode } from "~/components/ui/icons";
+import { IconEmode, IconEmodeSimple } from "~/components/ui/icons";
 import { PublicKey } from "@solana/web3.js";
 
 export type LoopBoxProps = {
@@ -207,11 +207,11 @@ export const LoopBox = ({
 
   const isEmodeLoop = React.useMemo(() => {
     if (!selectedSecondaryBank) {
-      return emodeSupplyState.emodeBorrowBanks.length > 0;
+      return selectedBank?.info.state.hasEmode && emodeSupplyState.emodeBorrowBanks.length > 0;
     }
 
     return !!emodeImpact?.activePair;
-  }, [selectedSecondaryBank, emodeImpact?.activePair, emodeSupplyState.emodeBorrowBanks.length]);
+  }, [selectedBank, selectedSecondaryBank, emodeImpact?.activePair, emodeSupplyState.emodeBorrowBanks.length]);
 
   const [simulationStatus, setSimulationStatus] = React.useState<{
     isLoading: boolean;
@@ -459,7 +459,7 @@ export const LoopBox = ({
 
       {isEmodeLoop && selectedBank && selectedSecondaryBank && (
         <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
-          <IconEmode size={18} className="text-mfi-emode" />
+          <IconEmodeSimple size={18} className="text-mfi-emode" />
           <p>e-mode looping active</p>
         </div>
       )}
@@ -472,7 +472,7 @@ export const LoopBox = ({
           leverageAmount={leverage}
           maxLeverage={maxLeverage}
           setLeverageAmount={setLeverage}
-          isEmodeLoop={isEmodeLoop}
+          isEmodeLoop={isEmodeLoop || false}
         />
 
         <ApyStat

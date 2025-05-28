@@ -34,7 +34,7 @@ import { TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Tooltip } from "~/components/ui/tooltip";
 import { EmodeDiff, EmodePopover } from "~/components/common/emode/components";
 import { Badge } from "~/components/ui/badge";
-import { IconEmode, IconEmodeInactive } from "~/components/ui/icons";
+import { IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -149,7 +149,10 @@ export const PortfolioAssetCard = ({
           <div className="flex flex-col flex-1 -translate-y-0.5">
             <div className="flex items-center gap-2 font-medium text-lg">
               {bank.meta.tokenSymbol}
-              {isEmodeActive && <IconEmode size={22} className="-translate-y-1" />}
+              {bank.isActive && bank.position.emodeActive && <IconEmodeSimple size={18} className="-translate-y-1" />}
+              {!bank.isActive && bank.info.state.hasEmode && (
+                <IconEmodeSimpleInactive size={18} className="-translate-y-1" />
+              )}
             </div>
             <div className="flex items-center gap-4 text-sm">
               <span className={isInLendingMode ? "text-success" : "text-warning"}>{rateAP} APY</span>
@@ -196,10 +199,8 @@ export const PortfolioAssetCard = ({
               <div className="flex flex-col w-full">
                 <div className="flex justify-between items-center w-full">
                   <div className="flex items-center gap-2 font-medium text-lg">
-                    {bank.meta.tokenSymbol} {isEmodeActive && <IconEmode size={22} className="-translate-y-1" />}{" "}
-                    {!isEmodeActive && bank.info.state.hasEmode && (
-                      <IconEmodeInactive size={22} className="-translate-y-0.5" />
-                    )}
+                    {bank.meta.tokenSymbol} {isEmodeActive && <IconEmodeSimple size={18} />}{" "}
+                    {!isEmodeActive && bank.info.state.hasEmode && <IconEmodeSimpleInactive size={18} />}
                   </div>
                   <div className="font-medium text-lg text-right">
                     {dynamicNumeralFormatter(bank.position.amount, {
@@ -309,7 +310,7 @@ export const PortfolioAssetCard = ({
                       <div className={cn("flex items-center justify-end gap-1", isEmodeActive && "text-mfi-emode")}>
                         {!isInLendingMode && collateralBanks.length > 0 && (
                           <div className="flex items-center">
-                            <IconEmode size={20} />
+                            <IconEmodeSimple size={18} />
                             <ul className="flex items-center gap-1 ml-1">
                               {collateralBanks.map((bank) => (
                                 <li key={bank.collateralBank.address.toBase58()}>
@@ -327,7 +328,7 @@ export const PortfolioAssetCard = ({
                         )}
                         {isInLendingMode && isEmodeActive && (
                           <>
-                            <IconEmode size={18} />
+                            <IconEmodeSimple size={18} />
                             <EmodeDiff assetWeight={assetWeight} originalAssetWeight={originalAssetWeight} />
                           </>
                         )}
@@ -340,7 +341,7 @@ export const PortfolioAssetCard = ({
                 <>
                   <dt className="text-muted-foreground">{isInLendingMode ? "Weight" : "LTV"}</dt>
                   <dd className="text-right text-white flex items-center justify-end">
-                    {!isEmodeActive ? (
+                    {!isEmodeActive && bank.info.state.hasEmode ? (
                       <EmodePopover
                         assetWeight={assetWeight}
                         originalAssetWeight={originalAssetWeight}

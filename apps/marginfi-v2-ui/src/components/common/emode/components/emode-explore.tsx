@@ -8,7 +8,7 @@ import { numeralFormatter, percentFormatterMod } from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore } from "~/store";
 import { Button } from "~/components/ui/button";
-import { IconEmode } from "~/components/ui/icons";
+import { IconEmodeSimple } from "~/components/ui/icons";
 import {
   Dialog,
   DialogContent,
@@ -95,7 +95,7 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
           <DialogTitle className="text-2xl font-normal flex items-center gap-2">
             Explore{" "}
             <div className="flex items-center gap-1">
-              <IconEmode size={32} />
+              <IconEmodeSimple size={32} />
               e-mode
             </div>
             {emodeTag && <span className="lowercase"> {EmodeTag[emodeTag]}</span>}
@@ -186,7 +186,7 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
                 <TableHead className="w-1/5">Weight</TableHead>
                 <TableHead className="w-1/5">
                   <div className="flex items-center gap-1">
-                    <IconEmode size={20} className="-ml-1.5" />
+                    <IconEmodeSimple size={20} className="-ml-1.5" />
                     e-mode
                   </div>
                 </TableHead>
