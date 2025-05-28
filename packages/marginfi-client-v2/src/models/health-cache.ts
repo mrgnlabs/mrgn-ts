@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import { getActiveHealthCacheFlags, HealthCacheFlags, HealthCacheRaw, HealthCacheType } from "../services";
-import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
+import { toBigNumber, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 
 export class HealthCache implements HealthCacheType {
   constructor(
@@ -10,7 +10,7 @@ export class HealthCache implements HealthCacheType {
     public liabilityValueMaint: BigNumber,
     public assetValueEquity: BigNumber,
     public liabilityValueEquity: BigNumber,
-    public timestamp: number,
+    public timestamp: BigNumber,
     public flags: HealthCacheFlags[],
     public prices: number[][]
   ) {
@@ -32,7 +32,7 @@ export class HealthCache implements HealthCacheType {
     const liabilityValueMaint = wrappedI80F48toBigNumber(healthCacheRaw.liabilityValueMaint);
     const assetValueEquity = wrappedI80F48toBigNumber(healthCacheRaw.assetValueEquity);
     const liabilityValueEquity = wrappedI80F48toBigNumber(healthCacheRaw.liabilityValueEquity);
-    const timestamp = 0;
+    const timestamp = toBigNumber(healthCacheRaw.timestamp);
     const flags = getActiveHealthCacheFlags(healthCacheRaw.flags);
     const prices = healthCacheRaw.prices;
     return new HealthCache(

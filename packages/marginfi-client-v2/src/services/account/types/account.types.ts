@@ -41,7 +41,7 @@ export interface HealthCacheType {
   liabilityValueMaint: BigNumber;
   assetValueEquity: BigNumber;
   liabilityValueEquity: BigNumber;
-  timestamp: number;
+  timestamp: BigNumber;
   flags: HealthCacheFlags[];
   prices: number[][];
 }
