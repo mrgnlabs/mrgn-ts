@@ -3,8 +3,10 @@ import React from "react";
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
 import { clearAccountCache, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
 import { getMaybeSquadsOptions, capture } from "@mrgnlabs/mrgn-utils";
-import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle } from "@tabler/icons-react";
+import { toastManager } from "@mrgnlabs/mrgn-toasts";
+import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle, IconCopy, IconCheck } from "@tabler/icons-react";
 import { Connection } from "@solana/web3.js";
+import CopyToClipboard from "react-copy-to-clipboard";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components/wallet-v2";
@@ -18,7 +20,6 @@ import { Badge } from "~/components/ui/badge";
 import { Input } from "~/components/ui/input";
 import { Checkbox } from "~/components/ui/checkbox";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "~/components/ui/tooltip";
-import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 enum WalletAuthAccountsState {
   DEFAULT = "DEFAULT",
@@ -70,8 +71,20 @@ export const WalletAuthAccounts = ({
   const [editAccountError, setEditAccountError] = React.useState<string>("");
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
   const [useAuthTxn, setUseAuthTxn] = React.useState(false);
+  const [copiedAddresses, setCopiedAddresses] = React.useState<Set<string>>(new Set());
   const newAccountNameRef = React.useRef<HTMLInputElement>(null);
   const editAccountNameRef = React.useRef<HTMLInputElement>(null);
+
+  const handleCopyAddress = React.useCallback((address: string) => {
+    setCopiedAddresses((prev) => new Set(prev).add(address));
+    setTimeout(() => {
+      setCopiedAddresses((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(address);
+        return newSet;
+      });
+    }, 1000);
+  }, []);
 
   const activateAccount = React.useCallback(
     async (account: MarginfiAccountWrapper, index: number) => {
@@ -293,44 +306,52 @@ export const WalletAuthAccounts = ({
                     const isActiveAccount = selectedAccount && selectedAccount.address.equals(account.address);
                     const accountLabel = accountLabels?.[account.address.toBase58()] || `Account`;
                     return (
-                      <Button
-                        key={index}
-                        variant="ghost"
-                        className={cn(
-                          "w-full justify-start gap-4 pr-1 pl-2",
-                          isActiveAccount && "cursor-default hover:bg-transparent"
-                        )}
-                        onClick={() => {
-                          if (isActiveAccount) return;
-                          activateAccount(account, index);
-                        }}
-                      >
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Label htmlFor="width" className="md:w-[97px] truncate overflow-hidden text-left">
-                                {accountLabel}
-                              </Label>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{accountLabel}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                      <div key={index} className="flex items-center justify-start gap-2">
+                        <Button
+                          key={index}
+                          variant="ghost"
+                          className={cn(
+                            "w-full justify-start pl-2 outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
+                            isActiveAccount && "cursor-default hover:bg-transparent"
+                          )}
+                          onClick={() => {
+                            if (isActiveAccount) return;
+                            activateAccount(account, index);
+                          }}
+                        >
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Label
+                                  htmlFor="width"
+                                  className={cn(
+                                    "pr-4 truncate overflow-hidden text-left",
+                                    !isActiveAccount && "cursor-pointer"
+                                  )}
+                                >
+                                  {accountLabel}
+                                </Label>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{accountLabel}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
 
-                        <span id={account.address.toBase58()} className="text-muted-foreground text-[10px]">
-                          {isActivatingAccountDelay === index
-                            ? "Switching..."
-                            : shortenAddress(account.address.toBase58())}
-                        </span>
+                          <span id={account.address.toBase58()} className="text-muted-foreground text-[10px]">
+                            {isActivatingAccountDelay === index
+                              ? "Switching..."
+                              : shortenAddress(account.address.toBase58())}
+                          </span>
 
-                        {isActivatingAccount === null && isActiveAccount && (
-                          <Badge className="text-xs p-1 h-5">active</Badge>
-                        )}
+                          {isActivatingAccount === null && isActiveAccount && (
+                            <Badge className="text-xs p-1 h-5">active</Badge>
+                          )}
+                        </Button>
 
                         <div className="flex items-center ml-auto">
                           <div
-                            className="p-1.5 transition-colors rounded-lg hover:bg-background-gray-light"
+                            className="cursor-pointer flex py-2 px-1.5 items-center justify-center transition-colors rounded-md hover:bg-background-gray-light"
                             onClick={(e) => {
                               e.stopPropagation();
                               setEditingAccount(account);
@@ -338,10 +359,45 @@ export const WalletAuthAccounts = ({
                               setWalletAuthAccountsState(WalletAuthAccountsState.EDIT_ACCOUNT);
                             }}
                           >
-                            <IconPencil size={16} />
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <IconPencil size={16} />
+                                </TooltipTrigger>
+                                <TooltipContent>Edit account name</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          <div
+                            className="cursor-pointer flex py-2 px-1.5 items-center justify-center transition-colors rounded-md hover:bg-background-gray-light"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div>
+                                    {copiedAddresses.has(account.address.toBase58()) ? (
+                                      <IconCheck size={16} />
+                                    ) : (
+                                      <CopyToClipboard
+                                        text={account.address.toBase58()}
+                                        onCopy={() => handleCopyAddress(account.address.toBase58())}
+                                      >
+                                        <IconCopy size={16} />
+                                      </CopyToClipboard>
+                                    )}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {copiedAddresses.has(account.address.toBase58()) ? "Copied!" : "Copy account address"}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
                         </div>
-                      </Button>
+                      </div>
                     );
                   })}
               </div>
