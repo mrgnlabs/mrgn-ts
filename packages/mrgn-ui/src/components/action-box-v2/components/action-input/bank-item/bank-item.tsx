@@ -69,8 +69,7 @@ export const BankItem = ({
         <div>
           <div className="flex items-center">
             <p className="font-medium">{bank.meta.tokenSymbol}</p>
-            {bank.isActive && bank.position.emodeActive && <IconEmode size={20} className="ml-1" />}
-            {!bank.isActive && bank.info.state.hasEmode && <IconEmodeInactive size={20} className="ml-1" />}
+            {bank.info.state.hasEmode && <IconEmode size={18} className="ml-1" />}
             {!available && <span className="text-[11px] ml-1 font-light">(currently unavailable)</span>}
           </div>
           {bank.info.rawBank.config.assetTag !== 2 ? (

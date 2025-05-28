@@ -457,9 +457,9 @@ export const LoopBox = ({
         />
       </div>
 
-      {isEmodeLoop && selectedBank && (
+      {isEmodeLoop && selectedBank && selectedSecondaryBank && (
         <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
-          <IconEmode size={14} className="text-mfi-emode" />
+          <IconEmode size={18} className="text-mfi-emode" />
           <p>e-mode looping active</p>
         </div>
       )}

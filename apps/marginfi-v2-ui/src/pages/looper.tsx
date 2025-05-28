@@ -33,7 +33,7 @@ export default function LooperPage() {
               <div className="flex flex-col items-center -translate-y-1">
                 <p>
                   Leverage your deposits to maximize yield.
-                  {/* <br />
+                  <br />
                   <IconEmode size={24} className="inline-block" /> e-mode pairs increase leverage.{" "}
                   <EmodeExplore
                     trigger={
@@ -41,7 +41,7 @@ export default function LooperPage() {
                         explore e-mode pairs
                       </button>
                     }
-                  /> */}
+                  />
                 </p>
               </div>
             }
