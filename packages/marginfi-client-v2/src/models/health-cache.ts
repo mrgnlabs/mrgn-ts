@@ -32,7 +32,7 @@ export class HealthCache implements HealthCacheType {
     const liabilityValueMaint = wrappedI80F48toBigNumber(healthCacheRaw.liabilityValueMaint);
     const assetValueEquity = wrappedI80F48toBigNumber(healthCacheRaw.assetValueEquity);
     const liabilityValueEquity = wrappedI80F48toBigNumber(healthCacheRaw.liabilityValueEquity);
-    const timestamp = healthCacheRaw.timestamp.toNumber();
+    const timestamp = 0;
     const flags = getActiveHealthCacheFlags(healthCacheRaw.flags);
     const prices = healthCacheRaw.prices;
     return new HealthCache(
