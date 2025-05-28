@@ -1,31 +1,23 @@
-import {
-  AddressLookupTableAccount,
-  Keypair,
-  PublicKey,
-  TransactionInstruction,
-  TransactionMessage,
-  VersionedTransaction,
-} from "@solana/web3.js";
+import { AddressLookupTableAccount, Keypair, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
+import * as sb from "@switchboard-xyz/on-demand";
 
 import { Program, SolanaTransaction, bigNumberToWrappedI80F48, composeRemainingAccounts } from "@mrgnlabs/mrgn-common";
 
 import MarginfiClient from "../../clients/client";
 import { MarginfiAccountWrapper, MarginfiAccount } from "../../models/account";
 import { BalanceRaw, MarginfiAccountRaw } from "./types";
-import { Bank } from "../../models/bank";
 import { MarginfiIdlType } from "../../idl";
+import { AnchorProvider } from "@coral-xyz/anchor";
+import { getSwitchboardProgram } from "../../vendor";
 
 export async function createHealthPulseIx(props: {
-  activeBanks: Bank[];
+  bankAddressAndOraclePair: PublicKey[][];
   marginfiAccount: PublicKey;
-  feePayer: PublicKey;
   program: Program<MarginfiIdlType>;
-  blockhash: string;
-  addressLookupTableAccounts?: AddressLookupTableAccount[];
-}): Promise<TransactionInstruction> {
-  const remainingAccounts = composeRemainingAccounts(props.activeBanks.map((bank) => [bank.address, bank.oracleKey]));
+}): Promise<{ instructions: TransactionInstruction[]; luts: AddressLookupTableAccount[] }> {
+  const remainingAccounts = composeRemainingAccounts(props.bankAddressAndOraclePair);
 
   const healthPulseIx = await props.program.methods
     .lendingAccountPulseHealth()
@@ -35,7 +27,19 @@ export async function createHealthPulseIx(props: {
     .remainingAccounts(remainingAccounts.map((account) => ({ pubkey: account, isSigner: false, isWritable: false })))
     .instruction();
 
-  return healthPulseIx;
+  return { instructions: [healthPulseIx], luts: [] };
+}
+
+export async function createUpdateFeedIx(props: {
+  swbPullOracles: PublicKey[];
+  provider: AnchorProvider;
+}): Promise<{ instructions: TransactionInstruction[]; luts: AddressLookupTableAccount[] }> {
+  const sbProgram = getSwitchboardProgram(props.provider);
+  const [pullIx, luts] = await sb.PullFeed.fetchUpdateManyIx(sbProgram, {
+    feeds: props.swbPullOracles,
+    numSignatures: 1,
+  });
+  return { instructions: [pullIx], luts };
 }
 
 /**
@@ -77,6 +81,11 @@ export async function createMarginfiAccountTx(props: {
       liabilityValueMaint: bigNumberToWrappedI80F48(new BigNumber(0)),
       assetValueEquity: bigNumberToWrappedI80F48(new BigNumber(0)),
       liabilityValueEquity: bigNumberToWrappedI80F48(new BigNumber(0)),
+      errIndex: 0,
+      internalErr: 0,
+      internalBankruptcyErr: 0,
+      internalLiqErr: 0,
+      mrgnErr: 0,
     },
     emissionsDestinationAccount: new PublicKey("11111111111111111111111111111111"),
     accountFlags: new BN([0, 0, 0]),

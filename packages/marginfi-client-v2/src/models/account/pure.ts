@@ -3,6 +3,7 @@ import {
   BankMetadataMap,
   InstructionsWrapper,
   NATIVE_MINT,
+  Program,
   TOKEN_2022_PROGRAM_ID,
   aprToApy,
   composeRemainingAccounts,
@@ -11,7 +12,13 @@ import {
   shortenAddress,
   uiToNative,
 } from "@mrgnlabs/mrgn-common";
-import { ComputeBudgetProgram, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import {
+  ComputeBudgetProgram,
+  PublicKey,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { Bank } from "../bank";
 import instructions from "../../instructions";
@@ -43,12 +50,16 @@ import {
   computeHealthComponentsWithoutBiasLegacy,
   computeAccountValue,
   computeNetApy,
+  createHealthPulseIx,
+  OracleSetup,
+  createUpdateFeedIx,
 } from "../..";
 import BN from "bn.js";
 import { BorshInstructionCoder } from "@coral-xyz/anchor";
 import { findPoolMintAddress, findPoolAddress, findPoolStakeAddress } from "../../vendor/single-spl-pool";
 import { HealthCache } from "../health-cache";
 import { PriceBias } from "../../services/price/types";
+import { simulateBundle } from "../../services/transaction/helpers";
 
 // ----------------------------------------------------------------------------
 // Client types
@@ -92,6 +103,169 @@ class MarginfiAccount implements MarginfiAccountType {
       props.emissionsDestinationAccount,
       props.healthCache
     );
+  }
+
+  static async simulateHealthCache(
+    program: Program<MarginfiIdlType>,
+    bankMap: Map<string, Bank>,
+    address: PublicKey,
+    rawData: MarginfiAccountRaw
+  ) {
+    const banks = rawData.lendingAccount.balances
+      .filter((b) => b.active)
+      .map((b) => {
+        const bank = bankMap.get(b.bankPk.toBase58());
+        if (!bank) return undefined;
+        return bank;
+      })
+      .filter((b) => b !== undefined);
+
+    const bankAddressAndOraclePair = banks.map((b) => {
+      return [b.address, b.oracleKey];
+    });
+
+    const pythOracleKeys: PublicKey[] = [];
+    const swbOracleKeys: PublicKey[] = [];
+
+    // checks for duplicate oracle keys
+    const seenPyth = new Set<string>();
+    const seenSwb = new Set<string>();
+
+    for (const b of banks) {
+      const setup = b.config.oracleSetup;
+      const key = b.oracleKey;
+      const id = key.toBase58();
+
+      if ((setup === OracleSetup.PythPushOracle || setup === OracleSetup.StakedWithPythPush) && !seenPyth.has(id)) {
+        seenPyth.add(id);
+        pythOracleKeys.push(key);
+      }
+
+      if (setup === OracleSetup.SwitchboardPull && !seenSwb.has(id)) {
+        seenSwb.add(id);
+        swbOracleKeys.push(key);
+      }
+    }
+
+    const computeIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 });
+    const updateFeedIxs =
+      swbOracleKeys.length > 0
+        ? await createUpdateFeedIx({ swbPullOracles: swbOracleKeys, provider: program.provider })
+        : { instructions: [], luts: [] };
+    const healthPulseIxs = await createHealthPulseIx({ bankAddressAndOraclePair, marginfiAccount: address, program });
+
+    const blockhash = (await program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
+
+    const tx = new VersionedTransaction(
+      new TransactionMessage({
+        instructions: [computeIx, ...updateFeedIxs.instructions, ...healthPulseIxs.instructions],
+        payerKey: program.provider.publicKey,
+        recentBlockhash: blockhash,
+      }).compileToV0Message([...updateFeedIxs.luts, ...healthPulseIxs.luts])
+    );
+
+    const simulationResult = await program.provider.connection.simulateTransaction(tx, {
+      accounts: {
+        encoding: "base64",
+        addresses: [address.toBase58()],
+      },
+      sigVerify: false,
+    });
+
+    if (!simulationResult?.value?.accounts?.[0]) {
+      throw new Error("Account not found");
+    }
+
+    const marginfiAccountPost = MarginfiAccount.decodeAccountRaw(
+      Buffer.from(simulationResult?.value?.accounts?.[0].data[0], "base64"),
+      program.idl
+    );
+
+    console.log({ simulationResult });
+    console.log({ marginfiAccountPost });
+
+    return marginfiAccountPost;
+  }
+
+  static async iniateAccountWithHealthCache(
+    program: Program<MarginfiIdlType>,
+    bankMap: Map<string, Bank>,
+    address: PublicKey
+  ) {
+    const rawData: MarginfiAccountRaw = await program.account.marginfiAccount.fetch(address);
+    const parsedData = parseMarginfiAccountRaw(address, rawData);
+    const banks = parsedData.balances
+      .filter((b) => b.active)
+      .map((b) => {
+        const bank = bankMap.get(b.bankPk.toBase58());
+        if (!bank) return undefined;
+        return bank;
+      })
+      .filter((b) => b !== undefined);
+
+    const bankAddressAndOraclePair = banks.map((b) => {
+      return [b.address, b.oracleKey];
+    });
+
+    const pythOracleKeys: PublicKey[] = [];
+    const swbOracleKeys: PublicKey[] = [];
+
+    // checks for duplicate oracle keys
+    const seenPyth = new Set<string>();
+    const seenSwb = new Set<string>();
+
+    for (const b of banks) {
+      const setup = b.config.oracleSetup;
+      const key = b.oracleKey;
+      const id = key.toBase58();
+
+      if ((setup === OracleSetup.PythPushOracle || setup === OracleSetup.StakedWithPythPush) && !seenPyth.has(id)) {
+        seenPyth.add(id);
+        pythOracleKeys.push(key);
+      }
+
+      if (setup === OracleSetup.SwitchboardPull && !seenSwb.has(id)) {
+        seenSwb.add(id);
+        swbOracleKeys.push(key);
+      }
+    }
+
+    const computeIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 });
+    const updateFeedIxs =
+      swbOracleKeys.length > 0
+        ? await createUpdateFeedIx({ swbPullOracles: swbOracleKeys, provider: program.provider })
+        : { instructions: [], luts: [] };
+    const healthPulseIxs = await createHealthPulseIx({ bankAddressAndOraclePair, marginfiAccount: address, program });
+
+    const blockhash = (await program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
+
+    const tx = new VersionedTransaction(
+      new TransactionMessage({
+        instructions: [computeIx, ...updateFeedIxs.instructions, ...healthPulseIxs.instructions],
+        payerKey: program.provider.publicKey,
+        recentBlockhash: blockhash,
+      }).compileToV0Message([...updateFeedIxs.luts, ...healthPulseIxs.luts])
+    );
+
+    const simulationResult = await program.provider.connection.simulateTransaction(tx, {
+      accounts: {
+        encoding: "base64",
+        addresses: [address.toBase58()],
+      },
+      sigVerify: false,
+    });
+
+    if (!simulationResult?.value?.accounts?.[0]) {
+      throw new Error("Account not found");
+    }
+
+    const marginfiAccountPost = MarginfiAccount.decodeAccountRaw(
+      Buffer.from(simulationResult?.value?.accounts?.[0].data[0], "base64"),
+      program.idl
+    );
+
+    console.log({ simulationResult });
+    console.log({ marginfiAccountPost });
   }
 
   static fromAccountDataRaw(marginfiAccountPk: PublicKey, rawData: Buffer, idl: MarginfiIdlType) {
@@ -1091,6 +1265,14 @@ class MarginfiAccount implements MarginfiAccountType {
       feePayer: this.authority,
     });
     return { instructions: [ix], keys: [] };
+  }
+
+  async makeHealthPulseIx(program: MarginfiProgram, bankAddressAndOraclePair: PublicKey[][]) {
+    return createHealthPulseIx({
+      marginfiAccount: this.address,
+      program: program,
+      bankAddressAndOraclePair,
+    });
   }
 
   projectActiveBalancesNoCpi(program: MarginfiProgram, instructions: TransactionInstruction[]): PublicKey[] {

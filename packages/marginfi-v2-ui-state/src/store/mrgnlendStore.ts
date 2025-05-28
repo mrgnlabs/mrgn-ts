@@ -41,7 +41,7 @@ import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { Bank, getPriceWithConfidence, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
+import { Bank, getPriceWithConfidence, MarginfiAccount, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import type {
   Wallet,
   BankMetadataMap,
@@ -292,6 +292,14 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
             localStorage.removeItem("mfiAccount");
             selectedAccount = null;
           }
+        }
+
+        if (selectedAccount) {
+          await MarginfiAccount.iniateAccountWithHealthCache(
+            marginfiClient.program,
+            marginfiClient.banks,
+            selectedAccount.address
+          );
         }
 
         userDataFetched = true;

@@ -17,7 +17,7 @@ import {
 import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "../types";
 import { getConfig } from "../config";
 import instructions from "../instructions";
-import { MarginRequirementType } from "../models/account";
+import { MarginfiAccount, MarginRequirementType } from "../models/account";
 import {
   addTransactionMetadata,
   BankMetadataMap,
@@ -555,7 +555,21 @@ class MarginfiClient {
     require("debug")("mfi:client")("Fetching %s marginfi accounts", pubkeys);
 
     const accounts = await this.program.account.marginfiAccount.fetchMultiple(pubkeys);
-    return accounts.map((account, index) => {
+    const simulatedAccounts: MarginfiAccountRaw[] = [];
+    for (const [idx, account] of accounts.entries()) {
+      if (!account) {
+        throw new Error(`Account not found for pubkey: ${pubkeys[idx].toBase58()}`);
+      }
+      const simulatedAccount = await MarginfiAccount.simulateHealthCache(
+        this.program,
+        this.banks,
+        pubkeys[idx],
+        account
+      );
+
+      simulatedAccounts.push(simulatedAccount);
+    }
+    return simulatedAccounts.map((account, index) => {
       if (!account) {
         throw new Error(`Account not found for pubkey: ${pubkeys[index].toBase58()}`);
       }

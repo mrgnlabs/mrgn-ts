@@ -1124,10 +1124,10 @@ class MarginfiAccountWrapper {
 
       const tx = new VersionedTransaction(
         new TransactionMessage({
-          instructions: [computeIx, ...updateFeedIx.instructions, healthPulseIx],
+          instructions: [computeIx, ...updateFeedIx.instructions, ...healthPulseIx.instructions],
           payerKey: this.client.provider.publicKey,
           recentBlockhash: blockhash,
-        }).compileToV0Message([...this.client.addressLookupTables, ...updateFeedIx.luts])
+        }).compileToV0Message([...this.client.addressLookupTables, ...updateFeedIx.luts, ...healthPulseIx.luts])
       );
 
       additionalTxs.push(tx);
@@ -1939,8 +1939,7 @@ class MarginfiAccountWrapper {
           numSignatures: 1,
         });
 
-        const cuRequestIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 });
-        return { instructions: [cuRequestIx, pullIx], luts };
+        return { instructions: [pullIx], luts };
       }
 
       return { instructions: [], luts: [] };
@@ -1950,8 +1949,6 @@ class MarginfiAccountWrapper {
   }
 
   async makeHealthPulseIx(mandatoryBanks: PublicKey[] = [], excludedBanks: PublicKey[] = []) {
-    const blockhash = await this._program.provider.connection.getLatestBlockhash("confirmed");
-
     // Get active banks excluding the excluded ones
     const activeBanks = this.activeBalances
       .map((b) => this.client.banks.get(b.bankPk.toBase58()))
@@ -1967,13 +1964,10 @@ class MarginfiAccountWrapper {
     // Combine active banks with mandatory banks
     const allBanks = [...activeBanks, ...mandatoryBankObjs];
 
-    return createHealthPulseIx({
-      activeBanks: allBanks,
-      marginfiAccount: this.address,
-      feePayer: this.client.provider.publicKey,
-      program: this._program,
-      blockhash: blockhash.blockhash,
-    });
+    return this._marginfiAccount.makeHealthPulseIx(
+      this._program,
+      allBanks.map((bank) => [bank.address, bank.oracleKey])
+    );
   }
 
   // --------------------------------------------------------------------------

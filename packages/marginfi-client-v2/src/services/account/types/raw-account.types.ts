@@ -25,6 +25,12 @@ export interface HealthCacheRaw {
   timestamp: BN;
   flags: number;
   prices: number[][];
+
+  errIndex: number;
+  internalErr: number;
+  internalBankruptcyErr: number;
+  internalLiqErr: number;
+  mrgnErr: number;
 }
 
 export interface MarginfiAccountRaw {
