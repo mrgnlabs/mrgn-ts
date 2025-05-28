@@ -82,7 +82,7 @@ export async function createMarginfiAccountTx(props: {
     accountFlags: new BN([0, 0, 0]),
   };
 
-  const account = new MarginfiAccount(marginfiAccountKeypair.publicKey, rawAccount);
+  const account = MarginfiAccount.fromAccountParsed(marginfiAccountKeypair.publicKey, rawAccount);
 
   const wrappedAccount = new MarginfiAccountWrapper(marginfiAccountKeypair.publicKey, props.marginfiClient, account);
 

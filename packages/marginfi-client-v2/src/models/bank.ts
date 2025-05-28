@@ -1,35 +1,46 @@
-import {
-  BankMetadata,
-  WrappedI80F48,
-  nativeToUi,
-  wrappedI80F48toBigNumber,
-  bigNumberToWrappedI80F48,
-  toBigNumber,
-  Amount,
-} from "@mrgnlabs/mrgn-common";
+import { BankMetadata, nativeToUi } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import BN from "bn.js";
-import { isWeightedPrice, MarginRequirementType } from "./account";
-import { PriceBias, OraclePrice, getPriceWithConfidence } from "./price";
-import { BorshCoder } from "@coral-xyz/anchor";
-import { AccountType } from "../types";
+import { MarginRequirementType } from "./account";
 import { MarginfiIdlType } from "../idl";
-import { findOracleKey, PythPushFeedIdMap } from "../utils";
-import { DEFAULT_ORACLE_MAX_AGE } from "../constants";
+import { PythPushFeedIdMap } from "../utils";
 import {
   AssetTag,
   BankConfigRaw,
   BankConfigType,
   BankRaw,
   BankType,
+  getPrice,
   InterestRateConfig,
   OperationalState,
+  OraclePrice,
   OracleSetup,
   RiskTier,
 } from "../services";
-import { parseRiskTier, parseOperationalState, parseOracleSetup } from "../services/bank/utils";
+
+import {
+  decodeBankRaw,
+  parseBankRaw,
+  parseBankConfigRaw,
+  getTotalAssetQuantity,
+  getTotalLiabilityQuantity,
+  getAssetQuantity,
+  getLiabilityQuantity,
+  getAssetShares,
+  getLiabilityShares,
+  computeAssetUsdValue,
+  getAssetWeight,
+  getLiabilityWeight,
+  computeLiabilityUsdValue,
+  computeUsdValue,
+  computeTvl,
+  computeInterestRates,
+  computeBaseInterestRate,
+  computeUtilizationRate,
+  computeRemainingCapacity,
+} from "../services/bank/utils";
 import { EmodeSettings } from "./emode-settings";
+import { PriceBias } from "../services/price/types";
 
 const SECONDS_PER_DAY = 24 * 60 * 60;
 const SECONDS_PER_YEAR = SECONDS_PER_DAY * 365.25;
@@ -39,126 +50,45 @@ const SECONDS_PER_YEAR = SECONDS_PER_DAY * 365.25;
 // ----------------------------------------------------------------------------
 
 class Bank implements BankType {
-  public address: PublicKey;
-  public tokenSymbol: string | undefined;
-
-  public group: PublicKey;
-  public mint: PublicKey;
-  public mintDecimals: number;
-
-  public assetShareValue: BigNumber;
-  public liabilityShareValue: BigNumber;
-
-  public liquidityVault: PublicKey;
-  public liquidityVaultBump: number;
-  public liquidityVaultAuthorityBump: number;
-
-  public insuranceVault: PublicKey;
-  public insuranceVaultBump: number;
-  public insuranceVaultAuthorityBump: number;
-  public collectedInsuranceFeesOutstanding: BigNumber;
-
-  public feeVault: PublicKey;
-  public feeVaultBump: number;
-  public feeVaultAuthorityBump: number;
-  public collectedGroupFeesOutstanding: BigNumber;
-
-  public lastUpdate: number;
-
-  public config: BankConfig;
-
-  public totalAssetShares: BigNumber;
-  public totalLiabilityShares: BigNumber;
-
-  public emissionsActiveBorrowing: boolean;
-  public emissionsActiveLending: boolean;
-  public emissionsRate: number;
-  public emissionsMint: PublicKey;
-  public emissionsRemaining: BigNumber;
-
-  public oracleKey: PublicKey;
-  public emode: EmodeSettings;
-
   constructor(
-    address: PublicKey,
-    mint: PublicKey,
-    mintDecimals: number,
-    group: PublicKey,
-    assetShareValue: BigNumber,
-    liabilityShareValue: BigNumber,
-    liquidityVault: PublicKey,
-    liquidityVaultBump: number,
-    liquidityVaultAuthorityBump: number,
-    insuranceVault: PublicKey,
-    insuranceVaultBump: number,
-    insuranceVaultAuthorityBump: number,
-    collectedInsuranceFeesOutstanding: BigNumber,
-    feeVault: PublicKey,
-    feeVaultBump: number,
-    feeVaultAuthorityBump: number,
-    collectedGroupFeesOutstanding: BigNumber,
-    lastUpdate: BN,
-    config: BankConfig,
-    totalAssetShares: BigNumber,
-    totalLiabilityShares: BigNumber,
-    emissionsActiveBorrowing: boolean,
-    emissionsActiveLending: boolean,
-    emissionsRate: number,
-    emissionsMint: PublicKey,
-    emissionsRemaining: BigNumber,
-    oracleKey: PublicKey,
-    emode: EmodeSettings,
-    tokenSymbol?: string
-  ) {
-    this.address = address;
-    this.tokenSymbol = tokenSymbol;
-
-    this.group = group;
-    this.mint = mint;
-    this.mintDecimals = mintDecimals;
-
-    this.assetShareValue = assetShareValue;
-    this.liabilityShareValue = liabilityShareValue;
-
-    this.liquidityVault = liquidityVault;
-    this.liquidityVaultBump = liquidityVaultBump;
-    this.liquidityVaultAuthorityBump = liquidityVaultAuthorityBump;
-
-    this.insuranceVault = insuranceVault;
-    this.insuranceVaultBump = insuranceVaultBump;
-    this.insuranceVaultAuthorityBump = insuranceVaultAuthorityBump;
-    this.collectedInsuranceFeesOutstanding = collectedInsuranceFeesOutstanding;
-
-    this.feeVault = feeVault;
-    this.feeVaultBump = feeVaultBump;
-    this.feeVaultAuthorityBump = feeVaultAuthorityBump;
-    this.collectedGroupFeesOutstanding = collectedGroupFeesOutstanding;
-
-    this.lastUpdate = lastUpdate.toNumber();
-
-    this.config = config;
-
-    this.totalAssetShares = totalAssetShares;
-    this.totalLiabilityShares = totalLiabilityShares;
-
-    this.emissionsActiveBorrowing = emissionsActiveBorrowing;
-    this.emissionsActiveLending = emissionsActiveLending;
-    this.emissionsRate = emissionsRate;
-    this.emissionsMint = emissionsMint;
-    this.emissionsRemaining = emissionsRemaining;
-
-    this.oracleKey = oracleKey;
-    this.emode = emode;
-  }
+    public readonly address: PublicKey,
+    public readonly mint: PublicKey,
+    public readonly mintDecimals: number,
+    public readonly group: PublicKey,
+    public readonly assetShareValue: BigNumber,
+    public readonly liabilityShareValue: BigNumber,
+    public readonly liquidityVault: PublicKey,
+    public readonly liquidityVaultBump: number,
+    public readonly liquidityVaultAuthorityBump: number,
+    public readonly insuranceVault: PublicKey,
+    public readonly insuranceVaultBump: number,
+    public readonly insuranceVaultAuthorityBump: number,
+    public readonly collectedInsuranceFeesOutstanding: BigNumber,
+    public readonly feeVault: PublicKey,
+    public readonly feeVaultBump: number,
+    public readonly feeVaultAuthorityBump: number,
+    public readonly collectedGroupFeesOutstanding: BigNumber,
+    public readonly lastUpdate: number,
+    public config: BankConfig,
+    public readonly totalAssetShares: BigNumber,
+    public readonly totalLiabilityShares: BigNumber,
+    public readonly emissionsActiveBorrowing: boolean,
+    public readonly emissionsActiveLending: boolean,
+    public readonly emissionsRate: number,
+    public readonly emissionsMint: PublicKey,
+    public readonly emissionsRemaining: BigNumber,
+    public readonly oracleKey: PublicKey,
+    public readonly emode: EmodeSettings,
+    public readonly tokenSymbol?: string
+  ) {}
 
   static decodeBankRaw(encoded: Buffer, idl: MarginfiIdlType): BankRaw {
-    const coder = new BorshCoder(idl);
-    return coder.accounts.decode(AccountType.Bank, encoded);
+    return decodeBankRaw(encoded, idl);
   }
 
-  static fromBuffer(address: PublicKey, buffer: Buffer, idl: MarginfiIdlType, feedIdMap: PythPushFeedIdMap): Bank {
-    const accountParsed = Bank.decodeBankRaw(buffer, idl);
-    return Bank.fromAccountParsed(address, accountParsed, feedIdMap);
+  static fromBuffer(bankPk: PublicKey, rawData: Buffer, idl: MarginfiIdlType, feedIdMap: PythPushFeedIdMap): Bank {
+    const accountParsed = Bank.decodeBankRaw(rawData, idl);
+    return Bank.fromAccountParsed(bankPk, accountParsed, feedIdMap);
   }
 
   static fromAccountParsed(
@@ -167,79 +97,37 @@ class Bank implements BankType {
     feedIdMap: PythPushFeedIdMap,
     bankMetadata?: BankMetadata
   ): Bank {
-    const flags = accountParsed.flags.toNumber();
-
-    const mint = accountParsed.mint;
-    const mintDecimals = accountParsed.mintDecimals;
-    const group = accountParsed.group;
-
-    const assetShareValue = wrappedI80F48toBigNumber(accountParsed.assetShareValue);
-    const liabilityShareValue = wrappedI80F48toBigNumber(accountParsed.liabilityShareValue);
-
-    const liquidityVault = accountParsed.liquidityVault;
-    const liquidityVaultBump = accountParsed.liquidityVaultBump;
-    const liquidityVaultAuthorityBump = accountParsed.liquidityVaultAuthorityBump;
-
-    const insuranceVault = accountParsed.insuranceVault;
-    const insuranceVaultBump = accountParsed.insuranceVaultBump;
-    const insuranceVaultAuthorityBump = accountParsed.insuranceVaultAuthorityBump;
-
-    const collectedInsuranceFeesOutstanding = wrappedI80F48toBigNumber(accountParsed.collectedInsuranceFeesOutstanding);
-
-    const feeVault = accountParsed.feeVault;
-    const feeVaultBump = accountParsed.feeVaultBump;
-    const feeVaultAuthorityBump = accountParsed.feeVaultAuthorityBump;
-
-    const collectedGroupFeesOutstanding = wrappedI80F48toBigNumber(accountParsed.collectedGroupFeesOutstanding);
-
-    const config = BankConfig.fromAccountParsed(accountParsed.config);
-
-    const totalAssetShares = wrappedI80F48toBigNumber(accountParsed.totalAssetShares);
-    const totalLiabilityShares = wrappedI80F48toBigNumber(accountParsed.totalLiabilityShares);
-
-    const emissionsActiveBorrowing = (flags & 1) > 0;
-    const emissionsActiveLending = (flags & 2) > 0;
-
-    // @todo existence checks here should be temporary - remove once all banks have emission configs
-    const emissionsRate = accountParsed.emissionsRate.toNumber();
-    const emissionsMint = accountParsed.emissionsMint;
-    const emissionsRemaining = accountParsed.emissionsRemaining
-      ? wrappedI80F48toBigNumber(accountParsed.emissionsRemaining)
-      : new BigNumber(0);
-
-    const oracleKey = findOracleKey(config, feedIdMap);
-    const emode = EmodeSettings.from(accountParsed.emode);
-
+    const props = parseBankRaw(address, accountParsed, feedIdMap, bankMetadata);
     return new Bank(
-      address,
-      mint,
-      mintDecimals,
-      group,
-      assetShareValue,
-      liabilityShareValue,
-      liquidityVault,
-      liquidityVaultBump,
-      liquidityVaultAuthorityBump,
-      insuranceVault,
-      insuranceVaultBump,
-      insuranceVaultAuthorityBump,
-      collectedInsuranceFeesOutstanding,
-      feeVault,
-      feeVaultBump,
-      feeVaultAuthorityBump,
-      collectedGroupFeesOutstanding,
-      accountParsed.lastUpdate,
-      config,
-      totalAssetShares,
-      totalLiabilityShares,
-      emissionsActiveBorrowing,
-      emissionsActiveLending,
-      emissionsRate,
-      emissionsMint,
-      emissionsRemaining,
-      oracleKey,
-      emode,
-      bankMetadata?.tokenSymbol
+      props.address,
+      props.mint,
+      props.mintDecimals,
+      props.group,
+      props.assetShareValue,
+      props.liabilityShareValue,
+      props.liquidityVault,
+      props.liquidityVaultBump,
+      props.liquidityVaultAuthorityBump,
+      props.insuranceVault,
+      props.insuranceVaultBump,
+      props.insuranceVaultAuthorityBump,
+      props.collectedInsuranceFeesOutstanding,
+      props.feeVault,
+      props.feeVaultBump,
+      props.feeVaultAuthorityBump,
+      props.collectedGroupFeesOutstanding,
+      props.lastUpdate,
+      props.config,
+      props.totalAssetShares,
+      props.totalLiabilityShares,
+      props.emissionsActiveBorrowing,
+      props.emissionsActiveLending,
+      props.emissionsRate,
+      props.emissionsMint,
+      props.emissionsRemaining,
+      props.oracleKey,
+      props.emode,
+      props.tokenSymbol
     );
   }
 
@@ -255,28 +143,46 @@ class Bank implements BankType {
     return newBank;
   }
 
+  static getPrice(
+    oraclePrice: OraclePrice,
+    priceBias: PriceBias = PriceBias.None,
+    weightedPrice: boolean = false
+  ): BigNumber {
+    return getPrice(oraclePrice, priceBias, weightedPrice);
+  }
+
+  static computeQuantityFromUsdValue(
+    oraclePrice: OraclePrice,
+    usdValue: BigNumber,
+    priceBias: PriceBias,
+    weightedPrice: boolean
+  ): BigNumber {
+    const price = getPrice(oraclePrice, priceBias, weightedPrice);
+    return usdValue.div(price);
+  }
+
   getTotalAssetQuantity(): BigNumber {
-    return this.totalAssetShares.times(this.assetShareValue);
+    return getTotalAssetQuantity(this);
   }
 
   getTotalLiabilityQuantity(): BigNumber {
-    return this.totalLiabilityShares.times(this.liabilityShareValue);
+    return getTotalLiabilityQuantity(this);
   }
 
   getAssetQuantity(assetShares: BigNumber): BigNumber {
-    return assetShares.times(this.assetShareValue);
+    return getAssetQuantity(this, assetShares);
   }
 
   getLiabilityQuantity(liabilityShares: BigNumber): BigNumber {
-    return liabilityShares.times(this.liabilityShareValue);
+    return getLiabilityQuantity(this, liabilityShares);
   }
 
   getAssetShares(assetQuantity: BigNumber): BigNumber {
-    return assetQuantity.times(this.assetShareValue);
+    return getAssetShares(this, assetQuantity);
   }
 
   getLiabilityShares(liabilityQuantity: BigNumber): BigNumber {
-    return liabilityQuantity.times(this.liabilityShareValue);
+    return getLiabilityShares(this, liabilityQuantity);
   }
 
   computeAssetUsdValue(
@@ -285,10 +191,7 @@ class Bank implements BankType {
     marginRequirementType: MarginRequirementType,
     priceBias: PriceBias
   ): BigNumber {
-    const assetQuantity = this.getAssetQuantity(assetShares);
-    const assetWeight = this.getAssetWeight(marginRequirementType, oraclePrice);
-    const isWeighted = isWeightedPrice(marginRequirementType);
-    return this.computeUsdValue(oraclePrice, assetQuantity, priceBias, isWeighted, assetWeight);
+    return computeAssetUsdValue(this, oraclePrice, assetShares, marginRequirementType, priceBias);
   }
 
   computeLiabilityUsdValue(
@@ -297,10 +200,7 @@ class Bank implements BankType {
     marginRequirementType: MarginRequirementType,
     priceBias: PriceBias
   ): BigNumber {
-    const liabilityQuantity = this.getLiabilityQuantity(liabilityShares);
-    const liabilityWeight = this.getLiabilityWeight(marginRequirementType);
-    const isWeighted = isWeightedPrice(marginRequirementType);
-    return this.computeUsdValue(oraclePrice, liabilityQuantity, priceBias, isWeighted, liabilityWeight);
+    return computeLiabilityUsdValue(this, oraclePrice, liabilityShares, marginRequirementType, priceBias);
   }
 
   computeUsdValue(
@@ -311,33 +211,7 @@ class Bank implements BankType {
     weight?: BigNumber,
     scaleToBase: boolean = true
   ): BigNumber {
-    const price = this.getPrice(oraclePrice, priceBias, weightedPrice);
-    return quantity
-      .times(price)
-      .times(weight ?? 1)
-      .dividedBy(scaleToBase ? 10 ** this.mintDecimals : 1);
-  }
-
-  computeQuantityFromUsdValue(
-    oraclePrice: OraclePrice,
-    usdValue: BigNumber,
-    priceBias: PriceBias,
-    weightedPrice: boolean
-  ): BigNumber {
-    const price = this.getPrice(oraclePrice, priceBias, weightedPrice);
-    return usdValue.div(price);
-  }
-
-  getPrice(oraclePrice: OraclePrice, priceBias: PriceBias = PriceBias.None, weightedPrice: boolean = false): BigNumber {
-    const price = getPriceWithConfidence(oraclePrice, weightedPrice);
-    switch (priceBias) {
-      case PriceBias.Lowest:
-        return price.lowestPrice;
-      case PriceBias.Highest:
-        return price.highestPrice;
-      case PriceBias.None:
-        return price.price;
-    }
+    return computeUsdValue(this, oraclePrice, quantity, priceBias, weightedPrice, weight, scaleToBase);
   }
 
   getAssetWeight(
@@ -346,132 +220,40 @@ class Bank implements BankType {
     ignoreSoftLimits: boolean = false,
     assetWeightInitOverride?: BigNumber
   ): BigNumber {
-    const assetWeightInit = assetWeightInitOverride ?? this.config.assetWeightInit;
-
-    switch (marginRequirementType) {
-      case MarginRequirementType.Initial:
-        const isSoftLimitDisabled = this.config.totalAssetValueInitLimit.isZero();
-        if (ignoreSoftLimits || isSoftLimitDisabled) return assetWeightInit;
-        const totalBankCollateralValue = this.computeAssetUsdValue(
-          oraclePrice,
-          this.totalAssetShares,
-          MarginRequirementType.Equity,
-          PriceBias.Lowest
-        );
-        if (totalBankCollateralValue.isGreaterThan(this.config.totalAssetValueInitLimit)) {
-          return this.config.totalAssetValueInitLimit.div(totalBankCollateralValue).times(assetWeightInit);
-        } else {
-          return assetWeightInit;
-        }
-      case MarginRequirementType.Maintenance:
-        return this.config.assetWeightMaint;
-      case MarginRequirementType.Equity:
-        return new BigNumber(1);
-      default:
-        throw new Error("Invalid margin requirement type");
-    }
+    return getAssetWeight(this, marginRequirementType, oraclePrice, {
+      ignoreSoftLimits,
+      assetWeightInitOverride,
+    });
   }
 
   getLiabilityWeight(marginRequirementType: MarginRequirementType): BigNumber {
-    switch (marginRequirementType) {
-      case MarginRequirementType.Initial:
-        return this.config.liabilityWeightInit;
-      case MarginRequirementType.Maintenance:
-        return this.config.liabilityWeightMaint;
-      case MarginRequirementType.Equity:
-        return new BigNumber(1);
-      default:
-        throw new Error("Invalid margin requirement type");
-    }
+    return getLiabilityWeight(this.config, marginRequirementType);
   }
 
   computeTvl(oraclePrice: OraclePrice): BigNumber {
-    return this.computeAssetUsdValue(
-      oraclePrice,
-      this.totalAssetShares,
-      MarginRequirementType.Equity,
-      PriceBias.None
-    ).minus(
-      this.computeLiabilityUsdValue(
-        oraclePrice,
-        this.totalLiabilityShares,
-        MarginRequirementType.Equity,
-        PriceBias.None
-      )
-    );
+    return computeTvl(this, oraclePrice);
   }
 
   computeInterestRates(): {
     lendingRate: BigNumber;
     borrowingRate: BigNumber;
   } {
-    const { insuranceFeeFixedApr, insuranceIrFee, protocolFixedFeeApr, protocolIrFee } = this.config.interestRateConfig;
-
-    const fixedFee = insuranceFeeFixedApr.plus(protocolFixedFeeApr);
-    const rateFee = insuranceIrFee.plus(protocolIrFee);
-
-    const baseInterestRate = this.computeBaseInterestRate();
-    const utilizationRate = this.computeUtilizationRate();
-
-    const lendingRate = baseInterestRate.times(utilizationRate);
-    const borrowingRate = baseInterestRate.times(new BigNumber(1).plus(rateFee)).plus(fixedFee);
-
-    return { lendingRate, borrowingRate };
+    return computeInterestRates(this);
   }
 
   computeBaseInterestRate(): BigNumber {
-    const { optimalUtilizationRate, plateauInterestRate, maxInterestRate } = this.config.interestRateConfig;
-
-    const utilizationRate = this.computeUtilizationRate();
-
-    if (utilizationRate.lte(optimalUtilizationRate)) {
-      return utilizationRate.times(plateauInterestRate).div(optimalUtilizationRate);
-    } else {
-      return utilizationRate
-        .minus(optimalUtilizationRate)
-        .div(new BigNumber(1).minus(optimalUtilizationRate))
-        .times(maxInterestRate.minus(plateauInterestRate))
-        .plus(plateauInterestRate);
-    }
+    return computeBaseInterestRate(this);
   }
 
   computeUtilizationRate(): BigNumber {
-    const assets = this.getTotalAssetQuantity();
-    const liabilities = this.getTotalLiabilityQuantity();
-    if (assets.isZero()) return new BigNumber(0);
-    return liabilities.div(assets);
+    return computeUtilizationRate(this);
   }
 
   computeRemainingCapacity(): {
     depositCapacity: BigNumber;
     borrowCapacity: BigNumber;
   } {
-    const totalDeposits = this.getTotalAssetQuantity();
-    const remainingCapacity = BigNumber.max(0, this.config.depositLimit.minus(totalDeposits));
-
-    const totalBorrows = this.getTotalLiabilityQuantity();
-    const remainingBorrowCapacity = BigNumber.max(0, this.config.borrowLimit.minus(totalBorrows));
-
-    const durationSinceLastAccrual = Date.now() / 1000 - this.lastUpdate;
-
-    const { lendingRate, borrowingRate } = this.computeInterestRates();
-
-    const outstandingLendingInterest = lendingRate
-      .times(durationSinceLastAccrual)
-      .dividedBy(SECONDS_PER_YEAR)
-      .times(totalDeposits);
-    const outstandingBorrowInterest = borrowingRate
-      .times(durationSinceLastAccrual)
-      .dividedBy(SECONDS_PER_YEAR)
-      .times(totalBorrows);
-
-    const depositCapacity = remainingCapacity.minus(outstandingLendingInterest.times(2));
-    const borrowCapacity = remainingBorrowCapacity.minus(outstandingBorrowInterest.times(2));
-
-    return {
-      depositCapacity,
-      borrowCapacity,
-    };
+    return computeRemainingCapacity(this);
   }
 
   describe(oraclePrice: OraclePrice): string {
@@ -495,8 +277,8 @@ Total liabilities (USD value): ${this.computeLiabilityUsdValue(
       PriceBias.None
     )}
 
-Asset price (USD): ${this.getPrice(oraclePrice, PriceBias.None, false)}
-Asset price Weighted (USD): ${this.getPrice(oraclePrice, PriceBias.None, true)}
+Asset price (USD): ${Bank.getPrice(oraclePrice, PriceBias.None, false)}
+Asset price Weighted (USD): ${Bank.getPrice(oraclePrice, PriceBias.None, true)}
 
 Config:
 - Asset weight init: ${this.config.assetWeightInit.toFixed(2)}
@@ -518,76 +300,38 @@ class BankConfig implements BankConfigType {
   constructor(
     public assetWeightInit: BigNumber,
     public assetWeightMaint: BigNumber,
-    public liabilityWeightInit: BigNumber,
-    public liabilityWeightMaint: BigNumber,
-    public depositLimit: BigNumber,
-    public borrowLimit: BigNumber,
-    public riskTier: RiskTier,
-    public totalAssetValueInitLimit: BigNumber,
-    public assetTag: AssetTag,
-    public oracleSetup: OracleSetup,
-    public oracleKeys: PublicKey[],
-    public oracleMaxAge: number,
-    public interestRateConfig: InterestRateConfig,
-    public operationalState: OperationalState
-  ) {
-    this.assetWeightInit = assetWeightInit;
-    this.assetWeightMaint = assetWeightMaint;
-    this.liabilityWeightInit = liabilityWeightInit;
-    this.liabilityWeightMaint = liabilityWeightMaint;
-    this.depositLimit = depositLimit;
-    this.borrowLimit = borrowLimit;
-    this.riskTier = riskTier;
-    this.totalAssetValueInitLimit = totalAssetValueInitLimit;
-    this.assetTag = assetTag;
-    this.oracleSetup = oracleSetup;
-    this.oracleKeys = oracleKeys;
-    this.interestRateConfig = interestRateConfig;
-    this.operationalState = operationalState;
-    this.oracleMaxAge = oracleMaxAge;
-  }
+    public readonly liabilityWeightInit: BigNumber,
+    public readonly liabilityWeightMaint: BigNumber,
+    public readonly depositLimit: BigNumber,
+    public readonly borrowLimit: BigNumber,
+    public readonly riskTier: RiskTier,
+    public readonly totalAssetValueInitLimit: BigNumber,
+    public readonly assetTag: AssetTag,
+    public readonly oracleSetup: OracleSetup,
+    public readonly oracleKeys: PublicKey[],
+    public readonly oracleMaxAge: number,
+    public readonly interestRateConfig: InterestRateConfig,
+    public readonly operationalState: OperationalState
+  ) {}
 
   static fromAccountParsed(bankConfigRaw: BankConfigRaw): BankConfig {
-    const assetWeightInit = wrappedI80F48toBigNumber(bankConfigRaw.assetWeightInit);
-    const assetWeightMaint = wrappedI80F48toBigNumber(bankConfigRaw.assetWeightMaint);
-    const liabilityWeightInit = wrappedI80F48toBigNumber(bankConfigRaw.liabilityWeightInit);
-    const liabilityWeightMaint = wrappedI80F48toBigNumber(bankConfigRaw.liabilityWeightMaint);
-    const depositLimit = BigNumber(bankConfigRaw.depositLimit.toString());
-    const borrowLimit = BigNumber(bankConfigRaw.borrowLimit.toString());
-    const riskTier = parseRiskTier(bankConfigRaw.riskTier);
-    const operationalState = parseOperationalState(bankConfigRaw.operationalState);
-    const totalAssetValueInitLimit = BigNumber(bankConfigRaw.totalAssetValueInitLimit.toString());
-    const assetTag = bankConfigRaw.assetTag as AssetTag;
-    const oracleSetup = parseOracleSetup(bankConfigRaw.oracleSetup);
-    const oracleKeys = bankConfigRaw.oracleKeys;
-    const oracleMaxAge = bankConfigRaw.oracleMaxAge === 0 ? DEFAULT_ORACLE_MAX_AGE : bankConfigRaw.oracleMaxAge;
-    const interestRateConfig = {
-      insuranceFeeFixedApr: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.insuranceFeeFixedApr),
-      maxInterestRate: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.maxInterestRate),
-      insuranceIrFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.insuranceIrFee),
-      optimalUtilizationRate: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.optimalUtilizationRate),
-      plateauInterestRate: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.plateauInterestRate),
-      protocolFixedFeeApr: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolFixedFeeApr),
-      protocolIrFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolIrFee),
-      protocolOriginationFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolOriginationFee),
-    };
-
-    return {
-      assetWeightInit,
-      assetWeightMaint,
-      liabilityWeightInit,
-      liabilityWeightMaint,
-      depositLimit,
-      borrowLimit,
-      riskTier,
-      operationalState,
-      totalAssetValueInitLimit,
-      assetTag,
-      oracleSetup,
-      oracleKeys,
-      oracleMaxAge,
-      interestRateConfig,
-    };
+    const bankConfig = parseBankConfigRaw(bankConfigRaw);
+    return new BankConfig(
+      bankConfig.assetWeightInit,
+      bankConfig.assetWeightMaint,
+      bankConfig.liabilityWeightInit,
+      bankConfig.liabilityWeightMaint,
+      bankConfig.depositLimit,
+      bankConfig.borrowLimit,
+      bankConfig.riskTier,
+      bankConfig.totalAssetValueInitLimit,
+      bankConfig.assetTag,
+      bankConfig.oracleSetup,
+      bankConfig.oracleKeys,
+      bankConfig.oracleMaxAge,
+      bankConfig.interestRateConfig,
+      bankConfig.operationalState
+    );
   }
 }
 

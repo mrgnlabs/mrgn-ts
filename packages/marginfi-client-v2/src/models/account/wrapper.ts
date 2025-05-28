@@ -134,7 +134,7 @@ class MarginfiAccountWrapper {
     const _marginfiAccountPk = translateAddress(marginfiAccountPk);
 
     const accountData = await MarginfiAccountWrapper._fetchAccountData(_marginfiAccountPk, config, program, commitment);
-    const marginfiAccount = new MarginfiAccount(_marginfiAccountPk, accountData);
+    const marginfiAccount = MarginfiAccount.fromAccountParsed(_marginfiAccountPk, accountData);
 
     const marginfiAccountProxy = new MarginfiAccountWrapper(_marginfiAccountPk, client, marginfiAccount);
 
@@ -150,7 +150,7 @@ class MarginfiAccountWrapper {
       );
 
     const _marginfiAccountPk = translateAddress(marginfiAccountPk);
-    const marginfiAccount = new MarginfiAccount(_marginfiAccountPk, accountData);
+    const marginfiAccount = MarginfiAccount.fromAccountParsed(_marginfiAccountPk, accountData);
     return new MarginfiAccountWrapper(_marginfiAccountPk, client, marginfiAccount);
   }
 
@@ -317,6 +317,7 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.computeNetApy(this.client.banks, this.client.oraclePrices);
   }
 
+  /** Todo move this into client */
   public computeLoopingParams(
     principal: Amount,
     targetLeverage: number,
@@ -2017,7 +2018,7 @@ class MarginfiAccountWrapper {
   }
 
   private _updateFromAccountParsed(data: MarginfiAccountRaw) {
-    this._marginfiAccount = new MarginfiAccount(this.address, data);
+    this._marginfiAccount = MarginfiAccount.fromAccountParsed(this.address, data);
   }
 
   public describe(): string {

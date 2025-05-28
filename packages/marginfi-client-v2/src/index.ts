@@ -9,7 +9,6 @@ export * from "./errors";
 export * from "./constants";
 export * from "./models/bank";
 export * from "./models/balance";
-export * from "./models/price";
 export * from "./models/group";
 export * from "./models/account";
 export * from "./services";

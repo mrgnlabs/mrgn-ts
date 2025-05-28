@@ -1,11 +1,9 @@
 import {
   Amount,
-  BankMetadata,
   BankMetadataMap,
   InstructionsWrapper,
   NATIVE_MINT,
   TOKEN_2022_PROGRAM_ID,
-  WSOL_MINT,
   aprToApy,
   composeRemainingAccounts,
   createAssociatedTokenAccountIdempotentInstruction,
@@ -13,12 +11,11 @@ import {
   shortenAddress,
   uiToNative,
 } from "@mrgnlabs/mrgn-common";
-import { AccountMeta, ComputeBudgetProgram, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { ComputeBudgetProgram, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { Bank } from "../bank";
-import { PriceBias, OraclePrice } from "../price";
 import instructions from "../../instructions";
-import { AccountType, MarginfiProgram } from "../../types";
+import { MarginfiProgram } from "../../types";
 import { makeWrapSolIxs, makeUnwrapSolIx } from "../../utils";
 import { Balance } from "../balance";
 import {
@@ -31,61 +28,74 @@ import {
   MarginfiAccountRaw,
   MarginfiAccountType,
   AccountFlags,
-  getActiveAccountFlags,
   EmodeTag,
   EmodePair,
   computeEmodeImpacts,
   computeActiveEmodePairs,
   ActionEmodeImpact,
+  computeHealthComponents,
+  computeFreeCollateral,
+  OraclePrice,
+  getPrice,
+  decodeAccountRaw,
+  parseMarginfiAccountRaw,
+  computeHealthComponentsLegacy,
+  computeHealthComponentsWithoutBiasLegacy,
+  computeAccountValue,
+  computeNetApy,
 } from "../..";
 import BN from "bn.js";
-import { Address, BorshCoder, BorshInstructionCoder, translateAddress } from "@coral-xyz/anchor";
+import { BorshInstructionCoder } from "@coral-xyz/anchor";
 import { findPoolMintAddress, findPoolAddress, findPoolStakeAddress } from "../../vendor/single-spl-pool";
 import { HealthCache } from "../health-cache";
+import { PriceBias } from "../../services/price/types";
 
 // ----------------------------------------------------------------------------
 // Client types
 // ----------------------------------------------------------------------------
 
 class MarginfiAccount implements MarginfiAccountType {
-  public address: PublicKey;
-  public group: PublicKey;
-  public authority: PublicKey;
-  public balances: Balance[];
-  public accountFlags: AccountFlags[];
-  public emissionsDestinationAccount: PublicKey;
-  public healthCache: HealthCache;
-
-  // ----------------------------------------------------------------------------
-  // Factories
-  // ----------------------------------------------------------------------------
-
-  constructor(address: PublicKey, marginfiAccountRaw: MarginfiAccountRaw) {
-    this.address = address;
-    this.group = marginfiAccountRaw.group;
-    this.authority = marginfiAccountRaw.authority;
-    this.balances = marginfiAccountRaw.lendingAccount.balances.map(Balance.from);
-    this.accountFlags = getActiveAccountFlags(marginfiAccountRaw.accountFlags);
-    this.emissionsDestinationAccount = marginfiAccountRaw.emissionsDestinationAccount;
-    this.healthCache = HealthCache.from(marginfiAccountRaw.healthCache);
-  }
+  constructor(
+    public readonly address: PublicKey,
+    public readonly group: PublicKey,
+    public readonly authority: PublicKey,
+    public readonly balances: Balance[],
+    public readonly accountFlags: AccountFlags[],
+    public readonly emissionsDestinationAccount: PublicKey,
+    public readonly healthCache: HealthCache
+  ) {}
 
   static async fetch(address: PublicKey, client: MarginfiClient): Promise<MarginfiAccount> {
     const data: MarginfiAccountRaw = await client.program.account.marginfiAccount.fetch(address);
-    return new MarginfiAccount(address, data);
+    return MarginfiAccount.fromAccountParsed(address, data);
   }
 
+  /**
+   * @deprecated use decodeAccountRaw instead
+   */
   static decode(encoded: Buffer, idl: MarginfiIdlType): MarginfiAccountRaw {
-    const coder = new BorshCoder(idl);
-    return coder.accounts.decode(AccountType.MarginfiAccount, encoded);
+    return decodeAccountRaw(encoded, idl);
   }
 
-  static fromAccountParsed(marginfiAccountPk: Address, accountData: MarginfiAccountRaw) {
-    const _marginfiAccountPk = translateAddress(marginfiAccountPk);
-    return new MarginfiAccount(_marginfiAccountPk, accountData);
+  static decodeAccountRaw(encoded: Buffer, idl: MarginfiIdlType): MarginfiAccountRaw {
+    return decodeAccountRaw(encoded, idl);
   }
-  static fromAccountDataRaw(marginfiAccountPk: PublicKey, marginfiAccountRawData: Buffer, idl: MarginfiIdlType) {
-    const marginfiAccountData = MarginfiAccount.decode(marginfiAccountRawData, idl);
+
+  static fromAccountParsed(marginfiAccountPk: PublicKey, accountData: MarginfiAccountRaw) {
+    const props = parseMarginfiAccountRaw(marginfiAccountPk, accountData);
+    return new MarginfiAccount(
+      props.address,
+      props.group,
+      props.authority,
+      props.balances,
+      props.accountFlags,
+      props.emissionsDestinationAccount,
+      props.healthCache
+    );
+  }
+
+  static fromAccountDataRaw(marginfiAccountPk: PublicKey, rawData: Buffer, idl: MarginfiIdlType) {
+    const marginfiAccountData = MarginfiAccount.decodeAccountRaw(rawData, idl);
     return MarginfiAccount.fromAccountParsed(marginfiAccountPk, marginfiAccountData);
   }
   // ----------------------------------------------------------------------------
@@ -113,29 +123,19 @@ class MarginfiAccount implements MarginfiAccountType {
   }
 
   computeFreeCollateral(opts?: { clamped?: boolean }): BigNumber {
-    const _clamped = opts?.clamped ?? true;
-
-    const { assets, liabilities } = this.computeHealthComponents(MarginRequirementType.Initial);
-    const signedFreeCollateral = assets.minus(liabilities);
-
-    return _clamped ? BigNumber.max(0, signedFreeCollateral) : signedFreeCollateral;
+    return computeFreeCollateral(this, opts);
   }
 
   computeHealthComponents(marginReqType: MarginRequirementType): {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
-    // check if health cache failed
-    switch (marginReqType) {
-      case MarginRequirementType.Equity:
-        return { assets: this.healthCache.assetValueEquity, liabilities: this.healthCache.liabilityValueEquity };
-      case MarginRequirementType.Initial:
-        return { assets: this.healthCache.assetValue, liabilities: this.healthCache.liabilityValue };
-      case MarginRequirementType.Maintenance:
-        return { assets: this.healthCache.assetValueMaint, liabilities: this.healthCache.liabilityValueMaint };
-    }
+    return computeHealthComponents(this, marginReqType);
   }
 
+  /**
+   * @deprecated use computeHealthComponents instead
+   */
   computeHealthComponentsLegacy(
     banks: Map<string, Bank>,
     oraclePrices: Map<string, OraclePrice>,
@@ -145,39 +145,12 @@ class MarginfiAccount implements MarginfiAccountType {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
-    const filteredBalances = this.activeBalances.filter(
-      (accountBalance) => !excludedBanks.find((b) => b.equals(accountBalance.bankPk))
-    );
-
-    const [assets, liabilities] = filteredBalances
-      .map((accountBalance) => {
-        const bank = banks.get(accountBalance.bankPk.toBase58());
-        if (!bank) {
-          console.warn(`Bank ${shortenAddress(accountBalance.bankPk)} not found, excluding from health computation`);
-          return [new BigNumber(0), new BigNumber(0)];
-        }
-
-        const priceInfo = oraclePrices.get(accountBalance.bankPk.toBase58());
-        if (!priceInfo) {
-          console.warn(
-            `Price info for bank ${shortenAddress(accountBalance.bankPk)} not found, excluding from health computation`
-          );
-          return [new BigNumber(0), new BigNumber(0)];
-        }
-
-        const { assets, liabilities } = accountBalance.getUsdValueWithPriceBias(bank, priceInfo, marginReqType);
-        return [assets, liabilities];
-      })
-      .reduce(
-        ([asset, liability], [d, l]) => {
-          return [asset.plus(d), liability.plus(l)];
-        },
-        [new BigNumber(0), new BigNumber(0)]
-      );
-
-    return { assets, liabilities };
+    return computeHealthComponentsLegacy(this.activeBalances, banks, oraclePrices, marginReqType, excludedBanks);
   }
 
+  /**
+   *  @deprecated use computeHealthComponents instead
+   */
   computeHealthComponentsWithoutBiasLegacy(
     banks: Map<string, Bank>,
     oraclePrices: Map<string, OraclePrice>,
@@ -186,76 +159,15 @@ class MarginfiAccount implements MarginfiAccountType {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
-    const [assets, liabilities] = this.activeBalances
-      .map((accountBalance) => {
-        const bank = banks.get(accountBalance.bankPk.toBase58());
-        if (!bank) {
-          console.warn(`Bank ${shortenAddress(accountBalance.bankPk)} not found, excluding from health computation`);
-          return [new BigNumber(0), new BigNumber(0)];
-        }
-
-        const priceInfo = oraclePrices.get(accountBalance.bankPk.toBase58());
-        if (!priceInfo) {
-          console.warn(
-            `Price info for bank ${shortenAddress(accountBalance.bankPk)} not found, excluding from health computation`
-          );
-          return [new BigNumber(0), new BigNumber(0)];
-        }
-
-        const { assets, liabilities } = accountBalance.computeUsdValue(bank, priceInfo, marginReqType);
-        return [assets, liabilities];
-      })
-      .reduce(
-        ([asset, liability], [d, l]) => {
-          return [asset.plus(d), liability.plus(l)];
-        },
-        [new BigNumber(0), new BigNumber(0)]
-      );
-
-    return { assets, liabilities };
+    return computeHealthComponentsWithoutBiasLegacy(this.activeBalances, banks, oraclePrices, marginReqType);
   }
 
   computeAccountValue(): BigNumber {
-    const { assets, liabilities } = this.computeHealthComponents(MarginRequirementType.Equity);
-    return assets.minus(liabilities);
+    return computeAccountValue(this);
   }
 
   computeNetApy(banks: Map<string, Bank>, oraclePrices: Map<string, OraclePrice>): number {
-    const { assets, liabilities } = this.computeHealthComponents(MarginRequirementType.Equity);
-    const totalUsdValue = assets.minus(liabilities);
-    const apr = this.activeBalances
-      .reduce((weightedApr, balance) => {
-        const bank = banks.get(balance.bankPk.toBase58());
-        if (!bank) {
-          console.warn(`Bank ${shortenAddress(balance.bankPk)} not found, excluding from APY computation`);
-          return weightedApr;
-        }
-
-        const priceInfo = oraclePrices.get(balance.bankPk.toBase58());
-        if (!priceInfo) {
-          console.warn(
-            `Price info for bank ${shortenAddress(balance.bankPk)} not found, excluding from APY computation`
-          );
-          return weightedApr;
-        }
-
-        return weightedApr
-          .minus(
-            bank
-              .computeInterestRates()
-              .borrowingRate.times(balance.computeUsdValue(bank, priceInfo, MarginRequirementType.Equity).liabilities)
-              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue)
-          )
-          .plus(
-            bank
-              .computeInterestRates()
-              .lendingRate.times(balance.computeUsdValue(bank, priceInfo, MarginRequirementType.Equity).assets)
-              .div(totalUsdValue.isEqualTo(0) ? 1 : totalUsdValue)
-          );
-      }, new BigNumber(0))
-      .toNumber();
-
-    return aprToApy(apr);
+    return computeNetApy(this, this.activeBalances, banks, oraclePrices);
   }
 
   /**
@@ -358,8 +270,8 @@ class MarginfiAccount implements MarginfiAccountType {
       freeCollateral
     );
 
-    const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest, true);
-    const priceHighestBias = bank.getPrice(priceInfo, PriceBias.Highest, true);
+    const priceLowestBias = getPrice(priceInfo, PriceBias.Lowest, true);
+    const priceHighestBias = getPrice(priceInfo, PriceBias.Highest, true);
     const assetWeight = bank.getAssetWeight(MarginRequirementType.Initial, priceInfo);
     const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Initial);
 
@@ -437,7 +349,7 @@ class MarginfiAccount implements MarginfiAccountType {
         );
         const maintUntiedCollateral = maintAssets.minus(maintLiabilities);
 
-        const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest, true);
+        const priceLowestBias = getPrice(priceInfo, PriceBias.Lowest, true);
         const maintWeightedPrice = priceLowestBias.times(maintAssetWeight);
 
         return maintUntiedCollateral.div(maintWeightedPrice);
@@ -455,7 +367,7 @@ class MarginfiAccount implements MarginfiAccountType {
     // apply volatility factor to avoid failure due to price volatility / slippage
     const initUntiedCollateralForBank = freeCollateral.times(_volatilityFactor);
 
-    const priceLowestBias = bank.getPrice(priceInfo, PriceBias.Lowest, true);
+    const priceLowestBias = getPrice(priceInfo, PriceBias.Lowest, true);
     const initWeightedPrice = priceLowestBias.times(initAssetWeight);
     const maxWithdraw = initUntiedCollateralForBank.div(initWeightedPrice);
 
@@ -500,15 +412,15 @@ class MarginfiAccount implements MarginfiAccountType {
       if (liabilities.eq(0)) return null;
 
       const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance, priceInfo);
-      const priceConfidence = bank
-        .getPrice(priceInfo, PriceBias.None, false)
-        .minus(bank.getPrice(priceInfo, PriceBias.Lowest, false));
+      const priceConfidence = getPrice(priceInfo, PriceBias.None, false).minus(
+        getPrice(priceInfo, PriceBias.Lowest, false)
+      );
       liquidationPrice = liabilities.minus(assets).div(assetQuantityUi.times(assetWeight)).plus(priceConfidence);
     } else {
       const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maintenance);
-      const priceConfidence = bank
-        .getPrice(priceInfo, PriceBias.Highest, false)
-        .minus(bank.getPrice(priceInfo, PriceBias.None, false));
+      const priceConfidence = getPrice(priceInfo, PriceBias.Highest, false).minus(
+        getPrice(priceInfo, PriceBias.None, false)
+      );
       liquidationPrice = assets.minus(liabilities).div(liabQuantitiesUi.times(liabWeight)).minus(priceConfidence);
     }
     if (liquidationPrice.isNaN() || liquidationPrice.lt(0) || !liquidationPrice.isFinite()) return null;
@@ -552,18 +464,18 @@ class MarginfiAccount implements MarginfiAccountType {
         undefined,
         opts?.assetWeightMaint
       );
-      const priceConfidence = bank
-        .getPrice(priceInfo, PriceBias.None, false)
-        .minus(bank.getPrice(priceInfo, PriceBias.Lowest, false));
+      const priceConfidence = getPrice(priceInfo, PriceBias.None, false).minus(
+        getPrice(priceInfo, PriceBias.Lowest, false)
+      );
       liquidationPrice = liabValueMaint
         .minus(assetValueMaint)
         .div(assetQuantityUi.times(assetWeight))
         .plus(priceConfidence);
     } else {
       const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maintenance);
-      const priceConfidence = bank
-        .getPrice(priceInfo, PriceBias.Highest, false)
-        .minus(bank.getPrice(priceInfo, PriceBias.None, false));
+      const priceConfidence = getPrice(priceInfo, PriceBias.Highest, false).minus(
+        getPrice(priceInfo, PriceBias.None, false)
+      );
       liquidationPrice = assetValueMaint
         .minus(liabValueMaint)
         .div(liabQuantitiesUi.times(liabWeight))
@@ -612,15 +524,15 @@ class MarginfiAccount implements MarginfiAccountType {
       if (liabilities.eq(0)) return null;
 
       const assetWeight = bank.getAssetWeight(MarginRequirementType.Maintenance, priceInfo);
-      const priceConfidence = bank
-        .getPrice(priceInfo, PriceBias.None, false)
-        .minus(bank.getPrice(priceInfo, PriceBias.Lowest, false));
+      const priceConfidence = getPrice(priceInfo, PriceBias.None, false).minus(
+        getPrice(priceInfo, PriceBias.Lowest, false)
+      );
       liquidationPrice = liabilities.minus(assets).div(amountBn.times(assetWeight)).plus(priceConfidence);
     } else {
       const liabWeight = bank.getLiabilityWeight(MarginRequirementType.Maintenance);
-      const priceConfidence = bank
-        .getPrice(priceInfo, PriceBias.Highest, false)
-        .minus(bank.getPrice(priceInfo, PriceBias.None, false));
+      const priceConfidence = getPrice(priceInfo, PriceBias.Highest, false).minus(
+        getPrice(priceInfo, PriceBias.None, false)
+      );
       liquidationPrice = assets.minus(liabilities).div(amountBn.times(liabWeight)).minus(priceConfidence);
     }
     if (liquidationPrice.isNaN() || liquidationPrice.lt(0)) return null;
@@ -653,14 +565,14 @@ class MarginfiAccount implements MarginfiAccountType {
     const { assets, liabilities } = this.computeHealthComponents(MarginRequirementType.Maintenance);
     const currentHealth = assets.minus(liabilities);
 
-    const priceAssetLower = assetBank.getPrice(assetPriceInfo, PriceBias.Lowest, false);
-    const priceAssetMarket = assetBank.getPrice(assetPriceInfo, PriceBias.None, false);
+    const priceAssetLower = getPrice(assetPriceInfo, PriceBias.Lowest, false);
+    const priceAssetMarket = getPrice(assetPriceInfo, PriceBias.None, false);
     const assetMaintWeight = assetBank.config.assetWeightMaint;
 
     const liquidationDiscount = new BigNumber(0.95);
 
-    const priceLiabHighest = liabilityBank.getPrice(liabilityPriceInfo, PriceBias.Highest, false);
-    const priceLiabMarket = liabilityBank.getPrice(liabilityPriceInfo, PriceBias.None, false);
+    const priceLiabHighest = getPrice(liabilityPriceInfo, PriceBias.Highest, false);
+    const priceLiabMarket = getPrice(liabilityPriceInfo, PriceBias.None, false);
     const liabMaintWeight = liabilityBank.config.liabilityWeightMaint;
 
     debug(

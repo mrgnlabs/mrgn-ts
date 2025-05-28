@@ -85,7 +85,7 @@ export interface BankConfigType {
 
 export interface BankType {
   address: PublicKey;
-  tokenSymbol: string | undefined;
+  tokenSymbol?: string;
   group: PublicKey;
   mint: PublicKey;
   mintDecimals: number;

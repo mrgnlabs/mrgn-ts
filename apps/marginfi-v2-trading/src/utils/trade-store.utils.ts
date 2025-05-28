@@ -349,7 +349,7 @@ export const updateArenaBankWithUserData = async (
 
   accounts.forEach((a) => {
     const groupKey = a.account.group.toBase58();
-    const account = new MarginfiAccount(a.publicKey, a.account);
+    const account = MarginfiAccount.fromAccountParsed(a.publicKey, a.account);
     const existingAccount = updateMarginfiAccounts[groupKey];
 
     if (existingAccount) {

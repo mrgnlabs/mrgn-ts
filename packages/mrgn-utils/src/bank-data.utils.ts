@@ -1,10 +1,11 @@
 import {
   getPriceWithConfidence,
   OracleSetup,
-  PriceBias,
   MarginRequirementType,
   EmodeTag,
   EmodePair,
+  PriceBias,
+  getPrice,
 } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, Emissions, StakePoolMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
 import { aprToApy, nativeToUi, WSOL_MINT } from "@mrgnlabs/mrgn-common";
@@ -190,8 +191,8 @@ export const getAssetPriceData = (bank: ExtendedBankInfo): AssetPriceData => {
   }
 
   const assetPriceOffset = Math.max(
-    bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() - bank.info.state.price,
-    bank.info.state.price - bank.info.rawBank.getPrice(bank.info.oraclePrice, PriceBias.Lowest).toNumber()
+    getPrice(bank.info.oraclePrice, PriceBias.Highest).toNumber() - bank.info.state.price,
+    bank.info.state.price - getPrice(bank.info.oraclePrice, PriceBias.Lowest).toNumber()
   );
 
   const isOracleStale = isBankOracleStale(bank);
