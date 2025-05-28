@@ -73,7 +73,7 @@ export const getRepaySimulationResult = async (props: SimulateRepayActionProps) 
     }
 
     return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address, ...additionalBanks], {
-      enabled: false,
+      enabled: true,
       mandatoryBanks,
       excludedBanks,
     });

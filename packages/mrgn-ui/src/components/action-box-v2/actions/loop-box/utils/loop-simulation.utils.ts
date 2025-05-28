@@ -49,7 +49,7 @@ export const getSimulationResult = async (props: SimulateActionProps) => {
   try {
     const bankAddresses = props.banks.map((bank) => bank.address);
     return await props.account.simulateBorrowLendTransaction(props.txns, bankAddresses, {
-      enabled: false,
+      enabled: true,
       mandatoryBanks: bankAddresses,
       excludedBanks: [],
     });
