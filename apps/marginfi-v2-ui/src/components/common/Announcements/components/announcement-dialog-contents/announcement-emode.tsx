@@ -7,7 +7,7 @@ import { useSwiper } from "swiper/react";
 import { IconX, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
 import { Button } from "~/components/ui/button";
-import { IconEmode, IconEmodeInactive } from "~/components/ui/icons";
+import { IconEmode, IconEmodeSimpleInactive } from "~/components/ui/icons";
 
 type AnnouncementSlideProps = {
   title: string;
@@ -96,7 +96,7 @@ const AnnouncementSlide = ({
             {features.map((feature, index) => (
               <div key={index} className="flex items-center gap-3 shrink-0">
                 <div className="w-8 h-8 rounded-full bg-background-gray-light flex items-center justify-center shrink-0">
-                  <IconEmodeInactive size={24} />
+                  <IconEmodeSimpleInactive size={24} />
                 </div>
                 <span className="text-base">{feature}</span>
               </div>

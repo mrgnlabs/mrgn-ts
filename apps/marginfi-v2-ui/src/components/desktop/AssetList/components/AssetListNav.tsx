@@ -14,7 +14,7 @@ import { Switch } from "~/components/ui/switch";
 import { Input } from "~/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
-import { IconEmode } from "~/components/ui/icons";
+import { IconEmode, IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
 
 const AssetListNav = () => {
   const [
@@ -61,27 +61,34 @@ const AssetListNav = () => {
             if (!value) return;
             setPoolFilter(value as PoolTypes);
           }}
-          className="shrink-0 bg-background-gray p-1.5 rounded-lg"
+          className="shrink-0 bg-background-gray p-1.5 rounded-lg gap-4"
         >
-          <ToggleGroupItem value="global" aria-label="Toggle global">
+          <ToggleGroupItem value="global" aria-label="Toggle global" className="h-9">
             Global
           </ToggleGroupItem>
-          <ToggleGroupItem value="isolated" aria-label="Toggle isolated">
+          <ToggleGroupItem value="isolated" aria-label="Toggle isolated" className="h-9">
             Isolated
           </ToggleGroupItem>
-          <ToggleGroupItem value="native_stake" aria-label="Toggle staked" className="relative">
+          <ToggleGroupItem value="native_stake" aria-label="Toggle staked" className="relative h-9">
             Native Stake
           </ToggleGroupItem>
           {emodePairs.length > 0 && (
-            <ToggleGroupItem value="e_mode" aria-label="Toggle e-mode" className="relative gap-1 items-center pl-1.5">
-              <IconEmode size={24} className="text-mfi-emode" />
-              <span className="ml-0.5">e-mode</span>
-              <span
-                className={cn(
-                  "bg-gray-400 rounded-full h-2 w-2 ml-2",
-                  userActiveEmodes.length > 0 && "bg-mrgn-success"
+            <ToggleGroupItem
+              value="e_mode"
+              aria-label="Toggle e-mode"
+              className={cn(
+                "relative h-9 pr-1.5 rounded-lg",
+                userActiveEmodes.length > 0 && "data-[state=on]:bg-gradient-to-r to-[#423252] from-[#292E32]"
+              )}
+            >
+              <div className="flex items-center gap-1 w-full">
+                <span>e-mode</span>
+                {userActiveEmodes.length > 0 ? (
+                  <IconEmodeSimple size={18} className="text-mfi-emode" />
+                ) : (
+                  <IconEmodeSimpleInactive size={24} className="text-mfi-emode" />
                 )}
-              />
+              </div>
             </ToggleGroupItem>
           )}
         </ToggleGroup>

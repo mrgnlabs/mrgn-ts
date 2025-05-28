@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Table } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { IconEmode, IconEmodeInactive } from "~/components/ui/icons";
+import { IconEmode, IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
 
 interface EmodePopoverProps {
   assetWeight: number;
@@ -46,15 +46,17 @@ export const EmodePopover = ({
   return (
     <Popover>
       {triggerType === "weight" ? (
-        <PopoverTrigger className={cn("flex items-center gap-1", emodeActive && "text-mfi-emode")}>
-          {emodeActive ? <IconEmode size={20} /> : <IconEmodeInactive size={20} />}
-          {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
+        <PopoverTrigger className={cn("flex items-center", emodeActive && "text-mfi-emode")}>
+          {emodeActive ? <IconEmodeSimple size={20} /> : <IconEmodeSimpleInactive size={18} />}
+          <span className="min-w-[30px] text-right mr-1.5 ml-0.5">
+            {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}
+          </span>
           <IconExternalLink size={12} className={cn(emodeActive && "text-mfi-emode")} />
         </PopoverTrigger>
       ) : (
         <PopoverTrigger className="flex items-center gap-1">
           <Badge variant="emode" className={cn("pr-2.5", !emodeActive && "text-foreground")}>
-            {emodeActive ? <IconEmode size={18} /> : <IconEmodeInactive size={18} />} {emodeTag}
+            {emodeActive ? <IconEmodeSimple size={18} /> : <IconEmodeSimpleInactive size={18} />} {emodeTag}
           </Badge>
         </PopoverTrigger>
       )}
