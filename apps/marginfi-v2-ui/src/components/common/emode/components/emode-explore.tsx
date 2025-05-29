@@ -106,7 +106,7 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
             <br />
             For more information{" "}
             <Link
-              href="https://docs.marginfi.app"
+              href="https://docs.marginfi.com/emode"
               target="_blank"
               rel="noreferrer"
               className="border-b border-foreground/50 transition-colors hover:border-transparent"

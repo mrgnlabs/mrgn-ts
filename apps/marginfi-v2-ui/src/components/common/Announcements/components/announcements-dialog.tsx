@@ -7,18 +7,18 @@ import { AnnouncementEmode } from "./announcement-dialog-contents";
 const announcementLabel = "emode" as const;
 
 export const AnnouncementsDialog = () => {
-  const [isOpen, setIsOpen] = React.useState(true);
+  const [isOpen, setIsOpen] = React.useState(false);
 
   const closeDialog = React.useCallback(() => {
-    // localStorage.setItem(`mrgnAnnouncementPopup-${announcementLabel}`, announcementLabel);
+    localStorage.setItem(`mrgnAnnouncementPopup-${announcementLabel}`, announcementLabel);
     setIsOpen(false);
   }, []);
 
   React.useEffect(() => {
-    // const announcementPopup = localStorage.getItem(`mrgnAnnouncementPopup-${announcementLabel}`);
-    // if (!announcementPopup) {
-    // setIsOpen(true);
-    // }
+    const announcementPopup = localStorage.getItem(`mrgnAnnouncementPopup-${announcementLabel}`);
+    if (!announcementPopup) {
+      setIsOpen(true);
+    }
   }, []);
 
   return (

@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Navigation, EffectFade } from "swiper/modules";
 import { useSwiper } from "swiper/react";
@@ -216,9 +217,16 @@ const AnnouncementSlide = ({
                 <Button className="w-full" onClick={() => onClose?.()}>
                   Get Started
                 </Button>
-                <Button variant="secondary" className="w-full" onClick={() => onClose?.()}>
-                  View Documentation
-                </Button>
+                <Link
+                  href="https://docs.marginfi.com/emode"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full"
+                >
+                  <Button variant="secondary" className="w-full">
+                    View Documentation
+                  </Button>
+                </Link>
               </div>
             )}
           </div>
