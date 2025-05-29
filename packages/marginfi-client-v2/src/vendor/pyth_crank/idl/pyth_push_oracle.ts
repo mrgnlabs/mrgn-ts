@@ -1,16 +1,20 @@
-export type PythPushOracleProgram = {
-  version: "0.1.0";
-  name: "pyth_push_oracle";
-  address: "rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ";
+/**
+ * Program IDL in camelCase format in order to be used in JS/TS.
+ *
+ * Note that this is only a type helper and is not the actual IDL. The original
+ * IDL can be found at `target/idl/pyth_push_oracle.json`.
+ */
+export type PythPushOracle = {
+  address: "pythWSnswVUd12oZpeFP8e9CVaEqJg25g1Vtc2biRsT";
   metadata: {
-    name: "pyth_push_oracle";
+    name: "pythPushOracle";
     version: "0.1.0";
     spec: "0.1.0";
   };
   instructions: [
     {
       name: "updatePriceFeed";
-      discriminator: [36, 241, 225, 146, 26, 31, 150, 131];
+      discriminator: [28, 9, 93, 150, 86, 153, 188, 115];
       accounts: [
         {
           name: "payer";
@@ -42,7 +46,9 @@ export type PythPushOracleProgram = {
         {
           name: "params";
           type: {
-            defined: { name: "PostUpdateParams" };
+            defined: {
+              name: "postUpdateParams";
+            };
           };
         },
         {
@@ -58,16 +64,30 @@ export type PythPushOracleProgram = {
       ];
     },
   ];
+  errors: [
+    {
+      code: 6000;
+      name: "updatesNotMonotonic";
+      msg: "Updates must be monotonically increasing";
+    },
+    {
+      code: 6001;
+      name: "priceFeedMessageMismatch";
+      msg: "Trying to update price feed with the wrong feed id";
+    },
+  ];
   types: [
     {
-      name: "PostUpdateParams";
+      name: "postUpdateParams";
       type: {
         kind: "struct";
         fields: [
           {
             name: "merklePriceUpdate";
             type: {
-              defined: { name: "MerklePriceUpdate" };
+              defined: {
+                name: "merklePriceUpdate";
+              };
             };
           },
           {
@@ -78,7 +98,7 @@ export type PythPushOracleProgram = {
       };
     },
     {
-      name: "MerklePriceUpdate";
+      name: "merklePriceUpdate";
       type: {
         kind: "struct";
         fields: [
@@ -98,33 +118,19 @@ export type PythPushOracleProgram = {
       };
     },
   ];
-  errors: [
-    {
-      code: 6000;
-      name: "UpdatesNotMonotonic";
-      msg: "Updates must be monotonically increasing";
-    },
-    {
-      code: 6001;
-      name: "PriceFeedMessageMismatch";
-      msg: "Trying to update price feed with the wrong feed id";
-    },
-  ];
 };
 
-export const PYTH_PUSH_ORACLE_PROGRAM_IDL: PythPushOracleProgram = {
-  version: "0.1.0",
-  name: "pyth_push_oracle",
-  address: "rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ",
+export const PYTH_PUSH_ORACLE_IDL: PythPushOracle = {
+  address: "pythWSnswVUd12oZpeFP8e9CVaEqJg25g1Vtc2biRsT",
   metadata: {
-    name: "pyth_push_oracle",
+    name: "pythPushOracle",
     version: "0.1.0",
     spec: "0.1.0",
   },
   instructions: [
     {
       name: "updatePriceFeed",
-      discriminator: [36, 241, 225, 146, 26, 31, 150, 131],
+      discriminator: [28, 9, 93, 150, 86, 153, 188, 115],
       accounts: [
         {
           name: "payer",
@@ -156,7 +162,9 @@ export const PYTH_PUSH_ORACLE_PROGRAM_IDL: PythPushOracleProgram = {
         {
           name: "params",
           type: {
-            defined: { name: "PostUpdateParams" },
+            defined: {
+              name: "postUpdateParams",
+            },
           },
         },
         {
@@ -172,16 +180,30 @@ export const PYTH_PUSH_ORACLE_PROGRAM_IDL: PythPushOracleProgram = {
       ],
     },
   ],
+  errors: [
+    {
+      code: 6000,
+      name: "updatesNotMonotonic",
+      msg: "Updates must be monotonically increasing",
+    },
+    {
+      code: 6001,
+      name: "priceFeedMessageMismatch",
+      msg: "Trying to update price feed with the wrong feed id",
+    },
+  ],
   types: [
     {
-      name: "PostUpdateParams",
+      name: "postUpdateParams",
       type: {
         kind: "struct",
         fields: [
           {
             name: "merklePriceUpdate",
             type: {
-              defined: { name: "MerklePriceUpdate" },
+              defined: {
+                name: "merklePriceUpdate",
+              },
             },
           },
           {
@@ -192,7 +214,7 @@ export const PYTH_PUSH_ORACLE_PROGRAM_IDL: PythPushOracleProgram = {
       },
     },
     {
-      name: "MerklePriceUpdate",
+      name: "merklePriceUpdate",
       type: {
         kind: "struct",
         fields: [
@@ -210,18 +232,6 @@ export const PYTH_PUSH_ORACLE_PROGRAM_IDL: PythPushOracleProgram = {
           },
         ],
       },
-    },
-  ],
-  errors: [
-    {
-      code: 6000,
-      name: "UpdatesNotMonotonic",
-      msg: "Updates must be monotonically increasing",
-    },
-    {
-      code: 6001,
-      name: "PriceFeedMessageMismatch",
-      msg: "Trying to update price feed with the wrong feed id",
     },
   ],
 };

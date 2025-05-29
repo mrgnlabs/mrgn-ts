@@ -23,7 +23,7 @@ import { Bank } from "../../models/bank";
 import { OraclePrice } from "../price";
 import { Balance } from "../../models/balance";
 import { feedIdToString } from "../../utils";
-import { OracleSetup } from "../bank";
+import { crankPythOracleIx, OracleSetup } from "../bank";
 import { computeHealthComponentsWithoutBiasLegacy } from "./utils";
 
 export async function simulateAccountHealthCache(props: {
@@ -74,7 +74,9 @@ export async function simulateAccountHealthCache(props: {
     }
   }
 
-  // const crankPythIxs = await crankPythOracleIx(pythFeedIds, program.provider.publicKey, program.provider.connection);
+  // const crankPythIxs = await crankPythOracleIx(pythFeedIds, program.provider);
+
+  // console.log("crankPythIxs", crankPythIxs.instructions);
 
   const computeIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 });
   const updateFeedIxs =
@@ -91,12 +93,7 @@ export async function simulateAccountHealthCache(props: {
 
   const tx = new VersionedTransaction(
     new TransactionMessage({
-      instructions: [
-        computeIx,
-        ...updateFeedIxs.instructions,
-        ...healthPulseIxs.instructions,
-        // ...crankPythIxs.instructions,
-      ],
+      instructions: [computeIx, ...updateFeedIxs.instructions, ...healthPulseIxs.instructions],
       payerKey: program.provider.publicKey,
       recentBlockhash: blockhash,
     }).compileToV0Message([...updateFeedIxs.luts, ...healthPulseIxs.luts])
@@ -118,6 +115,8 @@ export async function simulateAccountHealthCache(props: {
     Buffer.from(simulationResult?.value?.accounts?.[0].data[0], "base64"),
     program.idl
   );
+
+  console.log("marginfiAccountPost", marginfiAccountPost);
 
   const { assets: assetValueEquity, liabilities: liabilityValueEquity } = computeHealthComponentsWithoutBiasLegacy(
     activeBalances,

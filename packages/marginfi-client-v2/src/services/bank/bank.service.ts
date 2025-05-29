@@ -1,5 +1,5 @@
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { InstructionsWrapper } from "@mrgnlabs/mrgn-common";
+import { InstructionsWrapper, SYSTEM_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
 import instructions from "../../instructions";
 import { MarginfiProgram } from "../../types";
@@ -9,7 +9,14 @@ import {
   parseAccumulatorUpdateData,
   getGuardianSetIndex,
   trimSignatures,
-  PYTH_PUSH_ORACLE_PROGRAM_IDL,
+  InstructionWithEphemeralSigners,
+  buildPostEncodedVaaInstructions,
+  PYTH_WORMHOLE_IDL,
+  UPDATE_PRICE_FEED_COMPUTE_BUDGET,
+  PYTH_PUSH_ORACLE_IDL,
+  parsePriceFeedMessage,
+  PYTH_SOLANA_RECEIVER_PROGRAM_IDL,
+  DEFAULT_PUSH_ORACLE_PROGRAM_ID,
 } from "../../vendor/pyth_crank";
 import { Program, Provider } from "@coral-xyz/anchor";
 
@@ -99,9 +106,52 @@ export async function addOracleToBanksIx({
   };
 }
 
+/**
+ * Derive the address of a price feed account
+ * @param shardId The shard ID of the set of price feed accounts. This shard ID allows for multiple price feed accounts for the same price feed id to exist.
+ * @param priceFeedId The price feed ID, as either a 32-byte buffer or hexadecimal string with or without a leading "0x" prefix.
+ * @param pushOracleProgramId The program ID of the Pyth Push Oracle program. If not provided, the default deployment will be used.
+ * @returns The address of the price feed account
+ */
+export function getPriceFeedAccountForProgram(
+  shardId: number,
+  priceFeedId: Buffer | string,
+  pushOracleProgramId?: PublicKey
+): PublicKey {
+  if (typeof priceFeedId == "string") {
+    if (priceFeedId.startsWith("0x")) {
+      priceFeedId = Buffer.from(priceFeedId.slice(2), "hex");
+    } else {
+      priceFeedId = Buffer.from(priceFeedId, "hex");
+    }
+  }
+
+  if (priceFeedId.length != 32) {
+    throw new Error("Feed ID should be 32 bytes long");
+  }
+  const shardBuffer = Buffer.alloc(2);
+  shardBuffer.writeUint16LE(shardId, 0);
+
+  return PublicKey.findProgramAddressSync(
+    [shardBuffer, priceFeedId],
+    pushOracleProgramId ?? DEFAULT_PUSH_ORACLE_PROGRAM_ID
+  )[0];
+}
+
+export const getTreasuryPda = (treasuryId: number, receiverProgramId: PublicKey) => {
+  return PublicKey.findProgramAddressSync([Buffer.from("treasury"), Buffer.from([treasuryId])], receiverProgramId)[0];
+};
+
+export const getConfigPda = (receiverProgramId: PublicKey) => {
+  return PublicKey.findProgramAddressSync([Buffer.from("config")], receiverProgramId)[0];
+};
+
 export async function crankPythOracleIx(oracles: { feedId: string; shardId: number }[], provider: Provider) {
   const feedIdsByShardId: Record<number, string[]> = {};
-  const receiverProgram = new Program(PYTH_PUSH_ORACLE_PROGRAM_IDL, provider);
+  // const receiverProgram = new Program(PYTH_PUSH_ORACLE_PROGRAM_IDL, provider);
+  const wormholeProgram = new Program(PYTH_WORMHOLE_IDL, provider);
+  const pushOracleProgram = new Program(PYTH_PUSH_ORACLE_IDL, provider);
+  const receiverProgram = new Program(PYTH_SOLANA_RECEIVER_PROGRAM_IDL, provider);
 
   const addressLookupTableAccount = new PublicKey("5DNCErWQFBdvCxWQXaC1mrEFsvL3ftrzZ2gVZWNybaSX");
 
@@ -116,6 +166,9 @@ export async function crankPythOracleIx(oracles: { feedId: string; shardId: numb
     }
     feedIdsByShardId[shardId].push(feedId);
   }
+  const postInstructions: InstructionWithEphemeralSigners[] = [];
+  const priceFeedIdToPriceUpdateAccount: Record<string, PublicKey> = {};
+  const closeInstructions: InstructionWithEphemeralSigners[] = [];
 
   for (const [shardId, feedIds] of Object.entries(feedIdsByShardId)) {
     const url = buildURL("updates/price/latest");
@@ -128,10 +181,6 @@ export async function crankPythOracleIx(oracles: { feedId: string; shardId: numb
     const response = await fetch(url);
     const priceDataArray: string[] = (await response.json()).binary.data;
 
-    // const postInstructions: InstructionWithEphemeralSigners[] = [];
-    // const priceFeedIdToPriceUpdateAccount: Record<string, PublicKey> = {};
-    // const closeInstructions: InstructionWithEphemeralSigners[] = [];
-
     const treasuryId = 0;
 
     for (const priceData of priceDataArray) {
@@ -139,38 +188,47 @@ export async function crankPythOracleIx(oracles: { feedId: string; shardId: numb
       const guardianSetIndex = getGuardianSetIndex(accumulatorUpdateData.vaa);
       const trimmedVaa = trimSignatures(accumulatorUpdateData.vaa);
 
-      for (const update of accumulatorUpdateData.updates) {
-        const priceUpdateKeypair = new Keypair();
-        // postInstructions.push({
-        //   instruction: await this.receiver.methods
-        //     .postUpdateAtomic({
-        //       vaa: trimmedVaa,
-        //       merklePriceUpdate: update,
-        //       treasuryId,
-        //     })
-        //     .accounts({
-        //       priceUpdateAccount: priceUpdateKeypair.publicKey,
-        //       treasury: getTreasuryPda(treasuryId, this.receiver.programId),
-        //       config: getConfigPda(this.receiver.programId),
-        //       guardianSet: getGuardianSetPda(
-        //         guardianSetIndex,
-        //         this.wormhole.programId,
-        //       ),
-        //     })
-        //     .instruction(),
-        //   signers: [priceUpdateKeypair],
-        //   computeUnits: POST_UPDATE_ATOMIC_COMPUTE_BUDGET,
-        // });
-        // priceFeedIdToPriceUpdateAccount[
-        //   "0x" + parsePriceFeedMessage(update.message).feedId.toString("hex")
-        // ] = priceUpdateKeypair.publicKey;
+      const {
+        postInstructions: postEncodedVaaInstructions,
+        encodedVaaAddress: encodedVaa,
+        closeInstructions: postEncodedVaacloseInstructions,
+      } = await buildPostEncodedVaaInstructions(wormholeProgram, accumulatorUpdateData.vaa);
+      postInstructions.push(...postEncodedVaaInstructions);
+      closeInstructions.push(...postEncodedVaacloseInstructions);
 
-        // closeInstructions.push(
-        //   await this.buildClosePriceUpdateInstruction(
-        //     priceUpdateKeypair.publicKey,
-        //   ),
-        // );
+      postInstructions.push(...postEncodedVaaInstructions);
+      closeInstructions.push(...postEncodedVaacloseInstructions);
+
+      for (const update of accumulatorUpdateData.updates) {
+        const feedId = parsePriceFeedMessage(update.message).feedId;
+        postInstructions.push({
+          instruction: await pushOracleProgram.methods
+            .updatePriceFeed(
+              {
+                merklePriceUpdate: update,
+                treasuryId,
+              },
+              Number(shardId),
+              Array.from(feedId)
+            )
+            .accounts({
+              pythSolanaReceiver: receiverProgram.programId,
+              encodedVaa,
+              priceFeedAccount: getPriceFeedAccountForProgram(Number(shardId), feedId, pushOracleProgram.programId),
+              treasury: getTreasuryPda(treasuryId, receiverProgram.programId),
+              config: getConfigPda(receiverProgram.programId),
+              systemProgram: SYSTEM_PROGRAM_ID,
+            })
+            .instruction(),
+          signers: [],
+          computeUnits: UPDATE_PRICE_FEED_COMPUTE_BUDGET,
+        });
       }
     }
   }
+
+  return {
+    instructions: [...postInstructions, ...closeInstructions],
+    keys: [],
+  };
 }
