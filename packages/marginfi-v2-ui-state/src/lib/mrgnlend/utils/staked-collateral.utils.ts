@@ -244,27 +244,27 @@ const getStakePoolActiveStates = async (
 const getValidatorRates = async (validatorVoteAccounts: PublicKey[]): Promise<Map<string, number>> => {
   const rates = new Map<string, number>();
 
-  // await Promise.all(
-  //   validatorVoteAccounts.map(async (validatorVoteAccount) => {
-  //     const poolAddress = findPoolAddress(validatorVoteAccount);
-  //     const poolMintAddress = findPoolMintAddress(poolAddress);
+  await Promise.all(
+    validatorVoteAccounts.map(async (validatorVoteAccount) => {
+      const poolAddress = findPoolAddress(validatorVoteAccount);
+      const poolMintAddress = findPoolMintAddress(poolAddress);
 
-  //     try {
-  //       const response = await fetch(`/api/validator-info?validator=${validatorVoteAccount.toBase58()}`);
+      try {
+        const response = await fetch(`/api/validator-info?validator=${validatorVoteAccount.toBase58()}`);
 
-  //       if (!response.ok) {
-  //         rates.set(poolMintAddress.toBase58(), 0);
-  //         return;
-  //       }
+        if (!response.ok) {
+          rates.set(poolMintAddress.toBase58(), 0);
+          return;
+        }
 
-  //       const data = await response.json();
-  //       rates.set(poolMintAddress.toBase58(), data.data?.total_apy ?? 0);
-  //     } catch (error) {
-  //       console.error("Error fetching validator rate:", error);
-  //       rates.set(poolMintAddress.toBase58(), 0);
-  //     }
-  //   })
-  // );
+        const data = await response.json();
+        rates.set(poolMintAddress.toBase58(), data.data?.total_apy ?? 0);
+      } catch (error) {
+        console.error("Error fetching validator rate:", error);
+        rates.set(poolMintAddress.toBase58(), 0);
+      }
+    })
+  );
 
   return rates;
 };
