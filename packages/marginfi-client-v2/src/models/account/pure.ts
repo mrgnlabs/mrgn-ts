@@ -56,6 +56,7 @@ import {
   OracleSetup,
   createUpdateFeedIx,
   crankPythOracleIx,
+  simulateAccountHealthCache,
 } from "../..";
 import BN from "bn.js";
 import { BorshInstructionCoder } from "@coral-xyz/anchor";
@@ -108,187 +109,22 @@ class MarginfiAccount implements MarginfiAccountType {
     );
   }
 
-  static async simulateHealthCache(
+  async simulateHealthCache(
     program: Program<MarginfiIdlType>,
     bankMap: Map<string, Bank>,
-    oraclePrices: Map<string, OraclePrice>,
-    address: PublicKey,
-    rawData: MarginfiAccountRaw
+    oraclePrices: Map<string, OraclePrice>
   ) {
-    const activeBalancesRaw = rawData?.lendingAccount?.balances.filter((b) => b.active);
-
-    const banks = activeBalancesRaw
-      .map((b) => {
-        const bank = bankMap.get(b.bankPk.toBase58());
-        if (!bank) return undefined;
-        return bank;
-      })
-      .filter((b) => b !== undefined);
-
-    const bankAddressAndOraclePair = banks.map((b) => {
-      return [b.address, b.oracleKey];
-    });
-
-    const pythFeedIds: { feedId: string; shardId: number }[] = [];
-    const swbOracleKeys: PublicKey[] = [];
-
-    // checks for duplicate oracle keys
-    const seenPyth = new Set<string>();
-    const seenSwb = new Set<string>();
-
-    for (const b of banks) {
-      const setup = b.config.oracleSetup;
-      const oracleKey = b.oracleKey;
-      const feedIdKey = feedIdToString(b.config.oracleKeys[0]);
-      const oracleKeyBase = oracleKey.toBase58();
-
-      if (
-        (setup === OracleSetup.PythPushOracle || setup === OracleSetup.StakedWithPythPush) &&
-        !seenPyth.has(feedIdKey)
-      ) {
-        seenPyth.add(feedIdKey);
-        pythFeedIds.push({ feedId: feedIdKey, shardId: b.pythShardId ?? 0 });
-      }
-
-      if (setup === OracleSetup.SwitchboardPull && !seenSwb.has(oracleKeyBase)) {
-        seenSwb.add(oracleKeyBase);
-        swbOracleKeys.push(oracleKey);
-      }
-    }
-
-    // const crankPythIxs = await crankPythOracleIx(pythFeedIds, program.provider.publicKey, program.provider.connection);
-
-    const computeIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 });
-    const updateFeedIxs =
-      swbOracleKeys.length > 0
-        ? await createUpdateFeedIx({ swbPullOracles: swbOracleKeys, provider: program.provider })
-        : { instructions: [], luts: [] };
-    const healthPulseIxs = await createHealthPulseIx({ bankAddressAndOraclePair, marginfiAccount: address, program });
-
-    const blockhash = (await program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
-
-    const tx = new VersionedTransaction(
-      new TransactionMessage({
-        instructions: [
-          computeIx,
-          ...updateFeedIxs.instructions,
-          ...healthPulseIxs.instructions,
-          // ...crankPythIxs.instructions,
-        ],
-        payerKey: program.provider.publicKey,
-        recentBlockhash: blockhash,
-      }).compileToV0Message([...updateFeedIxs.luts, ...healthPulseIxs.luts])
-    );
-
-    const simulationResult = await program.provider.connection.simulateTransaction(tx, {
-      accounts: {
-        encoding: "base64",
-        addresses: [address.toBase58()],
-      },
-      sigVerify: false,
-    });
-
-    if (!simulationResult?.value?.accounts?.[0]) {
-      throw new Error("Account not found");
-    }
-
-    const marginfiAccountPost = MarginfiAccount.decodeAccountRaw(
-      Buffer.from(simulationResult?.value?.accounts?.[0].data[0], "base64"),
-      program.idl
-    );
-
-    const { assets: assetValueEquity, liabilities: liabilityValueEquity } = computeHealthComponentsWithoutBiasLegacy(
-      activeBalancesRaw.map(Balance.from),
+    const accountWithHealthCache = await simulateAccountHealthCache({
+      program,
       bankMap,
       oraclePrices,
-      MarginRequirementType.Equity
-    );
-
-    marginfiAccountPost.healthCache.assetValueEquity = bigNumberToWrappedI80F48(assetValueEquity);
-    marginfiAccountPost.healthCache.liabilityValueEquity = bigNumberToWrappedI80F48(liabilityValueEquity);
-
-    return marginfiAccountPost;
-  }
-
-  static async iniateAccountWithHealthCache(
-    program: Program<MarginfiIdlType>,
-    bankMap: Map<string, Bank>,
-    address: PublicKey
-  ) {
-    const rawData: MarginfiAccountRaw = await program.account.marginfiAccount.fetch(address);
-    const parsedData = parseMarginfiAccountRaw(address, rawData);
-    const banks = parsedData.balances
-      .filter((b) => b.active)
-      .map((b) => {
-        const bank = bankMap.get(b.bankPk.toBase58());
-        if (!bank) return undefined;
-        return bank;
-      })
-      .filter((b) => b !== undefined);
-
-    const bankAddressAndOraclePair = banks.map((b) => {
-      return [b.address, b.oracleKey];
+      marginfiAccountPk: this.address,
+      activeBalances: this.activeBalances,
     });
 
-    const pythOracleKeys: PublicKey[] = [];
-    const swbOracleKeys: PublicKey[] = [];
+    const account = MarginfiAccount.fromAccountParsed(this.address, accountWithHealthCache);
 
-    // checks for duplicate oracle keys
-    const seenPyth = new Set<string>();
-    const seenSwb = new Set<string>();
-
-    for (const b of banks) {
-      const setup = b.config.oracleSetup;
-      const key = b.oracleKey;
-      const id = key.toBase58();
-
-      if ((setup === OracleSetup.PythPushOracle || setup === OracleSetup.StakedWithPythPush) && !seenPyth.has(id)) {
-        seenPyth.add(id);
-        pythOracleKeys.push(key);
-      }
-
-      if (setup === OracleSetup.SwitchboardPull && !seenSwb.has(id)) {
-        seenSwb.add(id);
-        swbOracleKeys.push(key);
-      }
-    }
-
-    const computeIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 });
-    const updateFeedIxs =
-      swbOracleKeys.length > 0
-        ? await createUpdateFeedIx({ swbPullOracles: swbOracleKeys, provider: program.provider })
-        : { instructions: [], luts: [] };
-    const healthPulseIxs = await createHealthPulseIx({ bankAddressAndOraclePair, marginfiAccount: address, program });
-
-    const blockhash = (await program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
-
-    const tx = new VersionedTransaction(
-      new TransactionMessage({
-        instructions: [computeIx, ...updateFeedIxs.instructions, ...healthPulseIxs.instructions],
-        payerKey: program.provider.publicKey,
-        recentBlockhash: blockhash,
-      }).compileToV0Message([...updateFeedIxs.luts, ...healthPulseIxs.luts])
-    );
-
-    const simulationResult = await program.provider.connection.simulateTransaction(tx, {
-      accounts: {
-        encoding: "base64",
-        addresses: [address.toBase58()],
-      },
-      sigVerify: false,
-    });
-
-    if (!simulationResult?.value?.accounts?.[0]) {
-      throw new Error("Account not found");
-    }
-
-    const marginfiAccountPost = MarginfiAccount.decodeAccountRaw(
-      Buffer.from(simulationResult?.value?.accounts?.[0].data[0], "base64"),
-      program.idl
-    );
-
-    console.log({ simulationResult });
-    console.log({ marginfiAccountPost });
+    return account;
   }
 
   static fromAccountDataRaw(marginfiAccountPk: PublicKey, rawData: Buffer, idl: MarginfiIdlType) {

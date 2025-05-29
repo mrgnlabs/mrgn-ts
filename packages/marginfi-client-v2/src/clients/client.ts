@@ -557,22 +557,8 @@ class MarginfiClient {
     require("debug")("mfi:client")("Fetching %s marginfi accounts", pubkeys);
 
     const accounts = await this.program.account.marginfiAccount.fetchMultiple(pubkeys);
-    const simulatedAccounts: MarginfiAccountRaw[] = [];
-    for (const [idx, account] of accounts.entries()) {
-      if (!account) {
-        throw new Error(`Account not found for pubkey: ${pubkeys[idx].toBase58()}`);
-      }
-      const simulatedAccount = await MarginfiAccount.simulateHealthCache(
-        this.program,
-        this.banks,
-        this.oraclePrices,
-        pubkeys[idx],
-        account
-      );
 
-      simulatedAccounts.push(simulatedAccount);
-    }
-    return simulatedAccounts.map((account, index) => {
+    return accounts.map((account, index) => {
       if (!account) {
         throw new Error(`Account not found for pubkey: ${pubkeys[index].toBase58()}`);
       }

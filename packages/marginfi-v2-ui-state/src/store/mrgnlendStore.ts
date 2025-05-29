@@ -274,7 +274,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         tokenAccountMap = tokenData.tokenAccountMap;
         marginfiAccounts = marginfiAccountWrappers;
 
-        //@ts-ignore
         const selectedAccountAddress = localStorage.getItem("mfiAccount");
         if (!selectedAccountAddress && marginfiAccounts.length > 0) {
           // if no account is saved, select the highest value account (first one)
@@ -295,11 +294,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         }
 
         if (selectedAccount) {
-          await MarginfiAccount.iniateAccountWithHealthCache(
-            marginfiClient.program,
-            marginfiClient.banks,
-            selectedAccount.address
-          );
+          selectedAccount = await selectedAccount.simulateHealthCache();
         }
 
         userDataFetched = true;

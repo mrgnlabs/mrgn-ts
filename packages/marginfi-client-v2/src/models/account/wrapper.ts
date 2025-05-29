@@ -218,6 +218,15 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.getBalance(bankPk);
   }
 
+  public async simulateHealthCache(): Promise<MarginfiAccountWrapper> {
+    const account = await this._marginfiAccount.simulateHealthCache(
+      this._program,
+      this.client.banks,
+      this.client.oraclePrices
+    );
+    return new MarginfiAccountWrapper(this.address, this.client, account);
+  }
+
   public canBeLiquidated(): boolean {
     const debugLogger = require("debug")(`mfi:margin-account:${this.address.toString()}:canBeLiquidated`);
     const { assets, liabilities } = this._marginfiAccount.computeHealthComponents(MarginRequirementType.Maintenance);
@@ -1169,6 +1178,8 @@ class MarginfiAccountWrapper {
       mfiAccountData,
       this._program.idl
     );
+
+    console.log({ previewMarginfiAccount });
     return {
       banks: previewBanks,
       marginfiAccount: previewMarginfiAccount,
