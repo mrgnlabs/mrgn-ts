@@ -6,11 +6,13 @@ import {
   Program,
   TOKEN_2022_PROGRAM_ID,
   aprToApy,
+  bigNumberToWrappedI80F48,
   composeRemainingAccounts,
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
   shortenAddress,
   uiToNative,
+  wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
 import {
   ComputeBudgetProgram,
@@ -109,11 +111,13 @@ class MarginfiAccount implements MarginfiAccountType {
   static async simulateHealthCache(
     program: Program<MarginfiIdlType>,
     bankMap: Map<string, Bank>,
+    oraclePrices: Map<string, OraclePrice>,
     address: PublicKey,
     rawData: MarginfiAccountRaw
   ) {
-    const banks = rawData.lendingAccount.balances
-      .filter((b) => b.active)
+    const activeBalancesRaw = rawData?.lendingAccount?.balances.filter((b) => b.active);
+
+    const banks = activeBalancesRaw
       .map((b) => {
         const bank = bankMap.get(b.bankPk.toBase58());
         if (!bank) return undefined;
@@ -193,8 +197,15 @@ class MarginfiAccount implements MarginfiAccountType {
       program.idl
     );
 
-    console.log({ simulationResult });
-    console.log({ marginfiAccountPost });
+    const { assets: assetValueEquity, liabilities: liabilityValueEquity } = computeHealthComponentsWithoutBiasLegacy(
+      activeBalancesRaw.map(Balance.from),
+      bankMap,
+      oraclePrices,
+      MarginRequirementType.Equity
+    );
+
+    marginfiAccountPost.healthCache.assetValueEquity = bigNumberToWrappedI80F48(assetValueEquity);
+    marginfiAccountPost.healthCache.liabilityValueEquity = bigNumberToWrappedI80F48(liabilityValueEquity);
 
     return marginfiAccountPost;
   }

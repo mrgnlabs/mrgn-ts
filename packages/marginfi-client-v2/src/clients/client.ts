@@ -565,6 +565,7 @@ class MarginfiClient {
       const simulatedAccount = await MarginfiAccount.simulateHealthCache(
         this.program,
         this.banks,
+        this.oraclePrices,
         pubkeys[idx],
         account
       );
