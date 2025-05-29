@@ -7,7 +7,7 @@ import { EmodeExplore } from "~/components/common/emode/components";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Button } from "~/components/ui/button";
-import { IconEmode } from "~/components/ui/icons";
+import { IconEmode, IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
 
 type EmodePortfolioProps = {
   userActiveEmodes: EmodePair[];
@@ -25,27 +25,11 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode = false, setFilterEmode 
           filterEmode && "opacity-10 pointer-events-none"
         )}
       >
-        <div className="flex items-center justify-between text-sm mr-2 gap-2 shrink-0 text-muted-foreground">
-          <div
-            className={cn(
-              "w-2 h-2 bg-gray-400 rounded-full translate-y-px text-muted-foreground",
-              emodeActive && "bg-mrgn-success animate-pulsate text-foreground"
-            )}
-          />{" "}
+        <div className="flex items-center justify-between text-sm mr-2 gap-1 shrink-0 text-muted-foreground">
+          {emodeActive ? <IconEmodeSimple size={18} /> : <IconEmodeSimpleInactive size={18} />}
           e-mode {!emodeActive && "in"}active
         </div>
         <div className="flex items-center gap-3">
-          {/* {userActiveEmodes.map((pair, idx) => (
-            <EmodeExplore
-              key={`${pair.collateralBankTag}-${idx}`}
-              trigger={
-                <Badge variant="emode" className="hidden lg:flex">
-                  <IconEmode size={16} /> {EmodeTag[pair.collateralBankTag]}
-                </Badge>
-              }
-              emodeTag={pair.collateralBankTag}
-            />
-          ))} */}
           <EmodeExplore
             trigger={
               <Button

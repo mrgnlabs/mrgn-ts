@@ -96,15 +96,8 @@ const AnnouncementSlide = ({
 
       {/* Content Panel - Bottom on mobile, Right on desktop */}
       <div className="flex-1 p-6 lg:p-12 flex flex-col justify-between">
-        {/* Close button */}
-        <div className="flex justify-end">
-          <Button variant="ghost" size="sm" onClick={onClose} className="text-muted-foreground hover:text-foreground">
-            <IconX size={20} />
-          </Button>
-        </div>
-
         {/* Content */}
-        <div className="flex-1 flex flex-col justify-center space-y-6 lg:space-y-12">
+        <div className="flex-1 flex flex-col pt-8 space-y-6 lg:pt-0 lg:space-y-12 lg:justify-center">
           <div className="space-y-3 lg:space-y-4">
             <h1 className="text-2xl lg:text-4xl font-medium flex items-center gap-2 lg:gap-3">
               {!isLast && title}
@@ -140,9 +133,12 @@ const AnnouncementSlide = ({
               <>
                 {userStatus === UserStatus.EMODE_ENABLED && (
                   <div className="space-y-6">
-                    <div className="flex items-center gap-0.5">
-                      Your portfolio currently has <IconEmodeSimple size={18} />{" "}
-                      <span className="text-mfi-emode mr-1">e-mode</span> enabled for the following pairs.
+                    <div className="w-[80%]">
+                      Your portfolio currently has{" "}
+                      <div className="inline-flex items-center translate-y-1 gap-0.5">
+                        <IconEmodeSimple size={18} /> <span className="text-mfi-emode mr-1">e-mode</span>
+                      </div>{" "}
+                      enabled for the following pairs.
                     </div>
                     {userActiveEmodes.map((emode, index) => {
                       const collatBanks = banks
