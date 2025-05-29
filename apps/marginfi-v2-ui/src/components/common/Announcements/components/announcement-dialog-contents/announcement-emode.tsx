@@ -296,7 +296,14 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
       features: ["Improved collateral efficiency", "Maximize your leverage"],
       video: "https://storage.googleapis.com/mrgn-public/e-mode-videos/1",
       prevSlideTitle: "Strategy",
-      nextSlideTitle: "Get Started",
+      nextSlideTitle: "Explore e-mode pairs",
+    },
+    {
+      title: "Explore e-mode pairs",
+      description: "e-mode pairs explorer / table will go here...",
+      video: "https://storage.googleapis.com/mrgn-public/e-mode-videos/3",
+      prevSlideTitle: "Maximize your leverage",
+      nextSlideTitle: "Get started",
     },
     {
       title: "Get started!",
