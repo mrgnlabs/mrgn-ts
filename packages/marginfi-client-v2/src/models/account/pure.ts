@@ -57,6 +57,7 @@ import {
   createUpdateFeedIx,
   crankPythOracleIx,
   simulateAccountHealthCache,
+  simulateAccountHealthCacheWithFallback,
 } from "../..";
 import BN from "bn.js";
 import { BorshInstructionCoder } from "@coral-xyz/anchor";
@@ -77,7 +78,7 @@ class MarginfiAccount implements MarginfiAccountType {
     public readonly balances: Balance[],
     public readonly accountFlags: AccountFlags[],
     public readonly emissionsDestinationAccount: PublicKey,
-    public readonly healthCache: HealthCache
+    public healthCache: HealthCache
   ) {}
 
   static async fetch(address: PublicKey, client: MarginfiClient): Promise<MarginfiAccount> {
@@ -114,17 +115,15 @@ class MarginfiAccount implements MarginfiAccountType {
     bankMap: Map<string, Bank>,
     oraclePrices: Map<string, OraclePrice>
   ) {
-    const accountWithHealthCache = await simulateAccountHealthCache({
+    const accountWithHealthCache = await simulateAccountHealthCacheWithFallback({
       program,
       bankMap,
       oraclePrices,
-      marginfiAccountPk: this.address,
+      marginfiAccount: this,
       activeBalances: this.activeBalances,
     });
 
-    const account = MarginfiAccount.fromAccountParsed(this.address, accountWithHealthCache);
-
-    return account;
+    return accountWithHealthCache;
   }
 
   static fromAccountDataRaw(marginfiAccountPk: PublicKey, rawData: Buffer, idl: MarginfiIdlType) {
@@ -153,6 +152,10 @@ class MarginfiAccount implements MarginfiAccountType {
 
   get isTransferAccountAuthorityEnabled(): boolean {
     return this.accountFlags.includes(AccountFlags.ACCOUNT_TRANSFER_AUTHORITY_ALLOWED);
+  }
+
+  setHealthCache(value: HealthCache) {
+    this.healthCache = value;
   }
 
   computeFreeCollateral(opts?: { clamped?: boolean }): BigNumber {

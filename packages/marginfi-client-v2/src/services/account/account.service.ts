@@ -18,6 +18,7 @@ import {
   composeRemainingAccounts,
   getTxSize,
   splitInstructionsToFitTransactions,
+  toBigNumber,
 } from "@mrgnlabs/mrgn-common";
 
 import MarginfiClient, { BankMap, OraclePriceMap } from "../../clients/client";
@@ -33,6 +34,69 @@ import { feedIdToString } from "../../utils";
 import { crankPythOracleIx, OracleSetup } from "../bank";
 import { computeHealthComponentsWithoutBiasLegacy } from "./utils";
 import { simulateBundle } from "../transaction/helpers";
+import { HealthCache } from "../../models/health-cache";
+
+export async function simulateAccountHealthCacheWithFallback(props: {
+  program: Program<MarginfiIdlType>;
+  bankMap: Map<string, Bank>;
+  oraclePrices: Map<string, OraclePrice>;
+  marginfiAccount: MarginfiAccount;
+  activeBalances: Balance[];
+}): Promise<MarginfiAccount> {
+  let marginfiAccount = props.marginfiAccount;
+
+  const { assets: assetValueEquity, liabilities: liabilityValueEquity } = computeHealthComponentsWithoutBiasLegacy(
+    props.activeBalances,
+    props.bankMap,
+    props.oraclePrices,
+    MarginRequirementType.Equity
+  );
+
+  try {
+    const simulatedAccount = await simulateAccountHealthCache({
+      program: props.program,
+      bankMap: props.bankMap,
+      oraclePrices: props.oraclePrices,
+      marginfiAccountPk: props.marginfiAccount.address,
+      activeBalances: props.activeBalances,
+    });
+
+    simulatedAccount.healthCache.assetValueEquity = bigNumberToWrappedI80F48(assetValueEquity);
+    simulatedAccount.healthCache.liabilityValueEquity = bigNumberToWrappedI80F48(liabilityValueEquity);
+
+    marginfiAccount = MarginfiAccount.fromAccountParsed(props.marginfiAccount.address, simulatedAccount);
+  } catch (e) {
+    const { assets: assetValueMaint, liabilities: liabilityValueMaint } = computeHealthComponentsWithoutBiasLegacy(
+      props.activeBalances,
+      props.bankMap,
+      props.oraclePrices,
+      MarginRequirementType.Maintenance
+    );
+
+    const { assets: assetValueInitial, liabilities: liabilityValueInitial } = computeHealthComponentsWithoutBiasLegacy(
+      props.activeBalances,
+      props.bankMap,
+      props.oraclePrices,
+      MarginRequirementType.Initial
+    );
+
+    marginfiAccount.setHealthCache(
+      new HealthCache(
+        assetValueInitial,
+        liabilityValueInitial,
+        assetValueMaint,
+        liabilityValueMaint,
+        assetValueEquity,
+        liabilityValueEquity,
+        new BigNumber(0),
+        [],
+        []
+      )
+    );
+  }
+
+  return marginfiAccount;
+}
 
 export async function simulateAccountHealthCache(props: {
   program: Program<MarginfiIdlType>;
@@ -40,7 +104,7 @@ export async function simulateAccountHealthCache(props: {
   oraclePrices: Map<string, OraclePrice>;
   marginfiAccountPk: PublicKey;
   activeBalances: Balance[];
-}) {
+}): Promise<MarginfiAccountRaw> {
   const { program, bankMap, oraclePrices, marginfiAccountPk, activeBalances } = props;
 
   const banks = activeBalances
@@ -91,6 +155,11 @@ export async function simulateAccountHealthCache(props: {
     }
   );
 
+  if (txs.length > 5) {
+    console.error("Too many transactions", txs.length);
+    throw new Error("Too many transactions");
+  }
+
   const simulationResult = await simulateBundle(program.provider.connection.rpcEndpoint, txs, [marginfiAccountPk]);
 
   const postExecutionAccount = simulationResult.find((result) => result.postExecutionAccounts.length > 0);
@@ -104,15 +173,10 @@ export async function simulateAccountHealthCache(props: {
     program.idl
   );
 
-  const { assets: assetValueEquity, liabilities: liabilityValueEquity } = computeHealthComponentsWithoutBiasLegacy(
-    activeBalances,
-    bankMap,
-    oraclePrices,
-    MarginRequirementType.Equity
-  );
-
-  marginfiAccountPost.healthCache.assetValueEquity = bigNumberToWrappedI80F48(assetValueEquity);
-  marginfiAccountPost.healthCache.liabilityValueEquity = bigNumberToWrappedI80F48(liabilityValueEquity);
+  if (marginfiAccountPost.healthCache.mrgnErr) {
+    console.error("Account health cache simulation failed", marginfiAccountPost.healthCache.mrgnErr);
+    throw new Error("Account health cache simulation failed");
+  }
 
   return marginfiAccountPost;
 }
