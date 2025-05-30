@@ -12,7 +12,6 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 
-import { Program } from "@mrgnlabs/mrgn-common";
 import {
   PDA_BANK_FEE_VAULT_AUTH_SEED,
   PDA_BANK_FEE_VAULT_SEED,
@@ -22,7 +21,7 @@ import {
   PDA_BANK_LIQUIDITY_VAULT_SEED,
   PYTH_PUSH_ORACLE_ID,
 } from "./constants";
-import { BankVaultType, MarginfiProgram } from "./types";
+import { BankVaultType } from "./types";
 import {
   NATIVE_MINT,
   createAssociatedTokenAccountIdempotentInstruction,
@@ -32,8 +31,11 @@ import {
   getAssociatedTokenAddressSync,
 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
-import { BankConfig, BankConfigRaw, OracleSetup, parseOracleSetup } from ".";
+import { OracleSetup } from "./services/bank/types/bank.types";
+import { parseOracleSetup } from "./services/bank/utils/deserialize.utils";
 import { parsePriceInfo } from "./vendor";
+import { BankConfig } from "./models/bank";
+import { BankConfigRaw } from "./services";
 
 export function getBankVaultSeeds(type: BankVaultType): Buffer {
   switch (type) {
