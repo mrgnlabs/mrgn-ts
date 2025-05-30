@@ -30,7 +30,11 @@ export interface CalculatePreviewProps {
 
 export const getSimulationResult = async (props: SimulateActionProps) => {
   try {
-    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address]);
+    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address], {
+      enabled: true,
+      mandatoryBanks: [props.bank.address],
+      excludedBanks: [],
+    });
   } catch (error: any) {
     const actionString = "Deposit Swapping";
     const actionMethod = handleSimulationError(error, props.bank, false, actionString);

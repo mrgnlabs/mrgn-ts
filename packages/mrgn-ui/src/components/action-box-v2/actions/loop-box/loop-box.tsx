@@ -255,7 +255,7 @@ export const LoopBox = ({
       banks: allBanks ?? [],
       emodeImpact,
     });
-  }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote, allBanks]);
+  }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote, allBanks, emodeImpact]);
 
   const { actionSummary, refreshSimulation } = useLoopSimulation({
     debouncedAmount: debouncedAmount ?? 0,

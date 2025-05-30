@@ -562,6 +562,30 @@ function canBeDepositSwapped(
     });
   }
 
+  if (depositBank.userInfo.emodeImpact?.supplyImpact) {
+    const supplyImpact = depositBank.userInfo.emodeImpact?.supplyImpact;
+
+    switch (supplyImpact.status) {
+      case EmodeImpactStatus.ActivateEmode:
+        checks.push(STATIC_INFO_MESSAGES.EMODE_ACTIVATE_IMPACT);
+        break;
+      case EmodeImpactStatus.ExtendEmode:
+        checks.push(STATIC_INFO_MESSAGES.EMODE_EXTEND_IMPACT);
+        break;
+      case EmodeImpactStatus.IncreaseEmode:
+        checks.push(DYNAMIC_SIMULATION_ERRORS.EMODE_INCREASE_CHECK());
+        break;
+      case EmodeImpactStatus.ReduceEmode:
+        checks.push(DYNAMIC_SIMULATION_ERRORS.EMODE_REDUCE_CHECK());
+        break;
+      case EmodeImpactStatus.RemoveEmode:
+        checks.push(STATIC_SIMULATION_ERRORS.REMOVE_E_MODE_CHECK);
+        break;
+      case EmodeImpactStatus.InactiveEmode:
+        break;
+    }
+  }
+
   const swapBankInfo =
     "info" in swapBank
       ? {
