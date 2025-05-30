@@ -11,9 +11,16 @@ import BigNumber from "bignumber.js";
 import BN from "bn.js";
 import * as sb from "@switchboard-xyz/on-demand";
 
-import { Program, SolanaTransaction, bigNumberToWrappedI80F48, composeRemainingAccounts } from "@mrgnlabs/mrgn-common";
+import {
+  Program,
+  SolanaTransaction,
+  bigNumberToWrappedI80F48,
+  composeRemainingAccounts,
+  getTxSize,
+  splitInstructionsToFitTransactions,
+} from "@mrgnlabs/mrgn-common";
 
-import MarginfiClient from "../../clients/client";
+import MarginfiClient, { BankMap, OraclePriceMap } from "../../clients/client";
 import { MarginfiAccountWrapper, MarginfiAccount, MarginRequirementType } from "../../models/account";
 import { BalanceRaw, MarginfiAccountRaw } from "./types";
 import { MarginfiIdlType } from "../../idl";
@@ -25,6 +32,7 @@ import { Balance } from "../../models/balance";
 import { feedIdToString } from "../../utils";
 import { crankPythOracleIx, OracleSetup } from "../bank";
 import { computeHealthComponentsWithoutBiasLegacy } from "./utils";
+import { simulateBundle } from "../transaction/helpers";
 
 export async function simulateAccountHealthCache(props: {
   program: Program<MarginfiIdlType>;
@@ -47,41 +55,18 @@ export async function simulateAccountHealthCache(props: {
     return [b.address, b.oracleKey];
   });
 
-  const pythFeedIds: { feedId: string; shardId: number }[] = [];
-  const swbOracleKeys: PublicKey[] = [];
-
-  // checks for duplicate oracle keys
-  const seenPyth = new Set<string>();
-  const seenSwb = new Set<string>();
-
-  for (const b of banks) {
-    const setup = b.config.oracleSetup;
-    const oracleKey = b.oracleKey;
-    const feedIdKey = feedIdToString(b.config.oracleKeys[0]);
-    const oracleKeyBase = oracleKey.toBase58();
-
-    if (
-      (setup === OracleSetup.PythPushOracle || setup === OracleSetup.StakedWithPythPush) &&
-      !seenPyth.has(feedIdKey)
-    ) {
-      seenPyth.add(feedIdKey);
-      pythFeedIds.push({ feedId: feedIdKey, shardId: b.pythShardId ?? 0 });
-    }
-
-    if (setup === OracleSetup.SwitchboardPull && !seenSwb.has(oracleKeyBase)) {
-      seenSwb.add(oracleKeyBase);
-      swbOracleKeys.push(oracleKey);
-    }
-  }
-
-  // const crankPythIxs = await crankPythOracleIx(pythFeedIds, program.provider);
-
-  // console.log("crankPythIxs", crankPythIxs.instructions);
+  const { stalePythFeeds, staleSwbOracles } = getActiveStaleBanks(activeBalances, bankMap, [], oraclePrices, 30);
 
   const computeIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 });
-  const updateFeedIxs =
-    swbOracleKeys.length > 0
-      ? await createUpdateFeedIx({ swbPullOracles: swbOracleKeys, provider: program.provider })
+  const blockhash = (await program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
+
+  const crankPythIxs = await crankPythOracleIx(stalePythFeeds, program.provider);
+  const crankSwbIxs =
+    staleSwbOracles.length > 0
+      ? await createUpdateFeedIx({
+          swbPullOracles: staleSwbOracles.map((oracle) => oracle.oracleKey),
+          provider: program.provider,
+        })
       : { instructions: [], luts: [] };
   const healthPulseIxs = await createHealthPulseIx({
     bankAddressAndOraclePair,
@@ -89,34 +74,35 @@ export async function simulateAccountHealthCache(props: {
     program,
   });
 
-  const blockhash = (await program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
+  const pythLut = crankPythIxs.lut ? [crankPythIxs.lut] : [];
 
-  const tx = new VersionedTransaction(
-    new TransactionMessage({
-      instructions: [computeIx, ...updateFeedIxs.instructions, ...healthPulseIxs.instructions],
+  const txs = splitInstructionsToFitTransactions(
+    [computeIx],
+    [
+      ...crankPythIxs.postInstructions.map((ix) => ix.instruction),
+      ...crankPythIxs.closeInstructions.map((ix) => ix.instruction),
+      ...crankSwbIxs.instructions,
+      ...healthPulseIxs.instructions,
+    ],
+    {
+      blockhash,
       payerKey: program.provider.publicKey,
-      recentBlockhash: blockhash,
-    }).compileToV0Message([...updateFeedIxs.luts, ...healthPulseIxs.luts])
+      luts: pythLut,
+    }
   );
 
-  const simulationResult = await program.provider.connection.simulateTransaction(tx, {
-    accounts: {
-      encoding: "base64",
-      addresses: [marginfiAccountPk.toBase58()],
-    },
-    sigVerify: false,
-  });
+  const simulationResult = await simulateBundle(program.provider.connection.rpcEndpoint, txs, [marginfiAccountPk]);
 
-  if (!simulationResult?.value?.accounts?.[0]) {
+  const postExecutionAccount = simulationResult.find((result) => result.postExecutionAccounts.length > 0);
+
+  if (!postExecutionAccount) {
     throw new Error("Account not found");
   }
 
   const marginfiAccountPost = MarginfiAccount.decodeAccountRaw(
-    Buffer.from(simulationResult?.value?.accounts?.[0].data[0], "base64"),
+    Buffer.from(postExecutionAccount.postExecutionAccounts[0].data[0], "base64"),
     program.idl
   );
-
-  console.log("marginfiAccountPost", marginfiAccountPost);
 
   const { assets: assetValueEquity, liabilities: liabilityValueEquity } = computeHealthComponentsWithoutBiasLegacy(
     activeBalances,
@@ -218,4 +204,64 @@ export async function createMarginfiAccountTx(props: {
     account: wrappedAccount,
     tx: await props.marginfiClient.createMarginfiAccountTx({ accountKeypair: marginfiAccountKeypair }),
   };
+}
+
+export function getActiveStaleBanks(
+  balances: Balance[],
+  banks: BankMap,
+  additionalBanks: Bank[],
+  oraclePrices: OraclePriceMap,
+  maxAgeOffset: number = 0
+): { stalePythFeeds: { feedId: string; shardId: number }[]; staleSwbOracles: { oracleKey: PublicKey }[] } {
+  const activeBanks = balances
+    .filter((balance) => balance.active)
+    .map((balance) => banks.get(balance.bankPk.toBase58()))
+    .filter((bank): bank is NonNullable<typeof bank> => !!bank);
+
+  const allBanks = [...activeBanks, ...additionalBanks];
+
+  const staleBanks = allBanks.filter((bank) => {
+    const oraclePrice = oraclePrices.get(bank.address.toBase58());
+    const maxAge = bank.config.oracleMaxAge;
+    const currentTime = Math.round(Date.now() / 1000);
+    const oracleTime = Math.round(oraclePrice?.timestamp ? oraclePrice.timestamp.toNumber() : new Date().getTime());
+    const adjustedMaxAge = Math.max(maxAge - maxAgeOffset, 0);
+    const isStale = currentTime - oracleTime > adjustedMaxAge;
+
+    return isStale;
+  });
+
+  if (staleBanks.length > 0) {
+    const stalePythFeeds: { feedId: string; shardId: number }[] = [];
+    const staleSwbOracles: { oracleKey: PublicKey }[] = [];
+    const seenSwbOracles = new Set<string>();
+    const seenPythFeeds = new Set<string>();
+
+    staleBanks.forEach((bank) => {
+      if (bank.config.oracleSetup === OracleSetup.SwitchboardPull) {
+        const key = bank.oracleKey.toBase58();
+        if (!seenSwbOracles.has(key)) {
+          seenSwbOracles.add(key);
+          staleSwbOracles.push({ oracleKey: bank.oracleKey });
+        }
+      } else if (
+        bank.config.oracleSetup === OracleSetup.PythPushOracle ||
+        bank.config.oracleSetup === OracleSetup.StakedWithPythPush
+      ) {
+        const oraclePrice = oraclePrices.get(bank.address.toBase58());
+
+        const shardId = oraclePrice?.pythShardId ?? 0;
+        const feedId = bank.config.oracleKeys[0];
+        const feedKey = feedIdToString(feedId);
+        if (!seenPythFeeds.has(feedKey)) {
+          seenPythFeeds.add(feedKey);
+          stalePythFeeds.push({ feedId: feedKey, shardId });
+        }
+      }
+    });
+
+    return { stalePythFeeds, staleSwbOracles };
+  }
+
+  return { stalePythFeeds: [], staleSwbOracles: [] };
 }

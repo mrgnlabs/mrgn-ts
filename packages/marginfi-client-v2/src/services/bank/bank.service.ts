@@ -1,5 +1,12 @@
-import { Keypair, PublicKey } from "@solana/web3.js";
-import { InstructionsWrapper, SYSTEM_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import {
+  AddressLookupTableAccount,
+  Keypair,
+  PublicKey,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
+import { getTxSize, InstructionsWrapper, SYSTEM_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
 import instructions from "../../instructions";
 import { MarginfiProgram } from "../../types";
@@ -19,6 +26,7 @@ import {
   DEFAULT_PUSH_ORACLE_PROGRAM_ID,
 } from "../../vendor/pyth_crank";
 import { Program, Provider } from "@coral-xyz/anchor";
+import { program } from "@coral-xyz/anchor/dist/cjs/native/system";
 
 export async function freezeBankConfigIx(
   program: MarginfiProgram,
@@ -148,12 +156,13 @@ export const getConfigPda = (receiverProgramId: PublicKey) => {
 
 export async function crankPythOracleIx(oracles: { feedId: string; shardId: number }[], provider: Provider) {
   const feedIdsByShardId: Record<number, string[]> = {};
-  // const receiverProgram = new Program(PYTH_PUSH_ORACLE_PROGRAM_IDL, provider);
   const wormholeProgram = new Program(PYTH_WORMHOLE_IDL, provider);
   const pushOracleProgram = new Program(PYTH_PUSH_ORACLE_IDL, provider);
   const receiverProgram = new Program(PYTH_SOLANA_RECEIVER_PROGRAM_IDL, provider);
 
   const addressLookupTableAccount = new PublicKey("5DNCErWQFBdvCxWQXaC1mrEFsvL3ftrzZ2gVZWNybaSX");
+
+  const lookupTableAccount = (await provider.connection.getAddressLookupTable(addressLookupTableAccount)).value;
 
   const buildURL = (endpoint: string) => {
     return new URL(`./v2/${endpoint}`, `https://hermes.pyth.network/`);
@@ -185,17 +194,12 @@ export async function crankPythOracleIx(oracles: { feedId: string; shardId: numb
 
     for (const priceData of priceDataArray) {
       const accumulatorUpdateData = parseAccumulatorUpdateData(Buffer.from(priceData, "base64"));
-      const guardianSetIndex = getGuardianSetIndex(accumulatorUpdateData.vaa);
-      const trimmedVaa = trimSignatures(accumulatorUpdateData.vaa);
 
       const {
         postInstructions: postEncodedVaaInstructions,
         encodedVaaAddress: encodedVaa,
         closeInstructions: postEncodedVaacloseInstructions,
       } = await buildPostEncodedVaaInstructions(wormholeProgram, accumulatorUpdateData.vaa);
-      postInstructions.push(...postEncodedVaaInstructions);
-      closeInstructions.push(...postEncodedVaacloseInstructions);
-
       postInstructions.push(...postEncodedVaaInstructions);
       closeInstructions.push(...postEncodedVaacloseInstructions);
 
@@ -228,7 +232,9 @@ export async function crankPythOracleIx(oracles: { feedId: string; shardId: numb
   }
 
   return {
-    instructions: [...postInstructions, ...closeInstructions],
+    postInstructions: postInstructions,
+    closeInstructions: closeInstructions,
     keys: [],
+    lut: lookupTableAccount,
   };
 }

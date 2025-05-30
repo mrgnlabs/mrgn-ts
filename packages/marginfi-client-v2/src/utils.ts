@@ -220,21 +220,27 @@ export function findOracleKey(
   bankConfig: BankConfig,
   feedMap: PythPushFeedIdMap
 ): { oracleKey: PublicKey; shardId?: number } {
-  const oracleSetup = bankConfig.oracleSetup;
-  let oracleKey: PublicKey = bankConfig.oracleKeys[0];
-  let shardId: number | undefined = undefined;
+  try {
+    const oracleSetup = bankConfig.oracleSetup;
+    let oracleKey: PublicKey = bankConfig.oracleKeys[0];
+    let shardId: number | undefined = undefined;
 
-  if (oracleSetup == OracleSetup.PythPushOracle || oracleSetup == OracleSetup.StakedWithPythPush) {
-    const feedId = feedIdToString(oracleKey);
-    const maybeOracleKey = feedMap.get(feedId);
-    if (!maybeOracleKey) {
-      throw new Error(`No oracle key found for feedId: ${feedId}`);
+    if (oracleSetup == OracleSetup.PythPushOracle || oracleSetup == OracleSetup.StakedWithPythPush) {
+      const feedId = feedIdToString(oracleKey);
+      const maybeOracleKey = feedMap.get(feedId);
+      if (!maybeOracleKey) {
+        throw new Error(`No oracle key found for feedId: ${feedId}`);
+      }
+      oracleKey = maybeOracleKey.feedId;
+      shardId = maybeOracleKey.shardId;
     }
-    oracleKey = maybeOracleKey.feedId;
-    shardId = maybeOracleKey.shardId;
-  }
 
-  return { oracleKey, shardId };
+    return { oracleKey, shardId };
+  } catch (error) {
+    console.error("Error finding oracle key", error);
+    console.log("oracleSetup", bankConfig.oracleSetup);
+    return { oracleKey: bankConfig.oracleKeys[0] };
+  }
 }
 
 export const PYTH_SPONSORED_SHARD_ID = 0;

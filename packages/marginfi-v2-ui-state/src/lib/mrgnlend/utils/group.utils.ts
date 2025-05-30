@@ -124,6 +124,7 @@ async function fetchGroupData(
   const banks = new Map(
     bankDatasKeyed.map(({ address, data }) => {
       const bankMetadata = bankMetadataMap ? bankMetadataMap[address.toBase58()] : undefined;
+
       const bank = Bank.fromAccountParsed(address, data, feedIdMap, bankMetadata);
 
       return [address.toBase58(), bank];
