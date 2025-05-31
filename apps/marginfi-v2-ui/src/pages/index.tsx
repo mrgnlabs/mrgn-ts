@@ -20,8 +20,7 @@ import {
 
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
-import { EmodeHeader, EmodePortfolio } from "~/components/common/emode/components";
-import { IconEmode } from "~/components/ui/icons";
+import { EmodePortfolio } from "~/components/common/emode/components";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
   ssr: false,
@@ -72,10 +71,6 @@ export default function HomePage() {
 
     banks = banks.filter((bank): bank is ExtendedBankInfo => bank !== undefined);
     return [
-      // {
-      //   text: "e-mode boosted weights now available!",
-      //   image: <IconEmode size={26} className="text-purple-400" />,
-      // },
       ...banks.map((bank) => ({
         bank: bank,
       })),
