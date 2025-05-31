@@ -375,7 +375,7 @@ export const AssetsList = () => {
         </>
       )}
       {poolFilter === PoolTypes.E_MODE && emodePoolTableData.length > 0 && (
-        <div className="space-y-8 py-4">
+        <div className="space-y-6">
           <EmodeHeader emodeGroups={emodeGroups} />
           <Table>
             <TableHeader>
