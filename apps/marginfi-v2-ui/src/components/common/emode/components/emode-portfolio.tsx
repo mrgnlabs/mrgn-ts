@@ -3,7 +3,7 @@ import { EmodeTag, EmodePair } from "@mrgnlabs/marginfi-client-v2";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Badge } from "~/components/ui/badge";
-import { EmodeExplore } from "~/components/common/emode/components";
+import { EmodeExplore, EmodeStrategies } from "~/components/common/emode/components";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Button } from "~/components/ui/button";
@@ -31,11 +31,7 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode = false, setFilterEmode 
         <div className="flex items-center gap-3">
           <EmodeExplore
             trigger={
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full bg-background-gray h-auto py-1.5 text-xs font-normal hover:bg-background-gray-light"
-              >
+              <Button variant="secondary" size="sm">
                 <IconSearch size={12} />
                 Explore e-mode pairs
               </Button>
@@ -43,6 +39,7 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode = false, setFilterEmode 
           />
         </div>
       </div>
+      <EmodeStrategies />
       {emodeActive && setFilterEmode && (
         <div className="items-center gap-2 shrink-0 hidden lg:flex">
           <Label htmlFor="pairings" className="text-sm text-muted-foreground flex items-center gap-1">
