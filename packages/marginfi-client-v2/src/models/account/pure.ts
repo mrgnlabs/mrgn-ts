@@ -1261,44 +1261,31 @@ export function makeHealthAccountMetas(
   banksToInclude: PublicKey[],
   bankMetadataMap?: BankMetadataMap
 ): PublicKey[] {
-  const stakedCollateralBanks: Bank[] = [];
-  const accounts = composeRemainingAccounts([
-    ...banksToInclude.flatMap((bankAddress) => {
+  const accounts = composeRemainingAccounts(
+    banksToInclude.map((bankAddress) => {
       const bank = banks.get(bankAddress.toBase58());
-      const accounts: PublicKey[][] = [];
       if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
 
+      const keys = [bankAddress, bank.oracleKey];
+
+      // for staked collateral banks (assetTag === 2), include additional accounts
       if (bank.config.assetTag === 2) {
-        stakedCollateralBanks.push(bank);
+        const bankMetadata = bankMetadataMap?.[bankAddress.toBase58()];
+
+        if (!bankMetadata || !bankMetadata.validatorVoteAccount) {
+          throw Error(`Bank metadata for ${bankAddress.toBase58()} not found`);
+        }
+
+        const pool = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
+        const solPool = findPoolStakeAddress(pool);
+        const lstMint = findPoolMintAddress(pool);
+
+        keys.push(lstMint, solPool);
       }
 
-      accounts.push([bankAddress, bank.oracleKey]);
-
-      return accounts;
-    }),
-  ]);
-
-  if (stakedCollateralBanks.length > 0) {
-    for (const bank of stakedCollateralBanks) {
-      const bankAddress = bank.address;
-      const oracleKey = bank.oracleKey;
-      const bankMetadata = bankMetadataMap?.[bankAddress.toBase58()];
-
-      if (!bankMetadata || !bankMetadata.validatorVoteAccount) {
-        throw Error(`Bank metadata for ${bankAddress.toBase58()} not found`);
-      }
-
-      const pool = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
-      const solPool = findPoolStakeAddress(pool);
-      const lstMint = findPoolMintAddress(pool);
-
-      // Find the index of oracleKey and insert solPool and lstMint right after it
-      const oracleIndex = accounts.findIndex((account) => account.equals(oracleKey));
-      if (oracleIndex !== -1) {
-        accounts.splice(oracleIndex + 1, 0, lstMint, solPool);
-      }
-    }
-  }
+      return keys;
+    })
+  );
 
   return accounts;
 }
