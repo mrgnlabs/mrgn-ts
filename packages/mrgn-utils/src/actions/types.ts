@@ -46,6 +46,7 @@ export interface ActionMessageType {
     bank: ExtendedBankInfo;
     type: ActionType;
   };
+  originalError?: any;
 }
 
 export interface StakeData {

@@ -938,6 +938,7 @@ class MarginfiAccount implements MarginfiAccountType {
     const healthAccounts = this.getHealthCheckAccounts([bank], []);
 
     const remainingAccounts: PublicKey[] = [];
+
     if (mintData.tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
       remainingAccounts.push(mintData.mint);
     }
@@ -1260,31 +1261,46 @@ export function makeHealthAccountMetas(
   banksToInclude: PublicKey[],
   bankMetadataMap?: BankMetadataMap
 ): PublicKey[] {
-  return composeRemainingAccounts(
-    banksToInclude.flatMap((bankAddress) => {
+  const stakedCollateralBanks: Bank[] = [];
+  const accounts = composeRemainingAccounts([
+    ...banksToInclude.flatMap((bankAddress) => {
       const bank = banks.get(bankAddress.toBase58());
       const accounts: PublicKey[][] = [];
       if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
 
-      accounts.push([bankAddress, bank.oracleKey]);
-
       if (bank.config.assetTag === 2) {
-        const bankMetadata = bankMetadataMap?.[bankAddress.toBase58()];
-
-        if (!bankMetadata || !bankMetadata.validatorVoteAccount) {
-          throw Error(`Bank metadata for ${bankAddress.toBase58()} not found`);
-        }
-
-        const pool = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
-        const solPool = findPoolStakeAddress(pool);
-        const lstMint = findPoolMintAddress(pool);
-
-        accounts.push([lstMint, solPool]);
+        stakedCollateralBanks.push(bank);
       }
 
+      accounts.push([bankAddress, bank.oracleKey]);
+
       return accounts;
-    })
-  );
+    }),
+  ]);
+
+  if (stakedCollateralBanks.length > 0) {
+    for (const bank of stakedCollateralBanks) {
+      const bankAddress = bank.address;
+      const oracleKey = bank.oracleKey;
+      const bankMetadata = bankMetadataMap?.[bankAddress.toBase58()];
+
+      if (!bankMetadata || !bankMetadata.validatorVoteAccount) {
+        throw Error(`Bank metadata for ${bankAddress.toBase58()} not found`);
+      }
+
+      const pool = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
+      const solPool = findPoolStakeAddress(pool);
+      const lstMint = findPoolMintAddress(pool);
+
+      // Find the index of oracleKey and insert solPool and lstMint right after it
+      const oracleIndex = accounts.findIndex((account) => account.equals(oracleKey));
+      if (oracleIndex !== -1) {
+        accounts.splice(oracleIndex + 1, 0, lstMint, solPool);
+      }
+    }
+  }
+
+  return accounts;
 }
 
 export { MarginfiAccount, MarginRequirementType };

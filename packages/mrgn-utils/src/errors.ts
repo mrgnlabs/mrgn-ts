@@ -733,7 +733,7 @@ export const handleSimulationError = (
 ): ActionMessageType | undefined => {
   const action = handleError(error, bank, isArena, actionString);
   if (action) {
-    return action;
+    return { ...action, originalError: error };
   }
   console.error({ error: error });
   return DYNAMIC_SIMULATION_ERRORS.SIMULATION_FAILED_CHECK(error.message);
