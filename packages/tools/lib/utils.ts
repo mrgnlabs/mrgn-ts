@@ -18,7 +18,7 @@ export function loadKeypairFromFile(filePath: string): Keypair {
 export function formatNumber(num: number | BigNumber): string {
   const value = typeof num === "number" ? new BigNumber(num) : num;
   if (value.eq(0)) return "0";
-  if (value.lt(1)) return value.toString();
+  if (value.lt(1)) return value.toFixed(4);
   return groupedNumberFormatterDyn.format(value.toNumber());
 }
 

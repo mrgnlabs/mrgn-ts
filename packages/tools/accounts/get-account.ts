@@ -26,7 +26,7 @@ async function main() {
   const program = getMarginfiProgram(argv.env as Environment);
 
   // Fetch bank metadata
-  const bankMetadata = await getBankMetadata();
+  const bankMetadata = await getBankMetadata(argv.env as Environment);
 
   let acc = await program.account.marginfiAccount.fetch(accountPubkey);
   let balances = acc.lendingAccount.balances;
@@ -35,7 +35,7 @@ async function main() {
   let totalLiabilities = 0;
 
   for (let i = 0; i < balances.length; i++) {
-    if (balances[i].active === false) continue;
+    if (!balances[i].active) continue;
 
     // Fetch bank data to get share prices
     const bank = await program.account.bank.fetch(balances[i].bankPk);
