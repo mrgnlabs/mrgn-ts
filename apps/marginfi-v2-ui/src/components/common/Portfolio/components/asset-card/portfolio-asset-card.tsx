@@ -130,6 +130,8 @@ export const PortfolioAssetCard = ({
     [bank, isInLendingMode]
   );
 
+  const solBank = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "SOL");
+
   if (variant === "simple") {
     return (
       <div
@@ -363,6 +365,17 @@ export const PortfolioAssetCard = ({
               </dd>
               <dt className="text-muted-foreground">USD value</dt>
               <dd className="text-right text-white">{usdFormatter.format(bank.position.usdValue)}</dd>
+              {bank.info.rawBank.config.assetTag === AssetTag.STAKED && solBank && (
+                <>
+                  <dt className="text-muted-foreground">SOL value</dt>
+                  <dd className="text-right text-white">
+                    {dynamicNumeralFormatter(
+                      bank.position.usdValue / solBank.info.oraclePrice.priceRealtime.price.toNumber()
+                    )}{" "}
+                    SOL
+                  </dd>
+                </>
+              )}
               <dt className="text-muted-foreground">Current price</dt>
               <dd className="text-right text-white">{tokenPriceFormatter(bank.info.state.price)}</dd>
               {bank.position.liquidationPrice && (
