@@ -1576,7 +1576,7 @@ importers:
         version: link:../mrgn-common
       '@solana/spl-single-pool-classic':
         specifier: ^1.0.2
-        version: 1.0.2(bufferutil@4.0.9)(node-fetch@2.7.0)(utf-8-validate@5.0.10)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        version: 1.0.2(bufferutil@4.0.9)(node-fetch@2.7.0)(utf-8-validate@5.0.10)(ws@7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/spl-token':
         specifier: ^0.4.8
         version: 0.4.12(@solana/web3.js@1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(bufferutil@4.0.9)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@4.9.5)(utf-8-validate@5.0.10)
@@ -1598,6 +1598,9 @@ importers:
       mocha:
         specifier: ^10.2.0
         version: 10.8.2
+      resend:
+        specifier: ^3.5.0
+        version: 3.5.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       ts-mocha:
         specifier: ^10.0.0
         version: 10.0.0(mocha@10.8.2)
@@ -5982,6 +5985,7 @@ packages:
 
   '@solana/web3.js@2.0.0-experimental.21e994f':
     resolution: {integrity: sha512-Yy0D57nlNTDm0BhBRIM85Sn52T6vjxpBRRdwE/FOJJmN92n0Qpc4mTAwOPfEqoVpiTcluUBZ4l8FAWxjGCFMgQ==}
+    deprecated: '@solana/web3.js version 2.0 is now @solana/kit! Remove @solana/web3.js@2 from your dependencies and replace it with @solana/kit. As needed, upgrade all of your @solana-program/* dependencies to the latest versions that use Kit.'
 
   '@solflare-wallet/metamask-sdk@1.0.3':
     resolution: {integrity: sha512-os5Px5PTMYKGS5tzOoyjDxtOtj0jZKnbI1Uwt8+Jsw1HHIA+Ib2UACCGNhQ/un2f8sIbTfLD1WuucNMOy8KZpQ==}
@@ -19331,14 +19335,14 @@ snapshots:
     dependencies:
       '@metaplex-foundation/umi-serializers': 0.8.9
 
-  '@solana/rpc-transport@2.0.0-experimental.21e994f(node-fetch@2.7.0)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
+  '@solana/rpc-transport@2.0.0-experimental.21e994f(node-fetch@2.7.0)(ws@7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
     dependencies:
       node-fetch: 2.7.0
-      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      ws: 7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10)
 
-  '@solana/spl-single-pool-classic@1.0.2(bufferutil@4.0.9)(node-fetch@2.7.0)(utf-8-validate@5.0.10)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
+  '@solana/spl-single-pool-classic@1.0.2(bufferutil@4.0.9)(node-fetch@2.7.0)(utf-8-validate@5.0.10)(ws@7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
     dependencies:
-      '@solana/spl-single-pool': 1.0.0(node-fetch@2.7.0)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      '@solana/spl-single-pool': 1.0.0(node-fetch@2.7.0)(ws@7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/web3.js': 1.98.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     transitivePeerDependencies:
       - bufferutil
@@ -19347,9 +19351,9 @@ snapshots:
       - utf-8-validate
       - ws
 
-  '@solana/spl-single-pool@1.0.0(node-fetch@2.7.0)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
+  '@solana/spl-single-pool@1.0.0(node-fetch@2.7.0)(ws@7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
     dependencies:
-      '@solana/web3.js': 2.0.0-experimental.21e994f(node-fetch@2.7.0)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      '@solana/web3.js': 2.0.0-experimental.21e994f(node-fetch@2.7.0)(ws@7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10))
     transitivePeerDependencies:
       - node-fetch
       - ws
@@ -20063,7 +20067,7 @@ snapshots:
       - encoding
       - utf-8-validate
 
-  '@solana/web3.js@2.0.0-experimental.21e994f(node-fetch@2.7.0)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
+  '@solana/web3.js@2.0.0-experimental.21e994f(node-fetch@2.7.0)(ws@7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
     dependencies:
       '@metaplex-foundation/umi-serializers': 0.8.9
       '@solana/addresses': 2.0.0-experimental.21e994f
@@ -20071,7 +20075,7 @@ snapshots:
       '@solana/instructions': 2.0.0-experimental.21e994f
       '@solana/keys': 2.0.0-experimental.21e994f
       '@solana/rpc-core': 2.0.0-experimental.21e994f
-      '@solana/rpc-transport': 2.0.0-experimental.21e994f(node-fetch@2.7.0)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      '@solana/rpc-transport': 2.0.0-experimental.21e994f(node-fetch@2.7.0)(ws@7.5.10(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@solana/transactions': 2.0.0-experimental.21e994f
       fast-stable-stringify: 1.0.0
     transitivePeerDependencies:
