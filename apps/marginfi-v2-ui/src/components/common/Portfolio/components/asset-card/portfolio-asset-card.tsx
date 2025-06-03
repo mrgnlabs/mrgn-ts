@@ -349,7 +349,10 @@ export const PortfolioAssetCard = ({
                         triggerType="weight"
                       />
                     ) : (
-                      percentFormatter.format(assetWeight)
+                      percentFormatterMod(assetWeight, {
+                        minFractionDigits: 0,
+                        maxFractionDigits: 2,
+                      })
                     )}
                   </dd>
                 </>
