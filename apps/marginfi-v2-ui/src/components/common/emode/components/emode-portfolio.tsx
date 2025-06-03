@@ -21,8 +21,7 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode = false, setFilterEmode 
     <div className="flex flex-col lg:flex-row items-center gap-3 justify-between">
       <div
         className={cn(
-          "py-1 w-full flex items-center justify-between lg:justify-start gap-3 transition-opacity duration-500",
-          filterEmode && "opacity-10 pointer-events-none"
+          "py-1 w-full flex items-center justify-between lg:justify-start gap-3 transition-opacity duration-500"
         )}
       >
         <div className="flex items-center justify-between text-sm mr-2 gap-1 shrink-0 text-muted-foreground">
@@ -52,7 +51,7 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode = false, setFilterEmode 
           <Switch
             checked={filterEmode}
             onCheckedChange={(checked) => setFilterEmode(checked)}
-            className="ml-2 data-[state=unchecked]:bg-background-gray-light data-[state=checked]:bg-mfi-emode"
+            className="ml-2 outline-none focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=unchecked]:bg-background-gray-light data-[state=checked]:bg-mfi-emode"
           />
         </div>
       )}

@@ -148,11 +148,8 @@ export const PortfolioAssetCard = ({
         <div className="flex items-center gap-1 w-full">
           <div className="flex flex-col flex-1 -translate-y-0.5">
             <div className="flex items-center gap-2 font-medium text-lg">
-              {bank.meta.tokenSymbol}
-              {bank.isActive && bank.position.emodeActive && <IconEmodeSimple size={18} className="-translate-y-1" />}
-              {!bank.isActive && bank.info.state.hasEmode && (
-                <IconEmodeSimpleInactive size={18} className="-translate-y-1" />
-              )}
+              {bank.meta.tokenSymbol} {isEmodeActive && <IconEmodeSimple size={18} />}{" "}
+              {!isEmodeActive && bank.info.state.hasEmode && <IconEmodeSimpleInactive size={18} />}
             </div>
             <div className="flex items-center gap-4 text-sm">
               <span className={isInLendingMode ? "text-success" : "text-warning"}>{rateAP} APY</span>

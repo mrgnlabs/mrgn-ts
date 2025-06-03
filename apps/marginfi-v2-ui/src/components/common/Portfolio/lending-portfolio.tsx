@@ -322,6 +322,20 @@ export const LendingPortfolio = () => {
     }
   }, [filterEmode]);
 
+  // Handle escape key to disable filterEmode
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && filterEmode) {
+        setFilterEmode(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [filterEmode]);
+
   if (isStoreInitialized && !connected) {
     return <WalletButton />;
   }
@@ -351,7 +365,7 @@ export const LendingPortfolio = () => {
   return (
     <div className="flex flex-col items-center md:items-start w-full gap-4">
       <div className="pb-6 md:p-6 rounded-xl w-full md:bg-muted/25">
-        <div className={cn("transition-opacity duration-500", filterEmode && "opacity-10 pointer-events-none")}>
+        <div className={cn("transition-opacity duration-500")}>
           <div className="flex items-center gap-4 w-full">
             <div className="flex items-center gap-2">
               <p className="text-sm text-muted-foreground hidden md:block">Account</p>
@@ -470,6 +484,19 @@ export const LendingPortfolio = () => {
           </div>
         </div>
         <div ref={containerRef} className="relative flex flex-col gap-6 mt-8">
+          {/* E-mode backdrop overlay - click anywhere to disable */}
+          {filterEmode && (
+            <div
+              className="fixed inset-0 z-[1] bg-black/80 transition-opacity duration-500"
+              onClick={() => {
+                setFilterEmode(false);
+              }}
+              onMouseDown={(e) => {
+                // Prevent text selection when clicking backdrop
+                e.preventDefault();
+              }}
+            />
+          )}
           <div
             className={cn(
               "transition-opacity duration-500 absolute inset-0 pointer-events-none z-10",
@@ -479,14 +506,23 @@ export const LendingPortfolio = () => {
             <LineConnectionSvg />
           </div>
           {emodePairs.length > 0 && (
-            <EmodePortfolio
-              userActiveEmodes={userActiveEmodes}
-              filterEmode={filterEmode}
-              setFilterEmode={setFilterEmode}
-            />
+            <div
+              className="relative z-[2]"
+              onClick={(e) => {
+                if (filterEmode) {
+                  e.stopPropagation();
+                }
+              }}
+            >
+              <EmodePortfolio
+                userActiveEmodes={userActiveEmodes}
+                filterEmode={filterEmode}
+                setFilterEmode={setFilterEmode}
+              />
+            </div>
           )}
           <div className="flex flex-col md:flex-row justify-between flex-wrap gap-8 md:gap-40">
-            <div className="flex flex-col flex-1 gap-4 md:min-w-[340px]">
+            <div className="flex flex-col flex-1 gap-4 md:min-w-[340px] relative z-[2]">
               <dl className="flex justify-between items-center gap-2 text-xl font-medium">
                 <dt>Supplied</dt>
                 <dd className="text-lg">{accountSupplied}</dd>
@@ -506,9 +542,9 @@ export const LendingPortfolio = () => {
                             lendingRefs.current[bank.address.toBase58()] = el;
                           }}
                           className={cn(
-                            "transition-opacity duration-500",
+                            "transition-opacity duration-500 relative z-[2]",
                             filterEmode && "cursor-pointer",
-                            filterEmode && !eModeActive && "opacity-10"
+                            filterEmode && !eModeActive && "opacity-20"
                           )}
                           onMouseEnter={() => {
                             if (hoverDebounceRef.current) clearTimeout(hoverDebounceRef.current);
@@ -521,6 +557,12 @@ export const LendingPortfolio = () => {
                             hoverDebounceRef.current = setTimeout(() => {
                               setHoveredPairIndices(null);
                             }, 120);
+                          }}
+                          onClick={(e) => {
+                            if (filterEmode) {
+                              e.stopPropagation();
+                              setFilterEmode(false);
+                            }
                           }}
                         >
                           <PortfolioAssetCard
@@ -537,11 +579,6 @@ export const LendingPortfolio = () => {
                                   ...prev,
                                   [bank.meta.tokenSymbol]: isOpen,
                                 })),
-                            })}
-                            {...(filterEmode && {
-                              onCardClick: () => {
-                                if (filterEmode) setFilterEmode(false);
-                              },
                             })}
                           />
                         </div>
@@ -570,7 +607,7 @@ export const LendingPortfolio = () => {
                 <PortfolioAssetCardSkeleton />
               )}
             </div>
-            <div className="flex flex-wrap flex-col flex-1 gap-4 md:min-w-[340px]">
+            <div className="flex flex-wrap flex-col flex-1 gap-4 md:min-w-[340px] relative z-[2]">
               <dl className="flex justify-between items-center gap-2 text-xl font-medium">
                 <dt>Borrowed</dt>
                 <dd className="text-lg">{accountBorrowed}</dd>
@@ -586,6 +623,7 @@ export const LendingPortfolio = () => {
                           ref={(el) => {
                             borrowingRefs.current[bank.address.toBase58()] = el;
                           }}
+                          className="relative z-[2]"
                           onMouseEnter={() => {
                             if (hoverDebounceRef.current) clearTimeout(hoverDebounceRef.current);
                             hoverDebounceRef.current = setTimeout(() => {
@@ -597,6 +635,12 @@ export const LendingPortfolio = () => {
                             hoverDebounceRef.current = setTimeout(() => {
                               setHoveredPairIndices(null);
                             }, 120);
+                          }}
+                          onClick={(e) => {
+                            if (filterEmode) {
+                              e.stopPropagation();
+                              setFilterEmode(false);
+                            }
                           }}
                         >
                           <PortfolioAssetCard
@@ -613,11 +657,6 @@ export const LendingPortfolio = () => {
                                   ...prev,
                                   [bank.meta.tokenSymbol]: isOpen,
                                 })),
-                            })}
-                            {...(filterEmode && {
-                              onCardClick: () => {
-                                if (filterEmode) setFilterEmode(false);
-                              },
                             })}
                           />
                         </div>
