@@ -361,7 +361,9 @@ const Wallet = ({
                             <p className="flex items-center gap-1.5 text-muted-foreground text-sm">
                               Portfolio balance
                               <span className="flex items-center gap-1 text-primary">
-                                <strong className="font-medium">{usdFormatter.format(accountSummary.balance)}</strong>{" "}
+                                <strong className="font-medium">
+                                  {usdFormatter.format(accountSummary.balanceEquity)}
+                                </strong>{" "}
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger asChild>

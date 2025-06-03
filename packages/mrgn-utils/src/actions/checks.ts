@@ -339,6 +339,11 @@ function canBeBorrowed(
     checks.push(DYNAMIC_SIMULATION_ERRORS.REDUCE_ONLY_CHECK(targetBankInfo.info.rawBank.tokenSymbol));
   }
 
+  if (!marginfiAccount) {
+    checks.push(STATIC_SIMULATION_ERRORS.NO_ACCOUNT);
+    return checks;
+  }
+
   const isBeingRetired =
     targetBankInfo.info.rawBank
       .getAssetWeight(MarginRequirementType.Initial, targetBankInfo.info.oraclePrice, true)
@@ -370,21 +375,21 @@ function canBeBorrowed(
     checks.push(STATIC_SIMULATION_ERRORS.NO_COLLATERAL);
   }
 
-  const existingLiabilityBanks = extendedBankInfos.filter(
-    (b) => b.isActive && !b.position.isLending
-  ) as ActiveBankInfo[];
-  const existingIsolatedBorrow = existingLiabilityBanks.find(
-    (b) => b.info.rawBank.config.riskTier === RiskTier.Isolated && !b.address.equals(targetBankInfo.address)
-  );
+  const activeBorrowBanks = marginfiAccount.activeBalances
+    .filter((b) => b.liabilityShares.gt(0) && b.active)
+    .map((b) => extendedBankInfos.find((bankInfo) => bankInfo.address.equals(b.bankPk)))
+    .filter((b): b is ExtendedBankInfo => b !== undefined);
+
+  const existingIsolatedBorrow = activeBorrowBanks.find((bankInfo) => {
+    const hasBankIsolatedBorrow = bankInfo.info.rawBank.config.riskTier === RiskTier.Isolated;
+    return hasBankIsolatedBorrow;
+  });
   if (existingIsolatedBorrow) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.EXISTING_ISO_BORROW_CHECK(existingIsolatedBorrow.meta.tokenSymbol));
   }
 
   const attemptingToBorrowIsolatedAssetWithActiveDebt =
-    targetBankInfo.info.rawBank.config.riskTier === RiskTier.Isolated &&
-    !marginfiAccount
-      ?.computeHealthComponents(MarginRequirementType.Equity, [targetBankInfo.address])
-      .liabilities.isZero();
+    targetBankInfo.info.rawBank.config.riskTier === RiskTier.Isolated && activeBorrowBanks.length > 0;
   if (attemptingToBorrowIsolatedAssetWithActiveDebt) {
     checks.push(STATIC_SIMULATION_ERRORS.EXISTING_BORROW);
   }
@@ -555,6 +560,30 @@ function canBeDepositSwapped(
       description: `The ${depositBank.meta.tokenSymbol} bank is at deposit capacity.`,
       isEnabled: false,
     });
+  }
+
+  if (depositBank.userInfo.emodeImpact?.supplyImpact) {
+    const supplyImpact = depositBank.userInfo.emodeImpact?.supplyImpact;
+
+    switch (supplyImpact.status) {
+      case EmodeImpactStatus.ActivateEmode:
+        checks.push(STATIC_INFO_MESSAGES.EMODE_ACTIVATE_IMPACT);
+        break;
+      case EmodeImpactStatus.ExtendEmode:
+        checks.push(STATIC_INFO_MESSAGES.EMODE_EXTEND_IMPACT);
+        break;
+      case EmodeImpactStatus.IncreaseEmode:
+        checks.push(DYNAMIC_SIMULATION_ERRORS.EMODE_INCREASE_CHECK());
+        break;
+      case EmodeImpactStatus.ReduceEmode:
+        checks.push(DYNAMIC_SIMULATION_ERRORS.EMODE_REDUCE_CHECK());
+        break;
+      case EmodeImpactStatus.RemoveEmode:
+        checks.push(STATIC_SIMULATION_ERRORS.REMOVE_E_MODE_CHECK);
+        break;
+      case EmodeImpactStatus.InactiveEmode:
+        break;
+    }
   }
 
   const swapBankInfo =

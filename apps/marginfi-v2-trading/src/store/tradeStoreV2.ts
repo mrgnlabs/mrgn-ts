@@ -81,7 +81,7 @@ type TradeStoreV2State = {
   tokenVolumeDataByMint: Record<string, TokenVolumeData>;
   marginfiAccountByGroupPk: Record<string, MarginfiAccount>;
   mintDataByMint: MintDataMap;
-  pythFeedIdMap: Map<string, PublicKey>;
+  pythFeedIdMap: Map<string, { feedId: PublicKey; shardId?: number }>;
   oraclePrices: Record<string, OraclePrice>;
   hydrationComplete: boolean;
 
@@ -942,7 +942,7 @@ export { createTradeStoreV2 };
 export type { TradeStoreV2State };
 
 async function fetchPythFeedMap() {
-  const feedIdMapRaw: Record<string, string> = await fetch(`/api/oracle/pythFeedMapV2`)
+  const feedIdMapRaw: Record<string, { feedId: string; shardId?: number }> = await fetch(`/api/oracle/pythFeedMapV2`)
     .then((response) => response.json())
     .catch((error) => {
       throw new Error("Error fetching pyth feed map", error);
@@ -952,8 +952,11 @@ async function fetchPythFeedMap() {
     throw new Error("Error fetching pyth feed map");
   }
 
-  const feedIdMap: Map<string, PublicKey> = new Map(
-    Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)])
+  const feedIdMap: Map<string, { feedId: PublicKey; shardId?: number }> = new Map(
+    Object.entries(feedIdMapRaw).map(([key, value]) => [
+      key,
+      { feedId: new PublicKey(value.feedId), shardId: value.shardId },
+    ])
   );
   return feedIdMap;
 }

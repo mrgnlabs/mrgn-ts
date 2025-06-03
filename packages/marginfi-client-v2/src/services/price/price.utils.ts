@@ -1,29 +1,15 @@
-import { parsePriceData } from "../vendor/pyth_legacy";
 import BigNumber from "bignumber.js";
-import { AggregatorAccountData, AggregatorAccount } from "../vendor/switchboard_legacy";
-import { PYTH_PRICE_CONF_INTERVALS, SWB_PRICE_CONF_INTERVALS, MAX_CONFIDENCE_INTERVAL_RATIO } from "..";
-import { OracleSetup } from "../services";
-import * as PythPushOracle from "../vendor/pyth_push_oracle";
-import { decodeSwitchboardPullFeedData, SWITCHBOARD_ONDEMANDE_PRICE_PRECISION } from "../vendor/switchboard_pull";
-
-interface PriceWithConfidence {
-  price: BigNumber;
-  confidence: BigNumber;
-  lowestPrice: BigNumber;
-  highestPrice: BigNumber;
-}
-
-interface OraclePrice {
-  priceRealtime: PriceWithConfidence;
-  priceWeighted: PriceWithConfidence;
-  timestamp: BigNumber;
-}
-
-enum PriceBias {
-  Lowest = 0,
-  None = 1,
-  Highest = 2,
-}
+import { PYTH_PRICE_CONF_INTERVALS, MAX_CONFIDENCE_INTERVAL_RATIO, SWB_PRICE_CONF_INTERVALS } from "../../constants";
+import {
+  parsePriceData,
+  AggregatorAccountData,
+  AggregatorAccount,
+  decodeSwitchboardPullFeedData,
+  SWITCHBOARD_ONDEMANDE_PRICE_PRECISION,
+} from "../../vendor";
+import * as PythPushOracle from "../../vendor/pyth_push_oracle";
+import { OracleSetup } from "../bank";
+import { OraclePrice, PriceBias, PriceWithConfidence } from "./types";
 
 function capConfidenceInterval(price: BigNumber, confidence: BigNumber, maxConfidence: BigNumber): BigNumber {
   let maxConfidenceInterval = price.times(maxConfidence);
@@ -31,7 +17,7 @@ function capConfidenceInterval(price: BigNumber, confidence: BigNumber, maxConfi
   return BigNumber.min(confidence, maxConfidenceInterval);
 }
 
-function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): OraclePrice {
+function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, shardId?: number): OraclePrice {
   const debug = require("debug")("mfi:oracle-loader");
   switch (oracleSetup) {
     case OracleSetup.PythLegacy: {
@@ -91,6 +77,7 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
           highestPrice: pythHighestPrice,
         },
         timestamp: new BigNumber(Number(pythPriceData.timestamp)),
+        pythShardId: shardId,
       };
     }
     case OracleSetup.PythPushOracle:
@@ -138,6 +125,7 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer): Oracle
           highestPrice: highestPriceWeighted,
         },
         timestamp: new BigNumber(Number(data.priceMessage.publishTime)),
+        pythShardId: shardId,
       };
     }
 
@@ -220,6 +208,22 @@ export function getPriceWithConfidence(oraclePrice: OraclePrice, weighted: boole
   return weighted ? oraclePrice.priceWeighted : oraclePrice.priceRealtime;
 }
 
-export { parseOraclePriceData as parsePriceInfo, PriceBias };
+export function getPrice(
+  oraclePrice: OraclePrice,
+  priceBias: PriceBias = PriceBias.None,
+  weightedPrice: boolean = false
+): BigNumber {
+  const price = getPriceWithConfidence(oraclePrice, weightedPrice);
+  switch (priceBias) {
+    case PriceBias.Lowest:
+      return price.lowestPrice;
+    case PriceBias.Highest:
+      return price.highestPrice;
+    case PriceBias.None:
+      return price.price;
+  }
+}
+
+export { parseOraclePriceData as parsePriceInfo };
 
 export type { OraclePrice };

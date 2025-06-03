@@ -152,7 +152,7 @@ function getPythFeedIdMap(banks: ArenaBank[]) {
     const oracleKey = bank.info.rawBank.oracleKey;
 
     const feedId = feedIdToString(config.oracleKeys[0]);
-    feedIdMap.set(feedId, oracleKey);
+    feedIdMap.set(feedId, { feedId: oracleKey });
   });
 
   return feedIdMap;

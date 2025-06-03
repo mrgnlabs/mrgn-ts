@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Table } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { IconEmode } from "~/components/ui/icons";
+import { IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
 
 interface EmodePopoverProps {
   assetWeight: number;
@@ -46,15 +46,17 @@ export const EmodePopover = ({
   return (
     <Popover>
       {triggerType === "weight" ? (
-        <PopoverTrigger className={cn("flex items-center gap-1", emodeActive && "text-mfi-emode")}>
-          <IconEmode size={20} />
-          {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
+        <PopoverTrigger className={cn("flex items-center", emodeActive && "text-mfi-emode")}>
+          {emodeActive ? <IconEmodeSimple size={20} /> : <IconEmodeSimpleInactive size={18} />}
+          <span className="min-w-[33px] text-right mr-1.5 ml-0.5">
+            {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}
+          </span>
           <IconExternalLink size={12} className={cn(emodeActive && "text-mfi-emode")} />
         </PopoverTrigger>
       ) : (
         <PopoverTrigger className="flex items-center gap-1">
           <Badge variant="emode" className={cn("pr-2.5", !emodeActive && "text-foreground")}>
-            <IconEmode size={18} /> {emodeTag}
+            {emodeActive ? <IconEmodeSimple size={18} /> : <IconEmodeSimpleInactive size={18} />} {emodeTag}
           </Badge>
         </PopoverTrigger>
       )}
@@ -62,7 +64,7 @@ export const EmodePopover = ({
         {isInLendingMode && emodeActive && originalAssetWeight ? (
           <div className="flex flex-col gap-1">
             <div className="flex gap-1 items-center">
-              <IconEmode size={18} /> <p>e-mode weights active</p>
+              <IconEmodeSimple size={18} /> <p>e-mode weights active</p>
             </div>
             <EmodeDiff assetWeight={assetWeight} originalAssetWeight={originalAssetWeight} className="text-center" />
           </div>
@@ -77,7 +79,7 @@ export const EmodePopover = ({
                   <TableHead className="h-6">Weight</TableHead>
                   <TableHead className="h-6">
                     <div className="flex items-center gap-1">
-                      <IconEmode size={18} className="-ml-1.5" />
+                      <IconEmodeSimple size={18} className="-ml-1.5" />
                       e-mode
                     </div>
                   </TableHead>
@@ -132,7 +134,7 @@ export const EmodePopover = ({
                   <TableHead className="h-6">Weight</TableHead>
                   <TableHead className="h-6">
                     <div className="flex items-center gap-1">
-                      <IconEmode size={12} />
+                      <IconEmodeSimple size={12} />
                       e-mode
                     </div>
                   </TableHead>

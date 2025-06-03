@@ -94,7 +94,7 @@ function calculateActionPreview(
   actionTxns: TradeActionTxns
 ): ActionPreview {
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
-  const health = accountSummary.balance && accountSummary.healthFactor ? accountSummary.healthFactor : 1;
+  const health = accountSummary.balanceEquity && accountSummary.healthFactor ? accountSummary.healthFactor : 1;
   const liquidationPrice =
     bank.isActive && bank.position.liquidationPrice && bank.position.liquidationPrice > 0.01
       ? bank.position.liquidationPrice

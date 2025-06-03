@@ -49,7 +49,7 @@ export const getSimulationResult = async (props: SimulateActionProps) => {
   try {
     const bankAddresses = props.banks.map((bank) => bank.address);
     return await props.account.simulateBorrowLendTransaction(props.txns, bankAddresses, {
-      enabled: false,
+      enabled: true,
       mandatoryBanks: bankAddresses,
       excludedBanks: [],
     });
@@ -70,10 +70,7 @@ function calculateActionPreview(
   actionTxns: LoopActionTxns
 ): ActionPreview {
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
-  const health =
-    accountSummary.balance && accountSummary.healthFactor
-      ? accountSummary.healthFactor
-      : { riskEngineHealth: 1, computedHealth: 1 };
+  const health = accountSummary.balanceEquity && accountSummary.healthFactor ? accountSummary.healthFactor : 1;
   const liquidationPrice =
     bank.isActive && bank.position.liquidationPrice && bank.position.liquidationPrice > 0.01
       ? bank.position.liquidationPrice

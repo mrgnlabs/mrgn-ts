@@ -1,5 +1,55 @@
 import BN from "bn.js";
-import { AccountFlags, HealthCacheFlags } from "../types";
+import { AccountFlags, BalanceRaw, BalanceType, HealthCacheFlags, MarginfiAccountRaw } from "../types";
+import { BorshCoder } from "@coral-xyz/anchor";
+import { MarginfiIdlType } from "../../../idl";
+import { AccountType } from "../../../types";
+import { PublicKey } from "@solana/web3.js";
+import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
+import { Balance } from "../../../models/balance";
+import { HealthCache } from "../../../models/health-cache";
+
+export function decodeAccountRaw(encoded: Buffer, idl: MarginfiIdlType): MarginfiAccountRaw {
+  const coder = new BorshCoder(idl);
+  return coder.accounts.decode(AccountType.MarginfiAccount, encoded);
+}
+
+export function parseBalanceRaw(balanceRaw: BalanceRaw): BalanceType {
+  const active = typeof balanceRaw.active === "number" ? balanceRaw.active === 1 : balanceRaw.active;
+  const bankPk = balanceRaw.bankPk;
+  const assetShares = wrappedI80F48toBigNumber(balanceRaw.assetShares);
+  const liabilityShares = wrappedI80F48toBigNumber(balanceRaw.liabilityShares);
+  const emissionsOutstanding = wrappedI80F48toBigNumber(balanceRaw.emissionsOutstanding);
+  const lastUpdate = balanceRaw.lastUpdate.toNumber();
+
+  return {
+    active,
+    bankPk,
+    assetShares,
+    liabilityShares,
+    emissionsOutstanding,
+    lastUpdate,
+  };
+}
+
+export function parseMarginfiAccountRaw(marginfiAccountPk: PublicKey, accountData: MarginfiAccountRaw) {
+  const address = marginfiAccountPk;
+  const group = accountData.group;
+  const authority = accountData.authority;
+  const balances = accountData.lendingAccount.balances.map(Balance.from);
+  const accountFlags = getActiveAccountFlags(accountData.accountFlags);
+  const emissionsDestinationAccount = accountData.emissionsDestinationAccount;
+  const healthCache = HealthCache.from(accountData.healthCache);
+
+  return {
+    address,
+    group,
+    authority,
+    balances,
+    accountFlags,
+    emissionsDestinationAccount,
+    healthCache,
+  };
+}
 
 /**
  * Get all active account flags as an array of flag names

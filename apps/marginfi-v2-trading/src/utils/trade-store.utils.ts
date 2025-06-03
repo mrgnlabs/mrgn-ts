@@ -1,7 +1,15 @@
 import { AccountInfo, Connection, PublicKey } from "@solana/web3.js";
 import { GetStaticProps, NextApiRequest } from "next";
 
-import { Bank, BankRaw, MarginfiAccount, MarginfiProgram, MintData, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
+import {
+  Bank,
+  BankRaw,
+  MarginfiAccount,
+  MarginfiProgram,
+  MintData,
+  OraclePrice,
+  PythPushFeedIdMap,
+} from "@mrgnlabs/marginfi-client-v2";
 import { fetchTokenAccounts, makeExtendedBankInfo, TokenAccount, UserDataProps } from "@mrgnlabs/marginfi-v2-ui-state";
 import { BankMetadata, TokenMetadata } from "@mrgnlabs/mrgn-common";
 import { ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
@@ -148,7 +156,7 @@ export const fetchInitialArenaState = async (baseUrl?: string): Promise<InitialA
 export const fetchBankDataMap = async (
   program: MarginfiProgram,
   bankAddresses: PublicKey[],
-  feedIdMap: Map<string, PublicKey>,
+  feedIdMap: PythPushFeedIdMap,
   arenaPoolsSummary: Record<string, ArenaPoolSummary>
 ): Promise<Map<string, Bank>> => {
   const bankAccountsData = await program.account.bank.fetchMultiple(bankAddresses);
@@ -349,7 +357,7 @@ export const updateArenaBankWithUserData = async (
 
   accounts.forEach((a) => {
     const groupKey = a.account.group.toBase58();
-    const account = new MarginfiAccount(a.publicKey, a.account);
+    const account = MarginfiAccount.fromAccountParsed(a.publicKey, a.account);
     const existingAccount = updateMarginfiAccounts[groupKey];
 
     if (existingAccount) {

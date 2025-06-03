@@ -41,7 +41,7 @@ import { getPointsSummary } from "../lib/points";
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { Bank, getPriceWithConfidence, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
+import { Bank, getPriceWithConfidence, MarginfiAccount, OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import type {
   Wallet,
   BankMetadataMap,
@@ -274,7 +274,6 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
         tokenAccountMap = tokenData.tokenAccountMap;
         marginfiAccounts = marginfiAccountWrappers;
 
-        //@ts-ignore
         const selectedAccountAddress = localStorage.getItem("mfiAccount");
         if (!selectedAccountAddress && marginfiAccounts.length > 0) {
           // if no account is saved, select the highest value account (first one)
@@ -294,18 +293,19 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           }
         }
 
+        if (selectedAccount) {
+          selectedAccount = await selectedAccount.simulateHealthCache();
+        }
+
         userDataFetched = true;
       }
 
       let userActiveEmodes: EmodePair[] = [];
       let emodeImpactByBank: Record<string, ActionEmodeImpact> = {};
       if (selectedAccount) {
-        userActiveEmodes = selectedAccount.data.computeActiveEmodePairs(emodePairs);
+        userActiveEmodes = selectedAccount.computeActiveEmodePairs(emodePairs);
 
-        emodeImpactByBank = selectedAccount.data.computeEmodeImpacts(
-          emodePairs,
-          banks.map((bank) => bank.address)
-        );
+        emodeImpactByBank = selectedAccount.computeEmodeImpacts(emodePairs);
 
         if (userActiveEmodes.length > 0) {
           const { adjustedBanks, originalWeights } = adjustBankWeightsWithEmodePairs(banks, userActiveEmodes);
@@ -437,7 +437,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
       let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
       if (wallet?.publicKey && selectedAccount) {
-        accountSummary = computeAccountSummary(selectedAccount, extendedBankInfos);
+        accountSummary = computeAccountSummary(selectedAccount);
       }
 
       const pointsTotal = get().protocolStats.pointsTotal;

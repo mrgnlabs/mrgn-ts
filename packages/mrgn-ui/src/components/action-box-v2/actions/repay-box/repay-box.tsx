@@ -152,10 +152,8 @@ export const RepayBox = ({
   const [platformFeeBps] = useActionBoxStore((state) => [state.platformFeeBps]);
 
   const accountSummary = React.useMemo(() => {
-    return (
-      accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount, banks) : DEFAULT_ACCOUNT_SUMMARY)
-    );
-  }, [accountSummaryArg, selectedAccount, banks]);
+    return accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount) : DEFAULT_ACCOUNT_SUMMARY);
+  }, [accountSummaryArg, selectedAccount]);
 
   const actionMode = React.useMemo(() => {
     return selectedBank?.address.toBase58() !== selectedSecondaryBank?.address.toBase58()

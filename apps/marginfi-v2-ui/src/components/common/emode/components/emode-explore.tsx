@@ -8,7 +8,7 @@ import { numeralFormatter, percentFormatterMod } from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore } from "~/store";
 import { Button } from "~/components/ui/button";
-import { IconEmode } from "~/components/ui/icons";
+import { IconEmodeSimple } from "~/components/ui/icons";
 import {
   Dialog,
   DialogContent,
@@ -78,8 +78,8 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
   }, [emodeBanks]);
 
   const defaultTrigger = (
-    <Button variant="outline" className="w-full bg-background-gray text-xs font-normal hover:bg-background-gray-light">
-      <IconSearch size={12} />
+    <Button>
+      <IconSearch size={16} />
       Explore e-mode pairs
     </Button>
   );
@@ -91,22 +91,22 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
         className="overflow-visible p-2 md:p-6 md:py-8 md:max-w-2xl"
         closeClassName="md:-top-8 md:-right-8 md:z-50"
       >
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-normal flex items-center gap-2">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-3xl font-normal flex items-center gap-2">
             Explore{" "}
             <div className="flex items-center gap-1">
-              <IconEmode size={32} />
+              <IconEmodeSimple size={32} />
               e-mode
             </div>
             {emodeTag && <span className="lowercase"> {EmodeTag[emodeTag]}</span>}
             pairs
           </DialogTitle>
-          <DialogDescription className="text-sm">
+          <DialogDescription>
             View e-mode pairs and boosted weights.
             <br />
             For more information{" "}
             <Link
-              href="https://docs.marginfi.app"
+              href="https://docs.marginfi.com/emode"
               target="_blank"
               rel="noreferrer"
               className="border-b border-foreground/50 transition-colors hover:border-transparent"
@@ -116,7 +116,7 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
             .
           </DialogDescription>
         </DialogHeader>
-        <div className="flex items-center justify-center gap-3 text-lg">
+        <div className="flex items-center justify-center gap-3 text-lg mt-2">
           <p>I would like to</p>
           <Select
             value={selectedSide}
@@ -142,8 +142,8 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
             }}
           >
             <SelectTrigger className="bg-transparent max-w-fit h-6 rounded-none px-0 text-lg">
-              <p className={cn("pr-2", !selectedBank && "min-w-[84px] border-b border-foreground/30 h-3.5")}>
-                {selectedBank && (
+              <p className={cn("pr-2", !selectedBank && "border-b border-foreground/30")}>
+                {selectedBank ? (
                   <div className="flex items-center gap-2 text-base">
                     <Image
                       src={selectedBank.meta.tokenLogoUri}
@@ -154,6 +154,8 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
                     />
                     {selectedBank.meta.tokenSymbol}
                   </div>
+                ) : (
+                  <p>select a bank</p>
                 )}
               </p>
             </SelectTrigger>
@@ -186,7 +188,7 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
                 <TableHead className="w-1/5">Weight</TableHead>
                 <TableHead className="w-1/5">
                   <div className="flex items-center gap-1">
-                    <IconEmode size={20} className="-ml-1.5" />
+                    <IconEmodeSimple size={20} className="-ml-1.5" />
                     e-mode
                   </div>
                 </TableHead>

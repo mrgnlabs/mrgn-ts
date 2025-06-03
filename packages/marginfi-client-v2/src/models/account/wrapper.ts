@@ -68,6 +68,8 @@ import {
   MarginfiAccountRaw,
   EmodeTag,
   createHealthPulseIx,
+  EmodePair,
+  ActionEmodeImpact,
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType } from "./pure";
@@ -132,7 +134,7 @@ class MarginfiAccountWrapper {
     const _marginfiAccountPk = translateAddress(marginfiAccountPk);
 
     const accountData = await MarginfiAccountWrapper._fetchAccountData(_marginfiAccountPk, config, program, commitment);
-    const marginfiAccount = new MarginfiAccount(_marginfiAccountPk, accountData);
+    const marginfiAccount = MarginfiAccount.fromAccountParsed(_marginfiAccountPk, accountData);
 
     const marginfiAccountProxy = new MarginfiAccountWrapper(_marginfiAccountPk, client, marginfiAccount);
 
@@ -148,7 +150,7 @@ class MarginfiAccountWrapper {
       );
 
     const _marginfiAccountPk = translateAddress(marginfiAccountPk);
-    const marginfiAccount = new MarginfiAccount(_marginfiAccountPk, accountData);
+    const marginfiAccount = MarginfiAccount.fromAccountParsed(_marginfiAccountPk, accountData);
     return new MarginfiAccountWrapper(_marginfiAccountPk, client, marginfiAccount);
   }
 
@@ -216,13 +218,18 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.getBalance(bankPk);
   }
 
+  public async simulateHealthCache(): Promise<MarginfiAccountWrapper> {
+    const account = await this._marginfiAccount.simulateHealthCache(
+      this._program,
+      this.client.banks,
+      this.client.oraclePrices
+    );
+    return new MarginfiAccountWrapper(this.address, this.client, account);
+  }
+
   public canBeLiquidated(): boolean {
     const debugLogger = require("debug")(`mfi:margin-account:${this.address.toString()}:canBeLiquidated`);
-    const { assets, liabilities } = this._marginfiAccount.computeHealthComponents(
-      this.client.banks,
-      this.client.oraclePrices,
-      MarginRequirementType.Maintenance
-    );
+    const { assets, liabilities } = this._marginfiAccount.computeHealthComponents(MarginRequirementType.Maintenance);
 
     debugLogger(
       "Account %s, maint assets: %s, maint liabilities: %s, maint healt: %s",
@@ -234,38 +241,30 @@ class MarginfiAccountWrapper {
     return assets.lt(liabilities);
   }
 
-  public computeHealthComponents(
-    marginRequirement: MarginRequirementType,
-    excludedBanks: PublicKey[] = []
-  ): {
+  public computeHealthComponents(marginRequirement: MarginRequirementType): {
     assets: BigNumber;
     liabilities: BigNumber;
   } {
-    return this._marginfiAccount.computeHealthComponents(
-      this.client.banks,
-      this.client.oraclePrices,
-      marginRequirement,
-      excludedBanks
-    );
+    return this._marginfiAccount.computeHealthComponents(marginRequirement);
   }
 
   public computeFreeCollateral(opts?: { clamped?: boolean }): BigNumber {
-    return this._marginfiAccount.computeFreeCollateral(this.client.banks, this.client.oraclePrices, opts);
-  }
-
-  public computeHealthComponentsWithoutBias(marginRequirement: MarginRequirementType): {
-    assets: BigNumber;
-    liabilities: BigNumber;
-  } {
-    return this._marginfiAccount.computeHealthComponentsWithoutBias(
-      this.client.banks,
-      this.client.oraclePrices,
-      marginRequirement
-    );
+    return this._marginfiAccount.computeFreeCollateral(opts);
   }
 
   public computeAccountValue(): BigNumber {
-    return this._marginfiAccount.computeAccountValue(this.client.banks, this.client.oraclePrices);
+    return this._marginfiAccount.computeAccountValue();
+  }
+
+  public computeActiveEmodePairs(emodePairs: EmodePair[]): EmodePair[] {
+    return this._marginfiAccount.computeActiveEmodePairs(emodePairs);
+  }
+
+  public computeEmodeImpacts(emodePairs: EmodePair[]): Record<string, ActionEmodeImpact> {
+    return this._marginfiAccount.computeEmodeImpacts(
+      emodePairs,
+      Array.from(this.client.banks.keys()).map((b) => new PublicKey(b))
+    );
   }
 
   public computeMaxBorrowForBank(
@@ -327,6 +326,7 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.computeNetApy(this.client.banks, this.client.oraclePrices);
   }
 
+  /** Todo move this into client */
   public computeLoopingParams(
     principal: Amount,
     targetLeverage: number,
@@ -1133,10 +1133,10 @@ class MarginfiAccountWrapper {
 
       const tx = new VersionedTransaction(
         new TransactionMessage({
-          instructions: [computeIx, ...updateFeedIx.instructions, healthPulseIx],
+          instructions: [computeIx, ...updateFeedIx.instructions, ...healthPulseIx.instructions],
           payerKey: this.client.provider.publicKey,
           recentBlockhash: blockhash,
-        }).compileToV0Message([...this.client.addressLookupTables, ...updateFeedIx.luts])
+        }).compileToV0Message([...this.client.addressLookupTables, ...updateFeedIx.luts, ...healthPulseIx.luts])
       );
 
       additionalTxs.push(tx);
@@ -1178,6 +1178,8 @@ class MarginfiAccountWrapper {
       mfiAccountData,
       this._program.idl
     );
+
+    console.log({ previewMarginfiAccount });
     return {
       banks: previewBanks,
       marginfiAccount: previewMarginfiAccount,
@@ -1948,8 +1950,7 @@ class MarginfiAccountWrapper {
           numSignatures: 1,
         });
 
-        const cuRequestIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 });
-        return { instructions: [cuRequestIx, pullIx], luts };
+        return { instructions: [pullIx], luts };
       }
 
       return { instructions: [], luts: [] };
@@ -1959,8 +1960,6 @@ class MarginfiAccountWrapper {
   }
 
   async makeHealthPulseIx(mandatoryBanks: PublicKey[] = [], excludedBanks: PublicKey[] = []) {
-    const blockhash = await this._program.provider.connection.getLatestBlockhash("confirmed");
-
     // Get active banks excluding the excluded ones
     const activeBanks = this.activeBalances
       .map((b) => this.client.banks.get(b.bankPk.toBase58()))
@@ -1976,13 +1975,10 @@ class MarginfiAccountWrapper {
     // Combine active banks with mandatory banks
     const allBanks = [...activeBanks, ...mandatoryBankObjs];
 
-    return createHealthPulseIx({
-      activeBanks: allBanks,
-      marginfiAccount: this.address,
-      feePayer: this.client.provider.publicKey,
-      program: this._program,
-      blockhash: blockhash.blockhash,
-    });
+    return this._marginfiAccount.makeHealthPulseIx(
+      this._program,
+      allBanks.map((bank) => [bank.address, bank.oracleKey])
+    );
   }
 
   // --------------------------------------------------------------------------
@@ -2027,7 +2023,7 @@ class MarginfiAccountWrapper {
   }
 
   private _updateFromAccountParsed(data: MarginfiAccountRaw) {
-    this._marginfiAccount = new MarginfiAccount(this.address, data);
+    this._marginfiAccount = MarginfiAccount.fromAccountParsed(this.address, data);
   }
 
   public describe(): string {

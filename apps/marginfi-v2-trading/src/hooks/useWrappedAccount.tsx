@@ -23,7 +23,7 @@ export function useWrappedAccount({ client, groupPk, banks }: UseWrappedAccountP
   const wrappedAccount =
     client && marginfiAccount ? new MarginfiAccountWrapper(marginfiAccount.address, client, marginfiAccount) : null;
 
-  const accountSummary = wrappedAccount ? computeAccountSummary(wrappedAccount, banks) : null;
+  const accountSummary = wrappedAccount ? computeAccountSummary(wrappedAccount) : null;
 
   return { wrappedAccount, accountSummary };
 }

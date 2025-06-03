@@ -52,7 +52,7 @@
 
     --mfi-toast-background: 204 13% 10%;
 
-    --mfi-emode: 270 95% 75%;
+    --mfi-emode: 252 100% 76%;
   }
 }
 
@@ -325,6 +325,11 @@ input::-webkit-inner-spin-button {
 
 .swiper-wrapper {
   align-items: center;
+}
+
+.swiper-slide-visible {
+  position: relative;
+  z-index: 50;
 }
 
 @media (max-width: 768px) {

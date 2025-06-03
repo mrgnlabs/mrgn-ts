@@ -5,7 +5,7 @@ import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { EmodeTag, OracleSetup } from "@mrgnlabs/marginfi-client-v2";
-import { IconEmode } from "~/components/ui/icons";
+import { IconEmodeSimple } from "~/components/ui/icons";
 
 type BankItemProps = {
   bank: ExtendedBankInfo;
@@ -69,7 +69,7 @@ export const BankItem = ({
         <div>
           <div className="flex items-center">
             <p className="font-medium">{bank.meta.tokenSymbol}</p>
-            {bank.info.state.hasEmode && <IconEmode size={18} className="ml-1" />}
+            {bank.info.state.hasEmode && <IconEmodeSimple size={18} className="ml-1" />}
             {!available && <span className="text-[11px] ml-1 font-light">(currently unavailable)</span>}
           </div>
           {bank.info.rawBank.config.assetTag !== 2 ? (

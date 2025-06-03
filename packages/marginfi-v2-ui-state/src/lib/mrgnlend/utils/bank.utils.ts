@@ -4,14 +4,11 @@ import BigNumber from "bignumber.js";
 import {
   Bank,
   OraclePrice,
-  PriceBias,
   RiskTier,
   MarginfiAccountWrapper,
   MarginRequirementType,
   EmodeTag,
   MarginfiConfig,
-  AssetTag,
-  MarginfiAccount,
   EmodePair,
   ActionEmodeImpact,
 } from "@mrgnlabs/marginfi-client-v2";
@@ -24,8 +21,6 @@ import {
   ceil,
   uiToNative,
   loadBankMetadatas,
-  BankMetadataMap,
-  TokenMetadataMap,
   loadTokenMetadatas,
   BankMetadata,
   loadStakedBankMetadatas,
@@ -51,6 +46,7 @@ import {
 import { fetchBirdeyePrices } from "./account.utils";
 import { stagingStaticBankMetadata, stagingStaticTokenMetadata, VOLATILITY_FACTOR } from "../consts";
 import { FEE_MARGIN } from "../../../constants";
+import { PriceBias } from "@mrgnlabs/marginfi-client-v2/dist/services/price/types";
 
 function makeBankInfo(
   bank: Bank,
@@ -80,7 +76,7 @@ function makeBankInfo(
   }
 
   return {
-    price: bank.getPrice(oraclePrice, PriceBias.None).toNumber(),
+    price: Bank.getPrice(oraclePrice, PriceBias.None).toNumber(),
     mint: bank.mint,
     mintDecimals: bank.mintDecimals,
     lendingRate: isNaN(lendingRate.toNumber()) ? 0 : lendingRate.toNumber(),

@@ -160,27 +160,27 @@ export const LendingPortfolio = () => {
   const accountSupplied = React.useMemo(
     () =>
       accountSummary
-        ? Math.round(accountSummary.lendingAmountUnbiased) > 10000
-          ? usdFormatterDyn.format(Math.round(accountSummary.lendingAmountUnbiased))
-          : usdFormatter.format(accountSummary.lendingAmountUnbiased)
+        ? Math.round(accountSummary.lendingAmountEquity) > 10000
+          ? usdFormatterDyn.format(Math.round(accountSummary.lendingAmountEquity))
+          : usdFormatter.format(accountSummary.lendingAmountEquity)
         : "-",
     [accountSummary]
   );
   const accountBorrowed = React.useMemo(
     () =>
       accountSummary
-        ? Math.round(accountSummary.borrowingAmountUnbiased) > 10000
-          ? usdFormatterDyn.format(Math.round(accountSummary.borrowingAmountUnbiased))
-          : usdFormatter.format(accountSummary.borrowingAmountUnbiased)
+        ? Math.round(accountSummary.borrowingAmountEquity) > 10000
+          ? usdFormatterDyn.format(Math.round(accountSummary.borrowingAmountEquity))
+          : usdFormatter.format(accountSummary.borrowingAmountEquity)
         : "-",
     [accountSummary]
   );
   const accountNetValue = React.useMemo(
     () =>
       accountSummary
-        ? Math.round(accountSummary.balanceUnbiased) > 10000
-          ? usdFormatterDyn.format(Math.round(accountSummary.balanceUnbiased))
-          : usdFormatter.format(accountSummary.balanceUnbiased)
+        ? Math.round(accountSummary.balanceEquity) > 10000
+          ? usdFormatterDyn.format(Math.round(accountSummary.balanceEquity))
+          : usdFormatter.format(accountSummary.balanceEquity)
         : "-",
     [accountSummary]
   );
@@ -189,9 +189,11 @@ export const LendingPortfolio = () => {
     if (accountSummary.healthFactor) {
       let color: string;
 
-      if (accountSummary.healthFactor.computedHealth >= 0.5) {
+      if (accountSummary.healthSimFailed) {
+        color = "#CF6F6F";
+      } else if (accountSummary.healthFactor >= 0.5) {
         color = "#75BA80"; // green color " : "#",
-      } else if (accountSummary.healthFactor.computedHealth >= 0.25) {
+      } else if (accountSummary.healthFactor >= 0.25) {
         color = "#B8B45F"; // yellow color
       } else {
         color = "#CF6F6F"; // red color
@@ -201,17 +203,24 @@ export const LendingPortfolio = () => {
     } else {
       return "#fff";
     }
-  }, [accountSummary.healthFactor]);
+  }, [accountSummary.healthFactor, accountSummary.healthSimFailed]);
 
   const isLoading = React.useMemo(
     () =>
       (!isStoreInitialized ||
         walletConnectionDelay ||
         isRefreshingStore ||
-        (!isStoreInitialized && accountSummary.balance === 0)) &&
+        (!isStoreInitialized && accountSummary.balanceEquity === 0)) &&
       !lendingBanks.length &&
       !borrowingBanks.length,
-    [isStoreInitialized, walletConnectionDelay, isRefreshingStore, accountSummary.balance, lendingBanks, borrowingBanks]
+    [
+      isStoreInitialized,
+      walletConnectionDelay,
+      isRefreshingStore,
+      accountSummary.balanceEquity,
+      lendingBanks,
+      borrowingBanks,
+    ]
   ); // Create refs for each lending and borrowing card, keyed by address
   const lendingRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
   const borrowingRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
@@ -227,19 +236,28 @@ export const LendingPortfolio = () => {
       lendingBanks
         .filter((bank) => bank.info.rawBank.emode.emodeTag === emodePair.collateralBankTag)
         .forEach((lendingBank) => {
-          const lendingRef = lendingRefs.current[lendingBank.address.toBase58()];
-          const borrowingRef = borrowingRefs.current[emodePair.liabilityBank.toBase58()];
-          if (lendingRef && borrowingRef) {
-            pairs.push([{ current: lendingRef }, { current: borrowingRef }]);
-            // Map both lending and borrowing asset addresses to this pair index
-            const lendAddr = lendingBank.address.toBase58();
-            const borrowAddr = emodePair.liabilityBank.toBase58();
-            if (!assetToPairIndices[lendAddr]) assetToPairIndices[lendAddr] = [];
-            if (!assetToPairIndices[borrowAddr]) assetToPairIndices[borrowAddr] = [];
-            assetToPairIndices[lendAddr].push(pairIdx);
-            assetToPairIndices[borrowAddr].push(pairIdx);
-            pairIdx++;
-          }
+          // Create ref objects that will be populated by the DOM elements
+          // Don't check if refs exist yet - they'll be populated when elements render
+          const lendingRefObj = {
+            get current() {
+              return lendingRefs.current[lendingBank.address.toBase58()] || null;
+            },
+          };
+          const borrowingRefObj = {
+            get current() {
+              return borrowingRefs.current[emodePair.liabilityBank.toBase58()] || null;
+            },
+          };
+
+          pairs.push([lendingRefObj, borrowingRefObj]);
+          // Map both lending and borrowing asset addresses to this pair index
+          const lendAddr = lendingBank.address.toBase58();
+          const borrowAddr = emodePair.liabilityBank.toBase58();
+          if (!assetToPairIndices[lendAddr]) assetToPairIndices[lendAddr] = [];
+          if (!assetToPairIndices[borrowAddr]) assetToPairIndices[borrowAddr] = [];
+          assetToPairIndices[lendAddr].push(pairIdx);
+          assetToPairIndices[borrowAddr].push(pairIdx);
+          pairIdx++;
         });
     });
     return { refPairs: pairs, assetToPairIndices };
@@ -418,17 +436,20 @@ export const LendingPortfolio = () => {
                         <p className="text-sm italic text-center">{"(assets - liabilities) / (assets)"}</p>
                         <p>Your math is:</p>
                         <p className="text-sm italic text-center">{`(${usdFormatter.format(
-                          accountSummary.lendingAmountWithBiasAndWeighted
-                        )} - ${usdFormatter.format(
-                          accountSummary.borrowingAmountWithBiasAndWeighted
-                        )}) / (${usdFormatter.format(accountSummary.lendingAmountWithBiasAndWeighted)})`}</p>
+                          accountSummary.lendingAmountMaintenance
+                        )} - ${usdFormatter.format(accountSummary.borrowingAmountMaintenance)}) / (${usdFormatter.format(
+                          accountSummary.lendingAmountMaintenance
+                        )})`}</p>
                       </div>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </dt>
-              <dd className="text-xl md:text-2xl font-medium" style={{ color: healthColor }}>
-                {numeralFormatter(accountSummary.healthFactor.computedHealth * 100)}%
+              <dd className="text-xl md:text-2xl font-medium flex flex-col" style={{ color: healthColor }}>
+                {numeralFormatter(accountSummary.healthFactor * 100)}%
+                {accountSummary.healthSimFailed && (
+                  <span className="text-xs text-muted-foreground">Health simulation failed</span>
+                )}
               </dd>
             </dl>
             <div className="h-2 bg-background-gray-light rounded-full mt-1 mb-4">
@@ -436,7 +457,7 @@ export const LendingPortfolio = () => {
                 className="h-2 rounded-full"
                 style={{
                   backgroundColor: healthColor,
-                  width: `${accountSummary.healthFactor.computedHealth * 100}%`,
+                  width: `${accountSummary.healthFactor * 100}%`,
                 }}
               />
             </div>

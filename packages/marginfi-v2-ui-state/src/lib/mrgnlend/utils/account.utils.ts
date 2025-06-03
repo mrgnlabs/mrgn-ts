@@ -6,52 +6,32 @@ import { MarginfiAccountWrapper, MarginfiClient, MarginRequirementType, MintData
 
 import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, unpackAccount, nativeToUi } from "@mrgnlabs/mrgn-common";
 
-import { ExtendedBankInfo, AccountSummary, TokenAccountMap, TokenAccount } from "../types";
+import { AccountSummary, TokenAccountMap, TokenAccount } from "../types";
 import { getStakeAccountsCached } from "./staked-collateral.utils";
 
-function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: ExtendedBankInfo[]): AccountSummary {
+function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper): AccountSummary {
   const equityComponents = marginfiAccount.computeHealthComponents(MarginRequirementType.Equity);
-  const equityComponentsWithoutBias = marginfiAccount.computeHealthComponentsWithoutBias(MarginRequirementType.Equity);
-  const maintenanceComponentsWithBiasAndWeighted = marginfiAccount.computeHealthComponents(
-    MarginRequirementType.Maintenance
-  );
+  const maintenanceComponents = marginfiAccount.computeHealthComponents(MarginRequirementType.Maintenance);
 
   const signedFreeCollateral = marginfiAccount.computeFreeCollateral({ clamped: false });
 
-  let outstandingUxpEmissions = new BigNumber(0);
-  const uxpBank = banks.find((bank) => bank.meta.tokenSymbol === "UXD");
-  const uxpBalance = marginfiAccount.activeBalances.find((balance) =>
-    balance.bankPk.equals(uxpBank?.address ?? PublicKey.default)
-  );
-  if (uxpBank && uxpBalance) {
-    outstandingUxpEmissions = uxpBalance
-      .computeTotalOutstandingEmissions(uxpBank.info.rawBank)
-      .div(new BigNumber(10).pow(9));
-  }
-
-  const healthFactor = maintenanceComponentsWithBiasAndWeighted.assets.isZero()
+  const healthFactor = maintenanceComponents.assets.isZero()
     ? 1
-    : maintenanceComponentsWithBiasAndWeighted.assets
-        .minus(maintenanceComponentsWithBiasAndWeighted.liabilities)
-        .dividedBy(maintenanceComponentsWithBiasAndWeighted.assets)
+    : maintenanceComponents.assets
+        .minus(maintenanceComponents.liabilities)
+        .dividedBy(maintenanceComponents.assets)
         .toNumber();
 
   return {
-    healthFactor: {
-      riskEngineHealth: healthFactor,
-      computedHealth: healthFactor,
-    },
-    balance: equityComponents.assets.minus(equityComponents.liabilities).toNumber(),
-    lendingAmount: equityComponents.assets.toNumber(),
-    borrowingAmount: equityComponents.liabilities.toNumber(),
-    balanceUnbiased: equityComponentsWithoutBias.assets.minus(equityComponentsWithoutBias.liabilities).toNumber(),
-    lendingAmountUnbiased: equityComponentsWithoutBias.assets.toNumber(),
-    borrowingAmountUnbiased: equityComponentsWithoutBias.liabilities.toNumber(),
-    lendingAmountWithBiasAndWeighted: maintenanceComponentsWithBiasAndWeighted.assets.toNumber(),
-    borrowingAmountWithBiasAndWeighted: maintenanceComponentsWithBiasAndWeighted.liabilities.toNumber(),
+    healthFactor: healthFactor,
+    balanceEquity: equityComponents.assets.minus(equityComponents.liabilities).toNumber(),
+    lendingAmountEquity: equityComponents.assets.toNumber(),
+    borrowingAmountEquity: equityComponents.liabilities.toNumber(),
+    lendingAmountMaintenance: maintenanceComponents.assets.toNumber(),
+    borrowingAmountMaintenance: maintenanceComponents.liabilities.toNumber(),
     apy: marginfiAccount.computeNetApy(),
-    outstandingUxpEmissions: outstandingUxpEmissions.toNumber(),
     signedFreeCollateral: signedFreeCollateral.toNumber(),
+    healthSimFailed: !!marginfiAccount.pureAccount.healthCache.simulationFailed,
   };
 }
 
