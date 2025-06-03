@@ -6,7 +6,7 @@ import { useMrgnlendStore } from "~/store";
 import { PageHeading } from "~/components/common/PageHeading";
 import { EmodeExplore } from "~/components/common/emode/components";
 import { Loader } from "~/components/ui/loader";
-import { IconEmodeSimpleInactive, IconLooper } from "~/components/ui/icons";
+import { IconEmodeSimple, IconEmodeSimpleInactive, IconLooper } from "~/components/ui/icons";
 
 export default function LooperPage() {
   const [initialized, extendedBankInfosWithoutStakedAssets, extendedBankInfos] = useMrgnlendStore((state) => [
@@ -34,7 +34,10 @@ export default function LooperPage() {
                 <p>
                   Leverage your deposits to maximize yield.
                   <br />
-                  <IconEmodeSimpleInactive size={24} className="inline-block" /> e-mode pairs increase leverage.{" "}
+                  <span className="text-mfi-emode mr-0.5">
+                    <IconEmodeSimple size={24} className="inline-block translate-x-0.5" /> e-mode
+                  </span>{" "}
+                  pairs increase leverage.{" "}
                   <EmodeExplore
                     trigger={
                       <button className="border-b border-foreground/50 leading-none transition-colors hover:border-transparent">
