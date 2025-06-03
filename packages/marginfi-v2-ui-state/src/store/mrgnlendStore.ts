@@ -437,7 +437,7 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
       let accountSummary: AccountSummary = DEFAULT_ACCOUNT_SUMMARY;
       if (wallet?.publicKey && selectedAccount) {
-        accountSummary = computeAccountSummary(selectedAccount, extendedBankInfos);
+        accountSummary = computeAccountSummary(selectedAccount);
       }
 
       const pointsTotal = get().protocolStats.pointsTotal;

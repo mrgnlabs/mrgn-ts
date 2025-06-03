@@ -144,10 +144,8 @@ export const DepositSwapBox = ({
   };
 
   const accountSummary = React.useMemo(() => {
-    return (
-      accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount, banks) : DEFAULT_ACCOUNT_SUMMARY)
-    );
-  }, [accountSummaryArg, selectedAccount, banks]);
+    return accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount) : DEFAULT_ACCOUNT_SUMMARY);
+  }, [accountSummaryArg, selectedAccount]);
 
   const isDust = React.useMemo(
     () => selectedDepositBank?.isActive && selectedDepositBank?.position.isDust,

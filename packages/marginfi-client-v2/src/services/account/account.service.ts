@@ -175,6 +175,9 @@ export async function simulateAccountHealthCache(props: {
   );
 
   if (marginfiAccountPost.healthCache.mrgnErr) {
+    console.log({
+      marginfiAccountPost,
+    });
     console.error("Account health cache simulation failed", marginfiAccountPost.healthCache.mrgnErr);
     throw new Error("Account health cache simulation failed");
   }

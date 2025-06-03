@@ -6,10 +6,10 @@ import { MarginfiAccountWrapper, MarginfiClient, MarginRequirementType, MintData
 
 import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, unpackAccount, nativeToUi } from "@mrgnlabs/mrgn-common";
 
-import { ExtendedBankInfo, AccountSummary, TokenAccountMap, TokenAccount } from "../types";
+import { AccountSummary, TokenAccountMap, TokenAccount } from "../types";
 import { getStakeAccountsCached } from "./staked-collateral.utils";
 
-function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: ExtendedBankInfo[]): AccountSummary {
+function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper): AccountSummary {
   const equityComponents = marginfiAccount.computeHealthComponents(MarginRequirementType.Equity);
   const maintenanceComponents = marginfiAccount.computeHealthComponents(MarginRequirementType.Maintenance);
 
@@ -31,6 +31,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: E
     borrowingAmountMaintenance: maintenanceComponents.liabilities.toNumber(),
     apy: marginfiAccount.computeNetApy(),
     signedFreeCollateral: signedFreeCollateral.toNumber(),
+    healthSimFailed: !!marginfiAccount.pureAccount.healthCache.simulationFailed,
   };
 }
 

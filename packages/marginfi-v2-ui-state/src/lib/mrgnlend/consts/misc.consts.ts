@@ -10,6 +10,7 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   apy: 0,
   positions: [],
   signedFreeCollateral: 0,
+  healthSimFailed: false,
 };
 
 export { DEFAULT_ACCOUNT_SUMMARY, VOLATILITY_FACTOR };

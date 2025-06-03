@@ -199,10 +199,8 @@ export const LendBox = ({
   const { transactionSettings, priorityFees } = useActionContext() || { transactionSettings: null, priorityFees: null };
 
   const accountSummary = React.useMemo(() => {
-    return (
-      accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount, banks) : DEFAULT_ACCOUNT_SUMMARY)
-    );
-  }, [accountSummaryArg, selectedAccount, banks]);
+    return accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount) : DEFAULT_ACCOUNT_SUMMARY);
+  }, [accountSummaryArg, selectedAccount]);
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,

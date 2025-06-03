@@ -29,6 +29,7 @@ interface AccountSummary {
   lendingAmountMaintenance: number;
   borrowingAmountMaintenance: number;
   signedFreeCollateral: number;
+  healthSimFailed: boolean;
 }
 
 interface LendingPosition {
