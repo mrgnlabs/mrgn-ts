@@ -69,7 +69,7 @@ export const BankItem = ({
         <div>
           <div className="flex items-center">
             <p className="font-medium">{bank.meta.tokenSymbol}</p>
-            {bank.isActive && bank.position.emodeActive ? (
+            {highlightEmodeLabel && bank.info.state.hasEmode ? (
               <div className="flex items-center gap-0.5 ml-2 text-mfi-emode">
                 <IconEmodeSimple size={14} className="translate-y-px" />
                 <span className="text-xs font-light">e-mode active</span>

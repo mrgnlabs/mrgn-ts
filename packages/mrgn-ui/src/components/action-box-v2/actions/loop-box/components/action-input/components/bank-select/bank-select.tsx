@@ -14,10 +14,7 @@ interface BankSelectProps {
   banks: ExtendedBankInfo[];
   nativeSolBalance: number;
   actionMode: ActionType;
-  emodeConfig: {
-    highlightedEmodeBanks: PublicKey[];
-    highlightAll: boolean;
-  };
+  highlightEmodeBanks: Record<string, boolean>;
 
   setTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
 }
@@ -28,7 +25,7 @@ export const BankSelect = ({
   banks,
   nativeSolBalance,
   actionMode,
-  emodeConfig,
+  highlightEmodeBanks,
   setTokenBank,
 }: BankSelectProps) => {
   // idea check list if banks[] == 1 make it unselectable
@@ -71,7 +68,7 @@ export const BankSelect = ({
               onSetSelectedBank={(bank) => setTokenBank(bank)}
               selectedBank={selectedBank}
               otherBank={otherBank}
-              emodeConfig={emodeConfig}
+              highlightEmodeBanks={highlightEmodeBanks}
             />
           }
         />

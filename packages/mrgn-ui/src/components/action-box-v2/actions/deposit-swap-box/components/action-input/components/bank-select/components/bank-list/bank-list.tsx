@@ -17,6 +17,7 @@ type BankListProps = {
   lendMode: ActionType;
   connected: boolean;
   showTokenSelectionGroups?: boolean;
+  enableEmodeByBank: Record<string, boolean>;
   onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | WalletToken | null) => void;
   onClose: () => void;
 
@@ -30,6 +31,7 @@ export const BankList = ({
   nativeSolBalance,
   lendMode,
   connected,
+  enableEmodeByBank,
   showTokenSelectionGroups = true,
   onSetSelectedBank,
   isOpen,
@@ -213,6 +215,7 @@ export const BankList = ({
                         bank={token}
                         showBalanceOverride={true}
                         nativeSolBalance={nativeSolBalance}
+                        highlightEmodeLabel={enableEmodeByBank[token.address.toBase58()]}
                       />
                     </CommandItem>
                   );
@@ -268,6 +271,7 @@ export const BankList = ({
                     bank={bank}
                     showBalanceOverride={false}
                     nativeSolBalance={nativeSolBalance}
+                    highlightEmodeLabel={enableEmodeByBank[bank.address.toBase58()]}
                   />
                 </CommandItem>
               );
@@ -299,6 +303,7 @@ export const BankList = ({
                     bank={bank}
                     showBalanceOverride={false}
                     nativeSolBalance={nativeSolBalance}
+                    highlightEmodeLabel={enableEmodeByBank[bank.address.toBase58()]}
                   />
                 </CommandItem>
               );

@@ -2,7 +2,7 @@ import React from "react";
 import { PublicKey } from "@solana/web3.js";
 
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { cn, formatAmount, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
+import { cn, formatAmount, getEmodeStrategies, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
 import { tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 
 import { Input } from "~/components/ui/input";
@@ -25,7 +25,7 @@ type ActionInputProps = {
   isDialog?: boolean;
   isMini?: boolean;
   isEmodeLoop?: boolean;
-  highlightedEmodeBanks?: PublicKey[];
+  emodeBorrowBanks?: PublicKey[];
 
   setAmountRaw: (amountRaw: string, maxAmount?: number) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
@@ -42,9 +42,9 @@ export const ActionInput = ({
   isLoading,
   selectedBank,
   selectedSecondaryBank,
-  highlightedEmodeBanks = [],
   actionTxns,
   isEmodeLoop,
+  emodeBorrowBanks,
   setAmountRaw,
   setSelectedBank,
   setSelectedSecondaryBank,
@@ -77,6 +77,30 @@ export const ActionInput = ({
     [formatAmountCb, setAmountRaw, selectedBank]
   );
 
+  const emodeStrategies = React.useMemo(() => {
+    return getEmodeStrategies(banks);
+  }, [banks]);
+
+  const highlightEmodeBySupplyBank = React.useMemo(() => {
+    const enableEmodeByBank: Record<string, boolean> = {};
+
+    emodeStrategies.activateSupplyEmodeBanks.forEach((bank) => {
+      enableEmodeByBank[bank.address.toBase58()] = true;
+    });
+
+    return enableEmodeByBank;
+  }, [emodeStrategies]);
+
+  const highlightEmodeByBorrowBank = React.useMemo(() => {
+    const enableEmodeByBank: Record<string, boolean> = {};
+
+    emodeBorrowBanks?.forEach((bank) => {
+      enableEmodeByBank[bank.toBase58()] = true;
+    });
+
+    return enableEmodeByBank;
+  }, [emodeBorrowBanks]);
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -96,7 +120,7 @@ export const ActionInput = ({
                 banks={banks}
                 nativeSolBalance={nativeSolBalance}
                 setTokenBank={(bank) => setSelectedBank(bank)}
-                emodeConfig={{ highlightedEmodeBanks, highlightAll: false }}
+                highlightEmodeBanks={highlightEmodeBySupplyBank}
               />
             </div>
             <div className="flex-auto flex flex-col gap-0 items-end">
@@ -145,7 +169,7 @@ export const ActionInput = ({
                 banks={banks}
                 nativeSolBalance={nativeSolBalance}
                 setTokenBank={(bank) => setSelectedSecondaryBank(bank)}
-                emodeConfig={{ highlightedEmodeBanks, highlightAll: false }}
+                highlightEmodeBanks={highlightEmodeByBorrowBank}
               />
             </div>
             <div className="flex-auto flex flex-col gap-0 items-end">

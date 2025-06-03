@@ -17,10 +17,7 @@ type BankListProps = {
   nativeSolBalance: number;
   isOpen: boolean;
   actionMode: ActionType;
-  emodeConfig: {
-    highlightedEmodeBanks: PublicKey[];
-    highlightAll: boolean;
-  };
+  highlightEmodeBanks: Record<string, boolean>;
 
   onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: () => void;
@@ -30,7 +27,7 @@ export const BankList = ({
   selectedBank,
   otherBank,
   banks,
-  emodeConfig,
+  highlightEmodeBanks,
   nativeSolBalance,
   isOpen,
   actionMode,
@@ -118,11 +115,7 @@ export const BankList = ({
                   bank.info.state.mint.equals(WSOL_MINT) ? nativeSolBalance > 0 : bank.userInfo.tokenAccount.balance > 0
                 }
                 nativeSolBalance={nativeSolBalance}
-                highlightEmodeLabel={
-                  emodeConfig.highlightAll
-                    ? true
-                    : emodeConfig.highlightedEmodeBanks.some((bankAddress) => bankAddress.equals(bank.address))
-                }
+                highlightEmodeLabel={highlightEmodeBanks[bank.address.toBase58()]}
               />
             </CommandItem>
           );

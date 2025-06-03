@@ -405,6 +405,7 @@ export const DepositSwapBox = ({
           }}
           walletTokens={walletTokens}
           showOnlyUserOwnedTokens={true}
+          depositBank={selectedDepositBank}
         />
       </div>
 
@@ -461,6 +462,7 @@ export const DepositSwapBox = ({
             }}
             isInputDisabled={true}
             showOnlyUserOwnedTokens={false}
+            depositBank={selectedDepositBank}
           />
         </div>
       )}

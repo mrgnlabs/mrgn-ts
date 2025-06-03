@@ -447,7 +447,7 @@ export const LoopBox = ({
           setSelectedSecondaryBank={(bank) => {
             setSelectedSecondaryBank(bank);
           }}
-          highlightedEmodeBanks={emodeSupplyState.emodeBorrowBanks}
+          emodeBorrowBanks={emodeSupplyState.emodeBorrowBanks}
           isLoading={simulationStatus.isLoading}
           walletAmount={walletAmount}
           actionTxns={actionTxns}

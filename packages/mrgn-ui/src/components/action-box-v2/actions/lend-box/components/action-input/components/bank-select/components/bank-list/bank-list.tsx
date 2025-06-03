@@ -77,7 +77,6 @@ export const BankList = ({
   }, [banks]);
 
   const enableEmodeByBank = React.useMemo(() => {
-    console.log({ emodeStrategies });
     const enableEmodeByBank: Record<string, boolean> = {};
     if (actionType === ActionType.Deposit) {
       emodeStrategies.activateSupplyEmodeBanks.forEach((bank) => {
