@@ -84,7 +84,7 @@ export const ActionInput = ({
         <div
           className={cn(
             "bg-background rounded-lg p-2.5 mb-6",
-            isEmodeLoop && "bg-background-gray border border-mfi-emode/50"
+            isEmodeLoop && "bg-purple-900/5 border border-mfi-emode/20"
           )}
         >
           <div className="flex justify-center gap-1 items-center font-medium text-3xl">
@@ -96,7 +96,7 @@ export const ActionInput = ({
                 banks={banks}
                 nativeSolBalance={nativeSolBalance}
                 setTokenBank={(bank) => setSelectedBank(bank)}
-                emodeConfig={{ highlightedEmodeBanks, highlightAll: true }}
+                emodeConfig={{ highlightedEmodeBanks, highlightAll: false }}
               />
             </div>
             <div className="flex-auto flex flex-col gap-0 items-end">
@@ -133,7 +133,7 @@ export const ActionInput = ({
         <div
           className={cn(
             "bg-background rounded-lg p-2.5 mb-6",
-            isEmodeLoop && selectedSecondaryBank && "bg-purple-900/5 border border-mfi-emode/50"
+            isEmodeLoop && selectedSecondaryBank && "bg-purple-900/5 border border-mfi-emode/20"
           )}
         >
           <div className="flex gap-1 items-center font-medium text-3xl">
