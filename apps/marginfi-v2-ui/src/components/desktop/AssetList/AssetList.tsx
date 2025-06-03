@@ -103,8 +103,9 @@ export const AssetsList = () => {
   }, [isFilteredUserPositions, extendedBankInfos, filterBanksByTokenType]);
 
   const emodeBanks = React.useMemo(() => {
-    return extendedBankInfos.filter((b) => b.info.state.hasEmode);
-  }, [extendedBankInfos]);
+    const banks = extendedBankInfos.filter((b) => b.info.state.hasEmode);
+    return filterBanksByTokenType(banks);
+  }, [extendedBankInfos, filterBanksByTokenType]);
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
@@ -374,32 +375,38 @@ export const AssetsList = () => {
           </div>
         </>
       )}
-      {poolFilter === PoolTypes.E_MODE && emodePoolTableData.length > 0 && (
+      {poolFilter === PoolTypes.E_MODE && (
         <div className="space-y-6">
           <EmodeHeader emodeGroups={emodeGroups} />
-          <Table>
-            <TableHeader>
-              {eModeTable.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      style={{
-                        width: header.column.getSize(),
-                      }}
-                    >
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {eModeTable.getRowModel().rows.map((row) => {
-                return <AssetRow key={row.id} {...row} />;
-              })}
-            </TableBody>
-          </Table>
+          {emodePoolTableData.length > 0 ? (
+            <Table>
+              <TableHeader>
+                {eModeTable.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        style={{
+                          width: header.column.getSize(),
+                        }}
+                      >
+                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {eModeTable.getRowModel().rows.map((row) => {
+                  return <AssetRow key={row.id} {...row} />;
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-muted-foreground text-center py-4">
+              <span>No banks with e-mode weights found.</span>
+            </div>
+          )}
         </div>
       )}
       <LSTDialog
