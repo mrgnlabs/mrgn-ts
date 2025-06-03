@@ -15,8 +15,11 @@ export const AnnouncementsDialog = () => {
   }, []);
 
   React.useEffect(() => {
+    const tutorialAcknowledged = localStorage.getItem("mrgnTutorialAcknowledged");
     const announcementPopup = localStorage.getItem(`mrgnAnnouncementPopup-${announcementLabel}`);
-    if (!announcementPopup) {
+
+    // Only show announcement if tutorial has been acknowledged and announcement hasn't been shown
+    if (tutorialAcknowledged && !announcementPopup) {
       setIsOpen(true);
     }
   }, []);
