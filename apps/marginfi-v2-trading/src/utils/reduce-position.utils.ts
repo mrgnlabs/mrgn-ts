@@ -34,9 +34,7 @@ function generateReducePositionStats(summary: ActionSummary, bank: ExtendedBankI
   if (summary.actionPreview.priceImpactPct) stats.push(getPriceImpactStat(summary.actionPreview.priceImpactPct));
   if (summary.actionPreview.slippageBps) stats.push(getSlippageStat(summary.actionPreview.slippageBps));
 
-  stats.push(
-    getHealthStat(summary.actionPreview.health.computedHealth, false, summary.simulationPreview?.health?.computedHealth)
-  );
+  stats.push(getHealthStat(summary.actionPreview.healthFactor, false, summary.simulationPreview?.healthFactor));
 
   if (summary.simulationPreview?.liquidationPrice && bank.isActive)
     stats.push(getLiquidationStat(bank, false, summary.simulationPreview?.liquidationPrice));

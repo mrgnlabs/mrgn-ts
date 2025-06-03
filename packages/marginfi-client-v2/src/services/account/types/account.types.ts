@@ -44,6 +44,7 @@ export interface HealthCacheType {
   timestamp: BigNumber;
   flags: HealthCacheFlags[];
   prices: number[][];
+  simulationFailed?: boolean;
 }
 
 export interface MarginfiAccountType {

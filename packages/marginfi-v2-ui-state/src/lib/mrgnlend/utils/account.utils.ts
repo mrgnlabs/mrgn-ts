@@ -23,10 +23,7 @@ function computeAccountSummary(marginfiAccount: MarginfiAccountWrapper, banks: E
         .toNumber();
 
   return {
-    healthFactor: {
-      riskEngineHealth: healthFactor,
-      computedHealth: healthFactor,
-    },
+    healthFactor: healthFactor,
     balanceEquity: equityComponents.assets.minus(equityComponents.liabilities).toNumber(),
     lendingAmountEquity: equityComponents.assets.toNumber(),
     borrowingAmountEquity: equityComponents.liabilities.toNumber(),

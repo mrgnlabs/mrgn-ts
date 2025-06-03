@@ -12,7 +12,8 @@ export class HealthCache implements HealthCacheType {
     public liabilityValueEquity: BigNumber,
     public timestamp: BigNumber,
     public flags: HealthCacheFlags[],
-    public prices: number[][]
+    public prices: number[][],
+    public simulationFailed?: boolean
   ) {
     this.assetValue = assetValue;
     this.liabilityValue = liabilityValue;
@@ -23,6 +24,7 @@ export class HealthCache implements HealthCacheType {
     this.timestamp = timestamp;
     this.flags = flags;
     this.prices = prices;
+    this.simulationFailed = simulationFailed;
   }
 
   static from(healthCacheRaw: HealthCacheRaw): HealthCache {

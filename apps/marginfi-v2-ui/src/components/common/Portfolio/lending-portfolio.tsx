@@ -189,9 +189,9 @@ export const LendingPortfolio = () => {
     if (accountSummary.healthFactor) {
       let color: string;
 
-      if (accountSummary.healthFactor.computedHealth >= 0.5) {
+      if (accountSummary.healthFactor >= 0.5) {
         color = "#75BA80"; // green color " : "#",
-      } else if (accountSummary.healthFactor.computedHealth >= 0.25) {
+      } else if (accountSummary.healthFactor >= 0.25) {
         color = "#B8B45F"; // yellow color
       } else {
         color = "#CF6F6F"; // red color
@@ -444,7 +444,7 @@ export const LendingPortfolio = () => {
                 </TooltipProvider>
               </dt>
               <dd className="text-xl md:text-2xl font-medium" style={{ color: healthColor }}>
-                {numeralFormatter(accountSummary.healthFactor.computedHealth * 100)}%
+                {numeralFormatter(accountSummary.healthFactor * 100)}%
               </dd>
             </dl>
             <div className="h-2 bg-background-gray-light rounded-full mt-1 mb-4">
@@ -452,7 +452,7 @@ export const LendingPortfolio = () => {
                 className="h-2 rounded-full"
                 style={{
                   backgroundColor: healthColor,
-                  width: `${accountSummary.healthFactor.computedHealth * 100}%`,
+                  width: `${accountSummary.healthFactor * 100}%`,
                 }}
               />
             </div>

@@ -95,13 +95,7 @@ function generateLendingStats(
   }
 
   if (!hidePoolStats?.includes("health")) {
-    stats.push(
-      getHealthStat(
-        summary.actionPreview.health.computedHealth,
-        false,
-        summary.simulationPreview?.health.computedHealth
-      )
-    );
+    stats.push(getHealthStat(summary.actionPreview.health, false, summary.simulationPreview?.health));
   }
 
   if (summary.actionPreview.bankCap && !hidePoolStats?.includes("size")) {

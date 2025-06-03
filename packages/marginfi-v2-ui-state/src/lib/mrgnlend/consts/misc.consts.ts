@@ -1,10 +1,7 @@
 const VOLATILITY_FACTOR = 0.975;
 
 const DEFAULT_ACCOUNT_SUMMARY = {
-  healthFactor: {
-    riskEngineHealth: 0,
-    computedHealth: 0,
-  },
+  healthFactor: 0,
   balanceEquity: 0,
   lendingAmountEquity: 0,
   borrowingAmountEquity: 0,

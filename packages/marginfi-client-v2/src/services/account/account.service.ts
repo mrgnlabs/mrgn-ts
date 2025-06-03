@@ -90,7 +90,8 @@ export async function simulateAccountHealthCacheWithFallback(props: {
         liabilityValueEquity,
         new BigNumber(0),
         [],
-        []
+        [],
+        true
       )
     );
   }

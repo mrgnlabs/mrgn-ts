@@ -19,15 +19,9 @@ export function simulatedHealthFactor(simulationResult: SimulationResult) {
     MarginRequirementType.Maintenance
   );
 
-  const { assetValueMaint, liabilityValueMaint } = simulationResult.marginfiAccount.data.healthCache;
-  const riskEngineHealth = assetValueMaint.minus(liabilityValueMaint).dividedBy(assetValueMaint).toNumber();
+  const health = assets.minus(liabilities).dividedBy(assets).toNumber();
 
-  const computedHealth = assets.minus(liabilities).dividedBy(assets).toNumber();
-
-  return {
-    riskEngineHealth,
-    computedHealth,
-  };
+  return health;
 }
 
 /*
@@ -82,10 +76,7 @@ export interface ActionSummary {
 }
 
 export interface SimulatedActionPreview {
-  health: {
-    riskEngineHealth: number;
-    computedHealth: number;
-  };
+  health: number;
   liquidationPrice: number | null;
   depositRate: number;
   borrowRate: number;
@@ -97,10 +88,7 @@ export interface SimulatedActionPreview {
 }
 
 export interface ActionPreview {
-  health: {
-    riskEngineHealth: number;
-    computedHealth: number;
-  };
+  health: number;
   liquidationPrice: number | null;
   positionAmount: number;
   poolSize?: number;
