@@ -32,6 +32,7 @@ export function getColorForActionMessageUIType(type?: ActionMessageUIType) {
 interface CheckActionAvailableProps {
   amount: number | null;
   connected: boolean;
+  marginfiAccount: MarginfiAccountWrapper | null;
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
   actionQuote: QuoteResponse | null;
@@ -64,7 +65,7 @@ export function checkLendActionAvailable({
   const requiredCheck = getRequiredCheck(connected, selectedBank);
   if (requiredCheck) return [requiredCheck];
 
-  const generalChecks = getGeneralChecks(amount ?? 0, showCloseBalance);
+  const generalChecks = getGeneralChecks(amount ?? 0, showCloseBalance, undefined, marginfiAccount ?? undefined);
   if (generalChecks) checks.push(...generalChecks);
 
   // allert checks
@@ -100,6 +101,7 @@ export function checkLendActionAvailable({
 interface CheckLoopActionAvailableProps {
   amount: number | null;
   connected: boolean;
+  marginfiAccount: MarginfiAccountWrapper | null;
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
   actionQuote: QuoteResponse | null;
@@ -110,6 +112,7 @@ interface CheckLoopActionAvailableProps {
 export function checkLoopActionAvailable({
   amount,
   connected,
+  marginfiAccount,
   selectedBank,
   selectedSecondaryBank,
   banks,
@@ -121,7 +124,7 @@ export function checkLoopActionAvailable({
   const requiredCheck = getRequiredCheck(connected, selectedBank);
   if (requiredCheck) return [requiredCheck];
 
-  const generalChecks = getGeneralChecks(amount ?? 0);
+  const generalChecks = getGeneralChecks(amount ?? 0, undefined, undefined, marginfiAccount ?? undefined);
   if (generalChecks) checks.push(...generalChecks);
 
   // alert checks
@@ -142,6 +145,7 @@ export function checkRepayActionAvailable({
   amount,
   connected,
   selectedBank,
+  marginfiAccount,
   selectedSecondaryBank,
   actionQuote,
   maxOverflowHit,
@@ -151,7 +155,7 @@ export function checkRepayActionAvailable({
   const requiredCheck = getRequiredCheck(connected, selectedBank);
   if (requiredCheck) return [requiredCheck];
 
-  const generalChecks = getGeneralChecks(amount ?? 0);
+  const generalChecks = getGeneralChecks(amount ?? 0, undefined, undefined, marginfiAccount ?? undefined);
   if (generalChecks) checks.push(...generalChecks);
 
   let repayChecks: ActionMessageType[] = [];
@@ -185,8 +189,19 @@ function getRequiredCheck(connected: boolean, selectedBank: ExtendedBankInfo | n
   return null;
 }
 
-function getGeneralChecks(amount: number = 0, showCloseBalance?: boolean, leverage?: number): ActionMessageType[] {
+function getGeneralChecks(
+  amount: number = 0,
+  showCloseBalance?: boolean,
+  leverage?: number,
+  marginfiAccount?: MarginfiAccountWrapper
+): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
+
+  if (marginfiAccount) {
+    checks.push(STATIC_SIMULATION_ERRORS.HEALTH_SIMULATION_CHECK);
+    return checks;
+  }
+
   if (showCloseBalance) {
     checks.push({ actionMethod: "INFO", description: "Close lending balance.", isEnabled: true });
   } // TODO: only for lend and withdraw
@@ -290,7 +305,7 @@ export function checkDepositSwapActionAvailable({
     return checks;
   }
 
-  const generalChecks = getGeneralChecks(amount ?? 0, showCloseBalance);
+  const generalChecks = getGeneralChecks(amount ?? 0, showCloseBalance, undefined, marginfiAccount ?? undefined);
   if (generalChecks) checks.push(...generalChecks);
 
   // alert checks

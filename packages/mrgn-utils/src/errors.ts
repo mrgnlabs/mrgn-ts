@@ -335,6 +335,13 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     actionSubType: "EMODE",
     code: 157,
   },
+  HEALTH_SIMULATION_CHECK: {
+    description:
+      "Health simulation failed. The displayed health factor is estimated and may not reflect real-time accuracy. Refresh the page to try again.",
+    isEnabled: true,
+    actionMethod: "WARNING",
+    code: 158,
+  },
 };
 
 const createEmodeReduceCheck = (): ActionMessageType => ({

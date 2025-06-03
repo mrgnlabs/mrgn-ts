@@ -23,7 +23,7 @@ import {
 
 import MarginfiClient, { BankMap, OraclePriceMap } from "../../clients/client";
 import { MarginfiAccountWrapper, MarginfiAccount, MarginRequirementType } from "../../models/account";
-import { BalanceRaw, MarginfiAccountRaw } from "./types";
+import { BalanceRaw, BalanceType, MarginfiAccountRaw } from "./types";
 import { MarginfiIdlType } from "../../idl";
 import { AnchorProvider } from "@coral-xyz/anchor";
 import { getSwitchboardProgram } from "../../vendor";
@@ -332,4 +332,40 @@ export function getActiveStaleBanks(
   }
 
   return { stalePythFeeds: [], staleSwbOracles: [] };
+}
+
+export function computeHealthCheckAccounts(
+  balances: BalanceType[],
+  mandatoryBanks: Bank[] = [],
+  excludedBanks: Bank[] = []
+): PublicKey[] {
+  const activeBalances = balances.filter((b) => b.active);
+
+  const mandatoryBanksSet = new Set(mandatoryBanks.map((b) => b.address.toBase58()));
+  const excludedBanksSet = new Set(excludedBanks.map((b) => b.address.toBase58()));
+  const activeBanks = new Set(activeBalances.map((b) => b.bankPk.toBase58()));
+  const banksToAdd = new Set([...mandatoryBanksSet].filter((x) => !activeBanks.has(x)));
+
+  let slotsToKeep = banksToAdd.size;
+  const projectedActiveBanks = balances
+    .filter((balance) => {
+      if (balance.active) {
+        return !excludedBanksSet.has(balance.bankPk.toBase58());
+      } else if (slotsToKeep > 0) {
+        slotsToKeep--;
+        return true;
+      } else {
+        return false;
+      }
+    })
+    .map((balance) => {
+      if (balance.active) {
+        return balance.bankPk;
+      }
+      const newBank = [...banksToAdd.values()][0];
+      banksToAdd.delete(newBank);
+      return new PublicKey(newBank);
+    });
+
+  return projectedActiveBanks;
 }

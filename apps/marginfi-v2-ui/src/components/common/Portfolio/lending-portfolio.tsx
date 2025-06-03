@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 
-import { IconInfoCircle, IconSearch, IconSparkles, IconX } from "@tabler/icons-react";
+import { IconAlertCircle, IconInfoCircle, IconSearch, IconSparkles, IconX } from "@tabler/icons-react";
 
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
@@ -190,7 +190,7 @@ export const LendingPortfolio = () => {
       let color: string;
 
       if (accountSummary.healthSimFailed) {
-        color = "#CF6F6F";
+        color = "#a1a1aa";
       } else if (accountSummary.healthFactor >= 0.5) {
         color = "#75BA80"; // green color " : "#",
       } else if (accountSummary.healthFactor >= 0.25) {
@@ -459,11 +459,26 @@ export const LendingPortfolio = () => {
                   </Tooltip>
                 </TooltipProvider>
               </dt>
-              <dd className="text-xl md:text-2xl font-medium flex flex-col" style={{ color: healthColor }}>
-                {numeralFormatter(accountSummary.healthFactor * 100)}%
+              <dd
+                className="text-xl md:text-2xl font-medium flex flex-row items-center gap-1.5"
+                style={{ color: healthColor }}
+              >
                 {accountSummary.healthSimFailed && (
-                  <span className="text-xs text-muted-foreground">Health simulation failed</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger className="inline-flex items-center gap-1">
+                        <IconAlertCircle size={16} className="text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <span>
+                          Health simulation failed. The displayed health factor is estimated and may not reflect
+                          real-time accuracy. Refresh the page to try again.
+                        </span>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
+                {numeralFormatter(accountSummary.healthFactor * 100)}%
               </dd>
             </dl>
             <div className="h-2 bg-background-gray-light rounded-full mt-1 mb-4">

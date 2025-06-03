@@ -249,10 +249,11 @@ export const RepayBox = ({
       connected,
       selectedBank,
       selectedSecondaryBank,
+      marginfiAccount: selectedAccount,
       actionQuote: actionTxns?.actionQuote ?? null,
       maxOverflowHit,
     });
-  }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote, maxOverflowHit]);
+  }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote, maxOverflowHit, selectedAccount]);
 
   //////////////////
   // Repay Action //
