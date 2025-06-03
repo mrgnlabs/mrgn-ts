@@ -14,6 +14,7 @@ import { IconEmode, IconEmodeSimple, IconEmodeSimpleInactive } from "~/component
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { EmodePair } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { EmodeTable } from "~/components/common/emode/components/emode-table";
 
 type AnnouncementSlideProps = {
   title: string;
@@ -66,8 +67,10 @@ const AnnouncementSlide = ({
     return UserStatus.EMODE_DISABLED;
   }, [connected, userActiveEmodes]);
 
+  const isTableSlide = title === "Explore e-mode pairs";
+
   return (
-    <div className="flex flex-col lg:flex-row h-full bg-background">
+    <div className="flex flex-col lg:flex-row h-full">
       {/* Video Panel - Top on mobile, Left on desktop */}
       <div className="flex-1 bg-gradient-to-br flex items-center justify-center relative overflow-hidden">
         <div className="relative z-10 w-full h-full flex items-center justify-center">
@@ -127,8 +130,14 @@ const AnnouncementSlide = ({
                 </div>
               )}
             </h1>
-            {!isLast && description && (
+            {!isLast && !isTableSlide && description && (
               <p className="text-base lg:text-lg text-muted-foreground leading-relaxed">{description}</p>
+            )}
+            {isTableSlide && (
+              <div className="space-y-8">
+                <p className="text-base lg:text-lg text-muted-foreground leading-relaxed">{description}</p>
+                <EmodeTable className="max-h-[300px] overflow-auto" align="left" showTag={false} />
+              </div>
             )}
             {isLast && (
               <>
@@ -141,49 +150,51 @@ const AnnouncementSlide = ({
                       </div>{" "}
                       enabled for the following pairs.
                     </div>
-                    {userActiveEmodes.map((emode, index) => {
-                      const collatBanks = banks
-                        .filter((bank) =>
-                          emode.collateralBanks.map((pk) => pk.toBase58()).includes(bank.address.toBase58())
-                        )
-                        .filter((bank) => bank.isActive);
-                      const liabBank = banks.find((bank) => bank.address.equals(emode.liabilityBank));
-                      return (
-                        <div key={index} className="space-y-2">
-                          {collatBanks.map((bank) => {
-                            if (!liabBank) return null;
-                            return (
-                              <div
-                                key={bank.address.toBase58()}
-                                className="flex items-center gap-2 text-muted-foreground"
-                              >
-                                <div className="flex items-center gap-1.5 text-foreground">
-                                  <Image
-                                    src={bank.meta.tokenLogoUri}
-                                    alt={bank.meta.tokenSymbol}
-                                    width={18}
-                                    height={18}
-                                    className="rounded-full"
-                                  />
-                                  {bank.meta.tokenSymbol}
+                    <div className="space-y-2">
+                      {userActiveEmodes.map((emode, index) => {
+                        const collatBanks = banks
+                          .filter((bank) =>
+                            emode.collateralBanks.map((pk) => pk.toBase58()).includes(bank.address.toBase58())
+                          )
+                          .filter((bank) => bank.isActive && bank.position.isLending);
+                        const liabBank = banks.find((bank) => bank.address.equals(emode.liabilityBank));
+                        return (
+                          <div key={index}>
+                            {collatBanks.map((bank) => {
+                              if (!liabBank || liabBank.address.equals(bank.address)) return null;
+                              return (
+                                <div
+                                  key={bank.address.toBase58()}
+                                  className="flex items-center gap-2 text-muted-foreground"
+                                >
+                                  <div className="flex items-center gap-1.5 text-foreground">
+                                    <Image
+                                      src={bank.meta.tokenLogoUri}
+                                      alt={bank.meta.tokenSymbol}
+                                      width={18}
+                                      height={18}
+                                      className="rounded-full"
+                                    />
+                                    {bank.meta.tokenSymbol}
+                                  </div>
+                                  /
+                                  <div className="flex items-center gap-1.5 text-foreground">
+                                    <Image
+                                      src={liabBank?.meta.tokenLogoUri}
+                                      alt={liabBank?.meta.tokenSymbol}
+                                      width={18}
+                                      height={18}
+                                      className="rounded-full"
+                                    />
+                                    {liabBank?.meta.tokenSymbol}
+                                  </div>
                                 </div>
-                                /
-                                <div className="flex items-center gap-1.5 text-foreground">
-                                  <Image
-                                    src={liabBank?.meta.tokenLogoUri}
-                                    alt={liabBank?.meta.tokenSymbol}
-                                    width={18}
-                                    height={18}
-                                    className="rounded-full"
-                                  />
-                                  {liabBank?.meta.tokenSymbol}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    })}
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
                 {userStatus === UserStatus.EMODE_DISABLED && (
@@ -206,7 +217,7 @@ const AnnouncementSlide = ({
               features.map((feature, index) => (
                 <div key={index} className="flex items-center gap-2 lg:gap-3 shrink-0">
                   <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-background-gray-light flex items-center justify-center shrink-0">
-                    <IconEmodeSimpleInactive size={18} className="lg:w-6 lg:h-6" />
+                    <IconEmodeSimpleInactive size={18} />
                   </div>
                   <span className="text-sm lg:text-base">{feature}</span>
                 </div>
@@ -276,15 +287,14 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
   const slides = [
     {
       title: "Introducing",
-      description:
-        "We're excited to announce e-mode! Boosted weights and increased borrowing power for correlated assets.",
+      description: "e-mode (efficiency mode) allows you to borrow more against your collateral for correlated pairs.",
       features: ["Boosted collateral weights", "Incrased borrowing power", "Maximize your leverage"],
       video: "https://storage.googleapis.com/mrgn-public/e-mode-videos/1",
       nextSlideTitle: "Boosted weights",
     },
     {
       title: "Increased borrow power",
-      description: "e-mode will apply boosted weights for correlated pairs, meaning increased borrowing power.",
+      description: "Higher collateral weight means more value counted toward your borrow limit.",
       features: ["Boost your collateral weights", "Borrow more against correlated pairs"],
       video: "https://storage.googleapis.com/mrgn-public/e-mode-videos/3",
       prevSlideTitle: "Introducing e-mode",
@@ -292,7 +302,7 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
     },
     {
       title: "Maximize your leverage",
-      description: "Experience improved capital efficiency and increased leverage for e-mode enabled pairs.",
+      description: "Take on higher leverage thanks to boosted collateral values for correlated assets.",
       features: ["Improved collateral efficiency", "Maximize your leverage"],
       video: "https://storage.googleapis.com/mrgn-public/e-mode-videos/1",
       prevSlideTitle: "Strategy",
@@ -300,7 +310,7 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
     },
     {
       title: "Explore e-mode pairs",
-      description: "e-mode pairs explorer / table will go here...",
+      description: "Explore e-mode pairs and their boosted collateral weights for increased borrowing power.",
       video: "https://storage.googleapis.com/mrgn-public/e-mode-videos/3",
       prevSlideTitle: "Maximize your leverage",
       nextSlideTitle: "Get started",
@@ -309,12 +319,12 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
       title: "Get started!",
       video: "https://storage.googleapis.com/mrgn-public/e-mode-videos/3",
       prevSlideTitle: "Benefits",
-      description: "Connect your wallet to explore e-mode pairs for increased borrowing power and maximized leverage.",
+      description: "Maximize your capital efficiency — start using e-mode today.",
     },
   ];
 
   return (
-    <div className="w-screen h-screen lg:w-full lg:h-[600px] lg:rounded-lg overflow-hidden bg-background">
+    <div className="w-screen h-screen lg:w-full lg:h-[600px] lg:rounded-lg overflow-hidden bg-background-gray">
       <Swiper
         modules={[Pagination, Navigation, EffectFade]}
         slidesPerView={1}
