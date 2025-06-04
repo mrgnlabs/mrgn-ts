@@ -67,7 +67,6 @@ import {
   makeWrapSolIxs,
   MarginfiAccountRaw,
   EmodeTag,
-  createHealthPulseIx,
   EmodePair,
   ActionEmodeImpact,
 } from "../..";
@@ -222,7 +221,8 @@ class MarginfiAccountWrapper {
     const account = await this._marginfiAccount.simulateHealthCache(
       this._program,
       this.client.banks,
-      this.client.oraclePrices
+      this.client.oraclePrices,
+      this.client.bankMetadataMap ?? {}
     );
     return new MarginfiAccountWrapper(this.address, this.client, account);
   }
@@ -1124,7 +1124,7 @@ class MarginfiAccountWrapper {
     if (healthSimOptions?.enabled) {
       const computeIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 });
       const updateFeedIx = await this.makeUpdateFeedIx(healthSimOptions.mandatoryBanks);
-      const healthPulseIx = await this.makeHealthPulseIx(
+      const healthPulseIx = await this.makePulseHealthIx(
         healthSimOptions.mandatoryBanks,
         healthSimOptions.excludedBanks
       );
@@ -1136,7 +1136,7 @@ class MarginfiAccountWrapper {
           instructions: [computeIx, ...updateFeedIx.instructions, ...healthPulseIx.instructions],
           payerKey: this.client.provider.publicKey,
           recentBlockhash: blockhash,
-        }).compileToV0Message([...this.client.addressLookupTables, ...updateFeedIx.luts, ...healthPulseIx.luts])
+        }).compileToV0Message([...this.client.addressLookupTables, ...updateFeedIx.luts])
       );
 
       additionalTxs.push(tx);
@@ -1959,25 +1959,13 @@ class MarginfiAccountWrapper {
     }
   }
 
-  async makeHealthPulseIx(mandatoryBanks: PublicKey[] = [], excludedBanks: PublicKey[] = []) {
-    // Get active banks excluding the excluded ones
-    const activeBanks = this.activeBalances
-      .map((b) => this.client.banks.get(b.bankPk.toBase58()))
-      .filter((bank): bank is NonNullable<typeof bank> => !!bank)
-      .filter((b) => !excludedBanks.some((pk) => pk.equals(b.address)));
-
-    // Get mandatory banks that aren't already in active banks
-    const mandatoryBankObjs = mandatoryBanks
-      .map((bankPk) => this.client.banks.get(bankPk.toBase58()))
-      .filter((bank): bank is NonNullable<typeof bank> => !!bank)
-      .filter((bank) => !activeBanks.some((activeBank) => activeBank.address.equals(bank.address)));
-
-    // Combine active banks with mandatory banks
-    const allBanks = [...activeBanks, ...mandatoryBankObjs];
-
-    return this._marginfiAccount.makeHealthPulseIx(
+  async makePulseHealthIx(mandatoryBanks: PublicKey[] = [], excludedBanks: PublicKey[] = []) {
+    return this._marginfiAccount.makePulseHealthIx(
       this._program,
-      allBanks.map((bank) => [bank.address, bank.oracleKey])
+      this.client.banks,
+      mandatoryBanks,
+      excludedBanks,
+      this.client.bankMetadataMap || {}
     );
   }
 

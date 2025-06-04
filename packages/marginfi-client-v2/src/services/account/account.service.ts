@@ -12,6 +12,7 @@ import BN from "bn.js";
 import * as sb from "@switchboard-xyz/on-demand";
 
 import {
+  BankMetadataMap,
   Program,
   SolanaTransaction,
   bigNumberToWrappedI80F48,
@@ -31,22 +32,31 @@ import { Bank } from "../../models/bank";
 import { OraclePrice } from "../price";
 import { Balance } from "../../models/balance";
 import { feedIdToString } from "../../utils";
-import { crankPythOracleIx, OracleSetup } from "../bank";
-import { computeHealthComponentsWithoutBiasLegacy } from "./utils";
+import { BankType, crankPythOracleIx, OracleSetup } from "../bank";
+import {
+  computeHealthAccountMetas,
+  computeHealthCheckAccounts,
+  computeHealthComponentsWithoutBiasLegacy,
+} from "./utils";
 import { simulateBundle } from "../transaction/helpers";
 import { HealthCache } from "../../models/health-cache";
+import { MarginfiProgram } from "../../types";
+import instructions from "../../instructions";
 
 export async function simulateAccountHealthCacheWithFallback(props: {
   program: Program<MarginfiIdlType>;
   bankMap: Map<string, Bank>;
   oraclePrices: Map<string, OraclePrice>;
   marginfiAccount: MarginfiAccount;
-  activeBalances: Balance[];
+  balances: Balance[];
+  bankMetadataMap: BankMetadataMap;
 }): Promise<MarginfiAccount> {
   let marginfiAccount = props.marginfiAccount;
 
+  const activeBalances = props.balances.filter((b) => b.active);
+
   const { assets: assetValueEquity, liabilities: liabilityValueEquity } = computeHealthComponentsWithoutBiasLegacy(
-    props.activeBalances,
+    activeBalances,
     props.bankMap,
     props.oraclePrices,
     MarginRequirementType.Equity
@@ -58,7 +68,8 @@ export async function simulateAccountHealthCacheWithFallback(props: {
       bankMap: props.bankMap,
       oraclePrices: props.oraclePrices,
       marginfiAccountPk: props.marginfiAccount.address,
-      activeBalances: props.activeBalances,
+      balances: props.balances,
+      bankMetadataMap: props.bankMetadataMap,
     });
 
     simulatedAccount.healthCache.assetValueEquity = bigNumberToWrappedI80F48(assetValueEquity);
@@ -67,14 +78,14 @@ export async function simulateAccountHealthCacheWithFallback(props: {
     marginfiAccount = MarginfiAccount.fromAccountParsed(props.marginfiAccount.address, simulatedAccount);
   } catch (e) {
     const { assets: assetValueMaint, liabilities: liabilityValueMaint } = computeHealthComponentsWithoutBiasLegacy(
-      props.activeBalances,
+      activeBalances,
       props.bankMap,
       props.oraclePrices,
       MarginRequirementType.Maintenance
     );
 
     const { assets: assetValueInitial, liabilities: liabilityValueInitial } = computeHealthComponentsWithoutBiasLegacy(
-      props.activeBalances,
+      activeBalances,
       props.bankMap,
       props.oraclePrices,
       MarginRequirementType.Initial
@@ -104,9 +115,12 @@ export async function simulateAccountHealthCache(props: {
   bankMap: Map<string, Bank>;
   oraclePrices: Map<string, OraclePrice>;
   marginfiAccountPk: PublicKey;
-  activeBalances: Balance[];
+  balances: Balance[];
+  bankMetadataMap: BankMetadataMap;
 }): Promise<MarginfiAccountRaw> {
-  const { program, bankMap, oraclePrices, marginfiAccountPk, activeBalances } = props;
+  const { program, bankMap, oraclePrices, marginfiAccountPk, balances, bankMetadataMap } = props;
+
+  const activeBalances = balances.filter((b) => b.active);
 
   const banks = activeBalances
     .map((b) => {
@@ -115,10 +129,6 @@ export async function simulateAccountHealthCache(props: {
       return bank;
     })
     .filter((b) => b !== undefined);
-
-  const bankAddressAndOraclePair = banks.map((b) => {
-    return [b.address, b.oracleKey];
-  });
 
   const { stalePythFeeds, staleSwbOracles } = getActiveStaleBanks(activeBalances, bankMap, [], oraclePrices, 30);
 
@@ -133,11 +143,16 @@ export async function simulateAccountHealthCache(props: {
           provider: program.provider,
         })
       : { instructions: [], luts: [] };
-  const healthPulseIxs = await createHealthPulseIx({
-    bankAddressAndOraclePair,
-    marginfiAccount: marginfiAccountPk,
+
+  const healthPulseIxs = await makePulseHealthIx(
     program,
-  });
+    marginfiAccountPk,
+    bankMap,
+    balances,
+    activeBalances.map((b) => b.bankPk),
+    [],
+    bankMetadataMap
+  );
 
   const pythLut = crankPythIxs.lut ? [crankPythIxs.lut] : [];
 
@@ -185,24 +200,28 @@ export async function simulateAccountHealthCache(props: {
   return marginfiAccountPost;
 }
 
-export async function createHealthPulseIx(props: {
-  bankAddressAndOraclePair: PublicKey[][];
-  marginfiAccount: PublicKey;
-  program: Program<MarginfiIdlType>;
-}): Promise<{ instructions: TransactionInstruction[]; luts: AddressLookupTableAccount[] }> {
-  const remainingAccounts = composeRemainingAccounts(props.bankAddressAndOraclePair);
+export async function makePulseHealthIx(
+  program: MarginfiProgram,
+  marginfiAccountPk: PublicKey,
+  banks: Map<string, BankType>,
+  balances: BalanceType[],
+  mandatoryBanks: PublicKey[],
+  excludedBanks: PublicKey[],
+  bankMetadataMap: BankMetadataMap
+) {
+  const healthAccounts = computeHealthCheckAccounts(balances, banks, mandatoryBanks, excludedBanks);
+  const accountMetas = computeHealthAccountMetas(healthAccounts, bankMetadataMap);
 
-  const healthPulseIx = await props.program.methods
-    .lendingAccountPulseHealth()
-    .accounts({
-      marginfiAccount: props.marginfiAccount,
-    })
-    .remainingAccounts(remainingAccounts.map((account) => ({ pubkey: account, isSigner: false, isWritable: false })))
-    .instruction();
+  const ix = await instructions.makePulseHealthIx(
+    program,
+    {
+      marginfiAccount: marginfiAccountPk,
+    },
+    accountMetas.map((account) => ({ pubkey: account, isSigner: false, isWritable: false }))
+  );
 
-  return { instructions: [healthPulseIx], luts: [] };
+  return { instructions: [ix], keys: [] };
 }
-
 export async function createUpdateFeedIx(props: {
   swbPullOracles: PublicKey[];
   provider: AnchorProvider;
@@ -332,40 +351,4 @@ export function getActiveStaleBanks(
   }
 
   return { stalePythFeeds: [], staleSwbOracles: [] };
-}
-
-export function computeHealthCheckAccounts(
-  balances: BalanceType[],
-  mandatoryBanks: Bank[] = [],
-  excludedBanks: Bank[] = []
-): PublicKey[] {
-  const activeBalances = balances.filter((b) => b.active);
-
-  const mandatoryBanksSet = new Set(mandatoryBanks.map((b) => b.address.toBase58()));
-  const excludedBanksSet = new Set(excludedBanks.map((b) => b.address.toBase58()));
-  const activeBanks = new Set(activeBalances.map((b) => b.bankPk.toBase58()));
-  const banksToAdd = new Set([...mandatoryBanksSet].filter((x) => !activeBanks.has(x)));
-
-  let slotsToKeep = banksToAdd.size;
-  const projectedActiveBanks = balances
-    .filter((balance) => {
-      if (balance.active) {
-        return !excludedBanksSet.has(balance.bankPk.toBase58());
-      } else if (slotsToKeep > 0) {
-        slotsToKeep--;
-        return true;
-      } else {
-        return false;
-      }
-    })
-    .map((balance) => {
-      if (balance.active) {
-        return balance.bankPk;
-      }
-      const newBank = [...banksToAdd.values()][0];
-      banksToAdd.delete(newBank);
-      return new PublicKey(newBank);
-    });
-
-  return projectedActiveBanks;
 }
