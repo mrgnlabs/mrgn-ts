@@ -32,6 +32,7 @@ interface EmodePopoverProps {
     emodePair: EmodePair;
   }[];
   triggerType?: "weight" | "tag";
+  showActiveOnly?: boolean;
 }
 
 export const EmodePopover = ({
@@ -43,6 +44,7 @@ export const EmodePopover = ({
   collateralBanks,
   liabilityBanks,
   triggerType = "weight",
+  showActiveOnly = false,
 }: EmodePopoverProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [shouldClose, setShouldClose] = React.useState(false);
@@ -63,6 +65,24 @@ export const EmodePopover = ({
   const handleMouseLeave = React.useCallback(() => {
     setShouldClose(true);
   }, []);
+
+  const filteredLiabilityBanks = React.useMemo(() => {
+    if (!showActiveOnly || !liabilityBanks) return liabilityBanks;
+    return liabilityBanks.filter(
+      (item) =>
+        item.liabilityBank.isActive && item.liabilityBank.position.isLending && item.liabilityBank.position.emodeActive
+    );
+  }, [liabilityBanks, showActiveOnly]);
+
+  const filteredCollateralBanks = React.useMemo(() => {
+    if (!showActiveOnly || !collateralBanks) return collateralBanks;
+    return collateralBanks.filter(
+      (item) =>
+        item.collateralBank.isActive &&
+        item.collateralBank.position.isLending &&
+        item.collateralBank.position.emodeActive
+    );
+  }, [collateralBanks, showActiveOnly]);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -102,7 +122,7 @@ export const EmodePopover = ({
             </div>
             <EmodeDiff assetWeight={assetWeight} originalAssetWeight={originalAssetWeight} className="text-center" />
           </div>
-        ) : isInLendingMode && liabilityBanks ? (
+        ) : isInLendingMode && filteredLiabilityBanks ? (
           <div className="flex flex-col gap-4">
             <p className="w-4/5">e-mode pairings available when borrowing from the following banks:</p>
             <Table>
@@ -120,7 +140,7 @@ export const EmodePopover = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {liabilityBanks?.map((liabilityBankItem) => {
+                {filteredLiabilityBanks?.map((liabilityBankItem) => {
                   return (
                     <TableRow key={liabilityBankItem.liabilityBank.address.toBase58()} className="text-xs">
                       <TableCell className="py-1">
@@ -157,7 +177,7 @@ export const EmodePopover = ({
               </TableBody>
             </Table>
           </div>
-        ) : !isInLendingMode && collateralBanks ? (
+        ) : !isInLendingMode && filteredCollateralBanks ? (
           <div className="flex flex-col gap-4">
             <p className="w-4/5">e-mode pairings available when lending to the following banks:</p>
             <Table>
@@ -175,7 +195,7 @@ export const EmodePopover = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {collateralBanks?.map((collateralBankItem) => {
+                {filteredCollateralBanks?.map((collateralBankItem) => {
                   const { assetWeight: collateralAssetWeight } = getAssetWeightData(
                     collateralBankItem.collateralBank,
                     true

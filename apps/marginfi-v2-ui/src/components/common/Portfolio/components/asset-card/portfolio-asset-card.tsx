@@ -214,6 +214,7 @@ export const PortfolioAssetCard = ({
                         collateralBanks={collateralBanks}
                         liabilityBanks={liabilityBanks}
                         triggerType="tag"
+                        showActiveOnly={!isInLendingMode}
                       />
                     )}{" "}
                   </div>
@@ -365,6 +366,7 @@ export const PortfolioAssetCard = ({
                         collateralBanks={collateralBanks}
                         liabilityBanks={liabilityBanks}
                         triggerType="weight"
+                        showActiveOnly={!isInLendingMode}
                       />
                     ) : (
                       percentFormatterMod(assetWeight, {
