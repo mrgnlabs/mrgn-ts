@@ -211,7 +211,7 @@ export async function makePulseHealthIx(
   bankMetadataMap: BankMetadataMap
 ) {
   const healthAccounts = computeHealthCheckAccounts(balances, banks, mandatoryBanks, excludedBanks);
-  const accountMetas = computeHealthAccountMetas(healthAccounts, bankMetadataMap);
+  const accountMetas = computeHealthAccountMetas(healthAccounts, bankMetadataMap, false);
 
   const ix = await instructions.makePulseHealthIx(
     program,

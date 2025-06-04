@@ -344,8 +344,14 @@ export function computeHealthCheckAccounts(
   return projectedActiveBanks;
 }
 
-export function computeHealthAccountMetas(banksToInclude: BankType[], bankMetadataMap?: BankMetadataMap): PublicKey[] {
-  const accounts = composeRemainingAccounts(
+export function computeHealthAccountMetas(
+  banksToInclude: BankType[],
+  bankMetadataMap?: BankMetadataMap,
+  enableSorting = true
+): PublicKey[] {
+  let wrapperFn = enableSorting ? composeRemainingAccounts : (banksAndOracles: PublicKey[][]) => banksAndOracles.flat();
+
+  const accounts = wrapperFn(
     banksToInclude.map((bank) => {
       const keys = [bank.address, bank.oracleKey];
 
