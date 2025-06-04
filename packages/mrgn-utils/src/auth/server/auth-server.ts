@@ -6,7 +6,7 @@ export const createServerSupabaseClient = (req: NextApiRequest, res: NextApiResp
   return createHelperClient(
     { req, res },
     {
-      supabaseKey: process.env.SUPABASE_SERVICE_KEY,
+      supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
     }
   );

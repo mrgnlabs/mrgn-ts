@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { createServerSupabaseClient } from "@mrgnlabs/mrgn-utils";
 import { STATUS_INTERNAL_ERROR, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
+import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 
 export const MAX_DURATION = 60;
 
@@ -17,21 +19,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Use the same server client pattern as other API routes
-    const supabase = createServerSupabaseClient(req, res);
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
     // Calculate date 30 days ago
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const startDate = thirtyDaysAgo.toISOString().split("T")[0]; // YYYY-MM-DD format
 
-    // Query application schema using the server client
+    // Simple query to test connectivity - just get all data for this bank
     const { data: bankMetrics, error } = await supabase
       .schema("application")
       .from("v_bank_metrics_daily")
-      .select("day, borrow_rate_pct, deposit_rate_pct, total_borrows_usd, total_deposits_usd")
-      .eq("bank_address", bankAddress)
-      .gte("day", startDate)
-      .order("day", { ascending: true });
+      .select("*")
+      .eq("bank_address", bankAddress);
 
     if (error) {
       console.error("Error fetching bank metrics from Supabase:", error);
