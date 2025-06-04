@@ -36,6 +36,7 @@ import { BankType, crankPythOracleIx, OracleSetup } from "../bank";
 import {
   computeHealthAccountMetas,
   computeHealthCheckAccounts,
+  computeHealthComponentsLegacy,
   computeHealthComponentsWithoutBiasLegacy,
 } from "./utils";
 import { simulateBundle } from "../transaction/helpers";
@@ -77,14 +78,14 @@ export async function simulateAccountHealthCacheWithFallback(props: {
 
     marginfiAccount = MarginfiAccount.fromAccountParsed(props.marginfiAccount.address, simulatedAccount);
   } catch (e) {
-    const { assets: assetValueMaint, liabilities: liabilityValueMaint } = computeHealthComponentsWithoutBiasLegacy(
+    const { assets: assetValueMaint, liabilities: liabilityValueMaint } = computeHealthComponentsLegacy(
       activeBalances,
       props.bankMap,
       props.oraclePrices,
       MarginRequirementType.Maintenance
     );
 
-    const { assets: assetValueInitial, liabilities: liabilityValueInitial } = computeHealthComponentsWithoutBiasLegacy(
+    const { assets: assetValueInitial, liabilities: liabilityValueInitial } = computeHealthComponentsLegacy(
       activeBalances,
       props.bankMap,
       props.oraclePrices,

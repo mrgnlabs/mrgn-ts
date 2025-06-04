@@ -24,6 +24,7 @@ export function computeFreeCollateral(marginfiAccount: MarginfiAccountType, opts
   const _clamped = opts?.clamped ?? true;
 
   const { assets, liabilities } = computeHealthComponents(marginfiAccount, MarginRequirementType.Initial);
+
   const signedFreeCollateral = assets.minus(liabilities);
 
   return _clamped ? BigNumber.max(0, signedFreeCollateral) : signedFreeCollateral;

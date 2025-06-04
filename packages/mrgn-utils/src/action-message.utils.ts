@@ -198,8 +198,10 @@ function getGeneralChecks(
   let checks: ActionMessageType[] = [];
 
   if (marginfiAccount) {
-    checks.push(STATIC_SIMULATION_ERRORS.HEALTH_SIMULATION_CHECK);
-    return checks;
+    if (marginfiAccount.data.healthCache.simulationFailed) {
+      checks.push(STATIC_SIMULATION_ERRORS.HEALTH_SIMULATION_CHECK);
+      return checks;
+    }
   }
 
   if (showCloseBalance) {
