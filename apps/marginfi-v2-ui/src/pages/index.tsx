@@ -53,10 +53,6 @@ export default function HomePage() {
     state.emodePairs,
   ]);
 
-  const emodeStrategies = React.useMemo(() => {
-    return getEmodeStrategies(extendedBankInfos);
-  }, [extendedBankInfos]);
-
   const annoucements = React.useMemo(() => {
     let banks: (ExtendedBankInfo | undefined)[] = [];
 
@@ -129,7 +125,7 @@ export default function HomePage() {
             <div className="p-4 space-y-1 w-full">
               {emodePairs.length > 0 && (
                 <div className="max-w-[480px] mx-auto">
-                  <EmodePortfolio userActiveEmodes={userActiveEmodes} />
+                  <EmodePortfolio userActiveEmodes={userActiveEmodes} extendedBankInfos={extendedBankInfos} />
                 </div>
               )}
               <ActionBox.BorrowLend

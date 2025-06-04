@@ -1,21 +1,27 @@
 import { IconSparkles, IconSearch } from "@tabler/icons-react";
-import { EmodeTag, EmodePair } from "@mrgnlabs/marginfi-client-v2";
+import { EmodePair } from "@mrgnlabs/marginfi-client-v2";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { Badge } from "~/components/ui/badge";
 import { EmodeExplore, EmodeStrategies } from "~/components/common/emode/components";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Button } from "~/components/ui/button";
-import { IconEmode, IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
+import { IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type EmodePortfolioProps = {
+  extendedBankInfos: ExtendedBankInfo[];
   userActiveEmodes: EmodePair[];
   filterEmode?: boolean;
   setFilterEmode?: (filterEmode: boolean) => void;
 };
 
-const EmodePortfolio = ({ userActiveEmodes, filterEmode = false, setFilterEmode }: EmodePortfolioProps) => {
+const EmodePortfolio = ({
+  extendedBankInfos,
+  userActiveEmodes,
+  filterEmode = false,
+  setFilterEmode,
+}: EmodePortfolioProps) => {
   const emodeActive = userActiveEmodes.length > 0;
   return (
     <div className="flex flex-col lg:flex-row items-center gap-3 justify-between">
@@ -39,7 +45,7 @@ const EmodePortfolio = ({ userActiveEmodes, filterEmode = false, setFilterEmode 
           />
         </div>
       </div>
-      <EmodeStrategies />
+      <EmodeStrategies extendedBankInfos={extendedBankInfos} />
       {emodeActive && setFilterEmode && (
         <div className="items-center gap-2 shrink-0 hidden lg:flex">
           <Label htmlFor="pairings" className="text-sm text-muted-foreground flex items-center gap-1">

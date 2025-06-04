@@ -530,6 +530,7 @@ export const LendingPortfolio = () => {
               }}
             >
               <EmodePortfolio
+                extendedBankInfos={sortedBanks}
                 userActiveEmodes={userActiveEmodes}
                 filterEmode={filterEmode}
                 setFilterEmode={setFilterEmode}

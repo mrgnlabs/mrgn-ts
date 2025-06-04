@@ -8,6 +8,7 @@ export function getEmodeStrategies(extendedBanks: ExtendedBankInfo[]) {
   const blockingBorrowEmodeBanks: ExtendedBankInfo[] = [];
   const activateBorrowEmodeBanks: ExtendedBankInfo[] = [];
   const activateSupplyEmodeBanks: ExtendedBankInfo[] = [];
+  const increaseSupplyEmodeBanks: ExtendedBankInfo[] = [];
 
   for (const bank of extendedBanks) {
     const impact = bank.userInfo.emodeImpact;
@@ -32,6 +33,9 @@ export function getEmodeStrategies(extendedBanks: ExtendedBankInfo[]) {
       if (impact.supplyImpact.status === EmodeImpactStatus.ActivateEmode) {
         activateSupplyEmodeBanks.push(bank);
       }
+      if (impact.supplyImpact.status === EmodeImpactStatus.IncreaseEmode) {
+        increaseSupplyEmodeBanks.push(bank);
+      }
     }
   }
 
@@ -39,5 +43,6 @@ export function getEmodeStrategies(extendedBanks: ExtendedBankInfo[]) {
     blockingBorrowEmodeBanks,
     activateBorrowEmodeBanks,
     activateSupplyEmodeBanks,
+    increaseSupplyEmodeBanks,
   };
 }

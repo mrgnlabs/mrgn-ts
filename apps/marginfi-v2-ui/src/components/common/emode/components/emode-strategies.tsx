@@ -1,5 +1,9 @@
+import React from "react";
+
 import Image from "next/image";
 import { IconSparkles } from "@tabler/icons-react";
+
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import {
   Dialog,
@@ -12,6 +16,11 @@ import {
 import { Button } from "~/components/ui/button";
 import { IconEmodeSimple } from "~/components/ui/icons";
 import { Table, TableBody, TableCell, TableRow } from "~/components/ui/table";
+
+import { getEmodeStrategies } from "~/emode.utils";
+import { ActionBox, useWallet } from "~/components";
+import { useMrgnlendStore } from "~/store";
+import { capture } from "~/analytics";
 
 const mockStrategies = [
   {
@@ -34,8 +43,77 @@ const mockStrategies = [
   },
 ];
 
-const EmodeStrategies = () => {
-  return (
+type EmodeStrategiesType = {
+  symbol: string;
+  description: string;
+  icon: string;
+  action: ActionType;
+  bank: ExtendedBankInfo;
+};
+
+type EmodeStrategiesProps = {
+  extendedBankInfos: ExtendedBankInfo[];
+};
+
+const EmodeStrategies = ({ extendedBankInfos }: EmodeStrategiesProps) => {
+  const { walletContextState, connected } = useWallet();
+
+  const [fetchMrgnlendState, stakeAccounts] = useMrgnlendStore((state) => [
+    state.fetchMrgnlendState,
+    state.stakeAccounts,
+  ]);
+
+  const emodeStrategies = React.useMemo(() => {
+    if (!extendedBankInfos) return [];
+
+    const strategies: EmodeStrategiesType[] = [];
+    const { activateBorrowEmodeBanks, activateSupplyEmodeBanks, increaseSupplyEmodeBanks, blockingBorrowEmodeBanks } =
+      getEmodeStrategies(extendedBankInfos);
+
+    activateBorrowEmodeBanks.forEach((bank) => {
+      strategies.push({
+        symbol: bank.meta.tokenSymbol,
+        description: "Borrow " + bank.meta.tokenSymbol + " to enable e-mode boost.",
+        icon: bank.meta.tokenLogoUri,
+        action: ActionType.Borrow,
+        bank,
+      });
+    });
+
+    activateSupplyEmodeBanks.forEach((bank) => {
+      strategies.push({
+        symbol: bank.meta.tokenSymbol,
+        description: "Deposit " + bank.meta.tokenSymbol + " to enable e-mode boost.",
+        icon: bank.meta.tokenLogoUri,
+        action: ActionType.Deposit,
+        bank,
+      });
+    });
+
+    increaseSupplyEmodeBanks.forEach((bank) => {
+      strategies.push({
+        symbol: bank.meta.tokenSymbol,
+        description: "Deposit " + bank.meta.tokenSymbol + " to increase e-mode boost.",
+        icon: bank.meta.tokenLogoUri,
+        action: ActionType.Deposit,
+        bank,
+      });
+    });
+
+    blockingBorrowEmodeBanks.forEach((bank) => {
+      strategies.push({
+        symbol: bank.meta.tokenSymbol,
+        description: "Repay " + bank.meta.tokenSymbol + " to activate e-mode boost.",
+        icon: bank.meta.tokenLogoUri,
+        action: ActionType.Repay,
+        bank,
+      });
+    });
+
+    return strategies;
+  }, [extendedBankInfos]);
+
+  return emodeStrategies.length > 0 ? (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="secondary" size="sm" className="bg-gradient-to-r to-[#483975] from-[#292E32]">
@@ -59,28 +137,50 @@ const EmodeStrategies = () => {
         <div className="w-full">
           <Table>
             <TableBody>
-              {mockStrategies.map((strategy) => {
+              {emodeStrategies.map((strategy) => {
                 return (
-                  <TableRow key={strategy.name} className="even:bg-accent">
+                  <TableRow key={strategy.symbol} className="even:bg-accent">
                     <TableCell className="p-3">
                       <div className="flex items-center gap-2.5">
                         <Image
                           src={strategy.icon}
-                          alt={strategy.name}
+                          alt={strategy.symbol}
                           width={32}
                           height={32}
                           className="rounded-full"
                         />
-                        {strategy.name}
+                        {strategy.symbol}
                       </div>
                     </TableCell>
                     <TableCell className="p-3">
                       <p className="text-xs">{strategy.description}</p>
                     </TableCell>
                     <TableCell className="text-right p-3">
-                      <Button size="sm" className="w-full">
-                        {strategy.action}
-                      </Button>
+                      <ActionBox.Lend
+                        useProvider={true}
+                        lendProps={{
+                          requestedLendType: strategy.action,
+                          requestedBank: strategy.bank,
+                          walletContextState: walletContextState,
+                          connected: connected,
+                          stakeAccounts: [],
+                          captureEvent: (event, properties) => {
+                            capture(event, properties);
+                          },
+                          onComplete: () => {
+                            fetchMrgnlendState();
+                          },
+                        }}
+                        isDialog={true}
+                        dialogProps={{
+                          trigger: (
+                            <Button size="sm" className="w-full">
+                              {strategy.action}
+                            </Button>
+                          ),
+                          title: `${strategy.action} ${strategy.bank?.meta.tokenSymbol}`,
+                        }}
+                      />
                     </TableCell>
                   </TableRow>
                 );
@@ -90,6 +190,8 @@ const EmodeStrategies = () => {
         </div>
       </DialogContent>
     </Dialog>
+  ) : (
+    <></>
   );
 };
 
