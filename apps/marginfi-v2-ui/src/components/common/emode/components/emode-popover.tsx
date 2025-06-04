@@ -3,11 +3,12 @@
 import React from "react";
 
 import Image from "next/image";
-import { IconExternalLink } from "@tabler/icons-react";
+import { IconInfoCircle } from "@tabler/icons-react";
 import { EmodePair, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { percentFormatterMod } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { cn, getAssetWeightData } from "@mrgnlabs/mrgn-utils";
+import { useDebounce } from "@uidotdev/usehooks";
 
 import { EmodeDiff } from "./emode-diff";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
@@ -43,24 +44,57 @@ export const EmodePopover = ({
   liabilityBanks,
   triggerType = "weight",
 }: EmodePopoverProps) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [shouldClose, setShouldClose] = React.useState(false);
+  const debouncedShouldClose = useDebounce(shouldClose, 300);
+
+  React.useEffect(() => {
+    if (debouncedShouldClose) {
+      setIsOpen(false);
+      setShouldClose(false);
+    }
+  }, [debouncedShouldClose]);
+
+  const handleMouseEnter = React.useCallback(() => {
+    setShouldClose(false);
+    setIsOpen(true);
+  }, []);
+
+  const handleMouseLeave = React.useCallback(() => {
+    setShouldClose(true);
+  }, []);
+
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       {triggerType === "weight" ? (
-        <PopoverTrigger className={cn("flex items-center", emodeActive && "text-mfi-emode")}>
+        <PopoverTrigger
+          className={cn("flex items-center", emodeActive && "text-mfi-emode")}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           {emodeActive ? <IconEmodeSimple size={20} /> : <IconEmodeSimpleInactive size={18} />}
           <span className="min-w-[33px] text-right mr-1.5 ml-0.5">
             {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}
           </span>
-          <IconExternalLink size={12} className={cn(emodeActive && "text-mfi-emode")} />
+          <IconInfoCircle size={13} className={cn(emodeActive && "text-mfi-emode")} />
         </PopoverTrigger>
       ) : (
-        <PopoverTrigger className="flex items-center gap-1">
+        <PopoverTrigger
+          className="flex items-center gap-1"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           <Badge variant="emode" className={cn("pr-2.5", !emodeActive && "text-foreground")}>
             {emodeActive ? <IconEmodeSimple size={18} /> : <IconEmodeSimpleInactive size={18} />} {emodeTag}
           </Badge>
         </PopoverTrigger>
       )}
-      <PopoverContent className="w-auto text-xs md:py-3 md:px-4" side="top">
+      <PopoverContent
+        className="w-auto text-xs md:py-3 md:px-4"
+        side="top"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         {isInLendingMode && emodeActive && originalAssetWeight ? (
           <div className="flex flex-col gap-1">
             <div className="flex gap-1 items-center">
