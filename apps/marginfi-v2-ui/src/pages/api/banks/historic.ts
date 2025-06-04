@@ -1,19 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { createClient } from "@supabase/supabase-js";
+import { createServerSupabaseClient } from "@mrgnlabs/mrgn-utils";
 import { STATUS_INTERNAL_ERROR, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
 
 export const MAX_DURATION = 60;
-
-// Create Supabase client using anon key for public data access
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-  db: {
-    schema: "application",
-  },
-});
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "GET") {
@@ -27,13 +16,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Bank address is required" });
     }
 
+    // Use the same server client pattern as other API routes
+    const supabase = createServerSupabaseClient(req, res);
+
     // Calculate date 30 days ago
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const startDate = thirtyDaysAgo.toISOString().split("T")[0]; // YYYY-MM-DD format
 
-    // Query Supabase for historical bank metrics
+    // Query application schema using the server client
     const { data: bankMetrics, error } = await supabase
+      .schema("application")
       .from("v_bank_metrics_daily")
       .select("day, borrow_rate_pct, deposit_rate_pct, total_borrows_usd, total_deposits_usd")
       .eq("bank_address", bankAddress)
@@ -53,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Transform data to match expected format
-    const formattedData = bankMetrics.map((entry) => ({
+    const formattedData = bankMetrics.map((entry: any) => ({
       timestamp: entry.day,
       borrowRate: entry.borrow_rate_pct || 0,
       depositRate: entry.deposit_rate_pct || 0,

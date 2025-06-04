@@ -7,7 +7,14 @@ import { IconAlertCircle, IconInfoCircle, IconSearch, IconSparkles, IconX } from
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { cn, ExecuteActionProps, ExecuteCollectRewardsAction, usePrevious, useConnection } from "@mrgnlabs/mrgn-utils";
+import {
+  cn,
+  ExecuteActionProps,
+  ExecuteCollectRewardsAction,
+  usePrevious,
+  useConnection,
+  useAuth,
+} from "@mrgnlabs/mrgn-utils";
 import { CustomToastType, toastManager } from "@mrgnlabs/mrgn-toasts";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
 
@@ -44,7 +51,10 @@ const initialRewardsState: RewardsType = {
 };
 
 export const LendingPortfolio = () => {
-  const { connected, walletAddress, wallet } = useWallet();
+  const { connected, wallet, walletAddress } = useWallet();
+  const { connection } = useConnection();
+  const { user, isAuthenticating, authenticateUser } = useAuth();
+
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
   const { extendedBanks: sortedBanks } = useExtendedBanks(walletAddress);
   const accountSummary = useAccountSummary(walletAddress);
@@ -93,6 +103,40 @@ export const LendingPortfolio = () => {
     setErrorMessage: () => {}, // No error handling, should fail silently since it is on page load.
     setActionTxn,
   });
+
+  // Authentication and interest earned logic
+  const handleAuthAction = React.useCallback(async () => {
+    if (user) {
+      // User is authenticated, this would be logout functionality
+      console.log("Logout functionality not implemented yet");
+    } else {
+      // User not authenticated, authenticate them
+      try {
+        if (wallet && connection) {
+          await authenticateUser(wallet, connection);
+        }
+      } catch (error) {
+        console.error("Authentication failed:", error);
+      }
+    }
+  }, [user, wallet, connection, authenticateUser]);
+
+  // Fetch interest earned when user is authenticated
+  React.useEffect(() => {
+    const fetchInterestEarned = async () => {
+      if (!user || !walletAddress) return;
+
+      try {
+        const response = await fetch(`/api/user/interest-earned?wallet_address=${walletAddress.toBase58()}`);
+        const data = await response.json();
+        console.log("Interest earned data:", data);
+      } catch (error) {
+        console.error("Error fetching interest earned:", error);
+      }
+    };
+
+    fetchInterestEarned();
+  }, [user, walletAddress]);
 
   ////////////////////////////
   // handleSimulation logic //
@@ -360,6 +404,13 @@ export const LendingPortfolio = () => {
 
   return (
     <div className="flex flex-col items-center md:items-start w-full gap-4">
+      {/* Auth Button - Simple proof of concept */}
+      <div className="w-full flex justify-end mb-4">
+        <Button onClick={handleAuthAction} disabled={isAuthenticating} variant={user ? "outline" : "default"} size="sm">
+          {isAuthenticating ? "Authenticating..." : user ? "Logout" : "Login"}
+        </Button>
+      </div>
+
       <div className="pb-6 md:p-6 rounded-xl w-full md:bg-muted/25">
         <div className={cn("transition-opacity duration-500")}>
           <div className="flex items-center gap-4 w-full">

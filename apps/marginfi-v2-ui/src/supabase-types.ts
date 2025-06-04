@@ -1713,27 +1713,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "parsed_transactions_lending_account_borro_marginfi_account_fkey"
-            columns: ["marginfi_account"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_account"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_borrow_bank_fkey"
-            columns: ["bank"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_bank"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_borrow_group_fkey"
-            columns: ["group"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_group"
-            referencedColumns: ["address"]
-          },
-          {
             foreignKeyName: "parsed_transactions_lending_account_borrow_instruction_id_fkey"
             columns: ["instruction_id"]
             isOneToOne: true
@@ -1784,32 +1763,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "parsed_transactions_lending_account_borr_marginfi_account_fkey1"
-            columns: ["marginfi_account"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_account"
-            referencedColumns: ["address"]
-          },
-          {
             foreignKeyName: "parsed_transactions_lending_account_borrow__instruction_id_fkey"
             columns: ["instruction_id"]
             isOneToOne: true
             referencedRelation: "raw_instructions"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_borrow__marginfi_group_fkey"
-            columns: ["marginfi_group"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_group"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_borrow_event_bank_fkey"
-            columns: ["bank"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_bank"
-            referencedColumns: ["address"]
           },
         ]
       }
@@ -1857,27 +1815,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "parsed_transactions_lending_account_depos_marginfi_account_fkey"
-            columns: ["marginfi_account"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_account"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_deposit_bank_fkey"
-            columns: ["bank"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_bank"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_deposit_group_fkey"
-            columns: ["group"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_group"
-            referencedColumns: ["address"]
-          },
           {
             foreignKeyName: "parsed_transactions_lending_account_deposit_instruction_id_fkey"
             columns: ["instruction_id"]
@@ -1929,32 +1866,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "parsed_transactions_lending_account_depo_marginfi_account_fkey1"
-            columns: ["marginfi_account"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_account"
-            referencedColumns: ["address"]
-          },
-          {
             foreignKeyName: "parsed_transactions_lending_account_deposi_instruction_id_fkey1"
             columns: ["instruction_id"]
             isOneToOne: true
             referencedRelation: "raw_instructions"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_deposit_event_bank_fkey"
-            columns: ["bank"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_bank"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_deposit_marginfi_group_fkey"
-            columns: ["marginfi_group"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_group"
-            referencedColumns: ["address"]
           },
         ]
       }
@@ -2009,46 +1925,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "parsed_transactions_lending_ac_liquidatee_marginfi_account_fkey"
-            columns: ["liquidatee_marginfi_account"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_account"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_ac_liquidator_marginfi_account_fkey"
-            columns: ["liquidator_marginfi_account"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_account"
-            referencedColumns: ["address"]
-          },
-          {
             foreignKeyName: "parsed_transactions_lending_account_liquida_instruction_id_fkey"
             columns: ["instruction_id"]
             isOneToOne: true
             referencedRelation: "raw_instructions"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_liquidate_asset_bank_fkey"
-            columns: ["asset_bank"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_bank"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_liquidate_group_fkey"
-            columns: ["group"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_group"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_liquidate_liab_bank_fkey"
-            columns: ["liab_bank"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_bank"
-            referencedColumns: ["address"]
           },
         ]
       }
@@ -2133,46 +2014,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "parsed_transactions_lending_a_liquidatee_marginfi_account_fkey1"
-            columns: ["liquidatee_marginfi_account"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_account"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_liqui_marginfi_account_fkey"
-            columns: ["marginfi_account"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_account"
-            referencedColumns: ["address"]
-          },
-          {
             foreignKeyName: "parsed_transactions_lending_account_liquid_instruction_id_fkey1"
             columns: ["instruction_id"]
             isOneToOne: true
             referencedRelation: "raw_instructions"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_liquida_liability_bank_fkey"
-            columns: ["liability_bank"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_bank"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_liquida_marginfi_group_fkey"
-            columns: ["marginfi_group"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_group"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_liquidate_e_asset_bank_fkey"
-            columns: ["asset_bank"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_bank"
-            referencedColumns: ["address"]
           },
         ]
       }
@@ -2221,32 +2067,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "parsed_transactions_lending_account_repay_bank_fkey"
-            columns: ["bank"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_bank"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_repay_group_fkey"
-            columns: ["group"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_group"
-            referencedColumns: ["address"]
-          },
-          {
             foreignKeyName: "parsed_transactions_lending_account_repay_instruction_id_fkey"
             columns: ["instruction_id"]
             isOneToOne: true
             referencedRelation: "raw_instructions"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_repay_marginfi_account_fkey"
-            columns: ["marginfi_account"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_account"
-            referencedColumns: ["address"]
           },
         ]
       }
@@ -2295,32 +2120,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "parsed_transactions_lending_account_repa_marginfi_account_fkey1"
-            columns: ["marginfi_account"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_account"
-            referencedColumns: ["address"]
-          },
-          {
             foreignKeyName: "parsed_transactions_lending_account_repay_e_instruction_id_fkey"
             columns: ["instruction_id"]
             isOneToOne: true
             referencedRelation: "raw_instructions"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_repay_e_marginfi_group_fkey"
-            columns: ["marginfi_group"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_group"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_repay_event_bank_fkey"
-            columns: ["bank"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_bank"
-            referencedColumns: ["address"]
           },
         ]
       }
@@ -2369,32 +2173,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "parsed_transactions_lending_account_withd_marginfi_account_fkey"
-            columns: ["marginfi_account"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_account"
-            referencedColumns: ["address"]
-          },
-          {
             foreignKeyName: "parsed_transactions_lending_account_withdra_instruction_id_fkey"
             columns: ["instruction_id"]
             isOneToOne: true
             referencedRelation: "raw_instructions"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_withdraw_bank_fkey"
-            columns: ["bank"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_bank"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_withdraw_group_fkey"
-            columns: ["group"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_group"
-            referencedColumns: ["address"]
           },
         ]
       }
@@ -2443,32 +2226,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "parsed_transactions_lending_account_with_marginfi_account_fkey1"
-            columns: ["marginfi_account"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_account"
-            referencedColumns: ["address"]
-          },
-          {
             foreignKeyName: "parsed_transactions_lending_account_withdr_instruction_id_fkey1"
             columns: ["instruction_id"]
             isOneToOne: true
             referencedRelation: "raw_instructions"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_withdra_marginfi_group_fkey"
-            columns: ["marginfi_group"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_group"
-            referencedColumns: ["address"]
-          },
-          {
-            foreignKeyName: "parsed_transactions_lending_account_withdraw_event_bank_fkey"
-            columns: ["bank"]
-            isOneToOne: false
-            referencedRelation: "base_mrgn_bank"
-            referencedColumns: ["address"]
           },
         ]
       }
@@ -2547,6 +2309,8 @@ export type Database = {
           data_type: number
           id: number
           last_seen_at: string
+          last_seen_slot: number | null
+          slot: number | null
         }
         Insert: {
           address: string
@@ -2555,6 +2319,8 @@ export type Database = {
           data_type: number
           id?: number
           last_seen_at?: string
+          last_seen_slot?: number | null
+          slot?: number | null
         }
         Update: {
           address?: string
@@ -2563,6 +2329,8 @@ export type Database = {
           data_type?: number
           id?: number
           last_seen_at?: string
+          last_seen_slot?: number | null
+          slot?: number | null
         }
         Relationships: []
       }
@@ -2804,6 +2572,73 @@ export type Database = {
         }
         Relationships: []
       }
+      v_account_balance_with_empty_positions: {
+        Row: {
+          asset_shares: number | null
+          bank_asset_tag: number | null
+          bank_pk: string | null
+          created_at: string | null
+          emissions_outstanding: number | null
+          index: number | null
+          last_update: number | null
+          liability_shares: number | null
+          parse_version: number | null
+          parsed_account_id: number | null
+          price: number | null
+          raw_snapshot_id: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parsed_state_snapshots_account_balance_bank_pk_fkey"
+            columns: ["bank_pk"]
+            isOneToOne: false
+            referencedRelation: "base_mrgn_bank"
+            referencedColumns: ["address"]
+          },
+          {
+            foreignKeyName: "parsed_state_snapshots_account_balance_parsed_account_id_fkey"
+            columns: ["parsed_account_id"]
+            isOneToOne: false
+            referencedRelation: "parsed_state_snapshots_account"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parsed_state_snapshots_account_balance_raw_snapshot_id_fkey"
+            columns: ["raw_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "raw_state_snapshots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parsed_state_snapshots_account_balance_raw_snapshot_id_fkey"
+            columns: ["raw_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "v_raw_state_snapshots_readable"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parsed_state_snapshots_account_balance_raw_snapshot_id_fkey"
+            columns: ["raw_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "v_unparsed_state_snapshots_account"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parsed_state_snapshots_account_balance_raw_snapshot_id_fkey"
+            columns: ["raw_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "v_unparsed_state_snapshots_bank"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parsed_state_snapshots_account_balance_raw_snapshot_id_fkey"
+            columns: ["raw_snapshot_id"]
+            isOneToOne: false
+            referencedRelation: "v_unparsed_state_snapshots_group"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_job_tracker_readable: {
         Row: {
           begin_time: string | null
@@ -3025,6 +2860,8 @@ export type Database = {
           data_type: number | null
           id: number | null
           last_seen_at: string | null
+          last_seen_slot: number | null
+          slot: number | null
         }
         Relationships: []
       }
@@ -3036,6 +2873,8 @@ export type Database = {
           data_type: number | null
           id: number | null
           last_seen_at: string | null
+          last_seen_slot: number | null
+          slot: number | null
         }
         Relationships: []
       }
@@ -3047,6 +2886,8 @@ export type Database = {
           data_type: number | null
           id: number | null
           last_seen_at: string | null
+          last_seen_slot: number | null
+          slot: number | null
         }
         Relationships: []
       }
