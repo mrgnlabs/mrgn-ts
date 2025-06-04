@@ -84,9 +84,9 @@ export const EmodePopover = ({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          <Badge variant="emode" className={cn("pr-2.5", !emodeActive && "text-foreground")}>
-            {emodeActive ? <IconEmodeSimple size={18} /> : <IconEmodeSimpleInactive size={18} />} {emodeTag}
-          </Badge>
+          <div className="min-w-[33px] text-right mr-1.5">
+            {emodeActive ? <IconEmodeSimple size={18} /> : <IconEmodeSimpleInactive size={18} />}
+          </div>
         </PopoverTrigger>
       )}
       <PopoverContent

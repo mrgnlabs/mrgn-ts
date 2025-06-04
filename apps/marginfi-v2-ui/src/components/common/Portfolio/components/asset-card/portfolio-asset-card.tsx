@@ -195,7 +195,27 @@ export const PortfolioAssetCard = ({
               <div className="flex flex-col w-full">
                 <div className="flex justify-between items-center w-full">
                   <div className="flex items-center gap-2 font-medium text-lg">
-                    {bank.meta.tokenSymbol} {isEmodeActive && <IconEmodeSimple size={18} />}{" "}
+                    {bank.meta.tokenSymbol}{" "}
+                    {isEmodeActive && (
+                      <EmodePopover
+                        assetWeight={assetWeight}
+                        originalAssetWeight={originalAssetWeight}
+                        emodeActive={isEmodeActive}
+                        emodeTag={
+                          isInLendingMode
+                            ? liabilityBanks.length > 0
+                              ? EmodeTag[liabilityBanks[0].emodePair.liabilityBankTag]
+                              : undefined
+                            : collateralBanks.length > 0
+                              ? EmodeTag[collateralBanks[0].emodePair.collateralBankTag]
+                              : undefined
+                        }
+                        isInLendingMode={isInLendingMode}
+                        collateralBanks={collateralBanks}
+                        liabilityBanks={liabilityBanks}
+                        triggerType="tag"
+                      />
+                    )}{" "}
                   </div>
                   <div className="font-medium text-lg text-right">
                     {dynamicNumeralFormatter(bank.position.amount, {
