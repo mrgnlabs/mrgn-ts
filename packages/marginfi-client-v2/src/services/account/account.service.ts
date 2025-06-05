@@ -211,7 +211,11 @@ export async function makePulseHealthIx(
   bankMetadataMap: BankMetadataMap
 ) {
   const healthAccounts = computeHealthCheckAccounts(balances, banks, mandatoryBanks, excludedBanks);
-  const accountMetas = computeHealthAccountMetas(healthAccounts, bankMetadataMap, false);
+  const accountMetas = computeHealthAccountMetas(healthAccounts, bankMetadataMap);
+
+  const sortIx = await instructions.makeLendingAccountSortBalancesIx(program, {
+    marginfiAccount: marginfiAccountPk,
+  });
 
   const ix = await instructions.makePulseHealthIx(
     program,
@@ -221,7 +225,7 @@ export async function makePulseHealthIx(
     accountMetas.map((account) => ({ pubkey: account, isSigner: false, isWritable: false }))
   );
 
-  return { instructions: [ix], keys: [] };
+  return { instructions: [sortIx, ix], keys: [] };
 }
 export async function createUpdateFeedIx(props: {
   swbPullOracles: PublicKey[];

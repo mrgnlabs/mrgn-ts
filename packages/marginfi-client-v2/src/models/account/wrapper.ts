@@ -248,6 +248,28 @@ class MarginfiAccountWrapper {
     return this._marginfiAccount.computeHealthComponents(marginRequirement);
   }
 
+  public computeHealthComponentsLegacy(marginRequirement: MarginRequirementType): {
+    assets: BigNumber;
+    liabilities: BigNumber;
+  } {
+    return this._marginfiAccount.computeHealthComponentsLegacy(
+      this.client.banks,
+      this.client.oraclePrices,
+      marginRequirement
+    );
+  }
+
+  public computeHealthComponentsWithoutBiasLegacy(marginRequirement: MarginRequirementType): {
+    assets: BigNumber;
+    liabilities: BigNumber;
+  } {
+    return this._marginfiAccount.computeHealthComponentsWithoutBiasLegacy(
+      this.client.banks,
+      this.client.oraclePrices,
+      marginRequirement
+    );
+  }
+
   public computeFreeCollateral(opts?: { clamped?: boolean }): BigNumber {
     return this._marginfiAccount.computeFreeCollateral(opts);
   }
@@ -1178,6 +1200,9 @@ class MarginfiAccountWrapper {
       mfiAccountData,
       this._program.idl
     );
+
+    const decodedAccount = MarginfiAccount.decodeAccountRaw(mfiAccountData, this._program.idl);
+    console.log({ decodedAccount });
 
     console.log({ previewMarginfiAccount });
     return {
