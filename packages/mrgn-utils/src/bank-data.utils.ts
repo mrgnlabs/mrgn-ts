@@ -245,7 +245,7 @@ export const getAssetWeightData = (
   return {
     assetWeight,
     originalAssetWeight,
-    emodeActive: bank.isActive && bank.position.emodeActive,
+    emodeActive: bank.isActive && bank.position.emodeActive && bank.position.isLending && isInLendingMode,
     collateralBanks: collateralBanks,
     liabilityBanks: liabilityBanks,
     isInLendingMode,
