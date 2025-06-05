@@ -63,7 +63,7 @@ const EmodeExplore = ({ trigger, initialBank, emodeTag }: EmodeExploreProps) => 
             .
           </DialogDescription>
         </DialogHeader>
-        <EmodeTable initialBank={initialBank} emodeTag={emodeTag} />
+        <EmodeTable initialBank={initialBank} />
       </DialogContent>
     </Dialog>
   );

@@ -18,13 +18,12 @@ import { cn } from "~/theme";
 
 interface EmodeTableProps {
   initialBank?: ExtendedBankInfo;
-  emodeTag?: EmodeTag;
   align?: "center" | "left";
   className?: string;
   showTag?: boolean;
 }
 
-const EmodeTable = ({ initialBank, emodeTag, align = "center", className, showTag = true }: EmodeTableProps) => {
+const EmodeTable = ({ initialBank, align = "center", className, showTag = true }: EmodeTableProps) => {
   const [extendedBankInfos, emodePairs, collateralBanksByLiabilityBank, liabilityBanksByCollateralBank] =
     useMrgnlendStore((state) => [
       state.extendedBankInfos,
@@ -39,12 +38,11 @@ const EmodeTable = ({ initialBank, emodeTag, align = "center", className, showTa
     return Array.from(
       new Set(
         emodePairs
-          .filter((pair) => (emodeTag ? pair.liabilityBankTag === emodeTag : true))
           .map((pair) => extendedBankInfos.find((bank) => bank.address.toBase58() === pair.liabilityBank.toString()))
           .filter((bank) => bank !== undefined)
       )
     );
-  }, [emodePairs, extendedBankInfos, emodeTag]);
+  }, [emodePairs, extendedBankInfos]);
 
   const collateralBanks = React.useMemo(() => {
     return selectedBank ? collateralBanksByLiabilityBank[selectedBank.address.toBase58()] : [];
@@ -186,11 +184,7 @@ const EmodeTable = ({ initialBank, emodeTag, align = "center", className, showTa
                       {bnk.meta.tokenSymbol}
                     </div>
                   </TableCell>
-                  {showTag && (
-                    <TableCell className="lowercase">
-                      {EmodeTag[emodePair.collateralBankTag || emodePair.liabilityBankTag]}
-                    </TableCell>
-                  )}
+                  {showTag && <TableCell className="lowercase">{EmodeTag[bnk.info.rawBank.emode.emodeTag]}</TableCell>}
                   <TableCell>
                     {percentFormatterMod(originalAssetWeight || assetWeight, {
                       minFractionDigits: 0,
