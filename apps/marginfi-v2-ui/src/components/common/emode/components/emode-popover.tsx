@@ -196,7 +196,7 @@ export const EmodePopover = ({
               </TableHeader>
               <TableBody>
                 {filteredCollateralBanks?.map((collateralBankItem) => {
-                  const { assetWeight: collateralAssetWeight } = getAssetWeightData(
+                  const { originalAssetWeight: collateralOriginalAssetWeight } = getAssetWeightData(
                     collateralBankItem.collateralBank,
                     true
                   );
@@ -218,7 +218,7 @@ export const EmodePopover = ({
                         {EmodeTag[collateralBankItem.emodePair.collateralBankTag]}
                       </TableCell>
                       <TableCell className="py-1">
-                        {percentFormatterMod(collateralAssetWeight || 0, {
+                        {percentFormatterMod(collateralOriginalAssetWeight || 0, {
                           minFractionDigits: 0,
                           maxFractionDigits: 2,
                         })}
@@ -226,7 +226,7 @@ export const EmodePopover = ({
                       <TableCell className="py-1">
                         <EmodeDiff
                           assetWeight={collateralBankItem.emodePair.assetWeightInit.toNumber()}
-                          originalAssetWeight={collateralAssetWeight}
+                          originalAssetWeight={collateralOriginalAssetWeight}
                           className="text-mfi-emode"
                         />
                       </TableCell>
