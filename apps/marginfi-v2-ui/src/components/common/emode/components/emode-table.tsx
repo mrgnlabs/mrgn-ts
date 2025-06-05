@@ -24,10 +24,10 @@ interface EmodeTableProps {
 }
 
 const EmodeTable = ({ initialBank, align = "center", className, showTag = true }: EmodeTableProps) => {
-  const [extendedBankInfos, emodePairs, collateralBanksByLiabilityBank, liabilityBanksByCollateralBank] =
+  const [emodePairs, extendedBankInfos, collateralBanksByLiabilityBank, liabilityBanksByCollateralBank] =
     useMrgnlendStore((state) => [
-      state.extendedBankInfos,
       state.emodePairs,
+      state.extendedBankInfos,
       state.collateralBanksByLiabilityBank,
       state.liabilityBanksByCollateralBank,
     ]);
@@ -44,28 +44,24 @@ const EmodeTable = ({ initialBank, align = "center", className, showTag = true }
     );
   }, [emodePairs, extendedBankInfos]);
 
-  const collateralBanks = React.useMemo(() => {
-    return selectedBank ? collateralBanksByLiabilityBank[selectedBank.address.toBase58()] : [];
-  }, [selectedBank, collateralBanksByLiabilityBank]);
-
-  const liabilityBanks = React.useMemo(() => {
-    return selectedBank ? liabilityBanksByCollateralBank[selectedBank.address.toBase58()] : [];
-  }, [selectedBank, liabilityBanksByCollateralBank]);
-
-  const banks = React.useMemo(() => {
-    const banks = selectedSide === "lend" ? collateralBanks : liabilityBanks;
+  const banksAndPairs = React.useMemo(() => {
+    if (!selectedBank) return [];
+    const banks = (
+      selectedSide === "lend"
+        ? // emode banks which can be used as collateral for the selected liability bank
+          liabilityBanksByCollateralBank[selectedBank.address.toBase58()] || []
+        : // emode banks which can be used as liability for the selected collateral bank
+          collateralBanksByLiabilityBank[selectedBank.address.toBase58()] || []
+    ).map((bank) => ({
+      bank: "collateralBank" in bank ? bank.collateralBank : bank.liabilityBank,
+      pair: bank.emodePair,
+    }));
     return banks.sort((a, b) => {
-      const aWeight = a.emodePair.assetWeightInit.toNumber();
-      const bWeight = b.emodePair.assetWeightInit.toNumber();
+      const aWeight = a.pair.assetWeightInit.toNumber();
+      const bWeight = b.pair.assetWeightInit.toNumber();
       return bWeight - aWeight;
     });
-  }, [selectedSide, collateralBanks, liabilityBanks]);
-
-  React.useEffect(() => {
-    if (emodeBanks.length === 1) {
-      setSelectedBank(emodeBanks[0]);
-    }
-  }, [emodeBanks]);
+  }, [selectedBank, selectedSide, liabilityBanksByCollateralBank, collateralBanksByLiabilityBank]);
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -149,42 +145,34 @@ const EmodeTable = ({ initialBank, align = "center", className, showTag = true }
             </TableRow>
           </TableHeader>
           <TableBody>
-            {banks.map((bank) => {
-              const bnk =
-                selectedSide === "lend"
-                  ? "collateralBank" in bank
-                    ? bank.collateralBank
-                    : null
-                  : "liabilityBank" in bank
-                    ? bank.liabilityBank
-                    : null;
+            {banksAndPairs.map((bankAndPair) => {
+              if (!bankAndPair) return null;
 
-              if (!bnk) return null;
-
-              const emodePair = bank.emodePair;
-              const bankWeight = selectedSide === "lend" ? selectedBank : bnk;
+              const emodePair = bankAndPair.pair;
+              const bank = bankAndPair.bank;
+              const bankWeight = selectedSide === "lend" ? selectedBank : bank;
               const { assetWeight, originalAssetWeight } = getAssetWeightData(bankWeight, true);
-              const { maxLeverage } = computeMaxLeverage(bnk.info.rawBank, selectedBank.info.rawBank, {
-                assetWeightInit: BigNumber.max(emodePair.assetWeightInit, bnk.info.rawBank.config.assetWeightInit),
+              const { maxLeverage } = computeMaxLeverage(bank.info.rawBank, selectedBank.info.rawBank, {
+                assetWeightInit: BigNumber.max(emodePair.assetWeightInit, bank.info.rawBank.config.assetWeightInit),
               });
               return (
                 <TableRow
-                  key={bnk.address.toBase58()}
+                  key={bank.address.toBase58()}
                   className="odd:bg-background-gray-light/50 hover:bg-transparent hover:odd:bg-background-gray-light/50"
                 >
                   <TableCell>
                     <div className="flex items-center gap-2 text-xs md:text-sm">
                       <Image
-                        src={bnk.meta.tokenLogoUri}
-                        alt={bnk.meta.tokenSymbol}
+                        src={bank.meta.tokenLogoUri}
+                        alt={bank.meta.tokenSymbol}
                         width={20}
                         height={20}
                         className="rounded-full"
                       />
-                      {bnk.meta.tokenSymbol}
+                      {bank.meta.tokenSymbol}
                     </div>
                   </TableCell>
-                  {showTag && <TableCell className="lowercase">{EmodeTag[bnk.info.rawBank.emode.emodeTag]}</TableCell>}
+                  {showTag && <TableCell className="lowercase">{EmodeTag[bank.info.rawBank.emode.emodeTag]}</TableCell>}
                   <TableCell>
                     {percentFormatterMod(originalAssetWeight || assetWeight, {
                       minFractionDigits: 0,

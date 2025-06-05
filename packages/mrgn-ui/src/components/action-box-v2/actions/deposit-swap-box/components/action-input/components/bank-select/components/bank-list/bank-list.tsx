@@ -118,7 +118,7 @@ export const BankList = ({
   const filteredWalletTokens = React.useMemo(() => {
     if (!walletTokens) return [];
     if (searchQuery.length === 0) return walletTokens;
-    return walletTokens.filter((token) => token.symbol.toLowerCase().includes(searchQuery.toLowerCase()));
+    return walletTokens.filter((token) => token.symbol?.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [walletTokens, searchQuery]);
 
   // other banks without positions
