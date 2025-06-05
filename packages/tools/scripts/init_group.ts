@@ -1,16 +1,14 @@
 import { Connection, Keypair, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
+import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
 import { loadKeypairFromFile } from "./utils";
-import { assertI80F48Approx, assertKeysEqual } from "./softTests";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
  */
 const sendTx = false;
-const verbose = true;
 
 type Config = {
   PROGRAM_ID: string;
@@ -46,7 +44,7 @@ async function main() {
   const transaction = new Transaction();
   transaction.add(
     await program.methods
-      .marginfiGroupInitialize()
+      .marginfiGroupInitialize(true)
       .accountsPartial({
         marginfiGroup: marginfiGroup.publicKey,
         feeState: deriveGlobalFeeState(new PublicKey(config.PROGRAM_ID))[0],

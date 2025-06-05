@@ -1,4 +1,8 @@
-import { BankMetadata, nativeToUi } from "@mrgnlabs/mrgn-common";
+import {
+  BankMetadata,
+  nativeToUi,
+  wrappedI80F48toBigNumber,
+} from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { MarginRequirementType } from "./account";
@@ -81,7 +85,7 @@ class Bank implements BankType {
     public readonly emode: EmodeSettings,
     public readonly pythShardId?: number,
     public readonly tokenSymbol?: string
-  ) {}
+  ) { }
 
   static decodeBankRaw(encoded: Buffer, idl: MarginfiIdlType): BankRaw {
     return decodeBankRaw(encoded, idl);
@@ -314,7 +318,7 @@ class BankConfig implements BankConfigType {
     public readonly oracleMaxAge: number,
     public readonly interestRateConfig: InterestRateConfig,
     public readonly operationalState: OperationalState
-  ) {}
+  ) { }
 
   static fromAccountParsed(bankConfigRaw: BankConfigRaw): BankConfig {
     const bankConfig = parseBankConfigRaw(bankConfigRaw);
