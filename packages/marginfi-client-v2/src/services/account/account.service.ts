@@ -20,6 +20,7 @@ import {
   getTxSize,
   splitInstructionsToFitTransactions,
   toBigNumber,
+  wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
 
 import MarginfiClient, { BankMap, OraclePriceMap } from "../../clients/client";
@@ -190,10 +191,30 @@ export async function simulateAccountHealthCache(props: {
     program.idl
   );
 
-  if (marginfiAccountPost.healthCache.mrgnErr) {
-    console.log({
-      marginfiAccountPost,
-    });
+  if (marginfiAccountPost.healthCache.mrgnErr || marginfiAccountPost.healthCache.internalErr) {
+    if (marginfiAccountPost.healthCache.mrgnErr === 6009) {
+      const assetValue = !wrappedI80F48toBigNumber(marginfiAccountPost.healthCache.assetValue).isZero();
+      const liabilityValue = !wrappedI80F48toBigNumber(marginfiAccountPost.healthCache.liabilityValue).isZero();
+      const assetValueEquity = !wrappedI80F48toBigNumber(marginfiAccountPost.healthCache.assetValueEquity).isZero();
+      const liabilityValueEquity = !wrappedI80F48toBigNumber(
+        marginfiAccountPost.healthCache.liabilityValueEquity
+      ).isZero();
+      const assetValueMaint = !wrappedI80F48toBigNumber(marginfiAccountPost.healthCache.assetValueMaint).isZero();
+      const liabilityValueMaint = !wrappedI80F48toBigNumber(
+        marginfiAccountPost.healthCache.liabilityValueMaint
+      ).isZero();
+
+      if (
+        assetValue &&
+        liabilityValue &&
+        assetValueEquity &&
+        liabilityValueEquity &&
+        assetValueMaint &&
+        liabilityValueMaint
+      ) {
+        return marginfiAccountPost;
+      }
+    }
     console.error("Account health cache simulation failed", marginfiAccountPost.healthCache.mrgnErr);
     throw new Error("Account health cache simulation failed");
   }
