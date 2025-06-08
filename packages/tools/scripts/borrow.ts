@@ -3,24 +3,18 @@ import {
   AccountMeta,
   ComputeBudgetProgram,
   Connection,
-  Keypair,
   PublicKey,
-  SystemProgram,
   Transaction,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
+import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
 import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
 import {
-  createAssociatedTokenAccountIdempotent,
-  createAssociatedTokenAccountInstruction,
-  createSyncNativeInstruction,
-  getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { createAssociatedTokenAccountIdempotentInstruction } from "@mrgnlabs/mrgn-common";
+import { getAssociatedTokenAddressSync, createAssociatedTokenAccountIdempotentInstruction } from "@mrgnlabs/mrgn-common";
 
 type Config = {
   PROGRAM_ID: string;
@@ -104,27 +98,23 @@ const examples = {
       new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"), // usdc oracle
     ],
   },
+  borrowBonkAgainstUSDCArena: {
+    PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+    GROUP: new PublicKey("4qft5jS6ZkQtBX8WiSFYw9DUNTJcqUjSnv7sEUAH2dn3"),
+    ACCOUNT: new PublicKey("H1swPW9RK34VKPLJjgRCSEorry46u4EQseXZQqFbCSoL"),
+    BANK: new PublicKey("B5ZzNsDNNPxcWQMPD33pFtNVfDWMXzzgBdExnU4aoJne"),
+    MINT: new PublicKey("DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"),
+    AMOUNT: new BN(10000 * 10 ** 5),
+    REMAINING: [
+      new PublicKey("B5ZzNsDNNPxcWQMPD33pFtNVfDWMXzzgBdExnU4aoJne"), // bonk bank
+      new PublicKey("DBE3N8uNjhKPRHfANdwGvCZghWXyLPdqdSbEW2XFwBiX"), // bonk oracle
+      new PublicKey("5n125hjbaeH4Ft5UrgFN3Tkv6qG5RNhfNLTRZpddkRag"), // usdc bank
+      new PublicKey("9km7RzRAuWPPeJGk9DNWTAjA8V5Xnm1o9CdUQuDG1654"), // usdc oracle
+    ],
+  },
 };
 
-const config: Config = examples.borrowJupSOLAgainstUSDC;
-
-// const config: Config = {
-//   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-//   GROUP: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
-//   ACCOUNT: new PublicKey("E3uJyxW232EQAVZ9P9V6CFkxzjqqVdbh8XvUmxtZdGUt"),
-//   BANK: new PublicKey("3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp"),
-//   STAKE_POOL: new PublicKey("AvS4oXtxWdrJGCJwDbcZ7DqpSqNQtKjyXnbkDbrSk6Fq"),
-//   MINT: new PublicKey("So11111111111111111111111111111111111111112"),
-//   AMOUNT: new BN(0.0002 * 10 ** 9), // sol has 9 decimals
-//   REMAINING: [
-//     new PublicKey("3jt43usVm7qL1N5qPvbzYHWQRxamPCRhri4CxwDrf6aL"),
-//     new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
-//     new PublicKey("BADo3D6nMtGnsAaTv3iEes8mMcq92TuFoBWebFe8kzeA"), // lst mint
-//     new PublicKey("3e8RuaQMCPASZSMJAskHX6ZfuTtQ3JvoNPFoEvaVRn78"), // lst pool
-//     new PublicKey("3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp"),
-//     new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
-//   ],
-// };
+const config: Config = examples.borrowBonkAgainstUSDCArena;
 
 async function main() {
   marginfiIdl.address = config.PROGRAM_ID;
@@ -176,9 +166,7 @@ async function main() {
     await program.methods
       .lendingAccountBorrow(config.AMOUNT)
       .accounts({
-        marginfiGroup: config.GROUP,
         marginfiAccount: config.ACCOUNT,
-        signer: wallet.publicKey,
         bank: config.BANK,
         destinationTokenAccount: ata,
         // bankLiquidityVaultAuthority = deriveLiquidityVaultAuthority(id, bank);
