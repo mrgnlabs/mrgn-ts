@@ -1,8 +1,10 @@
 import BigNumber from "bignumber.js";
+import { PublicKey } from "@solana/web3.js";
+
+import { aprToApy, BankMetadataMap, composeRemainingAccounts, nativeToUi, shortenAddress } from "@mrgnlabs/mrgn-common";
+
 import { BalanceType, MarginfiAccountType } from "../types";
 import { MarginRequirementType } from "../../../models/account";
-import { aprToApy, BankMetadataMap, composeRemainingAccounts, nativeToUi, shortenAddress } from "@mrgnlabs/mrgn-common";
-import { PublicKey } from "@solana/web3.js";
 import { OraclePrice } from "../../price";
 import { PriceBias } from "../../price/types";
 import {

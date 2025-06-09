@@ -1,5 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
+
 import { EmodePair, ActionEmodeImpact, EmodeImpactStatus, EmodeImpact, EmodeTag } from "../../bank";
 
 export function computeEmodeImpacts(

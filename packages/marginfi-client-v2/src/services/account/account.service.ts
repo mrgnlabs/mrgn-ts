@@ -4,46 +4,42 @@ import {
   Keypair,
   PublicKey,
   TransactionInstruction,
-  TransactionMessage,
-  VersionedTransaction,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
 import * as sb from "@switchboard-xyz/on-demand";
+import { AnchorProvider } from "@coral-xyz/anchor";
 
 import {
   BankMetadataMap,
   Program,
   SolanaTransaction,
   bigNumberToWrappedI80F48,
-  composeRemainingAccounts,
-  getTxSize,
   splitInstructionsToFitTransactions,
-  toBigNumber,
   wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
 
-import MarginfiClient, { BankMap, OraclePriceMap } from "../../clients/client";
-import { MarginfiAccountWrapper, MarginfiAccount, MarginRequirementType } from "../../models/account";
-import { BalanceRaw, BalanceType, MarginfiAccountRaw } from "./types";
-import { MarginfiIdlType } from "../../idl";
-import { AnchorProvider } from "@coral-xyz/anchor";
-import { getSwitchboardProgram } from "../../vendor";
-import { Bank } from "../../models/bank";
-import { OraclePrice } from "../price";
-import { Balance } from "../../models/balance";
 import { feedIdToString } from "../../utils";
+import { MarginfiProgram } from "../../types";
+import instructions from "../../instructions";
+import { OraclePrice } from "../price";
 import { BankType, crankPythOracleIx, OracleSetup } from "../bank";
+import { MarginfiIdlType } from "../../idl";
+import { getSwitchboardProgram } from "../../vendor";
+import { Balance } from "../../models/balance";
+import { HealthCache } from "../../models/health-cache";
+import { Bank } from "../../models/bank";
+import { simulateBundle } from "../transaction/helpers";
+import { MarginfiAccountWrapper, MarginfiAccount, MarginRequirementType } from "../../models/account";
+import MarginfiClient, { BankMap, OraclePriceMap } from "../../clients/client";
+
 import {
   computeHealthAccountMetas,
   computeHealthCheckAccounts,
   computeHealthComponentsLegacy,
   computeHealthComponentsWithoutBiasLegacy,
 } from "./utils";
-import { simulateBundle } from "../transaction/helpers";
-import { HealthCache } from "../../models/health-cache";
-import { MarginfiProgram } from "../../types";
-import instructions from "../../instructions";
+import { BalanceRaw, BalanceType, MarginfiAccountRaw } from "./types";
 
 export async function simulateAccountHealthCacheWithFallback(props: {
   program: Program<MarginfiIdlType>;

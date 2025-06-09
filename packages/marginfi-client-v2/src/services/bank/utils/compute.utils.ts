@@ -1,5 +1,6 @@
-import { Amount, toBigNumber } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
+
+import { Amount, toBigNumber } from "@mrgnlabs/mrgn-common";
 
 import { BankConfigType, BankType } from "../types";
 import { MarginRequirementType, isWeightedPrice } from "../../../models/account";
