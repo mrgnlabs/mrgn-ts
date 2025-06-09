@@ -116,17 +116,17 @@ export default function BankPage() {
         value: `${percentFormatter.format(bankData?.utilization || 0)}`,
       },
       {
-        title: "Weight",
+        title: "Collateral Weight",
         description: "Weight of the bank",
         value: bankData?.weight ? `${percentFormatter.format(bankData.weight)}` : 0,
       },
       {
-        title: "LTV",
-        description: "LTV of the bank",
+        title: "Loan-to-Value",
+        description: "Loan-to-Value of the bank",
         value: bankData?.ltv ? `${percentFormatter.format(bankData.ltv)}` : 0,
       },
       {
-        title: "Rates",
+        title: "Interest Rates (APY)",
         description: "Interest rates of the bank",
         value: (
           <div className="flex items-center justify-center gap-2 text-2xl">
@@ -160,7 +160,18 @@ export default function BankPage() {
             {bank.meta.tokenSymbol}
           </h1>
           <BankShare bank={bank} />
-          <ul className="flex flex-col gap-2 text-sm items-center text-muted-foreground mt-6">
+          <ul className="flex flex-col gap-2 items-center text-muted-foreground mt-6">
+            <li className="flex items-center gap-1">
+              <span>Price:</span>{" "}
+              <span className="text-foreground">
+                {usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())}
+              </span>
+              {assetPriceData && assetPriceData.oracle === "Pyth" ? (
+                <IconPyth size={14} className="inline ml-1" />
+              ) : assetPriceData && assetPriceData.oracle === "Switchboard" ? (
+                <IconSwitchboard size={14} className="inline ml-1" />
+              ) : null}
+            </li>
             <li>
               <span>Bank:</span>{" "}
               <Link
@@ -183,17 +194,6 @@ export default function BankPage() {
                 {shortenAddress(bank.info.rawBank.mint.toBase58())}
               </Link>
             </li>
-            <li>
-              <span>Price:</span>{" "}
-              <span className="text-foreground">
-                {usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())}
-              </span>
-              {assetPriceData && assetPriceData.oracle === "Pyth" ? (
-                <IconPyth size={14} className="inline ml-1" />
-              ) : assetPriceData && assetPriceData.oracle === "Switchboard" ? (
-                <IconSwitchboard size={14} className="inline ml-1" />
-              ) : null}
-            </li>
           </ul>
         </div>
         {stats.length > 0 && (
@@ -208,7 +208,7 @@ export default function BankPage() {
         <div className="md:col-span-8">
           <BankChart bankAddress={bank.address.toBase58()} />
         </div>
-        <div className="md:col-span-4 pt-0">
+        <div className="md:col-span-4 pt-0 bg-background-gray">
           <ActionBox.BorrowLend
             useProvider={true}
             lendProps={{

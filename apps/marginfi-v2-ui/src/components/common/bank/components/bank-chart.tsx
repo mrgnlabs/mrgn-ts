@@ -92,6 +92,26 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
     formattedTotalDeposits: dynamicNumeralFormatter(item.totalDeposits),
   }));
 
+  const CustomTooltipContent = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
+          <p className="text-foreground font-medium">{formatDate(label)}</p>
+          {payload.map((entry: any, index: number) => (
+            <div key={index} className="flex items-center gap-2 mt-1">
+              <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: entry.color }} />
+              <span className="text-sm text-muted-foreground">{entry.name}:</span>
+              <span className="text-sm font-medium text-foreground">
+                {showTVL ? `$${dynamicNumeralFormatter(entry.value)}` : `${entry.value.toFixed(2)}%`}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <Card className="bg-transparent border-none">
       <CardHeader className="sr-only">
@@ -100,17 +120,17 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
           Chart showing interest rates and total deposits and borrows over the last 30 days.
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-3 rounded-lg space-y-4 relative bg-background-gray">
+      <CardContent className="p-3 rounded-lg space-y-4 relative bg-background-gray pt-8">
         <ToggleGroup
           type="single"
           value={showTVL ? "tvl" : "rates"}
           onValueChange={(value) => setShowTVL(value === "tvl")}
-          className="justify-start absolute right-3 z-20"
+          className="justify-start absolute top-3 right-3 z-20"
         >
           <ToggleGroupItem value="tvl">TVL</ToggleGroupItem>
           <ToggleGroupItem value="rates">Rates</ToggleGroupItem>
         </ToggleGroup>
-        <ChartContainer config={chartConfig} className="p-0">
+        <ChartContainer config={chartConfig} className="h-[460px] w-full">
           <AreaChart
             data={formattedData}
             margin={{
@@ -131,25 +151,22 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
               minTickGap={50}
             />
             <YAxis
-              tickFormatter={(value) => `$${formatValue(value)}`}
+              tickFormatter={(value) => (showTVL ? `$${formatValue(value)}` : `${value}%`)}
               domain={[0, "auto"]}
               hide={false}
               width={80}
               tickMargin={12}
             />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent labelFormatter={(label) => formatDate(label as string)} />}
-            />
+            <ChartTooltip cursor={false} content={<CustomTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} className="mt-6" />
             <defs>
               <linearGradient id="fillPrimary" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={chartColors.primary} stopOpacity={0.8} />
-                <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0.1} />
+                <stop offset="5%" stopColor={chartColors.primary} stopOpacity={0.2} />
+                <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0} />
               </linearGradient>
               <linearGradient id="fillSecondary" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={chartColors.secondary} stopOpacity={0.8} />
-                <stop offset="95%" stopColor={chartColors.secondary} stopOpacity={0.1} />
+                <stop offset="5%" stopColor={chartColors.secondary} stopOpacity={0.2} />
+                <stop offset="95%" stopColor={chartColors.secondary} stopOpacity={0} />
               </linearGradient>
             </defs>
 

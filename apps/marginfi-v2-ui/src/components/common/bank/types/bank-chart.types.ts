@@ -1,9 +1,9 @@
 type BankChartData = {
-  borrow_rate_pct: string;
-  deposit_rate_pct: string;
-  time: string;
-  total_borrows: string;
-  total_deposits: string;
+  borrowRate: number;
+  depositRate: number;
+  timestamp: string;
+  totalBorrows: number;
+  totalDeposits: number;
 };
 
 type BankHistoricalDataResponse = {

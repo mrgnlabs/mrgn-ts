@@ -12,13 +12,13 @@ export const filterDailyRates = (data: BankChartData[]): BankChartDataDailyAvera
   data
     // Filter out future dates and dates older than 30 days
     .filter((rate) => {
-      const rateDate = new Date(rate.time);
+      const rateDate = new Date(rate.timestamp);
       return rateDate <= now && rateDate >= thirtyDaysAgo;
     })
     // Sort by date ascending (oldest to newest)
-    .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
+    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
     .forEach((rate) => {
-      const date = rate.time.split("T")[0]; // Get YYYY-MM-DD
+      const date = rate.timestamp.split("T")[0]; // Get YYYY-MM-DD
 
       // Only store if we don't have an entry for this date yet
       if (!dailyEntries.has(date)) {
@@ -30,10 +30,10 @@ export const filterDailyRates = (data: BankChartData[]): BankChartDataDailyAvera
   return Array.from(dailyEntries.entries())
     .map(([date, entry]) => ({
       timestamp: date,
-      borrowRate: parseFloat(entry.borrow_rate_pct),
-      depositRate: parseFloat(entry.deposit_rate_pct),
-      totalBorrows: parseFloat(entry.total_borrows),
-      totalDeposits: parseFloat(entry.total_deposits),
+      borrowRate: entry.borrowRate,
+      depositRate: entry.depositRate,
+      totalBorrows: entry.totalBorrows,
+      totalDeposits: entry.totalDeposits,
     }))
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 };

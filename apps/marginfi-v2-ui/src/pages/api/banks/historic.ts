@@ -24,14 +24,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Calculate date 30 days ago
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const startDate = thirtyDaysAgo.toISOString().split("T")[0]; // YYYY-MM-DD format
+    const startDate = thirtyDaysAgo.toISOString().split("T")[0]; // YYYY-MM-DD format for day field
 
-    // Simple query to test connectivity - just get all data for this bank
+    // Query v_bank_metrics_daily table for last 30 days
     const { data: bankMetrics, error } = await supabase
       .schema("application")
       .from("v_bank_metrics_daily")
-      .select("*")
-      .eq("bank_address", bankAddress);
+      .select("day, borrow_rate_pct, deposit_rate_pct, total_borrows_usd, total_deposits_usd")
+      .eq("bank_address", bankAddress)
+      .gte("day", startDate)
+      .order("day", { ascending: true });
 
     if (error) {
       console.error("Error fetching bank metrics from Supabase:", error);
@@ -42,10 +44,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (!bankMetrics || bankMetrics.length === 0) {
+      console.log(bankMetrics);
+      console.log(error);
       return res.status(404).json({ error: "No historical data found for this bank" });
     }
 
-    // Transform data to match expected format
+    // Transform data to match expected frontend format
     const formattedData = bankMetrics.map((entry: any) => ({
       timestamp: entry.day,
       borrowRate: entry.borrow_rate_pct || 0,
