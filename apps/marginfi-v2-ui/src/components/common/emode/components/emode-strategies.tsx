@@ -31,27 +31,6 @@ import { ActionBox, useWallet } from "~/components";
 import { useMrgnlendStore } from "~/store";
 import { capture } from "~/analytics";
 
-const mockStrategies = [
-  {
-    name: "USDC",
-    description: "Deposit USDC to enable e-mode rewards.",
-    icon: "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png",
-    action: "Deposit",
-  },
-  {
-    name: "SOL",
-    description: "Deposit SOL to enable e-mode rewards.",
-    icon: "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/So11111111111111111111111111111111111111112.png",
-    action: "Deposit",
-  },
-  {
-    name: "LST",
-    description: "Borrow LST to increase your e-mode rewards.",
-    icon: "https://storage.googleapis.com/mrgn-public/mrgn-token-icons/LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp.png",
-    action: "Borrow",
-  },
-];
-
 type EmodeStrategiesType = {
   symbol: string;
   description: string;
@@ -137,13 +116,7 @@ const EmodeStrategies = ({ extendedBankInfos }: EmodeStrategiesProps) => {
               <TableRow key={strategy.symbol} className="even:bg-accent">
                 <TableCell className="p-3">
                   <div className="flex items-center gap-2.5">
-                    <Image
-                      src={strategy.icon}
-                      alt={strategy.symbol}
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                    />
+                    <Image src={strategy.icon} alt={strategy.symbol} width={32} height={32} className="rounded-full" />
                     {strategy.symbol}
                   </div>
                 </TableCell>
