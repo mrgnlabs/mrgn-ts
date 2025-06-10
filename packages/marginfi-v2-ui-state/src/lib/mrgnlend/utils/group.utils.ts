@@ -47,6 +47,8 @@ async function fetchGroupData(
     }));
   }
 
+  const test = await fetchOraclePricesqq(bankDatasKeyed.map((b) => b.data));
+
   async function fetchPythFeedMap() {
     const feedIdMapRaw: Record<string, { feedId: string; shardId?: number }> = await fetch(
       `/api/oracle/pythFeedMap?groupPk=${groupAddress.toBase58()}`
@@ -165,5 +167,51 @@ async function fetchGroupData(
     feedIdMap,
   };
 }
+
+const fetchOraclePricesqq = async (banks: BankRaw[]) => {
+  const pythLegacyBanks = banks.filter((bank) => bank.config.oracleSetup && "pythLegacy" in bank.config.oracleSetup);
+  const pythPushBanks = banks.filter((bank) => bank.config.oracleSetup && "pythPushOracle" in bank.config.oracleSetup);
+  const pythStakedCollateralBanks = banks.filter(
+    (bank) => bank.config.oracleSetup && "stakedWithPythPush" in bank.config.oracleSetup
+  );
+
+  const pythFeedMap = await fetch(
+    "/api/bankData/pythFeedMap?feedIds=" + pythPushBanks.map((bank) => bank.config.oracleKeys[0].toBase58()).join(",")
+  );
+
+  if (!pythFeedMap.ok) {
+    throw new Error("Failed to fetch pyth feed map");
+  }
+
+  if (!pythFeedMap.ok) {
+    throw new Error("Failed to fetch pyth feed map");
+  }
+
+  const pythFeedMapJson = await pythFeedMap.json();
+
+  console.log("pythFeedMapJson", pythFeedMapJson);
+
+  const pythOracleKeys = [
+    ...pythLegacyBanks.map((bank) => bank.config.oracleKeys[0].toBase58()),
+    ...pythPushBanks.map((bank) => pythFeedMapJson[bank.config.oracleKeys[0].toBuffer().toString("hex")].feedId),
+  ];
+
+  console.log("pythOracleKeys", pythOracleKeys);
+
+  const pythOracleDataPromise = await fetch("/api/bankData/pythOracleData?pythOracleKeys=" + pythOracleKeys.join(","));
+
+  if (!pythOracleDataPromise.ok) {
+    throw new Error("Failed to fetch pyth oracle data");
+  }
+
+  const pythOracleData = await pythOracleDataPromise.json();
+
+  console.log("pythOracleData", pythOracleData);
+
+  const addresses = pythOracleKeys;
+
+  // const oraclePrices = await fetchMultipleOraclePrices(program, { bankAddresses: addresses });
+  // return oraclePrices;
+};
 
 export { fetchGroupData };
