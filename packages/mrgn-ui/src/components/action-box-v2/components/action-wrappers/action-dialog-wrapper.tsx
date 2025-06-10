@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogHeader,
   DialogDescription,
+  DialogPortal,
 } from "~/components/ui/dialog";
 import { Drawer, DrawerTrigger, DrawerContent } from "~/components/ui/drawer";
 import { useIsMobile, usePrevious, cn, Mobile, Desktop } from "@mrgnlabs/mrgn-utils";
@@ -70,19 +71,21 @@ export const ActionDialogWrapper = ({
           }}
         >
           <DialogTrigger asChild>{trigger}</DialogTrigger>
-          <DialogContent
-            className={cn(
-              "shadow-none overflow-visible md:flex md:max-w-[520px] md:py-3 md:px-5  sm:rounded-2xl bg-transparent border-none",
-              hidden ? "opacity-0" : "opacity-100"
-            )}
-            closeClassName={"-top-1 -right-1"}
-          >
-            <DialogHeader className="sr-only">
-              <DialogTitle>{title}</DialogTitle>
-              <DialogDescription>{title}</DialogDescription>
-            </DialogHeader>
-            <div className="bg-mfi-action-box-background shadow-lg rounded-lg p-1">{children}</div>
-          </DialogContent>
+          <DialogPortal>
+            <DialogContent
+              className={cn(
+                "shadow-none overflow-visible md:flex md:max-w-[520px] md:py-3 md:px-5  sm:rounded-2xl bg-transparent border-none",
+                hidden ? "opacity-0" : "opacity-100"
+              )}
+              closeClassName={"-top-1 -right-1"}
+            >
+              <DialogHeader className="sr-only">
+                <DialogTitle>{title}</DialogTitle>
+                <DialogDescription>{title}</DialogDescription>
+              </DialogHeader>
+              <div className="bg-mfi-action-box-background shadow-lg rounded-lg p-1">{children}</div>
+            </DialogContent>
+          </DialogPortal>
         </Dialog>
       </Desktop>
     </>

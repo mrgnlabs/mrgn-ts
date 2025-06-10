@@ -1,4 +1,6 @@
 import React from "react";
+import { useRouter } from "next/navigation";
+
 import { Row, flexRender } from "@tanstack/react-table";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
@@ -9,6 +11,7 @@ import { getPositionCell } from "./AssetCells";
 import { AssetListModel } from "../utils";
 
 export const AssetRow = (row: Row<AssetListModel>) => {
+  const router = useRouter();
   const isPosition = React.useMemo(
     () => row.original.position.walletAmount || row.original.position.positionAmount,
     [row.original.position]
@@ -19,9 +22,22 @@ export const AssetRow = (row: Row<AssetListModel>) => {
 
   return (
     <React.Fragment key={row.id}>
-      <TableRow key={row.id} className={cn(isStakedActivating && "opacity-50")}>
+      <TableRow
+        key={row.id}
+        className={cn("cursor-pointer hover:bg-background-gray", isStakedActivating && "opacity-50")}
+        onClick={(e) => {
+          console.log(e.target);
+          if (
+            e.target instanceof HTMLTableRowElement ||
+            e.target instanceof HTMLTableCellElement ||
+            (e.target as Element).parentElement instanceof HTMLTableCellElement
+          ) {
+            router.push(`/banks/${row.original.asset.address.toBase58()}`);
+          }
+        }}
+      >
         {visibleCells.map((cell, idx) => (
-          <TableCell className={cn(!isPosition ? "pb-2 rounded-md" : "rounded-t-md")} key={cell.id}>
+          <TableCell className={cn("rounded-md group", !isPosition && "pb-2")} key={cell.id}>
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </TableCell>
         ))}

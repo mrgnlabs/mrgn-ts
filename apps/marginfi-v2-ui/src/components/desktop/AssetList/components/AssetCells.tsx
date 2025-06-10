@@ -237,33 +237,7 @@ export const getRateCell = ({
         </div>
       )}
 
-      <div className="flex items-center gap-0.5">
-        <div className="flex justify-end">{percentFormatter.format(rateAPY)}</div>
-        <div className="-mr-1">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div>
-                  <BankChartDialog
-                    bankAddress={bankAddress.toBase58()}
-                    symbol={symbol}
-                    mintAddress={mintAddress.toBase58()}
-                    tab="rates"
-                    trigger={
-                      <Button size="sm" variant="ghost" className="h-5 w-5 p-0">
-                        <IconChartAreaLineFilled size={16} className="text-muted-foreground" />
-                      </Button>
-                    }
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Interest rates over the last 30 days.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      </div>
+      <div className="flex items-center gap-0.5">{percentFormatter.format(rateAPY)}</div>
     </div>
   );
 };
@@ -320,30 +294,6 @@ export const getDepositsCell = (depositsData: DepositsData) => {
         {(depositsData.isReduceOnly || depositsData.isBankHigh || depositsData.isBankFilled) && (
           <IconAlertTriangle size={14} />
         )}
-        <div className="-mr-1 mt-px">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div>
-                  <BankChartDialog
-                    bankAddress={depositsData.bankAddress.toBase58()}
-                    symbol={depositsData.symbol}
-                    mintAddress={depositsData.mintAddress.toBase58()}
-                    tab="tvl"
-                    trigger={
-                      <Button size="sm" variant="ghost" className="h-5 w-5 p-0">
-                        <IconChartAreaLineFilled size={16} className="text-muted-foreground" />
-                      </Button>
-                    }
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Total deposits / borrows over the last 30 days.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
       </div>
 
       <p className="text-xs text-muted-foreground">
@@ -383,7 +333,7 @@ export const getPositionCell = (positionData: PositionData) => {
   const tokenPrice = positionData.assetTag === 2 ? positionData.solPrice || positionData.price : positionData.price;
 
   return (
-    <div className="w-full bg-background-gray rounded-md flex items-center gap-8 px-2 py-3">
+    <div className="mt-2 w-full bg-background-gray rounded-md flex items-center gap-8 px-2 py-3">
       <dl className="flex gap-2 items-center">
         <dt className="text-accent-foreground font-light">Wallet:</dt>
         <dd>
