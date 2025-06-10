@@ -23,6 +23,8 @@ import { Loader } from "~/components/ui/loader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { IconSwitchboard, IconPyth } from "~/components/ui/icons";
 import Link from "next/link";
+import { IconArrowLeft } from "@tabler/icons-react";
+import { Button } from "~/components/ui/button";
 
 export default function BankPage() {
   const router = useRouter();
@@ -152,11 +154,23 @@ export default function BankPage() {
   }
 
   return (
-    <div className="w-full space-y-8 max-w-8xl mx-auto pb-32">
+    <div className="w-full space-y-8 max-w-8xl mx-auto pb-32 -translate-y-8">
+      <Link href="/">
+        <Button variant="outline">
+          <IconArrowLeft size={16} />
+          Back to banks
+        </Button>
+      </Link>
       <header className="flex items-center justify-between gap-8 pb-4">
         <div className="flex flex-col items-center w-1/2">
           <h1 className="flex items-center gap-3 text-4xl font-medium">
-            <Image src={bank.meta.tokenLogoUri} alt={bank.meta.tokenSymbol} width={48} height={48} />
+            <Image
+              src={bank.meta.tokenLogoUri}
+              alt={bank.meta.tokenSymbol}
+              width={48}
+              height={48}
+              className="rounded-full"
+            />
             {bank.meta.tokenSymbol}
           </h1>
           <BankShare bank={bank} />

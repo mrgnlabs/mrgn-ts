@@ -125,10 +125,20 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
           type="single"
           value={showTVL ? "tvl" : "rates"}
           onValueChange={(value) => setShowTVL(value === "tvl")}
-          className="justify-start absolute top-3 right-3 z-20"
+          className="justify-start absolute top-3 right-3 z-20 p-1.5 rounded-md"
         >
-          <ToggleGroupItem value="tvl">TVL</ToggleGroupItem>
-          <ToggleGroupItem value="rates">Rates</ToggleGroupItem>
+          <ToggleGroupItem
+            value="tvl"
+            className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50"
+          >
+            TVL
+          </ToggleGroupItem>
+          <ToggleGroupItem
+            value="rates"
+            className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50"
+          >
+            Rates
+          </ToggleGroupItem>
         </ToggleGroup>
         <ChartContainer config={chartConfig} className="h-[460px] w-full">
           <AreaChart

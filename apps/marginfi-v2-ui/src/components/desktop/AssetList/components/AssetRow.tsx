@@ -26,13 +26,13 @@ export const AssetRow = (row: Row<AssetListModel>) => {
         key={row.id}
         className={cn("cursor-pointer hover:bg-background-gray", isStakedActivating && "opacity-50")}
         onClick={(e) => {
-          console.log(e.target);
           if (
             e.target instanceof HTMLTableRowElement ||
             e.target instanceof HTMLTableCellElement ||
             (e.target as Element).parentElement instanceof HTMLTableCellElement
           ) {
             router.push(`/banks/${row.original.asset.address.toBase58()}`);
+            document.body.scrollTo({ top: 0 });
           }
         }}
       >
