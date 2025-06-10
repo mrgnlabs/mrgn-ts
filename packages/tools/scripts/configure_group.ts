@@ -1,31 +1,28 @@
-import { Connection, Keypair, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
+import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
+import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
 import { loadKeypairFromFile } from "./utils";
-import { assertI80F48Approx, assertKeysEqual } from "./softTests";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
  */
 const sendTx = false;
-const verbose = true;
 
 type Config = {
   PROGRAM_ID: string;
   GROUP: PublicKey;
-  ADMIN_KEY_CURRENT: PublicKey;
-  ADMIN_KEY_NEW: PublicKey;
+  NEW_ADMIN: PublicKey;
+  NEW_EMODE_ADMIN: PublicKey;
   MULTISIG?: PublicKey;
 };
 
 const config: Config = {
   PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
   GROUP: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ADMIN_KEY_CURRENT: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
-  ADMIN_KEY_NEW: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
-
+  NEW_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
+  NEW_EMODE_ADMIN: new PublicKey("CYXEgwbPHu2f9cY3mcUkinzDoDcsSan7myh1uBvYRbEw"),
   MULTISIG: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
 };
 
@@ -45,13 +42,13 @@ async function main() {
     marginfiIdl as Marginfi,
     provider
   );
+  const isArena = false;
   const transaction = new Transaction();
   transaction.add(
     await program.methods
-      .marginfiGroupConfigure({ admin: config.ADMIN_KEY_NEW })
+      .marginfiGroupConfigure(config.NEW_ADMIN, config.NEW_EMODE_ADMIN, isArena)
       .accountsPartial({
         marginfiGroup: config.GROUP,
-        admin: config.ADMIN_KEY_CURRENT,
       })
       .instruction()
   );
@@ -76,7 +73,7 @@ async function main() {
   }
 
   console.log(
-    "Group " + config.GROUP + " set new admin: " + config.ADMIN_KEY_NEW + " was (" + config.ADMIN_KEY_CURRENT + ")"
+    "Group (is_arena = " + isArena + ") " + config.GROUP + " set new admin: " + config.NEW_ADMIN + ", new emode admin: " + config.NEW_EMODE_ADMIN
   );
 }
 

@@ -1,24 +1,15 @@
 // Runs once per group, before any staked banks can be init.
 import { AccountMeta, Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
 import { Program, AnchorProvider, Wallet, BN } from "@coral-xyz/anchor";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
-import { I80F48_ONE, loadKeypairFromFile } from "./utils";
-import {
-  bigNumberToWrappedI80F48,
-  TOKEN_PROGRAM_ID,
-  WrappedI80F48,
-  wrappedI80F48toBigNumber,
-} from "@mrgnlabs/mrgn-common";
-import { InterestRateConfigRaw, RiskTierRaw } from "@mrgnlabs/marginfi-client-v2";
-import { assertBNEqual, assertI80F48Approx, assertKeysEqual } from "./softTests";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
+import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
+import { loadKeypairFromFile } from "./utils";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
  */
 const sendTx = false;
-const verbose = true;
 
 type Config = {
   PROGRAM_ID: string;

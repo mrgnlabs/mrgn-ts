@@ -1,6 +1,6 @@
 import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
+import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
 import { bigNumberToWrappedI80F48, WrappedI80F48 } from "@mrgnlabs/mrgn-common";
 import { AnchorProvider, BN, Program } from "@coral-xyz/anchor";
 import { loadKeypairFromTxtFile } from "./utils";
@@ -42,6 +42,7 @@ const config: Config = {
 };
 
 export type EditGlobalFeeStateArgs = {
+  new_admin?: PublicKey;
   admin: PublicKey;
   wallet: PublicKey;
   bankInitFlatSolFee: number;
@@ -51,7 +52,7 @@ export type EditGlobalFeeStateArgs = {
 
 export const editGlobalFeeState = (program: Program<Marginfi>, args: EditGlobalFeeStateArgs) => {
   const ix = program.methods
-    .editGlobalFeeState(args.wallet, args.bankInitFlatSolFee, args.programFeeFixed, args.programFeeRate)
+    .editGlobalFeeState(args.new_admin ?? args.admin, args.wallet, args.bankInitFlatSolFee, args.programFeeFixed, args.programFeeRate)
     .accounts({
       globalFeeAdmin: args.admin,
       // feeState = deriveGlobalFeeState(id),

@@ -1,9 +1,8 @@
 import { Connection, Keypair, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
+import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
 import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile } from "./utils";
-import { assertI80F48Approx, assertKeysEqual } from "./softTests";
 
 type Config = {
   PROGRAM_ID: string;

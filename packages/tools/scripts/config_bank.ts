@@ -11,7 +11,6 @@ import {
 import { InterestRateConfigRaw } from "@mrgnlabs/marginfi-client-v2";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import dotenv from "dotenv";
-import { BigNumber } from "bignumber.js";
 
 dotenv.config();
 
@@ -31,7 +30,8 @@ export type Config = {
 
 const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  BANK: new PublicKey("B5ZzNsDNNPxcWQMPD33pFtNVfDWMXzzgBdExnU4aoJne"),
+  // BANK: new PublicKey("6ncLv8Kc46WohdsXFqtHTgbXbZY9TkNv2oRJi33jdroS"), // Bonk
+  BANK: new PublicKey("8VTWf7QoHirWPHiDXBG3QkKQig7wBGd4sDqQNU5CSuHA"), // USDC
 
   // MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
 };

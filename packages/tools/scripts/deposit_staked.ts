@@ -1,14 +1,14 @@
 // Run deposit_single_pool first to convert to LST. In production, these will likely be atomic.
 import { Connection, Keypair, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
 import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
+import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
 import { loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
-import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 type Config = {
   PROGRAM_ID: string;
-  GROUP: PublicKey;
   ACCOUNT: PublicKey;
   BANK: PublicKey;
   STAKE_POOL: PublicKey;
@@ -18,7 +18,6 @@ type Config = {
 
 const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  GROUP: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
   ACCOUNT: new PublicKey("E3uJyxW232EQAVZ9P9V6CFkxzjqqVdbh8XvUmxtZdGUt"),
   BANK: new PublicKey("3jt43usVm7qL1N5qPvbzYHWQRxamPCRhri4CxwDrf6aL"),
   STAKE_POOL: new PublicKey("AvS4oXtxWdrJGCJwDbcZ7DqpSqNQtKjyXnbkDbrSk6Fq"),
@@ -48,17 +47,15 @@ async function main() {
   );
   const lstAta = getAssociatedTokenAddressSync(lstMint, wallet.publicKey);
 
+  const depositUpToLimit = false;
   const transaction = new Transaction();
   transaction.add(
     await program.methods
-      .lendingAccountDeposit(config.AMOUNT)
+      .lendingAccountDeposit(config.AMOUNT, depositUpToLimit)
       .accounts({
-        marginfiGroup: config.GROUP,
         marginfiAccount: config.ACCOUNT,
-        signer: wallet.publicKey,
         bank: config.BANK,
         signerTokenAccount: lstAta,
-        // bankLiquidityVault = deriveLiquidityVault(id, bank)
         tokenProgram: TOKEN_PROGRAM_ID,
       })
       .instruction()
