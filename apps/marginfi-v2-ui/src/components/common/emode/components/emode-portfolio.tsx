@@ -8,6 +8,7 @@ import { Switch } from "~/components/ui/switch";
 import { Button } from "~/components/ui/button";
 import { IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 
 type EmodePortfolioProps = {
   extendedBankInfos: ExtendedBankInfo[];
@@ -25,16 +26,14 @@ const EmodePortfolio = ({
   const emodeActive = userActiveEmodes.length > 0;
   return (
     <div className="flex flex-col lg:flex-row items-center gap-3 justify-between">
-      <div
-        className={cn(
-          "py-1 w-full flex items-center justify-between lg:justify-start gap-3 transition-opacity duration-500"
-        )}
-      >
-        <div className="flex items-center justify-between text-sm mr-2 gap-1 shrink-0 text-muted-foreground">
+      <div className="flex-col flex md:flex-row gap-2 md:justify-between w-full md:items-center items-start">
+        <div className="flex items-center justify-between text-sm gap-1 shrink-0 text-muted-foreground">
           {emodeActive ? <IconEmodeSimple size={18} /> : <IconEmodeSimpleInactive size={18} />}
           e-mode {!emodeActive && "in"}active
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 md:justify-center justify-between w-full">
+          <EmodeStrategies extendedBankInfos={extendedBankInfos} />
+
           <EmodeExplore
             trigger={
               <Button variant="secondary" size="sm">
@@ -45,7 +44,6 @@ const EmodePortfolio = ({
           />
         </div>
       </div>
-      <EmodeStrategies extendedBankInfos={extendedBankInfos} />
       {emodeActive && setFilterEmode && (
         <div className="items-center gap-2 shrink-0 hidden lg:flex">
           <Label htmlFor="pairings" className="text-sm text-muted-foreground flex items-center gap-1">
