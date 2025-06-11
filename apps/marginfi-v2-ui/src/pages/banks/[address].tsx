@@ -154,7 +154,7 @@ export default function BankPage() {
   }
 
   return (
-    <div className="w-full space-y-8 max-w-8xl mx-auto pb-32 -translate-y-8">
+    <div className="w-full space-y-6 max-w-8xl mx-auto pb-32 -translate-y-4">
       <Link href="/">
         <Button variant="outline">
           <IconArrowLeft size={16} />
@@ -211,7 +211,7 @@ export default function BankPage() {
           </ul>
         </div>
         {stats.length > 0 && (
-          <div className="w-full grid grid-cols-2 gap-6 md:grid-cols-3">
+          <div className="w-full grid grid-cols-2 gap-8 md:grid-cols-3">
             {stats.map((stat) => (
               <Stat key={stat.title} title={stat.title} description={stat.description} value={stat.value} />
             ))}
@@ -222,7 +222,7 @@ export default function BankPage() {
         <div className="md:col-span-8">
           <BankChart bankAddress={bank.address.toBase58()} />
         </div>
-        <div className="md:col-span-4 pt-0 bg-background-gray">
+        <div className="md:col-span-4 pt-0 bg-background-gray rounded-md">
           <ActionBox.BorrowLend
             useProvider={true}
             lendProps={{
@@ -253,7 +253,7 @@ type StatProps = {
 
 const Stat = ({ title, description, value }: StatProps) => {
   return (
-    <Card className="w-full bg-background-gray">
+    <Card className="w-full bg-background-gray rounded-md">
       <CardHeader className="items-center text-muted-foreground">
         <CardTitle className="font-normal">{title}</CardTitle>
         <CardDescription className="sr-only">{description}</CardDescription>

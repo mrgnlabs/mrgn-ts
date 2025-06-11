@@ -38,11 +38,11 @@ const ratesChartConfig = {
 } satisfies ChartConfig;
 
 const tvlChartConfig = {
-  totalDeposits: {
+  displayTotalDeposits: {
     label: "Total Deposits",
     color: chartColors.primary,
   },
-  totalBorrows: {
+  displayTotalBorrows: {
     label: "Total Borrows",
     color: chartColors.secondary,
   },
@@ -145,11 +145,15 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="p-3 rounded-lg space-y-4 relative bg-background-gray pt-8">
-        <div className="absolute top-3 right-3 z-20 flex items-center gap-3">
+        <div className="absolute top-3 right-3 z-20 flex items-center gap-4">
           {showTVL && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">USD</span>
-              <Switch checked={showUSD} onCheckedChange={setShowUSD} />
+              <Switch
+                checked={showUSD}
+                onCheckedChange={setShowUSD}
+                className="data-[state=unchecked]:bg-background-gray-light"
+              />
             </div>
           )}
           <ToggleGroup
@@ -174,6 +178,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
         </div>
         <ChartContainer config={chartConfig} className="h-[460px] w-full">
           <AreaChart
+            key={showTVL ? "tvl" : "rates"}
             data={formattedData}
             margin={{
               top: 24,
