@@ -21,9 +21,10 @@ interface EmodeTableProps {
   align?: "center" | "left";
   className?: string;
   showTag?: boolean;
+  resetKey?: number;
 }
 
-const EmodeTable = ({ initialBank, align = "center", className, showTag = true }: EmodeTableProps) => {
+const EmodeTable = ({ initialBank, align = "center", className, showTag = true, resetKey = 0 }: EmodeTableProps) => {
   const [emodePairs, extendedBankInfos, collateralBanksByLiabilityBank, liabilityBanksByCollateralBank] =
     useMrgnlendStore((state) => [
       state.emodePairs,
@@ -33,6 +34,10 @@ const EmodeTable = ({ initialBank, align = "center", className, showTag = true }
     ]);
   const [selectedSide, setSelectedSide] = React.useState<"lend" | "borrow">("borrow");
   const [selectedBank, setSelectedBank] = React.useState<ExtendedBankInfo | undefined>(initialBank);
+
+  React.useEffect(() => {
+    setSelectedBank(initialBank);
+  }, [resetKey, initialBank]);
 
   const emodeBanks = React.useMemo(() => {
     return Array.from(

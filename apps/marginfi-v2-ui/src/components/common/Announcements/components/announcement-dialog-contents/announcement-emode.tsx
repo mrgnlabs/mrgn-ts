@@ -31,6 +31,7 @@ type AnnouncementSlideProps = {
   userActiveEmodes: EmodePair[];
   connected: boolean;
   banks: ExtendedBankInfo[];
+  tableResetKey?: number;
 };
 
 enum UserStatus {
@@ -54,6 +55,7 @@ const AnnouncementSlide = ({
   userActiveEmodes,
   connected,
   banks,
+  tableResetKey,
 }: AnnouncementSlideProps) => {
   const swiper = useSwiper();
 
@@ -70,10 +72,10 @@ const AnnouncementSlide = ({
   const isTableSlide = title === "Explore e-mode pairs";
 
   return (
-    <div className="flex flex-col lg:flex-row h-full">
+    <div className="flex flex-col lg:flex-row h-max min-h-[770px] md:min-h-0 md:h-full">
       {/* Video Panel - Top on mobile, Left on desktop */}
-      <div className="flex-1 bg-gradient-to-br flex items-center justify-center relative overflow-hidden">
-        <div className="relative z-10 w-full h-full flex items-center justify-center">
+      <div className="flex-1 bg-gradient-to-br flex items-start md:items-center justify-center relative overflow-hidden max-h-[430px] max-w-[430px] md:max-h-full md:max-w-full">
+        <div className="z-10 flex items-center justify-center h-full w-full md:relative ">
           {video && (
             <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
               <source src={`${video}.webm`} type="video/webm" />
@@ -83,7 +85,7 @@ const AnnouncementSlide = ({
           )}
         </div>
         {/* Pagination dots */}
-        <div className="absolute bottom-4 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+        <div className="absolute hidden md:block bottom-6 md:bottom-4 lg:bottom-8 left-1/2 transform -translate-x-1/2 z-20">
           <div className="flex space-x-2 items-center">
             {Array.from({ length: totalSlides }).map((_, index) => (
               <button
@@ -136,7 +138,12 @@ const AnnouncementSlide = ({
             {isTableSlide && (
               <div className="space-y-8">
                 <p className="text-base lg:text-lg text-muted-foreground leading-relaxed">{description}</p>
-                <EmodeTable className="max-h-[300px] overflow-auto" align="left" showTag={false} />
+                <EmodeTable
+                  className="max-h-[300px] overflow-auto"
+                  align="left"
+                  showTag={false}
+                  resetKey={tableResetKey || 1}
+                />
               </div>
             )}
             {isLast && (
@@ -245,27 +252,37 @@ const AnnouncementSlide = ({
 
         {/* Navigation */}
         <div className="flex justify-between items-center pt-4 lg:pt-8">
-          {!isFirst && (
-            <Button
-              variant="ghost"
-              onClick={() => swiper?.slidePrev()}
-              className="flex items-center gap-1 lg:gap-2 text-muted-foreground hover:text-foreground text-sm lg:text-base"
-            >
-              <IconChevronLeft size={14} className="lg:w-4 lg:h-4" />
-              <span className="hidden sm:inline">{prevSlideTitle}</span>
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            onClick={() => swiper?.slidePrev()}
+            className="flex items-center gap-1 lg:gap-2 text-muted-foreground hover:text-foreground text-sm lg:text-base"
+            disabled={isFirst}
+          >
+            <IconChevronLeft size={14} className="lg:w-4 lg:h-4" />
+            <span className="hidden sm:inline">{prevSlideTitle}</span>
+          </Button>
 
-          {!isLast && (
-            <Button
-              variant="ghost"
-              onClick={() => swiper?.slideNext()}
-              className="flex items-center gap-1 lg:gap-2 text-muted-foreground ml-auto hover:text-foreground text-sm lg:text-base"
-            >
-              <span className="hidden sm:inline">{nextSlideTitle}</span>
-              <IconChevronRight size={14} className="lg:w-4 lg:h-4" />
-            </Button>
-          )}
+          <div className="flex space-x-2 items-center md:hidden">
+            {Array.from({ length: totalSlides }).map((_, index) => (
+              <button
+                key={index}
+                onClick={() => swiper?.slideTo(index)}
+                className={`rounded-full transition-all duration-300 ${
+                  index === currentSlide ? "bg-white w-8 h-2" : "bg-white/30 w-2 h-2 hover:bg-white/50"
+                }`}
+              />
+            ))}
+          </div>
+
+          <Button
+            variant="ghost"
+            onClick={() => swiper?.slideNext()}
+            className="flex items-center gap-1 lg:gap-2 text-muted-foreground hover:text-foreground text-sm lg:text-base"
+            disabled={isLast}
+          >
+            <span className="hidden sm:inline">{nextSlideTitle}</span>
+            <IconChevronRight size={14} className="lg:w-4 lg:h-4" />
+          </Button>
         </div>
       </div>
     </div>
@@ -278,11 +295,14 @@ type AnnouncementEmodeProps = {
 
 const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
   const [currentSlide, setCurrentSlide] = React.useState(0);
+  const [tableResetKey, setTableResetKey] = React.useState(1);
   const { connected } = useWallet();
   const [userActiveEmodes, extendedBankInfos] = useMrgnlendStore((state) => [
     state.userActiveEmodes,
     state.extendedBankInfos,
   ]);
+
+  const prevSlideRef = React.useRef(currentSlide);
 
   const slides = [
     {
@@ -324,7 +344,7 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
   ];
 
   return (
-    <div className="w-screen h-screen lg:w-full lg:h-[600px] lg:rounded-lg overflow-hidden bg-background-gray">
+    <div className="w-screen h-max lg:w-full lg:h-[600px] lg:rounded-lg overflow-hidden bg-background-gray">
       <Swiper
         modules={[Pagination, Navigation, EffectFade]}
         slidesPerView={1}
@@ -333,11 +353,28 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
           crossFade: true,
         }}
         speed={300}
-        onSlideChange={(swiper) => setCurrentSlide(swiper.activeIndex)}
-        className="h-full"
+        onSlideChange={(swiper) => {
+          const newSlideIndex = swiper.activeIndex;
+          if (
+            prevSlideRef.current >= 0 &&
+            prevSlideRef.current < slides.length &&
+            newSlideIndex >= 0 &&
+            newSlideIndex < slides.length
+          ) {
+            const wasTableSlide = slides[prevSlideRef.current].title === "Explore e-mode pairs";
+
+            if (wasTableSlide) {
+              setTableResetKey((prev) => prev + 1);
+            }
+          }
+
+          setCurrentSlide(newSlideIndex);
+          prevSlideRef.current = newSlideIndex;
+        }}
+        className="h-full flex flex-col md:block"
       >
         {slides.map((slide, index) => (
-          <SwiperSlide key={index} className="h-full">
+          <SwiperSlide key={index} className="h-full flex flex-col md:block">
             <AnnouncementSlide
               title={slide.title}
               description={slide.description}
@@ -353,6 +390,7 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
               userActiveEmodes={userActiveEmodes}
               connected={connected}
               banks={extendedBankInfos}
+              tableResetKey={tableResetKey}
             />
           </SwiperSlide>
         ))}
