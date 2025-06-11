@@ -323,7 +323,9 @@ export const PortfolioAssetCard = ({
                   <dt className="text-muted-foreground">{isInLendingMode ? "Weight" : "e-mode boost"}</dt>
                   <dd className="text-right text-white">
                     {bank.position || collateralBanks.length > 0 ? (
-                      <div className={cn("flex items-center justify-end gap-1", isEmodeActive && "text-mfi-emode")}>
+                      <div
+                        className={cn("flex items-center justify-end gap-1 w-full", isEmodeActive && "text-mfi-emode")}
+                      >
                         {!isInLendingMode && collateralBanks.length > 0 && (
                           <div className="flex items-center">
                             <IconEmodeSimple size={18} />
@@ -343,10 +345,10 @@ export const PortfolioAssetCard = ({
                           </div>
                         )}
                         {isInLendingMode && isEmodeActive && (
-                          <>
-                            <IconEmodeSimple size={18} />
+                          <div className="flex items-center">
+                            <IconEmodeSimple size={16} />
                             <EmodeDiff assetWeight={assetWeight} originalAssetWeight={originalAssetWeight} />
-                          </>
+                          </div>
                         )}
                       </div>
                     ) : null}
