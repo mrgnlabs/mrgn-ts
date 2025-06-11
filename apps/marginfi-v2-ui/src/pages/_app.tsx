@@ -9,12 +9,16 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { Analytics } from "@vercel/analytics/react";
 import { registerMoonGateWallet } from "@moongate/moongate-adapter";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+import { initializeConfig } from "@mrgnlabs/mrgn-state";
 import { cn, Desktop, Mobile, init as initAnalytics, AuthProvider } from "@mrgnlabs/mrgn-utils";
 import { ActionBoxProvider, ActionProvider, AuthDialog, WalletProvider as MrgnWalletProvider } from "@mrgnlabs/mrgn-ui";
 import { generateEndpoint } from "~/rpc.utils";
 
-import config from "~/config";
+import rpcConfig from "~/config";
+
+import config from "~/config/marginfi";
 import { MrgnlendProvider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
 import { useMrgnlendStore, useUiStore } from "~/store";
@@ -44,6 +48,13 @@ const Navbar = dynamic(async () => (await import("~/components/common/Navbar")).
 const Footer = dynamic(async () => (await import("~/components/desktop/Footer")).Footer, { ssr: false });
 
 type MrgnAppProps = { path: string };
+
+const qc = new QueryClient();
+
+initializeConfig({
+  rpcUrl: rpcConfig.rpcEndpoint,
+  mrgnConfig: config.mfiConfig,
+});
 
 export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
   const [
@@ -96,7 +107,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
   React.useEffect(() => {
     const init = async () => {
-      const rpcEndpoint = await generateEndpoint(config.rpcEndpoint, process.env.NEXT_PUBLIC_RPC_PROXY_KEY ?? "");
+      const rpcEndpoint = await generateEndpoint(rpcConfig.rpcEndpoint, process.env.NEXT_PUBLIC_RPC_PROXY_KEY ?? "");
       setRpcEndpoint(rpcEndpoint);
       setReady(true);
       initAnalytics();
@@ -105,70 +116,74 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     init();
   }, []);
 
+  console.log("React-Query resolved from:", require.resolve("@tanstack/react-query"));
+
   return (
     <>
       <Meta path={path} />
-      {ready && rpcEndpoint && (
-        <ConnectionProvider endpoint={rpcEndpoint}>
-          <TipLinkWalletAutoConnect isReady={isReady} query={query}>
-            <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
-              <AuthProvider>
-                <MrgnWalletProvider>
-                  <MrgnlendProvider>
-                    <ActionProvider
-                      transactionSettings={{
-                        broadcastType,
-                        priorityType,
-                        maxCap: priorityFees.maxCapUi ?? 0,
-                        maxCapType,
-                      }}
-                      jupiterOptions={{ ...jupiterOptions, slippageBps: jupiterOptions.slippageBps }}
-                      priorityFees={priorityFees}
-                    >
-                      <ActionBoxProvider
-                        banks={extendedBankInfos}
-                        nativeSolBalance={nativeSolBalance}
-                        marginfiClient={marginfiClient}
-                        selectedAccount={selectedAccount}
-                        connected={false}
-                        accountSummaryArg={accountSummary}
-                        setDisplaySettings={setDisplaySettings}
+      <QueryClientProvider client={qc}>
+        {ready && rpcEndpoint && (
+          <ConnectionProvider endpoint={rpcEndpoint}>
+            <TipLinkWalletAutoConnect isReady={isReady} query={query}>
+              <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
+                <AuthProvider>
+                  <MrgnWalletProvider>
+                    <MrgnlendProvider>
+                      <ActionProvider
+                        transactionSettings={{
+                          broadcastType,
+                          priorityType,
+                          maxCap: priorityFees.maxCapUi ?? 0,
+                          maxCapType,
+                        }}
+                        jupiterOptions={{ ...jupiterOptions, slippageBps: jupiterOptions.slippageBps }}
+                        priorityFees={priorityFees}
                       >
-                        <Navbar />
+                        <ActionBoxProvider
+                          banks={extendedBankInfos}
+                          nativeSolBalance={nativeSolBalance}
+                          marginfiClient={marginfiClient}
+                          selectedAccount={selectedAccount}
+                          connected={false}
+                          accountSummaryArg={accountSummary}
+                          setDisplaySettings={setDisplaySettings}
+                        >
+                          <Navbar />
 
-                        <Desktop>
-                          <WalletModalProvider>
+                          <Desktop>
+                            <WalletModalProvider>
+                              <div className={cn("w-full flex flex-col justify-center items-center")}>
+                                <Component {...pageProps} />
+                              </div>
+                              <Footer />
+                            </WalletModalProvider>
+                          </Desktop>
+
+                          <Mobile>
                             <div className={cn("w-full flex flex-col justify-center items-center")}>
                               <Component {...pageProps} />
                             </div>
-                            <Footer />
-                          </WalletModalProvider>
-                        </Desktop>
+                            <MobileNavbar />
+                          </Mobile>
 
-                        <Mobile>
-                          <div className={cn("w-full flex flex-col justify-center items-center")}>
-                            <Component {...pageProps} />
-                          </div>
-                          <MobileNavbar />
-                        </Mobile>
+                          <Analytics />
+                          <Tutorial />
+                          <AuthDialog
+                            mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
+                          />
 
-                        <Analytics />
-                        <Tutorial />
-                        <AuthDialog
-                          mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
-                        />
-
-                        <ToastProvider />
-                        {globalActionBoxProps.isOpen && <GlobalActionBoxPortal />}
-                      </ActionBoxProvider>
-                    </ActionProvider>
-                  </MrgnlendProvider>
-                </MrgnWalletProvider>
-              </AuthProvider>
-            </WalletProvider>
-          </TipLinkWalletAutoConnect>
-        </ConnectionProvider>
-      )}
+                          <ToastProvider />
+                          {globalActionBoxProps.isOpen && <GlobalActionBoxPortal />}
+                        </ActionBoxProvider>
+                      </ActionProvider>
+                    </MrgnlendProvider>
+                  </MrgnWalletProvider>
+                </AuthProvider>
+              </WalletProvider>
+            </TipLinkWalletAutoConnect>
+          </ConnectionProvider>
+        )}
+      </QueryClientProvider>
 
       {process.env.NEXT_PUBLIC_ANALYTICS === "true" && ready && (
         <>

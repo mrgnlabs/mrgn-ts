@@ -51,7 +51,13 @@ import type {
   WalletToken,
 } from "@mrgnlabs/mrgn-common";
 import { EmodeTag, MarginfiAccountWrapper, ProcessTransactionStrategy } from "@mrgnlabs/marginfi-client-v2";
-import type { ActionEmodeImpact, EmodePair, MarginfiClient, MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
+import type {
+  ActionEmodeImpact,
+  BankRaw,
+  EmodePair,
+  MarginfiClient,
+  MarginfiConfig,
+} from "@mrgnlabs/marginfi-client-v2";
 import BigNumber from "bignumber.js";
 
 interface ProtocolStats {

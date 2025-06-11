@@ -60,7 +60,8 @@
       "react": "^18.2.0",
       "react-dom": "^18.2.0",
       "@solana/wallet-adapter-base": "^0.9.24",
-      "@solana/wallet-adapter-react": "^0.15.36"
+      "@solana/wallet-adapter-react": "^0.15.36",
+      "@tanstack/react-query": "^5.80.6"
     }
   },
   "resolutions": {

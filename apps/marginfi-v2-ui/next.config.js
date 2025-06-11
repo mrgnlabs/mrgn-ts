@@ -35,6 +35,7 @@ let config = withBundleAnalyzer({
     "@mrgnlabs/mrgn-common",
     "@mrgnlabs/mrgn-utils",
     "@mrgnlabs/mrgn-ui",
+    "@mrgnlabs/mrgn-state",
   ],
   reactStrictMode: true,
   experimental: {
