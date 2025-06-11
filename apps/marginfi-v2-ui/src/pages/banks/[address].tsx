@@ -178,7 +178,7 @@ export default function BankPage() {
             <li className="flex items-center gap-1">
               <span>Price:</span>{" "}
               <span className="text-foreground">
-                {usdFormatter.format(bank.info.oraclePrice.priceRealtime.price.toNumber())}
+                {dynamicNumeralFormatter(bank.info.oraclePrice.priceRealtime.price.toNumber())}
               </span>
               {assetPriceData && assetPriceData.oracle === "Pyth" ? (
                 <IconPyth size={14} className="inline ml-1" />

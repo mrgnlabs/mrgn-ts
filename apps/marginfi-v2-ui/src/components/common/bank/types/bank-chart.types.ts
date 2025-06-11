@@ -4,6 +4,8 @@ type BankChartData = {
   timestamp: string;
   totalBorrows: number;
   totalDeposits: number;
+  totalBorrowsUsd?: number;
+  totalDepositsUsd?: number;
 };
 
 type BankHistoricalDataResponse = {
@@ -16,6 +18,8 @@ type BankChartDataDailyAverages = {
   depositRate: number;
   totalBorrows: number;
   totalDeposits: number;
+  totalBorrowsUsd?: number;
+  totalDepositsUsd?: number;
 };
 
 type UseBankRatesReturn = {

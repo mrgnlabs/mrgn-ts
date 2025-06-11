@@ -16,7 +16,9 @@ import {
 } from "~/components/ui/chart";
 import { Skeleton } from "~/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
+import { Switch } from "~/components/ui/switch";
 import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common/dist/utils/formatters.utils";
+import { useMrgnlendStore } from "~/store";
 
 // Use the same colors for both charts
 const chartColors = {
@@ -61,7 +63,22 @@ type BankChartProps = {
 
 const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
   const [showTVL, setShowTVL] = React.useState(tab === "tvl");
-  const { data, error, isLoading } = useBankChart(bankAddress);
+  const [showUSD, setShowUSD] = React.useState(false);
+
+  // Reset USD toggle when switching to Rates
+  React.useEffect(() => {
+    if (!showTVL) {
+      setShowUSD(false);
+    }
+  }, [showTVL]);
+
+  // Get bank data from store
+  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+  const bank = React.useMemo(() => {
+    return extendedBankInfos.find((bank) => bank.address.toBase58() === bankAddress);
+  }, [extendedBankInfos, bankAddress]);
+
+  const { data, error, isLoading } = useBankChart(bankAddress, bank);
 
   if (isLoading) {
     return (
@@ -88,8 +105,11 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
     ...item,
     formattedBorrowRate: percentFormatter.format(item.borrowRate),
     formattedDepositRate: percentFormatter.format(item.depositRate),
-    formattedTotalBorrows: dynamicNumeralFormatter(item.totalBorrows),
-    formattedTotalDeposits: dynamicNumeralFormatter(item.totalDeposits),
+    formattedTotalBorrows: dynamicNumeralFormatter(showUSD ? item.totalBorrowsUsd || 0 : item.totalBorrows),
+    formattedTotalDeposits: dynamicNumeralFormatter(showUSD ? item.totalDepositsUsd || 0 : item.totalDeposits),
+    // Use USD or native amounts for chart display
+    displayTotalBorrows: showUSD ? item.totalBorrowsUsd || 0 : item.totalBorrows,
+    displayTotalDeposits: showUSD ? item.totalDepositsUsd || 0 : item.totalDeposits,
   }));
 
   const CustomTooltipContent = ({ active, payload, label }: any) => {
@@ -102,7 +122,11 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
               <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: entry.color }} />
               <span className="text-sm text-muted-foreground">{entry.name}:</span>
               <span className="text-sm font-medium text-foreground">
-                {showTVL ? `$${dynamicNumeralFormatter(entry.value)}` : `${entry.value.toFixed(2)}%`}
+                {showTVL
+                  ? showUSD
+                    ? `$${dynamicNumeralFormatter(entry.value)}`
+                    : `${dynamicNumeralFormatter(entry.value)} ${bank?.meta.tokenSymbol || ""}`
+                  : `${entry.value.toFixed(2)}%`}
               </span>
             </div>
           ))}
@@ -121,25 +145,33 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="p-3 rounded-lg space-y-4 relative bg-background-gray pt-8">
-        <ToggleGroup
-          type="single"
-          value={showTVL ? "tvl" : "rates"}
-          onValueChange={(value) => setShowTVL(value === "tvl")}
-          className="justify-start absolute top-3 right-3 z-20 p-1.5 rounded-md"
-        >
-          <ToggleGroupItem
-            value="tvl"
-            className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50"
+        <div className="absolute top-3 right-3 z-20 flex items-center gap-3">
+          {showTVL && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">USD</span>
+              <Switch checked={showUSD} onCheckedChange={setShowUSD} />
+            </div>
+          )}
+          <ToggleGroup
+            type="single"
+            value={showTVL ? "tvl" : "rates"}
+            onValueChange={(value) => setShowTVL(value === "tvl")}
+            className="p-1.5 rounded-md"
           >
-            TVL
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="rates"
-            className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50"
-          >
-            Rates
-          </ToggleGroupItem>
-        </ToggleGroup>
+            <ToggleGroupItem
+              value="tvl"
+              className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50"
+            >
+              TVL
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="rates"
+              className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50"
+            >
+              Rates
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
         <ChartContainer config={chartConfig} className="h-[460px] w-full">
           <AreaChart
             data={formattedData}
@@ -161,7 +193,13 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
               minTickGap={50}
             />
             <YAxis
-              tickFormatter={(value) => (showTVL ? `$${formatValue(value)}` : `${value}%`)}
+              tickFormatter={(value) => {
+                if (showTVL) {
+                  return showUSD ? `$${formatValue(value)}` : `${formatValue(value)}`;
+                } else {
+                  return `${value}%`;
+                }
+              }}
               domain={[0, "auto"]}
               hide={false}
               width={80}
@@ -183,7 +221,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
             {showTVL ? (
               <>
                 <Area
-                  dataKey="totalDeposits"
+                  dataKey="displayTotalDeposits"
                   type="monotone"
                   fill="url(#fillPrimary)"
                   fillOpacity={0.4}
@@ -192,7 +230,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
                   name="Total Deposits"
                 />
                 <Area
-                  dataKey="totalBorrows"
+                  dataKey="displayTotalBorrows"
                   type="monotone"
                   fill="url(#fillSecondary)"
                   fillOpacity={0.4}

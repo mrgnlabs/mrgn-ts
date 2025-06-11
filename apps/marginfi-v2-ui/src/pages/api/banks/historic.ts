@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: bankMetrics, error } = await supabase
       .schema("application")
       .from("v_bank_metrics_daily")
-      .select("day, borrow_rate_pct, deposit_rate_pct, total_borrows_usd, total_deposits_usd")
+      .select("day, borrow_rate_pct, deposit_rate_pct, total_borrows, total_deposits")
       .eq("bank_address", bankAddress)
       .gte("day", startDate)
       .order("day", { ascending: true });
@@ -54,8 +54,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       timestamp: entry.day,
       borrowRate: entry.borrow_rate_pct || 0,
       depositRate: entry.deposit_rate_pct || 0,
-      totalBorrows: entry.total_borrows_usd || 0,
-      totalDeposits: entry.total_deposits_usd || 0,
+      totalBorrows: entry.total_borrows || 0,
+      totalDeposits: entry.total_deposits || 0,
     }));
 
     return res.status(STATUS_OK).json(formattedData);

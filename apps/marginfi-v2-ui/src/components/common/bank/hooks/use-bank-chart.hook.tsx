@@ -3,8 +3,9 @@
 import React from "react";
 import { BankChartData, BankChartDataDailyAverages, UseBankRatesReturn } from "../types/bank-chart.types";
 import { filterDailyRates } from "../utils/bank-chart.utils";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-const useBankChart = (bankAddress: string): UseBankRatesReturn => {
+const useBankChart = (bankAddress: string, bank?: ExtendedBankInfo): UseBankRatesReturn => {
   const [data, setData] = React.useState<BankChartDataDailyAverages[] | null>(null);
   const [error, setError] = React.useState<Error | null>(null);
   const [isLoading, setIsLoading] = React.useState<boolean>(true);
@@ -21,7 +22,18 @@ const useBankChart = (bankAddress: string): UseBankRatesReturn => {
         }
 
         const result: BankChartData[] = await response.json();
-        const dailyRates = filterDailyRates(result);
+
+        // Calculate USD values if bank data is available
+        const processedData = result.map((item) => {
+          const price = bank?.info.oraclePrice.priceRealtime.price.toNumber() || 0;
+          return {
+            ...item,
+            totalBorrowsUsd: item.totalBorrows * price,
+            totalDepositsUsd: item.totalDeposits * price,
+          };
+        });
+
+        const dailyRates = filterDailyRates(processedData);
         setData(dailyRates);
       } catch (err) {
         setError(err instanceof Error ? err : new Error("Failed to fetch bank rates"));
@@ -31,7 +43,7 @@ const useBankChart = (bankAddress: string): UseBankRatesReturn => {
     };
 
     fetchBankRates();
-  }, [bankAddress]);
+  }, [bankAddress, bank]);
 
   return { data, error, isLoading };
 };
