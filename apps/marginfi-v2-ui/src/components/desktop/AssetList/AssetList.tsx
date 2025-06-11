@@ -16,7 +16,7 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./components";
-import { EmodeHeader, EmodeExplore } from "~/components/common/emode/components";
+import { EmodeHeader } from "~/components/common/emode/components";
 import { Button } from "~/components/ui/button";
 import { TokenFilters } from "~/store/uiStore";
 import { IconEmode } from "~/components/ui/icons";

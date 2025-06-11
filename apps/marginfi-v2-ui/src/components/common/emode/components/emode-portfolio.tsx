@@ -2,7 +2,7 @@ import { IconSparkles, IconSearch } from "@tabler/icons-react";
 import { EmodePair } from "@mrgnlabs/marginfi-client-v2";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
-import { EmodeExplore, EmodeStrategies } from "~/components/common/emode/components";
+import { EmodeExploreWrapper } from "~/components/common/emode/components/emode-explore-wrapper";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Button } from "~/components/ui/button";
@@ -26,23 +26,19 @@ const EmodePortfolio = ({
   const emodeActive = userActiveEmodes.length > 0;
   return (
     <div className="flex flex-col lg:flex-row items-center gap-3 justify-between">
-      <div className="flex-col flex md:flex-row gap-2 md:justify-between w-full md:items-center items-start">
+      <div className="flex justify-between w-full">
         <div className="flex items-center justify-between text-sm gap-1 shrink-0 text-muted-foreground">
           {emodeActive ? <IconEmodeSimple size={18} /> : <IconEmodeSimpleInactive size={18} />}
           e-mode {!emodeActive && "in"}active
         </div>
-        <div className="flex items-center gap-3 md:justify-center justify-between w-full">
-          <EmodeStrategies extendedBankInfos={extendedBankInfos} />
-
-          <EmodeExplore
-            trigger={
-              <Button variant="secondary" size="sm">
-                <IconSearch size={12} />
-                Explore e-mode pairs
-              </Button>
-            }
-          />
-        </div>
+        <EmodeExploreWrapper
+          trigger={
+            <Button variant="secondary" size="sm">
+              <IconSearch size={12} />
+              Explore e-mode pairs
+            </Button>
+          }
+        />
       </div>
       {emodeActive && setFilterEmode && (
         <div className="items-center gap-2 shrink-0 hidden lg:flex">

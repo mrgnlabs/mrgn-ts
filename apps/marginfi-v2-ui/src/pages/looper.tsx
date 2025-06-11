@@ -4,7 +4,7 @@ import { capture } from "@mrgnlabs/mrgn-utils";
 import { useMrgnlendStore } from "~/store";
 
 import { PageHeading } from "~/components/common/PageHeading";
-import { EmodeExplore } from "~/components/common/emode/components";
+import { EmodeExploreWrapper } from "~/components/common/emode/components";
 import { Loader } from "~/components/ui/loader";
 import { IconEmodeSimple, IconEmodeSimpleInactive, IconLooper } from "~/components/ui/icons";
 
@@ -38,7 +38,7 @@ export default function LooperPage() {
                     <IconEmodeSimple size={24} className="inline-block translate-x-0.5" /> e-mode
                   </span>{" "}
                   pairs increase leverage.{" "}
-                  <EmodeExplore
+                  <EmodeExploreWrapper
                     trigger={
                       <button className="border-b border-foreground/50 leading-none transition-colors hover:border-transparent">
                         explore e-mode pairs
