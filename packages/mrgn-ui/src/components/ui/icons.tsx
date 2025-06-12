@@ -37,8 +37,8 @@ const IconEmode = ({ size = 24, className }: IconProps) => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(89.4985 90.0029) scale(74.9703 75.2068)"
       >
-        <stop offset="0.3" stop-color="#9E87FF" />
-        <stop offset="1" stop-color="#3D135D" />
+        <stop offset="0.3" stopColor="#9E87FF" />
+        <stop offset="1" stopColor="#3D135D" />
       </radialGradient>
     </defs>
   </svg>
