@@ -7,7 +7,7 @@ import { IconInfoCircle } from "@tabler/icons-react";
 import { EmodePair, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { percentFormatterMod } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { cn, getAssetWeightData } from "@mrgnlabs/mrgn-utils";
+import { cn, getAssetWeightData, getEmodeStrategies } from "@mrgnlabs/mrgn-utils";
 import { useDebounce } from "@uidotdev/usehooks";
 
 import { EmodeDiff } from "./emode-diff";
@@ -18,6 +18,8 @@ import { Badge } from "~/components/ui/badge";
 import { IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
 
 interface EmodePopoverProps {
+  bank: ExtendedBankInfo;
+  extendedBanks: ExtendedBankInfo[];
   assetWeight: number;
   originalAssetWeight?: number;
   emodeActive?: boolean;
@@ -36,6 +38,8 @@ interface EmodePopoverProps {
 }
 
 export const EmodePopover = ({
+  bank,
+  extendedBanks,
   assetWeight,
   originalAssetWeight,
   emodeActive,
@@ -84,6 +88,22 @@ export const EmodePopover = ({
     );
   }, [collateralBanks, showActiveOnly]);
 
+  const isAvailableForEmode = React.useMemo(() => {
+    if (isInLendingMode) {
+      const { activateSupplyEmodeBanks, increaseSupplyEmodeBanks, extendSupplyEmodeBanks } = getEmodeStrategies([
+        ...extendedBanks,
+      ]);
+
+      return !![...activateSupplyEmodeBanks, ...increaseSupplyEmodeBanks, ...extendSupplyEmodeBanks].find((b) =>
+        b.address.equals(bank.address)
+      );
+    } else {
+      const { activateBorrowEmodeBanks, extendBorrowEmodeBanks } = getEmodeStrategies([...extendedBanks]);
+
+      return !![...activateBorrowEmodeBanks, ...extendBorrowEmodeBanks].find((b) => b.address.equals(bank.address));
+    }
+  }, [bank.address, isInLendingMode, extendedBanks]);
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       {triggerType === "weight" ? (
@@ -92,7 +112,13 @@ export const EmodePopover = ({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {emodeActive ? <IconEmodeSimple size={20} /> : <IconEmodeSimpleInactive size={18} />}
+          {emodeActive ? (
+            <IconEmodeSimple size={20} />
+          ) : isAvailableForEmode ? (
+            <IconEmodeSimpleInactive size={18} />
+          ) : (
+            <></>
+          )}
           <span className="min-w-[33px] text-right mr-1.5 ml-0.5">
             {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}
           </span>
@@ -198,7 +224,8 @@ export const EmodePopover = ({
                 {filteredCollateralBanks?.map((collateralBankItem) => {
                   const { originalAssetWeight: collateralOriginalAssetWeight } = getAssetWeightData(
                     collateralBankItem.collateralBank,
-                    true
+                    true,
+                    extendedBanks
                   );
                   return (
                     <TableRow key={collateralBankItem.collateralBank.address.toBase58()} className="text-xs">

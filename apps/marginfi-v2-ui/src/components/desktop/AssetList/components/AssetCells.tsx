@@ -241,6 +241,8 @@ export const getRateCell = ({
 };
 
 export const getAssetWeightCell = ({
+  bank,
+  extendedBankInfos,
   assetWeight,
   originalAssetWeight,
   emodeActive,
@@ -254,6 +256,8 @@ export const getAssetWeightCell = ({
       (collateralBanks && collateralBanks.length > 0) ||
       (liabilityBanks && liabilityBanks.length > 0) ? (
         <EmodePopover
+          bank={bank}
+          extendedBanks={extendedBankInfos}
           assetWeight={assetWeight}
           originalAssetWeight={originalAssetWeight}
           emodeActive={emodeActive}

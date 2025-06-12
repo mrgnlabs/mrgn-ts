@@ -61,6 +61,7 @@ export const makeData = (
   walletContextState: WalletContextStateOverride | WalletContextState,
   solPrice: number | null,
   fetchMrgnlendState: () => void,
+  userActiveEmodes: EmodePair[] = [],
   collateralBanksByLiabilityBank?: Record<
     string,
     {
@@ -79,7 +80,15 @@ export const makeData = (
       "validator-rate": bank.meta.stakePool?.validatorRewards || "",
       price: getAssetPriceData(bank),
       rate: getRateData(bank, isInLendingMode),
-      weight: getAssetWeightData(bank, isInLendingMode, undefined, collateralBanks, liabilityBanks),
+      weight: getAssetWeightData(
+        bank,
+        isInLendingMode,
+        data,
+        undefined,
+        collateralBanks,
+        liabilityBanks,
+        userActiveEmodes
+      ),
       deposits: getDepositsData(bank, isInLendingMode),
       bankCap: getBankCapData(bank, isInLendingMode),
       utilization: getUtilizationData(bank),

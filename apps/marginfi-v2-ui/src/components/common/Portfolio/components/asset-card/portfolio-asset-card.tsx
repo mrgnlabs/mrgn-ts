@@ -121,13 +121,15 @@ export const PortfolioAssetCard = ({
   );
 
   const assetWeight = React.useMemo(
-    () => getAssetWeightData(bank, isInLendingMode).assetWeight,
-    [bank, isInLendingMode]
+    () => getAssetWeightData(bank, isInLendingMode, extendedBankInfos).assetWeight,
+    [bank, extendedBankInfos, isInLendingMode]
   );
 
   const originalAssetWeight = React.useMemo(
-    () => getAssetWeightData(bank, isInLendingMode, bank.info.state.originalWeights.assetWeightInit).assetWeight,
-    [bank, isInLendingMode]
+    () =>
+      getAssetWeightData(bank, isInLendingMode, extendedBankInfos, bank.info.state.originalWeights.assetWeightInit)
+        .assetWeight,
+    [bank, extendedBankInfos, isInLendingMode]
   );
 
   const solBank = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "SOL");
@@ -198,6 +200,8 @@ export const PortfolioAssetCard = ({
                     {bank.meta.tokenSymbol}{" "}
                     {isEmodeActive && (
                       <EmodePopover
+                        bank={bank}
+                        extendedBanks={extendedBankInfos}
                         assetWeight={assetWeight}
                         originalAssetWeight={originalAssetWeight}
                         emodeActive={isEmodeActive}
@@ -361,6 +365,8 @@ export const PortfolioAssetCard = ({
                   <dd className="text-right text-white flex items-center justify-end">
                     {!isEmodeActive && bank.info.state.hasEmode ? (
                       <EmodePopover
+                        bank={bank}
+                        extendedBanks={extendedBankInfos}
                         assetWeight={assetWeight}
                         originalAssetWeight={originalAssetWeight}
                         emodeActive={isEmodeActive}

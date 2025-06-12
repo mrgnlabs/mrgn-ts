@@ -54,8 +54,13 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
     if (!extendedBankInfos) return [];
 
     const strategies: EmodeStrategyType[] = [];
-    const { activateBorrowEmodeBanks, activateSupplyEmodeBanks, increaseSupplyEmodeBanks, blockingBorrowEmodeBanks } =
-      getEmodeStrategies(extendedBankInfos);
+    const {
+      activateBorrowEmodeBanks,
+      activateSupplyEmodeBanks,
+      increaseSupplyEmodeBanks,
+      blockingBorrowEmodeBanks,
+      extendBorrowEmodeBanks,
+    } = getEmodeStrategies(extendedBankInfos);
 
     activateBorrowEmodeBanks.forEach((bank) => {
       strategies.push({
@@ -93,6 +98,16 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
         description: "Repay " + bank.meta.tokenSymbol + " to activate e-mode boost.",
         icon: bank.meta.tokenLogoUri,
         action: ActionType.Repay,
+        bank,
+      });
+    });
+
+    extendBorrowEmodeBanks.forEach((bank) => {
+      strategies.push({
+        symbol: bank.meta.tokenSymbol,
+        description: "Borrow " + bank.meta.tokenSymbol + " to extend e-mode boost.",
+        icon: bank.meta.tokenLogoUri,
+        action: ActionType.Borrow,
         bank,
       });
     });

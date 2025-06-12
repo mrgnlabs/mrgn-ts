@@ -26,6 +26,7 @@ export const AssetsList = () => {
     extendedBankInfos,
     nativeSolBalance,
     selectedAccount,
+    userActiveEmodes,
     fetchMrgnlendState,
     emodePairs,
     groupedEmodeBanks,
@@ -35,6 +36,7 @@ export const AssetsList = () => {
     state.extendedBankInfos,
     state.nativeSolBalance,
     state.selectedAccount,
+    state.userActiveEmodes,
     state.fetchMrgnlendState,
     state.emodePairs,
     state.groupedEmodeBanks,
@@ -119,20 +121,22 @@ export const AssetsList = () => {
       walletContextState,
       solPrice,
       fetchMrgnlendState,
+      userActiveEmodes,
       collateralBanksByLiabilityBank,
       liabilityBanksByCollateralBank
     );
   }, [
-    connected,
-    walletContextState,
     globalBanks,
     isInLendingMode,
     nativeSolBalance,
     selectedAccount,
+    connected,
+    walletContextState,
     solPrice,
     fetchMrgnlendState,
     collateralBanksByLiabilityBank,
     liabilityBanksByCollateralBank,
+    userActiveEmodes,
   ]);
 
   const isolatedPoolTableData = React.useMemo(() => {
@@ -145,20 +149,22 @@ export const AssetsList = () => {
       walletContextState,
       solPrice,
       fetchMrgnlendState,
+      userActiveEmodes,
       collateralBanksByLiabilityBank,
       liabilityBanksByCollateralBank
     );
   }, [
-    connected,
-    walletContextState,
     isolatedBanks,
     isInLendingMode,
     nativeSolBalance,
     selectedAccount,
+    connected,
+    walletContextState,
     solPrice,
     fetchMrgnlendState,
     collateralBanksByLiabilityBank,
     liabilityBanksByCollateralBank,
+    userActiveEmodes,
   ]);
 
   const stakedPoolTableData = React.useMemo(() => {
@@ -170,7 +176,8 @@ export const AssetsList = () => {
       connected,
       walletContextState,
       solPrice,
-      fetchMrgnlendState
+      fetchMrgnlendState,
+      userActiveEmodes
     );
   }, [
     connected,
@@ -181,6 +188,8 @@ export const AssetsList = () => {
     selectedAccount,
     solPrice,
     fetchMrgnlendState,
+
+    userActiveEmodes,
   ]);
 
   const emodePoolTableData = React.useMemo(() => {
@@ -193,18 +202,20 @@ export const AssetsList = () => {
       walletContextState,
       solPrice,
       fetchMrgnlendState,
+      userActiveEmodes,
       collateralBanksByLiabilityBank,
       liabilityBanksByCollateralBank
     );
   }, [
-    connected,
-    walletContextState,
     emodeBanks,
     isInLendingMode,
     nativeSolBalance,
     selectedAccount,
+    connected,
+    walletContextState,
     solPrice,
     fetchMrgnlendState,
+    userActiveEmodes,
     collateralBanksByLiabilityBank,
     liabilityBanksByCollateralBank,
   ]);
