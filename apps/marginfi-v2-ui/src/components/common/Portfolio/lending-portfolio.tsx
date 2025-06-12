@@ -405,11 +405,11 @@ export const LendingPortfolio = () => {
   return (
     <div className="flex flex-col items-center md:items-start w-full gap-4">
       {/* Auth Button - Simple proof of concept */}
-      <div className="w-full flex justify-end mb-4">
+      {/* <div className="w-full flex justify-end mb-4">
         <Button onClick={handleAuthAction} disabled={isAuthenticating} variant={user ? "outline" : "default"} size="sm">
           {isAuthenticating ? "Authenticating..." : user ? "Logout" : "Login"}
         </Button>
-      </div>
+      </div> */}
 
       <div className="pb-6 md:p-6 rounded-xl w-full md:bg-muted/25">
         <div className={cn("transition-opacity duration-500")}>

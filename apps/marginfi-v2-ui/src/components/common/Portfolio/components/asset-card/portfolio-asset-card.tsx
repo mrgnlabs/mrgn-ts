@@ -194,20 +194,25 @@ export const PortfolioAssetCard = ({
           variant="portfolio"
           className="hover:no-underline outline-none py-3 [&[data-state=open]>div>div>#health-label]:opacity-0 [&[data-state=open]>div>div>#health-label]:mb-[-24px]"
         >
-          <div className="w-full space-y-1 pr-3 ">
+          <div className="w-full space-y-1 pr-3">
             <div className="flex gap-3">
               <div className="flex items-center">
-                <Image
-                  src={bank.meta.tokenLogoUri}
-                  className="rounded-full"
-                  alt={bank.meta.tokenSymbol}
-                  height={40}
-                  width={40}
-                />
+                <Link href={`/banks/${bank.address.toBase58()}`}>
+                  <Image
+                    src={bank.meta.tokenLogoUri}
+                    className="rounded-full"
+                    alt={bank.meta.tokenSymbol}
+                    height={40}
+                    width={40}
+                  />
+                </Link>
               </div>
               <div className="flex flex-col w-full">
                 <div className="flex justify-between items-center w-full">
-                  <div className="flex items-center gap-2 font-medium text-lg">
+                  <Link
+                    href={`/banks/${bank.address.toBase58()}`}
+                    className="flex items-center gap-2 font-medium text-lg"
+                  >
                     {bank.meta.tokenSymbol}{" "}
                     {isEmodeActive && (
                       <EmodePopover
@@ -232,7 +237,7 @@ export const PortfolioAssetCard = ({
                         showActiveOnly={!isInLendingMode}
                       />
                     )}{" "}
-                  </div>
+                  </Link>
                   <div className="font-medium text-lg text-right">
                     {dynamicNumeralFormatter(bank.position.amount, {
                       tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
