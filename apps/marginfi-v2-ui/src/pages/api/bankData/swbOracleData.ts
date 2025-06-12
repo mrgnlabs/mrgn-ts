@@ -1,41 +1,9 @@
-import { Program, AnchorProvider } from "@coral-xyz/anchor";
-import {
-  Bank,
-  BankConfig,
-  BankRaw,
-  findOracleKey,
-  MARGINFI_IDL,
-  MarginfiIdlType,
-  MarginfiProgram,
-  OraclePrice,
-  OracleSetup,
-  parseOracleSetup,
-  parsePriceInfo,
-  PythPushFeedIdMap,
-} from "@mrgnlabs/marginfi-client-v2";
-import {
-  CrossbarSimulatePayload,
-  decodeSwitchboardPullFeedData,
-  FeedResponse,
-  findPoolAddress,
-  findPoolStakeAddress,
-  getStakeAccount,
-  StakeAccount,
-} from "@mrgnlabs/marginfi-client-v2/dist/vendor";
-import {
-  BankMetadata,
-  chunkedGetRawMultipleAccountInfoOrdered,
-  loadBankMetadatas,
-  median,
-  MintLayout,
-  RawMint,
-  Wallet,
-} from "@mrgnlabs/mrgn-common";
-import { Connection, LAMPORTS_PER_SOL, PublicKey, StakeProgram } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { cp } from "fs";
 import { NextApiRequest, NextApiResponse } from "next";
-import config from "~/config/marginfi";
+
+import { OraclePrice } from "@mrgnlabs/marginfi-client-v2";
+import { CrossbarSimulatePayload, FeedResponse } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
+import { median } from "@mrgnlabs/mrgn-common";
 
 const SWITCHBOARD_CROSSSBAR_API = process.env.SWITCHBOARD_CROSSSBAR_API || "https://crossbar.switchboard.xyz";
 

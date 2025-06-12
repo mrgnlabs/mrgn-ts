@@ -21,15 +21,19 @@ import {
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
 import { EmodePortfolio } from "~/components/common/emode/components";
-import { useMetadata } from "@mrgnlabs/mrgn-state";
+import { useMetadata, useOracleData, useRawBanks } from "@mrgnlabs/mrgn-state";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
   ssr: false,
 });
 
 export default function HomePage() {
-  const metadata = useMetadata();
   const router = useRouter();
+
+  // const { data: metadata, error: metadataError } = useMetadata();
+  // const { data: oracleData, error: oracleError } = useOracleData();
+  // const { data: bankData, error: bankDataError } = useRawBanks();
+
   const { walletContextState, walletAddress, isOverride, connected } = useWallet();
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
 

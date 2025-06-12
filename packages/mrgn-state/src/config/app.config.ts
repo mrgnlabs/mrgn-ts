@@ -10,7 +10,7 @@ export interface AppConfig {
 
 let _config: AppConfig | null = null;
 
-interface AppConfigProps {
+export interface AppConfigProps {
   mrgnConfig: MarginfiConfig;
   rpcUrl: string;
   confirmOpts?: ConfirmOptions;

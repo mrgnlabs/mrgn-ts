@@ -309,7 +309,9 @@ export const fetchSwbOracleData = async (
 }> => {
   // Step 1: Fetch Switchboard oracle map
   const switchboardBanks = banks.filter(
-    (bank) => bank.data.config.oracleSetup && "SwitchboardPull" in bank.data.config.oracleSetup
+    (bank) =>
+      bank.data.config.oracleSetup &&
+      ("switchboardPull" in bank.data.config.oracleSetup || "switchboardV2" in bank.data.config.oracleSetup)
   );
 
   let oracleKeyMap: Record<string, { feedId: string }>;
@@ -334,7 +336,7 @@ export const fetchSwbOracleData = async (
   }
 
   // Step 6: Map banks to oracle prices
-  const bankOraclePriceMap = mapSwbBanksToOraclePrices(banks, oraclePrices);
+  const bankOraclePriceMap = mapSwbBanksToOraclePrices(banks, oraclePrices, oracleKeyMap);
 
   return {
     bankOraclePriceMap,
@@ -357,6 +359,8 @@ const fetchSwbDataViaAPI = async (
   }
 
   const swbOracleKeyMapJson: Record<string, { feedId: string }> = await swbOracleKeyMapResponse.json();
+
+  console.log("swbOracleKeyMapJson", swbOracleKeyMapJson);
 
   return { oracleKeyMap: swbOracleKeyMapJson };
 };
@@ -396,14 +400,16 @@ const fetchSwbOraclePricesViaAPI = async (swbFeedIds: string[]): Promise<Record<
  */
 const mapSwbBanksToOraclePrices = (
   banks: { address: PublicKey; data: BankRaw }[],
-  oraclePrices: Record<string, OraclePrice>
+  oraclePrices: Record<string, OraclePrice>,
+  oracleKeyMap: Record<string, { feedId: string }>
 ): Map<string, OraclePrice> => {
   const bankOraclePriceMap = new Map<string, OraclePrice>();
 
   // Map legacy banks
   banks.forEach((bank) => {
     const oracleKey = bank.data.config.oracleKeys[0].toBase58();
-    const oraclePrice = oraclePrices[oracleKey];
+    const oracleFeed = oracleKeyMap[oracleKey];
+    const oraclePrice = oraclePrices[oracleFeed.feedId];
     if (oraclePrice) {
       bankOraclePriceMap.set(bank.address.toBase58(), oraclePrice);
     }

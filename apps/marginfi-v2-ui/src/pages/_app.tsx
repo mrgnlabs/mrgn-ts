@@ -11,7 +11,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { registerMoonGateWallet } from "@moongate/moongate-adapter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import { initializeConfig } from "@mrgnlabs/mrgn-state";
+import { initializeConfig, StateProvider } from "@mrgnlabs/mrgn-state";
 import { cn, Desktop, Mobile, init as initAnalytics, AuthProvider } from "@mrgnlabs/mrgn-utils";
 import { ActionBoxProvider, ActionProvider, AuthDialog, WalletProvider as MrgnWalletProvider } from "@mrgnlabs/mrgn-ui";
 import { generateEndpoint } from "~/rpc.utils";
@@ -116,12 +116,10 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     init();
   }, []);
 
-  console.log("React-Query resolved from:", require.resolve("@tanstack/react-query"));
-
   return (
     <>
       <Meta path={path} />
-      <QueryClientProvider client={qc}>
+      <StateProvider config={{ rpcUrl: rpcConfig.rpcEndpoint, mrgnConfig: config.mfiConfig }}>
         {ready && rpcEndpoint && (
           <ConnectionProvider endpoint={rpcEndpoint}>
             <TipLinkWalletAutoConnect isReady={isReady} query={query}>
@@ -183,7 +181,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
             </TipLinkWalletAutoConnect>
           </ConnectionProvider>
         )}
-      </QueryClientProvider>
+      </StateProvider>
 
       {process.env.NEXT_PUBLIC_ANALYTICS === "true" && ready && (
         <>

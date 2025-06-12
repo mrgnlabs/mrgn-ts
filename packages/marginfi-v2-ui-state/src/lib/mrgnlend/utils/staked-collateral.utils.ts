@@ -120,8 +120,8 @@ const getStakeAccounts = async (
     // Calculate pool keys once per validator when creating return value
     return Promise.all(
       Array.from(validatorMap.entries()).map(async ([validatorAddress, accounts]) => {
-        const poolKey = await vendor.findPoolAddress(new PublicKey(validatorAddress));
-        const poolMintKey = await vendor.findPoolMintAddress(poolKey);
+        const poolKey = vendor.findPoolAddress(new PublicKey(validatorAddress));
+        const poolMintKey = vendor.findPoolMintAddress(poolKey);
         const totalStake = accounts.reduce((acc, curr) => acc + curr.amount, 0);
         const largestAccount = accounts.reduce((acc, curr) => (acc.amount > curr.amount ? acc : curr));
         const sortedAccounts = accounts.sort((a, b) => b.amount - a.amount);

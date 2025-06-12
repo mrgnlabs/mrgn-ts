@@ -1,0 +1,56 @@
+import { AnchorProvider, Program, Wallet } from "@coral-xyz/anchor";
+import {
+  MARGINFI_IDL,
+  MarginfiIdlType,
+  MarginfiProgram,
+  simulateAccountHealthCacheWithFallback,
+} from "@mrgnlabs/marginfi-client-v2";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { NextApiRequest, NextApiResponse } from "next";
+import config from "~/config/marginfi";
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { marginfiAccount } = req.query;
+
+  if (!marginfiAccount || typeof marginfiAccount !== "string") {
+    return res
+      .status(400)
+      .json({ error: "Invalid input: expected an array of marginfi account base58-encoded addresses." });
+  }
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  if (!process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE) {
+    return res.status(400).json({ error: "PRIVATE_RPC_ENDPOINT_OVERRIDE is not set" });
+  }
+
+  try {
+    const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
+    const marginfiAccountsPk = new PublicKey(marginfiAccount);
+
+    const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
+    const provider = new AnchorProvider(connection, {} as Wallet, {
+      ...AnchorProvider.defaultOptions(),
+      commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
+    });
+    const program = new Program(idl, provider) as any as MarginfiProgram;
+
+    // const marginfiAccountsAis = await simulateAccountHealthCacheWithFallback({
+    //   program,
+    //   });
+
+    // res.status(200).json({ marginfiAccountsAis });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Error processing request" });
+  }
+}
+
+function chunkArray<T>(arr: T[], chunkSize: number): T[][] {
+  const result: T[][] = [];
+  for (let i = 0; i < arr.length; i += chunkSize) {
+    result.push(arr.slice(i, i + chunkSize));
+  }
+  return result;
+}

@@ -120,14 +120,6 @@ export async function simulateAccountHealthCache(props: {
 
   const activeBalances = balances.filter((b) => b.active);
 
-  const banks = activeBalances
-    .map((b) => {
-      const bank = bankMap.get(b.bankPk.toBase58());
-      if (!bank) return undefined;
-      return bank;
-    })
-    .filter((b) => b !== undefined);
-
   const { stalePythFeeds, staleSwbOracles } = getActiveStaleBanks(activeBalances, bankMap, [], oraclePrices, 30);
 
   const computeIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 });
