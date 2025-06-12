@@ -121,13 +121,15 @@ export const PortfolioAssetCard = ({
   );
 
   const assetWeight = React.useMemo(
-    () => getAssetWeightData(bank, isInLendingMode).assetWeight,
-    [bank, isInLendingMode]
+    () => getAssetWeightData(bank, isInLendingMode, extendedBankInfos).assetWeight,
+    [bank, extendedBankInfos, isInLendingMode]
   );
 
   const originalAssetWeight = React.useMemo(
-    () => getAssetWeightData(bank, isInLendingMode, bank.info.state.originalWeights.assetWeightInit).assetWeight,
-    [bank, isInLendingMode]
+    () =>
+      getAssetWeightData(bank, isInLendingMode, extendedBankInfos, bank.info.state.originalWeights.assetWeightInit)
+        .assetWeight,
+    [bank, extendedBankInfos, isInLendingMode]
   );
 
   const solBank = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "SOL");
@@ -148,11 +150,7 @@ export const PortfolioAssetCard = ({
         <div className="flex items-center gap-1 w-full">
           <div className="flex flex-col flex-1 -translate-y-0.5">
             <div className="flex items-center gap-2 font-medium text-lg">
-              {bank.meta.tokenSymbol}
-              {bank.isActive && bank.position.emodeActive && <IconEmodeSimple size={18} className="-translate-y-1" />}
-              {!bank.isActive && bank.info.state.hasEmode && (
-                <IconEmodeSimpleInactive size={18} className="-translate-y-1" />
-              )}
+              {bank.meta.tokenSymbol} {isEmodeActive && <IconEmodeSimple size={18} />}{" "}
             </div>
             <div className="flex items-center gap-4 text-sm">
               <span className={isInLendingMode ? "text-success" : "text-warning"}>{rateAP} APY</span>
@@ -199,8 +197,30 @@ export const PortfolioAssetCard = ({
               <div className="flex flex-col w-full">
                 <div className="flex justify-between items-center w-full">
                   <div className="flex items-center gap-2 font-medium text-lg">
-                    {bank.meta.tokenSymbol} {isEmodeActive && <IconEmodeSimple size={18} />}{" "}
-                    {!isEmodeActive && bank.info.state.hasEmode && <IconEmodeSimpleInactive size={18} />}
+                    {bank.meta.tokenSymbol}{" "}
+                    {isEmodeActive && (
+                      <EmodePopover
+                        bank={bank}
+                        extendedBanks={extendedBankInfos}
+                        assetWeight={assetWeight}
+                        originalAssetWeight={originalAssetWeight}
+                        emodeActive={isEmodeActive}
+                        emodeTag={
+                          isInLendingMode
+                            ? liabilityBanks.length > 0
+                              ? EmodeTag[liabilityBanks[0].emodePair.liabilityBankTag]
+                              : undefined
+                            : collateralBanks.length > 0
+                              ? EmodeTag[collateralBanks[0].emodePair.collateralBankTag]
+                              : undefined
+                        }
+                        isInLendingMode={isInLendingMode}
+                        collateralBanks={collateralBanks}
+                        liabilityBanks={liabilityBanks}
+                        triggerType="tag"
+                        showActiveOnly={!isInLendingMode}
+                      />
+                    )}{" "}
                   </div>
                   <div className="font-medium text-lg text-right">
                     {dynamicNumeralFormatter(bank.position.amount, {
@@ -307,7 +327,9 @@ export const PortfolioAssetCard = ({
                   <dt className="text-muted-foreground">{isInLendingMode ? "Weight" : "e-mode boost"}</dt>
                   <dd className="text-right text-white">
                     {bank.position || collateralBanks.length > 0 ? (
-                      <div className={cn("flex items-center justify-end gap-1", isEmodeActive && "text-mfi-emode")}>
+                      <div
+                        className={cn("flex items-center justify-end gap-1 w-full", isEmodeActive && "text-mfi-emode")}
+                      >
                         {!isInLendingMode && collateralBanks.length > 0 && (
                           <div className="flex items-center">
                             <IconEmodeSimple size={18} />
@@ -327,10 +349,10 @@ export const PortfolioAssetCard = ({
                           </div>
                         )}
                         {isInLendingMode && isEmodeActive && (
-                          <>
-                            <IconEmodeSimple size={18} />
+                          <div className="flex items-center">
+                            <IconEmodeSimple size={16} />
                             <EmodeDiff assetWeight={assetWeight} originalAssetWeight={originalAssetWeight} />
-                          </>
+                          </div>
                         )}
                       </div>
                     ) : null}
@@ -343,6 +365,8 @@ export const PortfolioAssetCard = ({
                   <dd className="text-right text-white flex items-center justify-end">
                     {!isEmodeActive && bank.info.state.hasEmode ? (
                       <EmodePopover
+                        bank={bank}
+                        extendedBanks={extendedBankInfos}
                         assetWeight={assetWeight}
                         originalAssetWeight={originalAssetWeight}
                         emodeActive={isEmodeActive}
@@ -350,9 +374,13 @@ export const PortfolioAssetCard = ({
                         collateralBanks={collateralBanks}
                         liabilityBanks={liabilityBanks}
                         triggerType="weight"
+                        showActiveOnly={!isInLendingMode}
                       />
                     ) : (
-                      percentFormatter.format(assetWeight)
+                      percentFormatterMod(assetWeight, {
+                        minFractionDigits: 0,
+                        maxFractionDigits: 2,
+                      })
                     )}
                   </dd>
                 </>

@@ -52,12 +52,15 @@ import {
   computeHealthComponentsWithoutBiasLegacy,
   computeAccountValue,
   computeNetApy,
-  createHealthPulseIx,
   OracleSetup,
   createUpdateFeedIx,
   crankPythOracleIx,
   simulateAccountHealthCache,
   simulateAccountHealthCacheWithFallback,
+  computeHealthAccountMetas,
+  BankType,
+  computeHealthCheckAccounts,
+  makePulseHealthIx,
 } from "../..";
 import BN from "bn.js";
 import { BorshInstructionCoder } from "@coral-xyz/anchor";
@@ -113,14 +116,16 @@ class MarginfiAccount implements MarginfiAccountType {
   async simulateHealthCache(
     program: Program<MarginfiIdlType>,
     bankMap: Map<string, Bank>,
-    oraclePrices: Map<string, OraclePrice>
+    oraclePrices: Map<string, OraclePrice>,
+    bankMetadataMap: BankMetadataMap
   ) {
     const accountWithHealthCache = await simulateAccountHealthCacheWithFallback({
       program,
       bankMap,
       oraclePrices,
       marginfiAccount: this,
-      activeBalances: this.activeBalances,
+      balances: this.balances,
+      bankMetadataMap: bankMetadataMap,
     });
 
     return accountWithHealthCache;
@@ -656,34 +661,12 @@ class MarginfiAccount implements MarginfiAccountType {
     return maxLiquidatableUsdValue.div(priceAssetLower);
   }
 
-  getHealthCheckAccounts(mandatoryBanks: Bank[] = [], excludedBanks: Bank[] = []): PublicKey[] {
-    const mandatoryBanksSet = new Set(mandatoryBanks.map((b) => b.address.toBase58()));
-    const excludedBanksSet = new Set(excludedBanks.map((b) => b.address.toBase58()));
-    const activeBanks = new Set(this.activeBalances.map((b) => b.bankPk.toBase58()));
-    const banksToAdd = new Set([...mandatoryBanksSet].filter((x) => !activeBanks.has(x)));
-
-    let slotsToKeep = banksToAdd.size;
-    const projectedActiveBanks = this.balances
-      .filter((balance) => {
-        if (balance.active) {
-          return !excludedBanksSet.has(balance.bankPk.toBase58());
-        } else if (slotsToKeep > 0) {
-          slotsToKeep--;
-          return true;
-        } else {
-          return false;
-        }
-      })
-      .map((balance) => {
-        if (balance.active) {
-          return balance.bankPk;
-        }
-        const newBank = [...banksToAdd.values()][0];
-        banksToAdd.delete(newBank);
-        return new PublicKey(newBank);
-      });
-
-    return projectedActiveBanks;
+  getHealthCheckAccounts(
+    banks: Map<string, Bank>,
+    mandatoryBanks: PublicKey[] = [],
+    excludedBanks: PublicKey[] = []
+  ): BankType[] {
+    return computeHealthCheckAccounts(this.balances, banks, mandatoryBanks, excludedBanks);
   }
 
   /**
@@ -841,7 +824,7 @@ class MarginfiAccount implements MarginfiAccountType {
 
   async makeWithdrawIx(
     program: MarginfiProgram,
-    banks: Map<string, Bank>,
+    bankMap: Map<string, Bank>,
     mintDatas: Map<string, MintData>,
     bankMetadataMap: BankMetadataMap,
     amount: Amount,
@@ -849,7 +832,7 @@ class MarginfiAccount implements MarginfiAccountType {
     withdrawAll: boolean = false,
     withdrawOpts: MakeWithdrawIxOpts = {}
   ): Promise<InstructionsWrapper> {
-    const bank = banks.get(bankAddress.toBase58());
+    const bank = bankMap.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
     const mintData = mintDatas.get(bankAddress.toBase58());
     if (!mintData) throw Error(`Mint data for bank ${bankAddress.toBase58()} not found`);
@@ -861,10 +844,11 @@ class MarginfiAccount implements MarginfiAccountType {
 
     // Add emissions-related instructions if necessary
     if (withdrawAll && !bank.emissionsMint.equals(PublicKey.default) && mintData.emissionTokenProgram) {
-      withdrawIxs.push(...(await this.makeWithdrawEmissionsIx(program, banks, mintDatas, bankAddress)).instructions);
+      withdrawIxs.push(...(await this.makeWithdrawEmissionsIx(program, bankMap, mintDatas, bankAddress)).instructions);
     }
 
-    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true, mintData.tokenProgram);
+    const userAta = getAssociatedTokenAddressSync(bank.mint, this.authority, true, mintData.tokenProgram); // We allow off curve addresses here to support Fuse.
+
     if (createAtas) {
       const createAtaIdempotentIx = createAssociatedTokenAccountIdempotentInstruction(
         this.authority,
@@ -877,8 +861,8 @@ class MarginfiAccount implements MarginfiAccountType {
     }
 
     const healthAccounts = withdrawAll
-      ? this.getHealthCheckAccounts([], [bank])
-      : this.getHealthCheckAccounts([bank], []);
+      ? this.getHealthCheckAccounts(bankMap, [], [bankAddress])
+      : this.getHealthCheckAccounts(bankMap, [bankAddress], []);
 
     // Add withdraw-related instructions
     const remainingAccounts: PublicKey[] = [];
@@ -888,7 +872,7 @@ class MarginfiAccount implements MarginfiAccountType {
     if (withdrawOpts.observationBanksOverride) {
       remainingAccounts.push(...withdrawOpts.observationBanksOverride);
     } else {
-      const accountMetas = makeHealthAccountMetas(banks, healthAccounts, bankMetadataMap);
+      const accountMetas = computeHealthAccountMetas(healthAccounts, bankMetadataMap);
       remainingAccounts.push(...accountMetas);
     }
 
@@ -919,14 +903,14 @@ class MarginfiAccount implements MarginfiAccountType {
 
   async makeBorrowIx(
     program: MarginfiProgram,
-    banks: Map<string, Bank>,
+    bankMap: Map<string, Bank>,
     mintDatas: Map<string, MintData>,
     bankMetadataMap: BankMetadataMap,
     amount: Amount,
     bankAddress: PublicKey,
     borrowOpts: MakeBorrowIxOpts = {}
   ): Promise<InstructionsWrapper> {
-    const bank = banks.get(bankAddress.toBase58());
+    const bank = bankMap.get(bankAddress.toBase58());
     if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
     const mintData = mintDatas.get(bankAddress.toBase58());
     if (!mintData) throw Error(`Mint data for bank ${bankAddress.toBase58()} not found`);
@@ -949,7 +933,7 @@ class MarginfiAccount implements MarginfiAccountType {
       borrowIxs.push(createAtaIdempotentIx);
     }
 
-    const healthAccounts = this.getHealthCheckAccounts([bank], []);
+    const healthAccounts = this.getHealthCheckAccounts(bankMap, [bankAddress], []);
 
     const remainingAccounts: PublicKey[] = [];
 
@@ -959,7 +943,7 @@ class MarginfiAccount implements MarginfiAccountType {
     if (borrowOpts?.observationBanksOverride) {
       remainingAccounts.push(...borrowOpts.observationBanksOverride);
     } else {
-      const accountMetas = makeHealthAccountMetas(banks, healthAccounts, bankMetadataMap);
+      const accountMetas = computeHealthAccountMetas(healthAccounts, bankMetadataMap);
       remainingAccounts.push(...accountMetas);
     }
 
@@ -1033,16 +1017,16 @@ class MarginfiAccount implements MarginfiAccountType {
   async makeLendingAccountLiquidateIx(
     liquidateeMarginfiAccount: MarginfiAccount,
     program: MarginfiProgram,
-    banks: Map<string, Bank>,
+    bankMap: Map<string, Bank>,
     mintDatas: Map<string, MintData>,
     bankMetadataMap: BankMetadataMap,
     assetBankAddress: PublicKey,
     assetQuantityUi: Amount,
     liabilityBankAddress: PublicKey
   ): Promise<InstructionsWrapper> {
-    const assetBank = banks.get(assetBankAddress.toBase58());
+    const assetBank = bankMap.get(assetBankAddress.toBase58());
     if (!assetBank) throw Error(`Asset bank ${assetBankAddress.toBase58()} not found`);
-    const liabilityBank = banks.get(liabilityBankAddress.toBase58());
+    const liabilityBank = bankMap.get(liabilityBankAddress.toBase58());
     if (!liabilityBank) throw Error(`Liability bank ${liabilityBankAddress.toBase58()} not found`);
     const liabilityMintData = mintDatas.get(liabilityBankAddress.toBase58());
     if (!liabilityMintData) throw Error(`Mint data for bank ${liabilityBankAddress.toBase58()} not found`);
@@ -1050,8 +1034,8 @@ class MarginfiAccount implements MarginfiAccountType {
     let ixs = [];
 
     const healthAccounts = [
-      ...this.getHealthCheckAccounts([liabilityBank, assetBank], []),
-      ...liquidateeMarginfiAccount.getHealthCheckAccounts([], []),
+      ...this.getHealthCheckAccounts(bankMap, [liabilityBankAddress, assetBankAddress], []),
+      ...liquidateeMarginfiAccount.getHealthCheckAccounts(bankMap, [], []),
     ];
 
     let remainingAccounts: PublicKey[] = [];
@@ -1060,7 +1044,7 @@ class MarginfiAccount implements MarginfiAccountType {
       remainingAccounts.push(liabilityMintData.mint);
     }
 
-    const accountMetas = makeHealthAccountMetas(banks, healthAccounts, bankMetadataMap);
+    const accountMetas = computeHealthAccountMetas(healthAccounts, bankMetadataMap);
     remainingAccounts.push(...accountMetas);
 
     ixs.push(ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 }));
@@ -1094,10 +1078,15 @@ class MarginfiAccount implements MarginfiAccountType {
 
   async makeEndFlashLoanIx(
     program: MarginfiProgram,
-    banks: Map<string, Bank>,
+    bankMap: Map<string, Bank>,
     projectedActiveBalances: PublicKey[]
   ): Promise<InstructionsWrapper> {
-    const remainingAccounts = makeHealthAccountMetas(banks, projectedActiveBalances);
+    const banks = projectedActiveBalances.map((account) => {
+      const b = bankMap.get(account.toBase58());
+      if (!b) throw Error(`Bank ${account.toBase58()} not found`);
+      return b;
+    });
+    const remainingAccounts = computeHealthAccountMetas(banks);
     const ix = await instructions.makeEndFlashLoanIx(
       program,
       {
@@ -1129,12 +1118,22 @@ class MarginfiAccount implements MarginfiAccountType {
     return { instructions: [ix], keys: [] };
   }
 
-  async makeHealthPulseIx(program: MarginfiProgram, bankAddressAndOraclePair: PublicKey[][]) {
-    return createHealthPulseIx({
-      marginfiAccount: this.address,
-      program: program,
-      bankAddressAndOraclePair,
-    });
+  async makePulseHealthIx(
+    program: MarginfiProgram,
+    banks: Map<string, Bank>,
+    mandatoryBanks: PublicKey[],
+    excludedBanks: PublicKey[],
+    bankMetadataMap: BankMetadataMap
+  ) {
+    return makePulseHealthIx(
+      program,
+      this.address,
+      banks,
+      this.balances,
+      mandatoryBanks,
+      excludedBanks,
+      bankMetadataMap
+    );
   }
 
   projectActiveBalancesNoCpi(program: MarginfiProgram, instructions: TransactionInstruction[]): PublicKey[] {
@@ -1272,40 +1271,6 @@ export interface MakeBorrowIxOpts {
 
 export function isWeightedPrice(reqType: MarginRequirementType): boolean {
   return reqType === MarginRequirementType.Initial;
-}
-
-export function makeHealthAccountMetas(
-  banks: Map<string, Bank>,
-  banksToInclude: PublicKey[],
-  bankMetadataMap?: BankMetadataMap
-): PublicKey[] {
-  const accounts = composeRemainingAccounts(
-    banksToInclude.map((bankAddress) => {
-      const bank = banks.get(bankAddress.toBase58());
-      if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
-
-      const keys = [bankAddress, bank.oracleKey];
-
-      // for staked collateral banks (assetTag === 2), include additional accounts
-      if (bank.config.assetTag === 2) {
-        const bankMetadata = bankMetadataMap?.[bankAddress.toBase58()];
-
-        if (!bankMetadata || !bankMetadata.validatorVoteAccount) {
-          throw Error(`Bank metadata for ${bankAddress.toBase58()} not found`);
-        }
-
-        const pool = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
-        const solPool = findPoolStakeAddress(pool);
-        const lstMint = findPoolMintAddress(pool);
-
-        keys.push(lstMint, solPool);
-      }
-
-      return keys;
-    })
-  );
-
-  return accounts;
 }
 
 export { MarginfiAccount, MarginRequirementType };

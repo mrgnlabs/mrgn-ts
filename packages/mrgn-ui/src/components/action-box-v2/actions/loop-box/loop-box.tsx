@@ -248,12 +248,22 @@ export const LoopBox = ({
       amount,
       connected,
       selectedBank,
+      marginfiAccount: selectedAccount,
       selectedSecondaryBank,
       actionQuote: actionTxns.actionQuote,
       banks: allBanks ?? [],
       emodeImpact,
     });
-  }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote, allBanks, emodeImpact]);
+  }, [
+    amount,
+    connected,
+    selectedBank,
+    selectedAccount,
+    selectedSecondaryBank,
+    actionTxns.actionQuote,
+    allBanks,
+    emodeImpact,
+  ]);
 
   const { actionSummary, refreshSimulation } = useLoopSimulation({
     debouncedAmount: debouncedAmount ?? 0,
@@ -447,7 +457,7 @@ export const LoopBox = ({
           setSelectedSecondaryBank={(bank) => {
             setSelectedSecondaryBank(bank);
           }}
-          highlightedEmodeBanks={emodeSupplyState.emodeBorrowBanks}
+          emodeBorrowBanks={emodeSupplyState.emodeBorrowBanks}
           isLoading={simulationStatus.isLoading}
           walletAmount={walletAmount}
           actionTxns={actionTxns}

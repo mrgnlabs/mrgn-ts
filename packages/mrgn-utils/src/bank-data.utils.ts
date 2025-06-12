@@ -56,6 +56,8 @@ export interface AssetPriceData {
 }
 
 export interface AssetWeightData {
+  bank: ExtendedBankInfo;
+  extendedBankInfos: ExtendedBankInfo[];
   assetWeight: number;
   originalAssetWeight?: number;
   emodeActive?: boolean;
@@ -210,6 +212,7 @@ export const getAssetPriceData = (bank: ExtendedBankInfo): AssetPriceData => {
 export const getAssetWeightData = (
   bank: ExtendedBankInfo,
   isInLendingMode: boolean,
+  extendedBankInfos: ExtendedBankInfo[] = [],
   assetWeightInitOverride?: BigNumber,
   collateralBanks?: {
     collateralBank: ExtendedBankInfo;
@@ -218,12 +221,15 @@ export const getAssetWeightData = (
   liabilityBanks?: {
     liabilityBank: ExtendedBankInfo;
     emodePair: EmodePair;
-  }[]
+  }[],
+  userActiveEmodes: EmodePair[] = []
 ): AssetWeightData => {
   if (!bank?.info?.rawBank?.getAssetWeight) {
     return {
+      bank,
       assetWeight: 0,
       isInLendingMode,
+      extendedBankInfos,
     };
   }
   const assetWeightInit = bank.info.rawBank
@@ -234,18 +240,32 @@ export const getAssetWeightData = (
 
   if (assetWeightInit <= 0) {
     return {
+      bank,
+      extendedBankInfos,
       assetWeight: 0,
       originalAssetWeight,
       isInLendingMode,
     };
   }
 
+  let emodeActive = false;
+
+  if (bank.isActive) {
+    if (bank.position.isLending && isInLendingMode && bank.position.emodeActive) {
+      emodeActive = true;
+    } else if (!bank.position.isLending && !isInLendingMode) {
+      emodeActive = !!userActiveEmodes.find((emodePair) => emodePair.liabilityBank.equals(bank.address));
+    }
+  }
+
   const assetWeight = isInLendingMode ? assetWeightInit : 1 / bank.info.rawBank.config.liabilityWeightInit.toNumber();
 
   return {
+    bank,
+    extendedBankInfos,
     assetWeight,
     originalAssetWeight,
-    emodeActive: bank.isActive && bank.position.emodeActive,
+    emodeActive,
     collateralBanks: collateralBanks,
     liabilityBanks: liabilityBanks,
     isInLendingMode,

@@ -1,21 +1,12 @@
-import {
-  AddressLookupTableAccount,
-  Keypair,
-  PublicKey,
-  TransactionInstruction,
-  TransactionMessage,
-  VersionedTransaction,
-} from "@solana/web3.js";
-import { getTxSize, InstructionsWrapper, SYSTEM_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import { PublicKey } from "@solana/web3.js";
+import { Program, Provider } from "@coral-xyz/anchor";
+
+import { InstructionsWrapper, SYSTEM_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
 import instructions from "../../instructions";
 import { MarginfiProgram } from "../../types";
-import { BankConfigOpt, BankConfigOptRaw, BankType, OracleSetup } from "./types";
-import { serializeBankConfigOpt, serializeOracleSetupToIndex } from "./utils";
 import {
   parseAccumulatorUpdateData,
-  getGuardianSetIndex,
-  trimSignatures,
   InstructionWithEphemeralSigners,
   buildPostEncodedVaaInstructions,
   PYTH_WORMHOLE_IDL,
@@ -25,8 +16,9 @@ import {
   PYTH_SOLANA_RECEIVER_PROGRAM_IDL,
   DEFAULT_PUSH_ORACLE_PROGRAM_ID,
 } from "../../vendor/pyth_crank";
-import { Program, Provider } from "@coral-xyz/anchor";
-import { program } from "@coral-xyz/anchor/dist/cjs/native/system";
+
+import { BankConfigOpt, BankConfigOptRaw, OracleSetup } from "./types";
+import { serializeBankConfigOpt, serializeOracleSetupToIndex } from "./utils";
 
 export async function freezeBankConfigIx(
   program: MarginfiProgram,

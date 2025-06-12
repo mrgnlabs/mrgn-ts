@@ -12,6 +12,7 @@ import {
   ActionSummary,
   ActionPreview,
   SimulatedActionPreview,
+  calculateSimulatedActionPreview,
 } from "~/components/action-box-v2/utils";
 
 export interface CalculatePreviewProps {
@@ -133,25 +134,4 @@ function calculateActionPreview(
     poolSize,
     bankCap,
   } as ActionPreview;
-}
-
-function calculateSimulatedActionPreview(
-  simulationResult: SimulationResult,
-  bank: ExtendedBankInfo
-): SimulatedActionPreview {
-  const health = simulatedHealthFactor(simulationResult);
-  const positionAmount = simulatedPositionSize(simulationResult, bank);
-  const availableCollateral = simulatedCollateral(simulationResult);
-
-  const liquidationPrice = simulationResult.marginfiAccount.computeLiquidationPriceForBank(bank.address);
-  const { lendingRate, borrowingRate } = simulationResult.banks.get(bank.address.toBase58())!.computeInterestRates();
-
-  return {
-    health,
-    liquidationPrice,
-    depositRate: lendingRate.toNumber(),
-    borrowRate: borrowingRate.toNumber(),
-    positionAmount,
-    availableCollateral,
-  };
 }

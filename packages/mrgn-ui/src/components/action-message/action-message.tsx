@@ -25,7 +25,7 @@ export const ActionMessage = ({ actionMessage, isRetrying = false, retry }: Acti
     let methodStyles = "";
     switch (actionMethod) {
       case "EMODE":
-        methodStyles = "text-mfi-emode border border-mfi-emode/50 pr-0";
+        methodStyles = "text-mfi-emode bg-purple-900/5 border border-mfi-emode/20 pr-0";
         break;
       case "INFO":
         methodStyles = "bg-info text-info-foreground";

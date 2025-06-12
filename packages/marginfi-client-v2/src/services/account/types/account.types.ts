@@ -1,6 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import BN from "bn.js";
 
 export interface BalanceType {
   active: boolean;

@@ -1,6 +1,16 @@
 import { BorshCoder } from "@coral-xyz/anchor";
+import BigNumber from "bignumber.js";
+import { PublicKey } from "@solana/web3.js";
+import BN from "bn.js";
+
+import { BankMetadata, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
+
+import { DEFAULT_ORACLE_MAX_AGE } from "../../../constants";
+import { findOracleKey, PythPushFeedIdMap } from "../../../utils";
+import { EmodeSettings } from "../../../models/emode-settings";
 import { MarginfiIdlType } from "../../../idl";
 import { AccountType } from "../../../types";
+
 import {
   AssetTag,
   BankConfigRaw,
@@ -17,13 +27,6 @@ import {
   RiskTier,
   RiskTierRaw,
 } from "../types";
-import BN from "bn.js";
-import { BankMetadata, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
-import BigNumber from "bignumber.js";
-import { DEFAULT_ORACLE_MAX_AGE } from "../../../constants";
-import { PublicKey } from "@solana/web3.js";
-import { findOracleKey, PythPushFeedIdMap } from "../../../utils";
-import { EmodeSettings } from "../../../models/emode-settings";
 
 /*
  * Bank deserialization

@@ -1,8 +1,10 @@
 import BigNumber from "bignumber.js";
+import { PublicKey } from "@solana/web3.js";
+
+import { aprToApy, BankMetadataMap, composeRemainingAccounts, nativeToUi, shortenAddress } from "@mrgnlabs/mrgn-common";
+
 import { BalanceType, MarginfiAccountType } from "../types";
 import { MarginRequirementType } from "../../../models/account";
-import { aprToApy, nativeToUi, shortenAddress } from "@mrgnlabs/mrgn-common";
-import { PublicKey } from "@solana/web3.js";
 import { OraclePrice } from "../../price";
 import { PriceBias } from "../../price/types";
 import {
@@ -13,6 +15,7 @@ import {
   getAssetQuantity,
   getLiabilityQuantity,
 } from "../../bank";
+import { findPoolAddress, findPoolMintAddress, findPoolStakeAddress } from "../../../vendor";
 
 /**
  * Marginfi Account Computes
@@ -23,6 +26,7 @@ export function computeFreeCollateral(marginfiAccount: MarginfiAccountType, opts
   const _clamped = opts?.clamped ?? true;
 
   const { assets, liabilities } = computeHealthComponents(marginfiAccount, MarginRequirementType.Initial);
+
   const signedFreeCollateral = assets.minus(liabilities);
 
   return _clamped ? BigNumber.max(0, signedFreeCollateral) : signedFreeCollateral;
@@ -299,4 +303,78 @@ export function computeTotalOutstandingEmissions(balance: BalanceType, bank: Ban
   const claimedEmissions = balance.emissionsOutstanding;
   const unclaimedEmissions = computeClaimedEmissions(balance, bank, Date.now() / 1000);
   return claimedEmissions.plus(unclaimedEmissions);
+}
+
+export function computeHealthCheckAccounts(
+  balances: BalanceType[],
+  banks: Map<string, BankType>,
+  mandatoryBanks: PublicKey[] = [],
+  excludedBanks: PublicKey[] = []
+): BankType[] {
+  const activeBalances = balances.filter((b) => b.active);
+
+  const mandatoryBanksSet = new Set(mandatoryBanks.map((b) => b.toBase58()));
+  const excludedBanksSet = new Set(excludedBanks.map((b) => b.toBase58()));
+  const activeBanks = new Set(activeBalances.map((b) => b.bankPk.toBase58()));
+  const banksToAdd = new Set([...mandatoryBanksSet].filter((x) => !activeBanks.has(x)));
+
+  let slotsToKeep = banksToAdd.size;
+  const projectedActiveBanks = balances
+    .filter((balance) => {
+      if (balance.active) {
+        return !excludedBanksSet.has(balance.bankPk.toBase58());
+      } else if (slotsToKeep > 0) {
+        slotsToKeep--;
+        return true;
+      } else {
+        return false;
+      }
+    })
+    .map((balance) => {
+      if (balance.active) {
+        const bank = banks.get(balance.bankPk.toBase58());
+        if (!bank) throw Error(`Bank ${balance.bankPk.toBase58()} not found`);
+        return bank;
+      }
+      const newBankAddress = [...banksToAdd.values()][0];
+      banksToAdd.delete(newBankAddress);
+      const bank = banks.get(newBankAddress);
+      if (!bank) throw Error(`Bank ${newBankAddress} not found`);
+      return bank;
+    });
+
+  return projectedActiveBanks;
+}
+
+export function computeHealthAccountMetas(
+  banksToInclude: BankType[],
+  bankMetadataMap?: BankMetadataMap,
+  enableSorting = true
+): PublicKey[] {
+  let wrapperFn = enableSorting ? composeRemainingAccounts : (banksAndOracles: PublicKey[][]) => banksAndOracles.flat();
+
+  const accounts = wrapperFn(
+    banksToInclude.map((bank) => {
+      const keys = [bank.address, bank.oracleKey];
+
+      // for staked collateral banks (assetTag === 2), include additional accounts
+      if (bank.config.assetTag === 2) {
+        const bankMetadata = bankMetadataMap?.[bank.address.toBase58()];
+
+        if (!bankMetadata || !bankMetadata.validatorVoteAccount) {
+          throw Error(`Bank metadata for ${bank.address.toBase58()} not found`);
+        }
+
+        const pool = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
+        const solPool = findPoolStakeAddress(pool);
+        const lstMint = findPoolMintAddress(pool);
+
+        keys.push(lstMint, solPool);
+      }
+
+      return keys;
+    })
+  );
+
+  return accounts;
 }

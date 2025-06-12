@@ -2,9 +2,8 @@ import Link from "next/link";
 
 import { EmodeTag, EmodePair } from "@mrgnlabs/marginfi-client-v2";
 
-import { EmodeExplore } from "~/components/common/emode/components";
+import { EmodeExploreWrapper } from "~/components/common/emode/components";
 import { IconEmode } from "~/components/ui/icons";
-import { Badge } from "~/components/ui/badge";
 
 type EmodeHeaderProps = {
   emodeGroups: EmodePair[];
@@ -26,7 +25,7 @@ const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
           <p className="text-muted-foreground">
             Banks with e-mode pairings get boosted weights.
             <br className="hidden lg:block" />{" "}
-            <EmodeExplore
+            <EmodeExploreWrapper
               trigger={
                 <span className="text-foreground border-b border-foreground/50 transition-colors cursor-pointer hover:border-transparent">
                   Explore the groups
@@ -47,7 +46,7 @@ const EmodeHeader = ({ emodeGroups }: EmodeHeaderProps) => {
         </div>
         {emodeGroups.length > 0 && (
           <div className="py-2 flex  items-end gap-2.5">
-            <EmodeExplore />
+            <EmodeExploreWrapper />
           </div>
         )}
       </div>

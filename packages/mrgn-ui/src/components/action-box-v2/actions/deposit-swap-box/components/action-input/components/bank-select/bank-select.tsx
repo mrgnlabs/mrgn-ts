@@ -1,7 +1,7 @@
 import React from "react";
 
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { computeBankRate, getEmodeStrategies, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { SelectedBankItem, BankListWrapper } from "~/components/action-box-v2/components";
 
@@ -17,6 +17,7 @@ type BankSelectProps = {
   isSelectable?: boolean;
   showTokenSelectionGroups?: boolean;
   setSelectedBank: (selectedBank: ExtendedBankInfo | WalletToken | null) => void;
+  depositBank: ExtendedBankInfo | null;
 
   walletTokens?: WalletToken[] | null;
   showOnlyUserOwnedTokens?: boolean;
@@ -33,8 +34,24 @@ export const BankSelect = ({
   setSelectedBank,
   walletTokens,
   showOnlyUserOwnedTokens,
+  depositBank,
 }: BankSelectProps) => {
   // idea check list if banks[] == 1 make it unselectable
+
+  const emodeStrategies = React.useMemo(() => {
+    return getEmodeStrategies(banks);
+  }, [banks]);
+
+  const enableEmodeByBank = React.useMemo(() => {
+    const enableEmodeByBank: Record<string, boolean> = {};
+
+    emodeStrategies.activateSupplyEmodeBanks.forEach((bank) => {
+      enableEmodeByBank[bank.address.toBase58()] = true;
+    });
+
+    return enableEmodeByBank;
+  }, [emodeStrategies]);
+
   const [isOpen, setIsOpen] = React.useState(false);
 
   const lendingMode = React.useMemo(
@@ -56,6 +73,7 @@ export const BankSelect = ({
             onSetSelectedBank={setSelectedBank}
             lendMode={lendMode}
             banks={banks}
+            enableEmodeByBank={enableEmodeByBank}
             nativeSolBalance={nativeSolBalance}
             connected={connected}
             showTokenSelectionGroups={showTokenSelectionGroups}

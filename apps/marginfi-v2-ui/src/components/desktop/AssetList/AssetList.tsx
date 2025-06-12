@@ -16,7 +16,7 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components
 
 import { AssetListModel, generateColumns, makeData } from "./utils";
 import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./components";
-import { EmodeHeader, EmodeExplore } from "~/components/common/emode/components";
+import { EmodeHeader } from "~/components/common/emode/components";
 import { Button } from "~/components/ui/button";
 import { TokenFilters } from "~/store/uiStore";
 import { IconEmode } from "~/components/ui/icons";
@@ -26,6 +26,7 @@ export const AssetsList = () => {
     extendedBankInfos,
     nativeSolBalance,
     selectedAccount,
+    userActiveEmodes,
     fetchMrgnlendState,
     emodePairs,
     groupedEmodeBanks,
@@ -35,6 +36,7 @@ export const AssetsList = () => {
     state.extendedBankInfos,
     state.nativeSolBalance,
     state.selectedAccount,
+    state.userActiveEmodes,
     state.fetchMrgnlendState,
     state.emodePairs,
     state.groupedEmodeBanks,
@@ -103,8 +105,9 @@ export const AssetsList = () => {
   }, [isFilteredUserPositions, extendedBankInfos, filterBanksByTokenType]);
 
   const emodeBanks = React.useMemo(() => {
-    return extendedBankInfos.filter((b) => b.info.state.hasEmode);
-  }, [extendedBankInfos]);
+    const banks = extendedBankInfos.filter((b) => b.info.state.hasEmode);
+    return filterBanksByTokenType(banks);
+  }, [extendedBankInfos, filterBanksByTokenType]);
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
@@ -118,20 +121,22 @@ export const AssetsList = () => {
       walletContextState,
       solPrice,
       fetchMrgnlendState,
+      userActiveEmodes,
       collateralBanksByLiabilityBank,
       liabilityBanksByCollateralBank
     );
   }, [
-    connected,
-    walletContextState,
     globalBanks,
     isInLendingMode,
     nativeSolBalance,
     selectedAccount,
+    connected,
+    walletContextState,
     solPrice,
     fetchMrgnlendState,
     collateralBanksByLiabilityBank,
     liabilityBanksByCollateralBank,
+    userActiveEmodes,
   ]);
 
   const isolatedPoolTableData = React.useMemo(() => {
@@ -144,20 +149,22 @@ export const AssetsList = () => {
       walletContextState,
       solPrice,
       fetchMrgnlendState,
+      userActiveEmodes,
       collateralBanksByLiabilityBank,
       liabilityBanksByCollateralBank
     );
   }, [
-    connected,
-    walletContextState,
     isolatedBanks,
     isInLendingMode,
     nativeSolBalance,
     selectedAccount,
+    connected,
+    walletContextState,
     solPrice,
     fetchMrgnlendState,
     collateralBanksByLiabilityBank,
     liabilityBanksByCollateralBank,
+    userActiveEmodes,
   ]);
 
   const stakedPoolTableData = React.useMemo(() => {
@@ -169,7 +176,8 @@ export const AssetsList = () => {
       connected,
       walletContextState,
       solPrice,
-      fetchMrgnlendState
+      fetchMrgnlendState,
+      userActiveEmodes
     );
   }, [
     connected,
@@ -180,6 +188,8 @@ export const AssetsList = () => {
     selectedAccount,
     solPrice,
     fetchMrgnlendState,
+
+    userActiveEmodes,
   ]);
 
   const emodePoolTableData = React.useMemo(() => {
@@ -192,18 +202,20 @@ export const AssetsList = () => {
       walletContextState,
       solPrice,
       fetchMrgnlendState,
+      userActiveEmodes,
       collateralBanksByLiabilityBank,
       liabilityBanksByCollateralBank
     );
   }, [
-    connected,
-    walletContextState,
     emodeBanks,
     isInLendingMode,
     nativeSolBalance,
     selectedAccount,
+    connected,
+    walletContextState,
     solPrice,
     fetchMrgnlendState,
+    userActiveEmodes,
     collateralBanksByLiabilityBank,
     liabilityBanksByCollateralBank,
   ]);
@@ -374,32 +386,38 @@ export const AssetsList = () => {
           </div>
         </>
       )}
-      {poolFilter === PoolTypes.E_MODE && emodePoolTableData.length > 0 && (
+      {poolFilter === PoolTypes.E_MODE && (
         <div className="space-y-6">
           <EmodeHeader emodeGroups={emodeGroups} />
-          <Table>
-            <TableHeader>
-              {eModeTable.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      style={{
-                        width: header.column.getSize(),
-                      }}
-                    >
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {eModeTable.getRowModel().rows.map((row) => {
-                return <AssetRow key={row.id} {...row} />;
-              })}
-            </TableBody>
-          </Table>
+          {emodePoolTableData.length > 0 ? (
+            <Table>
+              <TableHeader>
+                {eModeTable.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        style={{
+                          width: header.column.getSize(),
+                        }}
+                      >
+                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {eModeTable.getRowModel().rows.map((row) => {
+                  return <AssetRow key={row.id} {...row} />;
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-muted-foreground text-center py-4">
+              <span>No banks with e-mode weights found.</span>
+            </div>
+          )}
         </div>
       )}
       <LSTDialog

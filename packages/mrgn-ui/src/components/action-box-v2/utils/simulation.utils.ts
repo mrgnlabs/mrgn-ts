@@ -46,28 +46,16 @@ export function simulatedPositionSize(simulationResult: SimulationResult, bank: 
   Calculates the available collateral of a simulation result.
   The available collateral is the amount of collateral that the bank has available to cover the position.
 */
-export function simulatedCollateral(simulationResult: SimulationResult, useRiskEngine = false) {
-  if (useRiskEngine) {
-    const { assetValue: riskEngineInitAssetValue, liabilityValue: riskEngineInitLiabilityValue } =
-      simulationResult.marginfiAccount.data.healthCache;
-    const signedFreeCollateral = riskEngineInitAssetValue.minus(riskEngineInitLiabilityValue);
-    const availableCollateral = BigNumber.max(0, signedFreeCollateral).toNumber();
+export function simulatedCollateral(simulationResult: SimulationResult) {
+  const { assets: assetsInit } = simulationResult.marginfiAccount.computeHealthComponents(
+    MarginRequirementType.Initial
+  );
 
-    return {
-      amount: availableCollateral,
-      ratio: availableCollateral / riskEngineInitAssetValue.toNumber(),
-    };
-  } else {
-    const { assets: assetsInit } = simulationResult.marginfiAccount.computeHealthComponents(
-      MarginRequirementType.Initial
-    );
-
-    const availableCollateral = simulationResult.marginfiAccount.computeFreeCollateral().toNumber();
-    return {
-      amount: availableCollateral,
-      ratio: availableCollateral / assetsInit.toNumber(),
-    };
-  }
+  const availableCollateral = simulationResult.marginfiAccount.computeFreeCollateral().toNumber();
+  return {
+    amount: availableCollateral,
+    ratio: availableCollateral / assetsInit.toNumber(),
+  };
 }
 
 export interface ActionSummary {

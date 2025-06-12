@@ -3,7 +3,7 @@ import Link from "next/link";
 import { IconExternalLink } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 
-import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendSelectionGroups, LendingModes, cn, computeBankRate, getEmodeStrategies } from "@mrgnlabs/mrgn-utils";
 
@@ -54,6 +54,11 @@ export const BankList = ({
 
   const calculateRate = React.useCallback(
     (bank: ExtendedBankInfo) => {
+      if (bank.info.rawBank.config.assetTag === 2) {
+        return bank.meta.stakePool?.validatorRewards
+          ? percentFormatter.format(bank.meta.stakePool?.validatorRewards / 100)
+          : "0%";
+      }
       return computeBankRate(bank, lendingMode);
     },
     [lendingMode]
@@ -72,7 +77,6 @@ export const BankList = ({
   }, [banks]);
 
   const enableEmodeByBank = React.useMemo(() => {
-    console.log({ emodeStrategies });
     const enableEmodeByBank: Record<string, boolean> = {};
     if (actionType === ActionType.Deposit) {
       emodeStrategies.activateSupplyEmodeBanks.forEach((bank) => {

@@ -1,6 +1,8 @@
-import { bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
+
+import { bigNumberToWrappedI80F48 } from "@mrgnlabs/mrgn-common";
+
 import {
   BankConfigOptRaw,
   RiskTierRaw,

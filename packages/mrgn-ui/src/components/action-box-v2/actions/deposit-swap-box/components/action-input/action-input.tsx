@@ -16,6 +16,8 @@ type ActionInputProps = {
   maxAmount: number;
   banks: ExtendedBankInfo[];
   selectedBank: ExtendedBankInfo | WalletToken | null;
+  depositBank: ExtendedBankInfo | null;
+
   lendMode: ActionType;
 
   connected: boolean;
@@ -47,6 +49,7 @@ export const ActionInput = ({
   amountRaw,
   amount,
   selectedBank,
+  depositBank,
   lendMode,
   isInputDisabled: _isInputDisabled,
   setAmountRaw,
@@ -99,6 +102,7 @@ export const ActionInput = ({
             connected={connected}
             walletTokens={walletTokens}
             showOnlyUserOwnedTokens={showOnlyUserOwnedTokens}
+            depositBank={depositBank}
           />
         </div>
         <div className="flex-auto flex flex-col gap-0 items-end">
