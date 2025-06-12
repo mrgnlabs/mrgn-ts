@@ -24,7 +24,7 @@ const EmodeDiff = ({
     <div className={cn("flex items-center  gap-1", className)}>
       {!diffOnly && percentFormatterMod(finalEmodeWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
       {originalAssetWeight && (
-        <span className={cn("inline-flex items-center text-xs text-white", diffClassName)}>
+        <span className={cn("inline-flex items-center text-xs text-white whitespace-nowrap", diffClassName)}>
           <>
             {diff ? (
               <span>
@@ -36,7 +36,7 @@ const EmodeDiff = ({
                       maxFractionDigits: 2,
                     })}
                 </span>{" "}
-                <span className="ml-1 text-mfi-emode">+</span>
+                <span className="text-mfi-emode">+</span>
                 <span className="text-mfi-emode">
                   {percentFormatterMod(diff, {
                     minFractionDigits: 0,

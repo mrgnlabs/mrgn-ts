@@ -261,7 +261,7 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
           <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
           <DialogContent
             closeClassName="md:-top-8 md:-right-8 md:z-50"
-            className="overflow-visible p-6 py-8 max-w-[400px]"
+            className="overflow-visible p-6 py-8 max-w-[500px]"
           >
             {renderContent(false)}
           </DialogContent>
