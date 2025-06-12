@@ -142,7 +142,7 @@ export const EmodePopover = ({
         onMouseLeave={handleMouseLeave}
       >
         {isInLendingMode && emodeActive && originalAssetWeight ? (
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 items-center">
             <div className="flex gap-1 items-center">
               <IconEmodeSimple size={18} /> <p>e-mode weights active</p>
             </div>
@@ -185,6 +185,7 @@ export const EmodePopover = ({
                         {EmodeTag[liabilityBankItem.emodePair.liabilityBankTag]}
                       </TableCell>
                       <TableCell className="py-1">
+                        asd
                         {percentFormatterMod(originalAssetWeight || 0, {
                           minFractionDigits: 0,
                           maxFractionDigits: 2,
@@ -245,6 +246,7 @@ export const EmodePopover = ({
                         {EmodeTag[collateralBankItem.emodePair.collateralBankTag]}
                       </TableCell>
                       <TableCell className="py-1">
+                        asd
                         {percentFormatterMod(collateralOriginalAssetWeight || 0, {
                           minFractionDigits: 0,
                           maxFractionDigits: 2,
