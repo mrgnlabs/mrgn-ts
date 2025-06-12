@@ -4,6 +4,7 @@ import React from "react";
 import { BankChartData, BankChartDataDailyAverages, UseBankRatesReturn } from "../types/bank-chart.types";
 import { filterDailyRates } from "../utils/bank-chart.utils";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
 
 const useBankChart = (bankAddress: string, bank?: ExtendedBankInfo): UseBankRatesReturn => {
   const [data, setData] = React.useState<BankChartDataDailyAverages[] | null>(null);
@@ -26,8 +27,11 @@ const useBankChart = (bankAddress: string, bank?: ExtendedBankInfo): UseBankRate
         // Calculate USD values if bank data is available
         const processedData = result.map((item) => {
           const price = bank?.info.oraclePrice.priceRealtime.price.toNumber() || 0;
+          const isStaked = bank?.info.rawBank.config.assetTag === AssetTag.STAKED;
+
           return {
             ...item,
+            ...(isStaked && { borrowRate: 0, depositRate: bank.meta.stakePool?.validatorRewards }),
             totalBorrowsUsd: item.totalBorrows * price,
             totalDepositsUsd: item.totalDeposits * price,
           };

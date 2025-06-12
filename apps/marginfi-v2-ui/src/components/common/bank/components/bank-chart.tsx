@@ -17,7 +17,8 @@ import {
 import { Skeleton } from "~/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Switch } from "~/components/ui/switch";
-import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common/dist/utils/formatters.utils";
+import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { useIsMobile } from "@mrgnlabs/mrgn-utils";
 import { useMrgnlendStore } from "~/store";
 
 // Use the same colors for both charts
@@ -64,6 +65,7 @@ type BankChartProps = {
 const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
   const [showTVL, setShowTVL] = React.useState(tab === "tvl");
   const [showUSD, setShowUSD] = React.useState(false);
+  const isMobile = useIsMobile();
 
   // Reset USD toggle when switching to Rates
   React.useEffect(() => {
@@ -176,7 +178,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
-        <ChartContainer config={chartConfig} className="h-[460px] w-full">
+        <ChartContainer config={chartConfig} className="lg:h-[460px] w-full">
           <AreaChart
             key={showTVL ? "tvl" : "rates"}
             data={formattedData}
@@ -207,7 +209,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
               }}
               domain={[0, "auto"]}
               hide={false}
-              width={80}
+              width={isMobile ? 50 : 80}
               tickMargin={12}
             />
             <ChartTooltip cursor={false} content={<CustomTooltipContent />} />

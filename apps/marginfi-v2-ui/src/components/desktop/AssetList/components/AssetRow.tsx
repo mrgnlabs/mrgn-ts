@@ -24,7 +24,7 @@ export const AssetRow = (row: Row<AssetListModel>) => {
     <React.Fragment key={row.id}>
       <TableRow
         key={row.id}
-        className={cn("cursor-pointer hover:bg-background-gray", isStakedActivating && "opacity-50")}
+        className={cn("cursor-pointer group hover:bg-background-gray", isStakedActivating && "opacity-50")}
         onClick={(e) => {
           if (
             e.target instanceof HTMLTableRowElement ||

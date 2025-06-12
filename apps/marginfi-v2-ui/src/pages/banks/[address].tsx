@@ -6,7 +6,7 @@ import Error from "next/error";
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { LendingModes, getAssetPriceData } from "@mrgnlabs/mrgn-utils";
 import { ActionType, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
+import { MarginRequirementType, AssetTag } from "@mrgnlabs/marginfi-client-v2";
 import {
   aprToApy,
   usdFormatter,
@@ -81,8 +81,11 @@ export default function BankPage() {
       utilization: bank.info.state.utilizationRate / 100,
       weight: assetWeightInit <= 0 ? 0 : assetWeightInit,
       ltv: 1 / bank.info.rawBank.config.liabilityWeightInit.toNumber(),
-      lendingRate: aprToApy(lendingRate) * 100,
-      borrowingRate: aprToApy(borrowingRate) * 100,
+      lendingRate:
+        bank.info.rawBank.config.assetTag === AssetTag.STAKED
+          ? bank.meta.stakePool?.validatorRewards
+          : aprToApy(lendingRate) * 100,
+      borrowingRate: bank.info.rawBank.config.assetTag === AssetTag.STAKED ? 0 : aprToApy(borrowingRate) * 100,
     };
   }, [bank]);
 
@@ -92,24 +95,24 @@ export default function BankPage() {
         title: "Total Deposits",
         description: "Total deposits in the bank",
         value: (
-          <>
+          <div className="flex flex-col lg:flex-row items-center justify-center">
             <span>{dynamicNumeralFormatter(bankData?.totalDeposits || 0)}</span>
-            <span className="text-muted-foreground ml-2 text-base">
+            <span className="text-muted-foreground lg:ml-2 text-base">
               (${dynamicNumeralFormatter(bankData?.totalDepositsUsd || 0)})
             </span>
-          </>
+          </div>
         ),
       },
       {
         title: "Total Borrows",
         description: "Total borrows in the bank",
         value: (
-          <>
+          <div className="flex flex-col lg:flex-row items-center justify-center">
             <span>{dynamicNumeralFormatter(bankData?.totalBorrows || 0)}</span>
-            <span className="text-muted-foreground ml-2 text-base">
+            <span className="text-muted-foreground lg:ml-2 text-base">
               (${dynamicNumeralFormatter(bankData?.totalBorrowsUsd || 0)})
             </span>
-          </>
+          </div>
         ),
       },
       {
@@ -154,15 +157,15 @@ export default function BankPage() {
   }
 
   return (
-    <div className="w-full space-y-6 max-w-8xl mx-auto pb-32 -translate-y-4">
+    <div className="w-full space-y-4 max-w-8xl mx-auto pb-32 px-4 md:-translate-y-4 md:space-y-6">
       <Link href="/">
         <Button variant="outline">
           <IconArrowLeft size={14} />
           Back to banks
         </Button>
       </Link>
-      <header className="flex items-center justify-between gap-8 pb-4">
-        <div className="flex flex-col items-center w-1/2">
+      <header className="flex flex-col lg:flex-row items-center justify-between gap-8 pb-4 pt-4 md:pt-0 ">
+        <div className="flex flex-col items-center lg:w-1/2">
           <div className="flex items-center gap-6">
             <h1 className="flex items-center gap-3 text-4xl font-medium">
               <Image
@@ -213,18 +216,18 @@ export default function BankPage() {
           </ul>
         </div>
         {stats.length > 0 && (
-          <div className="w-full grid grid-cols-2 gap-8 md:grid-cols-3">
+          <div className="w-full grid grid-cols-2 gap-4 md:gap-8 md:grid-cols-3">
             {stats.map((stat) => (
               <Stat key={stat.title} title={stat.title} description={stat.description} value={stat.value} />
             ))}
           </div>
         )}
       </header>
-      <div className="w-full grid md:grid-cols-12 gap-8">
-        <div className="md:col-span-8">
+      <div className="w-full grid lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8">
           <BankChart bankAddress={bank.address.toBase58()} />
         </div>
-        <div className="md:col-span-4 pt-0 bg-background-gray rounded-md">
+        <div className="lg:col-span-4 py-8 lg:pb-0 lg:pt-0 bg-background-gray rounded-md">
           <ActionBox.BorrowLend
             useProvider={true}
             lendProps={{
@@ -260,7 +263,7 @@ const Stat = ({ title, description, value }: StatProps) => {
         <CardTitle className="font-normal">{title}</CardTitle>
         <CardDescription className="sr-only">{description}</CardDescription>
       </CardHeader>
-      <CardContent>{value && <div className="text-3xl text-center">{value}</div>}</CardContent>
+      <CardContent>{value && <div className="text-2xl lg:text-3xl text-center">{value}</div>}</CardContent>
     </Card>
   );
 };

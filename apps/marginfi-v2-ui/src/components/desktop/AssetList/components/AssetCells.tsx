@@ -41,7 +41,7 @@ import { Button } from "~/components/ui/button";
 
 export const getAssetCell = (asset: AssetData) => {
   return (
-    <div className="flex gap-2 justify-start items-center">
+    <div className="flex gap-2 justify-start items-center group-hover:text-chartreuse">
       <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
       <div>{asset.symbol}</div>
     </div>
