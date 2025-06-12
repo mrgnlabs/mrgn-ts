@@ -58,18 +58,20 @@ export const BankShare = ({ bank }: BankShareProps) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button size="icon" variant="secondary">
-                <IconShare size={16} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Share {bank.meta.tokenSymbol} bank</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="icon" variant="secondary">
+                  <IconShare size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Share {bank.meta.tokenSymbol} bank</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </PopoverTrigger>
       <PopoverContent className="pb-2">
         <div className="flex flex-col gap-1.5 text-sm">
