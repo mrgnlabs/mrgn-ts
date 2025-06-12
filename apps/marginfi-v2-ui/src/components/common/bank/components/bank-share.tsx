@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover
 import { Button } from "~/components/ui/button";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { useMrgnlendStore } from "~/store";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 const shareLinks = [
   {
@@ -57,9 +58,18 @@ export const BankShare = ({ bank }: BankShareProps) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button size="sm" variant="secondary" className="mt-4">
-          <IconShare size={16} /> Share {bank.meta.tokenSymbol} bank
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button size="icon" variant="secondary">
+                <IconShare size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Share {bank.meta.tokenSymbol} bank</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </PopoverTrigger>
       <PopoverContent className="pb-2">
         <div className="flex flex-col gap-1.5 text-sm">

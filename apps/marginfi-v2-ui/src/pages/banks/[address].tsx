@@ -157,28 +157,30 @@ export default function BankPage() {
     <div className="w-full space-y-6 max-w-8xl mx-auto pb-32 -translate-y-4">
       <Link href="/">
         <Button variant="outline">
-          <IconArrowLeft size={16} />
+          <IconArrowLeft size={14} />
           Back to banks
         </Button>
       </Link>
       <header className="flex items-center justify-between gap-8 pb-4">
         <div className="flex flex-col items-center w-1/2">
-          <h1 className="flex items-center gap-3 text-4xl font-medium">
-            <Image
-              src={bank.meta.tokenLogoUri}
-              alt={bank.meta.tokenSymbol}
-              width={48}
-              height={48}
-              className="rounded-full"
-            />
-            {bank.meta.tokenSymbol}
-          </h1>
-          <BankShare bank={bank} />
+          <div className="flex items-center gap-6">
+            <h1 className="flex items-center gap-3 text-4xl font-medium">
+              <Image
+                src={bank.meta.tokenLogoUri}
+                alt={bank.meta.tokenSymbol}
+                width={48}
+                height={48}
+                className="rounded-full"
+              />
+              {bank.meta.tokenSymbol}
+            </h1>
+            <BankShare bank={bank} />
+          </div>
           <ul className="flex flex-col gap-2 items-center text-muted-foreground mt-6">
             <li className="flex items-center gap-1">
               <span>Price:</span>{" "}
               <span className="text-foreground">
-                {dynamicNumeralFormatter(bank.info.oraclePrice.priceRealtime.price.toNumber())}
+                ${dynamicNumeralFormatter(bank.info.oraclePrice.priceRealtime.price.toNumber())}
               </span>
               {assetPriceData && assetPriceData.oracle === "Pyth" ? (
                 <IconPyth size={14} className="inline ml-1" />
