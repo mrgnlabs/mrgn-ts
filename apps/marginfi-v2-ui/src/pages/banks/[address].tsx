@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import Image from "next/image";
 import Error from "next/error";
 
-import { IconArrowLeft, IconCheck, IconLink } from "@tabler/icons-react";
+import { IconArrowLeft, IconCheck, IconLink, IconInfoCircle } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { ActionBox, useWallet, AddressActions } from "@mrgnlabs/mrgn-ui";
 import { LendingModes, getAssetPriceData } from "@mrgnlabs/mrgn-utils";
@@ -91,6 +91,7 @@ export default function BankPage() {
       {
         title: "Total Deposits",
         description: "Total deposits in the bank",
+        tooltip: "Total deposits in the pool.",
         value: (
           <div className="flex flex-col lg:flex-row items-center justify-center">
             <span>{dynamicNumeralFormatter(bankData?.totalDeposits || 0)}</span>
@@ -103,6 +104,7 @@ export default function BankPage() {
       {
         title: "Total Borrows",
         description: "Total borrows in the bank",
+        tooltip: "Total borrows in the pool.",
         value: (
           <div className="flex flex-col lg:flex-row items-center justify-center">
             <span>{dynamicNumeralFormatter(bankData?.totalBorrows || 0)}</span>
@@ -115,21 +117,28 @@ export default function BankPage() {
       {
         title: "Utilization",
         description: "Utilization of the bank",
+        tooltip: "The percentage of supplied tokens that have been borrowed.",
         value: `${percentFormatter.format(bankData?.utilization || 0)}`,
       },
       {
         title: "Collateral Weight",
         description: "Weight of the bank",
+        tooltip:
+          "Percentage of an asset's value that counts toward your collateral. Higher weight means more borrowing power for that asset.",
         value: bankData?.weight ? `${percentFormatter.format(bankData.weight)}` : 0,
       },
       {
         title: "Loan-to-Value",
         description: "Loan-to-Value of the bank",
+        tooltip:
+          "Loan-to-Value ratio (LTV) shows how much you can borrow relative to your available collateral. A higher LTV means you can borrow more, but it also increases liquidation risk.",
         value: bankData?.ltv ? `${percentFormatter.format(bankData.ltv)}` : 0,
       },
       {
         title: "Interest Rates (APY)",
         description: "Interest rates of the bank",
+        tooltip:
+          "Green shows what you'll earn on deposits over a year. Yellow shows what you'll pay for borrows over a year. Both include compounding.",
         value: (
           <div className="flex items-center justify-center gap-2 text-2xl">
             <span className="text-mrgn-success">{numeralFormatter(bankData?.lendingRate || 0)}%</span>/
@@ -163,7 +172,7 @@ export default function BankPage() {
       </Link>
       <header className="flex flex-col lg:flex-row items-center justify-between gap-8 pb-4 pt-4 md:pt-0 ">
         <div className="flex flex-col items-center lg:w-1/2">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <h1 className="flex items-center gap-3 text-4xl font-medium">
               <Image
                 src={bank.meta.tokenLogoUri}
@@ -202,7 +211,7 @@ export default function BankPage() {
               <BankShare bank={bank} />
             </div>
           </div>
-          <ul className="flex flex-col gap-2 items-start text-foreground mt-6 translate-x-2">
+          <ul className="flex flex-col gap-2 items-start text-foreground mt-6 translate-x-8">
             <li className="flex items-center gap-1">
               <span className="text-muted-foreground w-10">Price:</span>{" "}
               <span className="text-foreground">
@@ -226,7 +235,13 @@ export default function BankPage() {
         {stats.length > 0 && (
           <div className="w-full grid grid-cols-2 gap-4 md:gap-8 md:grid-cols-3">
             {stats.map((stat) => (
-              <Stat key={stat.title} title={stat.title} description={stat.description} value={stat.value} />
+              <Stat
+                key={stat.title}
+                title={stat.title}
+                description={stat.description}
+                tooltip={stat.tooltip}
+                value={stat.value}
+              />
             ))}
           </div>
         )}
@@ -261,14 +276,27 @@ export default function BankPage() {
 type StatProps = {
   title: string;
   description: string;
+  tooltip: string;
   value?: string | number | React.ReactNode;
 };
 
-const Stat = ({ title, description, value }: StatProps) => {
+const Stat = ({ title, description, tooltip, value }: StatProps) => {
   return (
     <Card className="w-full bg-background-gray rounded-md">
       <CardHeader className="items-center text-muted-foreground">
-        <CardTitle className="font-normal">{title}</CardTitle>
+        <div className="flex items-center gap-1">
+          <CardTitle className="font-normal">{title}</CardTitle>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <IconInfoCircle size={14} className="cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{tooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         <CardDescription className="sr-only">{description}</CardDescription>
       </CardHeader>
       <CardContent>
