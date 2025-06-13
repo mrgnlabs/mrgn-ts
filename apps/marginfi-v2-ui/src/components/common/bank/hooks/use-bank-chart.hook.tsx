@@ -83,7 +83,7 @@ const useBankChart = (bankAddress: string, bank?: ExtendedBankInfo): UseBankRate
         setIsLoading(true);
         setError(null);
 
-        const response = await fetch(`/api/banks/historic?bank_address=${bankAddress}`);
+        const response = await fetch(`/api/banks/historic?address=${bankAddress}`);
         if (!response.ok) {
           throw new Error(`Error fetching bank rates: ${response.statusText}`);
         }

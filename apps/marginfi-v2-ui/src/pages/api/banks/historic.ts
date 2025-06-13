@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const bankAddress = req.query.bank_address;
+    const bankAddress = req.query.address;
 
     if (!bankAddress || typeof bankAddress !== "string") {
       return res.status(400).json({ error: "Bank address is required" });
