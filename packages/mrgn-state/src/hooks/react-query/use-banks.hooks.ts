@@ -7,12 +7,11 @@ import {
   fetchOraclePrices,
   fetchEmissionPriceMap,
 } from "../../api";
-import { PublicKey } from "@solana/web3.js";
 import { OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import { useMetadata } from "./use-metadata.hooks";
 import { TokenPriceMap } from "../../types";
 
-export function useRawBanks(groupAddress?: PublicKey) {
+export function useRawBanks() {
   const metadata = useMetadata();
 
   return useQuery<BankRawDatas[], Error>({

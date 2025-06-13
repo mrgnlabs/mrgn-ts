@@ -30,5 +30,6 @@ export interface PriceWithConfidenceDto {
 export interface OraclePriceDto {
   priceRealtime: PriceWithConfidenceDto;
   priceWeighted: PriceWithConfidenceDto;
-  timestamp?: string;
+  timestamp: string;
+  pythShardId?: number;
 }

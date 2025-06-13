@@ -1,4 +1,4 @@
-import { MarginfiConfig } from "@mrgnlabs/marginfi-client-v2";
+import { ADDRESS_LOOKUP_TABLE_FOR_GROUP } from "@mrgnlabs/marginfi-client-v2";
 import {
   BankMetadata,
   loadBankMetadatas,
@@ -8,6 +8,23 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import { stagingStaticBankMetadata, stagingStaticTokenMetadata } from "../consts";
 import { getConfig } from "../config";
+import { AddressLookupTableAccountArgsDto } from "../types";
+import { dtoToLutAccount } from "../lib";
+
+export async function fetchMarginfiLuts() {
+  const response = await fetch("/api/bankData/lutData", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const data: AddressLookupTableAccountArgsDto[] = await response.json();
+
+  const lutAccounts = data.map((lut) => dtoToLutAccount(lut));
+
+  return lutAccounts;
+}
 
 export async function fetchMetaData() {
   const marginfiConfig = getConfig().mrgnConfig;

@@ -1,15 +1,11 @@
 import { BorshCoder } from "@coral-xyz/anchor";
-import { PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, StakeProgram, TransactionInstruction } from "@solana/web3.js";
-import BN from "bn.js";
+import { PublicKey } from "@solana/web3.js";
 
-import { InstructionsWrapper, SINGLE_POOL_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import { InstructionsWrapper } from "@mrgnlabs/mrgn-common";
 
 import { MarginfiIdlType } from "../idl";
 import { AccountType, MarginfiProgram } from "../types";
-import instructions from "../instructions";
-import { FLASHLOAN_ENABLED_FLAG, TRANSFER_ACCOUNT_AUTHORITY_FLAG } from "../constants";
 import {
-  BankConfigCompactRaw,
   BankConfigOpt,
   BankConfigOptRaw,
   makeAddPermissionlessStakedBankIx,
@@ -20,15 +16,14 @@ import {
   makePoolAddBankIx,
   makePoolConfigureBankIx,
   MarginfiGroupRaw,
-  serializeBankConfigOpt,
+  MarginfiGroupType,
 } from "../services";
-import { findPoolAddress, findPoolMintAddress, findPoolOnRampAddress, findPoolStakeAddress } from "../vendor";
 
 // ----------------------------------------------------------------------------
 // Client types
 // ----------------------------------------------------------------------------
 
-class MarginfiGroup {
+class MarginfiGroup implements MarginfiGroupType {
   public address: PublicKey;
   public admin: PublicKey;
 

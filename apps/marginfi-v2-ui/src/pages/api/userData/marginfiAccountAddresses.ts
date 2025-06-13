@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
+    const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE);
 
     const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
     const provider = new AnchorProvider(connection, {} as Wallet, {

@@ -1,7 +1,6 @@
 import { Connection, PublicKey } from "@solana/web3.js";
+import { fetchNativeStakeAccounts, validatorStakeGroupToDto } from "@mrgnlabs/marginfi-client-v2";
 import { NextApiRequest, NextApiResponse } from "next";
-
-import { getStakeAccounts } from "@mrgnlabs/marginfi-v2-ui-state";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { address } = req.query;
@@ -22,9 +21,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
     const addressPk = new PublicKey(address);
 
-    const stakeAccounts = await getStakeAccounts(connection, addressPk);
+    const stakeAccounts = await fetchNativeStakeAccounts(connection, addressPk);
+    const stakeAccountsDto = stakeAccounts.map(validatorStakeGroupToDto);
 
-    res.status(200).json({ stakeAccounts });
+    res.status(200).json(stakeAccountsDto);
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Error processing request" });

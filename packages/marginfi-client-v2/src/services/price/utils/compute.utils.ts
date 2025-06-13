@@ -1,15 +1,35 @@
 import BigNumber from "bignumber.js";
-import { PYTH_PRICE_CONF_INTERVALS, MAX_CONFIDENCE_INTERVAL_RATIO, SWB_PRICE_CONF_INTERVALS } from "../../constants";
+import { PYTH_PRICE_CONF_INTERVALS, MAX_CONFIDENCE_INTERVAL_RATIO, SWB_PRICE_CONF_INTERVALS } from "../../../constants";
 import {
   parsePriceData,
   AggregatorAccountData,
   AggregatorAccount,
   decodeSwitchboardPullFeedData,
   SWITCHBOARD_ONDEMANDE_PRICE_PRECISION,
-} from "../../vendor";
-import * as PythPushOracle from "../../vendor/pyth_push_oracle";
-import { OracleSetup } from "../bank";
-import { OraclePrice, OraclePriceDto, PriceBias, PriceWithConfidence } from "./types";
+} from "../../../vendor";
+import * as PythPushOracle from "../../../vendor/pyth_push_oracle";
+import { OracleSetup } from "../../bank";
+import { OraclePrice, PriceBias, PriceWithConfidence } from "../types";
+
+export function getPriceWithConfidence(oraclePrice: OraclePrice, weighted: boolean): PriceWithConfidence {
+  return weighted ? oraclePrice.priceWeighted : oraclePrice.priceRealtime;
+}
+
+export function getPrice(
+  oraclePrice: OraclePrice,
+  priceBias: PriceBias = PriceBias.None,
+  weightedPrice: boolean = false
+): BigNumber {
+  const price = getPriceWithConfidence(oraclePrice, weightedPrice);
+  switch (priceBias) {
+    case PriceBias.Lowest:
+      return price.lowestPrice;
+    case PriceBias.Highest:
+      return price.highestPrice;
+    case PriceBias.None:
+      return price.price;
+  }
+}
 
 function capConfidenceInterval(price: BigNumber, confidence: BigNumber, maxConfidence: BigNumber): BigNumber {
   let maxConfidenceInterval = price.times(maxConfidence);
@@ -204,44 +224,4 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, shardId
   }
 }
 
-export function getPriceWithConfidence(oraclePrice: OraclePrice, weighted: boolean): PriceWithConfidence {
-  return weighted ? oraclePrice.priceWeighted : oraclePrice.priceRealtime;
-}
-
-export function getPrice(
-  oraclePrice: OraclePrice,
-  priceBias: PriceBias = PriceBias.None,
-  weightedPrice: boolean = false
-): BigNumber {
-  const price = getPriceWithConfidence(oraclePrice, weightedPrice);
-  switch (priceBias) {
-    case PriceBias.Lowest:
-      return price.lowestPrice;
-    case PriceBias.Highest:
-      return price.highestPrice;
-    case PriceBias.None:
-      return price.price;
-  }
-}
-
-export function oraclePriceToDto(oraclePrice: OraclePrice): OraclePriceDto {
-  return {
-    priceRealtime: {
-      price: oraclePrice.priceRealtime.price.toString(),
-      confidence: oraclePrice.priceRealtime.confidence.toString(),
-      lowestPrice: oraclePrice.priceRealtime.lowestPrice.toString(),
-      highestPrice: oraclePrice.priceRealtime.highestPrice.toString(),
-    },
-    priceWeighted: {
-      price: oraclePrice.priceWeighted.price.toString(),
-      confidence: oraclePrice.priceWeighted.confidence.toString(),
-      lowestPrice: oraclePrice.priceWeighted.lowestPrice.toString(),
-      highestPrice: oraclePrice.priceWeighted.highestPrice.toString(),
-    },
-    timestamp: oraclePrice.timestamp.toString(),
-  };
-}
-
 export { parseOraclePriceData as parsePriceInfo };
-
-export type { OraclePrice };

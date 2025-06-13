@@ -1,7 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 
 // represents a group of stake accounts associated with a validator
-type ValidatorStakeGroup = {
+export type ValidatorStakeGroup = {
   validator: PublicKey;
   poolKey: PublicKey;
   poolMintKey: PublicKey;
@@ -16,7 +16,22 @@ type ValidatorStakeGroup = {
   }[];
 };
 
-type StakeAccount = {
+export type ValidatorStakeGroupDto = {
+  validator: string;
+  poolKey: string;
+  poolMintKey: string;
+  totalStake: number;
+  selectedAccount: {
+    pubkey: string;
+    amount: number;
+  };
+  accounts: {
+    pubkey: string;
+    amount: number;
+  }[];
+};
+
+export type StakeAccount = {
   discriminant: number;
   meta: {
     rentExemptReserve: bigint;
@@ -40,5 +55,3 @@ type StakeAccount = {
     creditsObserved: bigint;
   };
 };
-
-export type { ValidatorStakeGroup, StakeAccount };
