@@ -26,14 +26,17 @@ export const AssetRow = (row: Row<AssetListModel>) => {
         key={row.id}
         className={cn("cursor-pointer group hover:bg-background-gray", isStakedActivating && "opacity-50")}
         onClick={(e) => {
+          // don't navigate if clicking on a button, inside a button, or a dialog overlay
           if (
-            e.target instanceof HTMLTableRowElement ||
-            e.target instanceof HTMLTableCellElement ||
-            (e.target as Element).parentElement instanceof HTMLTableCellElement
+            e.target instanceof HTMLButtonElement ||
+            (e.target as Element).closest("button") ||
+            (e.target as Element).hasAttribute("data-state")
           ) {
-            router.push(`/banks/${row.original.asset.address.toBase58()}`);
-            document.body.scrollTo({ top: 0 });
+            return;
           }
+
+          router.push(`/banks/${row.original.asset.address.toBase58()}`);
+          document.body.scrollTo({ top: 0 });
         }}
       >
         {visibleCells.map((cell, idx) => (
