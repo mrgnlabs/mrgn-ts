@@ -263,7 +263,9 @@ const Stat = ({ title, description, value }: StatProps) => {
         <CardTitle className="font-normal">{title}</CardTitle>
         <CardDescription className="sr-only">{description}</CardDescription>
       </CardHeader>
-      <CardContent>{value && <div className="text-2xl lg:text-3xl text-center">{value}</div>}</CardContent>
+      <CardContent>
+        {value !== undefined && <div className="text-2xl lg:text-3xl text-center">{value}</div>}
+      </CardContent>
     </Card>
   );
 };
