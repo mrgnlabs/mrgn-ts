@@ -9,7 +9,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import { ActionBox, useWallet, AddressActions } from "@mrgnlabs/mrgn-ui";
 import { LendingModes, getAssetPriceData } from "@mrgnlabs/mrgn-utils";
 import { ActionType, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginRequirementType, AssetTag } from "@mrgnlabs/marginfi-client-v2";
+import { MarginRequirementType, AssetTag, OperationalState } from "@mrgnlabs/marginfi-client-v2";
 import { aprToApy, numeralFormatter, percentFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
@@ -36,6 +36,8 @@ export default function BankPage() {
   const { connected, walletContextState } = useWallet();
 
   const bank = extendedBankInfos.find((bank) => bank.address.toBase58() === address);
+
+  const reduceOnly = bank?.info.rawBank.config.operationalState === OperationalState.ReduceOnly;
 
   const assetPriceData = React.useMemo(() => {
     if (!bank) {
@@ -94,9 +96,17 @@ export default function BankPage() {
         tooltip: "Total deposits in the pool.",
         value: (
           <div className="flex flex-col lg:flex-row items-center justify-center">
-            <span>{dynamicNumeralFormatter(bankData?.totalDeposits || 0)}</span>
+            <span>
+              {dynamicNumeralFormatter(
+                bankData?.totalDeposits && bankData?.totalDeposits >= 0 ? bankData?.totalDeposits : 0
+              )}
+            </span>
             <span className="text-muted-foreground lg:ml-2 text-base">
-              (${dynamicNumeralFormatter(bankData?.totalDepositsUsd || 0)})
+              ($
+              {dynamicNumeralFormatter(
+                bankData?.totalDepositsUsd && bankData?.totalDepositsUsd >= 0 ? bankData?.totalDepositsUsd : 0
+              )}
+              )
             </span>
           </div>
         ),
@@ -107,9 +117,17 @@ export default function BankPage() {
         tooltip: "Total borrows in the pool.",
         value: (
           <div className="flex flex-col lg:flex-row items-center justify-center">
-            <span>{dynamicNumeralFormatter(bankData?.totalBorrows || 0)}</span>
+            <span>
+              {dynamicNumeralFormatter(
+                bankData?.totalBorrows && bankData?.totalBorrows >= 0 ? bankData?.totalBorrows : 0
+              )}
+            </span>
             <span className="text-muted-foreground lg:ml-2 text-base">
-              (${dynamicNumeralFormatter(bankData?.totalBorrowsUsd || 0)})
+              ($
+              {dynamicNumeralFormatter(
+                bankData?.totalBorrowsUsd && bankData?.totalBorrowsUsd >= 0 ? bankData?.totalBorrowsUsd : 0
+              )}
+              )
             </span>
           </div>
         ),
@@ -172,6 +190,12 @@ export default function BankPage() {
       </Link>
       <header className="flex flex-col lg:flex-row items-center justify-between gap-8 pb-4 pt-4 md:pt-0 ">
         <div className="flex flex-col items-center lg:w-1/2">
+          {reduceOnly && (
+            <div className="flex items-center gap-2 mb-4 bg-destructive text-destructive-foreground border border-destructive-foreground/20 rounded-md px-2 py-1">
+              <IconInfoCircle size={14} className="cursor-help" />
+              <p>This bank is in reduce-only mode.</p>
+            </div>
+          )}
           <div className="flex items-center gap-4">
             <h1 className="flex items-center gap-3 text-4xl font-medium">
               <Image
