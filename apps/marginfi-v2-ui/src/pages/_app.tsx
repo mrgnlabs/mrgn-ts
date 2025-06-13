@@ -165,8 +165,20 @@ export default function MrgnApp({ Component, pageProps }: AppProps) {
   );
 }
 
-// MrgnApp.getInitialProps = async (appContext: AppContext): Promise<AppInitialProps & MrgnAppProps> => {
-//   const appProps = await App.getInitialProps(appContext);
-//   const path = appContext.ctx.pathname;
-//   return { ...appProps, path };
-// };
+MrgnApp.getInitialProps = async (appContext: AppContext): Promise<AppInitialProps & MrgnAppProps> => {
+  const appProps = await App.getInitialProps(appContext);
+  const path = appContext.ctx.pathname;
+
+  if (path === "/banks/[address]") {
+    console.log("appContext.ctx.query.address", appContext.ctx.query.address);
+    const mintData = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/banks/get?address=${appContext.ctx.query.address}`
+    );
+    const mintDataJson = await mintData.json();
+    appProps.pageProps.metadata = {
+      title: mintDataJson.symbol,
+    };
+  }
+
+  return { ...appProps, path };
+};

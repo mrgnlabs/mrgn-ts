@@ -96,7 +96,7 @@ export const BankShare = ({ bank }: BankShareProps) => {
             <ul className="flex items-center justify-center gap-1">
               {shareLinks.map((link, index) => {
                 const url = `${window.location.origin}/bank/${bank.address.toBase58()}`;
-                const text = `Lend / borrow ${bank.meta.tokenSymbol} on marginfi`;
+                const text = `Lend and borrow ${bank.meta.tokenSymbol} on marginfi`;
                 return (
                   <li key={index}>
                     <Link
