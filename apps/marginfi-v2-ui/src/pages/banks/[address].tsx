@@ -157,7 +157,7 @@ export default function BankPage() {
   }
 
   return (
-    <div className="w-full space-y-4 max-w-8xl mx-auto pb-32 px-4 md:-translate-y-4 md:space-y-6">
+    <div className="w-full space-y-4 max-w-8xl mx-auto pb-24 px-4 md:pb-16 md:-translate-y-4 md:space-y-6">
       <Link href="/">
         <Button variant="outline">
           <IconArrowLeft size={14} />
