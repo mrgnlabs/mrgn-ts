@@ -1,20 +1,16 @@
 import React from "react";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import Error from "next/error";
 
-import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
+import { IconArrowLeft, IconCheck, IconLink } from "@tabler/icons-react";
+import { CopyToClipboard } from "react-copy-to-clipboard";
+import { ActionBox, useWallet, AddressActions } from "@mrgnlabs/mrgn-ui";
 import { LendingModes, getAssetPriceData } from "@mrgnlabs/mrgn-utils";
 import { ActionType, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginRequirementType, AssetTag } from "@mrgnlabs/marginfi-client-v2";
-import {
-  aprToApy,
-  usdFormatter,
-  numeralFormatter,
-  percentFormatter,
-  dynamicNumeralFormatter,
-  shortenAddress,
-} from "@mrgnlabs/mrgn-common";
+import { aprToApy, numeralFormatter, percentFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 
@@ -22,12 +18,13 @@ import { BankChart, BankShare } from "~/components/common/bank/components";
 import { Loader } from "~/components/ui/loader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { IconSwitchboard, IconPyth } from "~/components/ui/icons";
-import Link from "next/link";
-import { IconArrowLeft } from "@tabler/icons-react";
 import { Button } from "~/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 export default function BankPage() {
   const router = useRouter();
+  const [isAddressCopied, setIsAddressCopied] = React.useState(false);
+
   const { address } = React.useMemo(() => router.query, [router]);
 
   const [initialized, fetchMrgnlendState, extendedBankInfos] = useMrgnlendStore((state) => [
@@ -177,11 +174,37 @@ export default function BankPage() {
               />
               {bank.meta.tokenSymbol}
             </h1>
-            <BankShare bank={bank} />
+            <div className="flex items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <CopyToClipboard
+                        text={bank.address.toBase58()}
+                        onCopy={() => {
+                          setIsAddressCopied(true);
+                          setTimeout(() => {
+                            setIsAddressCopied(false);
+                          }, 2000);
+                        }}
+                      >
+                        <Button variant="secondary" size="icon">
+                          {isAddressCopied ? <IconCheck size={16} /> : <IconLink size={16} />}
+                        </Button>
+                      </CopyToClipboard>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Copy bank link</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <BankShare bank={bank} />
+            </div>
           </div>
-          <ul className="flex flex-col gap-2 items-center text-muted-foreground mt-6">
+          <ul className="flex flex-col gap-2 items-start text-foreground mt-6 translate-x-2">
             <li className="flex items-center gap-1">
-              <span>Price:</span>{" "}
+              <span className="text-muted-foreground w-10">Price:</span>{" "}
               <span className="text-foreground">
                 ${dynamicNumeralFormatter(bank.info.oraclePrice.priceRealtime.price.toNumber())}
               </span>
@@ -191,27 +214,12 @@ export default function BankPage() {
                 <IconSwitchboard size={14} className="inline ml-1" />
               ) : null}
             </li>
-            <li>
-              <span>Bank:</span>{" "}
-              <Link
-                href={`https://solscan.io/account/${bank.address.toBase58()}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground"
-              >
-                {shortenAddress(bank.address.toBase58())}
-              </Link>
+            <li className="flex items-center justify-center gap-1">
+              <span className="text-muted-foreground w-10">Bank:</span> <AddressActions address={bank.address} />
             </li>
-            <li>
-              <span>Mint:</span>{" "}
-              <Link
-                href={`https://solscan.io/token/${bank.info.rawBank.mint.toBase58()}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-foreground"
-              >
-                {shortenAddress(bank.info.rawBank.mint.toBase58())}
-              </Link>
+            <li className="flex items-center justify-center gap-1">
+              <span className="text-muted-foreground w-10">Mint:</span>{" "}
+              <AddressActions address={bank.info.rawBank.mint} />
             </li>
           </ul>
         </div>
