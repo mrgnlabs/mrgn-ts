@@ -91,31 +91,52 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
     );
   }
 
-  if (error) {
-    return <div>Error: {error.message}</div>;
-  }
-
-  if (!data || data.length === 0) {
-    return <div>No data available</div>;
-  }
-
   const chartConfig = showTVL ? tvlChartConfig : ratesChartConfig;
   const formatValue = showTVL ? dynamicNumeralFormatter : percentFormatter.format;
 
-  // Transform the data to include formatted values
-  const formattedData = data.map((item) => ({
-    ...item,
-    formattedBorrowRate: percentFormatter.format(item.borrowRate),
-    formattedDepositRate: percentFormatter.format(item.depositRate),
-    formattedTotalBorrows: dynamicNumeralFormatter(showUSD ? item.totalBorrowsUsd || 0 : item.totalBorrows),
-    formattedTotalDeposits: dynamicNumeralFormatter(showUSD ? item.totalDepositsUsd || 0 : item.totalDeposits),
-    // Use USD or native amounts for chart display
-    displayTotalBorrows: showUSD ? item.totalBorrowsUsd || 0 : item.totalBorrows,
-    displayTotalDeposits: showUSD ? item.totalDepositsUsd || 0 : item.totalDeposits,
-  }));
+  // Handle error or no data states by creating empty data structure for chart rendering
+  const hasError = Boolean(error) || !data || data.length === 0;
+  const errorMessage = error ? error.message : "No data available";
+
+  // Create empty data for chart rendering when there's an error or no data
+  // Generate several data points across a month to establish proper axis ranges
+  const now = new Date();
+  const emptyData = Array.from({ length: 30 }, (_, i) => {
+    const date = new Date(now);
+    date.setDate(date.getDate() - (29 - i));
+    return {
+      timestamp: date.toISOString(),
+      depositRate: 0,
+      borrowRate: 0,
+      totalDeposits: 0,
+      totalBorrows: 0,
+      totalDepositsUsd: 0,
+      totalBorrowsUsd: 0,
+      displayTotalDeposits: 0,
+      displayTotalBorrows: 0,
+      formattedBorrowRate: "0%",
+      formattedDepositRate: "0%",
+      formattedTotalBorrows: "0",
+      formattedTotalDeposits: "0",
+    };
+  });
+
+  // Transform the data to include formatted values (use empty data if error)
+  const formattedData = hasError
+    ? emptyData
+    : data.map((item) => ({
+        ...item,
+        formattedBorrowRate: percentFormatter.format(item.borrowRate),
+        formattedDepositRate: percentFormatter.format(item.depositRate),
+        formattedTotalBorrows: dynamicNumeralFormatter(showUSD ? item.totalBorrowsUsd || 0 : item.totalBorrows),
+        formattedTotalDeposits: dynamicNumeralFormatter(showUSD ? item.totalDepositsUsd || 0 : item.totalDeposits),
+        // Use USD or native amounts for chart display
+        displayTotalBorrows: showUSD ? item.totalBorrowsUsd || 0 : item.totalBorrows,
+        displayTotalDeposits: showUSD ? item.totalDepositsUsd || 0 : item.totalDeposits,
+      }));
 
   const CustomTooltipContent = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
+    if (active && payload && payload.length && !hasError) {
       return (
         <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
           <p className="text-foreground font-medium">{formatDate(label)}</p>
@@ -155,6 +176,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
                 checked={showUSD}
                 onCheckedChange={setShowUSD}
                 className="data-[state=unchecked]:bg-background-gray-light"
+                disabled={hasError}
               />
             </div>
           )}
@@ -163,21 +185,32 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
             value={showTVL ? "tvl" : "rates"}
             onValueChange={(value) => setShowTVL(value === "tvl")}
             className="p-1.5 rounded-md"
+            disabled={hasError}
           >
             <ToggleGroupItem
               value="tvl"
-              className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50"
+              className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 disabled:opacity-50"
             >
               TVL
             </ToggleGroupItem>
             <ToggleGroupItem
               value="rates"
-              className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50"
+              className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 disabled:opacity-50"
             >
               Rates
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
+
+        {/* Error Overlay */}
+        {hasError && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 bg-background-gray/50 rounded-lg">
+            <div className="bg-background border border-border rounded-lg p-4 shadow-lg">
+              <p className="text-muted-foreground text-center">{errorMessage}</p>
+            </div>
+          </div>
+        )}
+
         <ChartContainer config={chartConfig} className="lg:h-[460px] w-full">
           <AreaChart
             key={showTVL ? "tvl" : "rates"}
@@ -207,7 +240,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
                   return `${value}%`;
                 }
               }}
-              domain={[0, "auto"]}
+              domain={hasError ? [0, showTVL ? 100000 : 10] : [0, "auto"]}
               hide={false}
               width={isMobile ? 50 : 80}
               tickMargin={12}
@@ -225,49 +258,51 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
               </linearGradient>
             </defs>
 
-            {showTVL ? (
-              <>
-                <Area
-                  dataKey="displayTotalDeposits"
-                  type="monotone"
-                  fill="url(#fillPrimary)"
-                  fillOpacity={0.4}
-                  stroke={chartColors.primary}
-                  strokeWidth={2}
-                  name="Total Deposits"
-                />
-                <Area
-                  dataKey="displayTotalBorrows"
-                  type="monotone"
-                  fill="url(#fillSecondary)"
-                  fillOpacity={0.4}
-                  stroke={chartColors.secondary}
-                  strokeWidth={2}
-                  name="Total Borrows"
-                />
-              </>
-            ) : (
-              <>
-                <Area
-                  dataKey="depositRate"
-                  type="monotone"
-                  fill="url(#fillPrimary)"
-                  fillOpacity={0.4}
-                  stroke={chartColors.primary}
-                  strokeWidth={2}
-                  name="Deposit Rate"
-                />
-                <Area
-                  dataKey="borrowRate"
-                  type="monotone"
-                  fill="url(#fillSecondary)"
-                  fillOpacity={0.4}
-                  stroke={chartColors.secondary}
-                  strokeWidth={2}
-                  name="Borrow Rate"
-                />
-              </>
-            )}
+            {/* Only render areas if there's no error */}
+            {!hasError &&
+              (showTVL ? (
+                <>
+                  <Area
+                    dataKey="displayTotalDeposits"
+                    type="monotone"
+                    fill="url(#fillPrimary)"
+                    fillOpacity={0.4}
+                    stroke={chartColors.primary}
+                    strokeWidth={2}
+                    name="Total Deposits"
+                  />
+                  <Area
+                    dataKey="displayTotalBorrows"
+                    type="monotone"
+                    fill="url(#fillSecondary)"
+                    fillOpacity={0.4}
+                    stroke={chartColors.secondary}
+                    strokeWidth={2}
+                    name="Total Borrows"
+                  />
+                </>
+              ) : (
+                <>
+                  <Area
+                    dataKey="depositRate"
+                    type="monotone"
+                    fill="url(#fillPrimary)"
+                    fillOpacity={0.4}
+                    stroke={chartColors.primary}
+                    strokeWidth={2}
+                    name="Deposit Rate"
+                  />
+                  <Area
+                    dataKey="borrowRate"
+                    type="monotone"
+                    fill="url(#fillSecondary)"
+                    fillOpacity={0.4}
+                    stroke={chartColors.secondary}
+                    strokeWidth={2}
+                    name="Borrow Rate"
+                  />
+                </>
+              ))}
           </AreaChart>
         </ChartContainer>
       </CardContent>
