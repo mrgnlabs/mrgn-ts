@@ -3,6 +3,7 @@ import {
   MARGINFI_IDL,
   MarginfiIdlType,
   MarginfiProgram,
+  OraclePriceDto,
   PYTH_PRICE_CONF_INTERVALS,
 } from "@mrgnlabs/marginfi-client-v2";
 
@@ -15,20 +16,6 @@ import config from "~/config/marginfi";
 const S_MAXAGE_TIME = 10;
 const STALE_WHILE_REVALIDATE_TIME = 15;
 const STEP_API_KEY = "sol-6dd2cad8-edc5-4889-b782-64bafa7cad03";
-
-interface PriceWithConfidenceString {
-  price: string;
-  confidence: string;
-  lowestPrice: string;
-  highestPrice: string;
-}
-
-interface OraclePriceString {
-  priceRealtime: PriceWithConfidenceString;
-  priceWeighted: PriceWithConfidenceString;
-  oracleKey: string;
-  timestamp?: string;
-}
 
 interface PythOracleData {
   last_updated_ts: string;
@@ -53,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
   const program = new Program(idl, provider) as any as MarginfiProgram;
 
-  let updatedOraclePriceByKey: Record<string, OraclePriceString> = {};
+  let updatedOraclePriceByKey: Record<string, OraclePriceDto> = {};
 
   try {
     const response = await fetch(`https://api.step.finance/oracle/current?apiKey=${STEP_API_KEY}`, {
@@ -70,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     for (const index in pythOracleData) {
       const oracleData = pythOracleData[index];
-      let oraclePrice = parsePythPriceData(oracleData, index);
+      let oraclePrice = parsePythPriceData(oracleData);
 
       if (oraclePrice.priceRealtime.price === "0") {
         oraclePrice = {
@@ -87,7 +74,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             lowestPrice: "0",
             highestPrice: "0",
           },
-          oracleKey: index,
         };
       }
 
@@ -102,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-function parsePythPriceData(data: PythOracleData, oracleKey: string): OraclePriceString {
+function parsePythPriceData(data: PythOracleData): OraclePriceDto {
   function capConfidenceInterval(price: BigNumber, confidence: BigNumber, maxConfidence: BigNumber): BigNumber {
     let maxConfidenceInterval = price.times(maxConfidence);
 
@@ -134,6 +120,5 @@ function parsePythPriceData(data: PythOracleData, oracleKey: string): OraclePric
       highestPrice: highestPrice.toString(),
     },
     timestamp: new BigNumber(Number(timestamp)).toString(),
-    oracleKey,
   };
 }

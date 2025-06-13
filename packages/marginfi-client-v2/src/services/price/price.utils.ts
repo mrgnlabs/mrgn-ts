@@ -9,7 +9,7 @@ import {
 } from "../../vendor";
 import * as PythPushOracle from "../../vendor/pyth_push_oracle";
 import { OracleSetup } from "../bank";
-import { OraclePrice, PriceBias, PriceWithConfidence } from "./types";
+import { OraclePrice, OraclePriceDto, PriceBias, PriceWithConfidence } from "./types";
 
 function capConfidenceInterval(price: BigNumber, confidence: BigNumber, maxConfidence: BigNumber): BigNumber {
   let maxConfidenceInterval = price.times(maxConfidence);
@@ -222,6 +222,24 @@ export function getPrice(
     case PriceBias.None:
       return price.price;
   }
+}
+
+export function oraclePriceToDto(oraclePrice: OraclePrice): OraclePriceDto {
+  return {
+    priceRealtime: {
+      price: oraclePrice.priceRealtime.price.toString(),
+      confidence: oraclePrice.priceRealtime.confidence.toString(),
+      lowestPrice: oraclePrice.priceRealtime.lowestPrice.toString(),
+      highestPrice: oraclePrice.priceRealtime.highestPrice.toString(),
+    },
+    priceWeighted: {
+      price: oraclePrice.priceWeighted.price.toString(),
+      confidence: oraclePrice.priceWeighted.confidence.toString(),
+      lowestPrice: oraclePrice.priceWeighted.lowestPrice.toString(),
+      highestPrice: oraclePrice.priceWeighted.highestPrice.toString(),
+    },
+    timestamp: oraclePrice.timestamp.toString(),
+  };
 }
 
 export { parseOraclePriceData as parsePriceInfo };

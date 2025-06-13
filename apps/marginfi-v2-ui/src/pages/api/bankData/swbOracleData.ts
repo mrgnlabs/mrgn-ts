@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { OraclePrice } from "@mrgnlabs/marginfi-client-v2";
+import { OraclePrice, OraclePriceDto } from "@mrgnlabs/marginfi-client-v2";
 import { CrossbarSimulatePayload, FeedResponse } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 import { median } from "@mrgnlabs/mrgn-common";
 
@@ -9,19 +9,6 @@ const SWITCHBOARD_CROSSSBAR_API = process.env.SWITCHBOARD_CROSSSBAR_API || "http
 
 const S_MAXAGE_TIME = 10;
 const STALE_WHILE_REVALIDATE_TIME = 15;
-
-interface PriceWithConfidenceString {
-  price: string;
-  confidence: string;
-  lowestPrice: string;
-  highestPrice: string;
-}
-
-interface OraclePriceString {
-  priceRealtime: PriceWithConfidenceString;
-  priceWeighted: PriceWithConfidenceString;
-  timestamp?: string;
-}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const feedIdsRaw = req.query.feedIds;
@@ -43,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 }
 
-async function handleFetchCrossbarPrices(feedHashes: string[]): Promise<Record<string, OraclePriceString>> {
+async function handleFetchCrossbarPrices(feedHashes: string[]): Promise<Record<string, OraclePriceDto>> {
   try {
     // main crossbar
     const payload: CrossbarSimulatePayload = [];
@@ -140,8 +127,8 @@ async function fetchCrossbarPrices(
   }
 }
 
-function crossbarPayloadToOraclePricePerFeedHash(payload: CrossbarSimulatePayload): Record<string, OraclePriceString> {
-  const oraclePrices: Record<string, OraclePriceString> = {};
+function crossbarPayloadToOraclePricePerFeedHash(payload: CrossbarSimulatePayload): Record<string, OraclePriceDto> {
+  const oraclePrices: Record<string, OraclePriceDto> = {};
   for (const feedResponse of payload) {
     const oraclePrice = crossbarFeedResultToOraclePrice(feedResponse);
     oraclePrices[feedResponse.feedHash] = stringifyOraclePrice(oraclePrice);
@@ -173,7 +160,7 @@ function crossbarFeedResultToOraclePrice(feedResponse: FeedResponse): OraclePric
   };
 }
 
-function stringifyOraclePrice(oraclePrice: OraclePrice): OraclePriceString {
+function stringifyOraclePrice(oraclePrice: OraclePrice): OraclePriceDto {
   return {
     priceRealtime: {
       price: oraclePrice.priceRealtime.price.toString(),

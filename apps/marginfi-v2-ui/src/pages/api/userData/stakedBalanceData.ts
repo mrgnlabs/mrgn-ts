@@ -1,26 +1,7 @@
-import { getStakeAccounts } from "@mrgnlabs/marginfi-v2-ui-state";
-import { getAssociatedTokenAddressSync, MintLayout, nativeToUi, unpackAccount } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
-import BN from "bn.js";
 import { NextApiRequest, NextApiResponse } from "next";
 
-interface TokenInfo {
-  tokenProgram: string;
-  mint: string;
-  decimal: string;
-}
-
-interface EnhancedTokenInfo {
-  tokenProgram: PublicKey;
-  mint: PublicKey;
-  decimal: number;
-  ata: PublicKey;
-}
-
-interface BalanceDataRequest {
-  address: string;
-  tokens: TokenInfo[];
-}
+import { getStakeAccounts } from "@mrgnlabs/marginfi-v2-ui-state";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { address } = req.query;

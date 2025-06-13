@@ -12,6 +12,7 @@ import {
   parseOracleSetup,
   parsePriceInfo,
   PythPushFeedIdMap,
+  oraclePriceToDto,
 } from "@mrgnlabs/marginfi-client-v2";
 import {
   CrossbarSimulatePayload,
@@ -38,19 +39,6 @@ interface OracleData {
 
 interface OracleDataWithTimestamp extends OracleData {
   timestamp: BigNumber;
-}
-
-interface PriceWithConfidenceString {
-  price: string;
-  confidence: string;
-  lowestPrice: string;
-  highestPrice: string;
-}
-
-interface OraclePriceString {
-  priceRealtime: PriceWithConfidenceString;
-  priceWeighted: PriceWithConfidenceString;
-  timestamp?: string;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -203,7 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const updatedOraclePricesSorted = requestedOraclesData.map((value) => updatedOraclePrices.get(value.oracleKey)!);
 
     res.setHeader("Cache-Control", `s-maxage=${S_MAXAGE_TIME}, stale-while-revalidate=${STALE_WHILE_REVALIDATE_TIME}`);
-    return res.status(200).json(updatedOraclePricesSorted.map(stringifyOraclePrice));
+    return res.status(200).json(updatedOraclePricesSorted.map(oraclePriceToDto));
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ error: "Error fetching data" });
@@ -371,24 +359,6 @@ function crossbarFeedResultToOraclePrice(feedResponse: FeedResponse): OraclePric
     priceRealtime,
     priceWeighted,
     timestamp: new BigNumber(Math.floor(new Date().getTime() / 1000)),
-  };
-}
-
-function stringifyOraclePrice(oraclePrice: OraclePrice): OraclePriceString {
-  return {
-    priceRealtime: {
-      price: oraclePrice.priceRealtime.price.toString(),
-      confidence: oraclePrice.priceRealtime.confidence.toString(),
-      lowestPrice: oraclePrice.priceRealtime.lowestPrice.toString(),
-      highestPrice: oraclePrice.priceRealtime.highestPrice.toString(),
-    },
-    priceWeighted: {
-      price: oraclePrice.priceWeighted.price.toString(),
-      confidence: oraclePrice.priceWeighted.confidence.toString(),
-      lowestPrice: oraclePrice.priceWeighted.lowestPrice.toString(),
-      highestPrice: oraclePrice.priceWeighted.highestPrice.toString(),
-    },
-    timestamp: oraclePrice.timestamp.toString(),
   };
 }
 
