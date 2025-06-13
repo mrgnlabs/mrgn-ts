@@ -1,4 +1,4 @@
-import { IconInfoCircle } from "@tabler/icons-react";
+import { IconClockHour4, IconInfoCircle } from "@tabler/icons-react";
 
 interface PortfolioUserStatsProps {
   supplied: string;
@@ -14,13 +14,12 @@ export const PortfolioUserStats = ({ supplied, borrowed, netValue }: PortfolioUs
       <Stat label="Borrowed" value={borrowed} />
       <Stat label="Net value" value={netValue} />
       <Stat
-        label={
-          <div className="flex items-center gap-1">
-            <IconInfoCircle size={16} />
-            Interest earned
-          </div>
+        label="Interest earned"
+        value={
+          <span className="text-xs font-light flex w-full gap-1.5 items-center mt-1">
+            <IconClockHour4 size={14} /> Coming soon
+          </span>
         }
-        value={<span className="text-mrgn-success text-right w-full block">+$2.56</span>}
       />
     </div>
   );
