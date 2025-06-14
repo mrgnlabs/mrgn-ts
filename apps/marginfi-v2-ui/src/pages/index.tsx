@@ -122,7 +122,7 @@ export default function HomePage() {
           <>
             <Announcements items={annoucements} />
             <AnnouncementsDialog />
-            <div className="p-4 space-y-1 w-full">
+            <div className="p-4 space-y-3 w-full">
               {emodePairs.length > 0 && (
                 <div className="max-w-[480px] mx-auto">
                   <EmodePortfolio userActiveEmodes={userActiveEmodes} extendedBankInfos={extendedBankInfos} />

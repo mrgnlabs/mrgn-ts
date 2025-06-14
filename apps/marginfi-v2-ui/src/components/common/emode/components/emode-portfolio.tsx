@@ -26,7 +26,7 @@ const EmodePortfolio = ({
   const emodeActive = userActiveEmodes.length > 0;
   return (
     <div className="flex flex-col lg:flex-row items-center gap-3 justify-between">
-      <div className="flex justify-between w-full">
+      <div className="flex justify-between gap-4 w-full md:w-auto">
         <div className="flex items-center justify-between text-sm gap-1 shrink-0 text-muted-foreground">
           {emodeActive ? <IconEmodeSimple size={18} /> : <IconEmodeSimpleInactive size={18} />}
           e-mode {!emodeActive && "in"}active

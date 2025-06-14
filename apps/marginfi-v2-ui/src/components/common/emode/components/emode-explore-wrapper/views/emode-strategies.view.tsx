@@ -32,7 +32,7 @@ export const StrategiesView = ({ emodeStrategies }: StrategiesViewProps) => {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full mt-8">
       <Table>
         <TableBody>
           {emodeStrategies.map((strategy) => {

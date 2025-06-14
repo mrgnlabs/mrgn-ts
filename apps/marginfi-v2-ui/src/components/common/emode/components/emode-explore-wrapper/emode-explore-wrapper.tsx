@@ -116,8 +116,8 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
   }, [extendedBankInfos]);
 
   const defaultTrigger = (
-    <Button variant="secondary" size="sm">
-      <IconSearch size={12} />
+    <Button>
+      <IconSearch size={16} />
       Explore e-mode
     </Button>
   );
@@ -130,10 +130,9 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
         onValueChange={(value) => setActiveTab(value as "explore" | "strategies")}
         className="w-full"
       >
-        <div className="w-full flex justify-between items-center">
-          <span className="text-xl font-medium">Explore e-mode</span>
+        <div className="w-full flex justify-center items-center pb-4">
           <TabsList>
-            <TabsTrigger value="explore">Pairs</TabsTrigger>
+            <TabsTrigger value="explore">Explore</TabsTrigger>
             {emodeStrategies.length > 0 ? (
               <TabsTrigger value="strategies">Strategies</TabsTrigger>
             ) : (
@@ -194,7 +193,6 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
       return {
         title: (
           <>
-            Explore{" "}
             <div className="flex items-center gap-1">
               <IconEmodeSimple size={32} />
               e-mode
@@ -202,7 +200,7 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
             strategies
           </>
         ),
-        description: "There are strategies available to help you maximize your e-mode returns.",
+        description: "Personalized e-mode strategies to help maximize your returns.",
       };
     }
   };
@@ -238,7 +236,7 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
       <>
         <TabsContent value="explore" className="mt-0" hidden={activeTab !== "explore"}>
           {headerComponent("explore")}
-          <div>
+          <div className="mt-8">
             <ExploreView initialBank={initialBank} />
           </div>
         </TabsContent>
@@ -276,7 +274,7 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
           <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
           <DialogContent
             closeClassName="md:-top-8 md:-right-8 md:z-50"
-            className="overflow-visible p-6 py-8 max-w-[500px]"
+            className="overflow-visible p-6 md:py-6 md:pb-8 max-w-[500px]"
           >
             {renderContent(false)}
           </DialogContent>
