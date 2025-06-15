@@ -39,7 +39,10 @@ export const AnnouncementsDialog = () => {
             }
           }}
         >
-          <DialogContent className="md:max-w-6xl p-0 bg-transparent border-none" closeClassName="hidden">
+          <DialogContent
+            className="md:max-w-6xl p-0 bg-transparent border-none"
+            closeClassName="md:top-16 md:right-16 z-[999]"
+          >
             <DialogHeader className="sr-only">
               <DialogTitle>Marginfi Announcement</DialogTitle>
             </DialogHeader>
