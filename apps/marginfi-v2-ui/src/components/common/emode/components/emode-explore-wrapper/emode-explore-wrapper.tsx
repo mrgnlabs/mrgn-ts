@@ -200,7 +200,12 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
             strategies
           </>
         ),
-        description: "Personalized e-mode strategies to help maximize your returns.",
+        description: (
+          <>
+            Personalized e-mode strategies
+            <br className="block md:hidden" /> to help maximize your returns.
+          </>
+        ),
       };
     }
   };
@@ -266,7 +271,7 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
       <Mobile>
         <Drawer>
           <DrawerTrigger asChild>{trigger || defaultTrigger}</DrawerTrigger>
-          <DrawerContent className="px-6">{renderContent(true)}</DrawerContent>
+          <DrawerContent className="px-2">{renderContent(true)}</DrawerContent>
         </Drawer>
       </Mobile>
       <Desktop>
@@ -274,7 +279,7 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
           <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
           <DialogContent
             closeClassName="md:-top-8 md:-right-8 md:z-50"
-            className="overflow-visible p-6 md:py-6 md:pb-8 max-w-[500px]"
+            className="overflow-visible p-6 px-2 md:py-6 md:pb-8 max-w-[500px]"
           >
             {renderContent(false)}
           </DialogContent>
