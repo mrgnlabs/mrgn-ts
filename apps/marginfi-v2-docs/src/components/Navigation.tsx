@@ -258,6 +258,7 @@ export const navigation: Array<NavGroup> = [
   {
     title: 'Guides',
     links: [
+      { title: 'e-mode', href: '/emode' },
       { title: 'Staked Collateral', href: '/staked-collateral' },
       { title: 'The Arena', href: '/the-arena' },
       { title: 'mrgnloop', href: '/mrgnloop' },

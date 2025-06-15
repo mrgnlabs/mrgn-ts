@@ -1,6 +1,6 @@
 import { ImageComponent } from '~/components/ImageComponent'
 
-import "" from '~/images/docs/"".png'
+import CoverPhoto from '~/images/docs/cover-photo.png'
 
 export const metadata = {
   title: 'e-mode User Guide',
@@ -9,7 +9,12 @@ export const metadata = {
 
 # Introducing e-mode: More Leverage for Your Collateral
 
-marginfi's e-mode increases capital efficiency by boosting collateral weight when borrowing correlated assets. Make your collateral go farther with e-mode, only on marginfi. {{ className: 'lead' }}
+<ImageComponent
+  src={CoverPhoto}
+  alt="e-mode photo"
+/>
+
+marginfi's **e-mode increases capital efficiency by boosting collateral weight when borrowing correlated assets**. Make your collateral go farther with e-mode, only on marginfi. {{ className: 'lead' }}
 
 ---
 
@@ -19,7 +24,7 @@ marginfi's e-mode increases capital efficiency by boosting collateral weight whe
 
 e-mode applies automatically based on asset pairings set by the e-mode admin (the marginfi team) — no manual opt-in. Different assets are split into risk tiers — Tier 1 and Tier 2 — based on factors like liquidity, market depth, and price stability, with higher-tier assets receiving greater e-mode collateral weight to reflect their lower risk and stronger price correlation with the assets they’re paired against.
 
-When e-mode launches, marginfi will support various LSTs-SOL pairings, allowing the user to borrow and lend LSTs vs. SOL with **up to 10x leverage**:
+When e-mode launches, marginfi will support borrowing and lending between SOL and various LSTs (liquid staking tokens) with up to 10x leverage. Assets are grouped into configuration bands for risk calibration:
 
 * **Risk Tier 1 Assets** (**LST_T1**): mSOL, bSOL, LST, jupSOL, jitoSOL
 * **Risk Tier 2 Assets** (**LST_T2**): INF, hSOL, bbSOL, bnSOL
@@ -33,6 +38,10 @@ When e-mode launches, marginfi will support various LSTs-SOL pairings, allowing 
 | LST_T2            | SOL                  | 0.60              | 0.85             |
 | LST_T2            | LST_T1               | 0.60              | 0.85             |
 
+<Note>
+Groupings like "Tier 1" and "Tier 2" reflect liquidity and market readiness—not necessarily stronger correlation.
+</Note>
+
 ## Maintaining Your e-mode Advantage {{ tag: '', label: '' }}
 
 To benefit from e-mode, **all assets you’re borrowing must be part of an eligible e-mode pairing**. If you borrow even a single token outside of those supported pairs — like USDC or another unrelated asset — your entire account reverts to normal collateral weights. This can significantly reduce your account health and limit how much you can borrow.
@@ -40,7 +49,7 @@ To benefit from e-mode, **all assets you’re borrowing must be part of an eligi
 For example: if you were to lend SOL and borrow mSOL exclusively, your collateral weight would be boosted from 80% to 90% since SOL and mSOL are in an eligible e-mode pair. However, if you decide to also borrow USDC (which isn’t part of any e-mode configuration) in the same account, **the e-mode advantage would effectively be disabled for your entire account**.
 
 <Note>
-Although USDC is not currently not an e-mode asset (at the time of writing), the marginfi team plans on giving it an e-mode advantage in a future update. <Button href="https://x.com/marginfi" variant="text"><Follow marginfi on X</></Button> for the latest announcements on e-mode-eligible assets.
+Although USDC is not currently not an e-mode asset (at the time of writing), the marginfi team plans on giving it an e-mode advantage in a future update. <Button href="https://x.com/marginfi" variant="text"><>Follow marginfi on X</></Button> for the latest announcements on e-mode-eligible assets.
 </Note>
 
 Because e-mode boosts collateral weight only when all borrowed assets fall within a supported pairing, borrowing a non-correlated asset (e.g. USDC) will revert your account to standard weights. This means **borrowing even a small amount of an unsupported asset can reduce your effective collateral**, lowering account health. marginfi will prevent these user actions if they would lead to liquidation, but it’s important for users to be aware of this dynamic.
@@ -59,27 +68,30 @@ marginfi’s e-mode takes a different path: by adjusting collateral weights dyna
 
 While e-mode improves capital efficiency, it does so without compromising on safety. The system is designed to ensure that no user is ever exposed to additional risk beyond what marginfi’s core risk engine already allows.
 
-**e-mode can never reduce a bank’s default collateral weight**. If an e-mode configuration tries to assign a weight lower than the bank's standard setting, it is simply ignored. This means your collateral is never treated more conservatively just because it’s in e-mode.
-
-**Liquidation thresholds are still strictly enforced.** marginfi continues to apply standard maintenance thresholds for collateral valuation. Even with e-mode enabled, users must maintain healthy positions to avoid liquidation risk. The health buffer logic remains unchanged.
-
-**Borrowing is blocked if it would break your account health**. If borrowing a non-e-mode asset (like USDC) would disable the e-mode benefit and result in insufficient collateral, the transaction will fail. This built-in guardrail helps prevent users from unknowingly putting their account at risk by losing e-mode status mid-operation.
+* **e-mode can never reduce a bank’s default collateral weight**. If an e-mode configuration tries to assign a weight lower than the bank's standard setting, it is simply ignored. This means your collateral is never treated more conservatively just because it’s in e-mode.
+* **Liquidation thresholds are still strictly enforced.** marginfi continues to apply standard maintenance thresholds for collateral valuation. Even with e-mode enabled, users must maintain healthy positions to avoid liquidation risk. The health buffer logic remains unchanged.
+* **Borrowing is blocked if it would break your account health**. If borrowing a non-e-mode asset (like USDC) would disable the e-mode benefit and result in insufficient collateral, the transaction will fail. This built-in guardrail helps prevent users from unknowingly putting their account at risk by losing e-mode status mid-operation.
 
 e-mode boosts capital efficiency, but not at the expense of safety. You always remain protected by the same core risk management principles that power all of marginfi.
 
---
+---
 
 ## Getting Started with e-mode {{ tag: '', label: '' }}
 
 **Step 1**. 
 
-<ImageComponent
-  src={}
-  isBig={false}
-  alt="e-mode photo"
-/>
+
+---
+
+## Pro Tips: Power-Using e-mode {{ tag: '', label: '' }}
+
+* **Split Your Strategy**: Create multiple marginfi accounts to take advantage of different e-mode benefits without interference. One account can be SOL/mSOL only; another can hold your stablecoin borrows.
+* **Leverage Harder**: Use your boosted collateral weight to loop or leverage long positions more aggressively within your risk budget.
+* **You’re in Control**: We won’t reduce e-mode rates except in extreme protocol-wide emergencies. Your leverage assumptions remain stable.
+* **Propose Pairings**: Have an idea for a new asset pairing you'd like to see added to e-mode? <Button href="https://x.com/marginfi" variant="text"><>Let us know on X</></Button>.
 
 ---
 
 ## Conlcusion
 
+Whether you're looping positions, maximizing capital efficiency, or managing multiple accounts for specialized strategies, e-mode makes it easy to do more with the assets you already have. <Button href="https://app.marginfi.com" variant="text"><>Start using e-mode today</></Button> and put your collateral to work like never before. Only on marginfi.
