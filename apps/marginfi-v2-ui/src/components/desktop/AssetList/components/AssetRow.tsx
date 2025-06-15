@@ -40,7 +40,15 @@ export const AssetRow = (row: Row<AssetListModel>) => {
         }}
       >
         {visibleCells.map((cell, idx) => (
-          <TableCell className={cn("rounded-md group", !isPosition && "pb-2")} key={cell.id}>
+          <TableCell
+            className={cn(
+              "group",
+              !isPosition && "pb-2",
+              idx === 0 && "rounded-l-md",
+              idx === visibleCells.length - 1 && "rounded-r-md"
+            )}
+            key={cell.id}
+          >
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </TableCell>
         ))}
