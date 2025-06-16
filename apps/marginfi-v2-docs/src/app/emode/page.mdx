@@ -1,6 +1,11 @@
 import { ImageComponent } from '~/components/ImageComponent'
 
 import CoverPhoto from '~/images/docs/cover-photo.png'
+import Step1 from '~/images/docs/emode-step1.png'
+import Step2 from '~/images/docs/emode-step2.png'
+import Step3 from '~/images/docs/emode-step3.png'
+import Step4 from '~/images/docs/emode-step4.png'
+import Step5 from '~/images/docs/emode-step5.png'
 
 export const metadata = {
   title: 'e-mode User Guide',
@@ -78,8 +83,50 @@ e-mode boosts capital efficiency, but not at the expense of safety. You always r
 
 ## Getting Started with e-mode {{ tag: '', label: '' }}
 
-**Step 1**. 
+To **view available e-mode pairings**, select the **e-mode** category in the asset menu selection on <Button href="https://app.marginfi.com" variant="text"><>the Lend page of app.marginfi.com</></Button>. (You can also find this button on the <Button href="https://app.marginfi.com/Portfolio" variant="text"><>Portfolio page</></Button>.)
 
+<ImageComponent
+  src={Step1}
+  alt="e-mode photo"
+/>
+
+Select which asset(s) you want to lend or borrow via the dropdown selections to view e-mode pairs.
+
+For example, if I were to lend PYUSD, I could activate an e-mode advantage in my marginfi account by borrowing either USDC, UXD or SOL against my PYUSD collateral.
+
+<Note>
+This example is just for demonstration purposes. PYUSD, USDC and UXD are not eligible for e-mode at the time of this writing.
+</Note>
+
+<ImageComponent
+  src={Step2}
+  alt="e-mode photo"
+/>
+
+From the same widget, you can select the **Strategies** tab to execute borrows against the collateral you already have posted to activate an e-mode advantage.
+
+<ImageComponent
+  src={Step3}
+  alt="e-mode photo"
+/>
+
+Once you have an active e-mode pairing in your account, you'll notice the e-mode icon is colored purple for the asset(s) that have an active e-mode advantage.
+
+<Note>
+In order to maintain your account's e-mode advantage, you cannot borrow any asset that is not e-mode compatible within that account.
+</Note>
+
+<ImageComponent
+  src={Step4}
+  alt="e-mode photo"
+/>
+
+You can also view your active e-mode pairings by toggling the **Highlight e-mode** button on <Button href="https://app.marginfi.com/Portfolio" variant="text"><>the Portfolio page</></Button>
+
+<ImageComponent
+  src={Step5}
+  alt="e-mode photo"
+/>
 
 ---
 
