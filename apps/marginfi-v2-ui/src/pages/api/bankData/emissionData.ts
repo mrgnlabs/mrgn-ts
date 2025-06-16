@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { MintLayout } from "@mrgnlabs/mrgn-common";
+import { chunkedGetRawMultipleAccountInfoOrdered, MintLayout } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 
 const BIRDEYE_API = "https://public-api.birdeye.so";
@@ -25,9 +25,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
 
     const requestedMints = mintList.split(",").map((mintAddress) => mintAddress.trim());
-    const mintAis = await connection.getMultipleAccountsInfo(requestedMints.map((mint) => new PublicKey(mint)));
+    const mintAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, requestedMints);
 
-    const rawMints: Record<string, { mint: string; price: number; decimals: number }> = {};
+    const rawMints: Record<string, { mint: string; price: number; decimals: number; tokenProgram: string }> = {};
     const emissionPriceByMint: Record<string, number> = {};
 
     try {
@@ -64,6 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         mint,
         price,
         decimals: rawData.decimals,
+        tokenProgram: ai.owner.toBase58(),
       };
     });
 

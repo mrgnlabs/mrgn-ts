@@ -1,8 +1,8 @@
 import { create, StateCreator } from "zustand";
 import { PublicKey } from "@solana/web3.js";
-import { ActionType, ExtendedBankInfo, ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionMessageType, ActionTxns } from "@mrgnlabs/mrgn-utils";
-import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { SimulationResult, ValidatorStakeGroup } from "@mrgnlabs/marginfi-client-v2";
 
 interface LendBoxState {
   // State

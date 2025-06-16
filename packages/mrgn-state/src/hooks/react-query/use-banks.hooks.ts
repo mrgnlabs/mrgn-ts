@@ -1,15 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  fetchRawBanks,
-  BankRawDatas,
-  fetchMintData,
-  MintData,
-  fetchOraclePrices,
-  fetchEmissionPriceMap,
-} from "../../api";
+import { fetchRawBanks, BankRawDatas, fetchMintData, fetchOraclePrices, fetchEmissionPriceMap } from "../../api";
 import { OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import { useMetadata } from "./use-metadata.hooks";
-import { TokenPriceMap } from "../../types";
+import { RawMintData, TokenPriceMap } from "../../types";
 
 export function useRawBanks() {
   const metadata = useMetadata();
@@ -31,7 +24,7 @@ export function useMintData() {
     ? Object.values(metadata.data.bankMetadataMap).map((t) => t.tokenAddress)
     : [];
 
-  return useQuery<MintData[], Error>({
+  return useQuery<RawMintData[], Error>({
     queryKey: ["mintData"],
     queryFn: () => fetchMintData(tokenAddresses),
     enabled: metadata.isSuccess,

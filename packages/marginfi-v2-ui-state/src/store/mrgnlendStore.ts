@@ -20,13 +20,12 @@ import {
   makeExtendedBankEmission,
   TokenPriceMap,
   fetchGroupData,
-  filterStakedAssetBanks,
-  getStakePoolActiveStates,
   StakePoolMetadata,
   getStakeAccountsCached,
-  ValidatorStakeGroup,
-  getValidatorRates,
-  getStakePoolMev,
+  // getStakePoolActiveStates,
+  // ValidatorStakeGroup,
+  // getValidatorRates,
+  // getStakePoolMev,
   createLocalStorageKey,
   getCachedMarginfiAccountsForAuthority,
   groupBanksByEmodeTag,
@@ -57,6 +56,7 @@ import type {
   EmodePair,
   MarginfiClient,
   MarginfiConfig,
+  ValidatorStakeGroup,
 } from "@mrgnlabs/marginfi-client-v2";
 import BigNumber from "bignumber.js";
 
@@ -358,9 +358,9 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
           const bankMetadata = bankMetadataMap[bank.bank.address.toBase58()];
           return new PublicKey(bankMetadata.validatorVoteAccount || "");
         });
-      const stakePoolActiveStates = await getStakePoolActiveStates(connection, validatorVoteAccounts);
-      const mev = await getStakePoolMev(connection, validatorVoteAccounts);
-      const validatorRates = await getValidatorRates(validatorVoteAccounts);
+      // const stakePoolActiveStates = await getStakePoolActiveStates(connection, validatorVoteAccounts);
+      // const mev = await getStakePoolMev(connection, validatorVoteAccounts);
+      // const validatorRates = await getValidatorRates(validatorVoteAccounts);
 
       let [extendedBankInfos, extendedBankMetadatas] = banksWithPriceAndToken.reduce(
         (acc, { bank, oraclePrice, tokenMetadata }) => {
@@ -381,21 +381,21 @@ const stateCreator: StateCreator<MrgnlendState, [], []> = (set, get) => ({
 
           // build staked asset metadata
           let stakedAssetMetadata: StakePoolMetadata | undefined;
-          if (bank.config.assetTag === 2) {
-            const isActive = stakePoolActiveStates.get(bank.mint.toBase58()) || false;
-            const validatorVoteAccount = new PublicKey(
-              bankMetadataMap[bank.address.toBase58()].validatorVoteAccount || ""
-            );
-            stakedAssetMetadata = {
-              isActive,
-              validatorVoteAccount,
-              validatorRewards: validatorRates.get(bank.mint.toBase58()) || 0,
-              mev: mev.get(validatorVoteAccount.toBase58()) || {
-                pool: 0,
-                onramp: 0,
-              },
-            };
-          }
+          // if (bank.config.assetTag === 2) {
+          //   const isActive = stakePoolActiveStates.get(bank.mint.toBase58()) || false;
+          //   const validatorVoteAccount = new PublicKey(
+          //     bankMetadataMap[bank.address.toBase58()].validatorVoteAccount || ""
+          //   );
+          //   stakedAssetMetadata = {
+          //     isActive,
+          //     validatorVoteAccount,
+          //     validatorRewards: validatorRates.get(bank.mint.toBase58()) || 0,
+          //     mev: mev.get(validatorVoteAccount.toBase58()) || {
+          //       pool: 0,
+          //       onramp: 0,
+          //     },
+          //   };
+          // }
 
           acc[0].push(
             makeExtendedBankInfo(

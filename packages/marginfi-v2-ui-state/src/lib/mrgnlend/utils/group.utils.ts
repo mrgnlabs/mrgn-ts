@@ -119,6 +119,7 @@ async function fetchGroupData(
 
   // Unpack raw data for group and oracles, and build the `Bank`s map
   if (!groupAi) throw new Error("Failed to fetch the on-chain group data");
+  console.log("groupAddress", groupAddress);
   const marginfiGroup = MarginfiGroup.fromBuffer(groupAddress, groupAi.data, program.idl);
 
   const banks = new Map(

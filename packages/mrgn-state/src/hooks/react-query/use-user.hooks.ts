@@ -20,11 +20,11 @@ export function useMarginfiAccount(authority: PublicKey) {
     accountAddresses.data
   );
 
-  return useQuery<string | undefined, Error>({
-    queryKey: ["marginfiAccount", selectedAccountKey],
-    queryFn: () => fetchMarginfiAccount(authority),
-    staleTime: 60_000, // 1 minute
-    refetchInterval: 60_000,
-    retry: 1,
-  });
+  // return useQuery<string | undefined, Error>({
+  //   queryKey: ["marginfiAccount", selectedAccountKey],
+  //   queryFn: () => fetchMarginfiAccount(authority),
+  //   staleTime: 60_000, // 1 minute
+  //   refetchInterval: 60_000,
+  //   retry: 1,
+  // });
 }

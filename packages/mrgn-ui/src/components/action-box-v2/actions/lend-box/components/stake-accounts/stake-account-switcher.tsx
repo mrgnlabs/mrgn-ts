@@ -1,7 +1,8 @@
 import { IconCheck, IconSwitch } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
-import { ExtendedBankInfo, ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ValidatorStakeGroup } from "@mrgnlabs/marginfi-client-v2";
 import { dynamicNumeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 

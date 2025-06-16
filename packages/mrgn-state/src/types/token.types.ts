@@ -1,3 +1,4 @@
+import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
 export interface TokenPriceMap {
@@ -7,4 +8,11 @@ export interface TokenPriceMap {
 interface TokenPrice {
   price: BigNumber;
   decimals: number;
+  tokenProgram: PublicKey;
+}
+
+export interface RawMintData {
+  address: PublicKey;
+  decimals: number;
+  tokenProgram: PublicKey;
 }

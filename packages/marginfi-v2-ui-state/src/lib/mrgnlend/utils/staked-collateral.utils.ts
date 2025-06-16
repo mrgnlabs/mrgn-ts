@@ -1,7 +1,7 @@
 import { Connection, LAMPORTS_PER_SOL, ParsedAccountData, PublicKey, StakeProgram } from "@solana/web3.js";
 
 import { MAX_U64 } from "@mrgnlabs/mrgn-common";
-import { vendor } from "@mrgnlabs/marginfi-client-v2";
+import { ValidatorStakeGroup, vendor } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "../types";
 import {
   findPoolAddress,

@@ -5,7 +5,7 @@ import { BankRaw } from "@mrgnlabs/marginfi-client-v2";
 import { BankMetadata } from "@mrgnlabs/mrgn-common";
 import { Address } from "@coral-xyz/anchor";
 import BigNumber from "bignumber.js";
-import { TokenPriceMap } from "../types/token.types";
+import { RawMintData, TokenPriceMap } from "../types";
 
 export interface BankRawDatas {
   address: PublicKey;
@@ -18,29 +18,21 @@ export const fetchRawBanks = async (addresses: Address[]): Promise<BankRawDatas[
   return banks;
 };
 
-export interface MintData {
-  address: PublicKey;
-  decimals: number;
-  tokenProgram: PublicKey;
-}
-
-export const fetchMintData = async (addresses: Address[]): Promise<MintData[]> => {
-  // Split addresses into chunks of 100
+export const fetchMintData = async (addresses: Address[]): Promise<RawMintData[]> => {
+  // Split addresses into chunks of 60
   const chunks: Address[][] = [];
-  for (let i = 0; i < addresses.length; i += 100) {
-    chunks.push(addresses.slice(i, i + 100));
+  for (let i = 0; i < addresses.length; i += 60) {
+    chunks.push(addresses.slice(i, i + 60));
   }
 
   // Fetch all chunks in parallel
   const responses = await Promise.all(
     chunks.map((chunk) =>
-      fetch("/api/bankData/mintData", {
-        method: "POST",
+      fetch(`/api/bankData/mintData?mints=${chunk.map((addr) => addr.toString()).join(",")}`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Cache-Control": "max-age=86400",
         },
-        body: JSON.stringify({ mints: chunk.map((addr) => addr.toString()) }),
       })
     )
   );
@@ -78,19 +70,18 @@ export const fetchEmissionPriceMap = async (banks: BankRawDatas[]): Promise<Toke
   const emissionsMints = banksWithEmissions.map((bank) => bank.data.emissionsMint);
 
   const chunks: PublicKey[][] = [];
-  for (let i = 0; i < emissionsMints.length; i += 100) {
-    chunks.push(emissionsMints.slice(i, i + 100));
+  for (let i = 0; i < emissionsMints.length; i += 60) {
+    chunks.push(emissionsMints.slice(i, i + 60));
   }
 
   // Fetch all chunks in parallel
   const responses = await Promise.all(
     chunks.map((chunk) =>
-      fetch("/api/bankData/emissionData", {
-        method: "POST",
+      fetch("/api/bankData/emissionData?mintList=" + chunk.map((addr) => addr.toBase58()).join(","), {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ mints: chunk.map((addr) => addr.toBase58()) }),
       })
     )
   );
@@ -100,7 +91,7 @@ export const fetchEmissionPriceMap = async (banks: BankRawDatas[]): Promise<Toke
       // Each chunk is a Record<string, { mint: string; price: number; decimals: number }>
       return { ...acc, ...chunk };
     },
-    {} as Record<string, { mint: string; price: number; decimals: number }>
+    {} as Record<string, { mint: string; price: number; decimals: number; tokenProgram: string }>
   );
 
   // Transform the raw data into a TokenPriceMap
@@ -108,10 +99,11 @@ export const fetchEmissionPriceMap = async (banks: BankRawDatas[]): Promise<Toke
 
   Object.entries(rawEmissionPrices).forEach(([mint, rawData]) => {
     // Type assertion to help TypeScript recognize the structure
-    const data = rawData as { mint: string; price: number; decimals: number };
+    const data = rawData as { mint: string; price: number; decimals: number; tokenProgram: PublicKey };
     tokenPriceMap[mint] = {
       price: new BigNumber(data.price),
       decimals: data.decimals,
+      tokenProgram: new PublicKey(data.tokenProgram),
     };
   });
 

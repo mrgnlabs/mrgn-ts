@@ -15,8 +15,7 @@ import {
   DEFAULT_ACCOUNT_SUMMARY,
 } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { AssetTag, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AssetTag, MarginfiAccountWrapper, MarginfiClient, ValidatorStakeGroup } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
   checkLendActionAvailable,

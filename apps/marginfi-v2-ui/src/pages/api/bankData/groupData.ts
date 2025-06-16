@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { Connection, PublicKey } from "@solana/web3.js";
-import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import { AnchorProvider, BorshCoder, Program } from "@coral-xyz/anchor";
 
 import { Wallet } from "@mrgnlabs/mrgn-common";
-import { MARGINFI_IDL, MarginfiGroup, MarginfiIdlType, groupToDto } from "@mrgnlabs/marginfi-client-v2";
+import { AccountType, MARGINFI_IDL, MarginfiGroup, MarginfiIdlType, groupToDto } from "@mrgnlabs/marginfi-client-v2";
 
 import config from "~/config/marginfi";
 
@@ -29,20 +29,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE);
     const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
-    const provider = new AnchorProvider(connection, {} as Wallet, {
-      ...AnchorProvider.defaultOptions(),
-      commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
-    });
-    const groupAi = await connection.getAccountInfo(new PublicKey(groupAddress));
 
-    if (!groupAi) {
-      res.status(400).json({ error: "Group not found" });
-      return;
-    }
+    // const groupAi = await connection.getAccountInfo(new PublicKey(groupAddress));
 
-    const group = MarginfiGroup.fromBuffer(new PublicKey(groupAddress), groupAi.data, idl);
+    // if (!groupAi) {
+    //   res.status(400).json({ error: "Group not found" });
+    //   return;
+    // }
 
-    const groupDto = groupToDto(group);
+    // const coder = new BorshCoder(idl);
+    // console.log({ groupAi: groupAi.data });
+    // const decoded = coder.accounts.decode(AccountType.MarginfiGroup, groupAi.data);
+    // console.log({ decoded });
+    // group = MarginfiGroup.fromBuffer(new PublicKey(groupAddress), groupAi.data, idl);
+
+    const groupDto = groupToDto(new MarginfiGroup(new PublicKey(groupAddress), new PublicKey(groupAddress)));
 
     // cache for 20 minutes (1200 seconds)
     res.setHeader("Cache-Control", "s-maxage=1200, stale-while-revalidate=300");
