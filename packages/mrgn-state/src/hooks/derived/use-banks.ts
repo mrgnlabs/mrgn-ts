@@ -10,10 +10,10 @@ export function useBanks() {
   const isLoading = isLoadingRawBanks || isLoadingOracleData || isLoadingMetadata;
   const isError = isErrorRawBanks || isErrorOracleData;
 
-  const banks = React.useMemo(() => {
+  const [banks, banksMap] = React.useMemo(() => {
     if (!rawBanks || !oracleData) return [];
 
-    return rawBanks.map((bank) =>
+    const banks = rawBanks.map((bank) =>
       Bank.fromAccountParsed(
         bank.address,
         bank.data,
@@ -21,10 +21,18 @@ export function useBanks() {
         metadata?.bankMetadataMap?.[bank.address.toBase58()]
       )
     );
+
+    const banksMap: Map<string, Bank> = banks.reduce((acc, bank) => {
+      acc.set(bank.address.toBase58(), bank);
+      return acc;
+    }, new Map<string, Bank>());
+
+    return [banks, banksMap];
   }, [metadata?.bankMetadataMap, oracleData, rawBanks]);
 
   return {
     banks,
+    banksMap,
     isLoading,
     isError,
   };

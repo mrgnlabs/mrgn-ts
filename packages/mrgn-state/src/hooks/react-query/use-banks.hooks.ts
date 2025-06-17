@@ -13,7 +13,7 @@ export function useRawBanks() {
     enabled: metadata.isSuccess,
     staleTime: 60_000, // 1 minute
     refetchInterval: 60_000,
-    retry: 1,
+    retry: 2,
   });
 }
 

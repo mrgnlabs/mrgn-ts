@@ -33,9 +33,13 @@ export const fetchMarginfiAccountAddresses = async (authority: PublicKey): Promi
 export const fetchMarginfiAccount = async (
   bankMap: Map<string, Bank>,
   oraclePrices: Map<string, OraclePrice>,
-  marginfiAccountPk: PublicKey,
-  bankMetadataMap: BankMetadataMap
-): Promise<MarginfiAccountType> => {
+  bankMetadataMap: BankMetadataMap,
+  marginfiAccountPk?: PublicKey
+): Promise<MarginfiAccountType | null> => {
+  if (!marginfiAccountPk) {
+    return null;
+  }
+
   const bankMapDto: Record<string, BankTypeDto> = {};
   for (const [bankAddress, bank] of bankMap.entries()) {
     bankMapDto[bankAddress] = toBankDto(bank);
@@ -59,8 +63,8 @@ export const fetchMarginfiAccount = async (
     }),
   });
 
-  const data: { marginfiAccount: MarginfiAccountTypeDto } = await response.json();
+  const data: { marginfiAccountDto: MarginfiAccountTypeDto } = await response.json();
 
-  const marginfiAccount = dtoToMarginfiAccount(data.marginfiAccount);
+  const marginfiAccount = dtoToMarginfiAccount(data.marginfiAccountDto);
   return marginfiAccount;
 };

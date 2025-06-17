@@ -21,7 +21,14 @@ import {
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
 import { EmodePortfolio } from "~/components/common/emode/components";
-import { useMetadata, useOracleData, useRawBanks, useMarginfiClient } from "@mrgnlabs/mrgn-state";
+import {
+  useMetadata,
+  useOracleData,
+  useRawBanks,
+  useMarginfiClient,
+  useBanks,
+  useMarginfiAccount,
+} from "@mrgnlabs/mrgn-state";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
   ssr: false,
@@ -30,15 +37,18 @@ const AssetsList = dynamic(async () => (await import("~/components/desktop/Asset
 export default function HomePage() {
   const router = useRouter();
 
+  const { walletContextState, walletAddress, isOverride, connected } = useWallet();
+
   // const { data: metadata, error: metadataError } = useMetadata();
-  const { data: oracleData, error: oracleError } = useOracleData();
+  // const { data: oracleData, error: oracleError } = useOracleData();
   // const { data: bankData, error: bankDataError } = useRawBanks();
+  // const { banks, isLoading: isLoadingBanks, isError: isErrorBanks } = useBanks();
+
+  // console.log("banks", banks);
   // const { marginfiClient: marginfiClientHook, isLoading, isError, ...rest } = useMarginfiClient();
 
-  console.log("oracleData", oracleData);
-  console.log("oracleError", oracleError);
+  // console.log("marginfiClientHook", marginfiClientHook);
 
-  const { walletContextState, walletAddress, isOverride, connected } = useWallet();
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
 
   const [

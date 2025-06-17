@@ -12,7 +12,7 @@ export function useMarginfiClient() {
   const { data: luts, isLoading: isLoadingLuts, isError: isErrorLuts } = useMarginfiLuts();
 
   const { mintMap, isLoading: isLoadingMintMap, isError: isErrorMintMap } = useMintMap();
-  const { banks, isLoading: isLoadingBanks, isError: isErrorBanks } = useBanks();
+  const { banks, banksMap, isLoading: isLoadingBanks, isError: isErrorBanks } = useBanks();
 
   const isLoading =
     isLoadingGroup || isLoadingBanks || isLoadingMintMap || isLoadingLuts || isLoadingOracleData || isLoadingMetadata;
@@ -26,12 +26,7 @@ export function useMarginfiClient() {
 
   console.log({ marginfiGroup, banks, oracleData, mintMap, metadata, luts });
   const marginfiClient = React.useMemo(() => {
-    if (!marginfiGroup || !banks || !oracleData || !mintMap || !metadata || !luts) return undefined;
-
-    const banksMap: Map<string, Bank> = banks.reduce((acc, bank) => {
-      acc.set(bank.address.toBase58(), bank);
-      return acc;
-    }, new Map<string, Bank>());
+    if (!marginfiGroup || !banks || !banksMap || !oracleData || !mintMap || !metadata || !luts) return undefined;
 
     const marginfiGroupClass = new MarginfiGroup(marginfiGroup.admin, marginfiGroup.address);
     const preloadedBankAddresses = banks.map((bank) => bank.address);
@@ -51,7 +46,7 @@ export function useMarginfiClient() {
       metadata.bankMetadataMap
     );
     return marginfiClient;
-  }, [marginfiGroup, banks, oracleData, mintMap, metadata, luts, mfiConfig, program]);
+  }, [marginfiGroup, banks, banksMap, oracleData, mintMap, metadata, luts, mfiConfig, program]);
 
   return {
     marginfiGroup,

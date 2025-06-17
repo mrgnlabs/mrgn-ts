@@ -1,3 +1,4 @@
 export * from "./use-banks.hooks";
 export * from "./use-metadata.hooks";
 export * from "./use-group.hooks";
+export * from "./use-user.hooks";

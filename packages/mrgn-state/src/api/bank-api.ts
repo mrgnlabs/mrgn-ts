@@ -14,6 +14,7 @@ export interface BankRawDatas {
 
 export const fetchRawBanks = async (addresses: Address[]): Promise<BankRawDatas[]> => {
   const program = getConfig().program;
+
   const banks = await fetchMultipleBanks(program, { bankAddresses: addresses });
   return banks;
 };

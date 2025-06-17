@@ -335,8 +335,8 @@ export const fetchSwbOracleData = async (
     oraclePrices = {};
   }
 
-  // Step 6: Map banks to oracle prices
-  const bankOraclePriceMap = mapSwbBanksToOraclePrices(banks, oraclePrices, oracleKeyMap);
+  // Step 6: Map switchboardBanks to oracle prices
+  const bankOraclePriceMap = mapSwbBanksToOraclePrices(switchboardBanks, oraclePrices, oracleKeyMap);
 
   return {
     bankOraclePriceMap,
@@ -409,7 +409,7 @@ const mapSwbBanksToOraclePrices = (
   banks.forEach((bank) => {
     const oracleKey = bank.data.config.oracleKeys[0].toBase58();
     const oracleFeed = oracleKeyMap[oracleKey];
-    const oraclePrice = oraclePrices[oracleFeed.feedId];
+    const oraclePrice = oracleFeed?.feedId ? oraclePrices[oracleFeed.feedId] : null;
     if (oraclePrice) {
       bankOraclePriceMap.set(bank.address.toBase58(), oraclePrice);
     }
