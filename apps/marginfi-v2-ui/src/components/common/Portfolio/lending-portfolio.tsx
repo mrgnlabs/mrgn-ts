@@ -124,19 +124,30 @@ export const LendingPortfolio = () => {
   // Fetch interest earned when user is authenticated
   React.useEffect(() => {
     const fetchInterestEarned = async () => {
-      if (!user || !walletAddress) return;
+      if (!user) return;
 
       try {
-        const response = await fetch(`/api/user/interest-earned?wallet_address=${walletAddress.toBase58()}`);
+        const response = await fetch("/api/user/interest-earned");
+
+        if (response.status === 401) {
+          console.log("Authentication required for interest earned data");
+          return;
+        }
+
         const data = await response.json();
-        console.log("Interest earned data:", data);
+
+        if (response.ok) {
+          console.log("Interest earned data:", data);
+        } else {
+          console.error("Error fetching interest earned:", data.error);
+        }
       } catch (error) {
         console.error("Error fetching interest earned:", error);
       }
     };
 
     fetchInterestEarned();
-  }, [user, walletAddress]);
+  }, [user]);
 
   ////////////////////////////
   // handleSimulation logic //
@@ -405,11 +416,11 @@ export const LendingPortfolio = () => {
   return (
     <div className="flex flex-col items-center md:items-start w-full gap-4">
       {/* Auth Button - Simple proof of concept */}
-      {/* <div className="w-full flex justify-end mb-4">
+      <div className="w-full flex justify-end mb-4">
         <Button onClick={handleAuthAction} disabled={isAuthenticating} variant={user ? "outline" : "default"} size="sm">
           {isAuthenticating ? "Authenticating..." : user ? "Logout" : "Login"}
         </Button>
-      </div> */}
+      </div>
 
       <div className="pb-6 md:p-6 rounded-xl w-full md:bg-muted/25">
         <div className={cn("transition-opacity duration-500")}>

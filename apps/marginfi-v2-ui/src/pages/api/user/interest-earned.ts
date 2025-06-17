@@ -10,19 +10,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const walletAddress = req.query.wallet_address;
-
-    if (!walletAddress || typeof walletAddress !== "string") {
-      return res.status(400).json({ error: "Wallet address is required" });
-    }
-
-    // Use the same server client pattern as other API routes
     const supabase = createServerSupabaseClient(req, res);
 
-    // Call the interest earned aggregate function
+    // Check authentication - user must be logged in
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return res.status(401).json({
+        error: "Authentication required",
+        requiresAuth: true,
+      });
+    }
+
+    // Get wallet address from authenticated user's metadata
+    const walletAddress = user.user_metadata?.wallet_address;
+
+    if (!walletAddress) {
+      return res.status(400).json({
+        error: "Wallet address not found in user profile",
+      });
+    }
+
+    // Call the interest earned aggregate function with authenticated user's selected accont
     const { data: interestData, error } = await supabase.schema("application").rpc("f_interest_earned_aggregate_6h", {
-      account_filter: walletAddress,
-      bank_filter: "", // Empty string to get all banks for this wallet
+      account_filter: "J7pez4qFgtTGvzfdNu7Q1sNyv5q1ydvFnPK4R44LrQi2",
     });
 
     if (error) {
