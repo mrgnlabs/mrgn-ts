@@ -234,6 +234,85 @@ const transformInterestEarnedData = (data: InterestEarnedDataPoint[]) => transfo
 
 const transformInterestPaidData = (data: InterestEarnedDataPoint[]) => transformInterestData(data, "paid");
 
+// Transform API data into total interest format (earned + paid + net)
+const transformTotalInterestData = (
+  data: InterestEarnedDataPoint[]
+): { chartData: ChartDataPoint[]; bankSymbols: string[] } => {
+  if (!data.length) return { chartData: [], bankSymbols: [] };
+
+  // Generate array of all dates for the last 30 days
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(endDate.getDate() - 29); // 30 days total
+
+  const allDates: string[] = [];
+  for (let i = 0; i < 30; i++) {
+    const currentDate = new Date(startDate);
+    currentDate.setDate(startDate.getDate() + i);
+    allDates.push(currentDate.toISOString().split("T")[0]); // YYYY-MM-DD format
+  }
+
+  // Group data by date and sum across all banks
+  const dailyTotals: Record<string, { earned: number; paid: number }> = {};
+
+  // Initialize all dates with zero values
+  allDates.forEach((dateStr) => {
+    dailyTotals[dateStr] = { earned: 0, paid: 0 };
+  });
+
+  // Aggregate data by date
+  data.forEach((item) => {
+    const itemDate = new Date(item.bank_snapshot_time).toISOString().split("T")[0];
+    if (dailyTotals[itemDate]) {
+      dailyTotals[itemDate].earned += item.cumulative_interest_earned_usd_close;
+      dailyTotals[itemDate].paid += item.cumulative_interest_paid_usd_close;
+    }
+  });
+
+  // Forward-fill missing data to ensure cumulative values don't decrease
+  let lastEarned = 0;
+  let lastPaid = 0;
+
+  allDates.forEach((dateStr) => {
+    const current = dailyTotals[dateStr];
+    if (current.earned > 0 || current.paid > 0) {
+      lastEarned = Math.max(lastEarned, current.earned);
+      lastPaid = Math.max(lastPaid, current.paid);
+    }
+    dailyTotals[dateStr] = {
+      earned: Math.max(lastEarned, current.earned),
+      paid: Math.max(lastPaid, current.paid),
+    };
+  });
+
+  // Convert to chart format
+  const chartData: ChartDataPoint[] = allDates.map((dateStr) => {
+    const totals = dailyTotals[dateStr];
+    const netInterest = totals.earned - totals.paid;
+
+    return {
+      timestamp: `${dateStr}T12:00:00.000Z`,
+      "Total Earned": totals.earned,
+      "Total Paid": -totals.paid, // Make paid negative for proper visualization
+      "Net Interest": netInterest,
+    };
+  });
+
+  // Check if we have any meaningful data (threshold of $0.01)
+  const hasSignificantData = chartData.some(
+    (point) => Math.abs(point["Total Earned"] as number) > 0.01 || Math.abs(point["Total Paid"] as number) > 0.01
+  );
+
+  if (!hasSignificantData) {
+    return { chartData: [], bankSymbols: [] };
+  }
+
+  return {
+    chartData,
+    bankSymbols: ["Total Earned", "Total Paid", "Net Interest"],
+  };
+};
+
 export const LendingPortfolio = () => {
   const { connected, wallet, walletAddress } = useWallet();
   const { connection } = useConnection();
@@ -283,6 +362,7 @@ export const LendingPortfolio = () => {
   const [interestPaidState, setInterestPaidState] = React.useState<InterestEarnedState>(initialInterestEarnedState);
   const hasMultipleAccount = React.useMemo(() => marginfiAccounts && marginfiAccounts.length > 1, [marginfiAccounts]);
 
+  const [totalInterestState, setTotalInterestState] = React.useState<InterestEarnedState>(initialInterestEarnedState);
   const { handleSimulation } = useRewardSimulation({
     simulationResult: rewardsState,
     marginfiClient,
@@ -314,6 +394,7 @@ export const LendingPortfolio = () => {
 
       setInterestEarnedState((prev) => ({ ...prev, loading: true, error: null }));
       setInterestPaidState((prev) => ({ ...prev, loading: true, error: null }));
+      setTotalInterestState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
         const response = await fetch("/api/user/interest-earned");
@@ -329,15 +410,21 @@ export const LendingPortfolio = () => {
             loading: false,
             error: "Authentication required",
           }));
+          setTotalInterestState((prev) => ({
+            ...prev,
+            loading: false,
+            error: "Authentication required",
+          }));
           return;
         }
 
         const data = await response.json();
 
         if (response.ok) {
-          // Transform data for both earned and paid interest
+          // Transform data for earned, paid, and total interest
           const earnedData = transformInterestEarnedData(data);
           const paidData = transformInterestPaidData(data);
+          const totalData = transformTotalInterestData(data);
 
           setInterestEarnedState({
             data,
@@ -354,6 +441,14 @@ export const LendingPortfolio = () => {
             loading: false,
             error: null,
           });
+
+          setTotalInterestState({
+            data,
+            chartData: totalData.chartData,
+            bankSymbols: totalData.bankSymbols,
+            loading: false,
+            error: null,
+          });
         } else {
           console.error("Error fetching interest data:", data.error);
           setInterestEarnedState((prev) => ({
@@ -362,6 +457,11 @@ export const LendingPortfolio = () => {
             error: data.error || "Failed to fetch interest data",
           }));
           setInterestPaidState((prev) => ({
+            ...prev,
+            loading: false,
+            error: data.error || "Failed to fetch interest data",
+          }));
+          setTotalInterestState((prev) => ({
             ...prev,
             loading: false,
             error: data.error || "Failed to fetch interest data",
@@ -375,6 +475,11 @@ export const LendingPortfolio = () => {
           error: "Failed to fetch interest data",
         }));
         setInterestPaidState((prev) => ({
+          ...prev,
+          loading: false,
+          error: "Failed to fetch interest data",
+        }));
+        setTotalInterestState((prev) => ({
           ...prev,
           loading: false,
           error: "Failed to fetch interest data",
@@ -1039,6 +1144,16 @@ export const LendingPortfolio = () => {
                   bankSymbols={interestPaidState.bankSymbols}
                   loading={interestPaidState.loading}
                   error={interestPaidState.error}
+                />
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Total Interest</h3>
+                <InterestChart
+                  chartData={totalInterestState.chartData}
+                  bankSymbols={totalInterestState.bankSymbols}
+                  loading={totalInterestState.loading}
+                  error={totalInterestState.error}
+                  variant="total"
                 />
               </div>
             </div>

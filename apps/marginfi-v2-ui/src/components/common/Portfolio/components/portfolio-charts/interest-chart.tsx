@@ -29,10 +29,21 @@ type InterestChartProps = {
   bankSymbols: string[];
   loading: boolean;
   error: string | null;
+  variant?: "default" | "total"; // Add variant for total interest chart
 };
 
 // Generate dynamic colors for multiple bank lines
-const generateChartColors = (bankSymbols: string[]) => {
+const generateChartColors = (bankSymbols: string[], variant: "default" | "total" = "default") => {
+  if (variant === "total") {
+    // Special colors for total interest chart
+    const totalColors: Record<string, string> = {
+      "Total Earned": "hsl(var(--mrgn-success))", // Green for earned
+      "Total Paid": "hsl(var(--mrgn-error))", // Red for paid (negative)
+      "Net Interest": "hsl(220, 91%, 60%)", // Blue for net
+    };
+    return totalColors;
+  }
+
   const baseColors = [
     "hsl(var(--mrgn-success))", // Green
     "hsl(var(--mrgn-warning))", // Yellow/Orange
@@ -60,8 +71,8 @@ const formatDate = (dateStr: string) => {
   });
 };
 
-const InterestChart = ({ chartData, bankSymbols, loading, error }: InterestChartProps) => {
-  const chartColors = React.useMemo(() => generateChartColors(bankSymbols), [bankSymbols]);
+const InterestChart = ({ chartData, bankSymbols, loading, error, variant = "default" }: InterestChartProps) => {
+  const chartColors = React.useMemo(() => generateChartColors(bankSymbols, variant), [bankSymbols, variant]);
 
   const chartConfig = React.useMemo(() => {
     const config: ChartConfig = {};
@@ -74,20 +85,22 @@ const InterestChart = ({ chartData, bankSymbols, loading, error }: InterestChart
     return config;
   }, [bankSymbols, chartColors]);
 
-  // Calculate the maximum value for Y-axis domain
-  const maxValue = React.useMemo(() => {
-    if (!chartData.length) return 0;
+  // Calculate the min and max values for Y-axis domain
+  const { minValue, maxValue } = React.useMemo(() => {
+    if (!chartData.length) return { minValue: 0, maxValue: 0 };
 
+    let min = 0;
     let max = 0;
     chartData.forEach((dataPoint) => {
       bankSymbols.forEach((symbol) => {
         const value = dataPoint[symbol] as number;
-        if (typeof value === "number" && value > max) {
-          max = value;
+        if (typeof value === "number") {
+          if (value > max) max = value;
+          if (value < min) min = value;
         }
       });
     });
-    return max;
+    return { minValue: min, maxValue: max };
   }, [chartData, bankSymbols]);
 
   if (loading) {
@@ -146,8 +159,8 @@ const InterestChart = ({ chartData, bankSymbols, loading, error }: InterestChart
               fontSize={12}
             />
             <YAxis
-              tickFormatter={(value) => `$${dynamicNumeralFormatter(Math.max(0, value))}`}
-              domain={[0, maxValue > 0 ? Math.ceil(maxValue * 1.1) : 1]}
+              tickFormatter={(value) => `$${dynamicNumeralFormatter(value)}`}
+              domain={[minValue < 0 ? Math.floor(minValue * 1.1) : 0, maxValue > 0 ? Math.ceil(maxValue * 1.1) : 1]}
               axisLine={false}
               tickLine={false}
               width={65}
@@ -179,7 +192,7 @@ const InterestChart = ({ chartData, bankSymbols, loading, error }: InterestChart
                 strokeWidth={1.5}
                 name={`${bankSymbol} Interest Earned`}
                 isAnimationActive={false}
-                stackId={index > 0 ? "stack" : undefined} // Stack areas for better visibility
+                stackId={variant === "total" ? undefined : index > 0 ? "stack" : undefined} // Don't stack for total interest chart
               />
             ))}
           </AreaChart>
