@@ -7,11 +7,13 @@ import {
   OraclePrice,
   OraclePriceDto,
   oraclePriceToDto,
+  PythPushFeedIdMap,
   toBankDto,
 } from "@mrgnlabs/marginfi-client-v2";
 import { BankMetadataMap } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 import { getConfig } from "../config/app.config";
+import { BankRawDatas } from "./bank-api";
 
 export const fetchMarginfiAccountAddresses = async (authority: PublicKey): Promise<PublicKey[]> => {
   const group = getConfig().mrgnConfig.groupPk;
@@ -31,7 +33,8 @@ export const fetchMarginfiAccountAddresses = async (authority: PublicKey): Promi
 };
 
 export const fetchMarginfiAccount = async (
-  bankMap: Map<string, Bank>,
+  banks: BankRawDatas[],
+  pythFeedIdMap: PythPushFeedIdMap,
   oraclePrices: Map<string, OraclePrice>,
   bankMetadataMap: BankMetadataMap,
   marginfiAccountPk?: PublicKey
@@ -41,8 +44,15 @@ export const fetchMarginfiAccount = async (
   }
 
   const bankMapDto: Record<string, BankTypeDto> = {};
-  for (const [bankAddress, bank] of bankMap.entries()) {
-    bankMapDto[bankAddress] = toBankDto(bank);
+  for (const rawBank of banks) {
+    const bank = Bank.fromAccountParsed(
+      rawBank.address,
+      rawBank.data,
+      pythFeedIdMap,
+      bankMetadataMap[rawBank.address.toBase58()]
+    );
+
+    bankMapDto[bank.address.toBase58()] = toBankDto(bank);
   }
 
   const oraclePricesDto: Record<string, OraclePriceDto> = {};

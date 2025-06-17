@@ -150,7 +150,7 @@ class Bank implements BankType {
   static fromAccountParsed(
     address: PublicKey,
     accountParsed: BankRaw,
-    feedIdMap: PythPushFeedIdMap,
+    feedIdMap?: PythPushFeedIdMap,
     bankMetadata?: BankMetadata
   ): Bank {
     const props = parseBankRaw(address, accountParsed, feedIdMap, bankMetadata);

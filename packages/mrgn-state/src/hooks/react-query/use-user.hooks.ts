@@ -4,7 +4,7 @@ import { MarginfiAccountType } from "@mrgnlabs/marginfi-client-v2";
 import { fetchMarginfiAccount, fetchMarginfiAccountAddresses } from "../../api/user-api";
 import { useSelectedAccountKey } from "../session-storage";
 import { useBanks } from "../derived";
-import { useOracleData } from "./use-banks.hooks";
+import { useOracleData, useRawBanks } from "./use-banks.hooks";
 import { useMetadata } from "./use-metadata.hooks";
 
 export function useMarginfiAccountAddresses(authority: PublicKey | undefined) {
@@ -30,7 +30,7 @@ export function useMarginfiAccount(authority: PublicKey | undefined) {
     isError: isErrorAccountAddresses,
   } = useMarginfiAccountAddresses(authority);
 
-  const { banksMap, isError: isErrorBanks } = useBanks();
+  const { data: rawBanks, isSuccess: isSuccessRawBanks, isError: isErrorRawBanks } = useRawBanks();
   const { data: metadata, isSuccess: isSuccessMetadata, isError: isErrorMetadata } = useMetadata();
   const { data: oracleData, isSuccess: isSuccessOracleData, isError: isErrorOracleData } = useOracleData();
 
@@ -38,21 +38,22 @@ export function useMarginfiAccount(authority: PublicKey | undefined) {
     useSelectedAccountKey(accountAddresses);
 
   // Check if any of the dependencies have errors
-  const hasErrors = isErrorAccountAddresses || isErrorBanks || isErrorMetadata || isErrorOracleData;
+  const hasErrors = isErrorAccountAddresses || isErrorRawBanks || isErrorMetadata || isErrorOracleData;
 
   // Check if all required data is available
   const allDataReady =
-    Boolean(authority) && isSuccessAccountAddresses && isSuccessMetadata && isSuccessOracleData && Boolean(banksMap);
+    Boolean(authority) && isSuccessAccountAddresses && isSuccessMetadata && isSuccessOracleData && isSuccessRawBanks;
 
   return useQuery<MarginfiAccountType | null, Error>({
     queryKey: ["marginfiAccount", authority?.toBase58() ?? null, selectedAccountKey ?? null],
     queryFn: async () => {
-      if (!banksMap || !oracleData?.oracleMap || !metadata?.bankMetadataMap) {
+      if (!rawBanks || !oracleData?.pythFeedIdMap || !oracleData?.oracleMap || !metadata?.bankMetadataMap) {
         throw new Error("Required data not available for fetching MarginFi account");
       }
 
       return await fetchMarginfiAccount(
-        banksMap,
+        rawBanks,
+        oracleData.pythFeedIdMap,
         oracleData.oracleMap,
         metadata.bankMetadataMap,
         selectedAccountKey ? new PublicKey(selectedAccountKey) : undefined

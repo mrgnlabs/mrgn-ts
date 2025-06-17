@@ -46,7 +46,7 @@ export function decodeBankRaw(encoded: Buffer, idl: MarginfiIdlType): BankRaw {
 export function parseBankRaw(
   address: PublicKey,
   accountParsed: BankRaw,
-  feedIdMap: PythPushFeedIdMap,
+  feedIdMap?: PythPushFeedIdMap,
   bankMetadata?: BankMetadata
 ): BankType {
   const flags = accountParsed.flags.toNumber();
@@ -91,7 +91,9 @@ export function parseBankRaw(
     ? wrappedI80F48toBigNumber(accountParsed.emissionsRemaining)
     : new BigNumber(0);
 
-  const { oracleKey, shardId: pythShardId } = findOracleKey(config, feedIdMap);
+  const { oracleKey, shardId: pythShardId } = feedIdMap
+    ? findOracleKey(config, feedIdMap)
+    : { oracleKey: config.oracleKeys[0] };
   const emode = EmodeSettings.from(accountParsed.emode);
 
   const tokenSymbol = bankMetadata?.tokenSymbol;

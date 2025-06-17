@@ -100,6 +100,18 @@ class MarginfiAccount implements MarginfiAccountType {
     return decodeAccountRaw(encoded, idl);
   }
 
+  static fromAccountType(account: MarginfiAccountType) {
+    return new MarginfiAccount(
+      account.address,
+      account.group,
+      account.authority,
+      account.balances.map((b) => Balance.fromBalanceType(b)),
+      account.accountFlags,
+      account.emissionsDestinationAccount,
+      account.healthCache
+    );
+  }
+
   static fromAccountParsed(marginfiAccountPk: PublicKey, accountData: MarginfiAccountRaw) {
     const props = parseMarginfiAccountRaw(marginfiAccountPk, accountData);
     return new MarginfiAccount(

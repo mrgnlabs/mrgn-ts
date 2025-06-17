@@ -42,6 +42,17 @@ class Balance implements BalanceType {
     );
   }
 
+  static fromBalanceType(balance: BalanceType): Balance {
+    return new Balance(
+      balance.active,
+      balance.bankPk,
+      balance.assetShares,
+      balance.liabilityShares,
+      balance.emissionsOutstanding,
+      balance.lastUpdate
+    );
+  }
+
   static createEmpty(bankPk: PublicKey): Balance {
     return new Balance(false, bankPk, new BigNumber(0), new BigNumber(0), new BigNumber(0), 0);
   }
