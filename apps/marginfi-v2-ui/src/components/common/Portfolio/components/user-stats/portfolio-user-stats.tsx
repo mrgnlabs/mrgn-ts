@@ -10,15 +10,36 @@ interface PortfolioUserStatsProps {
 export const PortfolioUserStats = ({ supplied, borrowed, netValue }: PortfolioUserStatsProps) => {
   return (
     <div className="flex justify-between flex-wrap gap-y-4">
-      <Stat label="Supplied" value={supplied} />
-      <Stat label="Borrowed" value={borrowed} />
-      <Stat label="Net value" value={netValue} />
+      <Stat
+        label="Supplied"
+        value={
+          <>
+            {supplied} <span className="text-sm font-light text-mrgn-success">+$10 (12%)</span>
+          </>
+        }
+      />
+      <Stat
+        label="Borrowed"
+        value={
+          <>
+            {borrowed} <span className="text-sm font-light text-mrgn-success">+$10 (12%)</span>
+          </>
+        }
+      />
+      <Stat
+        label="Net value"
+        value={
+          <>
+            {netValue} <span className="text-sm font-light text-mrgn-success">+$10 (12%)</span>
+          </>
+        }
+      />
       <Stat
         label="Interest earned"
         value={
-          <span className="text-xs font-light flex w-full gap-1.5 items-center mt-1">
-            <IconClockHour4 size={14} /> Coming soon
-          </span>
+          <>
+            $5.15 <span className="text-sm font-light text-mrgn-success">+$10 (12%)</span>
+          </>
         }
       />
     </div>

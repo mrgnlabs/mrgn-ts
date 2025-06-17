@@ -24,13 +24,13 @@ type PortfolioChartProps = {
 };
 
 const chartColors = {
-  primary: "hsl(var(--mrgn-success))",
-  secondary: "hsl(var(--mrgn-warning))",
+  primary: "hsl(var(--mfi-chart-1))",
+  secondary: "hsl(var(--mfi-chart-2))",
 } as const;
 
 const chartConfig = {
   deposits: {
-    label: "Supplied",
+    label: "Interest Earned",
     color: chartColors.primary,
   },
   borrows: {
@@ -76,7 +76,7 @@ const generateMockData = (deposits: number, borrows: number) => {
   return data;
 };
 
-const PortfolioChart = ({ deposits, borrows }: PortfolioChartProps) => {
+const InterestChart = ({ deposits, borrows }: PortfolioChartProps) => {
   const mockData = React.useMemo(() => generateMockData(deposits, borrows), [deposits, borrows]);
 
   return (
@@ -88,7 +88,7 @@ const PortfolioChart = ({ deposits, borrows }: PortfolioChartProps) => {
             margin={{
               top: 10,
               right: 10,
-              bottom: 20,
+              bottom: 10,
               left: 0,
             }}
           >
@@ -118,13 +118,13 @@ const PortfolioChart = ({ deposits, borrows }: PortfolioChartProps) => {
               cursor={false}
               content={<ChartTooltipContent labelFormatter={(label) => formatDate(label as string)} />}
             />
-            <ChartLegend content={<ChartLegendContent />} className="mt-6" />
+            <ChartLegend content={<ChartLegendContent />} className="mt-2" />
             <defs>
-              <linearGradient id="depositsFill" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="interestFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={chartColors.primary} stopOpacity={0.2} />
                 <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0.05} />
               </linearGradient>
-              <linearGradient id="borrowsFill" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="interestFill2" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={chartColors.secondary} stopOpacity={0.2} />
                 <stop offset="95%" stopColor={chartColors.secondary} stopOpacity={0.05} />
               </linearGradient>
@@ -132,23 +132,23 @@ const PortfolioChart = ({ deposits, borrows }: PortfolioChartProps) => {
             <Area
               dataKey="deposits"
               type="monotone"
-              fill="url(#depositsFill)"
+              fill="url(#interestFill)"
               fillOpacity={1}
               stroke={chartColors.primary}
               strokeWidth={1.5}
-              name="Supplied"
+              name="Interest Earned"
               isAnimationActive={false}
             />
-            <Area
+            {/* <Area
               dataKey="borrows"
               type="monotone"
-              fill="url(#borrowsFill)"
+              fill="url(#interestFill2)"
               fillOpacity={1}
               stroke={chartColors.secondary}
               strokeWidth={1.5}
               name="Borrowed"
               isAnimationActive={false}
-            />
+            /> */}
           </AreaChart>
         </ResponsiveContainer>
       </ChartContainer>
@@ -156,4 +156,4 @@ const PortfolioChart = ({ deposits, borrows }: PortfolioChartProps) => {
   );
 };
 
-export { PortfolioChart };
+export { InterestChart };
