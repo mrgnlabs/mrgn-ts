@@ -113,8 +113,8 @@ const InterestChart = ({ chartData, bankSymbols, loading, error }: InterestChart
     return (
       <div className="w-full h-[300px] flex items-center justify-center">
         <div className="text-center text-muted-foreground">
-          <p>No interest earned data available</p>
-          <p className="text-sm">Start lending to see your interest earnings over time</p>
+          <p>No interest data available</p>
+          <p className="text-sm">Interest activity will appear here when available</p>
         </div>
       </div>
     );

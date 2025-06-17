@@ -129,37 +129,25 @@ const initialInterestEarnedState: InterestEarnedState = {
   error: null,
 };
 
-// Transform API data into chart format with gap filling
-const transformInterestEarnedData = (
-  data: InterestEarnedDataPoint[]
+// Generic function to transform interest data (earned or paid)
+const transformInterestData = (
+  data: InterestEarnedDataPoint[],
+  dataType: "earned" | "paid"
 ): { chartData: ChartDataPoint[]; bankSymbols: string[] } => {
   if (!data.length) return { chartData: [], bankSymbols: [] };
 
-  console.log("🔍 Raw API data received:", data.length, "data points");
+  const fieldName =
+    dataType === "earned" ? "cumulative_interest_earned_usd_close" : "cumulative_interest_paid_usd_close";
 
   // Get unique bank symbols
   const allBankSymbols = Array.from(new Set(data.map((item) => item.bank_symbol)));
-  console.log("🏦 All bank symbols found:", allBankSymbols);
 
   // FIRST: Filter out banks with no meaningful interest BEFORE gap filling
   const activeBankSymbols = allBankSymbols.filter((bankSymbol) => {
     const bankData = data.filter((item) => item.bank_symbol === bankSymbol);
-    const values = bankData.map((item) => item.cumulative_interest_earned_usd_close);
-    const maxValue = Math.max(...values.map((v) => Math.abs(v)));
-    const hasSignificantValue = bankData.some((item) => Math.abs(item.cumulative_interest_earned_usd_close) > 0.01);
-
-    console.log(`📊 ${bankSymbol}:`, {
-      dataPoints: bankData.length,
-      maxAbsValue: maxValue,
-      allValues: values.slice(0, 5), // Show first 5 values
-      hasSignificantValue,
-      threshold: 0.01,
-    });
-
+    const hasSignificantValue = bankData.some((item) => Math.abs(item[fieldName]) > 0.01);
     return hasSignificantValue;
   });
-
-  console.log("✅ Active bank symbols after filtering:", activeBankSymbols);
 
   // If no active banks, return empty
   if (activeBankSymbols.length === 0) {
@@ -205,18 +193,18 @@ const transformInterestEarnedData = (
 
       if (existingData) {
         // Use actual data if available
-        lastKnownValue = existingData.cumulative_interest_earned_usd_close;
+        lastKnownValue = existingData[fieldName];
         filledDataByBank[bankSymbol][dateStr] = lastKnownValue;
       } else {
         // Fill gap with last known value (forward fill)
-        // For interest earned, this makes sense as it's cumulative
+        // For cumulative interest, this makes sense as it should not decrease
         filledDataByBank[bankSymbol][dateStr] = lastKnownValue;
       }
     });
 
     // If we never found any data for this bank, try backfill from future data
     if (lastKnownValue === 0 && bankData.length > 0) {
-      const firstDataValue = bankData[0].cumulative_interest_earned_usd_close;
+      const firstDataValue = bankData[0][fieldName];
       allDates.forEach((dateStr) => {
         if (filledDataByBank[bankSymbol][dateStr] === 0) {
           filledDataByBank[bankSymbol][dateStr] = firstDataValue;
@@ -240,6 +228,11 @@ const transformInterestEarnedData = (
 
   return { chartData, bankSymbols: activeBankSymbols };
 };
+
+// Convenience functions for specific data types
+const transformInterestEarnedData = (data: InterestEarnedDataPoint[]) => transformInterestData(data, "earned");
+
+const transformInterestPaidData = (data: InterestEarnedDataPoint[]) => transformInterestData(data, "paid");
 
 export const LendingPortfolio = () => {
   const { connected, wallet, walletAddress } = useWallet();
@@ -287,6 +280,7 @@ export const LendingPortfolio = () => {
   // Interest Earned State
   const [interestEarnedState, setInterestEarnedState] = React.useState<InterestEarnedState>(initialInterestEarnedState);
 
+  const [interestPaidState, setInterestPaidState] = React.useState<InterestEarnedState>(initialInterestEarnedState);
   const hasMultipleAccount = React.useMemo(() => marginfiAccounts && marginfiAccounts.length > 1, [marginfiAccounts]);
 
   const { handleSimulation } = useRewardSimulation({
@@ -319,13 +313,18 @@ export const LendingPortfolio = () => {
       if (!user) return;
 
       setInterestEarnedState((prev) => ({ ...prev, loading: true, error: null }));
+      setInterestPaidState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
         const response = await fetch("/api/user/interest-earned");
 
         if (response.status === 401) {
-          console.log("Authentication required for interest earned data");
           setInterestEarnedState((prev) => ({
+            ...prev,
+            loading: false,
+            error: "Authentication required",
+          }));
+          setInterestPaidState((prev) => ({
             ...prev,
             loading: false,
             error: "Authentication required",
@@ -336,29 +335,49 @@ export const LendingPortfolio = () => {
         const data = await response.json();
 
         if (response.ok) {
-          console.log("Interest earned data:", data);
-          const { chartData, bankSymbols } = transformInterestEarnedData(data);
+          // Transform data for both earned and paid interest
+          const earnedData = transformInterestEarnedData(data);
+          const paidData = transformInterestPaidData(data);
+
           setInterestEarnedState({
             data,
-            chartData,
-            bankSymbols,
+            chartData: earnedData.chartData,
+            bankSymbols: earnedData.bankSymbols,
+            loading: false,
+            error: null,
+          });
+
+          setInterestPaidState({
+            data,
+            chartData: paidData.chartData,
+            bankSymbols: paidData.bankSymbols,
             loading: false,
             error: null,
           });
         } else {
-          console.error("Error fetching interest earned:", data.error);
+          console.error("Error fetching interest data:", data.error);
           setInterestEarnedState((prev) => ({
             ...prev,
             loading: false,
-            error: data.error || "Failed to fetch interest earned data",
+            error: data.error || "Failed to fetch interest data",
+          }));
+          setInterestPaidState((prev) => ({
+            ...prev,
+            loading: false,
+            error: data.error || "Failed to fetch interest data",
           }));
         }
       } catch (error) {
-        console.error("Error fetching interest earned:", error);
+        console.error("Error fetching interest data:", error);
         setInterestEarnedState((prev) => ({
           ...prev,
           loading: false,
-          error: "Failed to fetch interest earned data",
+          error: "Failed to fetch interest data",
+        }));
+        setInterestPaidState((prev) => ({
+          ...prev,
+          loading: false,
+          error: "Failed to fetch interest data",
         }));
       }
     };
@@ -1004,12 +1023,24 @@ export const LendingPortfolio = () => {
                 deposits={accountSummary.lendingAmountEquity}
                 borrows={accountSummary.borrowingAmountEquity}
               />
-              <InterestChart
-                chartData={interestEarnedState.chartData}
-                bankSymbols={interestEarnedState.bankSymbols}
-                loading={interestEarnedState.loading}
-                error={interestEarnedState.error}
-              />
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Interest Earned</h3>
+                <InterestChart
+                  chartData={interestEarnedState.chartData}
+                  bankSymbols={interestEarnedState.bankSymbols}
+                  loading={interestEarnedState.loading}
+                  error={interestEarnedState.error}
+                />
+              </div>
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Interest Paid</h3>
+                <InterestChart
+                  chartData={interestPaidState.chartData}
+                  bankSymbols={interestPaidState.bankSymbols}
+                  loading={interestPaidState.loading}
+                  error={interestPaidState.error}
+                />
+              </div>
             </div>
           </TabsContent>
         </Tabs>
