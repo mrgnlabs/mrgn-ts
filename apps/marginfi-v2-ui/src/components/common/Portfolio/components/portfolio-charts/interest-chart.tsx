@@ -17,27 +17,40 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "~/components/ui/chart";
+import { Loader } from "~/components/ui/loader";
 
-type PortfolioChartProps = {
-  deposits: number;
-  borrows: number;
+interface ChartDataPoint {
+  timestamp: string;
+  [bankSymbol: string]: number | string;
+}
+
+type InterestChartProps = {
+  chartData: ChartDataPoint[];
+  bankSymbols: string[];
+  loading: boolean;
+  error: string | null;
 };
 
-const chartColors = {
-  primary: "hsl(var(--mfi-chart-1))",
-  secondary: "hsl(var(--mfi-chart-2))",
-} as const;
+// Generate dynamic colors for multiple bank lines
+const generateChartColors = (bankSymbols: string[]) => {
+  const baseColors = [
+    "hsl(var(--mrgn-success))", // Green
+    "hsl(var(--mrgn-warning))", // Yellow/Orange
+    "hsl(var(--mrgn-error))", // Red
+    "hsl(var(--primary))", // Primary theme color
+    "hsl(220, 91%, 60%)", // Blue
+    "hsl(280, 91%, 60%)", // Purple
+    "hsl(340, 91%, 60%)", // Pink
+    "hsl(160, 91%, 60%)", // Teal
+  ];
 
-const chartConfig = {
-  deposits: {
-    label: "Interest Earned",
-    color: chartColors.primary,
-  },
-  borrows: {
-    label: "Borrowed",
-    color: chartColors.secondary,
-  },
-} satisfies ChartConfig;
+  const colors: Record<string, string> = {};
+  bankSymbols.forEach((symbol, index) => {
+    colors[symbol] = baseColors[index % baseColors.length];
+  });
+
+  return colors;
+};
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -47,44 +60,72 @@ const formatDate = (dateStr: string) => {
   });
 };
 
-const generateMockData = (deposits: number, borrows: number) => {
-  const data = [];
-  const now = new Date();
-  const depositsVolatility = deposits * 0.6;
-  const borrowsVolatility = borrows * 0.6;
+const InterestChart = ({ chartData, bankSymbols, loading, error }: InterestChartProps) => {
+  const chartColors = React.useMemo(() => generateChartColors(bankSymbols), [bankSymbols]);
 
-  for (let i = 30; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-
-    const depositsRandomFactor = Math.random() * 2 - 1;
-    const borrowsRandomFactor = Math.random() * 2 - 1;
-
-    const depositsDailyChange = depositsVolatility * depositsRandomFactor;
-    const borrowsDailyChange = borrowsVolatility * borrowsRandomFactor;
-
-    const depositsValue = Math.max(0, deposits + depositsDailyChange * (i / 30));
-    const borrowsValue = Math.max(0, borrows + borrowsDailyChange * (i / 30));
-
-    data.push({
-      timestamp: date.toISOString(),
-      deposits: depositsValue,
-      borrows: borrowsValue,
+  const chartConfig = React.useMemo(() => {
+    const config: ChartConfig = {};
+    bankSymbols.forEach((symbol) => {
+      config[symbol] = {
+        label: `${symbol} Interest Earned`,
+        color: chartColors[symbol],
+      };
     });
+    return config;
+  }, [bankSymbols, chartColors]);
+
+  // Calculate the maximum value for Y-axis domain
+  const maxValue = React.useMemo(() => {
+    if (!chartData.length) return 0;
+
+    let max = 0;
+    chartData.forEach((dataPoint) => {
+      bankSymbols.forEach((symbol) => {
+        const value = dataPoint[symbol] as number;
+        if (typeof value === "number" && value > max) {
+          max = value;
+        }
+      });
+    });
+    return max;
+  }, [chartData, bankSymbols]);
+
+  if (loading) {
+    return (
+      <div className="w-full h-[300px] flex items-center justify-center">
+        <Loader label="Loading interest earned data..." />
+      </div>
+    );
   }
 
-  return data;
-};
+  if (error) {
+    return (
+      <div className="w-full h-[300px] flex items-center justify-center">
+        <div className="text-center text-muted-foreground">
+          <p>Failed to load interest earned data</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
-const InterestChart = ({ deposits, borrows }: PortfolioChartProps) => {
-  const mockData = React.useMemo(() => generateMockData(deposits, borrows), [deposits, borrows]);
+  if (!chartData.length || !bankSymbols.length) {
+    return (
+      <div className="w-full h-[300px] flex items-center justify-center">
+        <div className="text-center text-muted-foreground">
+          <p>No interest earned data available</p>
+          <p className="text-sm">Start lending to see your interest earnings over time</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-[300px]">
       <ChartContainer config={chartConfig} className="h-full w-full -translate-x-3">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            data={mockData}
+            data={chartData}
             margin={{
               top: 10,
               right: 10,
@@ -105,8 +146,8 @@ const InterestChart = ({ deposits, borrows }: PortfolioChartProps) => {
               fontSize={12}
             />
             <YAxis
-              tickFormatter={(value) => `$${dynamicNumeralFormatter(value)}`}
-              domain={[0, "auto"]}
+              tickFormatter={(value) => `$${dynamicNumeralFormatter(Math.max(0, value))}`}
+              domain={[0, maxValue > 0 ? Math.ceil(maxValue * 1.1) : 1]}
               axisLine={false}
               tickLine={false}
               width={65}
@@ -120,35 +161,27 @@ const InterestChart = ({ deposits, borrows }: PortfolioChartProps) => {
             />
             <ChartLegend content={<ChartLegendContent />} className="mt-2" />
             <defs>
-              <linearGradient id="interestFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={chartColors.primary} stopOpacity={0.2} />
-                <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0.05} />
-              </linearGradient>
-              <linearGradient id="interestFill2" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={chartColors.secondary} stopOpacity={0.2} />
-                <stop offset="95%" stopColor={chartColors.secondary} stopOpacity={0.05} />
-              </linearGradient>
+              {bankSymbols.map((bankSymbol, index) => (
+                <linearGradient key={`${bankSymbol}Fill`} id={`${bankSymbol}Fill`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chartColors[bankSymbol]} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={chartColors[bankSymbol]} stopOpacity={0.05} />
+                </linearGradient>
+              ))}
             </defs>
-            <Area
-              dataKey="deposits"
-              type="monotone"
-              fill="url(#interestFill)"
-              fillOpacity={1}
-              stroke={chartColors.primary}
-              strokeWidth={1.5}
-              name="Interest Earned"
-              isAnimationActive={false}
-            />
-            {/* <Area
-              dataKey="borrows"
-              type="monotone"
-              fill="url(#interestFill2)"
-              fillOpacity={1}
-              stroke={chartColors.secondary}
-              strokeWidth={1.5}
-              name="Borrowed"
-              isAnimationActive={false}
-            /> */}
+            {bankSymbols.map((bankSymbol, index) => (
+              <Area
+                key={bankSymbol}
+                dataKey={bankSymbol}
+                type="monotone"
+                fill={`url(#${bankSymbol}Fill)`}
+                fillOpacity={1}
+                stroke={chartColors[bankSymbol]}
+                strokeWidth={1.5}
+                name={`${bankSymbol} Interest Earned`}
+                isAnimationActive={false}
+                stackId={index > 0 ? "stack" : undefined} // Stack areas for better visibility
+              />
+            ))}
           </AreaChart>
         </ResponsiveContainer>
       </ChartContainer>
