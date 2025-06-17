@@ -21,7 +21,7 @@ export function useMintMap() {
     if (!mintData || !rawBanks) return new Map<string, MintData>();
 
     const mintMap: Map<string, RawMintData> = mintData.reduce((acc, mint) => {
-      acc.set(mint.address.toBase58(), mint);
+      acc.set(mint.mint.toBase58(), mint);
       return acc;
     }, new Map<string, RawMintData>());
 
@@ -46,7 +46,7 @@ export function useMintMap() {
       }
 
       return acc.set(bank.address.toBase58(), {
-        mint: mint.address,
+        mint: mint.mint,
         tokenProgram: mint.tokenProgram,
         feeBps: 0,
         emissionTokenProgram: emissionProgram,

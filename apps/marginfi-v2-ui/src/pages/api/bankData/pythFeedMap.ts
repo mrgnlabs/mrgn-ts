@@ -1,18 +1,14 @@
-import { Program, AnchorProvider } from "@coral-xyz/anchor";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { NextApiRequest, NextApiResponse } from "next";
+
 import {
   findPythPushOracleAddress,
-  MARGINFI_IDL,
   MARGINFI_SPONSORED_SHARD_ID,
-  MarginfiIdlType,
-  MarginfiProgram,
-  OracleSetup,
   PYTH_PUSH_ORACLE_ID,
   PYTH_SPONSORED_SHARD_ID,
   PythPushFeedIdMap,
 } from "@mrgnlabs/marginfi-client-v2";
 import { parsePriceInfo } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
-import { Connection, PublicKey } from "@solana/web3.js";
-import { NextApiRequest, NextApiResponse } from "next";
 
 /*
 Pyth push oracles have a specific feed id starting with 0x

@@ -14,6 +14,7 @@ import { BankMetadataMap } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 import { getConfig } from "../config/app.config";
 import { BankRawDatas } from "./bank-api";
+import { RawMintData, TokenAccount, TokenAccountDto } from "../types";
 
 export const fetchMarginfiAccountAddresses = async (authority: PublicKey): Promise<PublicKey[]> => {
   const group = getConfig().mrgnConfig.groupPk;
@@ -77,4 +78,45 @@ export const fetchMarginfiAccount = async (
 
   const marginfiAccount = dtoToMarginfiAccount(data.marginfiAccountDto);
   return marginfiAccount;
+};
+
+export const fetchUserBalances = async (
+  tokens: RawMintData[],
+  userAddress?: PublicKey
+): Promise<{ nativeSolBalance: number; ataList: TokenAccount[] }> => {
+  if (!userAddress) {
+    return {
+      nativeSolBalance: 0,
+      ataList: tokens.map((token) => ({
+        mint: token.mint,
+        created: false,
+        balance: 0,
+      })),
+    };
+  }
+  const response = await fetch("/api/userData/balanceData", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      address: userAddress.toBase58(),
+      tokens: tokens.map((token) => ({
+        tokenProgram: token.tokenProgram.toBase58(),
+        mint: token.mint.toBase58(),
+        decimal: token.decimals,
+      })),
+    }),
+  });
+
+  const data: { nativeSolBalance: number; ataList: TokenAccountDto[] } = await response.json();
+
+  return {
+    nativeSolBalance: data.nativeSolBalance,
+    ataList: data.ataList.map((ata) => ({
+      mint: new PublicKey(ata.mint),
+      created: ata.created,
+      balance: ata.balance,
+    })),
+  };
 };

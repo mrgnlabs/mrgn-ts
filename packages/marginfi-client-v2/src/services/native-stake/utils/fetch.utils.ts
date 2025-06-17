@@ -1,4 +1,8 @@
-import { MAX_U64 } from "@mrgnlabs/mrgn-common";
+import {
+  chunkedGetRawMultipleAccountInfoOrdered,
+  chunkedGetRawMultipleAccountInfos,
+  MAX_U64,
+} from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey, StakeProgram, ParsedAccountData, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { vendor } from "../../..";
 import { StakeAccount, ValidatorStakeGroup } from "../types";
@@ -126,12 +130,13 @@ export const fetchStakePoolActiveStates = async (
   const poolStakeAddressKeys = Object.keys(poolStakeAddressRecord);
 
   const poolStakeAccounts = Object.fromEntries(
-    (await connection.getMultipleAccountsInfo(poolStakeAddressKeys.map((key) => new PublicKey(key)))).map(
-      (ai, index) => [poolStakeAddressRecord[poolStakeAddressKeys[index]], ai?.data || null]
-    )
+    (await chunkedGetRawMultipleAccountInfoOrdered(connection, poolStakeAddressKeys)).map((ai, index) => [
+      poolStakeAddressRecord[poolStakeAddressKeys[index]],
+      ai?.data || null,
+    ])
   );
 
-  validatorVoteAccounts.map(async (validatorVoteAccount) => {
+  validatorVoteAccounts.map((validatorVoteAccount) => {
     const stakeAccount = fetchStakeAccount(poolStakeAccounts[validatorVoteAccount.toBase58()]);
     const poolMintAddress = poolMintAddressRecord[validatorVoteAccount.toBase58()];
 
@@ -292,9 +297,9 @@ export const fetchStakePoolMev = async (
     (validatorVoteAccount) => onRampAddressRecord[validatorVoteAccount.toBase58()]
   );
 
-  const allAddresses = [...poolStakeAddresses, ...onRampAddresses];
+  const allAddresses = [...poolStakeAddresses, ...onRampAddresses].map((address) => address.toBase58());
 
-  return connection.getMultipleAccountsInfo(allAddresses).then((accountInfos) => {
+  return chunkedGetRawMultipleAccountInfoOrdered(connection, allAddresses).then((accountInfos) => {
     const poolStakeInfos = accountInfos.slice(0, poolStakeAddresses.length);
     const onRampInfos = accountInfos.slice(poolStakeAddresses.length);
     const rent = 2282280;

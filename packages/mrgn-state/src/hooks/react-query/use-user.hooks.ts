@@ -1,11 +1,11 @@
 import { PublicKey } from "@solana/web3.js";
 import { useQuery } from "@tanstack/react-query";
 import { MarginfiAccountType } from "@mrgnlabs/marginfi-client-v2";
-import { fetchMarginfiAccount, fetchMarginfiAccountAddresses } from "../../api/user-api";
+import { fetchMarginfiAccount, fetchMarginfiAccountAddresses, fetchUserBalances } from "../../api/user-api";
 import { useSelectedAccountKey } from "../session-storage";
-import { useBanks } from "../derived";
-import { useOracleData, useRawBanks } from "./use-banks.hooks";
+import { useMintData, useOracleData, useRawBanks } from "./use-banks.hooks";
 import { useMetadata } from "./use-metadata.hooks";
+import { TokenAccount } from "../../types";
 
 export function useMarginfiAccountAddresses(authority: PublicKey | undefined) {
   return useQuery<PublicKey[], Error>({
@@ -60,11 +60,34 @@ export function useMarginfiAccount(authority: PublicKey | undefined) {
       );
     },
     enabled: allDataReady && !hasErrors,
-    staleTime: 5_000, // 1 minute
-    refetchInterval: 5_000,
+    staleTime: 60_000, // 1 minute
+    refetchInterval: 60_000,
     retry: (failureCount, error) => {
       // Don't retry if we have dependency errors
       if (hasErrors) return false;
+      // Only retry up to 2 times for other errors
+      return failureCount < 2;
+    },
+  });
+}
+
+export function useUserBalances(authority: PublicKey | undefined) {
+  const { data: mintData, isSuccess: isSuccesMintData, isError: isErrorMintData } = useMintData();
+
+  return useQuery<{ nativeSolBalance: number; ataList: TokenAccount[] } | null, Error>({
+    queryKey: ["userBalance", authority?.toBase58() ?? null],
+    queryFn: async () => {
+      if (!mintData) {
+        throw new Error("Required data not available for fetching user balances");
+      }
+      return await fetchUserBalances(mintData, authority);
+    },
+    enabled: isSuccesMintData && !isErrorMintData,
+    staleTime: 60_000, // 1 minute
+    refetchInterval: 60_000,
+    retry: (failureCount, error) => {
+      // Don't retry if we have dependency errors
+      if (isErrorMintData) return false;
       // Only retry up to 2 times for other errors
       return failureCount < 2;
     },

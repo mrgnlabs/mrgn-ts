@@ -48,7 +48,7 @@ export const fetchMintData = async (addresses: Address[]): Promise<RawMintData[]
     .flat()
     .map((d) => {
       return {
-        address: new PublicKey(d.mint),
+        mint: new PublicKey(d.mint),
         decimals: d.decimals,
         tokenProgram: new PublicKey(d.tokenProgram),
       };

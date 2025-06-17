@@ -6,7 +6,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 interface TokenInfo {
   tokenProgram: string;
   mint: string;
-  decimal: string;
+  decimal: number;
 }
 
 interface EnhancedTokenInfo {

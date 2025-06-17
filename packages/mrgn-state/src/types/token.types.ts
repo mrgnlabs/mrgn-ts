@@ -12,7 +12,19 @@ interface TokenPrice {
 }
 
 export interface RawMintData {
-  address: PublicKey;
+  mint: PublicKey;
   decimals: number;
   tokenProgram: PublicKey;
+}
+
+export interface TokenAccount {
+  mint: PublicKey;
+  created: boolean;
+  balance: number;
+}
+
+export interface TokenAccountDto {
+  mint: string;
+  created: boolean;
+  balance: number;
 }

@@ -22,9 +22,6 @@ export function useMarginfiClient() {
   const program = config.program;
   const mfiConfig = config.mrgnConfig;
 
-  console.log({ isErrorGroup, isErrorBanks, isErrorMintMap, isErrorLuts, isErrorOracleData, isErrorMetadata });
-
-  console.log({ marginfiGroup, banks, oracleData, mintMap, metadata, luts });
   const marginfiClient = React.useMemo(() => {
     if (!marginfiGroup || !banks || !banksMap || !oracleData || !mintMap || !metadata || !luts) return undefined;
 
