@@ -16,6 +16,7 @@ interface PortfolioUserStatsProps {
   borrowed7d?: StatsData;
   netValue7d?: StatsData;
   latestNetInterest?: number;
+  netInterest7d?: StatsData;
 }
 
 // Helper function to format change value and percentage
@@ -41,6 +42,7 @@ export const PortfolioUserStats = ({
   borrowed7d,
   netValue7d,
   latestNetInterest,
+  netInterest7d,
 }: PortfolioUserStatsProps) => {
   return (
     <div className="flex justify-between flex-wrap gap-y-4">
@@ -73,7 +75,7 @@ export const PortfolioUserStats = ({
         value={
           <>
             {latestNetInterest !== undefined ? usdFormatter.format(latestNetInterest) : "$0.00"}{" "}
-            <span className="text-sm font-light text-muted-foreground">(total net interest)</span>
+            {netInterest7d && formatChange(netInterest7d.change, netInterest7d.changePercent)}
           </>
         }
       />

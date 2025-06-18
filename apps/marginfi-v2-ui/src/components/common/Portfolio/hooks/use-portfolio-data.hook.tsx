@@ -42,6 +42,59 @@ interface UsePortfolioDataReturn {
   isLoading: boolean;
 }
 
+// Fill gaps in daily totals to extend to today (similar to chart logic)
+const fillDataGaps = (
+  dailyTotals: Record<string, { deposits: number; borrows: number }>
+): Record<string, { deposits: number; borrows: number }> => {
+  // Generate array of all dates for the last 30 days (to match chart)
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(endDate.getDate() - 29);
+
+  const allDates: string[] = [];
+  for (let i = 0; i < 30; i++) {
+    const currentDate = new Date(startDate);
+    currentDate.setDate(startDate.getDate() + i);
+    allDates.push(currentDate.toISOString().split("T")[0]);
+  }
+
+  const filledTotals: Record<string, { deposits: number; borrows: number }> = {};
+
+  // Initialize all dates with zero values
+  allDates.forEach((dateStr) => {
+    filledTotals[dateStr] = { deposits: 0, borrows: 0 };
+  });
+
+  // Populate with actual data where available
+  Object.keys(dailyTotals).forEach((date) => {
+    if (filledTotals[date] !== undefined) {
+      filledTotals[date] = dailyTotals[date];
+    }
+  });
+
+  // Forward-fill missing data with last known values
+  let lastDeposits = 0;
+  let lastBorrows = 0;
+
+  allDates.forEach((dateStr) => {
+    const current = filledTotals[dateStr];
+    if (current.deposits > 0) {
+      lastDeposits = current.deposits;
+    }
+    if (current.borrows > 0) {
+      lastBorrows = current.borrows;
+    }
+
+    // Use actual values if available, otherwise use last known values
+    filledTotals[dateStr] = {
+      deposits: current.deposits > 0 ? current.deposits : lastDeposits,
+      borrows: current.borrows > 0 ? current.borrows : lastBorrows,
+    };
+  });
+
+  return filledTotals;
+};
+
 // Calculate 7-day portfolio statistics
 const calculatePortfolioStats = (
   data: EnrichedPortfolioDataPoint[]
@@ -59,17 +112,20 @@ const calculatePortfolioStats = (
     };
   }
 
-  // Group by date and sum across banks
-  const dailyTotals: Record<string, { deposits: number; borrows: number }> = {};
+  // Group by date and sum across banks (raw data)
+  const rawDailyTotals: Record<string, { deposits: number; borrows: number }> = {};
 
   data.forEach((item) => {
     const date = item.bucket_start.split("T")[0]; // Get YYYY-MM-DD
-    if (!dailyTotals[date]) {
-      dailyTotals[date] = { deposits: 0, borrows: 0 };
+    if (!rawDailyTotals[date]) {
+      rawDailyTotals[date] = { deposits: 0, borrows: 0 };
     }
-    dailyTotals[date].deposits += item.deposit_value_usd;
-    dailyTotals[date].borrows += item.borrow_value_usd;
+    rawDailyTotals[date].deposits += item.deposit_value_usd;
+    rawDailyTotals[date].borrows += item.borrow_value_usd;
   });
+
+  // Fill gaps to extend data to today (like chart does)
+  const dailyTotals = fillDataGaps(rawDailyTotals);
 
   const sortedDates = Object.keys(dailyTotals).sort();
   if (sortedDates.length === 0) {
@@ -81,10 +137,41 @@ const calculatePortfolioStats = (
     };
   }
 
-  // Get latest and 7-days-ago data points
-  const latest = dailyTotals[sortedDates[sortedDates.length - 1]];
-  const sevenDaysAgoIndex = Math.max(0, sortedDates.length - 8); // -8 to get 7 full days difference
-  const sevenDaysAgo = dailyTotals[sortedDates[sevenDaysAgoIndex]];
+  // Get latest data point
+  const latestDate = sortedDates[sortedDates.length - 1];
+  const latest = dailyTotals[latestDate];
+
+  // Calculate date 7 days ago
+  const latestDateObj = new Date(latestDate);
+  const sevenDaysAgoDateObj = new Date(latestDateObj);
+  sevenDaysAgoDateObj.setDate(sevenDaysAgoDateObj.getDate() - 7);
+  const sevenDaysAgoDateStr = sevenDaysAgoDateObj.toISOString().split("T")[0];
+
+  // Find the closest data point to 7 days ago (should exist now due to gap filling)
+  let sevenDaysAgo = latest; // Default to latest if no historical data
+  let comparisonDate = latestDate;
+
+  // Look for exact match first (should exist due to gap filling)
+  if (dailyTotals[sevenDaysAgoDateStr]) {
+    sevenDaysAgo = dailyTotals[sevenDaysAgoDateStr];
+    comparisonDate = sevenDaysAgoDateStr;
+  } else {
+    // Find the closest date to 7 days ago
+    let closestDate = latestDate;
+    let minDiff = Infinity;
+
+    for (const date of sortedDates) {
+      const dateObj = new Date(date);
+      const diff = Math.abs(dateObj.getTime() - sevenDaysAgoDateObj.getTime());
+      if (diff < minDiff && dateObj <= sevenDaysAgoDateObj) {
+        minDiff = diff;
+        closestDate = date;
+      }
+    }
+
+    sevenDaysAgo = dailyTotals[closestDate];
+    comparisonDate = closestDate;
+  }
 
   // Calculate supplied stats
   const suppliedChange = latest.deposits - sevenDaysAgo.deposits;

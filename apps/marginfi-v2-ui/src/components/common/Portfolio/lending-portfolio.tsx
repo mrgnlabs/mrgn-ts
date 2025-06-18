@@ -127,6 +127,7 @@ export const LendingPortfolio = () => {
 
   const {
     latestNetInterest,
+    netInterest7d,
     error: interestError,
     isLoading: interestLoading,
   } = useInterestData(selectedAccount?.address.toBase58() || null);
@@ -566,6 +567,7 @@ export const LendingPortfolio = () => {
               borrowed7d={borrowed7d}
               netValue7d={netValue7d}
               latestNetInterest={latestNetInterest}
+              netInterest7d={netInterest7d}
             />
           </div>
         </div>
