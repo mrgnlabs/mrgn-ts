@@ -118,16 +118,16 @@ export const LendingPortfolio = () => {
 
   // Fetch portfolio and interest data for user stats
   const {
-    supplied7d,
-    borrowed7d,
-    netValue7d,
+    supplied30d,
+    borrowed30d,
+    netValue30d,
     error: portfolioError,
     isLoading: portfolioLoading,
   } = usePortfolioData(selectedAccount?.address.toBase58() || null, sortedBanks);
 
   const {
     latestNetInterest,
-    netInterest7d,
+    netInterest30d,
     error: interestError,
     isLoading: interestLoading,
   } = useInterestData(selectedAccount?.address.toBase58() || null);
@@ -563,11 +563,11 @@ export const LendingPortfolio = () => {
               borrowed={accountBorrowed}
               netValue={accountNetValue}
               points={numeralFormatter(userPointsData.totalPoints)}
-              supplied7d={supplied7d}
-              borrowed7d={borrowed7d}
-              netValue7d={netValue7d}
+              supplied30d={supplied30d}
+              borrowed30d={borrowed30d}
+              netValue30d={netValue30d}
               latestNetInterest={latestNetInterest}
-              netInterest7d={netInterest7d}
+              netInterest30d={netInterest30d}
             />
           </div>
         </div>

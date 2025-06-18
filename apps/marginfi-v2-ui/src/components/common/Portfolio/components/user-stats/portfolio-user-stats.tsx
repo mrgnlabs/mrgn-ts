@@ -12,11 +12,11 @@ interface PortfolioUserStatsProps {
   borrowed: string;
   netValue: string;
   points: string;
-  supplied7d?: StatsData;
-  borrowed7d?: StatsData;
-  netValue7d?: StatsData;
+  supplied30d?: StatsData;
+  borrowed30d?: StatsData;
+  netValue30d?: StatsData;
   latestNetInterest?: number;
-  netInterest7d?: StatsData;
+  netInterest30d?: StatsData;
 }
 
 // Helper function to format change value and percentage
@@ -38,11 +38,11 @@ export const PortfolioUserStats = ({
   supplied,
   borrowed,
   netValue,
-  supplied7d,
-  borrowed7d,
-  netValue7d,
+  supplied30d,
+  borrowed30d,
+  netValue30d,
   latestNetInterest,
-  netInterest7d,
+  netInterest30d,
 }: PortfolioUserStatsProps) => {
   return (
     <div className="flex justify-between flex-wrap gap-y-4">
@@ -50,7 +50,7 @@ export const PortfolioUserStats = ({
         label="Supplied"
         value={
           <>
-            {supplied} {supplied7d && formatChange(supplied7d.change, supplied7d.changePercent)}
+            {supplied} {supplied30d && formatChange(supplied30d.change, supplied30d.changePercent)}
           </>
         }
       />
@@ -58,7 +58,7 @@ export const PortfolioUserStats = ({
         label="Borrowed"
         value={
           <>
-            {borrowed} {borrowed7d && formatChange(borrowed7d.change, borrowed7d.changePercent)}
+            {borrowed} {borrowed30d && formatChange(borrowed30d.change, borrowed30d.changePercent)}
           </>
         }
       />
@@ -66,7 +66,7 @@ export const PortfolioUserStats = ({
         label="Net value"
         value={
           <>
-            {netValue} {netValue7d && formatChange(netValue7d.change, netValue7d.changePercent)}
+            {netValue} {netValue30d && formatChange(netValue30d.change, netValue30d.changePercent)}
           </>
         }
       />
@@ -75,7 +75,7 @@ export const PortfolioUserStats = ({
         value={
           <>
             {latestNetInterest !== undefined ? usdFormatter.format(latestNetInterest) : "$0.00"}{" "}
-            {netInterest7d && formatChange(netInterest7d.change, netInterest7d.changePercent)}
+            {netInterest30d && formatChange(netInterest30d.change, netInterest30d.changePercent)}
           </>
         }
       />

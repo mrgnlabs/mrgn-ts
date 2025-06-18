@@ -70,18 +70,21 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
 
   const chartColors = React.useMemo(() => generateChartColors(bankSymbols, variant), [bankSymbols, variant]);
 
+  // Generate proper chart config based on data type
   const chartConfig = React.useMemo(() => {
     const config: ChartConfig = {};
     bankSymbols.forEach((symbol: string) => {
+      // Fix label generation to use correct data type
+      const labelType = variant === "total" ? "Interest" : dataType === "earned" ? "Interest Earned" : "Interest Paid";
       config[symbol] = {
-        label: `${symbol} Interest`,
+        label: `${symbol} ${labelType}`,
         color: chartColors[symbol],
       };
     });
     return config;
-  }, [bankSymbols, chartColors]);
+  }, [bankSymbols, chartColors, dataType, variant]);
 
-  // Calculate the min and max values for Y-axis domain
+  // Calculate the min and max values for Y-axis domain with better scaling for small values
   const { minValue, maxValue, yAxisDomain, yAxisTicks } = React.useMemo(() => {
     if (!chartData.length) return { minValue: 0, maxValue: 0, yAxisDomain: [0, 1], yAxisTicks: undefined };
 
@@ -112,6 +115,21 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
       };
     }
 
+    // For individual interest charts with small values, use better scaling
+    if (max > 0 && max < 10) {
+      // For small positive values (under $10), add better padding
+      const domainMax = Math.ceil(max * 1.2 * 100) / 100; // Round up to nearest cent with 20% padding
+      const domainMin = min < 0 ? Math.floor(min * 1.2 * 100) / 100 : 0;
+
+      return {
+        minValue: min,
+        maxValue: max,
+        yAxisDomain: [domainMin, domainMax],
+        yAxisTicks: undefined,
+      };
+    }
+
+    // Default case
     return {
       minValue: min,
       maxValue: max,
@@ -287,20 +305,26 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
                   </linearGradient>
                 ))}
               </defs>
-              {bankSymbols.map((bankSymbol, index) => (
-                <Area
-                  key={bankSymbol}
-                  dataKey={bankSymbol}
-                  type="monotone"
-                  fill={`url(#${bankSymbol}Fill)`}
-                  fillOpacity={1}
-                  stroke={chartColors[bankSymbol]}
-                  strokeWidth={1.5}
-                  name={`${bankSymbol} Interest Earned`}
-                  isAnimationActive={false}
-                  stackId={index > 0 ? "stack" : undefined}
-                />
-              ))}
+              {bankSymbols.map((bankSymbol, index) => {
+                // Fix the area name to use correct data type
+                const areaName =
+                  dataType === "earned" ? `${bankSymbol} Interest Earned` : `${bankSymbol} Interest Paid`;
+
+                return (
+                  <Area
+                    key={bankSymbol}
+                    dataKey={bankSymbol}
+                    type="monotone"
+                    fill={`url(#${bankSymbol}Fill)`}
+                    fillOpacity={1}
+                    stroke={chartColors[bankSymbol]}
+                    strokeWidth={1.5}
+                    name={areaName}
+                    isAnimationActive={false}
+                    stackId={index > 0 ? "stack" : undefined}
+                  />
+                );
+              })}
             </AreaChart>
           )}
         </ResponsiveContainer>

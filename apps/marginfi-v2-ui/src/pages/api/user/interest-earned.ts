@@ -34,6 +34,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    // Calculate date 30 days ago to match portfolio API date range
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const startDate = thirtyDaysAgo.toISOString();
+
     // Call the interest earned aggregate function with selected account
     const { data: interestData, error } = await supabase.schema("application").rpc("f_interest_earned_aggregate_6h", {
       account_filter: accountAddress,
@@ -51,7 +56,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: "No interest earned data found for this wallet" });
     }
 
-    return res.status(STATUS_OK).json(interestData);
+    // Filter data to last 30 days to match portfolio API behavior
+    const filteredData = interestData.filter((item: any) => {
+      const itemDate = new Date(item.bank_snapshot_time);
+      return itemDate >= thirtyDaysAgo;
+    });
+
+    return res.status(STATUS_OK).json(filteredData);
   } catch (error: any) {
     console.error("Error in interest earned endpoint:", error);
     return res.status(STATUS_INTERNAL_ERROR).json({ error: "Internal server error" });

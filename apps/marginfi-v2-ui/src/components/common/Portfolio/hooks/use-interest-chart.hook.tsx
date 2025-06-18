@@ -44,16 +44,25 @@ const transformInterestData = (
     return { chartData: [], bankSymbols: [] };
   }
 
-  // Generate array of all dates for the last 30 days
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(endDate.getDate() - 29); // 30 days total
+  // Use actual data date range (same approach as portfolio charts)
+  const allDataDates = Array.from(new Set(data.map((item) => item.bank_snapshot_time.split("T")[0]))).sort();
+
+  if (allDataDates.length === 0) {
+    return { chartData: [], bankSymbols: [] };
+  }
+
+  // Generate all dates between first and last actual date (inclusive)
+  const firstDate = allDataDates[0];
+  const lastDate = allDataDates[allDataDates.length - 1];
+  const startDateObj = new Date(firstDate);
+  const endDateObj = new Date(lastDate);
 
   const allDates: string[] = [];
-  for (let i = 0; i < 30; i++) {
-    const currentDate = new Date(startDate);
-    currentDate.setDate(startDate.getDate() + i);
-    allDates.push(currentDate.toISOString().split("T")[0]); // YYYY-MM-DD format
+  const currentDate = new Date(startDateObj);
+
+  while (currentDate <= endDateObj) {
+    allDates.push(currentDate.toISOString().split("T")[0]);
+    currentDate.setDate(currentDate.getDate() + 1);
   }
 
   // Group data by bank symbol (only for active banks)
@@ -64,7 +73,7 @@ const transformInterestData = (
       .sort((a, b) => new Date(a.bank_snapshot_time).getTime() - new Date(b.bank_snapshot_time).getTime());
   });
 
-  // Fill gaps for each active bank symbol
+  // Fill gaps for each active bank symbol (within actual date range only)
   const filledDataByBank: Record<string, Record<string, number>> = {};
 
   activeBankSymbols.forEach((bankSymbol) => {
@@ -73,7 +82,7 @@ const transformInterestData = (
 
     let lastKnownValue = 0;
 
-    // For each date in our timeline
+    // For each date in our actual timeline
     allDates.forEach((dateStr) => {
       // Check if we have data for this date
       const existingData = bankData.find((item) => {
@@ -86,8 +95,7 @@ const transformInterestData = (
         lastKnownValue = existingData[fieldName];
         filledDataByBank[bankSymbol][dateStr] = lastKnownValue;
       } else {
-        // Fill gap with last known value (forward fill)
-        // For cumulative interest, this makes sense as it should not decrease
+        // Fill gap with last known value (forward fill within actual range)
         filledDataByBank[bankSymbol][dateStr] = lastKnownValue;
       }
     });
@@ -106,7 +114,7 @@ const transformInterestData = (
   // Convert filled data back to chart format (only include active banks)
   const chartData: ChartDataPoint[] = allDates.map((dateStr) => {
     const dataPoint: ChartDataPoint = {
-      timestamp: `${dateStr}T12:00:00.000Z`, // Use noon to avoid timezone issues
+      timestamp: `${dateStr}T12:00:00.000Z`,
     };
 
     activeBankSymbols.forEach((bankSymbol) => {
@@ -125,65 +133,150 @@ const transformTotalInterestData = (
 ): { chartData: ChartDataPoint[]; bankSymbols: string[] } => {
   if (!data.length) return { chartData: [], bankSymbols: [] };
 
-  // Generate array of all dates for the last 30 days
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(endDate.getDate() - 29); // 30 days total
+  // Get banks that would appear in individual earned chart
+  const allBankSymbols = Array.from(new Set(data.map((item) => item.bank_symbol)));
 
-  const allDates: string[] = [];
-  for (let i = 0; i < 30; i++) {
-    const currentDate = new Date(startDate);
-    currentDate.setDate(startDate.getDate() + i);
-    allDates.push(currentDate.toISOString().split("T")[0]); // YYYY-MM-DD format
+  const earnedActiveBanks = allBankSymbols.filter((bankSymbol) => {
+    const bankData = data.filter((item) => item.bank_symbol === bankSymbol);
+    return bankData.some((item) => Math.abs(item.cumulative_interest_earned_usd_close) > 0.01);
+  });
+
+  // Get banks that would appear in individual paid chart
+  const paidActiveBanks = allBankSymbols.filter((bankSymbol) => {
+    const bankData = data.filter((item) => item.bank_symbol === bankSymbol);
+    return bankData.some((item) => Math.abs(item.cumulative_interest_paid_usd_close) > 0.01);
+  });
+
+  // For total chart, we need ALL banks that appear in either chart for date range calculation
+  const allActiveBanks = Array.from(new Set([...earnedActiveBanks, ...paidActiveBanks]));
+
+  // If no active banks, return empty
+  if (allActiveBanks.length === 0) {
+    return { chartData: [], bankSymbols: [] };
   }
 
-  // Group data by date and sum across all banks
-  const dailyTotals: Record<string, { earned: number; paid: number }> = {};
+  // Use all active banks for date range calculation
+  const allActiveBankData = data.filter((item) => allActiveBanks.includes(item.bank_symbol));
 
-  // Initialize all dates with zero values
-  allDates.forEach((dateStr) => {
-    dailyTotals[dateStr] = { earned: 0, paid: 0 };
-  });
+  // Use actual data date range (same approach as portfolio charts)
+  const allDataDates = Array.from(
+    new Set(allActiveBankData.map((item) => item.bank_snapshot_time.split("T")[0]))
+  ).sort();
 
-  // Aggregate data by date
-  data.forEach((item) => {
-    const itemDate = new Date(item.bank_snapshot_time).toISOString().split("T")[0];
-    if (dailyTotals[itemDate]) {
-      dailyTotals[itemDate].earned += item.cumulative_interest_earned_usd_close;
-      dailyTotals[itemDate].paid += item.cumulative_interest_paid_usd_close;
+  if (allDataDates.length === 0) {
+    return { chartData: [], bankSymbols: [] };
+  }
+
+  // Generate all dates between first and last actual date (inclusive)
+  const firstDate = allDataDates[0];
+  const lastDate = allDataDates[allDataDates.length - 1];
+  const startDateObj = new Date(firstDate);
+  const endDateObj = new Date(lastDate);
+
+  const allDates: string[] = [];
+  const currentDate = new Date(startDateObj);
+
+  while (currentDate <= endDateObj) {
+    allDates.push(currentDate.toISOString().split("T")[0]);
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  // Use the same gap-filling approach as individual charts for each bank
+  // Calculate earned totals: gap-fill each earned bank then sum final values by date
+  const earnedByBankByDate: Record<string, Record<string, number>> = {};
+
+  earnedActiveBanks.forEach((bankSymbol) => {
+    const bankData = data
+      .filter((item) => item.bank_symbol === bankSymbol)
+      .sort((a, b) => new Date(a.bank_snapshot_time).getTime() - new Date(b.bank_snapshot_time).getTime());
+
+    earnedByBankByDate[bankSymbol] = {};
+    let lastKnownValue = 0;
+
+    allDates.forEach((dateStr) => {
+      const existingData = bankData.find((item) => {
+        const itemDate = new Date(item.bank_snapshot_time).toISOString().split("T")[0];
+        return itemDate === dateStr;
+      });
+
+      if (existingData) {
+        lastKnownValue = existingData.cumulative_interest_earned_usd_close;
+        earnedByBankByDate[bankSymbol][dateStr] = lastKnownValue;
+      } else {
+        earnedByBankByDate[bankSymbol][dateStr] = lastKnownValue;
+      }
+    });
+
+    // Backfill if we never found data
+    if (lastKnownValue === 0 && bankData.length > 0) {
+      const firstDataValue = bankData[0].cumulative_interest_earned_usd_close;
+      allDates.forEach((dateStr) => {
+        if (earnedByBankByDate[bankSymbol][dateStr] === 0) {
+          earnedByBankByDate[bankSymbol][dateStr] = firstDataValue;
+        }
+      });
     }
   });
 
-  // Forward-fill missing data to ensure cumulative values don't decrease
-  let lastEarned = 0;
-  let lastPaid = 0;
+  // Calculate paid totals: gap-fill each paid bank then sum final values by date
+  const paidByBankByDate: Record<string, Record<string, number>> = {};
 
-  allDates.forEach((dateStr) => {
-    const current = dailyTotals[dateStr];
-    if (current.earned > 0 || current.paid > 0) {
-      lastEarned = Math.max(lastEarned, current.earned);
-      lastPaid = Math.max(lastPaid, current.paid);
+  paidActiveBanks.forEach((bankSymbol) => {
+    const bankData = data
+      .filter((item) => item.bank_symbol === bankSymbol)
+      .sort((a, b) => new Date(a.bank_snapshot_time).getTime() - new Date(b.bank_snapshot_time).getTime());
+
+    paidByBankByDate[bankSymbol] = {};
+    let lastKnownValue = 0;
+
+    allDates.forEach((dateStr) => {
+      const existingData = bankData.find((item) => {
+        const itemDate = new Date(item.bank_snapshot_time).toISOString().split("T")[0];
+        return itemDate === dateStr;
+      });
+
+      if (existingData) {
+        lastKnownValue = existingData.cumulative_interest_paid_usd_close;
+        paidByBankByDate[bankSymbol][dateStr] = lastKnownValue;
+      } else {
+        paidByBankByDate[bankSymbol][dateStr] = lastKnownValue;
+      }
+    });
+
+    // Backfill if we never found data
+    if (lastKnownValue === 0 && bankData.length > 0) {
+      const firstDataValue = bankData[0].cumulative_interest_paid_usd_close;
+      allDates.forEach((dateStr) => {
+        if (paidByBankByDate[bankSymbol][dateStr] === 0) {
+          paidByBankByDate[bankSymbol][dateStr] = firstDataValue;
+        }
+      });
     }
-    dailyTotals[dateStr] = {
-      earned: Math.max(lastEarned, current.earned),
-      paid: Math.max(lastPaid, current.paid),
-    };
   });
 
-  // Convert to chart format
+  // Convert to chart format by summing gap-filled values per date
   const chartData: ChartDataPoint[] = allDates.map((dateStr) => {
-    const totals = dailyTotals[dateStr];
-    const netInterest = totals.earned - totals.paid;
+    // Sum earned values across all earned banks for this date
+    const totalEarned = earnedActiveBanks.reduce((sum, bankSymbol) => {
+      return sum + (earnedByBankByDate[bankSymbol][dateStr] || 0);
+    }, 0);
+
+    // Sum paid values across all paid banks for this date
+    const totalPaid = paidActiveBanks.reduce((sum, bankSymbol) => {
+      return sum + (paidByBankByDate[bankSymbol][dateStr] || 0);
+    }, 0);
+
+    const netInterest = totalEarned - totalPaid;
 
     return {
       timestamp: `${dateStr}T12:00:00.000Z`,
-      "Total Earned": totals.earned,
-      "Total Paid": -totals.paid, // Make paid negative for proper visualization
+      "Total Earned": totalEarned,
+      "Total Paid": -totalPaid, // Make paid negative for proper visualization
       "Net Interest": netInterest,
     };
   });
 
-  // Check if we have any meaningful data (threshold of $0.01)
+  // Check if we have any meaningful data (threshold of $0.01) - should pass since we filtered banks
   const hasSignificantData = chartData.some(
     (point) => Math.abs(point["Total Earned"] as number) > 0.01 || Math.abs(point["Total Paid"] as number) > 0.01
   );

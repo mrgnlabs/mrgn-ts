@@ -46,15 +46,15 @@ interface InterestEarnedDataPoint {
 interface UseInterestDataReturn {
   data: InterestEarnedDataPoint[];
   latestNetInterest: number; // Latest net interest (earned - paid)
-  netInterest7d: StatsData; // 7-day change in net interest
+  netInterest30d: StatsData; // Change in net interest across actual data range
   error: Error | null;
   isLoading: boolean;
 }
 
 interface StatsData {
   value: number; // Current value
-  change: number; // Absolute change over 7 days
-  changePercent: number; // Percentage change over 7 days
+  change: number; // Absolute change over data range
+  changePercent: number; // Percentage change over data range
 }
 
 // Calculate latest net interest (earned - paid)
@@ -81,42 +81,43 @@ const calculateLatestNetInterest = (data: InterestEarnedDataPoint[]): number => 
   return totalEarned - totalPaid;
 };
 
-// Fill gaps in daily interest data to extend to today (similar to portfolio logic)
+// Fill gaps in daily interest data within the actual data range (no artificial dates)
 const fillInterestDataGaps = (dailyNetInterest: Record<string, number>): Record<string, number> => {
-  // Generate array of all dates for the last 30 days (to match chart)
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(endDate.getDate() - 29);
+  const existingDates = Object.keys(dailyNetInterest).sort();
+
+  if (existingDates.length === 0) {
+    return {};
+  }
+
+  // Use actual first and last dates from the data
+  const firstDate = existingDates[0];
+  const lastDate = existingDates[existingDates.length - 1];
+
+  // Generate all dates between first and last date (inclusive)
+  const startDateObj = new Date(firstDate);
+  const endDateObj = new Date(lastDate);
 
   const allDates: string[] = [];
-  for (let i = 0; i < 30; i++) {
-    const currentDate = new Date(startDate);
-    currentDate.setDate(startDate.getDate() + i);
+  const currentDate = new Date(startDateObj);
+
+  while (currentDate <= endDateObj) {
     allDates.push(currentDate.toISOString().split("T")[0]);
+    currentDate.setDate(currentDate.getDate() + 1);
   }
 
   const filledInterest: Record<string, number> = {};
 
-  // Initialize all dates with zero values
-  allDates.forEach((dateStr) => {
-    filledInterest[dateStr] = 0;
-  });
-
-  // Populate with actual data where available
-  Object.keys(dailyNetInterest).forEach((date) => {
-    if (filledInterest[date] !== undefined) {
-      filledInterest[date] = dailyNetInterest[date];
-    }
-  });
-
-  // Forward-fill missing data with last known values
+  // Forward-fill missing data with last known values (within actual date range only)
   let lastKnownValue = 0;
 
   allDates.forEach((dateStr) => {
-    const currentValue = filledInterest[dateStr];
-    if (currentValue !== 0) {
-      lastKnownValue = currentValue;
+    // Check if we have actual data for this date
+    if (dailyNetInterest[dateStr] !== undefined) {
+      // Use actual data and update last known value
+      filledInterest[dateStr] = dailyNetInterest[dateStr];
+      lastKnownValue = dailyNetInterest[dateStr];
     } else {
+      // No actual data for this date, use last known value (only within actual range)
       filledInterest[dateStr] = lastKnownValue;
     }
   });
@@ -124,8 +125,8 @@ const fillInterestDataGaps = (dailyNetInterest: Record<string, number>): Record<
   return filledInterest;
 };
 
-// Calculate 7-day net interest change
-const calculateNetInterest7dStats = (data: InterestEarnedDataPoint[]): StatsData => {
+// Calculate net interest change using actual data range
+const calculateNetInterest30dStats = (data: InterestEarnedDataPoint[]): StatsData => {
   if (!data.length) {
     return { value: 0, change: 0, changePercent: 0 };
   }
@@ -166,7 +167,7 @@ const calculateNetInterest7dStats = (data: InterestEarnedDataPoint[]): StatsData
     rawDailyNetInterest[date] = totalEarned - totalPaid;
   });
 
-  // Fill gaps to extend data to today (like portfolio does)
+  // Fill gaps within actual data range only
   const dailyNetInterest = fillInterestDataGaps(rawDailyNetInterest);
 
   const sortedDates = Object.keys(dailyNetInterest).sort();
@@ -174,44 +175,19 @@ const calculateNetInterest7dStats = (data: InterestEarnedDataPoint[]): StatsData
     return { value: 0, change: 0, changePercent: 0 };
   }
 
-  // Get latest data point
-  const latestDate = sortedDates[sortedDates.length - 1];
-  const latestValue = dailyNetInterest[latestDate];
+  // Use actual first and last dates from the data
+  const firstDate = sortedDates[0];
+  const lastDate = sortedDates[sortedDates.length - 1];
 
-  // Calculate date 7 days ago
-  const latestDateObj = new Date(latestDate);
-  const sevenDaysAgoDateObj = new Date(latestDateObj);
-  sevenDaysAgoDateObj.setDate(sevenDaysAgoDateObj.getDate() - 7);
-  const sevenDaysAgoDateStr = sevenDaysAgoDateObj.toISOString().split("T")[0];
+  const firstValue = dailyNetInterest[firstDate];
+  const lastValue = dailyNetInterest[lastDate];
 
-  // Find the closest data point to 7 days ago (should exist now due to gap filling)
-  let sevenDaysAgoValue = latestValue; // Default to latest if no historical data
-
-  if (dailyNetInterest[sevenDaysAgoDateStr]) {
-    sevenDaysAgoValue = dailyNetInterest[sevenDaysAgoDateStr];
-  } else {
-    // Find the closest date to 7 days ago
-    let closestDate = latestDate;
-    let minDiff = Infinity;
-
-    for (const date of sortedDates) {
-      const dateObj = new Date(date);
-      const diff = Math.abs(dateObj.getTime() - sevenDaysAgoDateObj.getTime());
-      if (diff < minDiff && dateObj <= sevenDaysAgoDateObj) {
-        minDiff = diff;
-        closestDate = date;
-      }
-    }
-
-    sevenDaysAgoValue = dailyNetInterest[closestDate];
-  }
-
-  // Calculate change
-  const change = latestValue - sevenDaysAgoValue;
-  const changePercent = sevenDaysAgoValue !== 0 ? (change / Math.abs(sevenDaysAgoValue)) * 100 : 0;
+  // Calculate change (last vs first)
+  const change = lastValue - firstValue;
+  const changePercent = firstValue !== 0 ? (change / Math.abs(firstValue)) * 100 : 0;
 
   return {
-    value: latestValue,
+    value: lastValue,
     change,
     changePercent,
   };
@@ -258,10 +234,10 @@ const useInterestData = (selectedAccount: string | null): UseInterestDataReturn 
   // Calculate latest net interest
   const latestNetInterest = React.useMemo(() => calculateLatestNetInterest(data), [data]);
 
-  // Calculate 7-day net interest change
-  const netInterest7d = React.useMemo(() => calculateNetInterest7dStats(data), [data]);
+  // Calculate net interest change across actual data range
+  const netInterest30d = React.useMemo(() => calculateNetInterest30dStats(data), [data]);
 
-  return { data, latestNetInterest, netInterest7d, error, isLoading };
+  return { data, latestNetInterest, netInterest30d, error, isLoading };
 };
 
 export { useInterestData, type UseInterestDataReturn, type InterestEarnedDataPoint, type StatsData };
