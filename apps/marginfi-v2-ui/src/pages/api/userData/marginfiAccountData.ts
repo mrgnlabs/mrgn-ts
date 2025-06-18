@@ -20,6 +20,7 @@ import {
 import { BankMetadataMap } from "@mrgnlabs/mrgn-common";
 
 import config from "~/config/marginfi";
+import { getMarginfiAccountData } from "@mrgnlabs/mrgn-state";
 
 interface MarginfiAccountDataRequest {
   bankMap: Record<string, BankTypeDto>;
@@ -65,13 +66,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     const program = new Program(idl, provider) as any as MarginfiProgram;
 
-    const marginfiAccountRaw: MarginfiAccountRaw = await program.account.marginfiAccount.fetch(marginfiAccountsPk);
-
-    if (!marginfiAccountRaw) {
-      return res.status(404).json({ error: "Marginfi account not found" });
-    }
-
-    const marginfiAccount = MarginfiAccount.fromAccountParsed(marginfiAccountsPk, marginfiAccountRaw);
     const bankMap = new Map<string, Bank>();
     const oraclePrices = new Map<string, OraclePrice>();
 
@@ -83,15 +77,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       oraclePrices.set(bankPk, dtoToOraclePrice(oraclePrice));
     });
 
-    const marginfiAccountWithCache = await simulateAccountHealthCacheWithFallback({
+    const marginfiAccountWithCache = await getMarginfiAccountData(
       program,
-      marginfiAccount,
+      marginfiAccountsPk,
       bankMap,
       oraclePrices,
-      bankMetadataMap: body.bankMetadataMap,
-      balances: marginfiAccount.balances,
-    });
-
+      body.bankMetadataMap
+    );
     const marginfiAccountDto = marginfiAccountToDto(marginfiAccountWithCache);
 
     res.status(200).json({ marginfiAccountDto });

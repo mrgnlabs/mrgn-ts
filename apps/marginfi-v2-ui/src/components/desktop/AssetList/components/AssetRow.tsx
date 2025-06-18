@@ -1,7 +1,7 @@
 import React from "react";
 import { Row, flexRender } from "@tanstack/react-table";
 
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useUiStore } from "~/store";
 
 import { TableCell, TableRow } from "~/components/ui/table";
 
@@ -9,18 +9,21 @@ import { getPositionCell } from "./AssetCells";
 import { AssetListModel } from "../utils";
 import { cn, PoolTypes } from "@mrgnlabs/mrgn-utils";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { useWallet } from "~/components";
+import { useExtendedBanks } from "@mrgnlabs/mrgn-state";
 
 export const AssetRow = (row: Row<AssetListModel>) => {
   const isPosition = React.useMemo(
     () => row.original.position.walletAmount || row.original.position.positionAmount,
     [row.original.position]
   );
+  const { walletAddress } = useWallet();
   const [assetListSearch, poolFilter] = useUiStore((state) => [state.assetListSearch, state.poolFilter]);
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+  const { extendedBanks } = useExtendedBanks(walletAddress);
   const solPrice = React.useMemo(() => {
-    const solBank = extendedBankInfos.find((bank) => bank.info.state.mint.equals(WSOL_MINT));
+    const solBank = extendedBanks.find((bank) => bank.info.state.mint.equals(WSOL_MINT));
     return solBank?.info.oraclePrice.priceRealtime.price.toNumber() || null;
-  }, [extendedBankInfos]);
+  }, [extendedBanks]);
 
   const isStakedActivating = row.original.asset.stakePool && !row.original.asset.stakePool?.isActive;
 

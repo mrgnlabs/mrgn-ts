@@ -9,10 +9,9 @@ import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { capture, LendingModes, cn } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useMrgnlendStore } from "~/store";
-
 import "swiper/css";
 import "swiper/css/autoplay";
+import { useRefreshUserData } from "@mrgnlabs/mrgn-state";
 
 export type AnnouncementCustomItem = {
   text: string;
@@ -71,8 +70,8 @@ const Pagination = ({ itemsLength }: PaginationProps) => {
 };
 
 export const Announcements = ({ items }: AnnouncementsProps) => {
-  const [fetchMrgnlendState] = useMrgnlendStore((state) => [state.fetchMrgnlendState]);
-  const { connected } = useWallet();
+  const { connected, walletAddress } = useWallet();
+  const refreshUserData = useRefreshUserData(walletAddress);
   const [requestedAction, setRequestedAction] = React.useState<ActionType>();
   const [requestedBank, setRequestedBank] = React.useState<ExtendedBankInfo | null>(null);
 
@@ -115,7 +114,7 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                         capture(event, properties);
                       },
                       onComplete: () => {
-                        fetchMrgnlendState();
+                        refreshUserData();
                       },
                     }}
                     dialogProps={{

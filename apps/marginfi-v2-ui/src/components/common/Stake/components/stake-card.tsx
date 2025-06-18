@@ -2,17 +2,17 @@ import React from "react";
 
 import { IconCheck } from "@tabler/icons-react";
 
-import { ActionBox } from "@mrgnlabs/mrgn-ui";
+import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { LSTOverview } from "~/components/common/Stake/utils/stake-utils";
 import { useIsMobile } from "~/hooks/use-is-mobile";
-import { useMrgnlendStore } from "~/store";
 
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "~/components/ui/card";
 import { IconLST } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
+import { useRefreshUserData } from "@mrgnlabs/mrgn-state";
 
 type StakeCardProps = {
   lstBank?: ExtendedBankInfo;
@@ -23,7 +23,8 @@ type StakeCardProps = {
 
 const StakeCard = ({ lstBank, lstOverview, connected, extendedBankInfosWithoutStakedAssets }: StakeCardProps) => {
   const isMobile = useIsMobile();
-  const [fetchMrgnlendState] = useMrgnlendStore((state) => [state.fetchMrgnlendState]);
+  const { walletAddress } = useWallet();
+  const refreshUserData = useRefreshUserData(walletAddress);
 
   const scrollPageDown = () => {
     const stakeCalculator = document.getElementById("stake-calculator");
@@ -87,7 +88,7 @@ const StakeCard = ({ lstBank, lstOverview, connected, extendedBankInfosWithoutSt
                 capture("user_stake", properties);
               },
               onComplete: () => {
-                fetchMrgnlendState();
+                refreshUserData();
               },
             }}
             dialogProps={{
@@ -111,7 +112,7 @@ const StakeCard = ({ lstBank, lstOverview, connected, extendedBankInfosWithoutSt
                 capture("user_unstake", properties);
               },
               onComplete: () => {
-                fetchMrgnlendState();
+                refreshUserData();
               },
             }}
             dialogProps={{

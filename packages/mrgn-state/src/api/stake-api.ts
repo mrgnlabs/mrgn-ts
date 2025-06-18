@@ -1,4 +1,10 @@
-import { ActiveStakePoolMap, StakePoolMevMap, ValidatorRateData } from "@mrgnlabs/marginfi-client-v2";
+import {
+  ActiveStakePoolMap,
+  dtoToValidatorStakeGroup,
+  StakePoolMevMap,
+  ValidatorRateData,
+  ValidatorStakeGroupDto,
+} from "@mrgnlabs/marginfi-client-v2";
 import { PublicKey } from "@solana/web3.js";
 
 export const fetchStakePoolMevMap = async (voteAccounts: PublicKey[]) => {
@@ -59,4 +65,22 @@ export const fetchActiveStakePoolMap = async (voteAccounts: PublicKey[]) => {
   });
 
   return activeStatesMap;
+};
+
+export const fetchUserStakeAccounts = async (address?: PublicKey) => {
+  if (!address) {
+    return [];
+  }
+
+  const response = await fetch("/api/stakeData/userStakeAccountData?address=" + address.toBase58(), {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const data: ValidatorStakeGroupDto[] = await response.json();
+  const validatorGroups = data.map((validatorGroup) => dtoToValidatorStakeGroup(validatorGroup));
+
+  return validatorGroups;
 };

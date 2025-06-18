@@ -1,13 +1,17 @@
 import React from "react";
 
 import { IconCheck } from "@tabler/icons-react";
+
 import { StakeCalculator } from "@mrgnlabs/mrgn-ui";
-import { useMrgnlendStore } from "~/store";
+import { useWallet } from "@mrgnlabs/mrgn-ui";
+import { useExtendedBanks } from "@mrgnlabs/mrgn-state";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { IntegrationsData, LSTOverview, fetchLSTOverview } from "~/components/common/Stake/utils/stake-utils";
+
+import { LSTOverview, fetchLSTOverview } from "~/components/common/Stake/utils/stake-utils";
 
 export default function StakeCalculatorPage() {
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+  const { walletAddress } = useWallet();
+  const { extendedBanks } = useExtendedBanks(walletAddress);
   const [lstOverview, setLstOverview] = React.useState<LSTOverview>();
 
   React.useEffect(() => {
@@ -15,9 +19,9 @@ export default function StakeCalculatorPage() {
   }, []);
 
   const solPrice = React.useMemo(() => {
-    const bank = extendedBankInfos.filter((bank) => bank.info.state.mint.equals(WSOL_MINT));
+    const bank = extendedBanks.filter((bank) => bank.info.state.mint.equals(WSOL_MINT));
     return bank.length > 0 ? Math.round(bank[0].info.state.price) : 0;
-  }, [extendedBankInfos]);
+  }, [extendedBanks]);
 
   return (
     <div className="flex flex-col items-center justify-center pt-8 px-6 md:pt-0 md:px-0">

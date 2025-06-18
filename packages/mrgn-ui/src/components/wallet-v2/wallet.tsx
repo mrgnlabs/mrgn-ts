@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { Connection } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import {
   IconChevronDown,
   IconCopy,
@@ -53,7 +53,7 @@ type WalletProps = {
   initialized: boolean;
   userDataFetched: boolean;
   mfiClient?: MarginfiClient | null;
-  marginfiAccounts?: MarginfiAccountWrapper[];
+  marginfiAccounts?: PublicKey[];
   selectedAccount?: MarginfiAccountWrapper | null;
   extendedBankInfos: ExtendedBankInfo[];
   nativeSolBalance: number;
@@ -64,7 +64,7 @@ type WalletProps = {
   headerComponent?: JSX.Element;
   processOpts?: ProcessTransactionsClientOpts;
   accountLabels?: Record<string, string>;
-  fetchAccountLabels?: (accounts: MarginfiAccountWrapper[]) => Promise<void>;
+  fetchAccountLabels?: (accounts: PublicKey[]) => Promise<void>;
 };
 
 enum WalletState {

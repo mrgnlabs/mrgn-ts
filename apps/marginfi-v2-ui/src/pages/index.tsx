@@ -8,7 +8,7 @@ import { capture, Desktop, getEmodeStrategies, LendingModes, Mobile } from "@mrg
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useUiStore } from "~/store";
 
 import { Banner } from "~/components/desktop/Banner";
 import {
@@ -22,14 +22,12 @@ import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
 import { EmodePortfolio } from "~/components/common/emode/components";
 import {
-  useMetadata,
-  useOracleData,
-  useRawBanks,
-  useMarginfiClient,
   useBanks,
-  useMarginfiAccount,
+  useEmode,
   useExtendedBanks,
-  useMintData,
+  useMarginfiAccount,
+  useUserStakeAccounts,
+  useRefreshUserData,
 } from "@mrgnlabs/mrgn-state";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
@@ -41,63 +39,37 @@ export default function HomePage() {
 
   const { walletContextState, walletAddress, isOverride, connected } = useWallet();
 
-  const { extendedBanks } = useExtendedBanks();
-
-  console.log("extendedBanks", extendedBanks);
-
-  // const { data: metadata, error: metadataError } = useMetadata();
-  // const { data: oracleData, error: oracleError } = useOracleData();
-  // const { data: bankData, error: bankDataError } = useRawBanks();
-  // const { banks, isLoading: isLoadingBanks, isError: isErrorBanks } = useBanks();
-
-  // console.log("banks", banks);
-  // const { marginfiClient: marginfiClientHook, isLoading, isError, ...rest } = useMarginfiClient();
-
-  // console.log("marginfiClientHook", marginfiClientHook);
-
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
 
-  const [
-    isStoreInitialized,
-    isRefreshingStore,
-    selectedAccount,
-    extendedBankInfos,
-    fetchMrgnlendState,
-    marginfiClient,
-    stakeAccounts,
-    userActiveEmodes,
-    emodePairs,
-  ] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.isRefreshingStore,
-    state.selectedAccount,
-    state.extendedBankInfos,
-    state.fetchMrgnlendState,
-    state.marginfiClient,
-    state.stakeAccounts,
-    state.userActiveEmodes,
-    state.emodePairs,
-  ]);
+  const { extendedBanks } = useExtendedBanks(walletAddress);
+  const { banks } = useBanks();
+  const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
+  const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
+  const { data: selectedAccount } = useMarginfiAccount(walletAddress);
+  const refreshUserData = useRefreshUserData(walletAddress);
 
   const annoucements = React.useMemo(() => {
-    let banks: (ExtendedBankInfo | undefined)[] = [];
+    let latestBanks: (ExtendedBankInfo | undefined)[] = [];
 
-    if (marginfiClient?.banks) {
-      const latestBankKeys = Array.from(marginfiClient.banks.keys()).splice(0, 3);
-      banks.push(
+    if (banks) {
+      const latestBankKeys = banks.splice(0, 3);
+      latestBanks.push(
         ...latestBankKeys
-          .map((bankKey) => extendedBankInfos.find((bank) => bank.address.toBase58() === bankKey))
+          .map((bank) => extendedBanks.find((bank) => bank.address.equals(bank.address)))
           .filter((bank): bank is ExtendedBankInfo => bank !== undefined)
       );
     }
 
-    banks = banks.filter((bank): bank is ExtendedBankInfo => bank !== undefined);
+    latestBanks = latestBanks.filter((bank): bank is ExtendedBankInfo => bank !== undefined);
     return [
-      ...banks.map((bank) => ({
+      ...latestBanks.map((bank) => ({
         bank: bank,
       })),
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
-  }, [extendedBankInfos, marginfiClient]);
+  }, [banks, extendedBanks]);
+
+  const isStoreInitialized = true;
+  const isRefreshingStore = false;
 
   return (
     <>
@@ -128,7 +100,7 @@ export default function HomePage() {
                       capture(event, properties);
                     },
                     onComplete: () => {
-                      fetchMrgnlendState();
+                      refreshUserData();
                     },
                   }}
                 />
@@ -151,7 +123,7 @@ export default function HomePage() {
             <div className="p-4 space-y-3 w-full">
               {emodePairs.length > 0 && (
                 <div className="max-w-[480px] mx-auto">
-                  <EmodePortfolio userActiveEmodes={userActiveEmodes} extendedBankInfos={extendedBankInfos} />
+                  <EmodePortfolio userActiveEmodes={activeEmodePairs} extendedBankInfos={extendedBanks} />
                 </div>
               )}
               <ActionBox.BorrowLend
@@ -162,7 +134,7 @@ export default function HomePage() {
                   walletContextState: walletContextState,
                   stakeAccounts,
                   onComplete: () => {
-                    fetchMrgnlendState();
+                    refreshUserData();
                   },
                 }}
               />

@@ -1,5 +1,6 @@
 import { Bank, EmodePair, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import BigNumber from "bignumber.js";
+import { ExtendedBankInfo } from "../types";
 
 export function getEmodePairs(banks: Bank[]) {
   const emodePairs: EmodePair[] = [];
@@ -93,4 +94,101 @@ export function adjustBankWeightsWithEmodePairs(
   }
 
   return { adjustedBanks, originalWeights };
+}
+
+export function groupBanksByEmodeTag(banks: ExtendedBankInfo[]) {
+  const groupedBanks: Record<EmodeTag, ExtendedBankInfo[]> = {} as Record<EmodeTag, ExtendedBankInfo[]>;
+
+  for (const bank of banks) {
+    const emodeTag = bank.info.rawBank.emode.emodeTag;
+
+    if (!groupedBanks[emodeTag]) {
+      groupedBanks[emodeTag] = [];
+    }
+
+    // Add the bank to its emodeTag group
+    groupedBanks[emodeTag].push(bank);
+  }
+
+  return groupedBanks;
+}
+
+export function groupLiabilityBanksByCollateralBank(banks: ExtendedBankInfo[], emodePairs: EmodePair[]) {
+  const bankMap = new Map<string, ExtendedBankInfo>();
+  banks.forEach((bank) => {
+    bankMap.set(bank.info.rawBank.address.toString(), bank);
+  });
+
+  const result: Record<string, { liabilityBank: ExtendedBankInfo; emodePair: EmodePair }[]> = {};
+
+  emodePairs.forEach((emodePair) => {
+    const liabilityBankKey = emodePair.liabilityBank.toString();
+
+    const liabilityBank = bankMap.get(liabilityBankKey);
+
+    if (!liabilityBank) {
+      console.error(`Liability bank ${liabilityBankKey} referenced in emode pair not found in banks array`);
+      return;
+    }
+
+    banks.forEach((potentialCollateralBank) => {
+      const bankRaw = potentialCollateralBank.info.rawBank;
+      const collateralBankKey = bankRaw.address.toString();
+
+      if (bankRaw.address.equals(emodePair.liabilityBank)) {
+        return;
+      }
+
+      if (potentialCollateralBank.info.state.hasEmode && bankRaw.emode.emodeTag === emodePair.collateralBankTag) {
+        if (!result[collateralBankKey]) {
+          result[collateralBankKey] = [];
+        }
+
+        result[collateralBankKey].push({
+          liabilityBank: liabilityBank,
+          emodePair,
+        });
+      }
+    });
+  });
+
+  return result;
+}
+
+export function groupCollateralBanksByLiabilityBank(banks: ExtendedBankInfo[], emodePairs: EmodePair[]) {
+  // Create a map of bank PublicKey string to the ExtendedBankInfo
+  const bankMap = new Map<string, ExtendedBankInfo>();
+  banks.forEach((bank) => {
+    bankMap.set(bank.info.rawBank.address.toString(), bank);
+  });
+
+  const result: Record<string, { collateralBank: ExtendedBankInfo; emodePair: EmodePair }[]> = {};
+
+  emodePairs.forEach((emodePair) => {
+    const liabilityBankKey = emodePair.liabilityBank.toString();
+
+    banks.forEach((potentialCollateralBank) => {
+      const bankRaw = potentialCollateralBank.info.rawBank;
+      if (bankRaw.address.equals(emodePair.liabilityBank)) {
+        return;
+      }
+
+      if (potentialCollateralBank.info.state.hasEmode && bankRaw.emode.emodeTag === emodePair.collateralBankTag) {
+        if (!result[liabilityBankKey]) {
+          result[liabilityBankKey] = [];
+        }
+
+        result[liabilityBankKey].push({
+          collateralBank: potentialCollateralBank,
+          emodePair,
+        });
+      }
+    });
+
+    if (!bankMap.has(liabilityBankKey)) {
+      console.error(`Liability bank ${liabilityBankKey} referenced in emode pair not found in banks array`);
+    }
+  });
+
+  return result;
 }

@@ -1,26 +1,25 @@
 import React from "react";
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { capture } from "@mrgnlabs/mrgn-utils";
-import { useMrgnlendStore } from "~/store";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { EmodeExploreWrapper } from "~/components/common/emode/components";
 import { Loader } from "~/components/ui/loader";
-import { IconEmodeSimple, IconEmodeSimpleInactive, IconLooper } from "~/components/ui/icons";
+import { IconEmodeSimple, IconLooper } from "~/components/ui/icons";
+import { useExtendedBanks } from "@mrgnlabs/mrgn-state";
 
 export default function LooperPage() {
-  const [initialized, extendedBankInfosWithoutStakedAssets, extendedBankInfos] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.extendedBankInfosWithoutStakedAssets,
-    state.extendedBankInfos,
-  ]);
-  const { connected } = useWallet();
+  const { connected, walletAddress } = useWallet();
+
+  const { extendedBanks, isSuccess } = useExtendedBanks(walletAddress);
+
+  const extendedBankInfosWithoutStakedAssets = extendedBanks.filter((bank) => bank.info.rawBank.config.assetTag !== 2);
 
   return (
     <>
-      {!initialized && <Loader label="Loading looper..." className="mt-16" />}
+      {!isSuccess && <Loader label="Loading looper..." className="mt-16" />}
 
-      {initialized && (
+      {isSuccess && (
         <div className="w-full max-w-7xl mx-auto mb-20 px-2 md:px-5">
           <PageHeading
             heading={
@@ -54,7 +53,7 @@ export default function LooperPage() {
             loopProps={{
               connected: connected,
               banks: extendedBankInfosWithoutStakedAssets,
-              allBanks: extendedBankInfos,
+              allBanks: extendedBanks,
               captureEvent: (event, properties) => {
                 capture(event, properties);
               },

@@ -11,7 +11,7 @@ import { cn, ExecuteActionProps, ExecuteCollectRewardsAction, usePrevious, useCo
 import { CustomToastType, toastManager } from "@mrgnlabs/mrgn-toasts";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
 
-import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
+import { useUiStore, useUserProfileStore } from "~/store";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { WalletAuthAccounts, WalletButton } from "~/components/wallet-v2";
@@ -26,6 +26,15 @@ import { EmodePortfolio } from "~/components/common/emode/components";
 import { useEmodeLineConnections } from "~/components/common/emode/hooks";
 import { IconLoader, IconEmode } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
+import {
+  useAccountSummary,
+  useEmode,
+  useExtendedBanks,
+  useMarginfiAccountAddresses,
+  useMarginfiClient,
+  useRefreshUserData,
+  useWrappedMarginfiAccount,
+} from "@mrgnlabs/mrgn-state";
 
 const initialRewardsState: RewardsType = {
   state: "NOT_FETCHED",
@@ -35,32 +44,19 @@ const initialRewardsState: RewardsType = {
 };
 
 export const LendingPortfolio = () => {
-  const { connected } = useWallet();
-  const { connection } = useConnection();
+  const { connected, walletAddress } = useWallet();
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
-  const [
-    isStoreInitialized,
-    sortedBanks,
-    accountSummary,
-    isRefreshingStore,
-    marginfiClient,
-    selectedAccount,
-    marginfiAccounts,
-    fetchMrgnlendState,
-    userActiveEmodes,
-    emodePairs,
-  ] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.extendedBankInfos,
-    state.accountSummary,
-    state.isRefreshingStore,
-    state.marginfiClient,
-    state.selectedAccount,
-    state.marginfiAccounts,
-    state.fetchMrgnlendState,
-    state.userActiveEmodes,
-    state.emodePairs,
-  ]);
+  const { extendedBanks: sortedBanks } = useExtendedBanks(walletAddress);
+  const accountSummary = useAccountSummary(walletAddress);
+  const { marginfiClient } = useMarginfiClient();
+  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress);
+  const { data: marginfiAccounts } = useMarginfiAccountAddresses(walletAddress);
+  const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
+  const refreshUserData = useRefreshUserData();
+
+  const isStoreInitialized = true;
+  const isRefreshingStore = false;
+
   const [priorityFees, broadcastType, accountLabels, setGlobalActionBoxProps, globalActionBoxProps] = useUiStore(
     (state) => [
       state.priorityFees,
@@ -86,7 +82,7 @@ export const LendingPortfolio = () => {
   const [rewardsLoading, setRewardsLoading] = React.useState(false);
   const [rewardsToastOpen, setRewardsToastOpen] = React.useState(false);
   const [rewardsToast, setRewardsToast] = React.useState<CustomToastType | null>(null);
-  const hasMultipleAccount = React.useMemo(() => marginfiAccounts.length > 1, [marginfiAccounts]);
+  const hasMultipleAccount = React.useMemo(() => marginfiAccounts && marginfiAccounts.length > 1, [marginfiAccounts]);
 
   const { handleSimulation } = useRewardSimulation({
     simulationResult: rewardsState,
@@ -232,7 +228,7 @@ export const LendingPortfolio = () => {
     const pairs: [{ current: HTMLDivElement | null }, { current: HTMLDivElement | null }][] = [];
     const assetToPairIndices: Record<string, number[]> = {};
     let pairIdx = 0;
-    userActiveEmodes.forEach((emodePair) => {
+    activeEmodePairs.forEach((emodePair) => {
       lendingBanks
         .filter((bank) => bank.info.rawBank.emode.emodeTag === emodePair.collateralBankTag)
         .forEach((lendingBank) => {
@@ -261,7 +257,7 @@ export const LendingPortfolio = () => {
         });
     });
     return { refPairs: pairs, assetToPairIndices };
-  }, [userActiveEmodes, selectedAccount, lendingBanks]);
+  }, [selectedAccount, activeEmodePairs, lendingBanks]);
 
   // Use the hook
   const { containerRef, LineConnectionSvg } = useEmodeLineConnections(
@@ -373,9 +369,9 @@ export const LendingPortfolio = () => {
                 initialized={true}
                 mfiClient={marginfiClient}
                 connection={marginfiClient?.provider.connection ?? null}
-                marginfiAccounts={marginfiAccounts}
+                marginfiAccounts={marginfiAccounts ?? []}
                 selectedAccount={selectedAccount}
-                fetchMrgnlendState={fetchMrgnlendState}
+                fetchMrgnlendState={refreshUserData}
                 closeOnSwitch={true}
                 popoverContentAlign="start"
                 processOpts={{
@@ -531,7 +527,7 @@ export const LendingPortfolio = () => {
             >
               <EmodePortfolio
                 extendedBankInfos={sortedBanks}
-                userActiveEmodes={userActiveEmodes}
+                userActiveEmodes={activeEmodePairs}
                 filterEmode={filterEmode}
                 setFilterEmode={setFilterEmode}
               />
@@ -547,7 +543,7 @@ export const LendingPortfolio = () => {
                 lendingBanks.length > 0 ? (
                   <div className="flex flex-col gap-4">
                     {lendingBanks.map((bank, i) => {
-                      const eModeActive = userActiveEmodes.some(
+                      const eModeActive = activeEmodePairs.some(
                         (pair) => pair.collateralBankTag === bank.info.rawBank.emode.emodeTag
                       );
                       const pairIndices = assetToPairIndices[bank.address.toBase58()] || [];

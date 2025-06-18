@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Validate each token object has the required fields
     const validTokens = body.tokens.every(
       (token) =>
-        typeof token.tokenProgram === "string" && typeof token.mint === "string" && typeof token.decimal === "string"
+        typeof token.tokenProgram === "string" && typeof token.mint === "string" && typeof token.decimal === "number"
     );
 
     if (!validTokens) {

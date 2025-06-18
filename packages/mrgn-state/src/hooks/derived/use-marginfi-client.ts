@@ -3,7 +3,7 @@ import { getConfig } from "../../config";
 import { useMarginfiGroup, useMarginfiLuts, useMetadata, useMintData, useOracleData } from "../react-query";
 import { useBanks } from "./use-banks";
 import { Bank, MarginfiClient, MarginfiGroup, MintData } from "@mrgnlabs/marginfi-client-v2";
-import { useMintMap } from "./use-mint-map.hooks";
+import { useMintMap } from "./use-mint-map";
 
 export function useMarginfiClient() {
   const { data: marginfiGroup, isLoading: isLoadingGroup, isError: isErrorGroup } = useMarginfiGroup();
@@ -46,13 +46,7 @@ export function useMarginfiClient() {
   }, [marginfiGroup, banks, banksMap, oracleData, mintMap, metadata, luts, mfiConfig, program]);
 
   return {
-    marginfiGroup,
-    banks,
-    oracleData,
-    mintMap,
-    metadata,
-    luts,
-    marginfiClient,
+    marginfiClient: marginfiClient ?? null,
     isLoading,
     isError,
   };

@@ -20,8 +20,6 @@ export function useRawBanks() {
 export function useMintData() {
   const metadata = useMetadata();
 
-  console.log("success", metadata.isSuccess);
-
   return useQuery<RawMintData[], Error>({
     queryKey: ["mintData"],
     queryFn: () => {
@@ -49,8 +47,8 @@ export function useOracleData() {
     queryKey: ["oraclePrices"],
     queryFn: () => fetchOraclePrices(bankData.data ?? [], metadata.data?.bankMetadataMap ?? {}),
     enabled: bankData.isSuccess && metadata.isSuccess,
-    staleTime: 60_000, // 1 minute
-    refetchInterval: 60_000,
+    staleTime: 30_000, // 1 minute
+    refetchInterval: 30_000,
     retry: 1,
   });
 }

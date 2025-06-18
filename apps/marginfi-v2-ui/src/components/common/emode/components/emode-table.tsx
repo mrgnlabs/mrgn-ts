@@ -8,13 +8,19 @@ import { computeMaxLeverage, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { numeralFormatter, percentFormatterMod } from "@mrgnlabs/mrgn-common";
 
-import { useMrgnlendStore } from "~/store";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { IconEmodeSimple } from "~/components/ui/icons";
 import { getAssetWeightData } from "~/bank-data.utils";
 import { EmodeDiff } from "./emode-diff";
 import { cn } from "~/theme";
+import { useWallet } from "~/components";
+import {
+  groupLiabilityBanksByCollateralBank,
+  groupCollateralBanksByLiabilityBank,
+  useEmode,
+  useExtendedBanks,
+} from "@mrgnlabs/mrgn-state";
 
 interface EmodeTableProps {
   initialBank?: ExtendedBankInfo;
@@ -25,15 +31,18 @@ interface EmodeTableProps {
 }
 
 const EmodeTable = ({ initialBank, align = "center", className, showTag = true, resetKey = 0 }: EmodeTableProps) => {
-  const [emodePairs, extendedBankInfos, collateralBanksByLiabilityBank, liabilityBanksByCollateralBank] =
-    useMrgnlendStore((state) => [
-      state.emodePairs,
-      state.extendedBankInfos,
-      state.collateralBanksByLiabilityBank,
-      state.liabilityBanksByCollateralBank,
-    ]);
+  const { walletAddress } = useWallet();
+  const { extendedBanks } = useExtendedBanks(walletAddress);
+  const { emodePairs } = useEmode(walletAddress);
   const [selectedSide, setSelectedSide] = React.useState<"lend" | "borrow">("borrow");
   const [selectedBank, setSelectedBank] = React.useState<ExtendedBankInfo | undefined>(initialBank);
+
+  const [collateralBanksByLiabilityBank, liabilityBanksByCollateralBank] = React.useMemo(() => {
+    return [
+      groupCollateralBanksByLiabilityBank(extendedBanks, emodePairs),
+      groupLiabilityBanksByCollateralBank(extendedBanks, emodePairs),
+    ];
+  }, [extendedBanks, emodePairs]);
 
   React.useEffect(() => {
     setSelectedBank(initialBank);
@@ -43,11 +52,11 @@ const EmodeTable = ({ initialBank, align = "center", className, showTag = true, 
     return Array.from(
       new Set(
         emodePairs
-          .map((pair) => extendedBankInfos.find((bank) => bank.address.toBase58() === pair.liabilityBank.toString()))
+          .map((pair) => extendedBanks.find((bank) => bank.address.toBase58() === pair.liabilityBank.toString()))
           .filter((bank) => bank !== undefined)
       )
     );
-  }, [emodePairs, extendedBankInfos]);
+  }, [emodePairs, extendedBanks]);
 
   const banksAndPairs = React.useMemo(() => {
     if (!selectedBank) return [];

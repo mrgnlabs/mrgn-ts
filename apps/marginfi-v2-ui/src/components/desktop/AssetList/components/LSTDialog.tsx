@@ -3,10 +3,11 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { useMrgnlendStore } from "~/store";
+import { useExtendedBanks } from "@mrgnlabs/mrgn-state";
 
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
+import { useWallet } from "~/components";
 
 export enum LSTDialogVariants {
   SOL = "SOL",
@@ -20,14 +21,15 @@ type LSTDialogProps = {
 };
 
 const LSTDialog = ({ variant, open, onClose }: LSTDialogProps) => {
-  const [sortedBanks] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+  const { walletAddress } = useWallet();
+  const { extendedBanks } = useExtendedBanks(walletAddress);
 
   const tokenImage = React.useMemo(() => {
-    const bank = sortedBanks.find((bank) => bank.meta.tokenSymbol === variant);
+    const bank = extendedBanks.find((bank) => bank.meta.tokenSymbol === variant);
     if (!bank) return null;
 
     return bank.meta.tokenLogoUri;
-  }, [variant, sortedBanks]);
+  }, [variant, extendedBanks]);
 
   return (
     <Dialog open={open} onOpenChange={() => onClose()}>

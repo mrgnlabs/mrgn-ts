@@ -1,6 +1,6 @@
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
-import { Connection } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 
 import {
   MaxCapType,
@@ -62,7 +62,7 @@ interface UiState {
   setAssetListSearch: (search: string) => void;
   setTransactionSettings: (settings: TransactionSettings, connection: Connection) => void;
   fetchPriorityFee: (connection: Connection, settings?: TransactionSettings) => void;
-  fetchAccountLabels: (accounts: MarginfiAccountWrapper[]) => Promise<void>;
+  fetchAccountLabels: (accounts: PublicKey[]) => Promise<void>;
   setDisplaySettings: (displaySettings: boolean) => void;
   setJupiterOptions: (jupiterOptions: JupiterOptions) => void;
   setGlobalActionBoxProps: (props: GlobalActionBoxProps) => void;
@@ -163,13 +163,13 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
       console.error(error);
     }
   },
-  fetchAccountLabels: async (accounts: MarginfiAccountWrapper[]) => {
+  fetchAccountLabels: async (accounts: PublicKey[]) => {
     const labels: Record<string, string> = {};
 
-    const fetchLabel = async (account: MarginfiAccountWrapper) => {
+    const fetchLabel = async (account: PublicKey) => {
       try {
-        const response = await fetch(`/api/user/account-label?account=${account.address.toBase58()}`);
-        if (!response.ok) throw new Error(`Error fetching account label for ${account.address.toBase58()}`);
+        const response = await fetch(`/api/user/account-label?account=${account.toBase58()}`);
+        if (!response.ok) throw new Error(`Error fetching account label for ${account.toBase58()}`);
 
         const { data } = await response.json();
         return data.label || `Account`;
@@ -182,7 +182,7 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     const accountLabelsWithAddresses = await Promise.all(
       accounts.map(async (account) => {
         const label = await fetchLabel(account);
-        return { address: account.address.toBase58(), label };
+        return { address: account.toBase58(), label };
       })
     );
 

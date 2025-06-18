@@ -9,11 +9,11 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { Analytics } from "@vercel/analytics/react";
 import { registerMoonGateWallet } from "@moongate/moongate-adapter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 
 import { initializeConfig, StateProvider } from "@mrgnlabs/mrgn-state";
 import { cn, Desktop, Mobile, init as initAnalytics, AuthProvider } from "@mrgnlabs/mrgn-utils";
-import { ActionBoxProvider, ActionProvider, AuthDialog, WalletProvider as MrgnWalletProvider } from "@mrgnlabs/mrgn-ui";
+import { ActionProvider, WalletProvider as MrgnWalletProvider } from "@mrgnlabs/mrgn-ui";
 import { generateEndpoint } from "~/rpc.utils";
 
 import rpcConfig from "~/config";
@@ -21,7 +21,7 @@ import rpcConfig from "~/config";
 import config from "~/config/marginfi";
 import { MrgnlendProvider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useUiStore } from "~/store";
 import { ConnectionProvider } from "~/hooks/use-connection";
 
 import GlobalActionBoxPortal from "~/components/common/global-actionbox-portal/global-actionbox-portal";
@@ -78,32 +78,15 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.maxCapType,
     state.globalActionBoxProps,
   ]);
-  const [
-    isMrgnlendStoreInitialized,
-    isRefreshingMrgnlendStore,
-    marginfiClient,
-    selectedAccount,
-    extendedBankInfos,
-    nativeSolBalance,
-    accountSummary,
-  ] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.isRefreshingStore,
-    state.marginfiClient,
-    state.selectedAccount,
-    state.extendedBankInfos,
-    state.nativeSolBalance,
-    state.accountSummary,
-  ]);
 
   const { query, isReady } = useRouter();
   const [ready, setReady] = React.useState(false);
   const [rpcEndpoint, setRpcEndpoint] = React.useState("");
 
-  React.useEffect(() => {
-    const isFetchingData = isRefreshingMrgnlendStore;
-    setIsFetchingData(isFetchingData);
-  }, [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, setIsFetchingData]);
+  // React.useEffect(() => {
+  //   const isFetchingData = isRefreshingMrgnlendStore;
+  //   setIsFetchingData(isFetchingData);
+  // }, [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, setIsFetchingData]);
 
   React.useEffect(() => {
     const init = async () => {
@@ -137,42 +120,29 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
                         jupiterOptions={{ ...jupiterOptions, slippageBps: jupiterOptions.slippageBps }}
                         priorityFees={priorityFees}
                       >
-                        <ActionBoxProvider
-                          banks={extendedBankInfos}
-                          nativeSolBalance={nativeSolBalance}
-                          marginfiClient={marginfiClient}
-                          selectedAccount={selectedAccount}
-                          connected={false}
-                          accountSummaryArg={accountSummary}
-                          setDisplaySettings={setDisplaySettings}
-                        >
-                          <Navbar />
+                        <Navbar />
 
-                          <Desktop>
-                            <WalletModalProvider>
-                              <div className={cn("w-full flex flex-col justify-center items-center")}>
-                                <Component {...pageProps} />
-                              </div>
-                              <Footer />
-                            </WalletModalProvider>
-                          </Desktop>
-
-                          <Mobile>
+                        <Desktop>
+                          <WalletModalProvider>
                             <div className={cn("w-full flex flex-col justify-center items-center")}>
                               <Component {...pageProps} />
                             </div>
-                            <MobileNavbar />
-                          </Mobile>
+                            <Footer />
+                          </WalletModalProvider>
+                        </Desktop>
 
-                          <Analytics />
-                          <Tutorial />
-                          <AuthDialog
-                            mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
-                          />
+                        <Mobile>
+                          <div className={cn("w-full flex flex-col justify-center items-center")}>
+                            <Component {...pageProps} />
+                          </div>
+                          <MobileNavbar />
+                        </Mobile>
 
-                          <ToastProvider />
-                          {globalActionBoxProps.isOpen && <GlobalActionBoxPortal />}
-                        </ActionBoxProvider>
+                        <Analytics />
+                        <Tutorial />
+
+                        <ToastProvider />
+                        {globalActionBoxProps.isOpen && <GlobalActionBoxPortal />}
                       </ActionProvider>
                     </MrgnlendProvider>
                   </MrgnWalletProvider>

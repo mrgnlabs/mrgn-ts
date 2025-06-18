@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
-import { useMrgnlendStore } from "~/store";
+import { useMarginfiAccountAddresses } from "@mrgnlabs/mrgn-state";
+
+import { useWallet } from "~/components";
 
 export const useHasMrgnAcct = (): boolean => {
-  const [marginfiAccounts] = useMrgnlendStore((state) => [state.marginfiAccounts]);
+  const { walletAddress } = useWallet();
+  const { data: marginfiAccounts } = useMarginfiAccountAddresses(walletAddress);
 
-  console.log({ marginfiAccounts });
-  return false;
+  return !!marginfiAccounts && marginfiAccounts.length > 0;
 };

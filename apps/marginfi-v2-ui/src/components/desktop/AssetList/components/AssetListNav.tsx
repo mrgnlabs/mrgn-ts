@@ -3,9 +3,8 @@ import React from "react";
 import { IconFilter, IconSearch, IconX } from "@tabler/icons-react";
 
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useUiStore, useMrgnlendStore } from "~/store";
+import { useUiStore } from "~/store";
 import { TokenFilters } from "~/store/uiStore";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -15,6 +14,8 @@ import { Input } from "~/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
 import { IconEmode, IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
+import { useWallet } from "~/components";
+import { useEmode } from "@mrgnlabs/mrgn-state";
 
 const AssetListNav = () => {
   const [
@@ -36,7 +37,9 @@ const AssetListNav = () => {
     state.tokenFilter,
     state.setTokenFilter,
   ]);
-  const [userActiveEmodes, emodePairs] = useMrgnlendStore((state) => [state.userActiveEmodes, state.emodePairs]);
+
+  const { walletAddress } = useWallet();
+  const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
   const [isSearchExpanded, setIsSearchExpanded] = React.useState(assetListSearch.length > 0);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -78,12 +81,12 @@ const AssetListNav = () => {
               aria-label="Toggle e-mode"
               className={cn(
                 "relative h-9 pr-1.5 rounded-lg",
-                userActiveEmodes.length > 0 && "data-[state=on]:bg-gradient-to-r to-[#483975] from-[#292E32]"
+                activeEmodePairs.length > 0 && "data-[state=on]:bg-gradient-to-r to-[#483975] from-[#292E32]"
               )}
             >
               <div className="flex items-center gap-1 w-full">
                 <span>e-mode</span>
-                {userActiveEmodes.length > 0 ? <IconEmodeSimple size={18} /> : <IconEmodeSimpleInactive size={18} />}
+                {activeEmodePairs.length > 0 ? <IconEmodeSimple size={18} /> : <IconEmodeSimpleInactive size={18} />}
               </div>
             </ToggleGroupItem>
           )}

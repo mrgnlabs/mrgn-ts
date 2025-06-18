@@ -1,10 +1,15 @@
 import { PublicKey } from "@solana/web3.js";
 import { useQuery } from "@tanstack/react-query";
 
-import { ActiveStakePoolMap, StakePoolMevMap, ValidatorRateData } from "@mrgnlabs/marginfi-client-v2";
+import {
+  ActiveStakePoolMap,
+  StakePoolMevMap,
+  ValidatorRateData,
+  ValidatorStakeGroup,
+} from "@mrgnlabs/marginfi-client-v2";
 
 import { useMetadata } from "./use-metadata.hooks";
-import { fetchActiveStakePoolMap, fetchStakePoolMevMap, fetchValidatorRates } from "../../api";
+import { fetchActiveStakePoolMap, fetchStakePoolMevMap, fetchUserStakeAccounts, fetchValidatorRates } from "../../api";
 
 export function useActiveStakePoolMap() {
   const { data: metadata, isSuccess: isSuccessMetadata, isError: isErrorMetadata } = useMetadata();
@@ -87,5 +92,17 @@ export function useValidatorRates() {
       // Only retry up to 2 times for other errors
       return failureCount < 2;
     },
+  });
+}
+
+export function useUserStakeAccounts(address?: PublicKey) {
+  return useQuery<ValidatorStakeGroup[], Error>({
+    queryKey: ["userStakeAccounts", address?.toBase58()],
+    queryFn: async () => {
+      return await fetchUserStakeAccounts(address);
+    },
+    staleTime: 60_000, // 1 minute
+    refetchInterval: 60_000,
+    retry: 2,
   });
 }

@@ -6,18 +6,18 @@ import { Button } from "~/components/ui/button";
 import { Table, TableBody, TableCell, TableRow } from "~/components/ui/table";
 
 import { ActionBox, useWallet } from "~/components";
-import { useMrgnlendStore } from "~/store";
 import { capture } from "~/analytics";
 import { EmodeStrategyType } from "..";
+import { useRefreshUserData } from "@mrgnlabs/mrgn-state";
 
 interface StrategiesViewProps {
   emodeStrategies: EmodeStrategyType[];
 }
 
 export const StrategiesView = ({ emodeStrategies }: StrategiesViewProps) => {
-  const { walletContextState, connected } = useWallet();
+  const { walletContextState, connected, walletAddress } = useWallet();
 
-  const [fetchMrgnlendState] = useMrgnlendStore((state) => [state.fetchMrgnlendState, state.stakeAccounts]);
+  const refreshUserData = useRefreshUserData(walletAddress);
 
   if (emodeStrategies.length === 0) {
     return (
@@ -60,7 +60,7 @@ export const StrategiesView = ({ emodeStrategies }: StrategiesViewProps) => {
                         capture(event, properties);
                       },
                       onComplete: () => {
-                        fetchMrgnlendState();
+                        refreshUserData();
                       },
                     }}
                     isDialog={true}

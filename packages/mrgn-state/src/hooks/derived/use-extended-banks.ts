@@ -48,17 +48,6 @@ export function useExtendedBanks(user?: PublicKey) {
   } = useEmode(user);
 
   const extendedBanks = React.useMemo(() => {
-    console.log("debug_____________________________");
-    console.log("banks", banks);
-    console.log("banksMap", banksMap);
-    console.log("metadata", metadata);
-    console.log("oracleData", oracleData);
-    console.log("userBalances", userBalances);
-    console.log("emissionPriceMap", emissionPriceMap);
-    console.log("activeEmodePairs", activeEmodePairs);
-    console.log("emodePairs", emodePairs);
-    console.log("emodeImpacts", emodeImpacts);
-
     if (
       !banks ||
       !banksMap ||

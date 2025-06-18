@@ -2,16 +2,15 @@
 
 import React from "react";
 import * as RadixPortal from "@radix-ui/react-portal";
-import { ActionBox , useWallet} from "@mrgnlabs/mrgn-ui";
+import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { capture } from "@mrgnlabs/mrgn-utils";
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useUiStore } from "~/store";
+import { useRefreshUserData, useUserStakeAccounts } from "@mrgnlabs/mrgn-state";
 
 export const GlobalActionBoxPortal = () => {
-  const { connected, walletContextState } = useWallet();
-  const [stakeAccounts, fetchMrgnlendState] = useMrgnlendStore((state) => [
-    state.stakeAccounts,
-    state.fetchMrgnlendState,
-  ]);
+  const { connected, walletContextState, walletAddress } = useWallet();
+  const refreshUserData = useRefreshUserData(walletAddress);
+  const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
   const [globalActionBoxProps, setGlobalActionBoxProps] = useUiStore((state) => [
     state.globalActionBoxProps,
     state.setGlobalActionBoxProps,
@@ -40,7 +39,7 @@ export const GlobalActionBoxPortal = () => {
                 capture(event, properties);
               },
               onComplete: () => {
-                fetchMrgnlendState();
+                refreshUserData();
               },
             }}
           />

@@ -17,13 +17,18 @@ import {
   percentFormatterMod,
 } from "@mrgnlabs/mrgn-common";
 import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
-import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import {
+  ActiveBankInfo,
+  ActionType,
+  ExtendedBankInfo,
+  groupLiabilityBanksByCollateralBank,
+} from "@mrgnlabs/marginfi-v2-ui-state";
 import { AssetTag, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { capture, cn, composeExplorerUrl, executeActionWrapper, getAssetWeightData } from "@mrgnlabs/mrgn-utils";
 import { ActionBox, SVSPMEV, useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useAssetItemData } from "~/hooks/useAssetItemData";
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useUiStore } from "~/store";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ChevronDown } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -35,6 +40,18 @@ import { Tooltip } from "~/components/ui/tooltip";
 import { EmodeDiff, EmodePopover } from "~/components/common/emode/components";
 import { Badge } from "~/components/ui/badge";
 import { IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
+import {
+  groupCollateralBanksByLiabilityBank,
+  useAccountSummary,
+  useEmode,
+  useExtendedBanks,
+  useMarginfiAccountAddresses,
+  useMarginfiClient,
+  useRefreshUserData,
+  useUserBalances,
+  useUserStakeAccounts,
+  useWrappedMarginfiAccount,
+} from "@mrgnlabs/mrgn-state";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -55,29 +72,23 @@ export const PortfolioAssetCard = ({
   onCardClick,
 }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
-  const [
-    selectedAccount,
-    marginfiAccounts,
-    marginfiClient,
-    fetchMrgnlendState,
-    extendedBankInfos,
-    nativeSolBalance,
-    accountSummary,
-    userActiveEmodes,
-    collateralBanksByLiabilityBank,
-    liabilityBanksByCollateralBank,
-  ] = useMrgnlendStore((state) => [
-    state.selectedAccount,
-    state.marginfiAccounts,
-    state.marginfiClient,
-    state.fetchMrgnlendState,
-    state.extendedBankInfos,
-    state.nativeSolBalance,
-    state.accountSummary,
-    state.userActiveEmodes,
-    state.collateralBanksByLiabilityBank,
-    state.liabilityBanksByCollateralBank,
-  ]);
+  const { walletAddress } = useWallet();
+  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress);
+  const { data: marginfiAccounts } = useMarginfiAccountAddresses(walletAddress);
+  const { marginfiClient } = useMarginfiClient();
+  const refreshUserData = useRefreshUserData(walletAddress);
+  const { extendedBanks } = useExtendedBanks(walletAddress);
+  const { data: userBalances } = useUserBalances(walletAddress);
+  const { emodePairs, activeEmodePairs } = useEmode(walletAddress);
+  const accountSummary = useAccountSummary(walletAddress);
+
+  const [collateralBanksByLiabilityBank, liabilityBanksByCollateralBank] = React.useMemo(() => {
+    return [
+      groupCollateralBanksByLiabilityBank(extendedBanks, emodePairs),
+      groupLiabilityBanksByCollateralBank(extendedBanks, emodePairs),
+    ];
+  }, [extendedBanks, emodePairs]);
+
   const [priorityFees] = useUiStore((state) => [state.priorityFees]);
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
 
@@ -96,9 +107,9 @@ export const PortfolioAssetCard = ({
   const isEmodeActive = React.useMemo(() => {
     return (
       (isInLendingMode && bank.position.emodeActive) ||
-      (!isInLendingMode && collateralBanks.length > 0 && userActiveEmodes.length > 0)
+      (!isInLendingMode && collateralBanks.length > 0 && activeEmodePairs.length > 0)
     );
-  }, [bank.position.emodeActive, collateralBanks, isInLendingMode, userActiveEmodes]);
+  }, [bank.position.emodeActive, collateralBanks, isInLendingMode, activeEmodePairs]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
     if (!bank || !bank?.position?.liquidationPrice) {
@@ -116,23 +127,23 @@ export const PortfolioAssetCard = ({
 
   const [isMovePositionDialogOpen, setIsMovePositionDialogOpen] = React.useState<boolean>(false);
   const postionMovingPossible = React.useMemo(
-    () => marginfiAccounts.length > 1 && bank.position.isLending,
-    [marginfiAccounts.length, bank]
+    () => marginfiAccounts && marginfiAccounts.length > 1 && bank.position.isLending,
+    [marginfiAccounts, bank.position.isLending]
   );
 
   const assetWeight = React.useMemo(
-    () => getAssetWeightData(bank, isInLendingMode, extendedBankInfos).assetWeight,
-    [bank, extendedBankInfos, isInLendingMode]
+    () => getAssetWeightData(bank, isInLendingMode, extendedBanks).assetWeight,
+    [bank, extendedBanks, isInLendingMode]
   );
 
   const originalAssetWeight = React.useMemo(
     () =>
-      getAssetWeightData(bank, isInLendingMode, extendedBankInfos, bank.info.state.originalWeights.assetWeightInit)
+      getAssetWeightData(bank, isInLendingMode, extendedBanks, bank.info.state.originalWeights.assetWeightInit)
         .assetWeight,
-    [bank, extendedBankInfos, isInLendingMode]
+    [bank, extendedBanks, isInLendingMode]
   );
 
-  const solBank = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "SOL");
+  const solBank = extendedBanks.find((bank) => bank.meta.tokenSymbol === "SOL");
 
   if (variant === "simple") {
     return (
@@ -201,7 +212,7 @@ export const PortfolioAssetCard = ({
                     {isEmodeActive && (
                       <EmodePopover
                         bank={bank}
-                        extendedBanks={extendedBankInfos}
+                        extendedBanks={extendedBanks}
                         assetWeight={assetWeight}
                         originalAssetWeight={originalAssetWeight}
                         emodeActive={isEmodeActive}
@@ -366,7 +377,7 @@ export const PortfolioAssetCard = ({
                     {!isEmodeActive && bank.info.state.hasEmode ? (
                       <EmodePopover
                         bank={bank}
-                        extendedBanks={extendedBankInfos}
+                        extendedBanks={extendedBanks}
                         assetWeight={assetWeight}
                         originalAssetWeight={originalAssetWeight}
                         emodeActive={isEmodeActive}
@@ -450,7 +461,7 @@ export const PortfolioAssetCard = ({
                     return sigs[0];
                   },
                   onComplete: () => {
-                    fetchMrgnlendState();
+                    refreshUserData();
                   },
                   txns: {
                     transactions: [tx],
@@ -487,12 +498,12 @@ export const PortfolioAssetCard = ({
             isOpen={isMovePositionDialogOpen}
             setIsOpen={setIsMovePositionDialogOpen}
             selectedAccount={selectedAccount}
-            marginfiAccounts={marginfiAccounts}
+            marginfiAccounts={marginfiAccounts ?? []}
             bank={bank}
             marginfiClient={marginfiClient}
-            fetchMrgnlendState={fetchMrgnlendState}
-            extendedBankInfos={extendedBankInfos}
-            nativeSolBalance={nativeSolBalance}
+            fetchMrgnlendState={refreshUserData}
+            extendedBankInfos={extendedBanks}
+            nativeSolBalance={userBalances?.nativeSolBalance ?? 0}
             accountSummary={accountSummary}
             accountLabels={accountLabels}
           />
@@ -511,11 +522,10 @@ const PortfolioAction = ({
   requestedAction: ActionType;
   buttonVariant?: "default" | "outline" | "outline-dark" | "secondary";
 }) => {
-  const { walletContextState, connected } = useWallet();
-  const [fetchMrgnlendState, stakeAccounts] = useMrgnlendStore((state) => [
-    state.fetchMrgnlendState,
-    state.stakeAccounts,
-  ]);
+  const { walletContextState, connected, walletAddress } = useWallet();
+
+  const refreshUserData = useRefreshUserData(walletAddress);
+  const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
   const isDust = React.useMemo(() => requestedBank?.isActive && requestedBank?.position.isDust, [requestedBank]);
 
   const buttonText = React.useMemo(() => {
@@ -547,7 +557,7 @@ const PortfolioAction = ({
             capture(event, properties);
           },
           onComplete: () => {
-            fetchMrgnlendState();
+            refreshUserData();
           },
         }}
         isDialog={true}
@@ -573,7 +583,7 @@ const PortfolioAction = ({
             capture(event, properties);
           },
           onComplete: () => {
-            fetchMrgnlendState();
+            refreshUserData();
           },
         }}
         isDialog={true}

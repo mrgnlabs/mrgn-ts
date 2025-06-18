@@ -6,9 +6,9 @@ import { useRouter } from "next/router";
 import { IconBell, IconBrandTelegram, IconSearch, IconSettings } from "@tabler/icons-react";
 
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
-import { ResponsiveSettingsWrapper, Settings, Wallet } from "@mrgnlabs/mrgn-ui";
+import { ResponsiveSettingsWrapper, Settings, useWallet, Wallet } from "@mrgnlabs/mrgn-ui";
 
-import { useMrgnlendStore, useUiStore, useUserProfileStore } from "~/store";
+import {  useUiStore, useUserProfileStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 
 import { useConnection } from "~/hooks/use-connection";
@@ -16,6 +16,15 @@ import { useConnection } from "~/hooks/use-connection";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 import { IconMrgn } from "~/components/ui/icons";
+import {
+  useExtendedBanks,
+  useMarginfiAccountAddresses,
+  useMarginfiClient,
+  useRefreshUserData,
+  useUserBalances,
+  useWrappedMarginfiAccount,
+  useAccountSummary,
+} from "@mrgnlabs/mrgn-state";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
@@ -23,27 +32,18 @@ export const Navbar: FC = () => {
 
   const { connection } = useConnection();
   const router = useRouter();
-  const [
-    initialized,
-    userDataFetched,
-    mfiClient,
-    marginfiAccounts,
-    selectedAccount,
-    extendedBankInfos,
-    nativeSolBalance,
-    accountSummary,
-    fetchMrgnlendState,
-  ] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.userDataFetched,
-    state.marginfiClient,
-    state.marginfiAccounts,
-    state.selectedAccount,
-    state.extendedBankInfos,
-    state.nativeSolBalance,
-    state.accountSummary,
-    state.fetchMrgnlendState,
-  ]);
+  const { walletAddress } = useWallet();
+
+  const { marginfiClient } = useMarginfiClient();
+  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress);
+  const { data: marginfiAccounts, isSuccess: isSuccessMarginfiAccounts } = useMarginfiAccountAddresses(walletAddress);
+  const { data: userBalances, isSuccess: isSuccessUserBalances } = useUserBalances(walletAddress);
+  const { extendedBanks, isSuccess: isSuccessExtendedBanks } = useExtendedBanks(walletAddress);
+  const accountSummary = useAccountSummary(walletAddress);
+  const refreshUserData = useRefreshUserData(walletAddress);
+
+  const initialized = isSuccessExtendedBanks;
+  const userDataFetched = isSuccessMarginfiAccounts && isSuccessUserBalances;
 
   const {
     priorityType,
@@ -247,14 +247,14 @@ export const Navbar: FC = () => {
                 connection={connection}
                 initialized={initialized}
                 userDataFetched={userDataFetched}
-                mfiClient={mfiClient}
+                mfiClient={marginfiClient}
                 marginfiAccounts={marginfiAccounts}
                 selectedAccount={selectedAccount}
-                extendedBankInfos={extendedBankInfos}
-                nativeSolBalance={nativeSolBalance}
+                extendedBankInfos={extendedBanks}
+                nativeSolBalance={userBalances?.nativeSolBalance ?? 0}
                 userPointsData={userPointsData}
                 accountSummary={accountSummary}
-                refreshState={fetchMrgnlendState}
+                refreshState={refreshUserData}
                 processOpts={{
                   ...priorityFees,
                   broadcastType,

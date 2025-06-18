@@ -3,6 +3,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 
 import { MARGINFI_IDL, MarginfiIdlType, MarginfiProgram } from "@mrgnlabs/marginfi-client-v2";
 import { Wallet } from "@mrgnlabs/mrgn-common";
+import { getMarginfiAccountAddresses } from "@mrgnlabs/mrgn-state";
 
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
@@ -39,24 +40,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const authorityPk = new PublicKey(authority);
     const groupPk = new PublicKey(group);
 
-    const marginfiAccounts = (
-      await program.account.marginfiAccount.all([
-        {
-          memcmp: {
-            bytes: groupPk.toBase58(),
-            offset: 8, // marginfiGroup is the first field in the account, so only offset is the discriminant
-          },
-        },
-        {
-          memcmp: {
-            bytes: authorityPk.toBase58(),
-            offset: 8 + 32, // authority is the second field in the account after the authority, so offset by the discriminant and a pubkey
-          },
-        },
-      ])
-    ).map((a) => a.publicKey.toBase58());
+    const marginfiAccounts = await getMarginfiAccountAddresses(program, authorityPk, groupPk);
 
-    res.status(200).json({ marginfiAccounts });
+    res.status(200).json({ marginfiAccounts: marginfiAccounts.map((a) => a.toBase58()) });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Error processing request" });

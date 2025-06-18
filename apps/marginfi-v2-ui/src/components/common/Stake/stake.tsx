@@ -4,7 +4,6 @@ import Link from "next/link";
 import { StakeBoxProvider, StakeCalculator, useWallet } from "@mrgnlabs/mrgn-ui";
 import { IconCheck } from "@tabler/icons-react";
 
-import { useMrgnlendStore } from "~/store";
 import { IntegrationsData, LSTOverview, fetchLSTOverview } from "~/components/common/Stake/utils/stake-utils";
 
 import { Button } from "~/components/ui/button";
@@ -13,16 +12,20 @@ import { PageHeading } from "~/components/common/PageHeading";
 
 import { StakeCard, IntegrationCard, IntegrationCardSkeleton, MfiIntegrationCard } from "~/components/common/Stake";
 import { PublicKey } from "@solana/web3.js";
+import { useExtendedBanks, useRefreshUserData } from "@mrgnlabs/mrgn-state";
 
 const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
 
 const Stake = () => {
-  const { connected } = useWallet();
-  const [fetchMrgnlendState, extendedBankInfosWithoutStakedAssets] = useMrgnlendStore((state) => [
-    state.fetchMrgnlendState,
-    state.extendedBankInfosWithoutStakedAssets,
-  ]);
+  const { connected, walletAddress } = useWallet();
+  const { extendedBanks } = useExtendedBanks(walletAddress);
+  const refreshUserData = useRefreshUserData(walletAddress);
+
+  const extendedBankInfosWithoutStakedAssets = React.useMemo(() => {
+    return extendedBanks.filter((bank) => bank.info.rawBank.config.assetTag !== 2);
+  }, [extendedBanks]);
+
   const [integrations, setIntegrations] = React.useState<IntegrationsData[]>([]);
   const [lstOverview, setLstOverview] = React.useState<LSTOverview>();
 
@@ -148,7 +151,7 @@ const Stake = () => {
           </p>
           <div className="flex items-center justify-center flex-wrap gap-8 mt-10 w-full">
             {lstBank ? (
-              <MfiIntegrationCard lstBank={lstBank} connected={connected} fetchMrgnlendState={fetchMrgnlendState} />
+              <MfiIntegrationCard lstBank={lstBank} connected={connected} fetchMrgnlendState={refreshUserData} />
             ) : (
               <IntegrationCardSkeleton />
             )}

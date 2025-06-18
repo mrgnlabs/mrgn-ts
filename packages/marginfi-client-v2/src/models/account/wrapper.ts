@@ -443,14 +443,14 @@ class MarginfiAccountWrapper {
   async movePosition(
     amount: Amount,
     bankAddress: PublicKey,
-    destinationAccount: MarginfiAccountWrapper,
+    destinationAccountPk: PublicKey,
     processOpts?: ProcessTransactionsClientOpts,
     txOpts?: TransactionOptions
   ): Promise<TransactionSignature[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:move-position`);
     debug("Moving position from %s marginfi account", this.address.toBase58());
 
-    const { transactions, actionTxIndex } = await this.makeMovePositionTx(amount, bankAddress, destinationAccount);
+    const { transactions, actionTxIndex } = await this.makeMovePositionTx(amount, bankAddress, destinationAccountPk);
 
     const sigs = await this.client.processTransactions(transactions, processOpts, txOpts);
 
@@ -469,7 +469,7 @@ class MarginfiAccountWrapper {
   async makeMovePositionTx(
     amount: Amount,
     bankAddress: PublicKey,
-    destinationAccount: MarginfiAccountWrapper
+    destinationAccountPk: PublicKey
   ): Promise<TransactionBuilderResult> {
     const cuRequestIxs = this.makeComputeBudgetIx();
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([]);
@@ -515,6 +515,8 @@ class MarginfiAccountWrapper {
         type: TransactionType.MOVE_POSITION_WITHDRAW,
       }
     );
+
+    const destinationAccount = await MarginfiAccountWrapper.fetch(destinationAccountPk, this.client);
 
     const depositIx = await destinationAccount.makeDepositIx(amount, bankAddress);
     const tx = new Transaction().add(...depositIx.instructions);
