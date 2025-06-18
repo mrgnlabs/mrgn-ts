@@ -25,18 +25,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Get wallet address from authenticated user's metadata
-    const walletAddress = user.user_metadata?.wallet_address;
+    // Get account address from query parameter
+    const accountAddress = req.query.account;
 
-    if (!walletAddress) {
+    if (!accountAddress || typeof accountAddress !== "string") {
       return res.status(400).json({
-        error: "Wallet address not found in user profile",
+        error: "Account address is required",
       });
     }
 
-    // Call the interest earned aggregate function with authenticated user's selected accont
+    // Call the interest earned aggregate function with selected account
     const { data: interestData, error } = await supabase.schema("application").rpc("f_interest_earned_aggregate_6h", {
-      account_filter: "J7pez4qFgtTGvzfdNu7Q1sNyv5q1ydvFnPK4R44LrQi2",
+      account_filter: accountAddress,
     });
 
     if (error) {

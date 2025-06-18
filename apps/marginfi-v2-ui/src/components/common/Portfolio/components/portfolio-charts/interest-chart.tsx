@@ -6,7 +6,7 @@ import {
   usdFormatter,
 } from "@mrgnlabs/mrgn-common/dist/utils/formatters.utils";
 import React from "react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { Area, AreaChart, Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
 import { Card, CardContent } from "~/components/ui/card";
 import {
@@ -18,17 +18,11 @@ import {
   ChartLegendContent,
 } from "~/components/ui/chart";
 import { Loader } from "~/components/ui/loader";
-
-interface ChartDataPoint {
-  timestamp: string;
-  [bankSymbol: string]: number | string;
-}
+import { useInterestChart } from "../../hooks/use-interest-chart.hook";
 
 type InterestChartProps = {
-  chartData: ChartDataPoint[];
-  bankSymbols: string[];
-  loading: boolean;
-  error: string | null;
+  selectedAccount: string | null;
+  dataType: "earned" | "paid" | "total";
   variant?: "default" | "total"; // Add variant for total interest chart
 };
 
@@ -38,21 +32,20 @@ const generateChartColors = (bankSymbols: string[], variant: "default" | "total"
     // Special colors for total interest chart
     const totalColors: Record<string, string> = {
       "Total Earned": "hsl(var(--mrgn-success))", // Green for earned
-      "Total Paid": "hsl(var(--mrgn-error))", // Red for paid (negative)
-      "Net Interest": "hsl(220, 91%, 60%)", // Blue for net
+      "Total Paid": "hsl(var(--mrgn-warning))", // Yellow/Orange for paid
+      "Net Interest": "hsl(var(--mfi-chart-1))", // mfi-chart-1 for net
     };
     return totalColors;
   }
 
+  // Use the new mfi-chart variables for multi-bank interest charts
   const baseColors = [
-    "hsl(var(--mrgn-success))", // Green
-    "hsl(var(--mrgn-warning))", // Yellow/Orange
-    "hsl(var(--mrgn-error))", // Red
-    "hsl(var(--primary))", // Primary theme color
-    "hsl(220, 91%, 60%)", // Blue
-    "hsl(280, 91%, 60%)", // Purple
-    "hsl(340, 91%, 60%)", // Pink
-    "hsl(160, 91%, 60%)", // Teal
+    "hsl(var(--mfi-chart-1))",
+    "hsl(var(--mfi-chart-2))",
+    "hsl(var(--mfi-chart-3))",
+    "hsl(var(--mfi-chart-4))",
+    "hsl(var(--mfi-chart-5))",
+    "hsl(var(--mfi-chart-6))",
   ];
 
   const colors: Record<string, string> = {};
@@ -71,14 +64,17 @@ const formatDate = (dateStr: string) => {
   });
 };
 
-const InterestChart = ({ chartData, bankSymbols, loading, error, variant = "default" }: InterestChartProps) => {
+const InterestChart = ({ selectedAccount, dataType, variant = "default" }: InterestChartProps) => {
+  // Use the new hook
+  const { data: chartData, bankSymbols, error, isLoading } = useInterestChart(selectedAccount, dataType);
+
   const chartColors = React.useMemo(() => generateChartColors(bankSymbols, variant), [bankSymbols, variant]);
 
   const chartConfig = React.useMemo(() => {
     const config: ChartConfig = {};
-    bankSymbols.forEach((symbol) => {
+    bankSymbols.forEach((symbol: string) => {
       config[symbol] = {
-        label: `${symbol} Interest Earned`,
+        label: `${symbol} Interest`,
         color: chartColors[symbol],
       };
     });
@@ -86,13 +82,13 @@ const InterestChart = ({ chartData, bankSymbols, loading, error, variant = "defa
   }, [bankSymbols, chartColors]);
 
   // Calculate the min and max values for Y-axis domain
-  const { minValue, maxValue } = React.useMemo(() => {
-    if (!chartData.length) return { minValue: 0, maxValue: 0 };
+  const { minValue, maxValue, yAxisDomain } = React.useMemo(() => {
+    if (!chartData.length) return { minValue: 0, maxValue: 0, yAxisDomain: [0, 1] };
 
     let min = 0;
     let max = 0;
-    chartData.forEach((dataPoint) => {
-      bankSymbols.forEach((symbol) => {
+    chartData.forEach((dataPoint: any) => {
+      bankSymbols.forEach((symbol: string) => {
         const value = dataPoint[symbol] as number;
         if (typeof value === "number") {
           if (value > max) max = value;
@@ -100,13 +96,29 @@ const InterestChart = ({ chartData, bankSymbols, loading, error, variant = "defa
         }
       });
     });
-    return { minValue: min, maxValue: max };
-  }, [chartData, bankSymbols]);
 
-  if (loading) {
+    // For total interest chart, ensure 0 is properly centered and labeled
+    if (variant === "total" && (min < 0 || max > 0)) {
+      const absMax = Math.max(Math.abs(min), Math.abs(max));
+      const padding = absMax * 0.1;
+      return {
+        minValue: min,
+        maxValue: max,
+        yAxisDomain: [Math.floor((min - padding) * 100) / 100, Math.ceil((max + padding) * 100) / 100],
+      };
+    }
+
+    return {
+      minValue: min,
+      maxValue: max,
+      yAxisDomain: [min < 0 ? Math.floor(min * 1.1) : 0, max > 0 ? Math.ceil(max * 1.1) : 1],
+    };
+  }, [chartData, bankSymbols, variant]);
+
+  if (isLoading) {
     return (
       <div className="w-full h-[300px] flex items-center justify-center">
-        <Loader label="Loading interest earned data..." />
+        <Loader label="Loading interest data..." />
       </div>
     );
   }
@@ -115,8 +127,8 @@ const InterestChart = ({ chartData, bankSymbols, loading, error, variant = "defa
     return (
       <div className="w-full h-[300px] flex items-center justify-center">
         <div className="text-center text-muted-foreground">
-          <p>Failed to load interest earned data</p>
-          <p className="text-sm">{error}</p>
+          <p>Failed to load interest data</p>
+          <p className="text-sm">{error.message}</p>
         </div>
       </div>
     );
@@ -137,65 +149,117 @@ const InterestChart = ({ chartData, bankSymbols, loading, error, variant = "defa
     <div className="w-full h-[300px]">
       <ChartContainer config={chartConfig} className="h-full w-full -translate-x-3">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={chartData}
-            margin={{
-              top: 10,
-              right: 10,
-              bottom: 10,
-              left: 0,
-            }}
-          >
-            <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="timestamp"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={formatDate}
-              interval="preserveStartEnd"
-              minTickGap={50}
-              stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
-            />
-            <YAxis
-              tickFormatter={(value) => `$${dynamicNumeralFormatter(value)}`}
-              domain={[minValue < 0 ? Math.floor(minValue * 1.1) : 0, maxValue > 0 ? Math.ceil(maxValue * 1.1) : 1]}
-              axisLine={false}
-              tickLine={false}
-              width={65}
-              tickMargin={8}
-              stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent labelFormatter={(label) => formatDate(label as string)} />}
-            />
-            <ChartLegend content={<ChartLegendContent />} className="mt-2" />
-            <defs>
-              {bankSymbols.map((bankSymbol, index) => (
-                <linearGradient key={`${bankSymbol}Fill`} id={`${bankSymbol}Fill`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={chartColors[bankSymbol]} stopOpacity={0.3} />
-                  <stop offset="95%" stopColor={chartColors[bankSymbol]} stopOpacity={0.05} />
-                </linearGradient>
-              ))}
-            </defs>
-            {bankSymbols.map((bankSymbol, index) => (
-              <Area
-                key={bankSymbol}
-                dataKey={bankSymbol}
-                type="monotone"
-                fill={`url(#${bankSymbol}Fill)`}
-                fillOpacity={1}
-                stroke={chartColors[bankSymbol]}
-                strokeWidth={1.5}
-                name={`${bankSymbol} Interest Earned`}
-                isAnimationActive={false}
-                stackId={variant === "total" ? undefined : index > 0 ? "stack" : undefined} // Don't stack for total interest chart
+          {variant === "total" ? (
+            <LineChart
+              data={chartData}
+              margin={{
+                top: 10,
+                right: 10,
+                bottom: 10,
+                left: 0,
+              }}
+            >
+              <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="timestamp"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={formatDate}
+                interval="preserveStartEnd"
+                minTickGap={50}
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
               />
-            ))}
-          </AreaChart>
+              <YAxis
+                tickFormatter={(value: any) => `$${dynamicNumeralFormatter(value)}`}
+                domain={yAxisDomain}
+                axisLine={false}
+                tickLine={false}
+                width={65}
+                tickMargin={8}
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent labelFormatter={(label) => formatDate(label as string)} />}
+              />
+              <ChartLegend content={<ChartLegendContent />} className="mt-2" />
+              {bankSymbols.map((bankSymbol) => (
+                <Line
+                  key={bankSymbol}
+                  dataKey={bankSymbol}
+                  type="monotone"
+                  stroke={chartColors[bankSymbol]}
+                  strokeWidth={2}
+                  name={`${bankSymbol} Interest`}
+                  isAnimationActive={false}
+                  dot={false}
+                />
+              ))}
+            </LineChart>
+          ) : (
+            <AreaChart
+              data={chartData}
+              margin={{
+                top: 10,
+                right: 10,
+                bottom: 10,
+                left: 0,
+              }}
+            >
+              <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="timestamp"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={formatDate}
+                interval="preserveStartEnd"
+                minTickGap={50}
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+              />
+              <YAxis
+                tickFormatter={(value: any) => `$${dynamicNumeralFormatter(value)}`}
+                domain={yAxisDomain}
+                axisLine={false}
+                tickLine={false}
+                width={65}
+                tickMargin={8}
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent labelFormatter={(label) => formatDate(label as string)} />}
+              />
+              <ChartLegend content={<ChartLegendContent />} className="mt-2" />
+              <defs>
+                {bankSymbols.map((bankSymbol, index) => (
+                  <linearGradient key={`${bankSymbol}Fill`} id={`${bankSymbol}Fill`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={chartColors[bankSymbol]} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={chartColors[bankSymbol]} stopOpacity={0.05} />
+                  </linearGradient>
+                ))}
+              </defs>
+              {bankSymbols.map((bankSymbol, index) => (
+                <Area
+                  key={bankSymbol}
+                  dataKey={bankSymbol}
+                  type="monotone"
+                  fill={`url(#${bankSymbol}Fill)`}
+                  fillOpacity={1}
+                  stroke={chartColors[bankSymbol]}
+                  strokeWidth={1.5}
+                  name={`${bankSymbol} Interest Earned`}
+                  isAnimationActive={false}
+                  stackId={index > 0 ? "stack" : undefined}
+                />
+              ))}
+            </AreaChart>
+          )}
         </ResponsiveContainer>
       </ChartContainer>
     </div>

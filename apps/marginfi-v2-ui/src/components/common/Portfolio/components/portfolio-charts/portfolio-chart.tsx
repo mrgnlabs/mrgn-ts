@@ -6,7 +6,7 @@ import {
   usdFormatter,
 } from "@mrgnlabs/mrgn-common/dist/utils/formatters.utils";
 import React from "react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { Area, AreaChart, Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
 import { Card, CardContent } from "~/components/ui/card";
 import {
@@ -17,27 +17,15 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "~/components/ui/chart";
+import { Loader } from "~/components/ui/loader";
+import { usePortfolioChart } from "../../hooks/use-portfolio-chart.hook";
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type PortfolioChartProps = {
-  deposits: number;
-  borrows: number;
+  variant: "deposits" | "borrows" | "net";
+  selectedAccount: any;
+  banks: ExtendedBankInfo[];
 };
-
-const chartColors = {
-  primary: "hsl(var(--mrgn-success))",
-  secondary: "hsl(var(--mrgn-warning))",
-} as const;
-
-const chartConfig = {
-  deposits: {
-    label: "Supplied",
-    color: chartColors.primary,
-  },
-  borrows: {
-    label: "Borrowed",
-    color: chartColors.secondary,
-  },
-} satisfies ChartConfig;
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -47,44 +35,82 @@ const formatDate = (dateStr: string) => {
   });
 };
 
-const generateMockData = (deposits: number, borrows: number) => {
-  const data = [];
-  const now = new Date();
-  const depositsVolatility = deposits * 0.6;
-  const borrowsVolatility = borrows * 0.6;
+const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps) => {
+  const accountAddress = selectedAccount.address.toBase58();
 
-  for (let i = 30; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
+  const { data: chartData, bankSymbols, error, isLoading } = usePortfolioChart(accountAddress, variant, banks);
 
-    const depositsRandomFactor = Math.random() * 2 - 1;
-    const borrowsRandomFactor = Math.random() * 2 - 1;
+  // Dynamic chart config with new color scheme
+  const dynamicChartConfig = React.useMemo(() => {
+    const config: ChartConfig = {};
 
-    const depositsDailyChange = depositsVolatility * depositsRandomFactor;
-    const borrowsDailyChange = borrowsVolatility * borrowsRandomFactor;
+    // For net variant, use mfi-chart colors
+    if (variant === "net") {
+      const chartColors = ["hsl(var(--mfi-chart-1))", "hsl(var(--mfi-chart-2))"];
 
-    const depositsValue = Math.max(0, deposits + depositsDailyChange * (i / 30));
-    const borrowsValue = Math.max(0, borrows + borrowsDailyChange * (i / 30));
+      bankSymbols.forEach((symbol, index) => {
+        config[symbol] = {
+          label: symbol,
+          color: chartColors[index % chartColors.length],
+        };
+      });
+    } else {
+      // For multi-bank charts, use the new mfi-chart variables
+      const chartColors = [
+        "hsl(var(--mfi-chart-1))",
+        "hsl(var(--mfi-chart-2))",
+        "hsl(var(--mfi-chart-3))",
+        "hsl(var(--mfi-chart-4))",
+        "hsl(var(--mfi-chart-5))",
+        "hsl(var(--mfi-chart-6))",
+      ];
 
-    data.push({
-      timestamp: date.toISOString(),
-      deposits: depositsValue,
-      borrows: borrowsValue,
-    });
+      bankSymbols.forEach((symbol, index) => {
+        config[symbol] = {
+          label: symbol,
+          color: chartColors[index % chartColors.length],
+        };
+      });
+    }
+
+    return config;
+  }, [variant, bankSymbols]);
+
+  // Calculate Y-axis domain - all positive values now
+  const yAxisDomain = React.useMemo(() => {
+    return [0, "auto"];
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-[300px] flex items-center justify-center">
+        <Loader label="Loading portfolio data..." />
+      </div>
+    );
   }
 
-  return data;
-};
+  if (error) {
+    return (
+      <div className="w-full h-[300px] flex items-center justify-center">
+        <p className="text-muted-foreground">{error.message}</p>
+      </div>
+    );
+  }
 
-const PortfolioChart = ({ deposits, borrows }: PortfolioChartProps) => {
-  const mockData = React.useMemo(() => generateMockData(deposits, borrows), [deposits, borrows]);
+  if (!chartData || chartData.length === 0) {
+    return (
+      <div className="w-full h-[300px] flex items-center justify-center">
+        <p className="text-muted-foreground">No portfolio data available</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-[300px]">
-      <ChartContainer config={chartConfig} className="h-full w-full -translate-x-3">
+      <ChartContainer config={dynamicChartConfig} className="h-full w-full -translate-x-3">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            data={mockData}
+            data={chartData}
             margin={{
               top: 10,
               right: 10,
@@ -105,8 +131,8 @@ const PortfolioChart = ({ deposits, borrows }: PortfolioChartProps) => {
               fontSize={12}
             />
             <YAxis
-              tickFormatter={(value) => `$${dynamicNumeralFormatter(value)}`}
-              domain={[0, "auto"]}
+              tickFormatter={(value: any) => `$${dynamicNumeralFormatter(value)}`}
+              domain={yAxisDomain}
               axisLine={false}
               tickLine={false}
               width={65}
@@ -120,35 +146,34 @@ const PortfolioChart = ({ deposits, borrows }: PortfolioChartProps) => {
             />
             <ChartLegend content={<ChartLegendContent />} className="mt-2" />
             <defs>
-              <linearGradient id="depositsFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={chartColors.primary} stopOpacity={0.2} />
-                <stop offset="95%" stopColor={chartColors.primary} stopOpacity={0.05} />
-              </linearGradient>
-              <linearGradient id="borrowsFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={chartColors.secondary} stopOpacity={0.2} />
-                <stop offset="95%" stopColor={chartColors.secondary} stopOpacity={0.05} />
-              </linearGradient>
+              {bankSymbols.map((symbol, index) => {
+                const color = (dynamicChartConfig as any)[symbol]?.color || "hsl(var(--mfi-chart-1))";
+                const uniqueId = `${variant}-${symbol.replace(/\s+/g, "")}-Fill`;
+                return (
+                  <linearGradient key={uniqueId} id={uniqueId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={color} stopOpacity={0.05} />
+                  </linearGradient>
+                );
+              })}
             </defs>
-            <Area
-              dataKey="deposits"
-              type="monotone"
-              fill="url(#depositsFill)"
-              fillOpacity={1}
-              stroke={chartColors.primary}
-              strokeWidth={1.5}
-              name="Supplied"
-              isAnimationActive={false}
-            />
-            <Area
-              dataKey="borrows"
-              type="monotone"
-              fill="url(#borrowsFill)"
-              fillOpacity={1}
-              stroke={chartColors.secondary}
-              strokeWidth={1.5}
-              name="Borrowed"
-              isAnimationActive={false}
-            />
+            {bankSymbols.map((symbol, index) => {
+              const uniqueId = `${variant}-${symbol.replace(/\s+/g, "")}-Fill`;
+              return (
+                <Area
+                  key={symbol}
+                  dataKey={symbol}
+                  type="monotone"
+                  fill={`url(#${uniqueId})`}
+                  fillOpacity={1}
+                  stroke={(dynamicChartConfig as any)[symbol]?.color || "hsl(var(--mfi-chart-1))"}
+                  strokeWidth={1.5}
+                  name={symbol}
+                  isAnimationActive={false}
+                  stackId={variant === "net" ? undefined : "portfolio"}
+                />
+              );
+            })}
           </AreaChart>
         </ResponsiveContainer>
       </ChartContainer>
