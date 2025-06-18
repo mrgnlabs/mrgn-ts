@@ -16,6 +16,7 @@ export const fetchRawBanks = async (addresses: Address[]): Promise<BankRawDatas[
   const program = getConfig().program;
 
   const banks = await fetchMultipleBanks(program, { bankAddresses: addresses });
+
   return banks;
 };
 
@@ -38,13 +39,10 @@ export const fetchMintData = async (addresses: Address[]): Promise<RawMintData[]
     )
   );
 
-  const mintDatas = (
-    (await Promise.all(responses.map((response) => response.json()))) as {
-      tokenProgram: string;
-      decimals: number;
-      mint: string;
-    }[]
-  )
+  const mintDatas = (await Promise.all(responses.map((response) => response.json())))
+    .map((responseData: Record<string, { tokenProgram: string; decimals: number; mint: string }>) =>
+      Object.values(responseData)
+    )
     .flat()
     .map((d) => {
       return {
@@ -53,6 +51,7 @@ export const fetchMintData = async (addresses: Address[]): Promise<RawMintData[]
         tokenProgram: new PublicKey(d.tokenProgram),
       };
     });
+
   return mintDatas;
 };
 

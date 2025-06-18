@@ -16,9 +16,9 @@ export function useActiveStakePoolMap() {
         throw new Error("Required data not available for fetching active stake pools");
       }
 
-      const voteAccounts = Object.values(metadata.bankMetadataMap)
+      const voteAccounts: PublicKey[] = Object.values(metadata.bankMetadataMap)
         .map((bank) => (bank.validatorVoteAccount ? new PublicKey(bank.validatorVoteAccount) : undefined))
-        .filter((account) => account !== undefined);
+        .filter((account): account is PublicKey => account !== undefined);
 
       return await fetchActiveStakePoolMap(voteAccounts);
     },
@@ -44,9 +44,9 @@ export function useStakePoolMevMap() {
         throw new Error("Required data not available for fetching stake pool mev map");
       }
 
-      const voteAccounts = Object.values(metadata.bankMetadataMap)
+      const voteAccounts: PublicKey[] = Object.values(metadata.bankMetadataMap)
         .map((bank) => (bank.validatorVoteAccount ? new PublicKey(bank.validatorVoteAccount) : undefined))
-        .filter((account) => account !== undefined);
+        .filter((account): account is PublicKey => account !== undefined);
 
       return await fetchStakePoolMevMap(voteAccounts);
     },
@@ -72,9 +72,9 @@ export function useValidatorRates() {
         throw new Error("Required data not available for fetching validator rates");
       }
 
-      const voteAccounts = Object.values(metadata.bankMetadataMap)
+      const voteAccounts: PublicKey[] = Object.values(metadata.bankMetadataMap)
         .map((bank) => (bank.validatorVoteAccount ? new PublicKey(bank.validatorVoteAccount) : undefined))
-        .filter((account) => account !== undefined);
+        .filter((account): account is PublicKey => account !== undefined);
 
       return await fetchValidatorRates(voteAccounts);
     },

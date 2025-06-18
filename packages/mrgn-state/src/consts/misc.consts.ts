@@ -1,6 +1,6 @@
-const VOLATILITY_FACTOR = 0.975;
+export const VOLATILITY_FACTOR = 0.975;
 
-const DEFAULT_ACCOUNT_SUMMARY = {
+export const DEFAULT_ACCOUNT_SUMMARY = {
   healthFactor: 0,
   balanceEquity: 0,
   lendingAmountEquity: 0,
@@ -13,4 +13,4 @@ const DEFAULT_ACCOUNT_SUMMARY = {
   healthSimFailed: false,
 };
 
-export { DEFAULT_ACCOUNT_SUMMARY, VOLATILITY_FACTOR };
+export const FEE_MARGIN = 0.01;

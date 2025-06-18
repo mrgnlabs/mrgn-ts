@@ -74,7 +74,7 @@ export function useMarginfiAccount(authority: PublicKey | undefined) {
 export function useUserBalances(authority: PublicKey | undefined) {
   const { data: mintData, isSuccess: isSuccesMintData, isError: isErrorMintData } = useMintData();
 
-  return useQuery<{ nativeSolBalance: number; ataList: TokenAccount[] } | null, Error>({
+  return useQuery<{ nativeSolBalance: number; ataList: TokenAccount[] }, Error>({
     queryKey: ["userBalance", authority?.toBase58() ?? null],
     queryFn: async () => {
       if (!mintData) {

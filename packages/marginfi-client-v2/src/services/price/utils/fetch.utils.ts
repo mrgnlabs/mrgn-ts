@@ -360,8 +360,6 @@ const fetchSwbDataViaAPI = async (
 
   const swbOracleKeyMapJson: Record<string, { feedId: string }> = await swbOracleKeyMapResponse.json();
 
-  console.log("swbOracleKeyMapJson", swbOracleKeyMapJson);
-
   return { oracleKeyMap: swbOracleKeyMapJson };
 };
 

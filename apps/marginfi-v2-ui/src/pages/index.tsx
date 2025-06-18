@@ -28,6 +28,8 @@ import {
   useMarginfiClient,
   useBanks,
   useMarginfiAccount,
+  useExtendedBanks,
+  useMintData,
 } from "@mrgnlabs/mrgn-state";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
@@ -38,6 +40,10 @@ export default function HomePage() {
   const router = useRouter();
 
   const { walletContextState, walletAddress, isOverride, connected } = useWallet();
+
+  const { extendedBanks } = useExtendedBanks();
+
+  console.log("extendedBanks", extendedBanks);
 
   // const { data: metadata, error: metadataError } = useMetadata();
   // const { data: oracleData, error: oracleError } = useOracleData();

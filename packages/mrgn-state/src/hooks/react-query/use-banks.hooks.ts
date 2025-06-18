@@ -11,8 +11,8 @@ export function useRawBanks() {
     queryKey: ["rawBanks"],
     queryFn: () => fetchRawBanks(metadata.data?.bankAddresses ?? []),
     enabled: metadata.isSuccess,
-    staleTime: 60_000, // 1 minute
-    refetchInterval: 60_000,
+    staleTime: 0, // 1 minute
+    refetchInterval: 0,
     retry: 2,
   });
 }
@@ -20,17 +20,22 @@ export function useRawBanks() {
 export function useMintData() {
   const metadata = useMetadata();
 
-  const tokenAddresses = metadata.data?.bankMetadataMap
-    ? Object.values(metadata.data.bankMetadataMap).map((t) => t.tokenAddress)
-    : [];
+  console.log("success", metadata.isSuccess);
 
   return useQuery<RawMintData[], Error>({
     queryKey: ["mintData"],
-    queryFn: () => fetchMintData(tokenAddresses),
+    queryFn: () => {
+      if (!metadata.data) {
+        throw new Error("Required data not available for fetching mint data");
+      }
+
+      const tokenAddresses = Object.values(metadata.data.bankMetadataMap).map((t) => t.tokenAddress);
+      return fetchMintData(tokenAddresses);
+    },
     enabled: metadata.isSuccess,
     staleTime: 60_000, // 1 minute
     refetchInterval: 60_000,
-    retry: 1,
+    retry: 2,
   });
 }
 
