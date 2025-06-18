@@ -178,11 +178,13 @@ const transformTotalPortfolioData = (
   // Convert to chart format
   const chartData: ChartDataPoint[] = allDates.map((dateStr) => {
     const totals = dailyTotals[dateStr];
+    const netValue = totals.deposits - totals.borrows;
 
     return {
       timestamp: `${dateStr}T12:00:00.000Z`,
       "Total Deposits": totals.deposits,
-      "Total Borrows": totals.borrows, // Keep borrows positive
+      "Total Borrows": -totals.borrows, // Make borrows negative for display below 0
+      "Net Portfolio": netValue,
     };
   });
 
@@ -197,7 +199,7 @@ const transformTotalPortfolioData = (
 
   return {
     chartData,
-    bankSymbols: ["Total Deposits", "Total Borrows"],
+    bankSymbols: ["Total Deposits", "Total Borrows", "Net Portfolio"],
   };
 };
 

@@ -64,8 +64,9 @@
     --mfi-chart-4: 176.1 69.4% 21.8%;
     --mfi-chart-5: 295.4 70.2% 32.9%;
     --mfi-chart-6: 22.7 82.5% 31.4%;
-    --mfi-chart-positive: 163.1 88.1% 19.8%;
-    --mfi-chart-negative: 22.7 82.5% 31.4%;
+    --mfi-chart-positive: 176.1 69.4% 21.8%;
+    --mfi-chart-negative: 31.8 81% 28.8%;
+    --mfi-chart-neutral: 201 90% 27.5%;
   }
 }
 

@@ -33,7 +33,7 @@ const generateChartColors = (bankSymbols: string[], variant: "default" | "total"
     const totalColors: Record<string, string> = {
       "Total Earned": "hsl(var(--mfi-chart-positive))", // Green for earned
       "Total Paid": "hsl(var(--mfi-chart-negative))", // Red for paid
-      "Net Interest": "hsl(var(--mfi-chart-1))", // mfi-chart-1 for net
+      "Net Interest": "hsl(var(--mfi-chart-neutral))", // mfi-chart-neutral for net
     };
     return totalColors;
   }
@@ -170,7 +170,7 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
       <ChartContainer config={chartConfig} className="h-full w-full -translate-x-3">
         <ResponsiveContainer width="100%" height="100%">
           {variant === "total" ? (
-            <LineChart
+            <AreaChart
               data={chartData}
               margin={{
                 top: 10,
@@ -207,19 +207,57 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
                 content={<ChartTooltipContent labelFormatter={(label) => formatDate(label as string)} />}
               />
               <ChartLegend content={<ChartLegendContent />} className="mt-2" />
-              {bankSymbols.map((bankSymbol) => (
-                <Line
-                  key={bankSymbol}
-                  dataKey={bankSymbol}
-                  type="monotone"
-                  stroke={chartColors[bankSymbol]}
-                  strokeWidth={2}
-                  name={`${bankSymbol} Interest`}
-                  isAnimationActive={false}
-                  dot={false}
-                />
-              ))}
-            </LineChart>
+              <defs>
+                {bankSymbols
+                  .filter((symbol) => symbol !== "Net Interest")
+                  .map((bankSymbol) => {
+                    const color = chartColors[bankSymbol];
+                    const uniqueId = `total-${bankSymbol.replace(/\s+/g, "")}-Fill`;
+                    return (
+                      <linearGradient key={uniqueId} id={uniqueId} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+                        <stop offset="95%" stopColor={color} stopOpacity={0.05} />
+                      </linearGradient>
+                    );
+                  })}
+              </defs>
+              {bankSymbols.map((bankSymbol) => {
+                if (bankSymbol === "Net Interest") {
+                  // Render net interest as a transparent area (appears as line on top)
+                  return (
+                    <Area
+                      key={bankSymbol}
+                      dataKey={bankSymbol}
+                      type="monotone"
+                      fill="transparent"
+                      fillOpacity={0}
+                      stroke={chartColors[bankSymbol]}
+                      strokeWidth={2}
+                      name={`${bankSymbol} Interest`}
+                      isAnimationActive={false}
+                      stackId={undefined}
+                    />
+                  );
+                } else {
+                  // Render main data with gradients
+                  const uniqueId = `total-${bankSymbol.replace(/\s+/g, "")}-Fill`;
+                  return (
+                    <Area
+                      key={bankSymbol}
+                      dataKey={bankSymbol}
+                      type="monotone"
+                      fill={`url(#${uniqueId})`}
+                      fillOpacity={1}
+                      stroke={chartColors[bankSymbol]}
+                      strokeWidth={2}
+                      name={`${bankSymbol} Interest`}
+                      isAnimationActive={false}
+                      stackId={undefined} // No stacking for individual areas
+                    />
+                  );
+                }
+              })}
+            </AreaChart>
           ) : (
             <AreaChart
               data={chartData}
