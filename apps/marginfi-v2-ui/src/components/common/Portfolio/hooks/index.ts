@@ -6,6 +6,7 @@ export {
   usePortfolioData,
   type UsePortfolioDataReturn,
   type EnrichedPortfolioDataPoint,
+  type StatsData,
 } from "./use-portfolio-data.hook";
 export { useInterestData, type UseInterestDataReturn, type InterestEarnedDataPoint } from "./use-interest-data.hook";
 

@@ -45,9 +45,34 @@ interface InterestEarnedDataPoint {
 
 interface UseInterestDataReturn {
   data: InterestEarnedDataPoint[];
+  latestNetInterest: number; // Latest net interest (earned - paid)
   error: Error | null;
   isLoading: boolean;
 }
+
+// Calculate latest net interest (earned - paid)
+const calculateLatestNetInterest = (data: InterestEarnedDataPoint[]): number => {
+  if (!data.length) return 0;
+
+  // Get latest data per bank (since cumulative values, we want the most recent)
+  const latestByBank: Record<string, InterestEarnedDataPoint> = {};
+
+  data.forEach((item) => {
+    const key = item.bank_address;
+    if (!latestByBank[key] || new Date(item.bank_snapshot_time) > new Date(latestByBank[key].bank_snapshot_time)) {
+      latestByBank[key] = item;
+    }
+  });
+
+  // Sum across banks
+  const totalEarned = Object.values(latestByBank).reduce(
+    (sum, item) => sum + item.cumulative_interest_earned_usd_close,
+    0
+  );
+  const totalPaid = Object.values(latestByBank).reduce((sum, item) => sum + item.cumulative_interest_paid_usd_close, 0);
+
+  return totalEarned - totalPaid;
+};
 
 const useInterestData = (selectedAccount: string | null): UseInterestDataReturn => {
   const [data, setData] = React.useState<InterestEarnedDataPoint[]>([]);
@@ -87,7 +112,10 @@ const useInterestData = (selectedAccount: string | null): UseInterestDataReturn 
     fetchInterestData();
   }, [selectedAccount]);
 
-  return { data, error, isLoading };
+  // Calculate latest net interest
+  const latestNetInterest = React.useMemo(() => calculateLatestNetInterest(data), [data]);
+
+  return { data, latestNetInterest, error, isLoading };
 };
 
 export { useInterestData, type UseInterestDataReturn, type InterestEarnedDataPoint };

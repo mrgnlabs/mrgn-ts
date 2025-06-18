@@ -27,11 +27,97 @@ interface EnrichedPortfolioDataPoint extends PortfolioDataPoint {
   net_value_usd: number; // Recalculated with oracle prices
 }
 
+interface StatsData {
+  value: number; // Current value
+  change: number; // Absolute change over 7 days
+  changePercent: number; // Percentage change over 7 days
+}
+
 interface UsePortfolioDataReturn {
   data: EnrichedPortfolioDataPoint[];
+  supplied7d: StatsData;
+  borrowed7d: StatsData;
+  netValue7d: StatsData;
   error: Error | null;
   isLoading: boolean;
 }
+
+// Calculate 7-day portfolio statistics
+const calculatePortfolioStats = (
+  data: EnrichedPortfolioDataPoint[]
+): {
+  supplied7d: StatsData;
+  borrowed7d: StatsData;
+  netValue7d: StatsData;
+} => {
+  if (!data.length) {
+    const emptyStats: StatsData = { value: 0, change: 0, changePercent: 0 };
+    return {
+      supplied7d: emptyStats,
+      borrowed7d: emptyStats,
+      netValue7d: emptyStats,
+    };
+  }
+
+  // Group by date and sum across banks
+  const dailyTotals: Record<string, { deposits: number; borrows: number }> = {};
+
+  data.forEach((item) => {
+    const date = item.bucket_start.split("T")[0]; // Get YYYY-MM-DD
+    if (!dailyTotals[date]) {
+      dailyTotals[date] = { deposits: 0, borrows: 0 };
+    }
+    dailyTotals[date].deposits += item.deposit_value_usd;
+    dailyTotals[date].borrows += item.borrow_value_usd;
+  });
+
+  const sortedDates = Object.keys(dailyTotals).sort();
+  if (sortedDates.length === 0) {
+    const emptyStats: StatsData = { value: 0, change: 0, changePercent: 0 };
+    return {
+      supplied7d: emptyStats,
+      borrowed7d: emptyStats,
+      netValue7d: emptyStats,
+    };
+  }
+
+  // Get latest and 7-days-ago data points
+  const latest = dailyTotals[sortedDates[sortedDates.length - 1]];
+  const sevenDaysAgoIndex = Math.max(0, sortedDates.length - 8); // -8 to get 7 full days difference
+  const sevenDaysAgo = dailyTotals[sortedDates[sevenDaysAgoIndex]];
+
+  // Calculate supplied stats
+  const suppliedChange = latest.deposits - sevenDaysAgo.deposits;
+  const suppliedChangePercent = sevenDaysAgo.deposits !== 0 ? (suppliedChange / sevenDaysAgo.deposits) * 100 : 0;
+
+  // Calculate borrowed stats
+  const borrowedChange = latest.borrows - sevenDaysAgo.borrows;
+  const borrowedChangePercent = sevenDaysAgo.borrows !== 0 ? (borrowedChange / sevenDaysAgo.borrows) * 100 : 0;
+
+  // Calculate net value stats
+  const latestNet = latest.deposits - latest.borrows;
+  const sevenDaysAgoNet = sevenDaysAgo.deposits - sevenDaysAgo.borrows;
+  const netChange = latestNet - sevenDaysAgoNet;
+  const netChangePercent = sevenDaysAgoNet !== 0 ? (netChange / Math.abs(sevenDaysAgoNet)) * 100 : 0;
+
+  return {
+    supplied7d: {
+      value: latest.deposits,
+      change: suppliedChange,
+      changePercent: suppliedChangePercent,
+    },
+    borrowed7d: {
+      value: latest.borrows,
+      change: borrowedChange,
+      changePercent: borrowedChangePercent,
+    },
+    netValue7d: {
+      value: latestNet,
+      change: netChange,
+      changePercent: netChangePercent,
+    },
+  };
+};
 
 const usePortfolioData = (selectedAccount: string | null, banks: ExtendedBankInfo[]): UsePortfolioDataReturn => {
   const [data, setData] = React.useState<EnrichedPortfolioDataPoint[]>([]);
@@ -98,7 +184,17 @@ const usePortfolioData = (selectedAccount: string | null, banks: ExtendedBankInf
     fetchPortfolioData();
   }, [selectedAccount, banks]);
 
-  return { data, error, isLoading };
+  // Calculate portfolio statistics
+  const stats = React.useMemo(() => calculatePortfolioStats(data), [data]);
+
+  return {
+    data,
+    supplied7d: stats.supplied7d,
+    borrowed7d: stats.borrowed7d,
+    netValue7d: stats.netValue7d,
+    error,
+    isLoading,
+  };
 };
 
-export { usePortfolioData, type UsePortfolioDataReturn, type EnrichedPortfolioDataPoint };
+export { usePortfolioData, type UsePortfolioDataReturn, type EnrichedPortfolioDataPoint, type StatsData };
