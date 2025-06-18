@@ -1,20 +1,54 @@
 import { IconClockHour4, IconInfoCircle } from "@tabler/icons-react";
+import { usdFormatter } from "@mrgnlabs/mrgn-common";
+
+interface StatsData {
+  value: number;
+  change: number;
+  changePercent: number;
+}
 
 interface PortfolioUserStatsProps {
   supplied: string;
   borrowed: string;
   netValue: string;
   points: string;
+  supplied7d?: StatsData;
+  borrowed7d?: StatsData;
+  netValue7d?: StatsData;
+  latestNetInterest?: number;
 }
 
-export const PortfolioUserStats = ({ supplied, borrowed, netValue }: PortfolioUserStatsProps) => {
+// Helper function to format change value and percentage
+const formatChange = (change: number, changePercent: number) => {
+  const isPositive = change >= 0;
+  const colorClass = isPositive ? "text-mrgn-success" : "text-mrgn-warning";
+  const sign = isPositive ? "+" : "";
+
+  return (
+    <span className={`text-sm font-light ${colorClass}`}>
+      {sign}
+      {usdFormatter.format(change)} ({sign}
+      {changePercent.toFixed(1)}%)
+    </span>
+  );
+};
+
+export const PortfolioUserStats = ({
+  supplied,
+  borrowed,
+  netValue,
+  supplied7d,
+  borrowed7d,
+  netValue7d,
+  latestNetInterest,
+}: PortfolioUserStatsProps) => {
   return (
     <div className="flex justify-between flex-wrap gap-y-4">
       <Stat
         label="Supplied"
         value={
           <>
-            {supplied} <span className="text-sm font-light text-mrgn-success">+$10 (12%)</span>
+            {supplied} {supplied7d && formatChange(supplied7d.change, supplied7d.changePercent)}
           </>
         }
       />
@@ -22,7 +56,7 @@ export const PortfolioUserStats = ({ supplied, borrowed, netValue }: PortfolioUs
         label="Borrowed"
         value={
           <>
-            {borrowed} <span className="text-sm font-light text-mrgn-success">+$10 (12%)</span>
+            {borrowed} {borrowed7d && formatChange(borrowed7d.change, borrowed7d.changePercent)}
           </>
         }
       />
@@ -30,7 +64,7 @@ export const PortfolioUserStats = ({ supplied, borrowed, netValue }: PortfolioUs
         label="Net value"
         value={
           <>
-            {netValue} <span className="text-sm font-light text-mrgn-success">+$10 (12%)</span>
+            {netValue} {netValue7d && formatChange(netValue7d.change, netValue7d.changePercent)}
           </>
         }
       />
@@ -38,7 +72,8 @@ export const PortfolioUserStats = ({ supplied, borrowed, netValue }: PortfolioUs
         label="Interest earned"
         value={
           <>
-            $5.15 <span className="text-sm font-light text-mrgn-success">+$10 (12%)</span>
+            {latestNetInterest !== undefined ? usdFormatter.format(latestNetInterest) : "$0.00"}{" "}
+            <span className="text-sm font-light text-muted-foreground">(total net interest)</span>
           </>
         }
       />

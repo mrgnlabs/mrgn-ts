@@ -45,7 +45,7 @@ import {
   InterestChart,
 } from "./components";
 import { RewardsType } from "./types";
-import { useRewardSimulation } from "./hooks";
+import { useRewardSimulation, usePortfolioData, useInterestData } from "./hooks";
 import { EmodePortfolio } from "~/components/common/emode/components";
 import { useEmodeLineConnections } from "~/components/common/emode/hooks";
 import { IconLoader, IconEmode } from "~/components/ui/icons";
@@ -115,6 +115,22 @@ export const LendingPortfolio = () => {
   const [rewardsToast, setRewardsToast] = React.useState<CustomToastType | null>(null);
 
   // Removed old interest state - now handled by hooks
+
+  // Fetch portfolio and interest data for user stats
+  const {
+    supplied7d,
+    borrowed7d,
+    netValue7d,
+    error: portfolioError,
+    isLoading: portfolioLoading,
+  } = usePortfolioData(selectedAccount?.address.toBase58() || null, sortedBanks);
+
+  const {
+    latestNetInterest,
+    error: interestError,
+    isLoading: interestLoading,
+  } = useInterestData(selectedAccount?.address.toBase58() || null);
+
 
   const hasMultipleAccount = React.useMemo(() => marginfiAccounts && marginfiAccounts.length > 1, [marginfiAccounts]);
   const { handleSimulation } = useRewardSimulation({
@@ -546,6 +562,10 @@ export const LendingPortfolio = () => {
               borrowed={accountBorrowed}
               netValue={accountNetValue}
               points={numeralFormatter(userPointsData.totalPoints)}
+              supplied7d={supplied7d}
+              borrowed7d={borrowed7d}
+              netValue7d={netValue7d}
+              latestNetInterest={latestNetInterest}
             />
           </div>
         </div>
