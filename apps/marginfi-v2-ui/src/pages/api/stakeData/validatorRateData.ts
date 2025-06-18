@@ -1,15 +1,6 @@
-import { Connection, PublicKey } from "@solana/web3.js";
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { fetchStakePoolActiveStates } from "@mrgnlabs/marginfi-client-v2";
-
-type ValidatorInfoResponse = {
-  data?: {
-    total_apy: number;
-    staking_apy: number;
-  };
-  error?: string;
-};
+import { ValidatorRateData } from "@mrgnlabs/marginfi-client-v2";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -34,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const validatorVoteAccounts = voteAccounts.split(",");
 
-    const validatorRates = await Promise.all(
+    const validatorRates: ValidatorRateData[] = await Promise.all(
       validatorVoteAccounts.map(async (validatorVoteAccount) => {
         const validatorResponse = await fetch(`${process.env.VALIDATOR_API_URL}/${validatorVoteAccount}`);
         if (!validatorResponse.ok) {

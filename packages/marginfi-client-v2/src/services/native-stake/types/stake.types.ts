@@ -55,3 +55,19 @@ export type StakeAccount = {
     creditsObserved: bigint;
   };
 };
+
+export type StakePoolMevMap = Map<
+  string,
+  {
+    pool: number;
+    onramp: number;
+  }
+>;
+
+export type ValidatorRateData = {
+  validator: string;
+  totalApy: number;
+  stakingApy: number;
+};
+
+export type ActiveStakePoolMap = Map<string, boolean>;

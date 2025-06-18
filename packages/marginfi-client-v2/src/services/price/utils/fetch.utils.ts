@@ -51,7 +51,7 @@ const fetchPythDataViaAPI = async (
       pythPushBanks.map((bank) => bank.data.config.oracleKeys[0].toBase58()).join(",")
   );
   const encodedQuery = encodeURIComponent(JSON.stringify(voteAccMintTuples));
-  const stakedCollatDataPromise = fetch(`/api/bankData/stakedCollatData?voteAccMintTuple=${encodedQuery}`);
+  const stakedCollatDataPromise = fetch(`/api/stakeData/stakedCollatData?voteAccMintTuple=${encodedQuery}`);
 
   const [pythFeedMapResponse, stakedCollatDataResponse] = await Promise.all([
     pythFeedMapPromise,

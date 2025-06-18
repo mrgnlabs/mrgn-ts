@@ -5,7 +5,7 @@ import {
 } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey, StakeProgram, ParsedAccountData, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { vendor } from "../../..";
-import { StakeAccount, ValidatorStakeGroup } from "../types";
+import { StakeAccount, StakePoolMevMap, ValidatorStakeGroup } from "../types";
 import { findPoolAddress, findPoolStakeAddress, findPoolMintAddress, findPoolOnRampAddress } from "../../../vendor";
 
 /**
@@ -260,25 +260,11 @@ export const fetchStakeAccount = function (data: Buffer): StakeAccount {
 export const fetchStakePoolMev = async (
   connection: Connection,
   validatorVoteAccounts: PublicKey[]
-): Promise<
-  Map<
-    string,
-    {
-      pool: number;
-      onramp: number;
-    }
-  >
-> => {
+): Promise<StakePoolMevMap> => {
   const poolAddressRecord: Record<string, PublicKey> = {};
   const poolStakeAddressRecord: Record<string, PublicKey> = {};
   const onRampAddressRecord: Record<string, PublicKey> = {};
-  const mev = new Map<
-    string,
-    {
-      pool: number;
-      onramp: number;
-    }
-  >();
+  const mev: StakePoolMevMap = new Map<string, { pool: number; onramp: number }>();
 
   validatorVoteAccounts.forEach((validatorVoteAccount) => {
     const poolAddress = findPoolAddress(validatorVoteAccount);
