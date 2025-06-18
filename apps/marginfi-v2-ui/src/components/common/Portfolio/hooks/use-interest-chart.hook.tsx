@@ -1,47 +1,7 @@
 "use client";
 
 import React from "react";
-
-// Interest earned data types
-interface InterestEarnedDataPoint {
-  account_id: number;
-  account_address: string;
-  bank_id: number;
-  bank_address: string;
-  bank_mint: string;
-  mint_decimals: number;
-  bank_snapshot_time: string;
-  account_balance_snapshot_time: string;
-  account_balance_id: number;
-  bank_name: string;
-  bank_symbol: string;
-  asset_shares_normalized: number;
-  liability_shares_normalized: number;
-  current_deposit_value: number;
-  current_debt_value: number;
-  initial_asset_share_value: number;
-  initial_liability_share_value: number;
-  current_price_usd_close: number;
-  current_price_timestamp_close: string;
-  initial_deposit_value: number;
-  initial_debt_value: number;
-  interest_earned: number;
-  interest_paid: number;
-  current_deposit_value_usd_close: number;
-  current_debt_value_usd_close: number;
-  initial_deposit_value_usd_close: number;
-  initial_debt_value_usd_close: number;
-  interest_earned_usd_close: number;
-  interest_paid_usd_close: number;
-  past_positions_interest_earned: number;
-  past_positions_interest_paid: number;
-  past_positions_interest_earned_usd_close: number;
-  past_positions_interest_paid_usd_close: number;
-  cumulative_interest_earned: number;
-  cumulative_interest_paid: number;
-  cumulative_interest_earned_usd_close: number;
-  cumulative_interest_paid_usd_close: number;
-}
+import { useInterestData, InterestEarnedDataPoint } from "./use-interest-data.hook";
 
 interface ChartDataPoint {
   timestamp: string;
@@ -242,51 +202,32 @@ const useInterestChart = (
   selectedAccount: string | null,
   dataType: "earned" | "paid" | "total"
 ): UseInterestChartReturn => {
+  // Use the data hook for fetching interest data
+  const { data: interestData, error: dataError, isLoading: dataLoading } = useInterestData(selectedAccount);
+
   const [data, setData] = React.useState<ChartDataPoint[]>([]);
   const [bankSymbols, setBankSymbols] = React.useState<string[]>([]);
-  const [error, setError] = React.useState<Error | null>(null);
-  const [isLoading, setIsLoading] = React.useState<boolean>(true);
 
   React.useEffect(() => {
-    const fetchInterestData = async () => {
-      if (!selectedAccount) {
-        setIsLoading(false);
-        setError(new Error("No account selected"));
-        return;
-      }
+    if (dataLoading || dataError) {
+      setData([]);
+      setBankSymbols([]);
+      return;
+    }
 
-      try {
-        setIsLoading(true);
-        setError(null);
+    // Transform data into chart format based on type
+    const { chartData, bankSymbols: symbols } = transformInterestData(interestData, dataType);
 
-        const response = await fetch(`/api/user/interest-earned?account=${selectedAccount}`);
-        if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error("Authentication required");
-          }
-          throw new Error(`Error fetching interest data: ${response.statusText}`);
-        }
+    setData(chartData);
+    setBankSymbols(symbols);
+  }, [interestData, dataType, dataLoading, dataError]);
 
-        const result: InterestEarnedDataPoint[] = await response.json();
-
-        // Transform data based on type
-        const { chartData, bankSymbols: symbols } = transformInterestData(result, dataType);
-
-        setData(chartData);
-        setBankSymbols(symbols);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error("Failed to fetch interest data"));
-        setData([]);
-        setBankSymbols([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchInterestData();
-  }, [selectedAccount, dataType]);
-
-  return { data, bankSymbols, error, isLoading };
+  return {
+    data,
+    bankSymbols,
+    error: dataError,
+    isLoading: dataLoading,
+  };
 };
 
 export { useInterestChart, type UseInterestChartReturn };

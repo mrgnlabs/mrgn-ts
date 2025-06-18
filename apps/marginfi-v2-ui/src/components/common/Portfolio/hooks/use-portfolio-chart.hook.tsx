@@ -2,23 +2,7 @@
 
 import React from "react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-
-// Portfolio data types
-interface PortfolioDataPoint {
-  account_id: number;
-  account_address: string;
-  bank_address: string;
-  bank_name: string;
-  bank_symbol: string;
-  bucket_start: string;
-  bucket_end: string;
-  asset_shares: number;
-  liability_shares: number;
-  price: number;
-  deposit_value_usd: number;
-  borrow_value_usd: number;
-  net_value_usd: number;
-}
+import { usePortfolioData, EnrichedPortfolioDataPoint } from "./use-portfolio-data.hook";
 
 interface ChartDataPoint {
   timestamp: string;
@@ -94,37 +78,12 @@ const fillDataGaps = (data: ChartDataPoint[], daysToFill: number = 30): ChartDat
 
 // Transform API data into total portfolio format (deposits + borrows + net)
 const transformTotalPortfolioData = (
-  data: PortfolioDataPoint[],
+  data: EnrichedPortfolioDataPoint[],
   banks: ExtendedBankInfo[]
 ): { chartData: ChartDataPoint[]; bankSymbols: string[] } => {
   if (!data.length || !banks.length) return { chartData: [], bankSymbols: [] };
 
-  // Create a map of bank addresses to bank info for quick lookup
-  const bankMap = banks.reduce(
-    (map, bank) => {
-      map[bank.address.toBase58()] = bank;
-      return map;
-    },
-    {} as Record<string, ExtendedBankInfo>
-  );
-
-  // Calculate proper USD values using oracle prices with decimals
-  const enrichedData = data.map((item) => {
-    const bank = bankMap[item.bank_address];
-    const oraclePrice = bank?.info.oraclePrice.priceRealtime.price.toNumber() || 0;
-    const mintDecimals = bank?.info.rawBank.mintDecimals || 0;
-
-    // Convert shares to tokens by dividing by decimals, then multiply by price
-    const assetTokens = item.asset_shares / 10 ** mintDecimals;
-    const liabilityTokens = item.liability_shares / 10 ** mintDecimals;
-
-    return {
-      ...item,
-      deposit_value_usd: assetTokens * oraclePrice,
-      borrow_value_usd: liabilityTokens * oraclePrice,
-      net_value_usd: (assetTokens - liabilityTokens) * oraclePrice,
-    };
-  });
+  // Data is already enriched with proper USD values from usePortfolioData hook
 
   // Generate array of all dates for the last 30 days
   const endDate = new Date();
@@ -147,7 +106,7 @@ const transformTotalPortfolioData = (
   });
 
   // Aggregate data by date
-  enrichedData.forEach((item) => {
+  data.forEach((item) => {
     const itemDate = new Date(item.bucket_start).toISOString().split("T")[0];
     if (dailyTotals[itemDate]) {
       dailyTotals[itemDate].deposits += item.deposit_value_usd;
@@ -205,7 +164,7 @@ const transformTotalPortfolioData = (
 
 // Transform portfolio data for different chart variants
 const transformPortfolioData = (
-  data: PortfolioDataPoint[],
+  data: EnrichedPortfolioDataPoint[],
   banks: ExtendedBankInfo[],
   variant: "deposits" | "borrows" | "net"
 ): { chartData: ChartDataPoint[]; bankSymbols: string[] } => {
@@ -216,39 +175,12 @@ const transformPortfolioData = (
     return transformTotalPortfolioData(data, banks);
   }
 
-  // Create a map of bank addresses to bank info for quick lookup
-  const bankMap = banks.reduce(
-    (map, bank) => {
-      map[bank.address.toBase58()] = bank;
-      return map;
-    },
-    {} as Record<string, ExtendedBankInfo>
-  );
-
-  // Get unique bank symbols and calculate proper USD values using oracle prices
-  const enrichedData = data.map((item) => {
-    const bank = bankMap[item.bank_address];
-    const oraclePrice = bank?.info.oraclePrice.priceRealtime.price.toNumber() || 0;
-    const mintDecimals = bank?.info.rawBank.mintDecimals || 0;
-
-    // Convert shares to tokens by dividing by decimals, then multiply by price
-    const assetTokens = item.asset_shares / 10 ** mintDecimals;
-    const liabilityTokens = item.liability_shares / 10 ** mintDecimals;
-
-    return {
-      ...item,
-      // Use oracle price with proper decimal conversion for USD calculations
-      deposit_value_usd: assetTokens * oraclePrice,
-      borrow_value_usd: liabilityTokens * oraclePrice,
-      net_value_usd: (assetTokens - liabilityTokens) * oraclePrice,
-      bank_symbol: bank?.meta.tokenSymbol || item.bank_symbol || "Unknown",
-    };
-  });
+  // Data is already enriched with proper USD values and bank symbols from usePortfolioData hook
 
   // Get unique bank symbols and filter out banks with no significant activity
-  const allBankSymbols = Array.from(new Set(enrichedData.map((item) => item.bank_symbol)));
+  const allBankSymbols = Array.from(new Set(data.map((item) => item.bank_symbol)));
   const activeBankSymbols = allBankSymbols.filter((bankSymbol) => {
-    const bankData = enrichedData.filter((item) => item.bank_symbol === bankSymbol);
+    const bankData = data.filter((item) => item.bank_symbol === bankSymbol);
 
     const hasSignificantValue = bankData.some((item) => {
       switch (variant) {
@@ -292,7 +224,7 @@ const transformPortfolioData = (
     });
 
     // Populate with actual data
-    const bankData = enrichedData.filter((item) => item.bank_symbol === bankSymbol);
+    const bankData = data.filter((item) => item.bank_symbol === bankSymbol);
     bankData.forEach((item) => {
       const dateStr = new Date(item.bucket_start).toISOString().split("T")[0];
       if (dataByBankAndDate[bankSymbol][dateStr] !== undefined) {
@@ -343,48 +275,32 @@ const usePortfolioChart = (
   variant: "deposits" | "borrows" | "net",
   banks: ExtendedBankInfo[]
 ): UsePortfolioChartReturn => {
+  // Use the data hook for fetching and enriching portfolio data
+  const { data: portfolioData, error: dataError, isLoading: dataLoading } = usePortfolioData(selectedAccount, banks);
+
   const [data, setData] = React.useState<ChartDataPoint[] | null>(null);
   const [bankSymbols, setBankSymbols] = React.useState<string[]>([]);
-  const [error, setError] = React.useState<Error | null>(null);
-  const [isLoading, setIsLoading] = React.useState<boolean>(true);
 
   React.useEffect(() => {
-    const fetchPortfolioData = async () => {
-      if (!selectedAccount) {
-        setIsLoading(false);
-        setError(new Error("No account selected"));
-        return;
-      }
+    if (dataLoading || dataError || !portfolioData.length) {
+      setData(null);
+      setBankSymbols([]);
+      return;
+    }
 
-      try {
-        setIsLoading(true);
-        setError(null);
+    // Transform enriched data into chart format
+    const { chartData, bankSymbols: symbols } = transformPortfolioData(portfolioData, banks, variant);
 
-        const response = await fetch(`/api/user/portfolio?account=${selectedAccount}`);
-        if (!response.ok) {
-          throw new Error(`Error fetching portfolio data: ${response.statusText}`);
-        }
+    setData(chartData);
+    setBankSymbols(symbols);
+  }, [portfolioData, banks, variant, dataLoading, dataError]);
 
-        const result: PortfolioDataPoint[] = await response.json();
-
-        // Transform data using oracle prices from state
-        const { chartData, bankSymbols: symbols } = transformPortfolioData(result, banks, variant);
-
-        setData(chartData);
-        setBankSymbols(symbols);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error("Failed to fetch portfolio data"));
-        setData(null);
-        setBankSymbols([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPortfolioData();
-  }, [selectedAccount, variant, banks]);
-
-  return { data, bankSymbols, error, isLoading };
+  return {
+    data,
+    bankSymbols,
+    error: dataError,
+    isLoading: dataLoading,
+  };
 };
 
 export { usePortfolioChart, type UsePortfolioChartReturn, type ChartDataPoint };
