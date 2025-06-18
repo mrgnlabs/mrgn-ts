@@ -31,8 +31,8 @@ const generateChartColors = (bankSymbols: string[], variant: "default" | "total"
   if (variant === "total") {
     // Special colors for total interest chart
     const totalColors: Record<string, string> = {
-      "Total Earned": "hsl(var(--mrgn-success))", // Green for earned
-      "Total Paid": "hsl(var(--mrgn-warning))", // Yellow/Orange for paid
+      "Total Earned": "hsl(var(--mfi-chart-positive))", // Green for earned
+      "Total Paid": "hsl(var(--mfi-chart-negative))", // Red for paid
       "Net Interest": "hsl(var(--mfi-chart-1))", // mfi-chart-1 for net
     };
     return totalColors;
@@ -82,8 +82,8 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
   }, [bankSymbols, chartColors]);
 
   // Calculate the min and max values for Y-axis domain
-  const { minValue, maxValue, yAxisDomain } = React.useMemo(() => {
-    if (!chartData.length) return { minValue: 0, maxValue: 0, yAxisDomain: [0, 1] };
+  const { minValue, maxValue, yAxisDomain, yAxisTicks } = React.useMemo(() => {
+    if (!chartData.length) return { minValue: 0, maxValue: 0, yAxisDomain: [0, 1], yAxisTicks: undefined };
 
     let min = 0;
     let max = 0;
@@ -100,11 +100,30 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
     // For total interest chart, ensure 0 is properly centered and labeled
     if (variant === "total" && (min < 0 || max > 0)) {
       const absMax = Math.max(Math.abs(min), Math.abs(max));
-      const padding = absMax * 0.1;
+      // Add padding and round to nice increments
+      const paddedMax = absMax * 1.2;
+
+      // Round to nice increments (0.5, 1, 2, 5, 10, etc.)
+      const magnitude = Math.pow(10, Math.floor(Math.log10(paddedMax)));
+      const normalized = paddedMax / magnitude;
+      let niceMax;
+      if (normalized <= 1) niceMax = magnitude;
+      else if (normalized <= 2) niceMax = 2 * magnitude;
+      else if (normalized <= 5) niceMax = 5 * magnitude;
+      else niceMax = 10 * magnitude;
+
+      // Generate ticks that always include 0
+      const tickInterval = niceMax / 5; // 5 ticks on each side
+      const ticks = [];
+      for (let i = -niceMax; i <= niceMax; i += tickInterval) {
+        ticks.push(Math.round(i * 100) / 100); // Round to 2 decimal places
+      }
+
       return {
         minValue: min,
         maxValue: max,
-        yAxisDomain: [Math.floor((min - padding) * 100) / 100, Math.ceil((max + padding) * 100) / 100],
+        yAxisDomain: [-niceMax, niceMax],
+        yAxisTicks: ticks,
       };
     }
 
@@ -112,6 +131,7 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
       minValue: min,
       maxValue: max,
       yAxisDomain: [min < 0 ? Math.floor(min * 1.1) : 0, max > 0 ? Math.ceil(max * 1.1) : 1],
+      yAxisTicks: undefined,
     };
   }, [chartData, bankSymbols, variant]);
 
@@ -174,6 +194,7 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
               <YAxis
                 tickFormatter={(value: any) => `$${dynamicNumeralFormatter(value)}`}
                 domain={yAxisDomain}
+                ticks={yAxisTicks}
                 axisLine={false}
                 tickLine={false}
                 width={65}
@@ -224,6 +245,7 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
               <YAxis
                 tickFormatter={(value: any) => `$${dynamicNumeralFormatter(value)}`}
                 domain={yAxisDomain}
+                ticks={yAxisTicks}
                 axisLine={false}
                 tickLine={false}
                 width={65}
