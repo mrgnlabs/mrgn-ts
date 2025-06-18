@@ -91,11 +91,6 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
     return config;
   }, [variant, bankSymbols]);
 
-  // Calculate Y-axis domain - all positive values now
-  const yAxisDomain = React.useMemo(() => {
-    return [0, "auto"];
-  }, []);
-
   if (isLoading) {
     return (
       <div className="w-full h-[300px] flex items-center justify-center">
@@ -147,7 +142,6 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
             />
             <YAxis
               tickFormatter={(value: any) => `$${dynamicNumeralFormatter(value)}`}
-              domain={yAxisDomain}
               axisLine={false}
               tickLine={false}
               width={65}
