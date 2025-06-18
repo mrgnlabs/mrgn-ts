@@ -97,33 +97,18 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
       });
     });
 
-    // For total interest chart, ensure 0 is properly centered and labeled
+    // For total interest chart, ensure 0 is always visible (like Portfolio Balance)
     if (variant === "total" && (min < 0 || max > 0)) {
-      const absMax = Math.max(Math.abs(min), Math.abs(max));
-      // Add padding and round to nice increments
-      const paddedMax = absMax * 1.2;
-
-      // Round to nice increments (0.5, 1, 2, 5, 10, etc.)
-      const magnitude = Math.pow(10, Math.floor(Math.log10(paddedMax)));
-      const normalized = paddedMax / magnitude;
-      let niceMax;
-      if (normalized <= 1) niceMax = magnitude;
-      else if (normalized <= 2) niceMax = 2 * magnitude;
-      else if (normalized <= 5) niceMax = 5 * magnitude;
-      else niceMax = 10 * magnitude;
-
-      // Generate ticks that always include 0
-      const tickInterval = niceMax / 5; // 5 ticks on each side
-      const ticks = [];
-      for (let i = -niceMax; i <= niceMax; i += tickInterval) {
-        ticks.push(Math.round(i * 100) / 100); // Round to 2 decimal places
-      }
+      // Simple approach: let Recharts handle the domain but ensure it includes 0
+      const padding = 0.1;
+      const domainMin = min < 0 ? min * (1 + padding) : Math.min(0, min);
+      const domainMax = max > 0 ? max * (1 + padding) : Math.max(0, max);
 
       return {
         minValue: min,
         maxValue: max,
-        yAxisDomain: [-niceMax, niceMax],
-        yAxisTicks: ticks,
+        yAxisDomain: [domainMin, domainMax],
+        yAxisTicks: undefined, // Let Recharts auto-generate ticks including 0
       };
     }
 
@@ -194,7 +179,6 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
               <YAxis
                 tickFormatter={(value: any) => `$${dynamicNumeralFormatter(value)}`}
                 domain={yAxisDomain}
-                ticks={yAxisTicks}
                 axisLine={false}
                 tickLine={false}
                 width={65}
@@ -283,7 +267,6 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
               <YAxis
                 tickFormatter={(value: any) => `$${dynamicNumeralFormatter(value)}`}
                 domain={yAxisDomain}
-                ticks={yAxisTicks}
                 axisLine={false}
                 tickLine={false}
                 width={65}
