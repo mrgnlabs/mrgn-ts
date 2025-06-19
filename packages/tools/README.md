@@ -27,6 +27,7 @@ console.log("Environment supports crypto: ", !!global.crypto?.subtle);
 PRIVATE_RPC_ENDPOINT="https://rpc.ironforge.network/mainnet?apiKey=WHATEVER"
 MARGINFI_WALLET=home/user/keys/wallet.json
 MARGINFI_ENV="production"
+BIRDEYE_API_KEY=<API_KEY>
 ```
 
 ## Available Tools
