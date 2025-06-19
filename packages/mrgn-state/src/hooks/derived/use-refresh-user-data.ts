@@ -6,13 +6,13 @@ import { useMarginfiAccount, useUserBalances } from "../react-query";
  * Returns a single callback that refetches user state
  */
 export function useRefreshUserData(authority?: PublicKey) {
-  const accountQ = useMarginfiAccount(authority);
-  const balancesQ = useUserBalances(authority);
+  const { refetch: refetchAccount } = useMarginfiAccount(authority);
+  const { refetch: refetchBalances } = useUserBalances(authority);
 
   const refresh = useCallback(() => {
-    accountQ.refetch();
-    balancesQ.refetch();
-  }, [accountQ, balancesQ]);
+    refetchAccount();
+    refetchBalances();
+  }, [refetchAccount, refetchBalances]);
 
   return refresh;
 }

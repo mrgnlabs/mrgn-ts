@@ -11,8 +11,8 @@ export function useRawBanks() {
     queryKey: ["rawBanks"],
     queryFn: () => fetchRawBanks(metadata.data?.bankAddresses ?? []),
     enabled: metadata.isSuccess,
-    staleTime: 0, // 1 minute
-    refetchInterval: 0,
+    staleTime: 60_000, // 1 minute
+    refetchInterval: 60_000,
     retry: 2,
   });
 }

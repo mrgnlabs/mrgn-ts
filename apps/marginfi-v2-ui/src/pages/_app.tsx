@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Profiler } from "react";
 import App, { AppContext, AppInitialProps, AppProps } from "next/app";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
@@ -102,6 +102,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
   return (
     <>
       <Meta path={path} />
+
       <StateProvider config={{ rpcUrl: rpcConfig.rpcEndpoint, mrgnConfig: config.mfiConfig }}>
         {ready && rpcEndpoint && (
           <ConnectionProvider endpoint={rpcEndpoint}>

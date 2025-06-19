@@ -43,10 +43,15 @@ export default function HomePage() {
 
   const { extendedBanks } = useExtendedBanks(walletAddress);
   const { banks } = useBanks();
-  const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
-  const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
-  const { data: selectedAccount } = useMarginfiAccount(walletAddress);
+  // const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
+  //const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
+  //const { data: selectedAccount } = useMarginfiAccount(walletAddress);
   const refreshUserData = useRefreshUserData(walletAddress);
+
+  const stakeAccounts: any[] = [];
+  const selectedAccount: any = null;
+  const activeEmodePairs: any[] = [];
+  const emodePairs: any[] = [];
 
   const annoucements = React.useMemo(() => {
     let latestBanks: (ExtendedBankInfo | undefined)[] = [];

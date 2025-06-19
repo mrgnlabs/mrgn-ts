@@ -6,11 +6,8 @@ import { IconExternalLink, IconInfoCircle, IconSearch } from "@tabler/icons-reac
 
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
-import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 
 import { useUiStore } from "~/store";
-import { STABLECOINS, LSTS, MEMES } from "~/config/constants";
 
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 
@@ -19,39 +16,17 @@ import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./componen
 import { EmodeHeader } from "~/components/common/emode/components";
 import { Button } from "~/components/ui/button";
 import { TokenFilters } from "~/store/uiStore";
-import { IconEmode } from "~/components/ui/icons";
-import {
-  groupBanksByEmodeTag,
-  useEmode,
-  useExtendedBanks,
-  useRefreshUserData,
-  useUserBalances,
-  useUserStakeAccounts,
-  useWrappedMarginfiAccount,
-  groupCollateralBanksByLiabilityBank,
-  groupLiabilityBanksByCollateralBank,
-} from "@mrgnlabs/mrgn-state";
+
+import { useAssetData } from "~/hooks/use-asset-data.hooks";
 
 export const AssetsList = () => {
   const { connected, walletContextState, walletAddress } = useWallet();
-  const { extendedBanks } = useExtendedBanks(walletAddress);
-  const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
-  const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
-  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress);
-  const refreshUserData = useRefreshUserData(walletAddress);
-  const { data: userBalances } = useUserBalances(walletAddress);
 
-  const [groupedEmodeBanks, collateralBanksByLiabilityBank, liabilityBanksByCollateralBank] = useMemo(() => {
-    return [
-      groupBanksByEmodeTag(extendedBanks),
-      groupCollateralBanksByLiabilityBank(extendedBanks, emodePairs),
-      groupLiabilityBanksByCollateralBank(extendedBanks, emodePairs),
-    ];
-  }, [extendedBanks, emodePairs]);
+  const { globalPoolTableData, isolatedPoolTableData, stakedPoolTableData, emodePoolTableData, emodeGroups } =
+    useAssetData();
 
-  const [poolFilter, isFilteredUserPositions, lendingMode, tokenFilter, setTokenFilter] = useUiStore((state) => [
+  const [poolFilter, lendingMode, tokenFilter, setTokenFilter] = useUiStore((state) => [
     state.poolFilter,
-    state.isFilteredUserPositions,
     state.lendingMode,
     state.tokenFilter,
     state.setTokenFilter,
@@ -63,166 +38,7 @@ export const AssetsList = () => {
 
   const isInLendingMode = React.useMemo(() => lendingMode === LendingModes.LEND, [lendingMode]);
 
-  const filterBanksByTokenType = React.useCallback(
-    (banks: typeof extendedBanks) => {
-      if (tokenFilter === TokenFilters.STABLE) {
-        return banks.filter((b) => STABLECOINS.includes(b.meta.tokenSymbol));
-      } else if (tokenFilter === TokenFilters.LST) {
-        return banks.filter((b) => LSTS.includes(b.meta.tokenSymbol));
-      } else if (tokenFilter === TokenFilters.MEME) {
-        return banks.filter((b) => MEMES.includes(b.meta.tokenSymbol));
-      }
-      return banks;
-    },
-    [tokenFilter]
-  );
-
-  const solPrice = React.useMemo(() => {
-    const solBank = extendedBanks.find((bank) => bank.info.state.mint.equals(WSOL_MINT));
-    return solBank?.info.oraclePrice.priceRealtime.price.toNumber() || null;
-  }, [extendedBanks]);
-
-  // non isolated, non staked asset banks
-  const globalBanks = React.useMemo(() => {
-    const banks = extendedBanks
-      .filter((b) => b.info.rawBank.config.assetTag !== 2 && !b.info.state.isIsolated)
-      .filter((b) => (isFilteredUserPositions ? b.isActive : true));
-
-    return filterBanksByTokenType(banks);
-  }, [isFilteredUserPositions, extendedBanks, filterBanksByTokenType]);
-
-  // isolated, non staked asset banks
-  const isolatedBanks = React.useMemo(() => {
-    const banks = extendedBanks
-      .filter((b) => b.info.rawBank.config.assetTag !== 2 && b.info.state.isIsolated)
-      .filter((b) => (isFilteredUserPositions ? b.isActive : true));
-
-    return filterBanksByTokenType(banks);
-  }, [isFilteredUserPositions, extendedBanks, filterBanksByTokenType]);
-
-  // staked asset banks
-  const stakedAssetBanks = React.useMemo(() => {
-    const banks = extendedBanks
-      .filter((b) => b.info.rawBank.config.assetTag === 2)
-      .filter((b) => (isFilteredUserPositions ? b.isActive : true));
-
-    return filterBanksByTokenType(banks);
-  }, [isFilteredUserPositions, extendedBanks, filterBanksByTokenType]);
-
-  const emodeBanks = React.useMemo(() => {
-    const banks = extendedBanks.filter((b) => b.info.state.hasEmode);
-    return filterBanksByTokenType(banks);
-  }, [extendedBanks, filterBanksByTokenType]);
-
   const [sorting, setSorting] = React.useState<SortingState>([]);
-
-  const globalPoolTableData = React.useMemo(() => {
-    return makeData(
-      globalBanks,
-      isInLendingMode,
-      userBalances?.nativeSolBalance ?? 0,
-      selectedAccount,
-      connected,
-      walletContextState,
-      solPrice,
-      refreshUserData,
-      activeEmodePairs,
-      collateralBanksByLiabilityBank,
-      liabilityBanksByCollateralBank
-    );
-  }, [
-    globalBanks,
-    isInLendingMode,
-    userBalances?.nativeSolBalance,
-    selectedAccount,
-    connected,
-    walletContextState,
-    solPrice,
-    refreshUserData,
-    activeEmodePairs,
-    collateralBanksByLiabilityBank,
-    liabilityBanksByCollateralBank,
-  ]);
-
-  const isolatedPoolTableData = React.useMemo(() => {
-    return makeData(
-      isolatedBanks,
-      isInLendingMode,
-      userBalances?.nativeSolBalance ?? 0,
-      selectedAccount,
-      connected,
-      walletContextState,
-      solPrice,
-      refreshUserData,
-      activeEmodePairs,
-      collateralBanksByLiabilityBank,
-      liabilityBanksByCollateralBank
-    );
-  }, [
-    isolatedBanks,
-    isInLendingMode,
-    userBalances?.nativeSolBalance,
-    selectedAccount,
-    connected,
-    walletContextState,
-    solPrice,
-    refreshUserData,
-    activeEmodePairs,
-    collateralBanksByLiabilityBank,
-    liabilityBanksByCollateralBank,
-  ]);
-
-  const stakedPoolTableData = React.useMemo(() => {
-    return makeData(
-      stakedAssetBanks,
-      isInLendingMode,
-      userBalances?.nativeSolBalance ?? 0,
-      selectedAccount,
-      connected,
-      walletContextState,
-      solPrice,
-      refreshUserData,
-      activeEmodePairs
-    );
-  }, [
-    stakedAssetBanks,
-    isInLendingMode,
-    userBalances?.nativeSolBalance,
-    selectedAccount,
-    connected,
-    walletContextState,
-    solPrice,
-    refreshUserData,
-    activeEmodePairs,
-  ]);
-
-  const emodePoolTableData = React.useMemo(() => {
-    return makeData(
-      emodeBanks,
-      isInLendingMode,
-      userBalances?.nativeSolBalance ?? 0,
-      selectedAccount,
-      connected,
-      walletContextState,
-      solPrice,
-      refreshUserData,
-      activeEmodePairs,
-      collateralBanksByLiabilityBank,
-      liabilityBanksByCollateralBank
-    );
-  }, [
-    emodeBanks,
-    isInLendingMode,
-    userBalances?.nativeSolBalance,
-    selectedAccount,
-    connected,
-    walletContextState,
-    solPrice,
-    refreshUserData,
-    activeEmodePairs,
-    collateralBanksByLiabilityBank,
-    liabilityBanksByCollateralBank,
-  ]);
 
   const tableColumns = React.useMemo(() => {
     return generateColumns(isInLendingMode, poolFilter);
@@ -275,13 +91,6 @@ export const AssetsList = () => {
     },
     onSortingChange: setSorting,
   });
-
-  const emodeGroups = React.useMemo(() => {
-    const deduped = Array.from(new Set(emodePairs.map((pair) => EmodeTag[pair.collateralBankTag])));
-    return deduped
-      .map((group) => emodePairs.find((pair) => EmodeTag[pair.collateralBankTag] === group))
-      .filter((group) => group !== undefined);
-  }, [emodePairs]);
 
   React.useEffect(() => {
     if (poolFilter === PoolTypes.NATIVE_STAKE && tokenFilter !== TokenFilters.ALL) {
