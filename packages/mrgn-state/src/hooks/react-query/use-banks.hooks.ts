@@ -11,8 +11,8 @@ export function useRawBanks() {
     queryKey: ["rawBanks"],
     queryFn: () => fetchRawBanks(metadata.data?.bankAddresses ?? []),
     enabled: metadata.isSuccess,
-    staleTime: 60_000, // 1 minute
-    refetchInterval: 60_000,
+    staleTime: 5 * 60_000, // 5 minutes
+    // refetchInterval: 60_000, // Temporarily disabled for performance
     retry: 2,
   });
 }
@@ -31,8 +31,7 @@ export function useMintData() {
       return fetchMintData(tokenAddresses);
     },
     enabled: metadata.isSuccess,
-    staleTime: 60_000, // 1 minute
-    refetchInterval: 60_000,
+    staleTime: 60 * 60 * 1000, // 1 hour
     retry: 2,
   });
 }
@@ -44,12 +43,12 @@ export function useOracleData() {
   const bankData = useRawBanks();
 
   return useQuery<OracleData, Error>({
-    queryKey: ["oraclePrices"],
+    queryKey: ["oracleData"],
     queryFn: () => fetchOraclePrices(bankData.data ?? [], metadata.data?.bankMetadataMap ?? {}),
     enabled: bankData.isSuccess && metadata.isSuccess,
-    staleTime: 30_000, // 1 minute
-    refetchInterval: 30_000,
-    retry: 1,
+    staleTime: 5 * 60_000, // 5 minutes
+    // refetchInterval: 30_000, // Temporarily disabled for performance
+    retry: 2,
   });
 }
 
@@ -60,8 +59,7 @@ export function useEmissionPriceMap() {
     queryKey: ["emissionPriceMap"],
     queryFn: () => fetchEmissionPriceMap(bankData.data ?? []),
     enabled: bankData.isSuccess,
-    staleTime: 60_000, // 1 minute
-    refetchInterval: 60_000,
-    retry: 1,
+    staleTime: 4 * 60 * 1000, // 4 minutes
+    retry: 2,
   });
 }

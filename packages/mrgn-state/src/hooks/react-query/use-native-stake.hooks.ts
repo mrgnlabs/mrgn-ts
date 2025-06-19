@@ -28,8 +28,8 @@ export function useActiveStakePoolMap() {
       return await fetchActiveStakePoolMap(voteAccounts);
     },
     enabled: isSuccessMetadata && !isErrorMetadata,
-    staleTime: 60_000, // 1 minute
-    refetchInterval: 60_000,
+    staleTime: 5 * 60_000, // 5 minutes
+    refetchInterval: 5 * 60_000,
     retry: (failureCount, error) => {
       // Don't retry if we have dependency errors
       if (isErrorMetadata) return false;
@@ -56,8 +56,7 @@ export function useStakePoolMevMap() {
       return await fetchStakePoolMevMap(voteAccounts);
     },
     enabled: isSuccessMetadata && !isErrorMetadata,
-    staleTime: 60_000, // 1 minute
-    refetchInterval: 60_000,
+    staleTime: 5 * 60_000, // 5 minutes
     retry: (failureCount, error) => {
       // Don't retry if we have dependency errors
       if (isErrorMetadata) return false;
@@ -84,8 +83,7 @@ export function useValidatorRates() {
       return await fetchValidatorRates(voteAccounts);
     },
     enabled: isSuccessMetadata && !isErrorMetadata,
-    staleTime: 60_000, // 1 minute
-    refetchInterval: 60_000,
+    staleTime: 10 * 60_000, // 10 minutes
     retry: (failureCount, error) => {
       // Don't retry if we have dependency errors
       if (isErrorMetadata) return false;
@@ -101,8 +99,8 @@ export function useUserStakeAccounts(address?: PublicKey) {
     queryFn: async () => {
       return await fetchUserStakeAccounts(address);
     },
-    staleTime: 60_000, // 1 minute
-    refetchInterval: 60_000,
+    staleTime: 2 * 60_000, // 2 minutes
+    refetchInterval: 2 * 60_000,
     retry: 2,
   });
 }

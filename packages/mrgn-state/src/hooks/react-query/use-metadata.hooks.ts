@@ -9,7 +9,6 @@ export function useMetadata() {
     queryKey: ["metadata"],
     queryFn: () => fetchMetaData(),
     staleTime: Infinity,
-    refetchInterval: Infinity,
     retry: 2,
     refetchOnWindowFocus: false,
   });
@@ -20,7 +19,6 @@ export function useMarginfiLuts() {
     queryKey: ["marginfiLuts"],
     queryFn: () => fetchMarginfiLuts(),
     staleTime: Infinity,
-    refetchInterval: Infinity,
     retry: 2,
     refetchOnWindowFocus: false,
   });

@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       connection
     );
 
-    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=119");
+    res.setHeader("Cache-Control", "s-maxage=600, stale-while-revalidate=600");
     return res.status(200).json(stringifyFeedIdMap(feedIdMap));
   } catch (error) {
     console.error("Error:", error);

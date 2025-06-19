@@ -1,4 +1,4 @@
-import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
+import { EmodePair, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import {
   groupBanksByEmodeTag,
@@ -15,6 +15,17 @@ import { PublicKey } from "@solana/web3.js";
 import React from "react";
 import { useMemo, useCallback } from "react";
 import { makeData } from "~/components/desktop/AssetList/utils";
+import {
+  getAssetData,
+  getAssetPriceData,
+  getRateData,
+  getAssetWeightData,
+  getDepositsData,
+  getBankCapData,
+  getUtilizationData,
+  getPositionData,
+} from "@mrgnlabs/mrgn-utils";
+import { getAction } from "~/components/desktop/AssetList/utils";
 import { STABLECOINS, LSTS, MEMES } from "~/config/constants";
 import { useUiStore } from "~/store";
 import { TokenFilters } from "~/store/uiStore";
@@ -38,12 +49,24 @@ export function useAssetData() {
   const isInLendingMode = useMemo(() => lendingMode === LendingModes.LEND, [lendingMode]);
 
   // Data hooks
-  const { data: userBalances } = useUserBalances(walletAddress);
+  // const { data: userBalances } = useUserBalances(walletAddress);
   const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
-  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress);
-  const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
+  // const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress);
+  // const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
+
+  const selectedAccount = useMemo(() => null, []);
+  const activeEmodePairs: EmodePair[] = useMemo(() => [], []);
+  const emodePairs: EmodePair[] = useMemo(() => [], []);
+  const userBalances = useMemo(
+    () => ({
+      nativeSolBalance: 0,
+      ataList: [],
+    }),
+    []
+  );
+
   const { extendedBanks } = useExtendedBanks(walletAddress);
-  const refreshUserData = useRefreshUserData(walletAddress);
+  const refreshUserData = useMemo(() => () => {}, []); //useRefreshUserData(walletAddress);
 
   // Memoize expensive calculations only when dependencies change
   const emodeBankGroups = useMemo(() => {
@@ -130,106 +153,113 @@ export function useAssetData() {
     };
   }, [extendedBanks, isFilteredUserPositions, filterBanksByTokenType]);
 
-  // Stable references for expensive table data calculations
-  const refreshUserDataStable = useCallback(() => {
-    refreshUserData();
-  }, [refreshUserData]);
-
   // Common stable parameters to prevent unnecessary recalculations
-  const commonParams = useMemo(() => ({
-    isInLendingMode,
-    nativeSolBalance: userBalances?.nativeSolBalance ?? 0,
-    selectedAccount,
-    connected,
-    walletContextState,
-    solPrice: categorizedBanks.solPrice,
-    refreshUserData: refreshUserDataStable,
-    activeEmodePairs,
-    collateralBanks: emodeBankGroups.collateral,
-    liabilityBanks: emodeBankGroups.liability,
-  }), [
-    isInLendingMode,
-    userBalances?.nativeSolBalance,
-    selectedAccount,
-    connected,
-    walletContextState,
-    categorizedBanks.solPrice,
-    refreshUserDataStable,
-    activeEmodePairs,
-    emodeBankGroups.collateral,
-    emodeBankGroups.liability,
-  ]);
+  const commonParams = useMemo(
+    () => ({
+      isInLendingMode,
+      nativeSolBalance: userBalances?.nativeSolBalance ?? 0,
+      selectedAccount,
+      connected,
+      walletContextState,
+      solPrice: categorizedBanks.solPrice,
+      refreshUserData: refreshUserData,
+      activeEmodePairs,
+      collateralBanks: emodeBankGroups.collateral,
+      liabilityBanks: emodeBankGroups.liability,
+    }),
+    [
+      isInLendingMode,
+      userBalances?.nativeSolBalance,
+      selectedAccount,
+      connected,
+      walletContextState,
+      categorizedBanks.solPrice,
+      refreshUserData,
+      activeEmodePairs,
+      emodeBankGroups.collateral,
+      emodeBankGroups.liability,
+    ]
+  );
+
+  // Pre-compute expensive bank transformations once and memoize them
+  const preComputedBankData = useMemo(() => {
+    if (!extendedBanks.length) return new Map();
+
+    const bankMap = new Map();
+
+    for (const bank of extendedBanks) {
+      const collateralBanks = (emodeBankGroups.collateral as Record<string, any>)[bank.address.toBase58()] || [];
+      const liabilityBanks = (emodeBankGroups.liability as Record<string, any>)[bank.address.toBase58()] || [];
+
+      // Pre-compute all expensive transformations once per bank
+      const bankRowData = {
+        asset: getAssetData(bank, commonParams.isInLendingMode, undefined, collateralBanks, liabilityBanks),
+        validator: (bank.meta as any).stakePool?.validatorVoteAccount || "",
+        "validator-rate": (bank.meta as any).stakePool?.validatorRewards || "",
+        price: getAssetPriceData(bank),
+        rate: getRateData(bank, commonParams.isInLendingMode),
+        weight: getAssetWeightData(
+          bank,
+          commonParams.isInLendingMode,
+          extendedBanks,
+          undefined,
+          collateralBanks,
+          liabilityBanks,
+          commonParams.activeEmodePairs
+        ),
+        deposits: getDepositsData(bank, commonParams.isInLendingMode),
+        bankCap: getBankCapData(bank, commonParams.isInLendingMode),
+        utilization: getUtilizationData(bank),
+        position: getPositionData(
+          bank,
+          commonParams.nativeSolBalance,
+          commonParams.isInLendingMode,
+          commonParams.solPrice
+        ),
+        action: getAction(
+          bank,
+          commonParams.isInLendingMode,
+          commonParams.selectedAccount,
+          commonParams.connected,
+          commonParams.walletContextState,
+          commonParams.refreshUserData
+        ),
+      };
+
+      bankMap.set(bank.address.toBase58(), bankRowData);
+    }
+
+    return bankMap;
+  }, [extendedBanks, commonParams, emodeBankGroups.collateral, emodeBankGroups.liability]);
+
+  // Lightweight filtering functions that just map categorized banks to pre-computed data
+  const createTableData = useCallback(
+    (banks: typeof extendedBanks) => {
+      return banks.map((bank) => preComputedBankData.get(bank.address.toBase58())).filter(Boolean);
+    },
+    [preComputedBankData]
+  );
 
   // Table data calculations with optimized dependencies
   const globalPoolTableData = useMemo(() => {
     if (!categorizedBanks.global.length) return [];
-    
-    return makeData(
-      categorizedBanks.global,
-      commonParams.isInLendingMode,
-      commonParams.nativeSolBalance,
-      commonParams.selectedAccount,
-      commonParams.connected,
-      commonParams.walletContextState,
-      commonParams.solPrice,
-      commonParams.refreshUserData,
-      commonParams.activeEmodePairs,
-      commonParams.collateralBanks,
-      commonParams.liabilityBanks
-    );
-  }, [categorizedBanks.global, commonParams]);
+    return createTableData(categorizedBanks.global);
+  }, [categorizedBanks.global, createTableData]);
 
   const isolatedPoolTableData = useMemo(() => {
     if (!categorizedBanks.isolated.length) return [];
-    
-    return makeData(
-      categorizedBanks.isolated,
-      commonParams.isInLendingMode,
-      commonParams.nativeSolBalance,
-      commonParams.selectedAccount,
-      commonParams.connected,
-      commonParams.walletContextState,
-      commonParams.solPrice,
-      commonParams.refreshUserData,
-      commonParams.activeEmodePairs,
-      commonParams.collateralBanks,
-      commonParams.liabilityBanks
-    );
-  }, [categorizedBanks.isolated, commonParams]);
+    return createTableData(categorizedBanks.isolated);
+  }, [categorizedBanks.isolated, createTableData]);
 
   const stakedPoolTableData = useMemo(() => {
     if (!categorizedBanks.staked.length) return [];
-    
-    return makeData(
-      categorizedBanks.staked,
-      commonParams.isInLendingMode,
-      commonParams.nativeSolBalance,
-      commonParams.selectedAccount,
-      commonParams.connected,
-      commonParams.walletContextState,
-      commonParams.solPrice,
-      commonParams.refreshUserData,
-      commonParams.activeEmodePairs
-    );
-  }, [categorizedBanks.staked, commonParams]);
+    return createTableData(categorizedBanks.staked);
+  }, [categorizedBanks.staked, createTableData]);
 
   const emodePoolTableData = useMemo(() => {
     if (!categorizedBanks.emode.length) return [];
-    
-    return makeData(
-      categorizedBanks.emode,
-      commonParams.isInLendingMode,
-      commonParams.nativeSolBalance,
-      commonParams.selectedAccount,
-      commonParams.connected,
-      commonParams.walletContextState,
-      commonParams.solPrice,
-      commonParams.refreshUserData,
-      commonParams.activeEmodePairs,
-      commonParams.collateralBanks,
-      commonParams.liabilityBanks
-    );
-  }, [categorizedBanks.emode, commonParams]);
+    return createTableData(categorizedBanks.emode);
+  }, [categorizedBanks.emode, createTableData]);
 
   const emodeGroups = useMemo(() => {
     if (!emodePairs.length) return [];

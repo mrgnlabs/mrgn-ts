@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
@@ -40,48 +40,30 @@ export const AssetsList = () => {
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
+  // Memoize columns to prevent unnecessary regeneration
   const tableColumns = React.useMemo(() => {
     return generateColumns(isInLendingMode, poolFilter);
   }, [isInLendingMode, poolFilter]);
 
-  const globalTable = useReactTable<AssetListModel>({
-    data: globalPoolTableData,
-    columns: tableColumns,
-    getRowCanExpand: () => true,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    state: {
-      sorting,
-    },
-    onSortingChange: setSorting,
-  });
+  // Get current table data based on pool filter
+  const currentTableData = React.useMemo(() => {
+    switch (poolFilter) {
+      case PoolTypes.GLOBAL:
+        return globalPoolTableData;
+      case PoolTypes.ISOLATED:
+        return isolatedPoolTableData;
+      case PoolTypes.NATIVE_STAKE:
+        return stakedPoolTableData;
+      case PoolTypes.E_MODE:
+        return emodePoolTableData;
+      default:
+        return globalPoolTableData;
+    }
+  }, [poolFilter, globalPoolTableData, isolatedPoolTableData, stakedPoolTableData, emodePoolTableData]);
 
-  const isolatedTable = useReactTable<AssetListModel>({
-    data: isolatedPoolTableData,
-    columns: tableColumns,
-    getRowCanExpand: () => true,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    state: {
-      sorting,
-    },
-    onSortingChange: setSorting,
-  });
-
-  const stakedTable = useReactTable<AssetListModel>({
-    data: stakedPoolTableData,
-    columns: tableColumns,
-    getRowCanExpand: () => true,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    state: {
-      sorting,
-    },
-    onSortingChange: setSorting,
-  });
-
-  const eModeTable = useReactTable<AssetListModel>({
-    data: emodePoolTableData,
+  // Single optimized table instance
+  const table = useReactTable<AssetListModel>({
+    data: currentTableData,
     columns: tableColumns,
     getRowCanExpand: () => true,
     getCoreRowModel: getCoreRowModel(),
@@ -102,10 +84,10 @@ export const AssetsList = () => {
     <div className="space-y-6">
       {/* <AssetListFilters /> */}
       <AssetListNav />
-      {poolFilter === PoolTypes.GLOBAL && globalPoolTableData.length > 0 && (
+      {currentTableData.length > 0 && (
         <Table>
           <TableHeader>
-            {globalTable.getHeaderGroups().map((headerGroup) => (
+            {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead
@@ -121,83 +103,33 @@ export const AssetsList = () => {
             ))}
           </TableHeader>
           <TableBody>
-            {globalTable.getRowModel().rows.map((row) => {
+            {table.getRowModel().rows.map((row) => {
               return <AssetRow key={row.id} {...row} />;
             })}
           </TableBody>
         </Table>
       )}
-      {poolFilter === PoolTypes.ISOLATED && isolatedPoolTableData.length > 0 && (
-        <Table>
-          <TableHeader>
-            {isolatedTable.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    style={{
-                      width: header.column.getSize(),
-                    }}
-                  >
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {isolatedTable.getRowModel().rows.map((row) => (
-              <AssetRow key={row.id} {...row} />
-            ))}
-          </TableBody>
-        </Table>
-      )}
-      {poolFilter === PoolTypes.NATIVE_STAKE && stakedPoolTableData.length > 0 && isInLendingMode && (
-        <>
-          <Table>
-            <TableHeader>
-              {stakedTable.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      style={{
-                        width: header.column.getSize(),
-                      }}
-                    >
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {stakedTable.getRowModel().rows.map((row) => {
-                return <AssetRow key={row.id} {...row} />;
-              })}
-            </TableBody>
-          </Table>
-          <div className={cn("space-y-3 text-center w-full pb-4", stakedPoolTableData.length > 0 ? "pt-3" : "pt-12")}>
-            <p className="text-xs text-muted-foreground">Don&apos;t see your native stake available to deposit?</p>
-            <div className="flex flex-col gap-2 items-center justify-center">
-              <Button variant="secondary" className="mx-auto font-normal text-[11px]" size="sm">
-                <Link href="/staked-assets/create">
-                  <span>Create staked asset pool</span>
-                </Link>
-              </Button>
-              <Link href="https://docs.marginfi.com/staked-collateral" target="_blank" rel="noreferrer">
-                <Button
-                  variant="link"
-                  className="mx-auto font-light text-[11px] gap-1 h-5 text-muted-foreground/75 no-underline rounded-none px-0 hover:no-underline hover:text-foreground"
-                  size="sm"
-                >
-                  <IconExternalLink size={12} />
-                  Learn more
-                </Button>
+      {poolFilter === PoolTypes.NATIVE_STAKE && isInLendingMode && (
+        <div className={cn("space-y-3 text-center w-full pb-4", stakedPoolTableData.length > 0 ? "pt-3" : "pt-12")}>
+          <p className="text-xs text-muted-foreground">Don&apos;t see your native stake available to deposit?</p>
+          <div className="flex flex-col gap-2 items-center justify-center">
+            <Button variant="secondary" className="mx-auto font-normal text-[11px]" size="sm">
+              <Link href="/staked-assets/create">
+                <span>Create staked asset pool</span>
               </Link>
-            </div>
+            </Button>
+            <Link href="https://docs.marginfi.com/staked-collateral" target="_blank" rel="noreferrer">
+              <Button
+                variant="link"
+                className="mx-auto font-light text-[11px] gap-1 h-5 text-muted-foreground/75 no-underline rounded-none px-0 hover:no-underline hover:text-foreground"
+                size="sm"
+              >
+                <IconExternalLink size={12} />
+                Learn more
+              </Button>
+            </Link>
           </div>
-        </>
+        </div>
       )}
       {poolFilter === PoolTypes.E_MODE && (
         <div className="space-y-6">
@@ -205,7 +137,7 @@ export const AssetsList = () => {
           {emodePoolTableData.length > 0 ? (
             <Table>
               <TableHeader>
-                {eModeTable.getHeaderGroups().map((headerGroup) => (
+                {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
                       <TableHead
@@ -221,7 +153,7 @@ export const AssetsList = () => {
                 ))}
               </TableHeader>
               <TableBody>
-                {eModeTable.getRowModel().rows.map((row) => {
+                {table.getRowModel().rows.map((row) => {
                   return <AssetRow key={row.id} {...row} />;
                 })}
               </TableBody>

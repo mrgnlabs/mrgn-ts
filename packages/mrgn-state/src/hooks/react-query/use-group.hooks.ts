@@ -10,8 +10,7 @@ export function useMarginfiGroup() {
   return useQuery<MarginfiGroupType, Error>({
     queryKey: ["marginfiGroup", base58GroupAddress],
     queryFn: () => fetchMarginfiGroup(groupAddress),
-    staleTime: 60_000, // 1 minute
-    refetchInterval: 60_000,
-    retry: 1,
+    staleTime: Infinity,
+    retry: 2,
   });
 }

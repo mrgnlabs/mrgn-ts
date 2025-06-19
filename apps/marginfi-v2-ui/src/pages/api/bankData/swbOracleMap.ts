@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       feedIdMap[oracleKey] = { feedId: feedHash };
     });
 
-    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate=119");
+    res.setHeader("Cache-Control", "s-maxage=600, stale-while-revalidate=599");
     return res.status(200).json(feedIdMap);
   } catch (error) {
     console.error("Error:", error);

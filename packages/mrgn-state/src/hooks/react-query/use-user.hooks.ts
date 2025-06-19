@@ -17,8 +17,7 @@ export function useMarginfiAccountAddresses(authority: PublicKey | undefined) {
       return fetchMarginfiAccountAddresses(authority);
     },
     enabled: Boolean(authority),
-    staleTime: 60_000, // 1 minute
-    refetchInterval: 60_000,
+    staleTime: 10 * 60_000, // 10 minutes
     retry: 1,
   });
 }
@@ -60,8 +59,8 @@ export function useMarginfiAccount(authority: PublicKey | undefined) {
       );
     },
     enabled: allDataReady && !hasErrors,
-    staleTime: 60_000, // 1 minute
-    refetchInterval: 60_000,
+    staleTime: 2 * 60_000, // 2 minutes
+    // refetchInterval: 60_000, // Temporarily disabled for performance
     retry: (failureCount, error) => {
       // Don't retry if we have dependency errors
       if (hasErrors) return false;
@@ -83,8 +82,8 @@ export function useUserBalances(authority: PublicKey | undefined) {
       return await fetchUserBalances(mintData, authority);
     },
     enabled: isSuccesMintData && !isErrorMintData,
-    staleTime: 60_000, // 1 minute
-    refetchInterval: 60_000,
+    staleTime: 2 * 60_000, // 2 minutes
+    // refetchInterval: 60_000, // Temporarily disabled for performance
     retry: (failureCount, error) => {
       // Don't retry if we have dependency errors
       if (isErrorMintData) return false;
