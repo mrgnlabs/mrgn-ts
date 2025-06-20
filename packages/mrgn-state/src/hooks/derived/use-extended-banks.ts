@@ -47,6 +47,44 @@ export function useExtendedBanks(user?: PublicKey) {
     isError: isErrorEmode,
   } = useEmode(user);
 
+  // Create stable dependency values to prevent unnecessary recalculations
+  const userKey = user?.toBase58();
+  const accountKey = marginfiAccount?.address?.toBase58();
+  const bankMetadataMap = metadata?.bankMetadataMap;
+  const tokenMetadataMap = metadata?.tokenMetadataMap;
+  
+  const stableDeps = React.useMemo(() => {
+    return {
+      banksLength: banks?.length ?? 0,
+      userKey: userKey ?? null,
+      accountKey: accountKey ?? null,
+      solBalance: userBalances?.nativeSolBalance ?? 0,
+      ataCount: userBalances?.ataList?.length ?? 0,
+      oracleSize: oracleData?.oracleMap?.size ?? 0,
+      metadataBankCount: Object.keys(bankMetadataMap || {}).length,
+      metadataTokenCount: Object.keys(tokenMetadataMap || {}).length,
+      emissionCount: Object.keys(emissionPriceMap || {}).length,
+      activeEmodeCount: activeEmodePairs?.length ?? 0,
+      emodeCount: emodePairs?.length ?? 0,
+      emodeImpactCount: Object.keys(emodeImpacts || {}).length,
+      originalWeightsCount: Object.keys(originalWeights || {}).length,
+    };
+  }, [
+    banks?.length,
+    userKey,
+    accountKey,
+    userBalances?.nativeSolBalance,
+    userBalances?.ataList?.length,
+    oracleData?.oracleMap?.size,
+    bankMetadataMap,
+    tokenMetadataMap,
+    emissionPriceMap,
+    activeEmodePairs?.length,
+    emodePairs?.length,
+    emodeImpacts,
+    originalWeights,
+  ]);
+
   const extendedBanks = React.useMemo(() => {
     if (
       !banks ||
@@ -126,12 +164,12 @@ export function useExtendedBanks(user?: PublicKey) {
     banksMap,
     metadata,
     oracleData,
-    marginfiAccount,
     userBalances,
     emissionPriceMap,
     activeEmodePairs,
     emodePairs,
     emodeImpacts,
+    marginfiAccount,
     originalWeights,
   ]);
 

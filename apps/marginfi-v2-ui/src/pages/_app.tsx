@@ -56,7 +56,7 @@ initializeConfig({
   mrgnConfig: config.mfiConfig,
 });
 
-export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
+export default function MrgnApp({ Component, pageProps }: AppProps) {
   const [
     broadcastType,
     priorityFees,
@@ -79,7 +79,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.globalActionBoxProps,
   ]);
 
-  const { query, isReady } = useRouter();
+  const { query, isReady, pathname } = useRouter();
   const [ready, setReady] = React.useState(false);
   const [rpcEndpoint, setRpcEndpoint] = React.useState("");
 
@@ -101,7 +101,7 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
   return (
     <>
-      <Meta path={path} />
+      <Meta path={pathname} />
 
       <StateProvider config={{ rpcUrl: rpcConfig.rpcEndpoint, mrgnConfig: config.mfiConfig }}>
         {ready && rpcEndpoint && (
@@ -165,8 +165,8 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
   );
 }
 
-MrgnApp.getInitialProps = async (appContext: AppContext): Promise<AppInitialProps & MrgnAppProps> => {
-  const appProps = await App.getInitialProps(appContext);
-  const path = appContext.ctx.pathname;
-  return { ...appProps, path };
-};
+// MrgnApp.getInitialProps = async (appContext: AppContext): Promise<AppInitialProps & MrgnAppProps> => {
+//   const appProps = await App.getInitialProps(appContext);
+//   const path = appContext.ctx.pathname;
+//   return { ...appProps, path };
+// };
