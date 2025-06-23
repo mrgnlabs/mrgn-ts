@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
-import { capture, Desktop, getEmodeStrategies, LendingModes, Mobile } from "@mrgnlabs/mrgn-utils";
+import { capture, Desktop, LendingModes, Mobile } from "@mrgnlabs/mrgn-utils";
 import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 
@@ -17,6 +17,7 @@ import {
   AnnouncementBankItem,
   AnnouncementsDialog,
 } from "~/components/common/Announcements/components";
+import { AssetsList } from "~/components/desktop/AssetList";
 
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
@@ -26,32 +27,29 @@ import {
   useEmode,
   useExtendedBanks,
   useMarginfiAccount,
-  useUserStakeAccounts,
   useRefreshUserData,
+  useUserStakeAccounts,
 } from "@mrgnlabs/mrgn-state";
+import { useAssetData } from "~/hooks/use-asset-data.hooks";
 
-const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
-  ssr: false,
-});
+// const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
+//   ssr: false,
+// });
 
 export default function HomePage() {
   const router = useRouter();
 
   const { walletContextState, walletAddress, isOverride, connected } = useWallet();
+  const assetData = useAssetData();
 
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
 
   const { extendedBanks } = useExtendedBanks(walletAddress);
   const { banks } = useBanks();
-  // const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
-  //const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
-  //const { data: selectedAccount } = useMarginfiAccount(walletAddress);
+  const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
+  const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
+  const { data: selectedAccount } = useMarginfiAccount(walletAddress);
   const refreshUserData = useRefreshUserData(walletAddress);
-
-  const stakeAccounts: any[] = [];
-  const selectedAccount: any = null;
-  const activeEmodePairs: any[] = [];
-  const emodePairs: any[] = [];
 
   const annoucements = React.useMemo(() => {
     let latestBanks: (ExtendedBankInfo | undefined)[] = [];
@@ -112,7 +110,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="pt-[16px] pb-[64px] px-4 w-full xl:w-4/5 xl:max-w-7xl mt-8 gap-4">
-              <AssetsList />
+              <AssetsList data={assetData} />
             </div>
           </>
         )}

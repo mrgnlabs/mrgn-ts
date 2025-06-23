@@ -1,7 +1,7 @@
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import { MarginfiAccountWrapper, EmodePair } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, EmodePair, RiskTier } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
 import {
@@ -50,8 +50,10 @@ export interface AssetListModel {
   bankCap: BankCapData;
   utilization: UtilizationData;
   position: PositionData;
+  assetCategory: PoolTypes[];
   action: React.JSX.Element;
 }
+
 export const makeData = (
   data: ExtendedBankInfo[],
   isInLendingMode: boolean,
@@ -98,9 +100,11 @@ export const makeData = (
   });
 };
 
-export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) => {
+// Generate ALL possible columns once, use visibility to control what shows
+export const generateColumns = (isInLendingMode: boolean) => {
   const columnHelper = createColumnHelper<AssetListModel>();
 
+  // Always generate all columns - control visibility via React Table
   const columns: ReturnType<typeof columnHelper.accessor>[] = [
     columnHelper.accessor("asset", {
       id: "asset",
@@ -115,9 +119,6 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
       enableSorting: false,
       footer: (props) => props.column.id,
     }),
-  ];
-
-  columns.push(
     columnHelper.accessor("price", {
       id: "price",
       enableResizing: false,
@@ -133,10 +134,7 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
           infoTooltip={
             <div className="space-y-2">
               <p>Real-time prices powered by Pyth and Switchboard.</p>
-              <p>
-                {poolType === PoolTypes.NATIVE_STAKE &&
-                  "Native stake LST price reflects the total stake and rewards in the pool."}
-              </p>
+              <p>{/* Native stake LST price reflects the total stake and rewards in the pool. */}</p>
             </div>
           }
         >
@@ -147,95 +145,83 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
         return rowA.original.price.assetPrice - rowB.original.price.assetPrice;
       },
       footer: (props) => props.column.id,
-    })
-  );
-
-  if (poolType === PoolTypes.NATIVE_STAKE) {
-    columns.push(
-      columnHelper.accessor("validator", {
-        id: "validator",
-        enableResizing: false,
-        size: 140,
-        cell: (props) => getValidatorCell(props.getValue()),
-        header: (header) => (
-          <HeaderWrapper header={header} align="right" infoTooltip={<p>Validator vote account public key.</p>}>
-            Validator
-          </HeaderWrapper>
-        ),
-        enableSorting: false,
-        footer: (props) => props.column.id,
-      }),
-      columnHelper.accessor("validator-rate", {
-        id: "validator-rate",
-        enableResizing: false,
-        size: 170,
-        cell: (props) => getValidatorRateCell(props.getValue()),
-        header: (header) => (
-          <HeaderWrapper header={header} align="right" infoTooltip={<p>Total validator rewards.</p>}>
-            Total APY
-          </HeaderWrapper>
-        ),
-        enableSorting: false,
-        footer: (props) => props.column.id,
-      })
-    );
-  } else {
-    columns.push(
-      columnHelper.accessor("rate", {
-        id: "rate",
-        enableResizing: true,
-        maxSize: 120,
-        cell: (props) => getRateCell(props.getValue()),
-        header: (header) => (
-          <HeaderWrapper
-            header={header}
-            infoTooltip={
-              <p>
-                {isInLendingMode
-                  ? "What you'll earn on deposits over a year. This includes compounding."
-                  : "What you'll pay for your borrows over a year. This includes compounding."}
-              </p>
-            }
-          >
-            APY
-          </HeaderWrapper>
-        ),
-        sortingFn: (rowA, rowB, columnId) => {
-          return rowA.original.rate.rateAPY - rowB.original.rate.rateAPY;
-        },
-        footer: (props) => props.column.id,
-      })
-    );
-  }
-
-  if (poolType !== PoolTypes.ISOLATED) {
-    columns.push(
-      columnHelper.accessor("weight", {
-        id: "weight",
-        cell: (props) => getAssetWeightCell(props.getValue()),
-        header: (header) => (
-          <HeaderWrapper
-            header={header}
-            infoTooltip={
-              <p>
-                {isInLendingMode
-                  ? "Percentage of an asset's value that counts toward your collateral. Higher weight means more borrowing power for that asset."
-                  : "Loan-to-Value ratio (LTV) shows how much you can borrow relative to your available collateral. A higher LTV means you can borrow more, but it also increases liquidation risk."}
-              </p>
-            }
-          >
-            {isInLendingMode ? "Weight" : "LTV"}
-          </HeaderWrapper>
-        ),
-        sortingFn: (rowA, rowB) => {
-          return rowA.original.weight.assetWeight - rowB.original.weight.assetWeight;
-        },
-        footer: (props) => props.column.id,
-      })
-    );
-  }
-
-  columns.push(
+    }),
+    // Regular APY column (hidden for NATIVE_STAKE)
+    columnHelper.accessor("rate", {
+      id: "rate",
+      enableResizing: true,
+      maxSize: 120,
+      cell: (props) => getRateCell(props.getValue()),
+      header: (header) => (
+        <HeaderWrapper
+          header={header}
+          infoTooltip={
+            <p>
+              {isInLendingMode
+                ? "What you'll earn on deposits over a year. This includes compounding."
+                : "What you'll pay for your borrows over a year. This includes compounding."}
+            </p>
+          }
+        >
+          APY
+        </HeaderWrapper>
+      ),
+      sortingFn: (rowA, rowB, columnId) => {
+        return rowA.original.rate.rateAPY - rowB.original.rate.rateAPY;
+      },
+      footer: (props) => props.column.id,
+    }),
+    // Validator column (only visible for NATIVE_STAKE)
+    columnHelper.accessor("validator", {
+      id: "validator",
+      enableResizing: false,
+      size: 140,
+      cell: (props) => getValidatorCell(props.getValue()),
+      header: (header) => (
+        <HeaderWrapper header={header} align="right" infoTooltip={<p>Validator vote account public key.</p>}>
+          Validator
+        </HeaderWrapper>
+      ),
+      enableSorting: false,
+      footer: (props) => props.column.id,
+    }),
+    // Validator rate column (only visible for NATIVE_STAKE)
+    columnHelper.accessor("validator-rate", {
+      id: "validator-rate",
+      enableResizing: false,
+      size: 170,
+      cell: (props) => getValidatorRateCell(props.getValue()),
+      header: (header) => (
+        <HeaderWrapper header={header} align="right" infoTooltip={<p>Total validator rewards.</p>}>
+          Total APY
+        </HeaderWrapper>
+      ),
+      enableSorting: false,
+      footer: (props) => props.column.id,
+    }),
+    // Weight column (hidden for ISOLATED)
+    columnHelper.accessor("weight", {
+      id: "weight",
+      cell: (props) => getAssetWeightCell(props.getValue()),
+      header: (header) => (
+        <HeaderWrapper
+          header={header}
+          infoTooltip={
+            <p>
+              {isInLendingMode
+                ? "Percentage of an asset's value that counts toward your collateral. Higher weight means more borrowing power for that asset."
+                : "Loan-to-Value ratio (LTV) shows how much you can borrow relative to your available collateral. A higher LTV means you can borrow more, but it also increases liquidation risk."}
+            </p>
+          }
+        >
+          {isInLendingMode ? "Weight" : "LTV"}
+        </HeaderWrapper>
+      ),
+      sortingFn: (rowA, rowB) => {
+        return rowA.original.weight.assetWeight - rowB.original.weight.assetWeight;
+      },
+      footer: (props) => props.column.id,
+    }),
     columnHelper.accessor("deposits", {
       id: "deposits",
       cell: (props) =>
@@ -291,38 +277,93 @@ export const generateColumns = (isInLendingMode: boolean, poolType: PoolTypes) =
         }
       },
       footer: (props) => props.column.id,
-    })
-  );
-
-  if (poolType !== PoolTypes.NATIVE_STAKE) {
-    columns.push(
-      columnHelper.accessor("utilization", {
-        id: "utilization",
-        cell: (props) => getUtilizationCell(props.getValue()),
-        header: (header) => (
-          <HeaderWrapper
-            header={header}
-            infoTooltip={<p>The percentage of supplied tokens that have been borrowed.</p>}
-          >
-            Utilization
-          </HeaderWrapper>
-        ),
-        sortingFn: (rowA, rowB) => {
-          return rowA.original.utilization.utilization - rowB.original.utilization.utilization;
-        },
-        footer: (props) => props.column.id,
-      })
-    );
-  }
-
-  columns.push(
+    }),
+    columnHelper.accessor("utilization", {
+      id: "utilization",
+      cell: (props) => getUtilizationCell(props.getValue()),
+      header: (header) => (
+        <HeaderWrapper header={header} infoTooltip={<p>The percentage of supplied tokens that have been borrowed.</p>}>
+          Utilization
+        </HeaderWrapper>
+      ),
+      sortingFn: (rowA, rowB) => {
+        return rowA.original.utilization.utilization - rowB.original.utilization.utilization;
+      },
+      footer: (props) => props.column.id,
+    }),
     columnHelper.accessor("action", {
       id: "action",
       header: () => <></>,
       cell: (props) => props.getValue(),
       footer: (props) => props.column.id,
-    })
-  );
+    }),
+  ];
 
   return columns;
+};
+
+// Helper function to determine which pool categories a bank belongs to
+export const determineBankCategories = (bank: ExtendedBankInfo): PoolTypes[] => {
+  const categories: PoolTypes[] = [];
+
+  // Check if bank belongs to native stake pools
+  if (bank.info.rawBank.config.assetTag === 2) {
+    categories.push(PoolTypes.NATIVE_STAKE);
+  }
+
+  // Check if bank is isolated
+  if (bank.info.rawBank.config.riskTier === RiskTier.Isolated) {
+    categories.push(PoolTypes.ISOLATED);
+  } else {
+    // Non-isolated banks belong to global pools
+    categories.push(PoolTypes.GLOBAL);
+  }
+
+  // Check if bank has E-mode enabled
+  if (bank.info.state.hasEmode) {
+    categories.push(PoolTypes.E_MODE);
+  }
+
+  return categories;
+};
+
+// Helper function to get column visibility based on pool type
+export const getColumnVisibility = (poolType: PoolTypes) => {
+  const baseVisibility = {
+    asset: true,
+    price: true,
+    deposits: true,
+    bankCap: true,
+    action: true,
+  };
+
+  switch (poolType) {
+    case PoolTypes.NATIVE_STAKE:
+      return {
+        ...baseVisibility,
+        rate: false, // Hide regular APY
+        validator: true, // Show validator
+        "validator-rate": true, // Show validator rate
+        weight: true, // Show weight (native stake pools aren't isolated)
+        utilization: false, // Hide utilization
+      };
+    case PoolTypes.ISOLATED:
+      return {
+        ...baseVisibility,
+        rate: true, // Show regular APY
+        validator: false, // Hide validator
+        "validator-rate": false, // Hide validator rate
+        weight: false, // Hide weight for isolated pools
+        utilization: true, // Show utilization
+      };
+    default: // GLOBAL, EMODE
+      return {
+        ...baseVisibility,
+        rate: true, // Show regular APY
+        validator: false, // Hide validator
+        "validator-rate": false, // Hide validator rate
+        weight: true, // Show weight
+        utilization: true, // Show utilization
+      };
+  }
 };

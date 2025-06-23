@@ -1,2 +1,2 @@
 export * from "./account.service";
-export * from "./oracle.service";
+export * from "./pyth.service";

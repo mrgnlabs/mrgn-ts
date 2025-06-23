@@ -3,6 +3,15 @@ import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { UserInfo } from "./user.types";
 
+export interface StakePoolMetadata {
+  validatorVoteAccount: PublicKey;
+  validatorRewards: number;
+  isActive: boolean;
+  mev: {
+    pool: number;
+    onramp: number;
+  };
+}
 export interface ExtendedBankMetadata {
   address: PublicKey;
   tokenSymbol: string;

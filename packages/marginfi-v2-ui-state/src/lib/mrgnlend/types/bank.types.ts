@@ -4,7 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import { LendingPosition, UserInfo } from "./token.types";
 import BigNumber from "bignumber.js";
 
-interface StakePoolMetadata {
+export interface StakePoolMetadata {
   validatorVoteAccount: PublicKey;
   validatorRewards: number;
   isActive: boolean;
@@ -73,4 +73,4 @@ enum Emissions {
 }
 
 export { Emissions };
-export type { ActiveBankInfo, ExtendedBankInfo, BankInfo, BankState, ExtendedBankMetadata, StakePoolMetadata };
+export type { ActiveBankInfo, ExtendedBankInfo, BankInfo, BankState, ExtendedBankMetadata };

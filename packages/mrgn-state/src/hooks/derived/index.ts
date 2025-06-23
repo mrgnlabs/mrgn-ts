@@ -6,3 +6,4 @@ export * from "./use-extended-banks";
 export * from "./use-refresh-user-data";
 export * from "./use-wrapped-account";
 export * from "./use-account-summary";
+export * from "./use-native-stake-data";
