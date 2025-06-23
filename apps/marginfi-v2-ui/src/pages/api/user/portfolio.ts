@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { createServerSupabaseClient } from "@mrgnlabs/mrgn-utils";
 import { STATUS_INTERNAL_ERROR, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
+import { createClient } from "@supabase/supabase-js";
 
 export const MAX_DURATION = 60;
 
@@ -10,20 +10,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const supabase = createServerSupabaseClient(req, res);
-
-    // Check authentication - user must be logged in
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return res.status(401).json({
-        error: "Authentication required",
-        requiresAuth: true,
-      });
-    }
+    // Use anon key client instead of authenticated client
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
     // Get account address from query parameter
     const accountAddress = req.query.account;

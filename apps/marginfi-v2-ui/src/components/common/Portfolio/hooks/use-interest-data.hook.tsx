@@ -212,9 +212,6 @@ const useInterestData = (selectedAccount: string | null): UseInterestDataReturn 
 
         const response = await fetch(`/api/user/interest-earned?account=${selectedAccount}`);
         if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error("Authentication required");
-          }
           throw new Error(`Error fetching interest data: ${response.statusText}`);
         }
 
