@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { STATUS_INTERNAL_ERROR, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
-import { createClient } from "@supabase/supabase-js";
+import { createServerSupabaseClient } from "~/auth";
 
 export const MAX_DURATION = 60;
 
@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Use anon key client for public data access
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+    const supabase = createServerSupabaseClient(req, res);
 
     // Get account address from query parameter
     const accountAddress = req.query.account;
