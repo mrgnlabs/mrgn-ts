@@ -11,6 +11,7 @@ import {
   useUserStakeAccounts,
   useNativeStakeData,
   useWrappedMarginfiAccount,
+  useMarginfiAccount,
 } from "@mrgnlabs/mrgn-state";
 import { useMemo, useCallback } from "react";
 import { AssetListModel } from "~/components/desktop/AssetList/utils";
@@ -59,7 +60,7 @@ export function useAssetData(): AssetListData {
   const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
   const { stakePoolMetadataMap } = useNativeStakeData();
 
-  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress);
+  const { data: selectedAccount } = useMarginfiAccount(walletAddress);
   const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
 
   const { extendedBanks } = useExtendedBanks(walletAddress);
@@ -181,7 +182,7 @@ export function useAssetData(): AssetListData {
         bankCap: getBankCapData(bank, true),
         utilization: getUtilizationData(bank),
         position: getPositionData(bank, userBalances?.nativeSolBalance || 0, true, categorizedBanks.solPrice),
-        action: getAction(bank, true, selectedAccount, connected, walletContextState, refreshUserData),
+        action: getAction(bank, true, connected, walletContextState, refreshUserData, selectedAccount),
         assetCategory: determineBankCategories(bank),
       };
 
@@ -205,7 +206,7 @@ export function useAssetData(): AssetListData {
         bankCap: getBankCapData(bank, false),
         utilization: getUtilizationData(bank),
         position: getPositionData(bank, userBalances?.nativeSolBalance || 0, false, categorizedBanks.solPrice),
-        action: getAction(bank, false, selectedAccount, connected, walletContextState, refreshUserData),
+        action: getAction(bank, false, connected, walletContextState, refreshUserData, selectedAccount),
         assetCategory: determineBankCategories(bank),
       };
 

@@ -2,7 +2,7 @@ import React from "react";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { ExtendedBankInfo, getCurrentAction, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountType } from "@mrgnlabs/marginfi-client-v2";
 import { ActionBox, useWallet, WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
 import { capture } from "@mrgnlabs/mrgn-utils";
 
@@ -90,10 +90,10 @@ const ActionBoxCell = ({
 export const getAction = (
   bank: ExtendedBankInfo,
   isInLendingMode: boolean,
-  marginfiAccount: MarginfiAccountWrapper | null,
   connected: boolean,
   walletContextState: WalletContextStateOverride | WalletContextState,
-  fetchMrgnlendState: () => void
+  fetchMrgnlendState: () => void,
+  marginfiAccount?: MarginfiAccountType | null
 ) => {
   const currentAction = getCurrentAction(isInLendingMode, bank);
   const isDust = bank.isActive && bank.position.isDust;
@@ -101,7 +101,7 @@ export const getAction = (
 
   return (
     <>
-      {marginfiAccount === null && (
+      {!marginfiAccount && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -123,7 +123,7 @@ export const getAction = (
         </TooltipProvider>
       )}
 
-      {marginfiAccount !== null && (
+      {marginfiAccount && (
         <div className="flex px-0 sm:pl-4 gap-4 justify-center lg:justify-end items-center">
           <ActionBoxCell
             bank={bank}

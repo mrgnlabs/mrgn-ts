@@ -18,7 +18,7 @@ import { Button } from "~/components/ui/button";
 import { TokenFilters } from "~/store/uiStore";
 import { STABLECOINS, LSTS, MEMES } from "~/config/constants";
 
-import { AssetListData, useAssetData } from "~/hooks/use-asset-data.hooks";
+import { AssetListData } from "~/hooks/use-asset-data.hooks";
 
 type AssetListProps = {
   data: AssetListData;
@@ -43,9 +43,9 @@ export const AssetsList = ({ data }: AssetListProps) => {
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
   // Create token filter sets for faster lookups
-  const STABLECOIN_SET = new Set(STABLECOINS);
-  const LST_SET = new Set(LSTS);
-  const MEME_SET = new Set(MEMES);
+  const STABLECOIN_SET = React.useMemo(() => new Set(STABLECOINS), []);
+  const LST_SET = React.useMemo(() => new Set(LSTS), []);
+  const MEME_SET = React.useMemo(() => new Set(MEMES), []);
 
   // Generate ALL columns once - no regeneration on filter changes
   const allColumns = React.useMemo(() => {
@@ -101,7 +101,7 @@ export const AssetsList = ({ data }: AssetListProps) => {
     }
 
     return filtered;
-  }, [currentModeData, poolFilter, tokenFilter]);
+  }, [LST_SET, MEME_SET, STABLECOIN_SET, currentModeData, poolFilter, tokenFilter]);
 
   // Single optimized table instance
   const table = useReactTable<AssetListModel>({

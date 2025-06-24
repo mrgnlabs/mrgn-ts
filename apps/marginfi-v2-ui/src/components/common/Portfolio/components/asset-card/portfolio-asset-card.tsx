@@ -72,10 +72,10 @@ export const PortfolioAssetCard = ({
   onCardClick,
 }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
-  const { walletAddress } = useWallet();
-  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress);
+  const { walletAddress, wallet } = useWallet();
+  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress, wallet);
   const { data: marginfiAccounts } = useMarginfiAccountAddresses(walletAddress);
-  const { marginfiClient } = useMarginfiClient();
+  const { marginfiClient } = useMarginfiClient(wallet);
   const refreshUserData = useRefreshUserData(walletAddress);
   const { extendedBanks } = useExtendedBanks(walletAddress);
   const { data: userBalances } = useUserBalances(walletAddress);

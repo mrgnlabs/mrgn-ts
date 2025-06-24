@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    if (!process.env.VALIDATOR_API_URL) {
+    if (!process.env.VALIDATOR_API_KEY) {
       return res.status(500).json({ error: "No validator API URL provided" });
     }
 
@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const validatorRates: ValidatorRateData[] = await Promise.all(
       validatorVoteAccounts.map(async (validatorVoteAccount) => {
-        const validatorResponse = await fetch(`${process.env.VALIDATOR_API_URL}/${validatorVoteAccount}`);
+        const validatorResponse = await fetch(`${process.env.VALIDATOR_API_KEY}/${validatorVoteAccount}`);
         if (!validatorResponse.ok) {
           return {
             validator: validatorVoteAccount,

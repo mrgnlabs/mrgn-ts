@@ -8,7 +8,7 @@ import { IconBell, IconBrandTelegram, IconSearch, IconSettings } from "@tabler/i
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { ResponsiveSettingsWrapper, Settings, useWallet, Wallet } from "@mrgnlabs/mrgn-ui";
 
-import {  useUiStore, useUserProfileStore } from "~/store";
+import { useUiStore, useUserProfileStore } from "~/store";
 import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 
 import { useConnection } from "~/hooks/use-connection";
@@ -32,10 +32,10 @@ export const Navbar: FC = () => {
 
   const { connection } = useConnection();
   const router = useRouter();
-  const { walletAddress } = useWallet();
+  const { walletAddress, wallet } = useWallet();
 
-  const { marginfiClient } = useMarginfiClient();
-  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress);
+  const { marginfiClient } = useMarginfiClient(wallet);
+  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress, wallet);
   const { data: marginfiAccounts, isSuccess: isSuccessMarginfiAccounts } = useMarginfiAccountAddresses(walletAddress);
   const { data: userBalances, isSuccess: isSuccessUserBalances } = useUserBalances(walletAddress);
   const { extendedBanks, isSuccess: isSuccessExtendedBanks } = useExtendedBanks(walletAddress);

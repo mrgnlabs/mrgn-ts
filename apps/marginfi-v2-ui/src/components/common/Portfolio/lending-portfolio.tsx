@@ -44,12 +44,12 @@ const initialRewardsState: RewardsType = {
 };
 
 export const LendingPortfolio = () => {
-  const { connected, walletAddress } = useWallet();
+  const { connected, walletAddress, wallet } = useWallet();
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
   const { extendedBanks: sortedBanks } = useExtendedBanks(walletAddress);
   const accountSummary = useAccountSummary(walletAddress);
-  const { marginfiClient } = useMarginfiClient();
-  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress);
+  const { marginfiClient } = useMarginfiClient(wallet);
+  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress, wallet);
   const { data: marginfiAccounts } = useMarginfiAccountAddresses(walletAddress);
   const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
   const refreshUserData = useRefreshUserData();

@@ -51,8 +51,6 @@ export function useNativeStakeData() {
       const mevData = stakePoolMevMap.get(voteAccountStr) ?? { pool: 0, onramp: 0 };
 
       // Get validator rewards from validator rates (use totalApy as rewards)
-
-      console.log("validatorRates", validatorRates);
       const validatorRate = validatorRates.find((rate) => rate.validator === voteAccountStr);
       const validatorRewards = validatorRate?.totalApy ?? 0;
 

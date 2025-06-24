@@ -1,6 +1,8 @@
 import React from "react";
 import { PublicKey } from "@solana/web3.js";
 import { MarginfiAccount, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
+import { Wallet } from "@mrgnlabs/mrgn-common";
+
 import { useMarginfiAccount } from "../react-query";
 import { useMarginfiClient } from "./use-marginfi-client";
 
@@ -9,10 +11,10 @@ import { useMarginfiClient } from "./use-marginfi-client";
  * @param authority - The public key of the account authority
  * @returns Wrapped account with loading and error states
  */
-export function useWrappedMarginfiAccount(authority?: PublicKey) {
+export function useWrappedMarginfiAccount(authority?: PublicKey, wallet?: Wallet) {
   const { data: account, isLoading: isLoadingAccount, isError: isErrorAccount } = useMarginfiAccount(authority);
 
-  const { marginfiClient, isLoading: isLoadingClient, isError: isErrorClient } = useMarginfiClient();
+  const { marginfiClient, isLoading: isLoadingClient, isError: isErrorClient } = useMarginfiClient(wallet);
 
   const isLoading = isLoadingAccount || isLoadingClient;
   const isError = isErrorAccount || isErrorClient;

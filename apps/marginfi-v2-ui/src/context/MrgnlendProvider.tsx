@@ -6,6 +6,7 @@ import { ActionBoxProvider, AuthDialog, useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useUiStore } from "~/store";
 import {
+  useAccountSummary,
   useExtendedBanks,
   useMarginfiAccountAddresses,
   useMarginfiClient,
@@ -20,10 +21,10 @@ export const MrgnlendProvider: React.FC<{
   const { wallet, walletAddress } = useWallet();
 
   const { extendedBanks } = useExtendedBanks(walletAddress);
-  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress);
+  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress, wallet);
   const { data: marginfiAccounts, isSuccess: isSuccessMarginfiAccounts } = useMarginfiAccountAddresses(walletAddress);
   const { data: userBalances } = useUserBalances(walletAddress);
-  const { marginfiClient } = useMarginfiClient();
+  const { marginfiClient } = useMarginfiClient(wallet);
 
   const [fetchPriorityFee, fetchAccountLabels, accountLabels, setDisplaySettings] = useUiStore((state) => [
     state.fetchPriorityFee,
@@ -70,7 +71,6 @@ export const MrgnlendProvider: React.FC<{
       marginfiClient={marginfiClient ?? null}
       selectedAccount={selectedAccount}
       connected={false}
-      // accountSummaryArg={accountSummary}
       setDisplaySettings={setDisplaySettings}
     >
       {children}

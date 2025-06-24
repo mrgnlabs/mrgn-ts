@@ -1,11 +1,15 @@
 import React from "react";
+import { AnchorProvider, Program } from "@coral-xyz/anchor";
+
+import { MarginfiClient, MarginfiGroup, MarginfiProgram } from "@mrgnlabs/marginfi-client-v2";
+import { Wallet } from "@mrgnlabs/mrgn-common";
+
 import { getConfig } from "../../config";
-import { useMarginfiGroup, useMarginfiLuts, useMetadata, useMintData, useOracleData } from "../react-query";
+import { useMarginfiGroup, useMarginfiLuts, useMetadata, useOracleData } from "../react-query";
 import { useBanks } from "./use-banks";
-import { Bank, MarginfiClient, MarginfiGroup, MintData } from "@mrgnlabs/marginfi-client-v2";
 import { useMintMap } from "./use-mint-map";
 
-export function useMarginfiClient() {
+export function useMarginfiClient(wallet?: Wallet) {
   const { data: marginfiGroup, isLoading: isLoadingGroup, isError: isErrorGroup } = useMarginfiGroup();
   const { data: oracleData, isLoading: isLoadingOracleData, isError: isErrorOracleData } = useOracleData();
   const { data: metadata, isLoading: isLoadingMetadata, isError: isErrorMetadata } = useMetadata();
@@ -25,12 +29,28 @@ export function useMarginfiClient() {
   const marginfiClient = React.useMemo(() => {
     if (!marginfiGroup || !banks || !banksMap || !oracleData || !mintMap || !metadata || !luts) return undefined;
 
+    let finalProgram = program;
+
+    if (!wallet) {
+      finalProgram = program;
+    } else {
+      const provider = new AnchorProvider(program.provider.connection, wallet, {
+        ...AnchorProvider.defaultOptions(),
+        commitment: program.provider.connection.commitment ?? AnchorProvider.defaultOptions().commitment,
+        ...program.provider.opts,
+      });
+
+      const idl = { ...program.idl, address: program.programId.toBase58() };
+
+      finalProgram = new Program(idl, provider) as any as MarginfiProgram;
+    }
+
     const marginfiGroupClass = new MarginfiGroup(marginfiGroup.admin, marginfiGroup.address);
     const preloadedBankAddresses = banks.map((bank) => bank.address);
 
     const marginfiClient = new MarginfiClient(
       mfiConfig,
-      program,
+      finalProgram,
       {} as any,
       false,
       marginfiGroupClass,
@@ -43,7 +63,7 @@ export function useMarginfiClient() {
       metadata.bankMetadataMap
     );
     return marginfiClient;
-  }, [marginfiGroup, banks, banksMap, oracleData, mintMap, metadata, luts, mfiConfig, program]);
+  }, [marginfiGroup, banks, banksMap, oracleData, mintMap, metadata, luts, program, wallet, mfiConfig]);
 
   return {
     marginfiClient: marginfiClient ?? null,
