@@ -11,7 +11,7 @@ import { useUiStore } from "~/store";
 
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 
-import { AssetListModel, generateColumns, getColumnVisibility, makeData } from "./utils";
+import { AssetListModel, generateColumns, getColumnVisibility } from "./utils";
 import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./components";
 import { EmodeHeader } from "~/components/common/emode/components";
 import { Button } from "~/components/ui/button";

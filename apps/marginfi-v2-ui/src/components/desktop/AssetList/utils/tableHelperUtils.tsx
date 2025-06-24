@@ -1,7 +1,7 @@
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import { MarginfiAccountWrapper, EmodePair, RiskTier } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, EmodePair, RiskTier, MarginfiAccountType } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
 import {
@@ -58,7 +58,7 @@ export const makeData = (
   data: ExtendedBankInfo[],
   isInLendingMode: boolean,
   nativeSolBalance: number,
-  marginfiAccount: MarginfiAccountWrapper | null,
+  marginfiAccount: MarginfiAccountType | null,
   connected: boolean,
   walletContextState: WalletContextStateOverride | WalletContextState,
   solPrice: number | null,
@@ -95,7 +95,7 @@ export const makeData = (
       bankCap: getBankCapData(bank, isInLendingMode),
       utilization: getUtilizationData(bank),
       position: getPositionData(bank, nativeSolBalance, isInLendingMode, solPrice),
-      action: getAction(bank, isInLendingMode, marginfiAccount, connected, walletContextState, fetchMrgnlendState),
+      action: getAction(bank, isInLendingMode, connected, walletContextState, fetchMrgnlendState, marginfiAccount),
     } as AssetListModel;
   });
 };
