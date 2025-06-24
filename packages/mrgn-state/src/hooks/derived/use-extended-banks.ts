@@ -156,7 +156,6 @@ export function useExtendedBanks(user?: PublicKey) {
   const isSuccess =
     isSuccessMetadata &&
     isSuccessOracleData &&
-    isSuccessMarginfiAccount &&
     isSuccessUserBalances &&
     isSuccessEmissionPriceMap &&
     !isLoadingEmode &&

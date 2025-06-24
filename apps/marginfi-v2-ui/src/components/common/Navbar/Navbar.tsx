@@ -24,6 +24,7 @@ import {
   useUserBalances,
   useWrappedMarginfiAccount,
   useAccountSummary,
+  useUserStakeAccounts,
 } from "@mrgnlabs/mrgn-state";
 
 // @todo implement second pretty navbar row
@@ -38,11 +39,18 @@ export const Navbar: FC = () => {
   const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress, wallet);
   const { data: marginfiAccounts, isSuccess: isSuccessMarginfiAccounts } = useMarginfiAccountAddresses(walletAddress);
   const { data: userBalances, isSuccess: isSuccessUserBalances } = useUserBalances(walletAddress);
-  const { extendedBanks, isSuccess: isSuccessExtendedBanks } = useExtendedBanks(walletAddress);
+  const {
+    extendedBanks,
+    isSuccess: isSuccessExtendedBanks,
+    isLoading: isLoadingExtendedBanks,
+  } = useExtendedBanks(walletAddress);
   const accountSummary = useAccountSummary(walletAddress);
   const refreshUserData = useRefreshUserData(walletAddress);
 
   const initialized = isSuccessExtendedBanks;
+
+  console.log("isSuccessExtendedBanks", isSuccessExtendedBanks);
+
   const userDataFetched = isSuccessMarginfiAccounts && isSuccessUserBalances;
 
   const {

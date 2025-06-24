@@ -7,7 +7,7 @@ import { useMintData, useOracleData, useRawBanks } from "./use-banks.hooks";
 import { useMetadata } from "./use-metadata.hooks";
 import { TokenAccount } from "../../types";
 
-export function useMarginfiAccountAddresses(authority: PublicKey | undefined) {
+export function useMarginfiAccountAddresses(authority?: PublicKey) {
   return useQuery<PublicKey[], Error>({
     queryKey: ["marginfiAccountAddresses", authority?.toBase58() ?? null],
     queryFn: () => {
@@ -22,7 +22,7 @@ export function useMarginfiAccountAddresses(authority: PublicKey | undefined) {
   });
 }
 
-export function useMarginfiAccount(authority: PublicKey | undefined) {
+export function useMarginfiAccount(authority?: PublicKey) {
   const {
     data: accountAddresses,
     isSuccess: isSuccessAccountAddresses,
@@ -40,8 +40,7 @@ export function useMarginfiAccount(authority: PublicKey | undefined) {
   const hasErrors = isErrorAccountAddresses || isErrorRawBanks || isErrorMetadata || isErrorOracleData;
 
   // Check if all required data is available
-  const allDataReady =
-    Boolean(authority) && isSuccessAccountAddresses && isSuccessMetadata && isSuccessOracleData && isSuccessRawBanks;
+  const allDataReady = isSuccessAccountAddresses && isSuccessMetadata && isSuccessOracleData && isSuccessRawBanks;
 
   return useQuery<MarginfiAccountType | null, Error>({
     queryKey: ["marginfiAccount", authority?.toBase58() ?? null, selectedAccountKey ?? null],
@@ -70,7 +69,7 @@ export function useMarginfiAccount(authority: PublicKey | undefined) {
   });
 }
 
-export function useUserBalances(authority: PublicKey | undefined) {
+export function useUserBalances(authority?: PublicKey) {
   const { data: mintData, isSuccess: isSuccesMintData, isError: isErrorMintData } = useMintData();
 
   return useQuery<{ nativeSolBalance: number; ataList: TokenAccount[] }, Error>({

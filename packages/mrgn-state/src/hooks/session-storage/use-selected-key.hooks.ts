@@ -1,7 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 import { useState, useEffect, useCallback } from "react";
 
-export function useSelectedAccountKey(keys: PublicKey[] | undefined) {
+export function useSelectedAccountKey(keys?: PublicKey[]) {
   const storageKey = "app-selectedAccountKey";
   const [selectedKey, setSelectedKey] = useState<string | undefined>(undefined);
 
