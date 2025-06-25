@@ -33,8 +33,7 @@ export function useMarginfiAccount(authority?: PublicKey) {
   const { data: metadata, isSuccess: isSuccessMetadata, isError: isErrorMetadata } = useMetadata();
   const { data: oracleData, isSuccess: isSuccessOracleData, isError: isErrorOracleData } = useOracleData();
 
-  const { selectedKey: selectedAccountKey, setSelectedKey: setSelectedAccountKey } =
-    useSelectedAccountKey(accountAddresses);
+  const { selectedKey: selectedAccountKey } = useSelectedAccountKey(accountAddresses);
 
   // Check if any of the dependencies have errors
   const hasErrors = isErrorAccountAddresses || isErrorRawBanks || isErrorMetadata || isErrorOracleData;

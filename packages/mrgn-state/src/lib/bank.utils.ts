@@ -10,7 +10,7 @@ import {
   MarginfiAccountWrapper,
   MarginRequirementType,
 } from "@mrgnlabs/marginfi-client-v2";
-import { TokenMetadata, nativeToUi, WSOL_MINT, floor, ceil, uiToNative, BankMetadata } from "@mrgnlabs/mrgn-common";
+import { TokenMetadata, nativeToUi, WSOL_MINT, floor, ceil, uiToNative } from "@mrgnlabs/mrgn-common";
 
 import { FEE_MARGIN, VOLATILITY_FACTOR } from "../consts";
 import {

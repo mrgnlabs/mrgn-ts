@@ -1,4 +1,3 @@
-import { ADDRESS_LOOKUP_TABLE_FOR_GROUP } from "@mrgnlabs/marginfi-client-v2";
 import {
   BankMetadata,
   loadBankMetadatas,
