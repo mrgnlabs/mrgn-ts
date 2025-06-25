@@ -65,9 +65,6 @@ export type LendBoxProps = {
   hidePoolStats?: HidePoolStats;
   stakeAccounts?: ValidatorStakeGroup[];
 
-  searchMode?: boolean;
-  shouldBeHidden?: boolean;
-
   onCloseDialog?: () => void;
   setShouldBeHidden?: (hidden: boolean) => void;
 
@@ -97,8 +94,6 @@ export const LendBox = ({
   stakeAccounts,
   setDisplaySettings,
   onCloseDialog,
-  searchMode = false,
-  shouldBeHidden = false,
   setShouldBeHidden,
   initialAmount,
 }: LendBoxProps) => {
@@ -145,41 +140,6 @@ export const LendBox = ({
   ]);
 
   const isMobile = useIsMobile();
-  const hasRefreshed = React.useRef(false);
-  const _prevSelectedBank = usePrevious(selectedBank);
-  const _prevShouldBeHidden = usePrevious(shouldBeHidden);
-
-  /**
-   * Handles visibility and state refresh logic when `searchMode` is enabled.
-   * - If no bank is selected, hide the component.
-   * - If a bank is selected, show the component.
-   * - If `searchMode` is first enabled and a bank was already selected, refresh the state.
-   */
-  React.useEffect(() => {
-    if (!shouldBeHidden) return;
-
-    if (!selectedBank) {
-      setShouldBeHidden?.(true);
-    } else {
-      setShouldBeHidden?.(false);
-    }
-
-    // Refresh state when searchMode is enabled and a bank was initially selected
-    if (!hasRefreshed.current && _prevSelectedBank === undefined && selectedBank) {
-      refreshState();
-      hasRefreshed.current = true;
-    }
-  }, [shouldBeHidden, selectedBank, _prevSelectedBank, setShouldBeHidden, refreshState]);
-
-  /**
-   * Resets `hasRefreshed` when `searchMode` changes from `false` → `true`.
-   * This ensures `refreshState()` can run again when toggling `searchMode` on.
-   */
-  React.useEffect(() => {
-    if (_prevShouldBeHidden === false && shouldBeHidden === true) {
-      hasRefreshed.current = false;
-    }
-  }, [shouldBeHidden, _prevShouldBeHidden]);
 
   const [isTransactionExecuting, setIsTransactionExecuting] = React.useState(false);
   const [simulationStatus, setSimulationStatus] = React.useState<{
@@ -393,7 +353,7 @@ export const LendBox = ({
 
   React.useEffect(() => {
     const handleKeyPress = async (event: KeyboardEvent) => {
-      if (isMobile || event.key !== "Enter" || isLoading || !connected || searchMode) {
+      if (isMobile || event.key !== "Enter" || isLoading || !connected) {
         return;
       }
 
@@ -408,16 +368,7 @@ export const LendBox = ({
 
     document.addEventListener("keypress", handleKeyPress);
     return () => document.removeEventListener("keypress", handleKeyPress);
-  }, [
-    isLoading,
-    connected,
-    additionalActionMessages,
-    actionMessages,
-    showCloseBalance,
-    handleLendingAction,
-    isMobile,
-    searchMode,
-  ]);
+  }, [isLoading, connected, additionalActionMessages, actionMessages, showCloseBalance, handleLendingAction, isMobile]);
 
   return (
     <ActionBoxContentWrapper>
@@ -437,10 +388,6 @@ export const LendBox = ({
           selectionGroups={selectionGroups}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
-          searchMode={searchMode}
-          onCloseDialog={() => {
-            searchMode && onCloseDialog?.();
-          }}
         />
       </div>
       {lendMode === ActionType.Deposit &&

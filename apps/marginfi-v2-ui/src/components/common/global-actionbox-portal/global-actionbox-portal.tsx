@@ -5,12 +5,24 @@ import * as RadixPortal from "@radix-ui/react-portal";
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { useUiStore } from "~/store";
-import { useRefreshUserData, useUserStakeAccounts } from "@mrgnlabs/mrgn-state";
+import {
+  ExtendedBankInfo,
+  useExtendedBanks,
+  useRefreshUserData,
+  useUserBalances,
+  useUserStakeAccounts,
+} from "@mrgnlabs/mrgn-state";
+import { BankListWrapper } from "~/components/action-box-v2/components";
+import { LendBoxBankList } from "~/components/action-box-v2/actions";
 
 export const GlobalActionBoxPortal = () => {
   const { connected, walletContextState, walletAddress } = useWallet();
+  const [selectedBank, setSelectedBank] = React.useState<ExtendedBankInfo | null>(null);
+
   const refreshUserData = useRefreshUserData(walletAddress);
   const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
+  const { extendedBanks } = useExtendedBanks();
+  const { data: balances } = useUserBalances(walletAddress);
   const [globalActionBoxProps, setGlobalActionBoxProps] = useUiStore((state) => [
     state.globalActionBoxProps,
     state.setGlobalActionBoxProps,
@@ -20,29 +32,52 @@ export const GlobalActionBoxPortal = () => {
     <RadixPortal.Root>
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 opacity-0 animate-fadeIn transition-opacity duration-300 ease-in-out">
         <div className=" p-6 rounded-lg shadow-lg">
-          <ActionBox.BorrowLend
-            useProvider={true}
-            isDialog={true}
-            dialogProps={{
-              onClose: () => {
-                setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: false });
-              },
-              isTriggered: true,
-            }}
-            lendProps={{
-              requestedLendType: globalActionBoxProps.actionType,
-              connected,
-              walletContextState,
-              stakeAccounts,
-              searchMode: true,
-              captureEvent: (event, properties) => {
-                capture(event, properties);
-              },
-              onComplete: () => {
-                refreshUserData();
-              },
-            }}
-          />
+          {globalActionBoxProps.isOpen &&
+            (selectedBank ? (
+              <ActionBox.BorrowLend
+                useProvider={true}
+                isDialog={true}
+                dialogProps={{
+                  onClose: () => {
+                    setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: false });
+                  },
+                  isTriggered: true,
+                }}
+                lendProps={{
+                  requestedBank: selectedBank,
+                  requestedLendType: globalActionBoxProps.actionType,
+                  connected,
+                  walletContextState,
+                  stakeAccounts,
+                  captureEvent: (event, properties) => {
+                    capture(event, properties);
+                  },
+                  onComplete: () => {
+                    refreshUserData();
+                  },
+                }}
+              />
+            ) : (
+              <BankListWrapper
+                isOpen={true}
+                setIsOpen={(open) => {}}
+                Trigger={<></>}
+                Content={
+                  <LendBoxBankList.BankList
+                    isOpen={true}
+                    onClose={(hasSetBank) => {
+                      !hasSetBank && setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: false });
+                    }}
+                    selectedBank={selectedBank}
+                    onSetSelectedBank={setSelectedBank}
+                    actionType={globalActionBoxProps.actionType}
+                    banks={extendedBanks}
+                    nativeSolBalance={balances?.nativeSolBalance ?? 0}
+                    connected={connected}
+                  />
+                }
+              />
+            ))}
         </div>
       </div>
     </RadixPortal.Root>
