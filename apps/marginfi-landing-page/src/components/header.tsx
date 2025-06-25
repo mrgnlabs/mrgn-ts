@@ -43,8 +43,8 @@ const CONTENT = {
         heading: "Products",
         links: [
           { label: "mrgnlend", href: "#products" },
-          { label: "LST & YBX", href: "#products" },
-          { label: "mrgnswap", href: "#products" },
+          { label: "The Arena", href: "#products" },
+          { label: "LST", href: "#products" },
         ],
       },
       {
