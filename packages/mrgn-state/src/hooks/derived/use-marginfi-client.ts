@@ -8,6 +8,7 @@ import { getConfig } from "../../config";
 import { useMarginfiGroup, useMarginfiLuts, useMetadata, useOracleData } from "../react-query";
 import { useBanks } from "./use-banks";
 import { useMintMap } from "./use-mint-map";
+import { PublicKey } from "@solana/web3.js";
 
 export function useMarginfiClient(wallet?: Wallet) {
   const { data: marginfiGroup, isLoading: isLoadingGroup, isError: isErrorGroup } = useMarginfiGroup();
@@ -29,11 +30,11 @@ export function useMarginfiClient(wallet?: Wallet) {
   const marginfiClient = React.useMemo(() => {
     if (!marginfiGroup || !banks || !banksMap || !oracleData || !mintMap || !metadata || !luts) return undefined;
 
-    let finalProgram = program;
+    let finalProgram: MarginfiProgram = program;
 
-    if (!wallet) {
-      finalProgram = program;
-    } else {
+    let finalWallet: Wallet;
+
+    if (wallet) {
       const provider = new AnchorProvider(program.provider.connection, wallet, {
         ...AnchorProvider.defaultOptions(),
         commitment: program.provider.connection.commitment ?? AnchorProvider.defaultOptions().commitment,
@@ -43,6 +44,13 @@ export function useMarginfiClient(wallet?: Wallet) {
       const idl = { ...program.idl, address: program.programId.toBase58() };
 
       finalProgram = new Program(idl, provider) as any as MarginfiProgram;
+      finalWallet = wallet;
+    } else {
+      finalWallet = {
+        publicKey: PublicKey.default,
+        signTransaction: () => new Promise(() => {}),
+        signAllTransactions: () => new Promise(() => {}),
+      };
     }
 
     const marginfiGroupClass = new MarginfiGroup(marginfiGroup.admin, marginfiGroup.address);
@@ -51,7 +59,7 @@ export function useMarginfiClient(wallet?: Wallet) {
     const marginfiClient = new MarginfiClient(
       mfiConfig,
       finalProgram,
-      {} as any,
+      finalWallet,
       false,
       marginfiGroupClass,
       banksMap,

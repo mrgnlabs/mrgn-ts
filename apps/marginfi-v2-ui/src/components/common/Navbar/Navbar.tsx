@@ -49,8 +49,6 @@ export const Navbar: FC = () => {
 
   const initialized = isSuccessExtendedBanks;
 
-  console.log("isSuccessExtendedBanks", isSuccessExtendedBanks);
-
   const userDataFetched = isSuccessMarginfiAccounts && isSuccessUserBalances;
 
   const {
