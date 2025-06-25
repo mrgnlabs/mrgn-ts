@@ -32,10 +32,6 @@ const footerLinks = [
     icon: <IconBrandGithubFilled />,
   },
   {
-    href: "https://mrgn.grafana.net/public-dashboards/a2700f1bbca64aeaa5582a90dbaeb276?orgId=1&refresh=1m",
-    icon: <IconChartHistogram />,
-  },
-  {
     href: "https://docs.marginfi.com/",
     icon: <IconBook />,
   },

@@ -170,10 +170,6 @@ const headerLinks = [
   { href: "https://discord.gg/pJ3U7gHJFe", icon: <IconBrandDiscordFilled size={20} /> },
   { href: "https://twitter.com/marginfi", icon: <IconBrandX size={20} /> },
   { href: "https://github.com/mrgnlabs", icon: <IconBrandGithubFilled size={20} /> },
-  {
-    href: "https://mrgn.grafana.net/public-dashboards/a2700f1bbca64aeaa5582a90dbaeb276?orgId=1&refresh=1m",
-    icon: <IconChartHistogram size={20} />,
-  },
 ];
 
 export default function Ecosystem() {

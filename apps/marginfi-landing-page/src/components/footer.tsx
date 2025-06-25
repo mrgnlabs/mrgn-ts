@@ -35,10 +35,6 @@ const CONTENT: {
       heading: "Resources",
       list: [
         {
-          href: "https://mrgn.grafana.net/public-dashboards/a2700f1bbca64aeaa5582a90dbaeb276?orgId=1&refresh=1m",
-          label: "Analytics",
-        },
-        {
           href: "https://github.com/mrgnlabs/marginfi-v2/tree/main/audits",
           label: "Audits",
         },
