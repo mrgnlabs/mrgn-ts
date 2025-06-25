@@ -55,6 +55,8 @@ export default function BankPage() {
   const bank = extendedBankInfos.find((bank) => bank.address.toBase58() === address);
 
   const reduceOnly = bank?.info.rawBank.config.operationalState === OperationalState.ReduceOnly;
+  const isIsolatedBank = bank?.info.rawBank.config.assetTag !== 2 && bank?.info.state.isIsolated;
+  const isNativeStakeBank = bank?.info.rawBank.config.assetTag === 2;
 
   const assetPriceData = React.useMemo(() => {
     if (!bank) {
@@ -150,7 +152,23 @@ export default function BankPage() {
         title: "Total Borrows",
         description: "Total borrows in the bank",
         tooltip: "Total borrows in the pool.",
-        value: (
+        value: isNativeStakeBank ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-muted-foreground">—</span>
+                  <IconInfoCircle size={14} className="cursor-help" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>
+                  You cannot take out native stake borrows. Deposit your native stake to increase your borrow capacity.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
           <div className="flex flex-col lg:flex-row items-center justify-center">
             <span>
               {dynamicNumeralFormatter(
@@ -180,31 +198,49 @@ export default function BankPage() {
           "Percentage of an asset's value that counts toward your collateral. Higher weight means more borrowing power for that asset.",
         value:
           assetWeightData && bank ? (
-            <div className="flex items-center justify-center">
-              {(assetWeightData.emodeActive && assetWeightData.originalAssetWeight) ||
-              (assetWeightData.collateralBanks && assetWeightData.collateralBanks.length > 0) ||
-              (assetWeightData.liabilityBanks && assetWeightData.liabilityBanks.length > 0) ? (
-                <EmodePopover
-                  bank={bank}
-                  extendedBanks={extendedBankInfos}
-                  assetWeight={assetWeightData.assetWeight}
-                  originalAssetWeight={assetWeightData.originalAssetWeight}
-                  emodeActive={assetWeightData.emodeActive}
-                  isInLendingMode={true}
-                  collateralBanks={assetWeightData.collateralBanks}
-                  liabilityBanks={assetWeightData.liabilityBanks}
-                  triggerType="weight"
-                  iconSize="lg"
-                />
-              ) : (
-                <div className="flex justify-end items-center">
-                  {percentFormatterMod(assetWeightData.assetWeight, {
-                    minFractionDigits: 0,
-                    maxFractionDigits: 2,
-                  })}
-                </div>
-              )}
-            </div>
+            isIsolatedBank ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-muted-foreground">—</span>
+                      <IconInfoCircle size={14} className="cursor-help" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    <p>
+                      An isolated bank cannot be borrowed against. Use isolated banks to increase your borrow capacity.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <div className="flex items-center justify-center">
+                {(assetWeightData.emodeActive && assetWeightData.originalAssetWeight) ||
+                (assetWeightData.collateralBanks && assetWeightData.collateralBanks.length > 0) ||
+                (assetWeightData.liabilityBanks && assetWeightData.liabilityBanks.length > 0) ? (
+                  <EmodePopover
+                    bank={bank}
+                    extendedBanks={extendedBankInfos}
+                    assetWeight={assetWeightData.assetWeight}
+                    originalAssetWeight={assetWeightData.originalAssetWeight}
+                    emodeActive={assetWeightData.emodeActive}
+                    isInLendingMode={true}
+                    collateralBanks={assetWeightData.collateralBanks}
+                    liabilityBanks={assetWeightData.liabilityBanks}
+                    triggerType="weight"
+                    iconSize="lg"
+                  />
+                ) : (
+                  <div className="flex justify-end items-center">
+                    {percentFormatterMod(assetWeightData.assetWeight, {
+                      minFractionDigits: 0,
+                      maxFractionDigits: 2,
+                    })}
+                  </div>
+                )}
+              </div>
+            )
           ) : (
             0
           ),
@@ -219,17 +255,22 @@ export default function BankPage() {
       {
         title: "Interest Rates (APY)",
         description: "Interest rates of the bank",
-        tooltip:
-          "Green shows what you'll earn on deposits over a year. Yellow shows what you'll pay for borrows over a year. Both include compounding.",
+        tooltip: isNativeStakeBank
+          ? "Green shows what you'll earn on deposits over a year. Compounding included."
+          : "Green shows what you'll earn on deposits over a year. Yellow shows what you'll pay for borrows over a year. Both include compounding.",
         value: (
-          <div className="flex items-center justify-center gap-2 text-2xl">
-            <span className="text-mrgn-success">{numeralFormatter(bankData?.lendingRate || 0)}%</span>/
-            <span className="text-mrgn-warning">{numeralFormatter(bankData?.borrowingRate || 0)}%</span>
+          <div className={`flex items-center justify-center gap-2 ${!isNativeStakeBank ? "text-2xl" : ""}`}>
+            <span className="text-mrgn-success">{numeralFormatter(bankData?.lendingRate || 0)}%</span>
+            {!isNativeStakeBank && (
+              <>
+                /<span className="text-mrgn-warning">{numeralFormatter(bankData?.borrowingRate || 0)}%</span>
+              </>
+            )}
           </div>
         ),
       },
     ],
-    [bankData, assetWeightData, bank, extendedBankInfos]
+    [bankData, assetWeightData, bank, extendedBankInfos, isIsolatedBank, isNativeStakeBank]
   );
 
   if (!initialized) {
