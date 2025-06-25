@@ -7,19 +7,26 @@ import Error from "next/error";
 import { IconArrowLeft, IconCheck, IconLink, IconInfoCircle } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { ActionBox, useWallet, AddressActions } from "@mrgnlabs/mrgn-ui";
-import { LendingModes, getAssetPriceData } from "@mrgnlabs/mrgn-utils";
+import { LendingModes, getAssetPriceData, getAssetWeightData, cn } from "@mrgnlabs/mrgn-utils";
 import { ActionType, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginRequirementType, AssetTag, OperationalState } from "@mrgnlabs/marginfi-client-v2";
-import { aprToApy, numeralFormatter, percentFormatter, dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import {
+  aprToApy,
+  numeralFormatter,
+  percentFormatter,
+  percentFormatterMod,
+  dynamicNumeralFormatter,
+} from "@mrgnlabs/mrgn-common";
 
 import { useMrgnlendStore, useUiStore } from "~/store";
 
 import { BankChart, BankShare } from "~/components/common/bank/components";
 import { Loader } from "~/components/ui/loader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
-import { IconSwitchboard, IconPyth } from "~/components/ui/icons";
+import { IconSwitchboard, IconPyth, IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
+import { EmodePopover } from "~/components/common/emode/components/emode-popover";
 
 export default function BankPage() {
   const router = useRouter();
@@ -27,10 +34,20 @@ export default function BankPage() {
 
   const { address } = React.useMemo(() => router.query, [router]);
 
-  const [initialized, fetchMrgnlendState, extendedBankInfos] = useMrgnlendStore((state) => [
+  const [
+    initialized,
+    fetchMrgnlendState,
+    extendedBankInfos,
+    collateralBanksByLiabilityBank,
+    liabilityBanksByCollateralBank,
+    userActiveEmodes,
+  ] = useMrgnlendStore((state) => [
     state.initialized,
     state.fetchMrgnlendState,
     state.extendedBankInfos,
+    state.collateralBanksByLiabilityBank,
+    state.liabilityBanksByCollateralBank,
+    state.userActiveEmodes,
   ]);
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
   const { connected, walletContextState } = useWallet();
@@ -88,6 +105,24 @@ export default function BankPage() {
     };
   }, [bank]);
 
+  const assetWeightData = React.useMemo(() => {
+    if (!bank) {
+      return null;
+    }
+    const collateralBanks = collateralBanksByLiabilityBank?.[bank.address.toBase58()] || [];
+    const liabilityBanks = liabilityBanksByCollateralBank?.[bank.address.toBase58()] || [];
+
+    return getAssetWeightData(
+      bank,
+      true,
+      extendedBankInfos,
+      undefined,
+      collateralBanks,
+      liabilityBanks,
+      userActiveEmodes
+    );
+  }, [bank, extendedBankInfos, collateralBanksByLiabilityBank, liabilityBanksByCollateralBank, userActiveEmodes]);
+
   const stats = React.useMemo(
     () => [
       {
@@ -143,7 +178,36 @@ export default function BankPage() {
         description: "Weight of the bank",
         tooltip:
           "Percentage of an asset's value that counts toward your collateral. Higher weight means more borrowing power for that asset.",
-        value: bankData?.weight ? `${percentFormatter.format(bankData.weight)}` : 0,
+        value:
+          assetWeightData && bank ? (
+            <div className="flex items-center justify-center">
+              {(assetWeightData.emodeActive && assetWeightData.originalAssetWeight) ||
+              (assetWeightData.collateralBanks && assetWeightData.collateralBanks.length > 0) ||
+              (assetWeightData.liabilityBanks && assetWeightData.liabilityBanks.length > 0) ? (
+                <EmodePopover
+                  bank={bank}
+                  extendedBanks={extendedBankInfos}
+                  assetWeight={assetWeightData.assetWeight}
+                  originalAssetWeight={assetWeightData.originalAssetWeight}
+                  emodeActive={assetWeightData.emodeActive}
+                  isInLendingMode={true}
+                  collateralBanks={assetWeightData.collateralBanks}
+                  liabilityBanks={assetWeightData.liabilityBanks}
+                  triggerType="weight"
+                  iconSize="lg"
+                />
+              ) : (
+                <div className="flex justify-end items-center">
+                  {percentFormatterMod(assetWeightData.assetWeight, {
+                    minFractionDigits: 0,
+                    maxFractionDigits: 2,
+                  })}
+                </div>
+              )}
+            </div>
+          ) : (
+            0
+          ),
       },
       {
         title: "Loan-to-Value",
@@ -165,7 +229,7 @@ export default function BankPage() {
         ),
       },
     ],
-    [bankData]
+    [bankData, assetWeightData, bank, extendedBankInfos]
   );
 
   if (!initialized) {
