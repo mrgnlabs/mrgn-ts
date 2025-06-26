@@ -70,6 +70,9 @@ const fillDataGaps = (data: BankChartDataDailyAverages[], daysToFill: number = 3
           baseRate: 0,
           plateauInterestRate: 0,
           maxInterestRate: 0,
+          insuranceIrFee: 0,
+          protocolIrFee: 0,
+          programFeeRate: 0,
         });
       }
     }

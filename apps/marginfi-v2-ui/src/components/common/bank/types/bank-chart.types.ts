@@ -12,6 +12,9 @@ type BankChartData = {
   baseRate: number;
   plateauInterestRate: number;
   maxInterestRate: number;
+  insuranceIrFee: number;
+  protocolIrFee: number;
+  programFeeRate: number;
 };
 
 type BankHistoricalDataResponse = {
@@ -32,6 +35,9 @@ type BankChartDataDailyAverages = {
   baseRate: number;
   plateauInterestRate: number;
   maxInterestRate: number;
+  insuranceIrFee: number;
+  protocolIrFee: number;
+  programFeeRate: number;
 };
 
 type UseBankRatesReturn = {

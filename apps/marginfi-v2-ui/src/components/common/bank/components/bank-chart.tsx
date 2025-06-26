@@ -96,7 +96,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
   const bank = React.useMemo(() => {
     return extendedBankInfos.find((bank) => bank.address.toBase58() === bankAddress);
   }, [extendedBankInfos, bankAddress]);
-  
+
   // Get the current utilization rate from the bank state
   const currentUtilizationRate = React.useMemo(() => {
     if (!bank) return 0;
@@ -200,6 +200,10 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
       formattedMaxRate: "0%",
       formattedUtilization: "0%",
       formattedUsdPrice: "$0",
+      insuranceIrFee: 0,
+      protocolIrFee: 0,
+      programFeeRate: 0,
+      optimalUtilizationRate: 0,
     };
   });
 
@@ -213,8 +217,11 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
         const maxInterestRate = typeof item.maxInterestRate === "number" ? item.maxInterestRate : 0;
         const utilization = typeof item.utilization === "number" ? item.utilization : 0;
         const usdPrice = typeof item.usdPrice === "number" ? item.usdPrice : 0;
-
-        console.log(usdPrice);
+        const insuranceIrFee = typeof item.insuranceIrFee === "number" ? item.insuranceIrFee : 0;
+        const protocolIrFee = typeof item.protocolIrFee === "number" ? item.protocolIrFee : 0;
+        const programFeeRate = typeof item.programFeeRate === "number" ? item.programFeeRate : 0;
+        const optimalUtilizationRate =
+          typeof item.optimalUtilizationRate === "number" ? item.optimalUtilizationRate : 0;
 
         // For interest curve, generate synthetic data if real data is missing
         // This is a temporary solution until the database has real data
@@ -245,8 +252,13 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
           formattedMaxRate: percentFormatter.format(maxInterestRate || syntheticMaxRate),
           formattedUtilization: percentFormatter.format(utilization || syntheticUtilization),
           formattedUsdPrice: `$${dynamicNumeralFormatter(usdPrice)}`,
+          insuranceIrFee: insuranceIrFee || 0,
+          protocolIrFee: protocolIrFee || 0,
+          programFeeRate: programFeeRate || 0,
+          optimalUtilizationRate: optimalUtilizationRate || 0,
         };
       });
+
   const CustomTooltipContent = ({ active, payload, label }: any) => {
     if (active && payload && payload.length && !hasError) {
       return (
@@ -281,10 +293,43 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
     return null;
   };
 
-  const interestCurveData = Array.from({ length: 100 }, (_, i) => {
+  const latest = formattedData[formattedData.length - 1];
+
+  const {
+    baseRate,
+    optimalUtilizationRate,
+    plateauInterestRate,
+    maxInterestRate,
+    insuranceIrFee,
+    protocolIrFee,
+    programFeeRate,
+  } = latest ?? {};
+
+  // Normalize: assume these values are all in decimal (e.g. 0.01 for 1%)
+  const effectiveBase = baseRate ?? 0.01;
+  const effectiveOptimal = optimalUtilizationRate ?? 0.8;
+  const effectivePlateau = plateauInterestRate ?? 0.1;
+  const effectiveMax = maxInterestRate ?? 1.0;
+
+  // Total protocol cut (used for supply APY)
+  const totalFee = (insuranceIrFee ?? 0) + (protocolIrFee ?? 0) + (programFeeRate ?? 0);
+
+  // Borrow rate curve
+  const getBorrowRate = (util: number) => {
+    if (util <= effectiveOptimal) {
+      const slope = (effectivePlateau - effectiveBase) / effectiveOptimal;
+      return effectiveBase + util * slope;
+    } else {
+      const slope = (effectiveMax - effectivePlateau) / (1 - effectiveOptimal);
+      return effectivePlateau + (util - effectiveOptimal) * slope;
+    }
+  };
+
+  // Final curve data (101 points, from 0.00 to 1.00)
+  const interestCurveData = Array.from({ length: 101 }, (_, i) => {
     const utilization = i / 100;
-    const borrowAPY = utilization <= 0.8 ? 0.01 + utilization * 0.05 : 0.01 + 0.8 * 0.05 + (utilization - 0.8) * 1.0;
-    const supplyAPY = borrowAPY * utilization * 0.9;
+    const borrowAPY = getBorrowRate(utilization);
+    const supplyAPY = borrowAPY * utilization * (1 - totalFee);
     return { utilization, borrowAPY, supplyAPY };
   });
 
@@ -377,6 +422,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
               tickLine={false}
               tickMargin={12}
               minTickGap={50}
+              padding={{ left: 0, right: 0 }}
             />
             <YAxis
               tickFormatter={(value) => {
@@ -417,9 +463,6 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
             {/* Only render areas if there's no error */}
             {!hasError &&
               (() => {
-                console.log("Rendering chart for tab:", activeTab);
-                console.log("Sample data point:", formattedData.length > 0 ? formattedData[0] : "No data");
-
                 switch (activeTab) {
                   case "tvl":
                     return (

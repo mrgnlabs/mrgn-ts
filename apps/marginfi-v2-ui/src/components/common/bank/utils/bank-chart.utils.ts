@@ -42,6 +42,9 @@ export const filterDailyRates = (data: BankChartData[]): BankChartDataDailyAvera
       baseRate: entry.baseRate,
       plateauInterestRate: entry.plateauInterestRate,
       maxInterestRate: entry.maxInterestRate,
+      insuranceIrFee: entry.insuranceIrFee || 0,
+      protocolIrFee: entry.protocolIrFee || 0,
+      programFeeRate: entry.programFeeRate || 0,
     }))
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 };

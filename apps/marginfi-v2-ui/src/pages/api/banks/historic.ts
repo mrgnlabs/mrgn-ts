@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .schema("application")
       .from("v_bank_metrics_daily")
       .select(
-        "day, borrow_rate_pct, deposit_rate_pct, total_borrows, total_deposits, usd_price, utilization, optimal_utilization_rate, base_rate, plateau_interest_rate, max_interest_rate"
+        "day, borrow_rate_pct, deposit_rate_pct, total_borrows, total_deposits, usd_price, utilization, optimal_utilization_rate, base_rate, plateau_interest_rate, max_interest_rate, insurance_ir_fee, protocol_ir_fee, program_fee_rate"
       )
       .eq("bank_address", bankAddress)
       .gte("day", startDate)
@@ -49,11 +49,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: "No historical data found for this bank" });
     }
 
-    // Log the first entry to check if fields exist
-    if (bankMetrics.length > 0) {
-      console.log("Sample bank metric entry:", bankMetrics[0]);
-    }
-
     // Transform data to match expected frontend format
     const formattedData = bankMetrics.map((entry: any) => ({
       timestamp: entry.day,
@@ -68,6 +63,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       baseRate: entry.base_rate || 0,
       plateauInterestRate: entry.plateau_interest_rate || 0,
       maxInterestRate: entry.max_interest_rate || 0,
+      insuranceIrFee: entry.insurance_ir_fee || 0,
+      protocolIrFee: entry.protocol_ir_fee || 0,
+      programFeeRate: entry.program_fee_rate || 0,
     }));
 
     return res.status(STATUS_OK).json(formattedData);
