@@ -62,9 +62,9 @@ function canBeWithdrawn(
     checks.push(STATIC_SIMULATION_ERRORS.NO_COLLATERAL);
   }
 
-  if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Withdrawals"));
-  }
+  // if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
+  //   checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Withdrawals"));
+  // }
 
   if (amount && targetBankInfo.userInfo.emodeImpact?.withdrawAllImpact && targetBankInfo.isActive) {
     const isWithdrawingAll = isWholePosition(targetBankInfo, amount);
@@ -394,9 +394,9 @@ function canBeBorrowed(
     checks.push(STATIC_SIMULATION_ERRORS.EXISTING_BORROW);
   }
 
-  if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Borrows"));
-  }
+  // if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
+  //   checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Borrows"));
+  // }
 
   if (targetBankInfo.userInfo.emodeImpact?.borrowImpact) {
     const borrowImpact = targetBankInfo.userInfo.emodeImpact?.borrowImpact;
