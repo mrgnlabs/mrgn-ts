@@ -14,7 +14,6 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { useMrgnlendStore } from "~/store";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 const shareLinks = [

@@ -4,22 +4,18 @@ import React from "react";
 import { Area, AreaChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from "recharts";
 import { IconLoader2 } from "@tabler/icons-react";
 
-import { useBankChart } from "../hooks/use-bank-chart.hook";
+import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { useIsMobile } from "@mrgnlabs/mrgn-utils";
+import { useExtendedBanks } from "@mrgnlabs/mrgn-state";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
-} from "~/components/ui/chart";
+import { ChartConfig, ChartContainer, ChartTooltip, ChartLegend, ChartLegendContent } from "~/components/ui/chart";
 import { Skeleton } from "~/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Switch } from "~/components/ui/switch";
-import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
-import { useIsMobile } from "@mrgnlabs/mrgn-utils";
-import { useMrgnlendStore } from "~/store";
+import { useWallet } from "~/components";
+
+import { useBankChart } from "../hooks/use-bank-chart.hook";
 
 // Use the same colors for both charts
 const chartColors = {
@@ -84,6 +80,8 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
   const [activeTab, setActiveTab] = React.useState<"tvl" | "rates" | "interest-curve" | "price">(tab);
   const [showUSD, setShowUSD] = React.useState(false);
   const isMobile = useIsMobile();
+  const { walletAddress } = useWallet();
+  const { extendedBanks } = useExtendedBanks(walletAddress);
 
   React.useEffect(() => {
     if (activeTab !== "tvl") {
@@ -92,10 +90,10 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
   }, [activeTab]);
 
   // Get bank data from store
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+
   const bank = React.useMemo(() => {
-    return extendedBankInfos.find((bank) => bank.address.toBase58() === bankAddress);
-  }, [extendedBankInfos, bankAddress]);
+    return extendedBanks.find((bank) => bank.address.toBase58() === bankAddress);
+  }, [extendedBanks, bankAddress]);
 
   // Get the current utilization rate from the bank state
   const currentUtilizationRate = React.useMemo(() => {

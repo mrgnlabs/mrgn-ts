@@ -27,32 +27,37 @@ import { IconSwitchboard, IconPyth, IconEmodeSimple, IconEmodeSimpleInactive } f
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { EmodePopover } from "~/components/common/emode/components/emode-popover";
+import {
+  groupCollateralBanksByLiabilityBank,
+  groupLiabilityBanksByCollateralBank,
+  useEmode,
+  useExtendedBanks,
+  useRefreshUserData,
+} from "@mrgnlabs/mrgn-state";
 
 export default function BankPage() {
   const router = useRouter();
+  const { connected, walletContextState, walletAddress } = useWallet();
   const [isAddressCopied, setIsAddressCopied] = React.useState(false);
 
   const { address } = React.useMemo(() => router.query, [router]);
 
-  const [
-    initialized,
-    fetchMrgnlendState,
-    extendedBankInfos,
-    collateralBanksByLiabilityBank,
-    liabilityBanksByCollateralBank,
-    userActiveEmodes,
-  ] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.fetchMrgnlendState,
-    state.extendedBankInfos,
-    state.collateralBanksByLiabilityBank,
-    state.liabilityBanksByCollateralBank,
-    state.userActiveEmodes,
-  ]);
-  const [lendingMode] = useUiStore((state) => [state.lendingMode]);
-  const { connected, walletContextState } = useWallet();
+  const { extendedBanks } = useExtendedBanks(walletAddress);
+  const { emodePairs, activeEmodePairs } = useEmode(walletAddress);
 
-  const bank = extendedBankInfos.find((bank) => bank.address.toBase58() === address);
+  const collateralBanksByLiabilityBank = React.useMemo(() => {
+    return groupCollateralBanksByLiabilityBank(extendedBanks, emodePairs);
+  }, [extendedBanks, emodePairs]);
+
+  const liabilityBanksByCollateralBank = React.useMemo(() => {
+    return groupLiabilityBanksByCollateralBank(extendedBanks, emodePairs);
+  }, [extendedBanks, emodePairs]);
+
+  const refreshUserData = useRefreshUserData(walletAddress);
+
+  const [lendingMode] = useUiStore((state) => [state.lendingMode]);
+
+  const bank = extendedBanks.find((bank) => bank.address.toBase58() === address);
 
   const reduceOnly = bank?.info.rawBank.config.operationalState === OperationalState.ReduceOnly;
   const isIsolatedBank = bank?.info.rawBank.config.assetTag !== 2 && bank?.info.state.isIsolated;
@@ -101,7 +106,7 @@ export default function BankPage() {
       ltv: 1 / bank.info.rawBank.config.liabilityWeightInit.toNumber(),
       lendingRate:
         bank.info.rawBank.config.assetTag === AssetTag.STAKED
-          ? bank.meta.stakePool?.validatorRewards
+          ? 0 //bank.meta.stakePool?.validatorRewards TODO migrate this
           : aprToApy(lendingRate) * 100,
       borrowingRate: bank.info.rawBank.config.assetTag === AssetTag.STAKED ? 0 : aprToApy(borrowingRate) * 100,
     };
@@ -114,16 +119,8 @@ export default function BankPage() {
     const collateralBanks = collateralBanksByLiabilityBank?.[bank.address.toBase58()] || [];
     const liabilityBanks = liabilityBanksByCollateralBank?.[bank.address.toBase58()] || [];
 
-    return getAssetWeightData(
-      bank,
-      true,
-      extendedBankInfos,
-      undefined,
-      collateralBanks,
-      liabilityBanks,
-      userActiveEmodes
-    );
-  }, [bank, extendedBankInfos, collateralBanksByLiabilityBank, liabilityBanksByCollateralBank, userActiveEmodes]);
+    return getAssetWeightData(bank, true, extendedBanks, undefined, collateralBanks, liabilityBanks, activeEmodePairs);
+  }, [bank, extendedBanks, collateralBanksByLiabilityBank, liabilityBanksByCollateralBank, activeEmodePairs]);
 
   const stats = React.useMemo(
     () => [
@@ -221,7 +218,7 @@ export default function BankPage() {
                 (assetWeightData.liabilityBanks && assetWeightData.liabilityBanks.length > 0) ? (
                   <EmodePopover
                     bank={bank}
-                    extendedBanks={extendedBankInfos}
+                    extendedBanks={extendedBanks}
                     assetWeight={assetWeightData.assetWeight}
                     originalAssetWeight={assetWeightData.originalAssetWeight}
                     emodeActive={assetWeightData.emodeActive}
@@ -270,12 +267,12 @@ export default function BankPage() {
         ),
       },
     ],
-    [bankData, assetWeightData, bank, extendedBankInfos, isIsolatedBank, isNativeStakeBank]
+    [bankData, isNativeStakeBank, assetWeightData, bank, isIsolatedBank, extendedBanks]
   );
 
-  if (!initialized) {
-    return <Loader label="Loading bank..." />;
-  }
+  // if (!initialized) {
+  //   return <Loader label="Loading bank..." />;
+  // }
 
   if (!address) {
     return <Error statusCode={400} />;
@@ -392,7 +389,7 @@ export default function BankPage() {
                 // capture(event, properties);
               },
               onComplete: () => {
-                fetchMrgnlendState();
+                refreshUserData();
               },
             }}
           />
