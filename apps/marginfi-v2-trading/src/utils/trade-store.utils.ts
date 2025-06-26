@@ -260,7 +260,13 @@ export const compileBankAndTokenMetadata = (
     banksWithPriceAndToken.push({
       bank: data,
       oraclePrice,
-      tokenMetadata: { icon: bankSummary.tokenLogoUri, name: bankSummary.tokenName, symbol: bankSummary.tokenSymbol },
+      tokenMetadata: {
+        icon: bankSummary.tokenLogoUri,
+        name: bankSummary.tokenName,
+        symbol: bankSummary.tokenSymbol,
+        address: bankSummary.mint.toBase58(),
+        decimals: data.mintDecimals,
+      },
     });
   });
 
@@ -391,7 +397,13 @@ export const resetArenaBank = (bank: ArenaBank): ArenaBank => {
 
 const recompileArenaBank = (bank: ArenaBank, userData?: any) => {
   const updatedBankInfo = makeExtendedBankInfo(
-    { icon: bank.meta.tokenLogoUri, name: bank.meta.tokenName, symbol: bank.meta.tokenSymbol },
+    {
+      icon: bank.meta.tokenLogoUri,
+      name: bank.meta.tokenName,
+      symbol: bank.meta.tokenSymbol,
+      address: bank.info.rawBank.mint.toBase58(),
+      decimals: bank.info.rawBank.mintDecimals,
+    },
     bank.info.rawBank,
     bank.info.oraclePrice,
     undefined,

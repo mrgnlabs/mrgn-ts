@@ -75,6 +75,7 @@ export async function simulateAccountHealthCacheWithFallback(props: {
 
     marginfiAccount = MarginfiAccount.fromAccountParsed(props.marginfiAccount.address, simulatedAccount);
   } catch (e) {
+    console.log("e", e);
     const { assets: assetValueMaint, liabilities: liabilityValueMaint } = computeHealthComponentsLegacy(
       activeBalances,
       props.bankMap,
@@ -179,7 +180,12 @@ export async function simulateAccountHealthCache(props: {
     program.idl
   );
 
+  console.log("MarginfiAccountPost", marginfiAccountPost);
+
   if (marginfiAccountPost.healthCache.mrgnErr || marginfiAccountPost.healthCache.internalErr) {
+    console.log("MarginfiAccountPost healthCache", marginfiAccountPost.healthCache);
+    console.log("MarginfiAccountPost healthCache mrgnErr", marginfiAccountPost.healthCache.mrgnErr);
+
     if (marginfiAccountPost.healthCache.mrgnErr === 6009) {
       const assetValue = !wrappedI80F48toBigNumber(marginfiAccountPost.healthCache.assetValue).isZero();
       const liabilityValue = !wrappedI80F48toBigNumber(marginfiAccountPost.healthCache.liabilityValue).isZero();

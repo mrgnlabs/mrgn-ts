@@ -53,6 +53,7 @@ export function useMarginfiAccount(authority?: PublicKey) {
         oracleData.pythFeedIdMap,
         oracleData.oracleMap,
         metadata.bankMetadataMap,
+        authority ? new PublicKey(authority) : undefined,
         selectedAccountKey ? new PublicKey(selectedAccountKey) : undefined
       );
     },

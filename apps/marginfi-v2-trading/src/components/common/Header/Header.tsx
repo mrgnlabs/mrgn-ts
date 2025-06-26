@@ -189,7 +189,7 @@ export const Header = () => {
               </Button>
             </ResponsiveSettingsWrapper>
 
-            <Wallet
+            {/* <Wallet
               connection={connection}
               initialized={initialized}
               userDataFetched={userDataFetched}
@@ -242,7 +242,7 @@ export const Header = () => {
                   </CopyToClipboard>
                 </div>
               }
-            />
+            /> */}
           </div>
         </div>
       </motion.header>

@@ -38,9 +38,10 @@ export const fetchMarginfiAccount = async (
   pythFeedIdMap: PythPushFeedIdMap,
   oraclePrices: Map<string, OraclePrice>,
   bankMetadataMap: BankMetadataMap,
+  authorityPk?: PublicKey,
   marginfiAccountPk?: PublicKey
 ): Promise<MarginfiAccountType | null> => {
-  if (!marginfiAccountPk) {
+  if (!marginfiAccountPk || !authorityPk) {
     return null;
   }
 
@@ -71,6 +72,7 @@ export const fetchMarginfiAccount = async (
       oraclePrices: oraclePricesDto,
       marginfiAccountPk: marginfiAccountPk.toBase58(),
       bankMetadataMap: bankMetadataMap,
+      authorityPk: authorityPk.toBase58(),
     }),
   });
 

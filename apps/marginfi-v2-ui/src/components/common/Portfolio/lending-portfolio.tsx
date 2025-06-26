@@ -366,7 +366,6 @@ export const LendingPortfolio = () => {
             <div className="flex items-center gap-2">
               <p className="text-sm text-muted-foreground hidden md:block">Account</p>
               <WalletAuthAccounts
-                initialized={true}
                 mfiClient={marginfiClient}
                 connection={marginfiClient?.provider.connection ?? null}
                 marginfiAccounts={marginfiAccounts ?? []}

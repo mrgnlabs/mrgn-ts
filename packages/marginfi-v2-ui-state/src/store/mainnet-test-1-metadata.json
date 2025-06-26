@@ -14,11 +14,15 @@
   "tokenMetadata": {
     "USDC": {
       "name": "USD Coin",
-      "symbol": "USDC"
+      "symbol": "USDC",
+      "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "decimals": 6
     },
     "PYUSD": {
       "name": "PayPal USD",
-      "symbol": "PYUSD"
+      "symbol": "PYUSD",
+      "address": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+      "decimals": 6
     }
   }
 }

@@ -64,51 +64,75 @@
   "tokenMetadata": {
     "USDC": {
       "name": "USD Coin",
-      "symbol": "USDC"
+      "symbol": "USDC",
+      "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "decimals": 6
     },
     "PYUSD": {
       "name": "PayPal USD",
-      "symbol": "PYUSD"
+      "symbol": "PYUSD",
+      "address": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+      "decimals": 6
     },
     "$WIF": {
       "name": "dogwifhat",
-      "symbol": "$WIF"
+      "symbol": "$WIF",
+      "address": "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+      "decimals": 6
     },
     "jupSOL": {
       "name": "Jupiter Staked SOL",
-      "symbol": "jupSOL"
+      "symbol": "jupSOL",
+      "address": "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
+      "decimals": 9
     },
     "hSOL": {
       "name": "Helius Staked SOL",
-      "symbol": "hSOL"
+      "symbol": "hSOL",
+      "address": "he1iusmfkpAdwvxLNGV8Y1iSbj4rUy6yMhEA3fotn9A",
+      "decimals": 9
     },
     "UXD": {
       "name": "UXD Stablecoin",
-      "symbol": "UXD"
+      "symbol": "UXD",
+      "address": "7kbnvuGBxxj8AG9qp8Scn56muWGaRaFqxg1FsRp3PaFT",
+      "decimals": 6
     },
     "DUST": {
       "name": "DUST Protocol",
-      "symbol": "DUST"
+      "symbol": "DUST",
+      "address": "DUSTawucrTsGU8hcqRdHDCbuYhCPADMLM2VcCb8VnFnQ",
+      "decimals": 9
     },
     "META": {
       "name": "META",
-      "symbol": "META"
+      "symbol": "META",
+      "address": "METADDFL6wWMWEoKTFJwcThTbUmtarRJZjRpzUvkxhr",
+      "decimals": 9
     },
     "HONEY": {
       "name": "HONEY",
-      "symbol": "HONEY"
+      "symbol": "HONEY",
+      "address": "4vMsoUT2BWatFweudnQM1xedRLfJgJ7hswhcpz4xgBTy",
+      "decimals": 9
     },
     "MOTHER": {
       "name": "MOTHER IGGY",
-      "symbol": "MOTHER"
+      "symbol": "MOTHER",
+      "address": "3S8qX1MsMqRbiwKg2cQyx7nis1oHMgaCuc9c4VfvVdPN",
+      "decimals": 6
     },
     "SOL": {
       "name": "Solana",
-      "symbol": "SOL"
+      "symbol": "SOL",
+      "address": "So1111111111111111111111111111111111111112",
+      "decimals": 9
     },
     "LST": {
       "name": "LST",
-      "symbol": "LST"
+      "symbol": "LST",
+      "address": "LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp",
+      "decimals": 9
     }
   }
 }

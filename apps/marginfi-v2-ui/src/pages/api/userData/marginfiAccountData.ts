@@ -12,19 +12,17 @@ import {
   OraclePrice,
   OraclePriceDto,
   dtoToOraclePrice,
-  simulateAccountHealthCacheWithFallback,
-  MarginfiAccountRaw,
-  MarginfiAccount,
   marginfiAccountToDto,
 } from "@mrgnlabs/marginfi-client-v2";
+import { getMarginfiAccountData } from "@mrgnlabs/mrgn-state";
 import { BankMetadataMap } from "@mrgnlabs/mrgn-common";
 
 import config from "~/config/marginfi";
-import { getMarginfiAccountData } from "@mrgnlabs/mrgn-state";
 
 interface MarginfiAccountDataRequest {
   bankMap: Record<string, BankTypeDto>;
   oraclePrices: Record<string, OraclePriceDto>;
+  authorityPk: string;
   marginfiAccountPk: string;
   bankMetadataMap: BankMetadataMap;
 }
@@ -39,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const body = req.body as MarginfiAccountDataRequest;
 
     // Validate request body
-    if (!body.marginfiAccountPk || !body.bankMap || !body.oraclePrices || !body.bankMetadataMap) {
+    if (!body.marginfiAccountPk || !body.bankMap || !body.oraclePrices || !body.bankMetadataMap || !body.authorityPk) {
       return res.status(400).json({
         error: "Invalid request body. Expected marginfiAccountPk, bankMap, oraclePrices, and bankMetadataMap",
       });
@@ -60,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const marginfiAccountsPk = new PublicKey(body.marginfiAccountPk);
 
     const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
-    const provider = new AnchorProvider(connection, {} as Wallet, {
+    const provider = new AnchorProvider(connection, { publicKey: new PublicKey(body.authorityPk) } as Wallet, {
       ...AnchorProvider.defaultOptions(),
       commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
     });
