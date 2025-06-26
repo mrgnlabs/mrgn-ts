@@ -21,7 +21,7 @@ type BankChartDialogProps = {
   symbol?: string;
   mintAddress?: string;
   trigger?: React.ReactNode;
-  tab?: "rates" | "tvl";
+  tab?: "rates" | "tvl" | "interest-curve" | "price";
 };
 
 const BankChartDialog = ({ bankAddress, symbol, trigger, mintAddress, tab = "tvl" }: BankChartDialogProps) => {
@@ -48,7 +48,22 @@ const BankChartDialog = ({ bankAddress, symbol, trigger, mintAddress, tab = "tvl
             )}
             {symbol || "Bank"} <span>Historical Data</span>
           </DialogTitle>
-          <DialogDescription>Total Deposits, borrows, and interest rates over the last 30 days.</DialogDescription>
+          <DialogDescription>
+            {(() => {
+              switch (tab) {
+                case "tvl":
+                  return "Total deposits and borrows over the last 30 days.";
+                case "rates":
+                  return "Deposit and borrow interest rates over the last 30 days.";
+                case "interest-curve":
+                  return "Interest rate curve parameters over the last 30 days.";
+                case "price":
+                  return "Token price history over the last 30 days.";
+                default:
+                  return "Historical data over the last 30 days.";
+              }
+            })()}
+          </DialogDescription>
         </DialogHeader>
         <BankChart bankAddress={bankAddress} tab={tab} />
       </DialogContent>

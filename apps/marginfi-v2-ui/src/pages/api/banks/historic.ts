@@ -28,7 +28,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: bankMetrics, error } = await supabase
       .schema("application")
       .from("v_bank_metrics_daily")
-      .select("day, borrow_rate_pct, deposit_rate_pct, total_borrows, total_deposits")
+      .select(
+        "day, borrow_rate_pct, deposit_rate_pct, total_borrows, total_deposits, usd_price, utilization, optimal_utilization_rate, base_rate, plateau_interest_rate, max_interest_rate"
+      )
       .eq("bank_address", bankAddress)
       .gte("day", startDate)
       .order("day", { ascending: true });
@@ -42,9 +44,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (!bankMetrics || bankMetrics.length === 0) {
-      console.log(bankMetrics);
-      console.log(error);
+      console.log("No bank metrics found:", bankMetrics);
+      console.log("Error:", error);
       return res.status(404).json({ error: "No historical data found for this bank" });
+    }
+
+    // Log the first entry to check if fields exist
+    if (bankMetrics.length > 0) {
+      console.log("Sample bank metric entry:", bankMetrics[0]);
     }
 
     // Transform data to match expected frontend format
@@ -54,6 +61,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       depositRate: entry.deposit_rate_pct || 0,
       totalBorrows: entry.total_borrows || 0,
       totalDeposits: entry.total_deposits || 0,
+      // Additional fields for interest rate curve and price history
+      usdPrice: entry.usd_price || 0,
+      utilization: entry.utilization || 0,
+      optimalUtilizationRate: entry.optimal_utilization_rate || 0,
+      baseRate: entry.base_rate || 0,
+      plateauInterestRate: entry.plateau_interest_rate || 0,
+      maxInterestRate: entry.max_interest_rate || 0,
     }));
 
     return res.status(STATUS_OK).json(formattedData);

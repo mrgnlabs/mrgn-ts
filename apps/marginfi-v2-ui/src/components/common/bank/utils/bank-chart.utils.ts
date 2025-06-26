@@ -36,6 +36,12 @@ export const filterDailyRates = (data: BankChartData[]): BankChartDataDailyAvera
       totalDeposits: entry.totalDeposits,
       totalBorrowsUsd: entry.totalBorrowsUsd,
       totalDepositsUsd: entry.totalDepositsUsd,
+      usdPrice: entry.usdPrice,
+      utilization: entry.utilization,
+      optimalUtilizationRate: entry.optimalUtilizationRate,
+      baseRate: entry.baseRate,
+      plateauInterestRate: entry.plateauInterestRate,
+      maxInterestRate: entry.maxInterestRate,
     }))
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 };

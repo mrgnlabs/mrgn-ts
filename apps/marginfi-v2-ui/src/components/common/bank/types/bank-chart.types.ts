@@ -6,6 +6,12 @@ type BankChartData = {
   totalDeposits: number;
   totalBorrowsUsd?: number;
   totalDepositsUsd?: number;
+  usdPrice: number;
+  utilization: number;
+  optimalUtilizationRate: number;
+  baseRate: number;
+  plateauInterestRate: number;
+  maxInterestRate: number;
 };
 
 type BankHistoricalDataResponse = {
@@ -20,6 +26,12 @@ type BankChartDataDailyAverages = {
   totalDeposits: number;
   totalBorrowsUsd?: number;
   totalDepositsUsd?: number;
+  usdPrice: number;
+  utilization: number;
+  optimalUtilizationRate: number;
+  baseRate: number;
+  plateauInterestRate: number;
+  maxInterestRate: number;
 };
 
 type UseBankRatesReturn = {

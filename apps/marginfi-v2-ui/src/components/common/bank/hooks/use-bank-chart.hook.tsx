@@ -64,6 +64,12 @@ const fillDataGaps = (data: BankChartDataDailyAverages[], daysToFill: number = 3
           totalDeposits: 0,
           totalBorrowsUsd: 0,
           totalDepositsUsd: 0,
+          usdPrice: 0,
+          utilization: 0,
+          optimalUtilizationRate: 0,
+          baseRate: 0,
+          plateauInterestRate: 0,
+          maxInterestRate: 0,
         });
       }
     }
@@ -89,6 +95,19 @@ const useBankChart = (bankAddress: string, bank?: ExtendedBankInfo): UseBankRate
         }
 
         const result: BankChartData[] = await response.json();
+        console.log("API Data:", result);
+
+        // Check if we have the new fields
+        if (result.length > 0) {
+          console.log("Sample data point:", result[0]);
+          console.log("Interest curve fields:", {
+            baseRate: result[0].baseRate,
+            plateauInterestRate: result[0].plateauInterestRate,
+            maxInterestRate: result[0].maxInterestRate,
+            utilization: result[0].utilization,
+          });
+          console.log("Price field:", result[0].usdPrice);
+        }
 
         // Calculate USD values if bank data is available
         const processedData = result.map((item) => {
@@ -103,10 +122,14 @@ const useBankChart = (bankAddress: string, bank?: ExtendedBankInfo): UseBankRate
           };
         });
 
+        console.log(processedData);
+
         const dailyRates = filterDailyRates(processedData);
 
         // Fill gaps in the data to ensure we have a complete 30-day dataset
         const filledData = fillDataGaps(dailyRates, 30);
+
+        console.log({ filledData });
 
         setData(filledData);
       } catch (err) {

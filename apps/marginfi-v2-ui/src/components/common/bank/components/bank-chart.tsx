@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from "recharts";
 import { IconLoader2 } from "@tabler/icons-react";
 
 import { useBankChart } from "../hooks/use-bank-chart.hook";
@@ -27,7 +27,7 @@ const chartColors = {
   secondary: "hsl(var(--mrgn-warning))",
 } as const;
 
-const ratesChartConfig = {
+const ratesChartConfig: ChartConfig = {
   depositRate: {
     label: "Deposit Rate",
     color: chartColors.primary,
@@ -36,9 +36,27 @@ const ratesChartConfig = {
     label: "Borrow Rate",
     color: chartColors.secondary,
   },
-} satisfies ChartConfig;
+};
 
-const tvlChartConfig = {
+const interestCurveConfig: ChartConfig = {
+  borrowAPY: {
+    label: "Borrow APY",
+    color: chartColors.primary,
+  },
+  supplyAPY: {
+    label: "Supply APY",
+    color: chartColors.secondary,
+  },
+};
+
+const priceChartConfig: ChartConfig = {
+  usdPrice: {
+    label: "USD Price",
+    color: chartColors.primary,
+  },
+};
+
+const tvlChartConfig: ChartConfig = {
   displayTotalDeposits: {
     label: "Total Deposits",
     color: chartColors.primary,
@@ -47,7 +65,7 @@ const tvlChartConfig = {
     label: "Total Borrows",
     color: chartColors.secondary,
   },
-} satisfies ChartConfig;
+};
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -59,26 +77,31 @@ const formatDate = (dateStr: string) => {
 
 type BankChartProps = {
   bankAddress: string;
-  tab?: "rates" | "tvl";
+  tab?: "rates" | "tvl" | "interest-curve" | "price";
 };
 
 const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
-  const [showTVL, setShowTVL] = React.useState(tab === "tvl");
+  const [activeTab, setActiveTab] = React.useState<"tvl" | "rates" | "interest-curve" | "price">(tab);
   const [showUSD, setShowUSD] = React.useState(false);
   const isMobile = useIsMobile();
 
-  // Reset USD toggle when switching to Rates
   React.useEffect(() => {
-    if (!showTVL) {
+    if (activeTab !== "tvl") {
       setShowUSD(false);
     }
-  }, [showTVL]);
+  }, [activeTab]);
 
   // Get bank data from store
   const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
   const bank = React.useMemo(() => {
     return extendedBankInfos.find((bank) => bank.address.toBase58() === bankAddress);
   }, [extendedBankInfos, bankAddress]);
+  
+  // Get the current utilization rate from the bank state
+  const currentUtilizationRate = React.useMemo(() => {
+    if (!bank) return 0;
+    return bank.info.state.utilizationRate / 100; // Convert from percentage to decimal
+  }, [bank]);
 
   const { data, error, isLoading } = useBankChart(bankAddress, bank);
 
@@ -91,8 +114,57 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
     );
   }
 
-  const chartConfig = showTVL ? tvlChartConfig : ratesChartConfig;
-  const formatValue = showTVL ? dynamicNumeralFormatter : percentFormatter.format;
+  // Select the appropriate chart config based on active tab
+  const chartConfig = (() => {
+    switch (activeTab) {
+      case "tvl":
+        return tvlChartConfig;
+      case "rates":
+        return ratesChartConfig;
+      case "interest-curve":
+        return interestCurveConfig;
+      case "price":
+        return priceChartConfig;
+      default:
+        return tvlChartConfig;
+    }
+  })();
+
+  // Define chart display options based on active tab
+  const chartOptions = (() => {
+    switch (activeTab) {
+      case "tvl":
+        return {
+          yAxisLabel: showUSD ? "USD" : "Tokens",
+          tooltipLabel: showUSD ? "USD" : bank?.meta.tokenSymbol || "Tokens",
+          domain: [0, "auto"] as [number, "auto"],
+        };
+      case "rates":
+        return {
+          yAxisLabel: "%",
+          tooltipLabel: "%",
+          domain: [0, "auto"] as [number, "auto"],
+        };
+      case "interest-curve":
+        return {
+          yAxisLabel: "%",
+          tooltipLabel: "%",
+          domain: [0, 1] as [number, number],
+        };
+      case "price":
+        return {
+          yAxisLabel: "USD",
+          tooltipLabel: "USD",
+          domain: [0, "auto"] as [number, "auto"],
+        };
+      default:
+        return {
+          yAxisLabel: "",
+          tooltipLabel: "",
+          domain: [0, "auto"] as [number, "auto"],
+        };
+    }
+  })();
 
   // Handle error or no data states by creating empty data structure for chart rendering
   const hasError = Boolean(error) || !data || data.length === 0;
@@ -118,23 +190,63 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
       formattedDepositRate: "0%",
       formattedTotalBorrows: "0",
       formattedTotalDeposits: "0",
+      baseRate: 0,
+      plateauInterestRate: 0,
+      maxInterestRate: 0,
+      utilization: 0,
+      usdPrice: 0,
+      formattedBaseRate: "0%",
+      formattedPlateauRate: "0%",
+      formattedMaxRate: "0%",
+      formattedUtilization: "0%",
+      formattedUsdPrice: "$0",
     };
   });
 
   // Transform the data to include formatted values (use empty data if error)
   const formattedData = hasError
     ? emptyData
-    : data.map((item) => ({
-        ...item,
-        formattedBorrowRate: percentFormatter.format(item.borrowRate),
-        formattedDepositRate: percentFormatter.format(item.depositRate),
-        formattedTotalBorrows: dynamicNumeralFormatter(showUSD ? item.totalBorrowsUsd || 0 : item.totalBorrows),
-        formattedTotalDeposits: dynamicNumeralFormatter(showUSD ? item.totalDepositsUsd || 0 : item.totalDeposits),
-        // Use USD or native amounts for chart display
-        displayTotalBorrows: showUSD ? item.totalBorrowsUsd || 0 : item.totalBorrows,
-        displayTotalDeposits: showUSD ? item.totalDepositsUsd || 0 : item.totalDeposits,
-      }));
+    : data.map((item) => {
+        // Ensure all values are numbers and not undefined
+        const baseRate = typeof item.baseRate === "number" ? item.baseRate : 0;
+        const plateauInterestRate = typeof item.plateauInterestRate === "number" ? item.plateauInterestRate : 0;
+        const maxInterestRate = typeof item.maxInterestRate === "number" ? item.maxInterestRate : 0;
+        const utilization = typeof item.utilization === "number" ? item.utilization : 0;
+        const usdPrice = typeof item.usdPrice === "number" ? item.usdPrice : 0;
 
+        console.log(usdPrice);
+
+        // For interest curve, generate synthetic data if real data is missing
+        // This is a temporary solution until the database has real data
+        const syntheticBaseRate = baseRate || 0.02; // 2%
+        const syntheticPlateauRate = plateauInterestRate || 0.1; // 10%
+        const syntheticMaxRate = maxInterestRate || 0.3; // 30%
+        const syntheticUtilization = utilization || 0.75; // 75%
+
+        // Return formatted data
+        return {
+          ...item,
+          // Format values for all chart types
+          formattedBorrowRate: percentFormatter.format(item.borrowRate),
+          formattedDepositRate: percentFormatter.format(item.depositRate),
+          formattedTotalBorrows: dynamicNumeralFormatter(showUSD ? item.totalBorrowsUsd || 0 : item.totalBorrows),
+          formattedTotalDeposits: dynamicNumeralFormatter(showUSD ? item.totalDepositsUsd || 0 : item.totalDeposits),
+          // Use USD or native amounts for chart display
+          displayTotalBorrows: showUSD ? item.totalBorrowsUsd || 0 : item.totalBorrows,
+          displayTotalDeposits: showUSD ? item.totalDepositsUsd || 0 : item.totalDeposits,
+          // Format values for interest curve and price charts - use synthetic data if needed
+          baseRate: baseRate || syntheticBaseRate,
+          plateauInterestRate: plateauInterestRate || syntheticPlateauRate,
+          maxInterestRate: maxInterestRate || syntheticMaxRate,
+          utilization: utilization || syntheticUtilization,
+          usdPrice: usdPrice,
+          formattedBaseRate: percentFormatter.format(baseRate || syntheticBaseRate),
+          formattedPlateauRate: percentFormatter.format(plateauInterestRate || syntheticPlateauRate),
+          formattedMaxRate: percentFormatter.format(maxInterestRate || syntheticMaxRate),
+          formattedUtilization: percentFormatter.format(utilization || syntheticUtilization),
+          formattedUsdPrice: `$${dynamicNumeralFormatter(usdPrice)}`,
+        };
+      });
   const CustomTooltipContent = ({ active, payload, label }: any) => {
     if (active && payload && payload.length && !hasError) {
       return (
@@ -145,11 +257,21 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
               <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: entry.color }} />
               <span className="text-sm text-muted-foreground">{entry.name}:</span>
               <span className="text-sm font-medium text-foreground">
-                {showTVL
-                  ? showUSD
-                    ? `$${dynamicNumeralFormatter(entry.value)}`
-                    : `${dynamicNumeralFormatter(entry.value)} ${bank?.meta.tokenSymbol || ""}`
-                  : `${entry.value.toFixed(2)}%`}
+                {(() => {
+                  switch (activeTab) {
+                    case "tvl":
+                      return showUSD
+                        ? `$${dynamicNumeralFormatter(entry.value)}`
+                        : `${dynamicNumeralFormatter(entry.value)} ${bank?.meta.tokenSymbol || ""}`;
+                    case "rates":
+                    case "interest-curve":
+                      return `${(entry.value * 100).toFixed(2)}%`;
+                    case "price":
+                      return `$${dynamicNumeralFormatter(entry.value)}`;
+                    default:
+                      return entry.value;
+                  }
+                })()}
               </span>
             </div>
           ))}
@@ -158,6 +280,13 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
     }
     return null;
   };
+
+  const interestCurveData = Array.from({ length: 100 }, (_, i) => {
+    const utilization = i / 100;
+    const borrowAPY = utilization <= 0.8 ? 0.01 + utilization * 0.05 : 0.01 + 0.8 * 0.05 + (utilization - 0.8) * 1.0;
+    const supplyAPY = borrowAPY * utilization * 0.9;
+    return { utilization, borrowAPY, supplyAPY };
+  });
 
   return (
     <Card className="bg-transparent border-none">
@@ -169,7 +298,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
       </CardHeader>
       <CardContent className="p-3 rounded-lg space-y-4 relative bg-background-gray pt-8">
         <div className="absolute top-3 right-3 z-20 flex items-center gap-4">
-          {showTVL && (
+          {activeTab === "tvl" && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">USD</span>
               <Switch
@@ -182,8 +311,8 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
           )}
           <ToggleGroup
             type="single"
-            value={showTVL ? "tvl" : "rates"}
-            onValueChange={(value) => setShowTVL(value === "tvl")}
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as "tvl" | "rates" | "interest-curve" | "price")}
             className="p-1.5 rounded-md"
             disabled={hasError}
           >
@@ -199,6 +328,18 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
             >
               Rates
             </ToggleGroupItem>
+            <ToggleGroupItem
+              value="interest-curve"
+              className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 disabled:opacity-50"
+            >
+              IR Curve
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="price"
+              className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 disabled:opacity-50"
+            >
+              Price
+            </ToggleGroupItem>
           </ToggleGroup>
         </div>
 
@@ -213,8 +354,8 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
 
         <ChartContainer config={chartConfig} className="lg:h-[460px] w-full">
           <AreaChart
-            key={showTVL ? "tvl" : "rates"}
-            data={formattedData}
+            key={activeTab}
+            data={activeTab === "interest-curve" ? interestCurveData : formattedData}
             margin={{
               top: 24,
               right: 24,
@@ -224,26 +365,41 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="timestamp"
-              tickLine={false}
+              dataKey={activeTab === "interest-curve" ? "utilization" : "timestamp"}
+              type={activeTab === "interest-curve" ? "number" : undefined}
+              domain={activeTab === "interest-curve" ? [0, 1] : undefined}
+              tickFormatter={
+                activeTab === "interest-curve" ? (value: number) => `${(value * 100).toFixed(0)}%` : formatDate
+              }
+              ticks={activeTab === "interest-curve" ? [0, 0.2, 0.4, 0.6, 0.8, 1.0] : undefined}
+              interval={activeTab === "interest-curve" ? 0 : "preserveStartEnd"}
               axisLine={false}
+              tickLine={false}
               tickMargin={12}
-              tickFormatter={formatDate}
-              interval="preserveStartEnd"
               minTickGap={50}
             />
             <YAxis
               tickFormatter={(value) => {
-                if (showTVL) {
-                  return showUSD ? `$${formatValue(value)}` : `${formatValue(value)}`;
+                if (activeTab === "tvl" && showUSD) {
+                  return `$${dynamicNumeralFormatter(value)}`;
+                } else if (activeTab === "rates" || activeTab === "interest-curve") {
+                  return `${(value * 100).toFixed(2)}%`;
+                } else if (activeTab === "price") {
+                  return `$${dynamicNumeralFormatter(value)}`;
                 } else {
-                  return `${value}%`;
+                  return dynamicNumeralFormatter(value);
                 }
               }}
-              domain={hasError ? [0, showTVL ? 100000 : 10] : [0, "auto"]}
-              hide={false}
-              width={isMobile ? 50 : 80}
-              tickMargin={12}
+              width={60}
+              axisLine={false}
+              tickLine={false}
+              domain={chartOptions.domain}
+              label={{
+                value: chartOptions.yAxisLabel,
+                angle: -90,
+                position: "insideLeft",
+                style: { fill: "var(--text-muted)" },
+              }}
             />
             <ChartTooltip cursor={false} content={<CustomTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} className="mt-6" />
@@ -260,49 +416,111 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
 
             {/* Only render areas if there's no error */}
             {!hasError &&
-              (showTVL ? (
-                <>
-                  <Area
-                    dataKey="displayTotalDeposits"
-                    type="monotone"
-                    fill="url(#fillPrimary)"
-                    fillOpacity={0.4}
-                    stroke={chartColors.primary}
-                    strokeWidth={2}
-                    name="Total Deposits"
-                  />
-                  <Area
-                    dataKey="displayTotalBorrows"
-                    type="monotone"
-                    fill="url(#fillSecondary)"
-                    fillOpacity={0.4}
-                    stroke={chartColors.secondary}
-                    strokeWidth={2}
-                    name="Total Borrows"
-                  />
-                </>
-              ) : (
-                <>
-                  <Area
-                    dataKey="depositRate"
-                    type="monotone"
-                    fill="url(#fillPrimary)"
-                    fillOpacity={0.4}
-                    stroke={chartColors.primary}
-                    strokeWidth={2}
-                    name="Deposit Rate"
-                  />
-                  <Area
-                    dataKey="borrowRate"
-                    type="monotone"
-                    fill="url(#fillSecondary)"
-                    fillOpacity={0.4}
-                    stroke={chartColors.secondary}
-                    strokeWidth={2}
-                    name="Borrow Rate"
-                  />
-                </>
-              ))}
+              (() => {
+                console.log("Rendering chart for tab:", activeTab);
+                console.log("Sample data point:", formattedData.length > 0 ? formattedData[0] : "No data");
+
+                switch (activeTab) {
+                  case "tvl":
+                    return (
+                      <>
+                        <Area
+                          dataKey="displayTotalDeposits"
+                          type="monotone"
+                          fill="url(#fillPrimary)"
+                          fillOpacity={0.4}
+                          stroke={chartColors.primary}
+                          strokeWidth={2}
+                          name="Total Deposits"
+                        />
+                        <Area
+                          dataKey="displayTotalBorrows"
+                          type="monotone"
+                          fill="url(#fillSecondary)"
+                          fillOpacity={0.4}
+                          stroke={chartColors.secondary}
+                          strokeWidth={2}
+                          name="Total Borrows"
+                        />
+                      </>
+                    );
+                  case "rates":
+                    return (
+                      <>
+                        <Area
+                          dataKey="depositRate"
+                          type="monotone"
+                          fill="url(#fillPrimary)"
+                          fillOpacity={0.4}
+                          stroke={chartColors.primary}
+                          strokeWidth={2}
+                          name="Deposit Rate"
+                        />
+                        <Area
+                          dataKey="borrowRate"
+                          type="monotone"
+                          fill="url(#fillSecondary)"
+                          fillOpacity={0.4}
+                          stroke={chartColors.secondary}
+                          strokeWidth={2}
+                          name="Borrow Rate"
+                        />
+                      </>
+                    );
+                  case "interest-curve": {
+                    // Use the current utilization rate from the bank state instead of API data
+                    const currentUtil = currentUtilizationRate;
+
+                    return (
+                      <>
+                        <Area
+                          dataKey="borrowAPY"
+                          data={interestCurveData}
+                          type="monotone"
+                          fill="url(#fillPrimary)"
+                          stroke={chartColors.primary}
+                          strokeWidth={2}
+                          name="Borrow APY"
+                        />
+                        <Area
+                          dataKey="supplyAPY"
+                          data={interestCurveData}
+                          type="monotone"
+                          fill="url(#fillSecondary)"
+                          stroke={chartColors.secondary}
+                          strokeWidth={2}
+                          name="Supply APY"
+                        />
+                        <ReferenceLine
+                          x={currentUtil}
+                          stroke="#ffffff"
+                          strokeDasharray="3 3"
+                          label={{
+                            value: `${(currentUtil * 100).toFixed(1)}%`,
+                            position: "top",
+                            fill: "#ffffff",
+                            fontSize: 12,
+                          }}
+                        />
+                      </>
+                    );
+                  }
+                  case "price":
+                    return (
+                      <Area
+                        dataKey="usdPrice"
+                        type="monotone"
+                        fill="url(#fillPrimary)"
+                        fillOpacity={0.4}
+                        stroke={chartColors.primary}
+                        strokeWidth={2}
+                        name="USD Price"
+                      />
+                    );
+                  default:
+                    return null;
+                }
+              })()}
           </AreaChart>
         </ChartContainer>
       </CardContent>
