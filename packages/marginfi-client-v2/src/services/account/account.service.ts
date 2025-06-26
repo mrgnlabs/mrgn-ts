@@ -180,10 +180,8 @@ export async function simulateAccountHealthCache(props: {
     program.idl
   );
 
-  console.log("MarginfiAccountPost", marginfiAccountPost);
-
   if (marginfiAccountPost.healthCache.mrgnErr || marginfiAccountPost.healthCache.internalErr) {
-    console.log("MarginfiAccountPost healthCache", marginfiAccountPost.healthCache);
+    console.log("MarginfiAccountPost healthCache internalErr", marginfiAccountPost.healthCache.internalErr);
     console.log("MarginfiAccountPost healthCache mrgnErr", marginfiAccountPost.healthCache.mrgnErr);
 
     if (marginfiAccountPost.healthCache.mrgnErr === 6009) {
@@ -328,6 +326,10 @@ export function getActiveStaleBanks(
   const allBanks = [...activeBanks, ...additionalBanks];
 
   const staleBanks = allBanks.filter((bank) => {
+    if (bank.config.oracleSetup === OracleSetup.SwitchboardPull) {
+      // always crank swb banks
+      return true;
+    }
     const oraclePrice = oraclePrices.get(bank.address.toBase58());
     const maxAge = bank.config.oracleMaxAge;
     const currentTime = Math.round(Date.now() / 1000);

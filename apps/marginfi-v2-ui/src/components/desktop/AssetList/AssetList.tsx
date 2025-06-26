@@ -9,7 +9,8 @@ import { useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useUiStore } from "~/store";
 
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "~/components/ui/table";
+import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "~/components/ui/table";
+import { Skeleton } from "~/components/ui/skeleton";
 
 import { AssetListModel, generateColumns, getColumnVisibility } from "./utils";
 import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./components";
@@ -25,7 +26,7 @@ type AssetListProps = {
 };
 
 export const AssetsList = ({ data }: AssetListProps) => {
-  const { lendData, borrowData, emodeGroups } = data;
+  const { lendData, borrowData, emodeGroups, isReady } = data;
 
   const [poolFilter, lendingMode, tokenFilter, setTokenFilter] = useUiStore((state) => [
     state.poolFilter,
@@ -123,6 +124,70 @@ export const AssetsList = ({ data }: AssetListProps) => {
       setTokenFilter(TokenFilters.ALL);
     }
   }, [poolFilter, tokenFilter, setTokenFilter]);
+
+  if (!isReady) {
+    return (
+      <div className="space-y-6">
+        {/* Show actual navigation but make it appear disabled */}
+        <div className="pointer-events-none opacity-50">
+          <AssetListNav />
+        </div>
+
+        {/* Table skeleton */}
+        <div className="space-y-4">
+          {/* Show actual table headers */}
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      style={{
+                        width: header.column.getSize(),
+                      }}
+                    >
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {/* Skeleton rows for data */}
+              {Array.from({ length: 8 }).map((_, index) => (
+                <TableRow key={index}>
+                  {table.getHeaderGroups()[0].headers.map((header, colIndex) => (
+                    <TableCell key={colIndex} style={{ width: header.column.getSize() }}>
+                      {colIndex === 0 ? (
+                        // Asset column with icon and text - match exact getAssetCell structure
+                        <div className="flex gap-2 justify-start items-center">
+                          <div className="flex items-center gap-4">
+                            <Skeleton className="h-6 w-6 rounded-full bg-[#373F45]" />
+                            <Skeleton className="h-4 w-12 bg-[#373F45]" />
+                          </div>
+                        </div>
+                      ) : colIndex === table.getHeaderGroups()[0].headers.length - 1 ? (
+                        // Action column
+                        <div className="flex justify-end">
+                          <Skeleton className="h-8 w-20 bg-[#373F45]" />
+                        </div>
+                      ) : (
+                        // Regular data columns - right aligned like the actual data
+                        <div className="flex justify-end">
+                          <Skeleton className="h-4 w-16 bg-[#373F45]" />
+                        </div>
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -18,34 +18,36 @@ export interface AppConfigProps {
 
 export function initializeConfig(cfg: AppConfigProps) {
   if (_config) {
-    console.warn("AppConfig was already initialized; overwriting");
+    // console.warn("AppConfig was already initialized; overwriting");
+  } else {
+    console.log("AppConfig initialized");
+
+    const connection = new Connection(cfg.rpcUrl);
+    const dummyWallet = {
+      payer: new Keypair(),
+      publicKey: PublicKey.default,
+      signTransaction: () => new Promise(() => {}),
+      signAllTransactions: () => new Promise(() => {}),
+    } as Wallet;
+
+    const programIdl: MarginfiIdlType = MARGINFI_IDL;
+
+    const provider = new AnchorProvider(connection, dummyWallet, {
+      ...AnchorProvider.defaultOptions(),
+      commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
+      ...cfg.confirmOpts,
+    });
+
+    const idl = { ...programIdl, address: cfg.mrgnConfig.programId.toBase58() };
+
+    const program = new Program(idl, provider) as any as MarginfiProgram;
+
+    _config = {
+      mrgnConfig: cfg.mrgnConfig,
+      connection,
+      program,
+    };
   }
-
-  const connection = new Connection(cfg.rpcUrl);
-  const dummyWallet = {
-    payer: new Keypair(),
-    publicKey: PublicKey.default,
-    signTransaction: () => new Promise(() => {}),
-    signAllTransactions: () => new Promise(() => {}),
-  } as Wallet;
-
-  const programIdl: MarginfiIdlType = MARGINFI_IDL;
-
-  const provider = new AnchorProvider(connection, dummyWallet, {
-    ...AnchorProvider.defaultOptions(),
-    commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
-    ...cfg.confirmOpts,
-  });
-
-  const idl = { ...programIdl, address: cfg.mrgnConfig.programId.toBase58() };
-
-  const program = new Program(idl, provider) as any as MarginfiProgram;
-
-  _config = {
-    mrgnConfig: cfg.mrgnConfig,
-    connection,
-    program,
-  };
 }
 
 export function getConfig(): AppConfig {

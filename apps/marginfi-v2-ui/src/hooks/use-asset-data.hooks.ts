@@ -32,6 +32,7 @@ import { TokenFilters } from "~/store/uiStore";
 import { LendingModes } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components";
 import { determineBankCategories } from "~/components/desktop/AssetList/utils/tableHelperUtils";
+import React from "react";
 
 // Create token filter sets for faster lookups
 const STABLECOIN_SET = new Set(STABLECOINS);
@@ -42,6 +43,7 @@ export type AssetListData = {
   lendData: AssetListModel[];
   borrowData: AssetListModel[];
   emodeGroups: EmodePair[];
+  isReady: boolean;
 };
 
 export function useAssetData(): AssetListData {
@@ -53,8 +55,6 @@ export function useAssetData(): AssetListData {
 
   const { walletAddress, walletContextState, connected } = useWallet();
 
-  const isInLendingMode = useMemo(() => lendingMode === LendingModes.LEND, [lendingMode]);
-
   // Data hooks
   const { data: userBalances } = useUserBalances(walletAddress);
   const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
@@ -65,6 +65,10 @@ export function useAssetData(): AssetListData {
 
   const { extendedBanks } = useExtendedBanks(walletAddress);
   const refreshUserData = useRefreshUserData(walletAddress);
+
+  const isReady = React.useMemo(() => {
+    return extendedBanks.length > 0;
+  }, [extendedBanks]);
 
   // Memoize expensive calculations only when dependencies change
   const emodeBankGroups = useMemo(() => {
@@ -268,5 +272,6 @@ export function useAssetData(): AssetListData {
     lendData,
     borrowData,
     emodeGroups,
+    isReady,
   };
 }

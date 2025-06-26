@@ -16,8 +16,8 @@ import {
   AnnouncementCustomItem,
   AnnouncementBankItem,
   AnnouncementsDialog,
+  AnnouncementsSkeleton,
 } from "~/components/common/Announcements/components";
-import { AssetsList } from "~/components/desktop/AssetList";
 
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
@@ -32,9 +32,9 @@ import {
 } from "@mrgnlabs/mrgn-state";
 import { useAssetData } from "~/hooks/use-asset-data.hooks";
 
-// const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
-//   ssr: false,
-// });
+const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
+  ssr: false,
+});
 
 export default function HomePage() {
   const router = useRouter();
@@ -44,8 +44,7 @@ export default function HomePage() {
 
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
 
-  const { extendedBanks } = useExtendedBanks(walletAddress);
-  const { banks } = useBanks();
+  const { extendedBanks, isLoading: isExtendedBanksLoading } = useExtendedBanks(walletAddress);
   const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
   const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
   const { data: selectedAccount } = useMarginfiAccount(walletAddress);
@@ -54,97 +53,83 @@ export default function HomePage() {
   const annoucements = React.useMemo(() => {
     let latestBanks: (ExtendedBankInfo | undefined)[] = [];
 
-    if (banks) {
-      const latestBankKeys = banks.splice(0, 3);
-      latestBanks.push(
-        ...latestBankKeys
-          .map((bank) => extendedBanks.find((bank) => bank.address.equals(bank.address)))
-          .filter((bank): bank is ExtendedBankInfo => bank !== undefined)
-      );
+    if (extendedBanks) {
+      const latestBankKeys = extendedBanks.splice(0, 3);
+      latestBanks.push(...latestBankKeys);
     }
 
-    latestBanks = latestBanks.filter((bank): bank is ExtendedBankInfo => bank !== undefined);
     return [
       ...latestBanks.map((bank) => ({
         bank: bank,
       })),
     ] as (AnnouncementBankItem | AnnouncementCustomItem)[];
-  }, [banks, extendedBanks]);
-
-  const isStoreInitialized = true;
-  const isRefreshingStore = false;
+  }, [extendedBanks]);
 
   return (
     <>
       <Desktop>
-        {!isStoreInitialized && <Loader label="Loading marginfi..." className="mt-16" />}
-        {isStoreInitialized && (
-          <>
-            <div className="flex flex-col h-full justify-start content-start w-full xl:w-4/5 xl:max-w-7xl gap-4">
-              {walletAddress && selectedAccount && isOverride && (
-                <Banner
-                  text={`Read-only view of ${selectedAccount.address.toBase58()} (owner: ${shortenAddress(
-                    walletAddress
-                  )}) - All actions are simulated`}
-                  backgroundColor="#DCE85D"
-                />
-              )}
-              <Announcements items={annoucements} />
-              <AnnouncementsDialog />
-              <div className="p-4 space-y-4 w-full">
-                <ActionBox.BorrowLend
-                  useProvider={true}
-                  lendProps={{
-                    requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
-                    connected,
-                    walletContextState,
-                    stakeAccounts,
-                    captureEvent: (event, properties) => {
-                      capture(event, properties);
-                    },
-                    onComplete: () => {
-                      refreshUserData();
-                    },
-                  }}
-                />
-              </div>
-            </div>
-            <div className="pt-[16px] pb-[64px] px-4 w-full xl:w-4/5 xl:max-w-7xl mt-8 gap-4">
-              <AssetsList data={assetData} />
-            </div>
-          </>
-        )}
-        <OverlaySpinner fetching={!isStoreInitialized || isRefreshingStore} />
-      </Desktop>
-
-      <Mobile>
-        {!isStoreInitialized && <Loader label="Loading mrgnlend..." className="mt-16" />}
-        {isStoreInitialized && (
-          <>
-            <Announcements items={annoucements} />
+        <>
+          <div className="flex flex-col h-full justify-start content-start w-full xl:w-4/5 xl:max-w-7xl gap-4">
+            {walletAddress && selectedAccount && isOverride && (
+              <Banner
+                text={`Read-only view of ${selectedAccount.address.toBase58()} (owner: ${shortenAddress(
+                  walletAddress
+                )}) - All actions are simulated`}
+                backgroundColor="#DCE85D"
+              />
+            )}
+            {annoucements.length > 0 ? <Announcements items={annoucements} /> : <AnnouncementsSkeleton />}
             <AnnouncementsDialog />
-            <div className="p-4 space-y-3 w-full">
-              {emodePairs.length > 0 && (
-                <div className="max-w-[480px] mx-auto">
-                  <EmodePortfolio userActiveEmodes={activeEmodePairs} extendedBankInfos={extendedBanks} />
-                </div>
-              )}
+            <div className="p-4 space-y-4 w-full">
               <ActionBox.BorrowLend
                 useProvider={true}
                 lendProps={{
                   requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
-                  connected: connected,
-                  walletContextState: walletContextState,
+                  connected,
+                  walletContextState,
                   stakeAccounts,
+                  captureEvent: (event, properties) => {
+                    capture(event, properties);
+                  },
                   onComplete: () => {
                     refreshUserData();
                   },
                 }}
               />
             </div>
-            <div className="mb-24" />
-          </>
-        )}
+          </div>
+          <div className="pt-[16px] pb-[64px] px-4 w-full xl:w-4/5 xl:max-w-7xl mt-8 gap-4">
+            <AssetsList data={assetData} />
+          </div>
+        </>
+        <OverlaySpinner fetching={isExtendedBanksLoading} />
+      </Desktop>
+
+      <Mobile>
+        <>
+          {annoucements.length > 0 ? <Announcements items={annoucements} /> : <AnnouncementsSkeleton />}
+          <AnnouncementsDialog />
+          <div className="p-4 space-y-3 w-full">
+            {emodePairs.length > 0 && (
+              <div className="max-w-[480px] mx-auto">
+                <EmodePortfolio userActiveEmodes={activeEmodePairs} extendedBankInfos={extendedBanks} />
+              </div>
+            )}
+            <ActionBox.BorrowLend
+              useProvider={true}
+              lendProps={{
+                requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
+                connected: connected,
+                walletContextState: walletContextState,
+                stakeAccounts,
+                onComplete: () => {
+                  refreshUserData();
+                },
+              }}
+            />
+          </div>
+          <div className="mb-24" />
+        </>
       </Mobile>
     </>
   );
