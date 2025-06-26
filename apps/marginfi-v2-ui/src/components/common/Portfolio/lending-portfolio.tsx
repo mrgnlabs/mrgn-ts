@@ -17,13 +17,7 @@ import {
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { ActionType, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import {
-  cn,
-  ExecuteActionProps,
-  ExecuteCollectRewardsAction,
-  usePrevious,
-  useConnection,
-} from "@mrgnlabs/mrgn-utils";
+import { cn, ExecuteActionProps, ExecuteCollectRewardsAction, usePrevious, useConnection } from "@mrgnlabs/mrgn-utils";
 import { CustomToastType, toastManager } from "@mrgnlabs/mrgn-toasts";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
 
@@ -130,7 +124,6 @@ export const LendingPortfolio = () => {
     isLoading: interestLoading,
   } = useInterestData(selectedAccount?.address.toBase58() || null);
 
-
   const hasMultipleAccount = React.useMemo(() => marginfiAccounts && marginfiAccounts.length > 1, [marginfiAccounts]);
   const { handleSimulation } = useRewardSimulation({
     simulationResult: rewardsState,
@@ -138,7 +131,7 @@ export const LendingPortfolio = () => {
     selectedAccount,
     extendedBankInfos: sortedBanks,
     setSimulationResult: setRewardsState,
-    setErrorMessage: () => { }, // No error handling, should fail silently since it is on page load.
+    setErrorMessage: () => {}, // No error handling, should fail silently since it is on page load.
     setActionTxn,
   });
 
@@ -187,8 +180,8 @@ export const LendingPortfolio = () => {
     () =>
       sortedBanks && isStoreInitialized
         ? (sortedBanks.filter((b) => b.isActive && b.position.isLending) as ActiveBankInfo[]).sort(
-          (a, b) => b.position.usdValue - a.position.usdValue
-        )
+            (a, b) => b.position.usdValue - a.position.usdValue
+          )
         : [],
     [sortedBanks, isStoreInitialized]
   ) as ActiveBankInfo[];
@@ -197,8 +190,8 @@ export const LendingPortfolio = () => {
     () =>
       sortedBanks && isStoreInitialized
         ? (sortedBanks.filter((b) => b.isActive && !b.position.isLending) as ActiveBankInfo[]).sort(
-          (a, b) => b.position.usdValue - a.position.usdValue
-        )
+            (a, b) => b.position.usdValue - a.position.usdValue
+          )
         : [],
     [sortedBanks, isStoreInitialized]
   ) as ActiveBankInfo[];
@@ -589,7 +582,7 @@ export const LendingPortfolio = () => {
                 >
                   <EmodePortfolio
                     extendedBankInfos={sortedBanks}
-                    userActiveEmodes={userActiveEmodes}
+                    userActiveEmodes={activeEmodePairs}
                     filterEmode={filterEmode}
                     setFilterEmode={setFilterEmode}
                   />
@@ -605,7 +598,7 @@ export const LendingPortfolio = () => {
                     lendingBanks.length > 0 ? (
                       <div className="flex flex-col gap-4">
                         {lendingBanks.map((bank, i) => {
-                          const eModeActive = userActiveEmodes.some(
+                          const eModeActive = activeEmodePairs.some(
                             (pair) => pair.collateralBankTag === bank.info.rawBank.emode.emodeTag
                           );
                           const pairIndices = assetToPairIndices[bank.address.toBase58()] || [];
