@@ -1957,16 +1957,18 @@ class MarginfiAccountWrapper {
     if (swbPullBanks.length > 0) {
       const staleOracles = swbPullBanks
         .filter((bank) => {
-          const oraclePrice = this.client.oraclePrices.get(bank.address.toBase58());
-          const maxAge = bank.config.oracleMaxAge;
-          const currentTime = Math.round(Date.now() / 1000);
-          const oracleTime = Math.round(
-            oraclePrice?.timestamp ? oraclePrice.timestamp.toNumber() : new Date().getTime()
-          );
-          const adjustedMaxAge = Math.max(maxAge - txLandingBuffer, 0);
-          const isStale = currentTime - oracleTime > adjustedMaxAge;
+          // always crank swb feeds
+          return true;
+          // const oraclePrice = this.client.oraclePrices.get(bank.address.toBase58());
+          // const maxAge = bank.config.oracleMaxAge;
+          // const currentTime = Math.round(Date.now() / 1000);
+          // const oracleTime = Math.round(
+          //   oraclePrice?.timestamp ? oraclePrice.timestamp.toNumber() : new Date().getTime()
+          // );
+          // const adjustedMaxAge = Math.max(maxAge - txLandingBuffer, 0);
+          // const isStale = currentTime - oracleTime > adjustedMaxAge;
 
-          return isStale;
+          // return isStale;
         })
         .map((bank) => bank.oracleKey);
 
