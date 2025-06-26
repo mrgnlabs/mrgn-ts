@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 
 import Image from "next/image";
 
@@ -34,8 +34,28 @@ type WalletButtonProps = {
 };
 
 export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonProps) => {
-  const { loginWeb3Auth, select, isLoading } = useWallet();
+  const { loginWeb3Auth, select, isLoading, connected } = useWallet();
   const [setIsWalletSignUpOpen] = useWalletStore((state) => [state.setIsWalletSignUpOpen]);
+
+  const [isConnecting, setIsConnecting] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isLoading) {
+      // If actively loading, show connecting state
+      setIsConnecting(true);
+    } else if (connected) {
+      // If connected and not loading, hide connecting state
+      setIsConnecting(false);
+    } else {
+      // If not loading and not connected, wait 5 seconds before hiding connecting state
+      // This handles the edge case where isLoading completes but connected hasn't updated yet
+      const timeout = setTimeout(() => {
+        setIsConnecting(false);
+      }, 5000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [isLoading, connected]);
 
   const walletInfo = useMemo(() => JSON.parse(localStorage.getItem("walletInfo") ?? "null") as WalletInfo, []);
 
@@ -77,15 +97,15 @@ export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonP
     <div className={cn("flex flex-row relative py-0", className)}>
       <Button
         onClick={handleWalletConnect}
-        disabled={isLoading}
+        disabled={isConnecting}
         className={cn(
           "gap-1.5 py-0 px-3",
-          walletInfo && showWalletInfo && !isLoading ? "rounded-r-none pr-6 sm:pr-3" : "rounded-md",
+          walletInfo && showWalletInfo && !isConnecting ? "rounded-r-none pr-6 sm:pr-3" : "rounded-md",
           "flex-1"
         )}
       >
         <div className="inline-flex items-center gap-2">
-          {isLoading ? (
+          {isConnecting ? (
             "Loading..."
           ) : (
             <>
@@ -101,13 +121,13 @@ export const WalletButton = ({ className, showWalletInfo = true }: WalletButtonP
           )}
         </div>
       </Button>
-      {!isLoading && showWalletInfo && walletInfo && (
+      {!isConnecting && showWalletInfo && walletInfo && (
         <Button
           onClick={(e) => {
             e.stopPropagation();
             setIsWalletSignUpOpen(true);
           }}
-          disabled={isLoading}
+          disabled={isConnecting}
           size="default"
           className="rounded-l-none px-1 border-l-0"
         >

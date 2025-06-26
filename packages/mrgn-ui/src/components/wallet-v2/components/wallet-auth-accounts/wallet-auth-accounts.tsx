@@ -28,7 +28,6 @@ enum WalletAuthAccountsState {
 }
 
 type WalletAuthAccountsProps = {
-  initialized: boolean;
   mfiClient: MarginfiClient | null;
   connection: Connection | null;
   marginfiAccounts: PublicKey[];
@@ -44,7 +43,6 @@ type WalletAuthAccountsProps = {
 };
 
 export const WalletAuthAccounts = ({
-  initialized,
   mfiClient,
   connection,
   marginfiAccounts,
@@ -258,8 +256,6 @@ export const WalletAuthAccounts = ({
       setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
     }
   }, [walletAuthAccountsState, marginfiAccounts]);
-
-  if (!initialized) return null;
 
   return (
     <div>
