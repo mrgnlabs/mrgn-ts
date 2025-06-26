@@ -101,6 +101,8 @@ export function useExtendedBanks(user?: PublicKey) {
           name: "Unknown",
           symbol: "Unknown",
           icon: "",
+          address: "",
+          decimals: 0,
         };
         console.error("Bank metadata or token metadata not found for bank", bank.address.toBase58());
       }
