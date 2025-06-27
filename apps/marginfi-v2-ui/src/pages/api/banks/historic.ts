@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .schema("application")
       .from("v_bank_metrics_daily")
       .select(
-        "day, borrow_rate_pct, deposit_rate_pct, total_borrows, total_deposits, usd_price, utilization, optimal_utilization_rate, base_rate, plateau_interest_rate, max_interest_rate, insurance_ir_fee, protocol_ir_fee, program_fee_rate"
+        "day, borrow_rate_pct, deposit_rate_pct, total_borrows, total_deposits, usd_price, utilization, optimal_utilization_rate, base_rate, plateau_interest_rate, max_interest_rate, insurance_ir_fee, protocol_ir_fee, program_fee_rate, insurance_fee_fixed_apr, protocol_fixed_fee_apr"
       )
       .eq("bank_address", bankAddress)
       .gte("day", startDate)
@@ -66,6 +66,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       insuranceIrFee: entry.insurance_ir_fee || 0,
       protocolIrFee: entry.protocol_ir_fee || 0,
       programFeeRate: entry.program_fee_rate || 0,
+      insuranceFeeFixedApr: entry.insurance_fee_fixed_apr || 0,
+      protocolFixedFeeApr: entry.protocol_fixed_fee_apr || 0,
     }));
 
     return res.status(STATUS_OK).json(formattedData);

@@ -185,6 +185,8 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
       insuranceIrFee: 0,
       protocolIrFee: 0,
       programFeeRate: 0,
+      insuranceFeeFixedApr: 0,
+      protocolFixedFeeApr: 0,
       optimalUtilizationRate: 0,
     };
   });
@@ -237,6 +239,8 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
           insuranceIrFee: insuranceIrFee || 0,
           protocolIrFee: protocolIrFee || 0,
           programFeeRate: programFeeRate || 0,
+          insuranceFeeFixedApr: typeof item.insuranceFeeFixedApr === "number" ? item.insuranceFeeFixedApr : 0,
+          protocolFixedFeeApr: typeof item.protocolFixedFeeApr === "number" ? item.protocolFixedFeeApr : 0,
           optimalUtilizationRate: optimalUtilizationRate || 0,
         };
       });
@@ -276,41 +280,61 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
   const latest = formattedData[formattedData.length - 1];
 
   const {
-    baseRate,
     optimalUtilizationRate,
     plateauInterestRate,
     maxInterestRate,
     insuranceIrFee,
     protocolIrFee,
     programFeeRate,
+    insuranceFeeFixedApr,
+    protocolFixedFeeApr,
   } = latest ?? {};
 
-  // Normalize: assume these values are all in decimal (e.g. 0.01 for 1%)
-  const effectiveBase = baseRate ?? 0.01;
-  const effectiveOptimal = optimalUtilizationRate ?? 0.8;
-  const effectivePlateau = plateauInterestRate ?? 0.1;
-  const effectiveMax = maxInterestRate ?? 1.0;
+  // Default values for interest rate parameters
+  const effectiveOptimalUtilization = optimalUtilizationRate ?? 0.8;
+  const effectivePlateauRate = plateauInterestRate ?? 0.1;
+  const effectiveMaxRate = maxInterestRate ?? 1.0;
+  const effectiveInsuranceIrFee = insuranceIrFee ?? 0;
+  const effectiveProtocolIrFee = protocolIrFee ?? 0;
+  const effectiveInsuranceFeeFixedApr = insuranceFeeFixedApr ?? 0;
+  const effectiveProtocolFixedFeeApr = protocolFixedFeeApr ?? 0;
 
-  // Total protocol cut (used for supply APY)
-  const totalFee = (insuranceIrFee ?? 0) + (protocolIrFee ?? 0) + (programFeeRate ?? 0);
-
-  // Borrow rate curve
-  const getBorrowRate = (util: number) => {
-    if (util <= effectiveOptimal) {
-      const slope = (effectivePlateau - effectiveBase) / effectiveOptimal;
-      return effectiveBase + util * slope;
+  // Custom implementation of computeBaseInterestRate function
+  // This follows the exact same logic as in marginfi-client-v2/src/services/bank/utils/compute.utils.ts
+  const computeBaseInterestRate = (utilizationRate: number): number => {
+    if (utilizationRate <= effectiveOptimalUtilization) {
+      return utilizationRate * effectivePlateauRate / effectiveOptimalUtilization;
     } else {
-      const slope = (effectiveMax - effectivePlateau) / (1 - effectiveOptimal);
-      return effectivePlateau + (util - effectiveOptimal) * slope;
+      return ((utilizationRate - effectiveOptimalUtilization) / (1 - effectiveOptimalUtilization)) * 
+             (effectiveMaxRate - effectivePlateauRate) + 
+             effectivePlateauRate;
     }
+  };
+
+  // Custom implementation of computeInterestRates function
+  // This follows the exact same logic as in marginfi-client-v2/src/services/bank/utils/compute.utils.ts
+  const computeInterestRates = (utilizationRate: number): { lendingRate: number; borrowingRate: number } => {
+    const fixedFee = effectiveInsuranceFeeFixedApr + effectiveProtocolFixedFeeApr;
+    const rateFee = effectiveInsuranceIrFee + effectiveProtocolIrFee;
+    
+    const baseInterestRate = computeBaseInterestRate(utilizationRate);
+    
+    const lendingRate = baseInterestRate * utilizationRate;
+    const borrowingRate = baseInterestRate * (1 + rateFee) + fixedFee;
+    
+    return { lendingRate, borrowingRate };
   };
 
   // Final curve data (101 points, from 0.00 to 1.00)
   const interestCurveData = Array.from({ length: 101 }, (_, i) => {
     const utilization = i / 100;
-    const borrowAPY = getBorrowRate(utilization);
-    const supplyAPY = borrowAPY * utilization * (1 - totalFee);
-    return { utilization, borrowAPY, supplyAPY };
+    const rates = computeInterestRates(utilization);
+    
+    return { 
+      utilization, 
+      borrowAPY: rates.borrowingRate, 
+      supplyAPY: rates.lendingRate 
+    };
   });
 
   return (

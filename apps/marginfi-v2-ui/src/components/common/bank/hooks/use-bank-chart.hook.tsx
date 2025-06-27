@@ -73,6 +73,8 @@ const fillDataGaps = (data: BankChartDataDailyAverages[], daysToFill: number = 3
           insuranceIrFee: 0,
           protocolIrFee: 0,
           programFeeRate: 0,
+          insuranceFeeFixedApr: 0,
+          protocolFixedFeeApr: 0,
         });
       }
     }

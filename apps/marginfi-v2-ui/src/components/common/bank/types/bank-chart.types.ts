@@ -15,6 +15,8 @@ type BankChartData = {
   insuranceIrFee: number;
   protocolIrFee: number;
   programFeeRate: number;
+  insuranceFeeFixedApr: number;
+  protocolFixedFeeApr: number;
 };
 
 type BankHistoricalDataResponse = {
@@ -38,6 +40,8 @@ type BankChartDataDailyAverages = {
   insuranceIrFee: number;
   protocolIrFee: number;
   programFeeRate: number;
+  insuranceFeeFixedApr: number;
+  protocolFixedFeeApr: number;
 };
 
 type UseBankRatesReturn = {
