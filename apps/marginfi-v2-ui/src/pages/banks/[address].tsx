@@ -42,8 +42,8 @@ export default function BankPage() {
 
   const { address } = React.useMemo(() => router.query, [router]);
 
-  const { extendedBanks } = useExtendedBanks(walletAddress);
-  const { emodePairs, activeEmodePairs } = useEmode(walletAddress);
+  const { extendedBanks } = useExtendedBanks();
+  const { emodePairs, activeEmodePairs } = useEmode();
 
   const collateralBanksByLiabilityBank = React.useMemo(() => {
     return groupCollateralBanksByLiabilityBank(extendedBanks, emodePairs);
@@ -53,7 +53,7 @@ export default function BankPage() {
     return groupLiabilityBanksByCollateralBank(extendedBanks, emodePairs);
   }, [extendedBanks, emodePairs]);
 
-  const refreshUserData = useRefreshUserData(walletAddress);
+  const refreshUserData = useRefreshUserData();
 
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
 

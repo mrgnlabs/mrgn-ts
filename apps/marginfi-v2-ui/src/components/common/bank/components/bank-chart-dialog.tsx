@@ -21,7 +21,7 @@ type BankChartDialogProps = {
   symbol?: string;
   mintAddress?: string;
   trigger?: React.ReactNode;
-  tab?: "rates" | "tvl" | "interest-curve" | "price";
+  tab?: "rates" | "tvl" | "interest-curve";
 };
 
 const BankChartDialog = ({ bankAddress, symbol, trigger, mintAddress, tab = "tvl" }: BankChartDialogProps) => {
@@ -57,8 +57,6 @@ const BankChartDialog = ({ bankAddress, symbol, trigger, mintAddress, tab = "tvl
                   return "Deposit and borrow interest rates over the last 30 days.";
                 case "interest-curve":
                   return "Interest rate curve parameters over the last 30 days.";
-                case "price":
-                  return "Token price history over the last 30 days.";
                 default:
                   return "Historical data over the last 30 days.";
               }
