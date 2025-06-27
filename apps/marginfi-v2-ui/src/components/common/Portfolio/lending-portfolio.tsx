@@ -50,8 +50,10 @@ import {
   useMarginfiAccountAddresses,
   useMarginfiClient,
   useRefreshUserData,
+  useSetSelectedAccountKey,
   useWrappedMarginfiAccount,
 } from "@mrgnlabs/mrgn-state";
+import { PublicKey } from "@solana/web3.js";
 
 // Removed old interest chart types - now handled by hooks
 
@@ -76,6 +78,15 @@ export const LendingPortfolio = () => {
   const { data: marginfiAccounts } = useMarginfiAccountAddresses();
   const { activeEmodePairs, emodePairs } = useEmode();
   const refreshUserData = useRefreshUserData();
+
+  const setSelectedKey = useSetSelectedAccountKey();
+
+  const setSelectedAccount = React.useCallback(
+    (account: PublicKey) => {
+      setSelectedKey(account.toBase58());
+    },
+    [setSelectedKey]
+  );
 
   const isStoreInitialized = true;
   const isRefreshingStore = false;
@@ -413,7 +424,7 @@ export const LendingPortfolio = () => {
                 connection={marginfiClient?.provider.connection ?? null}
                 marginfiAccounts={marginfiAccounts ?? []}
                 selectedAccount={selectedAccount}
-                setSelectedAccount={refreshUserData}
+                setSelectedAccount={setSelectedAccount}
                 closeOnSwitch={true}
                 popoverContentAlign="start"
                 processOpts={{

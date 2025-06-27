@@ -77,14 +77,11 @@ export const Navbar: FC = () => {
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
-  // Get the selected account key and setter from wallet context
   const setSelectedKey = useSetSelectedAccountKey();
 
   const setSelectedAccount = useCallback(
     (account: PublicKey) => {
-      console.log("🔍 setSelectedAccount - setting account", account.toBase58());
       setSelectedKey(account.toBase58());
-      // console.log("🔍 setSelectedAccount - calling refreshUserData");
     },
     [setSelectedKey]
   );
