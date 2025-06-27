@@ -65,13 +65,13 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
         };
       case "rates":
         return {
-          yAxisLabel: "%",
+          yAxisLabel: "",
           tooltipLabel: "%",
           domain: [0, "auto"] as [number, "auto"],
         };
       case "interest-curve":
         return {
-          yAxisLabel: "%",
+          yAxisLabel: "",
           tooltipLabel: "%",
           domain: [0, 1] as [number, number],
         };
@@ -114,7 +114,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
                         : `${dynamicNumeralFormatter(entry.value)} ${bank?.meta.tokenSymbol || ""}`;
                     case "rates":
                     case "interest-curve":
-                      return `${(entry.value * 100).toFixed(2)}%`;
+                      return `${entry.value.toFixed(2)}%`;
                     default:
                       return entry.value;
                   }
@@ -129,15 +129,17 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
   };
   if (isLoading) {
     return (
-      <Skeleton className="bg-muted/50 w-[100%] h-[435px] mx-auto flex flex-col gap-2 items-center justify-center text-muted-foreground">
-        <IconLoader2 size={16} className="animate-spin" />
-        <p>Loading chart...</p>
-      </Skeleton>
+      <Card className="w-full bg-background-gray h-[520px] flex flex-col items-center justify-center">
+        <CardContent className="flex flex-col items-center justify-center w-full h-full gap-2">
+          <IconLoader2 size={16} className="animate-spin" />
+          <p className="text-muted-foreground">Loading chart...</p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <Card className="bg-transparent border-none">
+    <Card className="bg-transparent border-none h-full md:h-[520px]">
       <CardHeader className="sr-only">
         <CardTitle>Bank History</CardTitle>
         <CardDescription>
@@ -226,7 +228,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
                 if (activeTab === "tvl" && showUSD) {
                   return `$${dynamicNumeralFormatter(value)}`;
                 } else if (activeTab === "rates" || activeTab === "interest-curve") {
-                  return `${(value * 100).toFixed(2)}%`;
+                  return `${value.toFixed(2)}%`;
                 } else {
                   return dynamicNumeralFormatter(value);
                 }
@@ -239,7 +241,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
                 value: chartOptions.yAxisLabel,
                 angle: -90,
                 position: "insideLeft",
-                style: { fill: "var(--text-muted)" },
+                style: { fill: "var(#fffff)" },
               }}
             />
             <ChartTooltip cursor={false} content={<CustomTooltipContent />} />

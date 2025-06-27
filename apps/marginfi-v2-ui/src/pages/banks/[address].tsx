@@ -4,9 +4,10 @@ import { useRouter } from "next/router";
 import Image from "next/image";
 import Error from "next/error";
 
-import { IconArrowLeft, IconCheck, IconLink, IconInfoCircle } from "@tabler/icons-react";
+import { IconArrowLeft, IconCheck, IconLink, IconInfoCircle, IconLoader2 } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { ActionBox, useWallet, AddressActions } from "@mrgnlabs/mrgn-ui";
+import { Skeleton } from "~/components/ui/skeleton";
 import { LendingModes, getAssetPriceData, getAssetWeightData, cn } from "@mrgnlabs/mrgn-utils";
 import { ActionType, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginRequirementType, AssetTag, OperationalState } from "@mrgnlabs/marginfi-client-v2";
@@ -270,12 +271,102 @@ export default function BankPage() {
     [bankData, isNativeStakeBank, assetWeightData, bank, isIsolatedBank, extendedBanks]
   );
 
-  // if (!initialized) {
-  //   return <Loader label="Loading bank..." />;
-  // }
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (extendedBanks && extendedBanks.length > 0) {
+      setIsLoading(false);
+    }
+  }, [extendedBanks]);
 
   if (!address) {
     return <Error statusCode={400} />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="w-full space-y-4 max-w-8xl mx-auto pb-24 px-4 md:pb-16 md:-translate-y-4 md:space-y-6">
+        <div>
+          <Button variant="outline" disabled>
+            <IconArrowLeft size={14} />
+            Back to banks
+          </Button>
+        </div>
+
+        <header className="flex flex-col lg:flex-row items-center justify-between gap-8 pb-4 pt-4 md:pt-0">
+          <div className="flex flex-col items-center lg:w-1/2">
+            <div className="flex items-center gap-4">
+              <h1 className="flex items-center gap-3 text-4xl font-medium">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <Skeleton className="h-8 w-24" />
+              </h1>
+              <div className="flex items-center gap-2">
+                <Button variant="secondary" size="icon" disabled>
+                  <IconLink size={16} />
+                </Button>
+                <Button variant="secondary" size="icon" disabled>
+                  <IconLink size={16} />
+                </Button>
+              </div>
+            </div>
+
+            <ul className="flex flex-col gap-2 items-start text-foreground mt-6 translate-x-8">
+              <li className="flex items-center gap-1">
+                <span className="text-muted-foreground w-10">Price:</span>
+                <Skeleton className="h-4 w-16" />
+              </li>
+              <li className="flex items-center justify-center gap-1">
+                <span className="text-muted-foreground w-10">Bank:</span>
+                <Skeleton className="h-4 w-32" />
+              </li>
+              <li className="flex items-center justify-center gap-1">
+                <span className="text-muted-foreground w-10">Mint:</span>
+                <Skeleton className="h-4 w-32" />
+              </li>
+            </ul>
+          </div>
+
+          <div className="w-full grid grid-cols-2 gap-4 md:gap-8 md:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Card key={index} className="w-full bg-background-gray rounded-md h-32">
+                <CardHeader className="items-center text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <CardTitle className="font-normal">
+                      <Skeleton className="h-4 w-24" />
+                    </CardTitle>
+                  </div>
+                  <CardDescription className="sr-only">Loading...</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl lg:text-3xl text-center">
+                    <Skeleton className="h-8 w-20 mx-auto" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </header>
+
+        <div className="w-full grid lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8">
+            <Card className="w-full bg-background-gray h-[520px] flex flex-col items-center justify-center">
+              <CardContent className="flex flex-col items-center justify-center w-full h-full gap-2">
+                <IconLoader2 size={16} className="animate-spin" />
+                <p className="text-muted-foreground">Loading chart...</p>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="lg:col-span-4 py-8 lg:pb-0 lg:pt-0">
+            <Card className="w-full bg-background-gray h-[200px] md:h-full flex flex-col items-center justify-center">
+              <CardContent className="flex flex-col items-center justify-center w-full h-full gap-2">
+                <IconLoader2 size={16} className="animate-spin" />
+                <p className="text-muted-foreground">Loading actionbox...</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!bank) {
@@ -408,10 +499,10 @@ type StatProps = {
 
 const Stat = ({ title, description, tooltip, value }: StatProps) => {
   return (
-    <Card className="w-full bg-background-gray rounded-md">
+    <Card className="w-full bg-background-gray rounded-md h-full md:h-32">
       <CardHeader className="items-center text-muted-foreground">
         <div className="flex items-center gap-1">
-          <CardTitle className="font-normal">{title}</CardTitle>
+          <CardTitle className="font-normal text-center">{title}</CardTitle>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
