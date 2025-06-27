@@ -6,6 +6,7 @@ import {
   EmodePair,
   PriceBias,
   getPrice,
+  ValidatorStakeGroup,
 } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, Emissions, StakePoolMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
 import { aprToApy, nativeToUi, WSOL_MINT } from "@mrgnlabs/mrgn-common";
@@ -346,14 +347,15 @@ export const getPositionData = (
   bank: ExtendedBankInfo,
   nativeSolBalance: number,
   isInLendingMode: boolean,
-  solPrice: number | null
+  solPrice: number | null,
+  validatorStakeGroup?: ValidatorStakeGroup
 ): PositionData => {
   let positionAmount,
     liquidationPrice,
     positionUsd,
     isUserPositionPoorHealth = false;
 
-  const walletAmount = bank.info.state.mint.equals(WSOL_MINT)
+  let walletAmount = bank.info.state.mint.equals(WSOL_MINT)
     ? bank.userInfo.tokenAccount.balance + nativeSolBalance
     : bank.userInfo.tokenAccount.balance;
 
@@ -371,6 +373,10 @@ export const getPositionData = (
         bank.info.state.price > bank.position.liquidationPrice - bank.position.liquidationPrice * alertRange;
       }
     }
+  }
+
+  if (validatorStakeGroup) {
+    walletAmount = validatorStakeGroup.totalStake;
   }
 
   const positionData: PositionData = {

@@ -1,4 +1,4 @@
-import { EmodePair, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
+import { EmodePair, EmodeTag, ValidatorStakeGroup } from "@mrgnlabs/marginfi-client-v2";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import {
   groupBanksByEmodeTag,
@@ -59,6 +59,25 @@ export function useAssetData(): AssetListData {
   const { data: userBalances } = useUserBalances();
   const { data: stakeAccounts } = useUserStakeAccounts();
   const { stakePoolMetadataMap } = useNativeStakeData();
+
+  const stakeAccountsBankMap = useMemo(() => {
+    if (!stakeAccounts || stakePoolMetadataMap.size === 0) {
+      return new Map<string, ValidatorStakeGroup>();
+    }
+
+    const map = new Map<string, ValidatorStakeGroup>();
+
+    // For every bankKey → metadata entry:
+    stakePoolMetadataMap.forEach((metadata, bankKey) => {
+      // Find the user's stake group whose validator matches metadata.validatorVoteAccount
+      const stakeGroup = stakeAccounts.find((group) => group.validator.equals(metadata.validatorVoteAccount));
+      if (stakeGroup) {
+        map.set(bankKey, stakeGroup);
+      }
+    });
+
+    return map;
+  }, [stakeAccounts, stakePoolMetadataMap]);
 
   const { data: selectedAccount } = useMarginfiAccount();
   const { activeEmodePairs, emodePairs } = useEmode();
@@ -190,7 +209,13 @@ export function useAssetData(): AssetListData {
         deposits: getDepositsData(bank, true),
         bankCap: getBankCapData(bank, true),
         utilization: getUtilizationData(bank),
-        position: getPositionData(bank, userBalances?.nativeSolBalance || 0, true, categorizedBanks.solPrice),
+        position: getPositionData(
+          bank,
+          userBalances?.nativeSolBalance || 0,
+          true,
+          categorizedBanks.solPrice,
+          stakeAccountsBankMap.get(bank.address.toBase58())
+        ),
         action: getAction(bank, true, connected, walletContextState, refreshUserData, selectedAccount),
         assetCategory: determineBankCategories(bank),
       };
@@ -214,7 +239,13 @@ export function useAssetData(): AssetListData {
         deposits: getDepositsData(bank, false),
         bankCap: getBankCapData(bank, false),
         utilization: getUtilizationData(bank),
-        position: getPositionData(bank, userBalances?.nativeSolBalance || 0, false, categorizedBanks.solPrice),
+        position: getPositionData(
+          bank,
+          userBalances?.nativeSolBalance || 0,
+          false,
+          categorizedBanks.solPrice,
+          stakeAccountsBankMap.get(bank.address.toBase58())
+        ),
         action: getAction(bank, false, connected, walletContextState, refreshUserData, selectedAccount),
         assetCategory: determineBankCategories(bank),
       };
@@ -226,16 +257,17 @@ export function useAssetData(): AssetListData {
     return { lend: lendBankMap, borrow: borrowBankMap, sortedBanks };
   }, [
     extendedBanks,
-    stakePoolMetadataMap,
     emodeBankGroups.collateral,
     emodeBankGroups.liability,
+    stakePoolMetadataMap,
     activeEmodePairs,
     userBalances?.nativeSolBalance,
     categorizedBanks.solPrice,
-    selectedAccount,
+    stakeAccountsBankMap,
     connected,
     walletContextState,
     refreshUserData,
+    selectedAccount,
   ]);
 
   // Lightweight filtering functions that just map categorized banks to pre-computed data
