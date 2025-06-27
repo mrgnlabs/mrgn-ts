@@ -45,13 +45,6 @@ const interestCurveConfig: ChartConfig = {
   },
 };
 
-const priceChartConfig: ChartConfig = {
-  usdPrice: {
-    label: "USD Price",
-    color: chartColors.primary,
-  },
-};
-
 const tvlChartConfig: ChartConfig = {
   displayTotalDeposits: {
     label: "Total Deposits",
@@ -73,13 +66,12 @@ const formatDate = (dateStr: string) => {
 
 type BankChartProps = {
   bankAddress: string;
-  tab?: "rates" | "tvl" | "interest-curve" | "price";
+  tab?: "rates" | "tvl" | "interest-curve";
 };
 
 const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
-  const [activeTab, setActiveTab] = React.useState<"tvl" | "rates" | "interest-curve" | "price">(tab);
+  const [activeTab, setActiveTab] = React.useState<"tvl" | "rates" | "interest-curve">(tab);
   const [showUSD, setShowUSD] = React.useState(false);
-  const isMobile = useIsMobile();
   const { walletAddress } = useWallet();
   const { extendedBanks } = useExtendedBanks(walletAddress);
 
@@ -121,8 +113,6 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
         return ratesChartConfig;
       case "interest-curve":
         return interestCurveConfig;
-      case "price":
-        return priceChartConfig;
       default:
         return tvlChartConfig;
     }
@@ -148,12 +138,6 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
           yAxisLabel: "%",
           tooltipLabel: "%",
           domain: [0, 1] as [number, number],
-        };
-      case "price":
-        return {
-          yAxisLabel: "USD",
-          tooltipLabel: "USD",
-          domain: [0, "auto"] as [number, "auto"],
         };
       default:
         return {
@@ -276,8 +260,6 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
                     case "rates":
                     case "interest-curve":
                       return `${(entry.value * 100).toFixed(2)}%`;
-                    case "price":
-                      return `$${dynamicNumeralFormatter(entry.value)}`;
                     default:
                       return entry.value;
                   }
@@ -355,7 +337,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
           <ToggleGroup
             type="single"
             value={activeTab}
-            onValueChange={(value) => setActiveTab(value as "tvl" | "rates" | "interest-curve" | "price")}
+            onValueChange={(value) => setActiveTab(value as "tvl" | "rates" | "interest-curve")}
             className="p-1.5 rounded-md"
             disabled={hasError}
           >
@@ -376,12 +358,6 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
               className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 disabled:opacity-50"
             >
               IR Curve
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="price"
-              className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 disabled:opacity-50"
-            >
-              Price
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
@@ -428,8 +404,6 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
                   return `$${dynamicNumeralFormatter(value)}`;
                 } else if (activeTab === "rates" || activeTab === "interest-curve") {
                   return `${(value * 100).toFixed(2)}%`;
-                } else if (activeTab === "price") {
-                  return `$${dynamicNumeralFormatter(value)}`;
                 } else {
                   return dynamicNumeralFormatter(value);
                 }
@@ -546,18 +520,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
                       </>
                     );
                   }
-                  case "price":
-                    return (
-                      <Area
-                        dataKey="usdPrice"
-                        type="monotone"
-                        fill="url(#fillPrimary)"
-                        fillOpacity={0.4}
-                        stroke={chartColors.primary}
-                        strokeWidth={2}
-                        name="USD Price"
-                      />
-                    );
+
                   default:
                     return null;
                 }
