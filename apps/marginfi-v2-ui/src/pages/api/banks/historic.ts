@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { createServerSupabaseClient } from "@mrgnlabs/mrgn-utils";
 import { STATUS_INTERNAL_ERROR, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
+import { formatRawBankMetrics } from "@mrgnlabs/mrgn-state/src/services/bank-chart.service";
 
 export const MAX_DURATION = 60;
 
@@ -49,26 +50,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: "No historical data found for this bank" });
     }
 
-    // Transform data to match expected frontend format
-    const formattedData = bankMetrics.map((entry: any) => ({
-      timestamp: entry.day,
-      borrowRate: entry.borrow_rate_pct || 0,
-      depositRate: entry.deposit_rate_pct || 0,
-      totalBorrows: entry.total_borrows || 0,
-      totalDeposits: entry.total_deposits || 0,
-      // Additional fields for interest rate curve and price history
-      usdPrice: entry.usd_price || 0,
-      utilization: entry.utilization || 0,
-      optimalUtilizationRate: entry.optimal_utilization_rate || 0,
-      baseRate: entry.base_rate || 0,
-      plateauInterestRate: entry.plateau_interest_rate || 0,
-      maxInterestRate: entry.max_interest_rate || 0,
-      insuranceIrFee: entry.insurance_ir_fee || 0,
-      protocolIrFee: entry.protocol_ir_fee || 0,
-      programFeeRate: entry.program_fee_rate || 0,
-      insuranceFeeFixedApr: entry.insurance_fee_fixed_apr || 0,
-      protocolFixedFeeApr: entry.protocol_fixed_fee_apr || 0,
-    }));
+    // Use the service function to format the raw data
+    const formattedData = formatRawBankMetrics(bankMetrics);
 
     return res.status(STATUS_OK).json(formattedData);
   } catch (error: any) {
