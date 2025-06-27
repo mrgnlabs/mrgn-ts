@@ -54,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Fetch bank information separately
     const { data: bankData, error: bankError } = await supabase
       .schema("application")
-      .from("v_bank_latest_enriched")
+      .from("v_bank_map")
       .select("address, mint, name, symbol, mint_decimals")
       .in("address", bankAddresses);
 

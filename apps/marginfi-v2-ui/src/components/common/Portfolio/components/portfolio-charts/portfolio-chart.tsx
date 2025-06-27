@@ -36,7 +36,7 @@ const formatDate = (dateStr: string) => {
 };
 
 const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps) => {
-  const accountAddress = selectedAccount.address.toBase58();
+  const accountAddress = selectedAccount?.address.toBase58();
 
   const { data: chartData, bankSymbols, error, isLoading } = usePortfolioChart(accountAddress, variant, banks);
 

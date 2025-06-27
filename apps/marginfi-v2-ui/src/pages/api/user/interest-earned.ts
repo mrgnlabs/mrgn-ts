@@ -25,7 +25,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Calculate date 30 days ago to match portfolio API date range
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const startDate = thirtyDaysAgo.toISOString();
 
     // Call the interest earned aggregate function with selected account
     const { data: interestData, error } = await supabase.schema("application").rpc("f_interest_earned_aggregate_6h", {
