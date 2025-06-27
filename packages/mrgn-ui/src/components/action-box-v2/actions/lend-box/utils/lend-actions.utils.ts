@@ -1,7 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, MarginfiClient, createMarginfiAccountTx } from "@mrgnlabs/marginfi-client-v2";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo, StakePoolMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
 import { getAssociatedTokenAddressSync, NATIVE_MINT, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { ActionProcessingError, isWholePosition, STATIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
 
@@ -11,6 +11,7 @@ export async function generateActionTxns(props: {
   bank: ExtendedBankInfo;
   lendMode: ActionType;
   stakeAccount?: PublicKey;
+  stakePoolMetadata?: StakePoolMetadata;
   amount: number;
 }): Promise<{ transactions: SolanaTransaction[]; finalAccount: MarginfiAccountWrapper }> {
   let accountCreationTx: SolanaTransaction | null = null;
@@ -33,14 +34,14 @@ export async function generateActionTxns(props: {
     case ActionType.Deposit:
       let depositTx: SolanaTransaction;
       if (account && props.bank.info.rawBank.config.assetTag === 2) {
-        if (!props.stakeAccount || !props.bank.meta.stakePool?.validatorVoteAccount) {
+        if (!props.stakeAccount || !props.stakePoolMetadata?.validatorVoteAccount) {
           throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.NATIVE_STAKE_NOT_FOUND);
         }
         depositTx = await account.makeDepositStakedTx(
           props.amount,
           props.bank.address,
           props.stakeAccount,
-          props.bank.meta.stakePool?.validatorVoteAccount
+          props.stakePoolMetadata?.validatorVoteAccount
         );
       } else {
         let wSolBalanceUi = 0;

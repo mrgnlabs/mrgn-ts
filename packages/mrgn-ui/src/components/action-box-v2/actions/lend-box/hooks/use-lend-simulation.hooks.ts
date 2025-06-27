@@ -2,7 +2,7 @@ import React from "react";
 
 import { PublicKey } from "@solana/web3.js";
 
-import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ActionType, ExtendedBankInfo, StakePoolMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
 import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
@@ -26,6 +26,7 @@ type LendSimulationProps = {
   actionTxns: ActionTxns;
   simulationResult: SimulationResult | null;
   selectedStakeAccount?: PublicKey;
+  stakePoolMetadata?: StakePoolMetadata;
   setSimulationResult: (result: SimulationResult | null) => void;
   setActionTxns: (actionTxns: ActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
@@ -40,6 +41,7 @@ export function useLendSimulation({
   lendMode,
   simulationResult,
   selectedStakeAccount,
+  stakePoolMetadata,
   marginfiClient,
   setSimulationResult,
   setActionTxns,
@@ -83,6 +85,7 @@ export function useLendSimulation({
     lendMode: ActionType;
     amount: number;
     stakeAccount?: PublicKey;
+    stakePoolMetadata?: StakePoolMetadata;
   }): Promise<{
     actionTxns: ActionTxns;
     finalAccount: MarginfiAccountWrapper;
@@ -115,6 +118,7 @@ export function useLendSimulation({
           bank: selectedBank,
           lendMode: lendMode,
           amount: amount,
+          stakePoolMetadata: stakePoolMetadata,
         };
 
         const actionTxns = await fetchActionTxns(props);

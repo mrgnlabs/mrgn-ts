@@ -28,7 +28,6 @@ import {
   useExtendedBanks,
   useMarginfiAccount,
   useRefreshUserData,
-  useUserStakeAccounts,
 } from "@mrgnlabs/mrgn-state";
 import { useAssetData } from "~/hooks/use-asset-data.hooks";
 
@@ -46,7 +45,6 @@ export default function HomePage() {
 
   const { extendedBanks, isLoading: isExtendedBanksLoading } = useExtendedBanks();
   const { activeEmodePairs, emodePairs } = useEmode();
-  const { data: stakeAccounts } = useUserStakeAccounts();
   const { data: selectedAccount } = useMarginfiAccount();
   const refreshUserData = useRefreshUserData();
 
@@ -87,7 +85,6 @@ export default function HomePage() {
                   requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
                   connected,
                   walletContextState,
-                  stakeAccounts,
                   captureEvent: (event, properties) => {
                     capture(event, properties);
                   },
@@ -121,7 +118,6 @@ export default function HomePage() {
                 requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
                 connected: connected,
                 walletContextState: walletContextState,
-                stakeAccounts,
                 onComplete: () => {
                   refreshUserData();
                 },

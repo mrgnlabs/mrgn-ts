@@ -6,6 +6,7 @@ import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { EmodeTag, OracleSetup } from "@mrgnlabs/marginfi-client-v2";
 import { IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
+import { useActionBoxContext } from "~/components/action-box-v2/contexts";
 
 type BankItemProps = {
   bank: ExtendedBankInfo;
@@ -59,7 +60,11 @@ export const BankItem = ({
     [bank, openPosition]
   );
 
-  const isStakedActivating = bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakePool?.isActive;
+
+  const contextProps = useActionBoxContext();
+
+  const stakePoolMetadata = contextProps?.stakePoolMetadataMap.get(bank.address.toBase58());
+  const isStakedActivating = bank.info.rawBank.config.assetTag === 2 && !stakePoolMetadata?.isActive;
 
   return (
     <>
@@ -82,7 +87,7 @@ export const BankItem = ({
             ) : (
               bank.info.rawBank.config.assetTag === 2 && (
                 <p className="text-xs font-light text-muted-foreground ml-2">
-                  validator: {shortenAddress(bank.meta.stakePool?.validatorVoteAccount?.toBase58() ?? "")}
+                  validator: {shortenAddress(stakePoolMetadata?.validatorVoteAccount?.toBase58() ?? "")}
                 </p>
               )
             )}

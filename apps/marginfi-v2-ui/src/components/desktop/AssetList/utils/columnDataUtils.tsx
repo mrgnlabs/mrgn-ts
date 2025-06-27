@@ -8,7 +8,7 @@ import { capture } from "@mrgnlabs/mrgn-utils";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
-import { useUserStakeAccounts } from "@mrgnlabs/mrgn-state";
+import { useNativeStakeData } from "@mrgnlabs/mrgn-state";
 
 const ActionBoxCell = ({
   bank,
@@ -23,10 +23,11 @@ const ActionBoxCell = ({
   walletContextState: WalletContextStateOverride | WalletContextState;
   fetchMrgnlendState: () => void;
 }) => {
-  const { data: stakeAccounts } = useUserStakeAccounts();
+  const { stakePoolMetadataMap } = useNativeStakeData();
   const currentAction = getCurrentAction(isInLendingMode, bank);
   const isDust = bank.isActive && bank.position.isDust;
   const showCloseBalance = currentAction === ActionType.Withdraw && isDust;
+  const stakePoolMetadata = stakePoolMetadataMap.get(bank.address.toBase58());
 
   if (currentAction === ActionType.Repay) {
     return (
@@ -64,7 +65,6 @@ const ActionBoxCell = ({
           requestedLendType: currentAction,
           connected: connected,
           walletContextState,
-          stakeAccounts,
           onComplete: () => {
             fetchMrgnlendState();
           },
@@ -75,7 +75,7 @@ const ActionBoxCell = ({
             <Button
               variant="secondary"
               className="w-full md:w-[120px] hover:bg-primary hover:text-primary-foreground"
-              disabled={bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakePool?.isActive}
+              disabled={bank.info.rawBank.config.assetTag === 2 && !stakePoolMetadata?.isActive}
             >
               {showCloseBalance ? "Close" : currentAction}
             </Button>

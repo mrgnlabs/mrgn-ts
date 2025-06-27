@@ -8,7 +8,9 @@ import {
   useExtendedBanks,
   useMarginfiAccountAddresses,
   useMarginfiClient,
+  useNativeStakeData,
   useUserBalances,
+  useUserStakeAccounts,
   useWrappedMarginfiAccount,
   WalletStateProvider,
 } from "@mrgnlabs/mrgn-state";
@@ -20,9 +22,11 @@ export const MrgnlendProvider: React.FC<{
   const { wallet, walletAddress } = useWallet();
 
   const { extendedBanks } = useExtendedBanks();
+  const { stakePoolMetadataMap } = useNativeStakeData();
   const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(wallet);
   const { data: marginfiAccounts, isSuccess: isSuccessMarginfiAccounts } = useMarginfiAccountAddresses();
   const { data: userBalances } = useUserBalances();
+  const { data: stakeAccounts } = useUserStakeAccounts();
   const { marginfiClient } = useMarginfiClient(wallet);
 
   const [fetchPriorityFee, fetchAccountLabels, accountLabels, setDisplaySettings] = useUiStore((state) => [
@@ -72,6 +76,8 @@ export const MrgnlendProvider: React.FC<{
         selectedAccount={selectedAccount}
         connected={false}
         setDisplaySettings={setDisplaySettings}
+        stakePoolMetadataMap={stakePoolMetadataMap}
+        stakeAccounts={stakeAccounts ?? []}
       >
         {children}
 

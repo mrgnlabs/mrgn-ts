@@ -24,8 +24,8 @@ export const fetchNativeStakeAccounts = async (
   opts: {
     filterInactive: boolean;
   } = {
-    filterInactive: true,
-  }
+      filterInactive: true,
+    }
 ): Promise<ValidatorStakeGroup[]> => {
   if (!connection || !publicKey) {
     throw new Error("Invalid connection or public key");
@@ -152,7 +152,7 @@ export const fetchStakePoolActiveStates = async (
 
     const activationEpoch = stakeAccount.stake.delegation.activationEpoch;
     const isActive = currentEpoch.epoch > Number(activationEpoch);
-    activeStates.set(poolMintAddress.toBase58(), isActive);
+    activeStates.set(validatorVoteAccount.toBase58(), isActive);
   });
 
   return activeStates;

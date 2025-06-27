@@ -7,6 +7,7 @@ import { percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { LendSelectionGroups, LendingModes, cn, computeBankRate, getEmodeStrategies } from "@mrgnlabs/mrgn-utils";
 
+import { useActionBoxContext } from "~/components/action-box-v2/contexts";
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 import { BankItem, BankListCommand } from "~/components/action-box-v2/components";
 import { Button } from "~/components/ui/button";
@@ -50,18 +51,22 @@ export const BankList = ({
     [actionType]
   );
 
+  const contextProps = useActionBoxContext();
+  const stakePoolMetadataMap = contextProps?.stakePoolMetadataMap;
+
   const [searchQuery, setSearchQuery] = React.useState("");
 
   const calculateRate = React.useCallback(
     (bank: ExtendedBankInfo) => {
       if (bank.info.rawBank.config.assetTag === 2) {
-        return bank.meta.stakePool?.validatorRewards
-          ? percentFormatter.format(bank.meta.stakePool?.validatorRewards / 100)
+        const stakePoolMetadata = stakePoolMetadataMap?.get(bank.address.toBase58());
+        return stakePoolMetadata?.validatorRewards
+          ? percentFormatter.format(stakePoolMetadata?.validatorRewards / 100)
           : "0%";
       }
       return computeBankRate(bank, lendingMode);
     },
-    [lendingMode]
+    [lendingMode, stakePoolMetadataMap]
   );
 
   const hasTokens = React.useMemo(() => {
@@ -414,12 +419,13 @@ export const BankList = ({
             {stakedAssetBanks.length > 0 && (
               <CommandGroup heading="Staked asset pools">
                 {stakedAssetBanks.map((bank, index) => {
+                  const stakePoolMetadata = stakePoolMetadataMap?.get(bank.address.toBase58());
                   return (
                     <CommandItem
                       key={index}
                       value={bank.address?.toString().toLowerCase()}
                       onSelect={(currentValue) => {
-                        if (bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakePool?.isActive) {
+                        if (bank.info.rawBank.config.assetTag === 2 && !stakePoolMetadata?.isActive) {
                           return;
                         }
                         onSetSelectedBank(

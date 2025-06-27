@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const activeStatesRecord: Record<string, boolean> = {};
 
-    Object.entries(activeStatesMap).forEach(([key, value]) => {
+    activeStatesMap.forEach((value, key) => {
       activeStatesRecord[key] = value;
     });
 

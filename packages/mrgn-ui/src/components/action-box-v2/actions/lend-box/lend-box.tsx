@@ -40,7 +40,7 @@ import { ActionSimulationStatus } from "../../components";
 import { Collateral, ActionInput, Preview, StakeAccountSwitcher } from "./components";
 import { SimulationStatus } from "../../utils";
 import { useLendSimulation } from "./hooks";
-import { HidePoolStats } from "../../contexts/actionbox/actionbox.context";
+import { HidePoolStats, useActionBoxContext } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
 import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 
@@ -63,7 +63,6 @@ export type LendBoxProps = {
   showTokenSelection?: boolean;
   selectionGroups?: LendSelectionGroups[];
   hidePoolStats?: HidePoolStats;
-  stakeAccounts?: ValidatorStakeGroup[];
 
   onCloseDialog?: () => void;
   setShouldBeHidden?: (hidden: boolean) => void;
@@ -91,7 +90,6 @@ export const LendBox = ({
   onComplete,
   captureEvent,
   hidePoolStats,
-  stakeAccounts,
   setDisplaySettings,
   onCloseDialog,
   setShouldBeHidden,
@@ -157,6 +155,11 @@ export const LendBox = ({
 
   const { transactionSettings, priorityFees } = useActionContext() || { transactionSettings: null, priorityFees: null };
 
+  const contextProps = useActionBoxContext();
+  const stakeAccounts = contextProps?.stakeAccounts;
+  const stakePoolMetadataMap = contextProps?.stakePoolMetadataMap;
+  const stakePoolMetadata = stakePoolMetadataMap?.get(selectedBank?.address.toBase58() ?? "");
+
   const accountSummary = React.useMemo(() => {
     return accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount) : DEFAULT_ACCOUNT_SUMMARY);
   }, [accountSummaryArg, selectedAccount]);
@@ -177,6 +180,7 @@ export const LendBox = ({
     actionTxns,
     simulationResult,
     selectedStakeAccount: selectedStakeAccount?.address || undefined,
+    stakePoolMetadata,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,
@@ -333,8 +337,9 @@ export const LendBox = ({
   // if requestedBank is set
   React.useEffect(() => {
     if (requestedBank && stakeAccounts) {
+      const stakePoolMetadata = stakePoolMetadataMap?.get(requestedBank.address.toBase58());
       const stakeAccount = stakeAccounts.find((stakeAccount) =>
-        stakeAccount.validator.equals(requestedBank.meta.stakePool?.validatorVoteAccount || PublicKey.default)
+        stakeAccount.validator.equals(stakePoolMetadata?.validatorVoteAccount || PublicKey.default)
       );
       if (stakeAccount) {
         setSelectedStakeAccount({
