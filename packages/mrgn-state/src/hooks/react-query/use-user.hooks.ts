@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { PublicKey } from "@solana/web3.js";
 import { MarginfiAccountType } from "@mrgnlabs/marginfi-client-v2";
-import { fetchMarginfiAccount, fetchMarginfiAccountAddresses, fetchUserBalances } from "../../api/user-api";
+import { WalletToken } from "@mrgnlabs/mrgn-common";
+import { fetchMarginfiAccount, fetchMarginfiAccountAddresses, fetchUserBalances, fetchWalletTokens } from "../../api/user-api";
 import { useRawBanks, useMetadata, useOracleData, useMintData } from ".";
 import { TokenAccount } from "../../types";
 import { useWalletAddress } from "../../context/wallet-state.context";
@@ -103,6 +104,44 @@ export function useUserBalances() {
     retry: (failureCount, error) => {
       // Don't retry if we have dependency errors
       if (isErrorMintData) return false;
+      // Only retry up to 2 times for other errors
+      return failureCount < 2;
+    },
+  });
+}
+
+export function useWalletTokens() {
+  const authority = useWalletAddress();
+  const { data: rawBanks, isSuccess: isSuccessRawBanks, isError: isErrorRawBanks } = useRawBanks();
+  const { data: metadata, isSuccess: isSuccessMetadata, isError: isErrorMetadata } = useMetadata();
+
+  // Check if dependencies have errors
+  const hasErrors = isErrorRawBanks || isErrorMetadata;
+  
+  // Check if all required data is available
+  const allDataReady = isSuccessRawBanks && isSuccessMetadata && Boolean(authority);
+
+  return useQuery<WalletToken[], Error>({
+    queryKey: ["walletTokens", authority?.toBase58() ?? null],
+    queryFn: async () => {
+      if (!rawBanks || !metadata?.bankMetadataMap || !authority) {
+        throw new Error("Required data not available for fetching wallet tokens");
+      }
+
+      // Create sets for filtering bank tokens
+      const bankTokenSymbols = new Set(
+        rawBanks.map((bank) => metadata.bankMetadataMap[bank.address.toBase58()]?.tokenSymbol).filter(Boolean)
+      );
+      const bankTokenAddresses = new Set(rawBanks.map((bank) => bank.address.toBase58()));
+
+      return await fetchWalletTokens(authority, bankTokenSymbols, bankTokenAddresses);
+    },
+    enabled: allDataReady && !hasErrors,
+    staleTime: 2 * 60_000, // 2 minutes
+    // refetchInterval: 60_000, // Temporarily disabled for performance
+    retry: (failureCount, error) => {
+      // Don't retry if we have dependency errors
+      if (hasErrors) return false;
       // Only retry up to 2 times for other errors
       return failureCount < 2;
     },

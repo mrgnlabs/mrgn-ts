@@ -10,7 +10,7 @@ import {
   PythPushFeedIdMap,
   toBankDto,
 } from "@mrgnlabs/marginfi-client-v2";
-import { BankMetadataMap } from "@mrgnlabs/mrgn-common";
+import { BankMetadataMap, WalletToken } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 import { getConfig } from "../config/app.config";
 import { BankRawDatas } from "./bank-api";
@@ -121,4 +121,29 @@ export const fetchUserBalances = async (
       balance: ata.balance,
     })),
   };
+};
+
+export const fetchWalletTokens = async (
+  wallet: PublicKey,
+  bankTokenSymbols: Set<string>,
+  bankTokenAddresses: Set<string>
+): Promise<WalletToken[]> => {
+  const response = await fetch(`/api/user/wallet?wallet=${wallet.toBase58()}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch wallet tokens");
+  }
+  const data = await response.json();
+
+  const mappedData: WalletToken[] = data.map((token: WalletToken) => ({
+    ...token,
+    address: new PublicKey(token.address),
+    ata: new PublicKey(token.ata),
+  }));
+
+  // Filter out tokens that are already available as banks
+  const filteredTokens = mappedData
+    .filter((token) => !bankTokenSymbols.has(token.symbol))
+    .filter((token) => !bankTokenAddresses.has(token.address.toBase58()));
+
+  return filteredTokens;
 };
