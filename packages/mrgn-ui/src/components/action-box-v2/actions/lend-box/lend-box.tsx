@@ -350,6 +350,22 @@ export const LendBox = ({
     }
   }, [requestedBank, stakeAccounts, setSelectedStakeAccount]);
 
+  // set selected stake account when selected bank changes
+  React.useEffect(() => {
+    if (selectedBank && stakeAccounts) {
+      const stakePoolMetadata = stakePoolMetadataMap?.get(selectedBank.address.toBase58());
+      const stakeAccount = stakeAccounts.find((stakeAccount) =>
+        stakeAccount.validator.equals(stakePoolMetadata?.validatorVoteAccount || PublicKey.default)
+      );
+      if (stakeAccount) {
+        setSelectedStakeAccount({
+          address: stakeAccount.accounts[0].pubkey,
+          balance: stakeAccount.accounts[0].amount,
+        });
+      }
+    }
+  }, [selectedBank, stakeAccounts, setSelectedStakeAccount]);
+
   React.useEffect(() => {
     if (marginfiClient) {
       refreshSelectedBanks(banks);
@@ -391,25 +407,12 @@ export const LendBox = ({
           isDialog={isDialog}
           showTokenSelection={showTokenSelection}
           selectionGroups={selectionGroups}
+          selectedStakeAccount={selectedStakeAccount?.address}
+          onStakeAccountChange={setSelectedStakeAccount}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}
         />
       </div>
-      {lendMode === ActionType.Deposit &&
-        selectedBank &&
-        selectedBank.info.rawBank.config.assetTag === 2 &&
-        stakeAccounts &&
-        stakeAccounts.length > 1 && (
-          <StakeAccountSwitcher
-            selectedBank={selectedBank}
-            selectedStakeAccount={selectedStakeAccount?.address}
-            stakeAccounts={stakeAccounts}
-            onStakeAccountChange={(account) => {
-              setSelectedStakeAccount(account);
-              setAmountRaw("0");
-            }}
-          />
-        )}
 
       {selectedBank && lendMode === ActionType.Withdraw && (
         <SVSPMEV
