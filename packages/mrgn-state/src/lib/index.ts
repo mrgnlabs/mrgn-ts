@@ -4,3 +4,4 @@ export * from "./account.utils";
 export * from "./chart.utils";
 export * from "./points.utils";
 export * from "./firebase.utils";
+export * from "./interest.utils";

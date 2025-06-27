@@ -8,7 +8,6 @@ export {
   type EnrichedPortfolioDataPoint,
   type StatsData,
 } from "./use-portfolio-data.hook";
-export { useInterestData, type UseInterestDataReturn, type InterestEarnedDataPoint } from "./use-interest-data.hook";
 
 // Chart hooks - for transforming data into chart format
 export { usePortfolioChart, type UsePortfolioChartReturn, type ChartDataPoint } from "./use-portfolio-chart.hook";

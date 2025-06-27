@@ -1,25 +1,56 @@
-"use client";
+import { useMemo } from "react";
 
-import { InterestEarnedDataPoint, useInterestData } from "@mrgnlabs/mrgn-state";
-import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchInterestData } from "../../api";
+import { InterestDataResult, InterestEarnedDataPoint, InterestChartResult, InterestChartDataPoint } from "../../types";
+import { calculateLatestNetInterest, calculateNetInterest30dStats } from "../../lib";
 
-interface ChartDataPoint {
-  timestamp: string;
-  [bankSymbol: string]: number | string;
+/**
+ * React Query hook for fetching interest data
+ * @param selectedAccount The wallet address to fetch interest data for
+ * @returns Interest data with statistics
+ */
+export function useInterestData(selectedAccount: string | null): InterestDataResult {
+  const { data, error, isLoading, isError } = useQuery({
+    queryKey: ["interestData", selectedAccount],
+    queryFn: () => fetchInterestData(selectedAccount),
+    staleTime: 5 * 60_000, // 5 minutes
+    retry: 2,
+    enabled: !!selectedAccount,
+  });
+
+  // Calculate latest net interest
+  const latestNetInterest = data ? calculateLatestNetInterest(data) : 0;
+
+  // Calculate net interest change across actual data range
+  const netInterest30d = data
+    ? calculateNetInterest30dStats(data)
+    : {
+        value: 0,
+        change: 0,
+        changePercent: 0,
+      };
+
+  return {
+    data: data || [],
+    latestNetInterest,
+    netInterest30d,
+    error: error as Error | null,
+    isLoading,
+    isError,
+  };
 }
 
-interface UseInterestChartReturn {
-  data: ChartDataPoint[];
-  bankSymbols: string[];
-  error: Error | null;
-  isLoading: boolean;
-}
-
-// Generic function to transform interest data (earned, paid, or total)
-const transformInterestData = (
+/**
+ * Transform interest data into chart format
+ * @param data Interest data points
+ * @param dataType Type of interest data to display (earned, paid, or total)
+ * @returns Transformed chart data and bank symbols
+ */
+function transformInterestData(
   data: InterestEarnedDataPoint[],
   dataType: "earned" | "paid" | "total"
-): { chartData: ChartDataPoint[]; bankSymbols: string[] } => {
+): { chartData: InterestChartDataPoint[]; bankSymbols: string[] } {
   if (!data.length) return { chartData: [], bankSymbols: [] };
 
   if (dataType === "total") {
@@ -32,7 +63,7 @@ const transformInterestData = (
   // Get unique bank symbols
   const allBankSymbols = Array.from(new Set(data.map((item) => item.bank_symbol)));
 
-  // FIRST: Filter out banks with no meaningful interest BEFORE gap filling
+  // Filter out banks with no meaningful interest BEFORE gap filling
   const activeBankSymbols = allBankSymbols.filter((bankSymbol) => {
     const bankData = data.filter((item) => item.bank_symbol === bankSymbol);
     const hasSignificantValue = bankData.some((item) => Math.abs(item[fieldName]) > 0.01);
@@ -112,8 +143,8 @@ const transformInterestData = (
   });
 
   // Convert filled data back to chart format (only include active banks)
-  const chartData: ChartDataPoint[] = allDates.map((dateStr) => {
-    const dataPoint: ChartDataPoint = {
+  const chartData: InterestChartDataPoint[] = allDates.map((dateStr) => {
+    const dataPoint: InterestChartDataPoint = {
       timestamp: `${dateStr}T12:00:00.000Z`,
     };
 
@@ -125,12 +156,15 @@ const transformInterestData = (
   });
 
   return { chartData, bankSymbols: activeBankSymbols };
-};
+}
 
-// Transform API data into total interest format (earned + paid + net)
-const transformTotalInterestData = (
-  data: InterestEarnedDataPoint[]
-): { chartData: ChartDataPoint[]; bankSymbols: string[] } => {
+/**
+ * Transform API data into total interest format (earned + paid + net)
+ */
+function transformTotalInterestData(data: InterestEarnedDataPoint[]): {
+  chartData: InterestChartDataPoint[];
+  bankSymbols: string[];
+} {
   if (!data.length) return { chartData: [], bankSymbols: [] };
 
   // Get banks that would appear in individual earned chart
@@ -255,7 +289,7 @@ const transformTotalInterestData = (
   });
 
   // Convert to chart format by summing gap-filled values per date
-  const chartData: ChartDataPoint[] = allDates.map((dateStr) => {
+  const chartData: InterestChartDataPoint[] = allDates.map((dateStr) => {
     // Sum earned values across all earned banks for this date
     const totalEarned = earnedActiveBanks.reduce((sum, bankSymbol) => {
       return sum + (earnedByBankByDate[bankSymbol][dateStr] || 0);
@@ -289,38 +323,34 @@ const transformTotalInterestData = (
     chartData,
     bankSymbols: ["Total Earned", "Total Paid", "Net Interest"],
   };
-};
+}
 
-const useInterestChart = (
+/**
+ * React Query hook for interest chart data
+ * @param selectedAccount The wallet address to fetch interest data for
+ * @param dataType Type of interest data to display (earned, paid, or total)
+ * @returns Chart-ready data and bank symbols
+ */
+export function useInterestChart(
   selectedAccount: string | null,
   dataType: "earned" | "paid" | "total"
-): UseInterestChartReturn => {
+): InterestChartResult {
   // Use the data hook for fetching interest data
-  const { data: interestData, error: dataError, isLoading: dataLoading } = useInterestData(selectedAccount);
+  const { data: interestData, error, isLoading, isError } = useInterestData(selectedAccount);
 
-  const [data, setData] = React.useState<ChartDataPoint[]>([]);
-  const [bankSymbols, setBankSymbols] = React.useState<string[]>([]);
-
-  React.useEffect(() => {
-    if (dataLoading || dataError) {
-      setData([]);
-      setBankSymbols([]);
-      return;
+  // Transform data into chart format based on type
+  const { chartData, bankSymbols } = useMemo(() => {
+    if (isLoading || isError || !interestData.length) {
+      return { chartData: [], bankSymbols: [] };
     }
-
-    // Transform data into chart format based on type
-    const { chartData, bankSymbols: symbols } = transformInterestData(interestData, dataType);
-
-    setData(chartData);
-    setBankSymbols(symbols);
-  }, [interestData, dataType, dataLoading, dataError]);
+    return transformInterestData(interestData, dataType);
+  }, [interestData, dataType, isLoading, isError]);
 
   return {
-    data,
+    data: chartData,
     bankSymbols,
-    error: dataError,
-    isLoading: dataLoading,
+    error,
+    isLoading,
+    isError,
   };
-};
-
-export { useInterestChart, type UseInterestChartReturn };
+}
