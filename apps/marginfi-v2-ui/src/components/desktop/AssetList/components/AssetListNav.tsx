@@ -38,8 +38,7 @@ const AssetListNav = () => {
     state.setTokenFilter,
   ]);
 
-  const { walletAddress } = useWallet();
-  const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
+  const { activeEmodePairs, emodePairs } = useEmode();
   const [isSearchExpanded, setIsSearchExpanded] = React.useState(assetListSearch.length > 0);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 

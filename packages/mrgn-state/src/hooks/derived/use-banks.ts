@@ -5,11 +5,11 @@ import { PublicKey } from "@solana/web3.js";
 import { useEmode } from "./use-emode";
 import { adjustBankWeightsWithEmodePairs } from "../../lib";
 
-export function useBanks(user?: PublicKey) {
+export function useBanks() {
   const { data: rawBanks, isLoading: isLoadingRawBanks, isError: isErrorRawBanks } = useRawBanks();
   const { data: oracleData, isLoading: isLoadingOracleData, isError: isErrorOracleData } = useOracleData();
   const { data: metadata, isLoading: isLoadingMetadata, isError: isErrorMetadata } = useMetadata();
-  const { activeEmodePairs } = useEmode(user);
+  const { activeEmodePairs } = useEmode();
 
   const isLoading = isLoadingRawBanks || isLoadingOracleData || isLoadingMetadata;
   const isError = isErrorRawBanks || isErrorOracleData;

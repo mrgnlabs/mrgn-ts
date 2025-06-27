@@ -72,15 +72,15 @@ export const PortfolioAssetCard = ({
   onCardClick,
 }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
-  const { walletAddress, wallet } = useWallet();
-  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress, wallet);
-  const { data: marginfiAccounts } = useMarginfiAccountAddresses(walletAddress);
+  const { wallet } = useWallet();
+  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(wallet);
+  const { data: marginfiAccounts } = useMarginfiAccountAddresses();
   const { marginfiClient } = useMarginfiClient(wallet);
-  const refreshUserData = useRefreshUserData(walletAddress);
-  const { extendedBanks } = useExtendedBanks(walletAddress);
-  const { data: userBalances } = useUserBalances(walletAddress);
-  const { emodePairs, activeEmodePairs } = useEmode(walletAddress);
-  const accountSummary = useAccountSummary(walletAddress);
+  const refreshUserData = useRefreshUserData();
+  const { extendedBanks } = useExtendedBanks();
+  const { data: userBalances } = useUserBalances();
+  const { emodePairs, activeEmodePairs } = useEmode();
+  const accountSummary = useAccountSummary();
 
   const [collateralBanksByLiabilityBank, liabilityBanksByCollateralBank] = React.useMemo(() => {
     return [
@@ -527,10 +527,10 @@ const PortfolioAction = ({
   requestedAction: ActionType;
   buttonVariant?: "default" | "outline" | "outline-dark" | "secondary";
 }) => {
-  const { walletContextState, connected, walletAddress } = useWallet();
+  const { walletContextState, connected } = useWallet();
 
-  const refreshUserData = useRefreshUserData(walletAddress);
-  const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
+  const refreshUserData = useRefreshUserData();
+  const { data: stakeAccounts } = useUserStakeAccounts();
   const isDust = React.useMemo(() => requestedBank?.isActive && requestedBank?.position.isDust, [requestedBank]);
 
   const buttonText = React.useMemo(() => {

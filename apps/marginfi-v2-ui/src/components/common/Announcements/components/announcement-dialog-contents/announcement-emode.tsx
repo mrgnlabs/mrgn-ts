@@ -296,9 +296,9 @@ type AnnouncementEmodeProps = {
 const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
   const [currentSlide, setCurrentSlide] = React.useState(0);
   const [tableResetKey, setTableResetKey] = React.useState(1);
-  const { connected, walletAddress } = useWallet();
-  const { extendedBanks } = useExtendedBanks(walletAddress);
-  const { activeEmodePairs } = useEmode(walletAddress);
+  const { connected } = useWallet();
+  const { extendedBanks } = useExtendedBanks();
+  const { activeEmodePairs } = useEmode();
 
   const prevSlideRef = React.useRef(currentSlide);
 

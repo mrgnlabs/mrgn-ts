@@ -11,8 +11,8 @@ import { useMarginfiClient } from "./use-marginfi-client";
  * @param authority - The public key of the account authority
  * @returns Wrapped account with loading and error states
  */
-export function useWrappedMarginfiAccount(authority?: PublicKey, wallet?: Wallet) {
-  const { data: account, isLoading: isLoadingAccount, isError: isErrorAccount } = useMarginfiAccount(authority);
+export function useWrappedMarginfiAccount(wallet?: Wallet) {
+  const { data: account, isLoading: isLoadingAccount, isError: isErrorAccount } = useMarginfiAccount();
 
   const { marginfiClient, isLoading: isLoadingClient, isError: isErrorClient } = useMarginfiClient(wallet);
 

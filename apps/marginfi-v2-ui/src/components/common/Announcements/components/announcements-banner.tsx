@@ -71,7 +71,7 @@ const Pagination = ({ itemsLength }: PaginationProps) => {
 
 export const Announcements = ({ items }: AnnouncementsProps) => {
   const { connected, walletAddress } = useWallet();
-  const refreshUserData = useRefreshUserData(walletAddress);
+  const refreshUserData = useRefreshUserData();
   const [requestedAction, setRequestedAction] = React.useState<ActionType>();
   const [requestedBank, setRequestedBank] = React.useState<ExtendedBankInfo | null>(null);
 

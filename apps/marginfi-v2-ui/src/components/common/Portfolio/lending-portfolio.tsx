@@ -69,12 +69,12 @@ export const LendingPortfolio = () => {
   const { connection } = useConnection();
 
   const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
-  const { extendedBanks: sortedBanks } = useExtendedBanks(walletAddress);
-  const accountSummary = useAccountSummary(walletAddress);
+  const { extendedBanks: sortedBanks } = useExtendedBanks();
+  const accountSummary = useAccountSummary();
   const { marginfiClient } = useMarginfiClient(wallet);
-  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress, wallet);
-  const { data: marginfiAccounts } = useMarginfiAccountAddresses(walletAddress);
-  const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
+  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(wallet);
+  const { data: marginfiAccounts } = useMarginfiAccountAddresses();
+  const { activeEmodePairs, emodePairs } = useEmode();
   const refreshUserData = useRefreshUserData();
 
   const isStoreInitialized = true;
@@ -413,7 +413,7 @@ export const LendingPortfolio = () => {
                 connection={marginfiClient?.provider.connection ?? null}
                 marginfiAccounts={marginfiAccounts ?? []}
                 selectedAccount={selectedAccount}
-                fetchMrgnlendState={refreshUserData}
+                setSelectedAccount={refreshUserData}
                 closeOnSwitch={true}
                 popoverContentAlign="start"
                 processOpts={{

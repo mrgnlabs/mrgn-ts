@@ -23,8 +23,7 @@ const ActionBoxCell = ({
   walletContextState: WalletContextStateOverride | WalletContextState;
   fetchMrgnlendState: () => void;
 }) => {
-  const { walletAddress } = useWallet();
-  const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
+  const { data: stakeAccounts } = useUserStakeAccounts();
   const currentAction = getCurrentAction(isInLendingMode, bank);
   const isDust = bank.isActive && bank.position.isDust;
   const showCloseBalance = currentAction === ActionType.Withdraw && isDust;

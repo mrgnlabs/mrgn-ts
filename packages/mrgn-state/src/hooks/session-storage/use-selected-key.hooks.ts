@@ -3,14 +3,21 @@ import { useState, useEffect, useCallback } from "react";
 
 export function useSelectedAccountKey(keys?: PublicKey[]) {
   const storageKey = "app-selectedAccountKey";
-  const [selectedKey, setSelectedKey] = useState<string | undefined>(undefined);
 
-  // 1️⃣ Initialize/pick on first load or when `keys` change
+  // Initialize state with value from localStorage
+  const [selectedKey, setSelectedKeyState] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null; // SSR safety
+    return localStorage.getItem(storageKey);
+  });
+
+  // Initialize/pick on first load or when `keys` change
   useEffect(() => {
-    if (!keys || keys.length === 0) return;
+    if (!keys || keys.length === 0) {
+      setSelectedKeyState(null);
+      return;
+    }
 
     const base58Keys = keys.map((k) => k.toBase58());
-
     const stored = localStorage.getItem(storageKey);
     let initial: string;
 
@@ -20,30 +27,30 @@ export function useSelectedAccountKey(keys?: PublicKey[]) {
       initial = keys[0].toBase58();
     }
 
-    setSelectedKey(initial);
-  }, [keys]);
-
-  // 2️⃣ Persist every time it changes
-  useEffect(() => {
-    if (selectedKey == null) {
-      localStorage.removeItem(storageKey);
-    } else {
-      localStorage.setItem(storageKey, selectedKey);
+    // Only update if different from current state
+    if (initial !== selectedKey) {
+      localStorage.setItem(storageKey, initial);
+      setSelectedKeyState(initial);
     }
-  }, [selectedKey]);
+  }, [keys, selectedKey]);
 
-  // 3️⃣ Setter that validates
-  const select = useCallback(
+  // Setter that validates and updates both localStorage and state
+  const setSelectedKey = useCallback(
     (key: string) => {
       const base58Keys = keys?.map((k) => k.toBase58());
       if (!base58Keys || !base58Keys?.includes(key)) {
         console.warn(`Cannot select "${key}", not in current keys list.`);
         return;
       }
-      setSelectedKey(key);
+
+      // Only update if different from current state
+      if (key !== selectedKey) {
+        localStorage.setItem(storageKey, key);
+        setSelectedKeyState(key);
+      }
     },
-    [keys]
+    [keys, selectedKey]
   );
 
-  return { selectedKey, setSelectedKey: select };
+  return { selectedKey, setSelectedKey };
 }

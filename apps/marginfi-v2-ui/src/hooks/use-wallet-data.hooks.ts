@@ -2,16 +2,15 @@ import { OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import { NATIVE_MINT, numeralFormatter, TokenMetadata, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { useMetadata, useOracleData, useUserBalances, useUserStakeAccounts } from "@mrgnlabs/mrgn-state";
 import React from "react";
-import { PublicKey } from "@solana/web3.js";
 import { TokenWalletData } from "@mrgnlabs/mrgn-ui";
 
-export function useWalletData(walletAddress: PublicKey): {
+export function useWalletData(): {
   tokenBalances: TokenWalletData[];
   nativeStakeBalances: TokenWalletData[];
   isLoading: boolean;
 } {
-  const { data: userBalances, isLoading: isLoadingUserBalances } = useUserBalances(walletAddress);
-  const { data: userStakeAccounts, isLoading: isLoadingUserStakeAccounts } = useUserStakeAccounts(walletAddress);
+  const { data: userBalances, isLoading: isLoadingUserBalances } = useUserBalances();
+  const { data: userStakeAccounts, isLoading: isLoadingUserStakeAccounts } = useUserStakeAccounts();
   const { data: metadata, isLoading: isLoadingMetadata } = useMetadata();
   const { data: oracleData } = useOracleData();
 

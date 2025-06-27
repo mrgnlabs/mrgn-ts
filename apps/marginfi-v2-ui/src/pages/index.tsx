@@ -44,11 +44,11 @@ export default function HomePage() {
 
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
 
-  const { extendedBanks, isLoading: isExtendedBanksLoading } = useExtendedBanks(walletAddress);
-  const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
-  const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
-  const { data: selectedAccount } = useMarginfiAccount(walletAddress);
-  const refreshUserData = useRefreshUserData(walletAddress);
+  const { extendedBanks, isLoading: isExtendedBanksLoading } = useExtendedBanks();
+  const { activeEmodePairs, emodePairs } = useEmode();
+  const { data: stakeAccounts } = useUserStakeAccounts();
+  const { data: selectedAccount } = useMarginfiAccount();
+  const refreshUserData = useRefreshUserData();
 
   const annoucements = React.useMemo(() => {
     let latestBanks: (ExtendedBankInfo | undefined)[] = [];

@@ -49,8 +49,7 @@ interface EmodeExploreWrapperProps {
 const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWrapperProps) => {
   const [activeTab, setActiveTab] = useState<"explore" | "strategies">("explore");
 
-  const { walletAddress } = useWallet();
-  const { extendedBanks } = useExtendedBanks(walletAddress);
+  const { extendedBanks } = useExtendedBanks();
 
   const emodeStrategies = useMemo(() => {
     if (!extendedBanks) return [];

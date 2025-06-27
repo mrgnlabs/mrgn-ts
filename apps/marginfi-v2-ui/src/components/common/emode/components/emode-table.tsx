@@ -31,9 +31,8 @@ interface EmodeTableProps {
 }
 
 const EmodeTable = ({ initialBank, align = "center", className, showTag = true, resetKey = 0 }: EmodeTableProps) => {
-  const { walletAddress } = useWallet();
-  const { extendedBanks } = useExtendedBanks(walletAddress);
-  const { emodePairs } = useEmode(walletAddress);
+  const { extendedBanks } = useExtendedBanks();
+  const { emodePairs } = useEmode();
   const [selectedSide, setSelectedSide] = React.useState<"lend" | "borrow">("borrow");
   const [selectedBank, setSelectedBank] = React.useState<ExtendedBankInfo | undefined>(initialBank);
 

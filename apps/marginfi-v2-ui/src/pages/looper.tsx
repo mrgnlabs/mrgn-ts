@@ -9,9 +9,9 @@ import { IconEmodeSimple, IconLooper } from "~/components/ui/icons";
 import { useExtendedBanks } from "@mrgnlabs/mrgn-state";
 
 export default function LooperPage() {
-  const { connected, walletAddress } = useWallet();
+  const { connected } = useWallet();
 
-  const { extendedBanks, isSuccess } = useExtendedBanks(walletAddress);
+  const { extendedBanks, isSuccess } = useExtendedBanks();
 
   const extendedBankInfosWithoutStakedAssets = extendedBanks.filter((bank) => bank.info.rawBank.config.assetTag !== 2);
 

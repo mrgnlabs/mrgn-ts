@@ -1,17 +1,16 @@
 import React from "react";
 import { useRouter } from "next/router";
-
 import { identify } from "@mrgnlabs/mrgn-utils";
-import { ActionBoxProvider, AuthDialog, useWallet } from "@mrgnlabs/mrgn-ui";
 
+import { ActionBoxProvider, AuthDialog, useWallet } from "@mrgnlabs/mrgn-ui";
 import { useUiStore } from "~/store";
 import {
-  useAccountSummary,
   useExtendedBanks,
   useMarginfiAccountAddresses,
   useMarginfiClient,
   useUserBalances,
   useWrappedMarginfiAccount,
+  WalletStateProvider,
 } from "@mrgnlabs/mrgn-state";
 
 export const MrgnlendProvider: React.FC<{
@@ -20,10 +19,10 @@ export const MrgnlendProvider: React.FC<{
   const router = useRouter();
   const { wallet, walletAddress } = useWallet();
 
-  const { extendedBanks } = useExtendedBanks(walletAddress);
-  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress, wallet);
-  const { data: marginfiAccounts, isSuccess: isSuccessMarginfiAccounts } = useMarginfiAccountAddresses(walletAddress);
-  const { data: userBalances } = useUserBalances(walletAddress);
+  const { extendedBanks } = useExtendedBanks();
+  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(wallet);
+  const { data: marginfiAccounts, isSuccess: isSuccessMarginfiAccounts } = useMarginfiAccountAddresses();
+  const { data: userBalances } = useUserBalances();
   const { marginfiClient } = useMarginfiClient(wallet);
 
   const [fetchPriorityFee, fetchAccountLabels, accountLabels, setDisplaySettings] = useUiStore((state) => [
@@ -65,24 +64,26 @@ export const MrgnlendProvider: React.FC<{
   }, [marginfiAccounts, isSuccessMarginfiAccounts, fetchAccountLabels]);
 
   return (
-    <ActionBoxProvider
-      banks={extendedBanks}
-      nativeSolBalance={userBalances?.nativeSolBalance ?? 0}
-      marginfiClient={marginfiClient ?? null}
-      selectedAccount={selectedAccount}
-      connected={false}
-      setDisplaySettings={setDisplaySettings}
-    >
-      {children}
+    <WalletStateProvider walletAddress={walletAddress}>
+      <ActionBoxProvider
+        banks={extendedBanks}
+        nativeSolBalance={userBalances?.nativeSolBalance ?? 0}
+        marginfiClient={marginfiClient ?? null}
+        selectedAccount={selectedAccount}
+        connected={false}
+        setDisplaySettings={setDisplaySettings}
+      >
+        {children}
 
-      <AuthDialog
-        mrgnState={{
-          marginfiClient: marginfiClient ?? null,
-          selectedAccount,
-          extendedBankInfos: extendedBanks,
-          nativeSolBalance: userBalances?.nativeSolBalance ?? 0,
-        }}
-      />
-    </ActionBoxProvider>
+        <AuthDialog
+          mrgnState={{
+            marginfiClient: marginfiClient ?? null,
+            selectedAccount,
+            extendedBankInfos: extendedBanks,
+            nativeSolBalance: userBalances?.nativeSolBalance ?? 0,
+          }}
+        />
+      </ActionBoxProvider>
+    </WalletStateProvider>
   );
 };

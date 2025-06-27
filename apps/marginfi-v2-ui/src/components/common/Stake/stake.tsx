@@ -18,9 +18,9 @@ const SOL_MINT = new PublicKey("So11111111111111111111111111111111111111112");
 const LST_MINT = new PublicKey("LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp");
 
 const Stake = () => {
-  const { connected, walletAddress } = useWallet();
-  const { extendedBanks } = useExtendedBanks(walletAddress);
-  const refreshUserData = useRefreshUserData(walletAddress);
+  const { connected } = useWallet();
+  const { extendedBanks } = useExtendedBanks();
+  const refreshUserData = useRefreshUserData();
 
   const extendedBankInfosWithoutStakedAssets = React.useMemo(() => {
     return extendedBanks.filter((bank) => bank.info.rawBank.config.assetTag !== 2);

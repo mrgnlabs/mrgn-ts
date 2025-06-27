@@ -21,8 +21,7 @@ type LSTDialogProps = {
 };
 
 const LSTDialog = ({ variant, open, onClose }: LSTDialogProps) => {
-  const { walletAddress } = useWallet();
-  const { extendedBanks } = useExtendedBanks(walletAddress);
+  const { extendedBanks } = useExtendedBanks();
 
   const tokenImage = React.useMemo(() => {
     const bank = extendedBanks.find((bank) => bank.meta.tokenSymbol === variant);

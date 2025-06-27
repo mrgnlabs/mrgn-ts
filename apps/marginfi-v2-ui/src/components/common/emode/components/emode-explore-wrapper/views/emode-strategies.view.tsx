@@ -17,7 +17,7 @@ interface StrategiesViewProps {
 export const StrategiesView = ({ emodeStrategies }: StrategiesViewProps) => {
   const { walletContextState, connected, walletAddress } = useWallet();
 
-  const refreshUserData = useRefreshUserData(walletAddress);
+  const refreshUserData = useRefreshUserData();
 
   if (emodeStrategies.length === 0) {
     return (

@@ -70,6 +70,7 @@ type WalletProps = {
   userPointsData?: UserPointsData;
   accountSummary?: AccountSummary;
   hideActivity?: boolean;
+  setSelectedAccount: (account: PublicKey) => void;
   refreshState: () => void;
   headerComponent?: JSX.Element;
   processOpts?: ProcessTransactionsClientOpts;
@@ -101,6 +102,7 @@ const Wallet = ({
   userPointsData,
   hideActivity,
   accountSummary,
+  setSelectedAccount,
   refreshState,
   headerComponent,
   processOpts,
@@ -203,7 +205,7 @@ const Wallet = ({
                         connection={connection}
                         marginfiAccounts={marginfiAccounts}
                         selectedAccount={selectedAccount}
-                        fetchMrgnlendState={refreshState}
+                        setSelectedAccount={setSelectedAccount}
                         processOpts={processOpts}
                         accountLabels={accountLabels}
                         fetchAccountLabels={fetchAccountLabels}

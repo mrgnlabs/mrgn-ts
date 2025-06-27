@@ -1,4 +1,3 @@
-import { PublicKey } from "@solana/web3.js";
 import { useBanks } from "./use-banks";
 import { useEmissionPriceMap, useMarginfiAccount, useMetadata, useOracleData, useUserBalances } from "../react-query";
 import { useEmode } from "./use-emode";
@@ -7,8 +6,8 @@ import BigNumber from "bignumber.js";
 import { makeExtendedBankInfo } from "../../lib/bank.utils";
 import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
 
-export function useExtendedBanks(user?: PublicKey) {
-  const { banks, banksMap, originalWeights, isLoading: isLoadingRawBanks, isError: isErrorRawBanks } = useBanks(user);
+export function useExtendedBanks() {
+  const { banks, banksMap, originalWeights, isLoading: isLoadingRawBanks, isError: isErrorRawBanks } = useBanks();
   const {
     data: metadata,
     isSuccess: isSuccessMetadata,
@@ -26,26 +25,20 @@ export function useExtendedBanks(user?: PublicKey) {
     isSuccess: isSuccessMarginfiAccount,
     isLoading: isLoadingMarginfiAccount,
     isError: isErrorMarginfiAccount,
-  } = useMarginfiAccount(user);
+  } = useMarginfiAccount();
   const {
     data: userBalances,
     isSuccess: isSuccessUserBalances,
     isLoading: isLoadingUserBalances,
     isError: isErrorUserBalances,
-  } = useUserBalances(user);
+  } = useUserBalances();
   const {
     data: emissionPriceMap,
     isSuccess: isSuccessEmissionPriceMap,
     isLoading: isLoadingEmissionPriceMap,
     isError: isErrorEmissionPriceMap,
   } = useEmissionPriceMap();
-  const {
-    activeEmodePairs,
-    emodePairs,
-    emodeImpacts,
-    isLoading: isLoadingEmode,
-    isError: isErrorEmode,
-  } = useEmode(user);
+  const { activeEmodePairs, emodePairs, emodeImpacts, isLoading: isLoadingEmode, isError: isErrorEmode } = useEmode();
 
   const extendedBanks = React.useMemo(() => {
     if (

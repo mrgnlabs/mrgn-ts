@@ -6,13 +6,13 @@ import { PublicKey } from "@solana/web3.js";
 import { getEmodePairs } from "../../lib";
 import { useMarginfiAccount, useRawBanks } from "../react-query";
 
-export function useEmode(user: PublicKey | undefined) {
+export function useEmode() {
   const { data: rawBanks, isLoading: isLoadingRawBanks, isError: isErrorRawBanks } = useRawBanks();
   const {
     data: marginfiAccount,
     isLoading: isLoadingMarginfiAccount,
     isError: isErrorMarginfiAccount,
-  } = useMarginfiAccount(user);
+  } = useMarginfiAccount();
 
   const parsedBanks = React.useMemo(() => {
     return rawBanks?.map((bank) => Bank.fromAccountParsed(bank.address, bank.data));

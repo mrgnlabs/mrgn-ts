@@ -33,6 +33,7 @@ import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
 import { ToastProvider } from "@mrgnlabs/mrgn-toasts";
+import { AdditionalProvider } from "~/context/AdditionalProvider";
 
 registerMoonGateWallet({ authMode: "Google", position: "bottom-right" });
 registerMoonGateWallet({ authMode: "Ethereum", position: "bottom-right" });
@@ -110,42 +111,44 @@ export default function MrgnApp({ Component, pageProps }: AppProps) {
               <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
                 <AuthProvider>
                   <MrgnWalletProvider>
-                    <MrgnlendProvider>
-                      <ActionProvider
-                        transactionSettings={{
-                          broadcastType,
-                          priorityType,
-                          maxCap: priorityFees.maxCapUi ?? 0,
-                          maxCapType,
-                        }}
-                        jupiterOptions={{ ...jupiterOptions, slippageBps: jupiterOptions.slippageBps }}
-                        priorityFees={priorityFees}
-                      >
-                        <Navbar />
+                    <AdditionalProvider>
+                      <MrgnlendProvider>
+                        <ActionProvider
+                          transactionSettings={{
+                            broadcastType,
+                            priorityType,
+                            maxCap: priorityFees.maxCapUi ?? 0,
+                            maxCapType,
+                          }}
+                          jupiterOptions={{ ...jupiterOptions, slippageBps: jupiterOptions.slippageBps }}
+                          priorityFees={priorityFees}
+                        >
+                          <Navbar />
 
-                        <Desktop>
-                          <WalletModalProvider>
+                          <Desktop>
+                            <WalletModalProvider>
+                              <div className={cn("w-full flex flex-col justify-center items-center")}>
+                                <Component {...pageProps} />
+                              </div>
+                              <Footer />
+                            </WalletModalProvider>
+                          </Desktop>
+
+                          <Mobile>
                             <div className={cn("w-full flex flex-col justify-center items-center")}>
                               <Component {...pageProps} />
                             </div>
-                            <Footer />
-                          </WalletModalProvider>
-                        </Desktop>
+                            <MobileNavbar />
+                          </Mobile>
 
-                        <Mobile>
-                          <div className={cn("w-full flex flex-col justify-center items-center")}>
-                            <Component {...pageProps} />
-                          </div>
-                          <MobileNavbar />
-                        </Mobile>
+                          <Analytics />
+                          <Tutorial />
 
-                        <Analytics />
-                        <Tutorial />
-
-                        <ToastProvider />
-                        {globalActionBoxProps.isOpen && <GlobalActionBoxPortal />}
-                      </ActionProvider>
-                    </MrgnlendProvider>
+                          <ToastProvider />
+                          {globalActionBoxProps.isOpen && <GlobalActionBoxPortal />}
+                        </ActionProvider>
+                      </MrgnlendProvider>
+                    </AdditionalProvider>
                   </MrgnWalletProvider>
                 </AuthProvider>
               </WalletProvider>

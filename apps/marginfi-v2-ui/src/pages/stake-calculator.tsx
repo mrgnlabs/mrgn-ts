@@ -3,15 +3,13 @@ import React from "react";
 import { IconCheck } from "@tabler/icons-react";
 
 import { StakeCalculator } from "@mrgnlabs/mrgn-ui";
-import { useWallet } from "@mrgnlabs/mrgn-ui";
 import { useExtendedBanks } from "@mrgnlabs/mrgn-state";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { LSTOverview, fetchLSTOverview } from "~/components/common/Stake/utils/stake-utils";
 
 export default function StakeCalculatorPage() {
-  const { walletAddress } = useWallet();
-  const { extendedBanks } = useExtendedBanks(walletAddress);
+  const { extendedBanks } = useExtendedBanks();
   const [lstOverview, setLstOverview] = React.useState<LSTOverview>();
 
   React.useEffect(() => {

@@ -123,6 +123,11 @@ export async function simulateAccountHealthCache(props: {
 
   const { stalePythFeeds, staleSwbOracles } = getActiveStaleBanks(activeBalances, bankMap, [], oraclePrices, 30);
 
+  console.log(
+    "staleSwbOracles",
+    staleSwbOracles.map((oracle) => oracle.oracleKey.toBase58())
+  );
+
   const computeIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 });
   const blockhash = (await program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
 
@@ -158,9 +163,11 @@ export async function simulateAccountHealthCache(props: {
     {
       blockhash,
       payerKey: program.provider.publicKey,
-      luts: pythLut,
+      luts: [...crankSwbIxs.luts, ...pythLut],
     }
   );
+
+  console.log("tx count", txs.length);
 
   if (txs.length > 5) {
     console.error("Too many transactions", txs.length);
@@ -248,7 +255,13 @@ export async function createUpdateFeedIx(props: {
   const [pullIx, luts] = await sb.PullFeed.fetchUpdateManyIx(sbProgram, {
     feeds: props.swbPullOracles,
     numSignatures: 1,
+    payer: props.provider.publicKey,
   });
+
+  console.log(
+    "pullIx",
+    pullIx.keys.map((key) => key.pubkey.toBase58())
+  );
   return { instructions: [pullIx], luts };
 }
 

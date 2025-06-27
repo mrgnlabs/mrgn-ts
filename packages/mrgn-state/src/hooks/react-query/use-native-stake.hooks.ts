@@ -10,6 +10,7 @@ import {
 
 import { useMetadata } from "./use-metadata.hooks";
 import { fetchActiveStakePoolMap, fetchStakePoolMevMap, fetchUserStakeAccounts, fetchValidatorRates } from "../../api";
+import { useWalletAddress } from "../../context";
 
 export function useActiveStakePoolMap() {
   const { data: metadata, isSuccess: isSuccessMetadata, isError: isErrorMetadata } = useMetadata();
@@ -93,7 +94,8 @@ export function useValidatorRates() {
   });
 }
 
-export function useUserStakeAccounts(address?: PublicKey) {
+export function useUserStakeAccounts() {
+  const address = useWalletAddress();
   return useQuery<ValidatorStakeGroup[], Error>({
     queryKey: ["userStakeAccounts", address?.toBase58()],
     queryFn: async () => {

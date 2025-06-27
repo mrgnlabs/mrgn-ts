@@ -23,8 +23,7 @@ type StakeCardProps = {
 
 const StakeCard = ({ lstBank, lstOverview, connected, extendedBankInfosWithoutStakedAssets }: StakeCardProps) => {
   const isMobile = useIsMobile();
-  const { walletAddress } = useWallet();
-  const refreshUserData = useRefreshUserData(walletAddress);
+  const refreshUserData = useRefreshUserData();
 
   const scrollPageDown = () => {
     const stakeCalculator = document.getElementById("stake-calculator");

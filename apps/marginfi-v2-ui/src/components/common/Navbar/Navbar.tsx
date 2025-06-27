@@ -21,12 +21,12 @@ import {
   useMarginfiAccountAddresses,
   useMarginfiClient,
   useRefreshUserData,
-  useUserBalances,
   useWrappedMarginfiAccount,
   useAccountSummary,
-  useUserStakeAccounts,
+  useSelectedAccountKey,
 } from "@mrgnlabs/mrgn-state";
 import { useWalletData } from "~/hooks/use-wallet-data.hooks";
+import { PublicKey } from "@solana/web3.js";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
@@ -34,19 +34,16 @@ export const Navbar: FC = () => {
 
   const { connection } = useConnection();
   const router = useRouter();
-  const { walletAddress, wallet } = useWallet();
+  const { wallet } = useWallet();
 
-  const { tokenBalances, nativeStakeBalances, isLoading: isLoadingUserBalances } = useWalletData(walletAddress);
+  const { tokenBalances, nativeStakeBalances, isLoading: isLoadingUserBalances } = useWalletData();
   const { marginfiClient } = useMarginfiClient(wallet);
-  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(walletAddress, wallet);
-  const { data: marginfiAccounts, isSuccess: isSuccessMarginfiAccounts } = useMarginfiAccountAddresses(walletAddress);
-  const {
-    extendedBanks,
-    isSuccess: isSuccessExtendedBanks,
-    isLoading: isLoadingExtendedBanks,
-  } = useExtendedBanks(walletAddress);
-  const accountSummary = useAccountSummary(walletAddress);
-  const refreshUserData = useRefreshUserData(walletAddress);
+  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(wallet);
+  const { data: marginfiAccounts } = useMarginfiAccountAddresses();
+  const { extendedBanks } = useExtendedBanks();
+  const accountSummary = useAccountSummary();
+  const refreshUserData = useRefreshUserData();
+  const { setSelectedKey } = useSelectedAccountKey(marginfiAccounts);
 
   const {
     priorityType,
@@ -79,6 +76,15 @@ export const Navbar: FC = () => {
   }));
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
+
+  const setSelectedAccount = React.useCallback(
+    (account: PublicKey) => {
+      console.log("setting account", account.toBase58());
+      setSelectedKey(account.toBase58());
+      // refreshUserData();
+    },
+    [setSelectedKey]
+  );
 
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -255,6 +261,7 @@ export const Navbar: FC = () => {
               walletTokens={[...tokenBalances, ...nativeStakeBalances]}
               userPointsData={userPointsData}
               accountSummary={accountSummary}
+              setSelectedAccount={setSelectedAccount}
               refreshState={refreshUserData}
               processOpts={{
                 ...priorityFees,

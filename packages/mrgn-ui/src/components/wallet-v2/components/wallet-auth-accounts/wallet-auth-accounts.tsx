@@ -32,7 +32,7 @@ type WalletAuthAccountsProps = {
   connection: Connection | null;
   marginfiAccounts: PublicKey[];
   selectedAccount: MarginfiAccountWrapper | null;
-  fetchMrgnlendState: () => void;
+  setSelectedAccount: (account: PublicKey) => void;
   processOpts?: ProcessTransactionsClientOpts;
   closeOnSwitch?: boolean;
   fullHeight?: boolean;
@@ -47,7 +47,7 @@ export const WalletAuthAccounts = ({
   connection,
   marginfiAccounts,
   selectedAccount,
-  fetchMrgnlendState,
+  setSelectedAccount,
   closeOnSwitch = false,
   fullHeight = false,
   popoverContentAlign = "center",
@@ -89,9 +89,7 @@ export const WalletAuthAccounts = ({
       if (selectedAccount && selectedAccount.address.equals(account)) return;
       setIsActivatingAccount(index);
       const switchingLabelTimer = setTimeout(() => setIsActivatingAccountDelay(index), 500);
-
-      localStorage.setItem("mfiAccount", account.toBase58());
-      fetchMrgnlendState();
+      setSelectedAccount(account);
 
       clearTimeout(switchingLabelTimer);
       setIsActivatingAccount(null);
@@ -104,7 +102,7 @@ export const WalletAuthAccounts = ({
 
       return () => clearTimeout(switchingLabelTimer);
     },
-    [selectedAccount, fetchMrgnlendState, walletAddress, closeOnSwitch]
+    [selectedAccount, setSelectedAccount, walletAddress, closeOnSwitch]
   );
 
   const checkAndClearAccountCache = React.useCallback(() => {

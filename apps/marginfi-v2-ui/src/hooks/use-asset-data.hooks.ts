@@ -53,18 +53,18 @@ export function useAssetData(): AssetListData {
     state.lendingMode,
   ]);
 
-  const { walletAddress, walletContextState, connected } = useWallet();
+  const { walletContextState, connected } = useWallet();
 
   // Data hooks
-  const { data: userBalances } = useUserBalances(walletAddress);
-  const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
+  const { data: userBalances } = useUserBalances();
+  const { data: stakeAccounts } = useUserStakeAccounts();
   const { stakePoolMetadataMap } = useNativeStakeData();
 
-  const { data: selectedAccount } = useMarginfiAccount(walletAddress);
-  const { activeEmodePairs, emodePairs } = useEmode(walletAddress);
+  const { data: selectedAccount } = useMarginfiAccount();
+  const { activeEmodePairs, emodePairs } = useEmode();
 
-  const { extendedBanks } = useExtendedBanks(walletAddress);
-  const refreshUserData = useRefreshUserData(walletAddress);
+  const { extendedBanks } = useExtendedBanks();
+  const refreshUserData = useRefreshUserData();
 
   const isReady = React.useMemo(() => {
     return extendedBanks.length > 0;

@@ -16,13 +16,13 @@ import { BankListWrapper } from "~/components/action-box-v2/components";
 import { LendBoxBankList } from "~/components/action-box-v2/actions";
 
 export const GlobalActionBoxPortal = () => {
-  const { connected, walletContextState, walletAddress } = useWallet();
+  const { connected, walletContextState } = useWallet();
   const [selectedBank, setSelectedBank] = React.useState<ExtendedBankInfo | null>(null);
 
-  const refreshUserData = useRefreshUserData(walletAddress);
-  const { data: stakeAccounts } = useUserStakeAccounts(walletAddress);
+  const refreshUserData = useRefreshUserData();
+  const { data: stakeAccounts } = useUserStakeAccounts();
   const { extendedBanks } = useExtendedBanks();
-  const { data: balances } = useUserBalances(walletAddress);
+  const { data: balances } = useUserBalances();
   const [globalActionBoxProps, setGlobalActionBoxProps] = useUiStore((state) => [
     state.globalActionBoxProps,
     state.setGlobalActionBoxProps,

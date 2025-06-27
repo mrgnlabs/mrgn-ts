@@ -8,14 +8,12 @@ import { IconAlertTriangle, IconX } from "@tabler/icons-react";
 import { useUiStore } from "~/store";
 
 import { Button } from "~/components/ui/button";
-import { useWallet } from "~/components/wallet-v2";
 import { useExtendedBanks } from "@mrgnlabs/mrgn-state";
 
 export const CONGESTION_THRESHOLD = 5;
 
 export const CongestionBanner = () => {
-  const { walletAddress } = useWallet();
-  const { extendedBanks } = useExtendedBanks(walletAddress);
+  const { extendedBanks } = useExtendedBanks();
   const [isOraclesStale, setIsOraclesStale] = useUiStore((state) => [state.isOraclesStale, state.setIsOraclesStale]);
   const [isCongestionBannerDismissed, setIsCongestionBannerDismissed] = React.useState(false);
 
