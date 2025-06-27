@@ -170,11 +170,13 @@ export function isBankOracleStale(bank: ExtendedBankInfo) {
   }
 
   const maxAge = bank.info.rawBank.config.oracleMaxAge;
+
+  const threshold = maxAge + 3 * 60; // seconds
   const currentTime = Math.round(Date.now() / 1000);
   const oracleTime = Math.round(
     bank.info.oraclePrice.timestamp ? bank.info.oraclePrice.timestamp.toNumber() : new Date().getTime()
   );
-  const isStale = currentTime - oracleTime > maxAge;
+  const isStale = currentTime - oracleTime > threshold;
 
   return isStale;
 }
