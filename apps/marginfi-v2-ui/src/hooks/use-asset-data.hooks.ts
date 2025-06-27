@@ -157,12 +157,17 @@ export function useAssetData(): AssetListData {
 
   // Pre-compute expensive bank transformations for BOTH lending modes once and memoize them
   const preComputedBankData = useMemo(() => {
-    if (!extendedBanks.length) return { lend: new Map(), borrow: new Map() };
+    if (!extendedBanks.length) return { lend: new Map(), borrow: new Map(), sortedBanks: [] };
+
+    // Sort banks by total deposits * price (TVL) in descending order
+    const sortedBanks = extendedBanks.sort(
+      (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
+    );
 
     const lendBankMap = new Map();
     const borrowBankMap = new Map();
 
-    for (const bank of extendedBanks) {
+    for (const bank of sortedBanks) {
       const collateralBanks = (emodeBankGroups.collateral as Record<string, any>)[bank.address.toBase58()] || [];
       const liabilityBanks = (emodeBankGroups.liability as Record<string, any>)[bank.address.toBase58()] || [];
       const stakePoolMetadata = stakePoolMetadataMap.get(bank.address.toBase58());
@@ -218,7 +223,7 @@ export function useAssetData(): AssetListData {
       borrowBankMap.set(bank.address.toBase58(), borrowRowData);
     }
 
-    return { lend: lendBankMap, borrow: borrowBankMap };
+    return { lend: lendBankMap, borrow: borrowBankMap, sortedBanks };
   }, [
     extendedBanks,
     stakePoolMetadataMap,
@@ -243,13 +248,13 @@ export function useAssetData(): AssetListData {
 
   const lendData = useMemo(() => {
     if (!extendedBanks.length) return [];
-    return createTableData(extendedBanks, "lend");
-  }, [extendedBanks, createTableData]);
+    return createTableData(preComputedBankData.sortedBanks || extendedBanks, "lend");
+  }, [extendedBanks, createTableData, preComputedBankData.sortedBanks]);
 
   const borrowData = useMemo(() => {
     if (!extendedBanks.length) return [];
-    return createTableData(extendedBanks, "borrow");
-  }, [extendedBanks, createTableData]);
+    return createTableData(preComputedBankData.sortedBanks || extendedBanks, "borrow");
+  }, [extendedBanks, createTableData, preComputedBankData.sortedBanks]);
 
   const emodeGroups = useMemo(() => {
     if (!emodePairs.length) return [];
