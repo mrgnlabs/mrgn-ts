@@ -4,8 +4,8 @@ import React from "react";
 import { Area, AreaChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from "recharts";
 import { IconLoader2 } from "@tabler/icons-react";
 
-import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
-import { useExtendedBanks } from "@mrgnlabs/mrgn-state";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
+import { useExtendedBanks, useBankChart } from "@mrgnlabs/mrgn-state";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartLegend, ChartLegendContent } from "~/components/ui/chart";
@@ -13,7 +13,6 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Switch } from "~/components/ui/switch";
 
-import { useBankChart } from "../hooks";
 import { formatDate, formatChartData, generateInterestCurveData } from "../utils/bank-chart.utils";
 import { chartConfigs, chartColors } from "../types";
 

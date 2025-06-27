@@ -1,11 +1,19 @@
 import { PublicKey } from "@solana/web3.js";
 import { fetchMultipleBanks, fetchOracleData, OraclePrice, PythPushFeedIdMap } from "@mrgnlabs/marginfi-client-v2";
 import { getConfig } from "../config/app.config";
-import { BankRaw } from "@mrgnlabs/marginfi-client-v2";
+import { BankRaw, AssetTag } from "@mrgnlabs/marginfi-client-v2";
 import { BankMetadata } from "@mrgnlabs/mrgn-common";
 import { Address } from "@coral-xyz/anchor";
 import BigNumber from "bignumber.js";
-import { RawMintData, TokenPriceMap } from "../types";
+import {
+  BankChartData,
+  BankChartDataDailyAverages,
+  ExtendedBankInfo,
+  RawMintData,
+  StakePoolMetadata,
+  TokenPriceMap,
+} from "../types";
+import { fillDataGaps, filterDailyRates } from "../lib";
 
 export interface BankRawDatas {
   address: PublicKey;
@@ -108,4 +116,35 @@ export const fetchEmissionPriceMap = async (banks: BankRawDatas[]): Promise<Toke
   });
 
   return tokenPriceMap;
+};
+
+export const fetchBankRates = async (
+  bankAddress: string,
+  bank?: ExtendedBankInfo,
+  stakepoolMetadataMap?: Map<string, StakePoolMetadata>
+): Promise<BankChartDataDailyAverages[]> => {
+  const response = await fetch(`/api/banks/historic?address=${bankAddress}`);
+  if (!response.ok) {
+    throw new Error(`Error fetching bank rates: ${response.statusText}`);
+  }
+
+  const result: BankChartData[] = await response.json();
+
+  const processedData = result.map((item) => {
+    const price = bank?.info.oraclePrice.priceRealtime.price.toNumber() || 0;
+    const isStaked = bank?.info.rawBank.config.assetTag === AssetTag.STAKED;
+    const stakepoolMetadata = stakepoolMetadataMap?.get(bankAddress);
+
+    return {
+      ...item,
+      ...(isStaked && { borrowRate: 0, depositRate: stakepoolMetadata?.validatorRewards }),
+      totalBorrowsUsd: item.totalBorrows * price,
+      totalDepositsUsd: item.totalDeposits * price,
+    };
+  });
+
+  const dailyRates = filterDailyRates(processedData);
+  const filledData = fillDataGaps(dailyRates, 30);
+
+  return filledData;
 };
