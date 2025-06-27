@@ -5,7 +5,6 @@ import { Area, AreaChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from "rec
 import { IconLoader2 } from "@tabler/icons-react";
 
 import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
-import { useIsMobile } from "@mrgnlabs/mrgn-utils";
 import { useExtendedBanks } from "@mrgnlabs/mrgn-state";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
@@ -13,56 +12,10 @@ import { ChartConfig, ChartContainer, ChartTooltip, ChartLegend, ChartLegendCont
 import { Skeleton } from "~/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Switch } from "~/components/ui/switch";
-import { useWallet } from "~/components";
 
-import { useBankChart } from "../hooks/use-bank-chart.hook";
-
-// Use the same colors for both charts
-const chartColors = {
-  primary: "hsl(var(--mrgn-success))",
-  secondary: "hsl(var(--mrgn-warning))",
-} as const;
-
-const ratesChartConfig: ChartConfig = {
-  depositRate: {
-    label: "Deposit Rate",
-    color: chartColors.primary,
-  },
-  borrowRate: {
-    label: "Borrow Rate",
-    color: chartColors.secondary,
-  },
-};
-
-const interestCurveConfig: ChartConfig = {
-  borrowAPY: {
-    label: "Borrow APY",
-    color: chartColors.primary,
-  },
-  supplyAPY: {
-    label: "Supply APY",
-    color: chartColors.secondary,
-  },
-};
-
-const tvlChartConfig: ChartConfig = {
-  displayTotalDeposits: {
-    label: "Total Deposits",
-    color: chartColors.primary,
-  },
-  displayTotalBorrows: {
-    label: "Total Borrows",
-    color: chartColors.secondary,
-  },
-};
-
-const formatDate = (dateStr: string) => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-};
+import { useBankChart } from "../hooks";
+import { formatDate, formatChartData, generateInterestCurveData } from "../utils/bank-chart.utils";
+import { chartConfigs, chartColors } from "../types";
 
 type BankChartProps = {
   bankAddress: string;
@@ -72,8 +25,7 @@ type BankChartProps = {
 const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
   const [activeTab, setActiveTab] = React.useState<"tvl" | "rates" | "interest-curve">(tab);
   const [showUSD, setShowUSD] = React.useState(false);
-  const { walletAddress } = useWallet();
-  const { extendedBanks } = useExtendedBanks(walletAddress);
+  const { extendedBanks } = useExtendedBanks();
 
   React.useEffect(() => {
     if (activeTab !== "tvl") {
@@ -81,44 +33,29 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
     }
   }, [activeTab]);
 
-  // Get bank data from store
-
   const bank = React.useMemo(() => {
     return extendedBanks.find((bank) => bank.address.toBase58() === bankAddress);
   }, [extendedBanks, bankAddress]);
 
-  // Get the current utilization rate from the bank state
-  const currentUtilizationRate = React.useMemo(() => {
+  const currentUtilizationRateDecimal = React.useMemo(() => {
     if (!bank) return 0;
     return bank.info.state.utilizationRate / 100; // Convert from percentage to decimal
   }, [bank]);
 
   const { data, error, isLoading } = useBankChart(bankAddress, bank);
 
-  if (isLoading) {
-    return (
-      <Skeleton className="bg-muted/50 w-[100%] h-[435px] mx-auto flex flex-col gap-2 items-center justify-center text-muted-foreground">
-        <IconLoader2 size={16} className="animate-spin" />
-        <p>Loading chart...</p>
-      </Skeleton>
-    );
-  }
-
-  // Select the appropriate chart config based on active tab
   const chartConfig = (() => {
     switch (activeTab) {
       case "tvl":
-        return tvlChartConfig;
+        return chartConfigs.tvl;
       case "rates":
-        return ratesChartConfig;
+        return chartConfigs.rates;
       case "interest-curve":
-        return interestCurveConfig;
+        return chartConfigs.interestCurve;
       default:
-        return tvlChartConfig;
+        return chartConfigs.tvl;
     }
   })();
-
-  // Define chart display options based on active tab
   const chartOptions = (() => {
     switch (activeTab) {
       case "tvl":
@@ -148,102 +85,17 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
     }
   })();
 
-  // Handle error or no data states by creating empty data structure for chart rendering
   const hasError = Boolean(error) || !data || data.length === 0;
   const errorMessage = error ? error.message : "No data available";
 
-  // Create empty data for chart rendering when there's an error or no data
-  // Generate several data points across a month to establish proper axis ranges
-  const now = new Date();
-  const emptyData = Array.from({ length: 30 }, (_, i) => {
-    const date = new Date(now);
-    date.setDate(date.getDate() - (29 - i));
-    return {
-      timestamp: date.toISOString(),
-      depositRate: 0,
-      borrowRate: 0,
-      totalDeposits: 0,
-      totalBorrows: 0,
-      totalDepositsUsd: 0,
-      totalBorrowsUsd: 0,
-      displayTotalDeposits: 0,
-      displayTotalBorrows: 0,
-      formattedBorrowRate: "0%",
-      formattedDepositRate: "0%",
-      formattedTotalBorrows: "0",
-      formattedTotalDeposits: "0",
-      baseRate: 0,
-      plateauInterestRate: 0,
-      maxInterestRate: 0,
-      utilization: 0,
-      usdPrice: 0,
-      formattedBaseRate: "0%",
-      formattedPlateauRate: "0%",
-      formattedMaxRate: "0%",
-      formattedUtilization: "0%",
-      formattedUsdPrice: "$0",
-      insuranceIrFee: 0,
-      protocolIrFee: 0,
-      programFeeRate: 0,
-      insuranceFeeFixedApr: 0,
-      protocolFixedFeeApr: 0,
-      optimalUtilizationRate: 0,
-    };
-  });
+  const formattedData = React.useMemo(() => {
+    return formatChartData(hasError ? null : data, showUSD);
+  }, [data, hasError, showUSD]);
 
-  // Transform the data to include formatted values (use empty data if error)
-  const formattedData = hasError
-    ? emptyData
-    : data.map((item) => {
-        // Ensure all values are numbers and not undefined
-        const baseRate = typeof item.baseRate === "number" ? item.baseRate : 0;
-        const plateauInterestRate = typeof item.plateauInterestRate === "number" ? item.plateauInterestRate : 0;
-        const maxInterestRate = typeof item.maxInterestRate === "number" ? item.maxInterestRate : 0;
-        const utilization = typeof item.utilization === "number" ? item.utilization : 0;
-        const usdPrice = typeof item.usdPrice === "number" ? item.usdPrice : 0;
-        const insuranceIrFee = typeof item.insuranceIrFee === "number" ? item.insuranceIrFee : 0;
-        const protocolIrFee = typeof item.protocolIrFee === "number" ? item.protocolIrFee : 0;
-        const programFeeRate = typeof item.programFeeRate === "number" ? item.programFeeRate : 0;
-        const optimalUtilizationRate =
-          typeof item.optimalUtilizationRate === "number" ? item.optimalUtilizationRate : 0;
-
-        // For interest curve, generate synthetic data if real data is missing
-        // This is a temporary solution until the database has real data
-        const syntheticBaseRate = baseRate || 0.02; // 2%
-        const syntheticPlateauRate = plateauInterestRate || 0.1; // 10%
-        const syntheticMaxRate = maxInterestRate || 0.3; // 30%
-        const syntheticUtilization = utilization || 0.75; // 75%
-
-        // Return formatted data
-        return {
-          ...item,
-          // Format values for all chart types
-          formattedBorrowRate: percentFormatter.format(item.borrowRate),
-          formattedDepositRate: percentFormatter.format(item.depositRate),
-          formattedTotalBorrows: dynamicNumeralFormatter(showUSD ? item.totalBorrowsUsd || 0 : item.totalBorrows),
-          formattedTotalDeposits: dynamicNumeralFormatter(showUSD ? item.totalDepositsUsd || 0 : item.totalDeposits),
-          // Use USD or native amounts for chart display
-          displayTotalBorrows: showUSD ? item.totalBorrowsUsd || 0 : item.totalBorrows,
-          displayTotalDeposits: showUSD ? item.totalDepositsUsd || 0 : item.totalDeposits,
-          // Format values for interest curve and price charts - use synthetic data if needed
-          baseRate: baseRate || syntheticBaseRate,
-          plateauInterestRate: plateauInterestRate || syntheticPlateauRate,
-          maxInterestRate: maxInterestRate || syntheticMaxRate,
-          utilization: utilization || syntheticUtilization,
-          usdPrice: usdPrice,
-          formattedBaseRate: percentFormatter.format(baseRate || syntheticBaseRate),
-          formattedPlateauRate: percentFormatter.format(plateauInterestRate || syntheticPlateauRate),
-          formattedMaxRate: percentFormatter.format(maxInterestRate || syntheticMaxRate),
-          formattedUtilization: percentFormatter.format(utilization || syntheticUtilization),
-          formattedUsdPrice: `$${dynamicNumeralFormatter(usdPrice)}`,
-          insuranceIrFee: insuranceIrFee || 0,
-          protocolIrFee: protocolIrFee || 0,
-          programFeeRate: programFeeRate || 0,
-          insuranceFeeFixedApr: typeof item.insuranceFeeFixedApr === "number" ? item.insuranceFeeFixedApr : 0,
-          protocolFixedFeeApr: typeof item.protocolFixedFeeApr === "number" ? item.protocolFixedFeeApr : 0,
-          optimalUtilizationRate: optimalUtilizationRate || 0,
-        };
-      });
+  const interestCurveData = React.useMemo(() => {
+    const latestDataPoint = formattedData[formattedData.length - 1];
+    return generateInterestCurveData(latestDataPoint);
+  }, [formattedData]);
 
   const CustomTooltipContent = ({ active, payload, label }: any) => {
     if (active && payload && payload.length && !hasError) {
@@ -276,66 +128,14 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
     }
     return null;
   };
-
-  const latest = formattedData[formattedData.length - 1];
-
-  const {
-    optimalUtilizationRate,
-    plateauInterestRate,
-    maxInterestRate,
-    insuranceIrFee,
-    protocolIrFee,
-    programFeeRate,
-    insuranceFeeFixedApr,
-    protocolFixedFeeApr,
-  } = latest ?? {};
-
-  // Default values for interest rate parameters
-  const effectiveOptimalUtilization = optimalUtilizationRate ?? 0.8;
-  const effectivePlateauRate = plateauInterestRate ?? 0.1;
-  const effectiveMaxRate = maxInterestRate ?? 1.0;
-  const effectiveInsuranceIrFee = insuranceIrFee ?? 0;
-  const effectiveProtocolIrFee = protocolIrFee ?? 0;
-  const effectiveInsuranceFeeFixedApr = insuranceFeeFixedApr ?? 0;
-  const effectiveProtocolFixedFeeApr = protocolFixedFeeApr ?? 0;
-
-  // Custom implementation of computeBaseInterestRate function
-  // This follows the exact same logic as in marginfi-client-v2/src/services/bank/utils/compute.utils.ts
-  const computeBaseInterestRate = (utilizationRate: number): number => {
-    if (utilizationRate <= effectiveOptimalUtilization) {
-      return utilizationRate * effectivePlateauRate / effectiveOptimalUtilization;
-    } else {
-      return ((utilizationRate - effectiveOptimalUtilization) / (1 - effectiveOptimalUtilization)) * 
-             (effectiveMaxRate - effectivePlateauRate) + 
-             effectivePlateauRate;
-    }
-  };
-
-  // Custom implementation of computeInterestRates function
-  // This follows the exact same logic as in marginfi-client-v2/src/services/bank/utils/compute.utils.ts
-  const computeInterestRates = (utilizationRate: number): { lendingRate: number; borrowingRate: number } => {
-    const fixedFee = effectiveInsuranceFeeFixedApr + effectiveProtocolFixedFeeApr;
-    const rateFee = effectiveInsuranceIrFee + effectiveProtocolIrFee;
-    
-    const baseInterestRate = computeBaseInterestRate(utilizationRate);
-    
-    const lendingRate = baseInterestRate * utilizationRate;
-    const borrowingRate = baseInterestRate * (1 + rateFee) + fixedFee;
-    
-    return { lendingRate, borrowingRate };
-  };
-
-  // Final curve data (101 points, from 0.00 to 1.00)
-  const interestCurveData = Array.from({ length: 101 }, (_, i) => {
-    const utilization = i / 100;
-    const rates = computeInterestRates(utilization);
-    
-    return { 
-      utilization, 
-      borrowAPY: rates.borrowingRate, 
-      supplyAPY: rates.lendingRate 
-    };
-  });
+  if (isLoading) {
+    return (
+      <Skeleton className="bg-muted/50 w-[100%] h-[435px] mx-auto flex flex-col gap-2 items-center justify-center text-muted-foreground">
+        <IconLoader2 size={16} className="animate-spin" />
+        <p>Loading chart...</p>
+      </Skeleton>
+    );
+  }
 
   return (
     <Card className="bg-transparent border-none">
@@ -507,9 +307,6 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
                       </>
                     );
                   case "interest-curve": {
-                    // Use the current utilization rate from the bank state instead of API data
-                    const currentUtil = currentUtilizationRate;
-
                     return (
                       <>
                         <Area
@@ -531,11 +328,11 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
                           name="Supply APY"
                         />
                         <ReferenceLine
-                          x={currentUtil}
+                          x={currentUtilizationRateDecimal}
                           stroke="#ffffff"
                           strokeDasharray="3 3"
                           label={{
-                            value: `${(currentUtil * 100).toFixed(1)}%`,
+                            value: `${(currentUtilizationRateDecimal * 100).toFixed(1)}%`,
                             position: "top",
                             fill: "#ffffff",
                             fontSize: 12,

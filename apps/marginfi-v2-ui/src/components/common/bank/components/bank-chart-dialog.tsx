@@ -3,7 +3,6 @@
 import React from "react";
 import { IconChartLine } from "@tabler/icons-react";
 
-import { BankChart } from "./bank-chart";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +14,8 @@ import {
 import { Button } from "~/components/ui/button";
 import Image from "next/image";
 import { getTokenImageURL } from "~/mrgnUtils";
+
+import { BankChart } from "./bank-chart";
 
 type BankChartDialogProps = {
   bankAddress: string;

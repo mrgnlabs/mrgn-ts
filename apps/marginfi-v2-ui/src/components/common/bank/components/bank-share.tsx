@@ -1,5 +1,7 @@
 import React from "react";
 import Link from "next/link";
+import { CopyToClipboard } from "react-copy-to-clipboard";
+
 import {
   IconCopy,
   IconCheck,
@@ -9,11 +11,11 @@ import {
   IconBrandWhatsapp,
   IconBrandReddit,
 } from "@tabler/icons-react";
-import { CopyToClipboard } from "react-copy-to-clipboard";
+
+import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 const shareLinks = [

@@ -1,4 +1,4 @@
-type BankChartData = {
+export type BankChartData = {
   borrowRate: number;
   depositRate: number;
   timestamp: string;
@@ -19,35 +19,54 @@ type BankChartData = {
   protocolFixedFeeApr: number;
 };
 
-type BankHistoricalDataResponse = {
+export type BankHistoricalDataResponse = {
   data: BankChartData[];
 };
 
-type BankChartDataDailyAverages = {
+export type BankChartDataDailyAverages = BankChartData & {
   timestamp: string;
-  borrowRate: number;
-  depositRate: number;
-  totalBorrows: number;
-  totalDeposits: number;
-  totalBorrowsUsd?: number;
-  totalDepositsUsd?: number;
-  usdPrice: number;
-  utilization: number;
-  optimalUtilizationRate: number;
-  baseRate: number;
-  plateauInterestRate: number;
-  maxInterestRate: number;
-  insuranceIrFee: number;
-  protocolIrFee: number;
-  programFeeRate: number;
-  insuranceFeeFixedApr: number;
-  protocolFixedFeeApr: number;
 };
 
-type UseBankRatesReturn = {
+export type UseBankRatesReturn = {
   data: BankChartDataDailyAverages[] | null;
   error: Error | null;
   isLoading: boolean;
 };
 
-export type { BankChartData, BankHistoricalDataResponse, BankChartDataDailyAverages, UseBankRatesReturn };
+export const chartColors = {
+  primary: "hsl(var(--mrgn-success))",
+  secondary: "hsl(var(--mrgn-warning))",
+} as const;
+
+export const chartConfigs = {
+  rates: {
+    depositRate: {
+      label: "Deposit Rate",
+      color: chartColors.primary,
+    },
+    borrowRate: {
+      label: "Borrow Rate",
+      color: chartColors.secondary,
+    },
+  },
+  interestCurve: {
+    borrowAPY: {
+      label: "Borrow APY",
+      color: chartColors.primary,
+    },
+    supplyAPY: {
+      label: "Supply APY",
+      color: chartColors.secondary,
+    },
+  },
+  tvl: {
+    displayTotalDeposits: {
+      label: "Total Deposits",
+      color: chartColors.primary,
+    },
+    displayTotalBorrows: {
+      label: "Total Borrows",
+      color: chartColors.secondary,
+    },
+  },
+};
