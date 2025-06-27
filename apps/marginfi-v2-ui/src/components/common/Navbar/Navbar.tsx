@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { FC, useCallback } from "react";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -23,7 +23,7 @@ import {
   useRefreshUserData,
   useWrappedMarginfiAccount,
   useAccountSummary,
-  useSelectedAccountKey,
+  useSetSelectedAccountKey,
 } from "@mrgnlabs/mrgn-state";
 import { useWalletData } from "~/hooks/use-wallet-data.hooks";
 import { PublicKey } from "@solana/web3.js";
@@ -40,10 +40,10 @@ export const Navbar: FC = () => {
   const { marginfiClient } = useMarginfiClient(wallet);
   const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(wallet);
   const { data: marginfiAccounts } = useMarginfiAccountAddresses();
+
   const { extendedBanks } = useExtendedBanks();
   const accountSummary = useAccountSummary();
   const refreshUserData = useRefreshUserData();
-  const { setSelectedKey } = useSelectedAccountKey(marginfiAccounts);
 
   const {
     priorityType,
@@ -77,11 +77,14 @@ export const Navbar: FC = () => {
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
-  const setSelectedAccount = React.useCallback(
+  // Get the selected account key and setter from wallet context
+  const setSelectedKey = useSetSelectedAccountKey();
+
+  const setSelectedAccount = useCallback(
     (account: PublicKey) => {
-      console.log("setting account", account.toBase58());
+      console.log("🔍 setSelectedAccount - setting account", account.toBase58());
       setSelectedKey(account.toBase58());
-      // refreshUserData();
+      // console.log("🔍 setSelectedAccount - calling refreshUserData");
     },
     [setSelectedKey]
   );

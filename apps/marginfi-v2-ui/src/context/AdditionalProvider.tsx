@@ -1,12 +1,16 @@
 import React from "react";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
 
-import { WalletStateProvider } from "@mrgnlabs/mrgn-state";
+import { WalletStateProvider, SelectedAccountProvider } from "@mrgnlabs/mrgn-state";
 
 export const AdditionalProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const { wallet, walletAddress } = useWallet();
+  const { walletAddress } = useWallet();
 
-  return <WalletStateProvider walletAddress={walletAddress}>{children}</WalletStateProvider>;
+  return (
+    <WalletStateProvider walletAddress={walletAddress}>
+      <SelectedAccountProvider>{children}</SelectedAccountProvider>
+    </WalletStateProvider>
+  );
 };

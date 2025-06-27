@@ -20,7 +20,6 @@ export function WalletStateProvider({
   walletAddress?: PublicKey;
 }) {
   const [walletAddress, setWalletAddress] = useState<PublicKey | undefined>(externalWalletAddress);
-
   // Sync external wallet address changes
   useEffect(() => {
     setWalletAddress(externalWalletAddress);

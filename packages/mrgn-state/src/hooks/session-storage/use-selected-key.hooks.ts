@@ -1,42 +1,55 @@
+import { useCallback, useEffect, useState } from "react";
 import { PublicKey } from "@solana/web3.js";
-import { useState, useEffect, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
-export function useSelectedAccountKey(keys?: PublicKey[]) {
-  const storageKey = "app-selectedAccountKey";
+export function useSelectedAccountKey(keys: PublicKey[] | undefined) {
+  const queryClient = useQueryClient();
+  const storageKey = "marginfi-selected-account-key";
 
-  // Initialize state with value from localStorage
+  // Initialize from localStorage
   const [selectedKey, setSelectedKeyState] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null; // SSR safety
     return localStorage.getItem(storageKey);
   });
 
-  // Initialize/pick on first load or when `keys` change
+  // Sync localStorage with state when keys change
   useEffect(() => {
-    if (!keys || keys.length === 0) {
-      setSelectedKeyState(null);
-      return;
+    const storedKey = localStorage.getItem(storageKey);
+    if (storedKey && keys) {
+      const base58Keys = keys.map((k) => k.toBase58());
+      if (base58Keys.includes(storedKey)) {
+        setSelectedKeyState(storedKey);
+      } else {
+        // Invalid key, remove it and auto-select first available
+        localStorage.removeItem(storageKey);
+        if (base58Keys.length > 0) {
+          const firstKey = base58Keys[0];
+          localStorage.setItem(storageKey, firstKey);
+          setSelectedKeyState(firstKey);
+          // Invalidate React Query cache when auto-selecting
+          queryClient.invalidateQueries({
+            queryKey: ["marginfiAccount"],
+          });
+        } else {
+          setSelectedKeyState(null);
+        }
+      }
+    } else if (keys && keys.length > 0 && !storedKey) {
+      // Auto-select first key if none is stored
+      const firstKey = keys[0].toBase58();
+      localStorage.setItem(storageKey, firstKey);
+      setSelectedKeyState(firstKey);
+      // Invalidate React Query cache when auto-selecting
+      queryClient.invalidateQueries({
+        queryKey: ["marginfiAccount"],
+      });
     }
-
-    const base58Keys = keys.map((k) => k.toBase58());
-    const stored = localStorage.getItem(storageKey);
-    let initial: string;
-
-    if (stored && base58Keys.includes(stored)) {
-      initial = stored;
-    } else {
-      initial = keys[0].toBase58();
-    }
-
-    // Only update if different from current state
-    if (initial !== selectedKey) {
-      localStorage.setItem(storageKey, initial);
-      setSelectedKeyState(initial);
-    }
-  }, [keys, selectedKey]);
+  }, [keys, queryClient]);
 
   // Setter that validates and updates both localStorage and state
   const setSelectedKey = useCallback(
     (key: string) => {
+      console.log("🔍 setSelectedKey called with:", key, "current:", selectedKey);
+
       const base58Keys = keys?.map((k) => k.toBase58());
       if (!base58Keys || !base58Keys?.includes(key)) {
         console.warn(`Cannot select "${key}", not in current keys list.`);
@@ -45,11 +58,20 @@ export function useSelectedAccountKey(keys?: PublicKey[]) {
 
       // Only update if different from current state
       if (key !== selectedKey) {
+        console.log("🔍 setSelectedKey - updating from", selectedKey, "to", key);
         localStorage.setItem(storageKey, key);
         setSelectedKeyState(key);
+
+        // Invalidate React Query cache to trigger immediate refetch
+        console.log("🔍 setSelectedKey - invalidating marginfiAccount cache");
+        queryClient.invalidateQueries({
+          queryKey: ["marginfiAccount"],
+        });
+      } else {
+        console.log("🔍 setSelectedKey - no change, key already selected");
       }
     },
-    [keys, selectedKey]
+    [keys, selectedKey, queryClient]
   );
 
   return { selectedKey, setSelectedKey };

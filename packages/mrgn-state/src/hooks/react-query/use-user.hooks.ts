@@ -3,9 +3,9 @@ import { PublicKey } from "@solana/web3.js";
 import { MarginfiAccountType } from "@mrgnlabs/marginfi-client-v2";
 import { fetchMarginfiAccount, fetchMarginfiAccountAddresses, fetchUserBalances } from "../../api/user-api";
 import { useRawBanks, useMetadata, useOracleData, useMintData } from ".";
-import { useSelectedAccountKey } from "../session-storage";
 import { TokenAccount } from "../../types";
-import { useWalletAddress } from "../../context/wallet-context";
+import { useWalletAddress } from "../../context/wallet-state.context";
+import { useSelectedAccount } from "../../context/selected-account.context";
 
 export function useMarginfiAccountAddresses() {
   const authority = useWalletAddress();
@@ -24,35 +24,25 @@ export function useMarginfiAccountAddresses() {
   });
 }
 
-export function useMarginfiAccount() {
-  const authority = useWalletAddress();
+export type UseMarginfiAccountOpts = {
+  overrideAccount?: PublicKey;
+};
 
-  const {
-    data: accountAddresses,
-    isSuccess: isSuccessAccountAddresses,
-    isError: isErrorAccountAddresses,
-  } = useMarginfiAccountAddresses();
+export function useMarginfiAccount(opts?: UseMarginfiAccountOpts) {
+  const authority = useWalletAddress();
 
   const { data: rawBanks, isSuccess: isSuccessRawBanks, isError: isErrorRawBanks } = useRawBanks();
   const { data: metadata, isSuccess: isSuccessMetadata, isError: isErrorMetadata } = useMetadata();
   const { data: oracleData, isSuccess: isSuccessOracleData, isError: isErrorOracleData } = useOracleData();
 
-  const { selectedKey: selectedAccountKey } = useSelectedAccountKey(accountAddresses);
+  const { selectedAccountKey } = useSelectedAccount();
 
   // Debug logging for selectedAccountKey changes
-  console.log("🔍 useMarginfiAccount - selectedAccountKey:", selectedAccountKey);
-  console.log(
-    "🔍 useMarginfiAccount - accountAddresses:",
-    accountAddresses?.map((k) => k.toBase58())
-  );
-
-  console.log("🔍 authority:", authority?.toBase58());
-
   // Check if any of the dependencies have errors
-  const hasErrors = isErrorAccountAddresses || isErrorRawBanks || isErrorMetadata || isErrorOracleData;
+  const hasErrors = isErrorRawBanks || isErrorMetadata || isErrorOracleData;
 
   // Check if all required data is available
-  const allDataReady = isSuccessAccountAddresses && isSuccessMetadata && isSuccessOracleData && isSuccessRawBanks;
+  const allDataReady = isSuccessMetadata && isSuccessOracleData && isSuccessRawBanks;
 
   const queryEnabled = allDataReady && !hasErrors && Boolean(selectedAccountKey);
 
@@ -61,7 +51,7 @@ export function useMarginfiAccount() {
     queryFn: async () => {
       console.log("🔍 useMarginfiAccount queryFn - executing with:", {
         authority: authority?.toBase58(),
-        selectedAccountKey,
+        selectedAccount: selectedAccountKey ?? null,
         hasRawBanks: Boolean(rawBanks),
         hasOracleData: Boolean(oracleData?.pythFeedIdMap),
         hasMetadata: Boolean(metadata?.bankMetadataMap),
