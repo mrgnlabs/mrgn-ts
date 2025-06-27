@@ -1,6 +1,6 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { NextApiRequest, NextApiResponse } from "next";
-import { AnchorProvider, Program, Wallet } from "@coral-xyz/anchor";
+import { AnchorProvider, Program } from "@coral-xyz/anchor";
 
 import {
   Bank,
@@ -15,7 +15,7 @@ import {
   marginfiAccountToDto,
 } from "@mrgnlabs/marginfi-client-v2";
 import { getMarginfiAccountData } from "@mrgnlabs/mrgn-state";
-import { BankMetadataMap } from "@mrgnlabs/mrgn-common";
+import { BankMetadataMap, Wallet } from "@mrgnlabs/mrgn-common";
 
 import config from "~/config/marginfi";
 

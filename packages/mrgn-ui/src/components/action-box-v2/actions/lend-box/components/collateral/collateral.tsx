@@ -3,7 +3,7 @@ import React from "react";
 import { MarginfiAccountWrapper, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
 import { ActionSummary } from "~/components/action-box-v2/utils";
-import { ActionProgressBar } from "~/components/action-box-v2/components";
+import { ActionProgressBar, ActionProgressBarSkeleton } from "~/components/action-box-v2/components";
 
 type CollateralProps = {
   selectedAccount: MarginfiAccountWrapper | null;
@@ -30,7 +30,7 @@ export const Collateral = ({ selectedAccount, actionSummary }: CollateralProps) 
 
   return (
     <>
-      {availableCollateral && (
+      {availableCollateral ? (
         <ActionProgressBar
           amount={availableCollateral.amount}
           ratio={availableCollateral.ratio}
@@ -42,6 +42,8 @@ export const Collateral = ({ selectedAccount, actionSummary }: CollateralProps) 
             </div>
           }
         />
+      ) : (
+        <ActionProgressBarSkeleton label="Available collateral" />
       )}
     </>
   );
