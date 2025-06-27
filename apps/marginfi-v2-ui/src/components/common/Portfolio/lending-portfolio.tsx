@@ -38,10 +38,10 @@ import {
   InterestChart,
 } from "./components";
 import { RewardsType } from "./types";
-import { useRewardSimulation, usePortfolioData } from "./hooks";
+import { useRewardSimulation } from "./hooks";
 import { EmodePortfolio } from "~/components/common/emode/components";
 import { useEmodeLineConnections } from "~/components/common/emode/hooks";
-import { IconLoader, IconEmode } from "~/components/ui/icons";
+import { IconLoader } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import {
   useAccountSummary,
@@ -50,6 +50,7 @@ import {
   useInterestData,
   useMarginfiAccountAddresses,
   useMarginfiClient,
+  usePortfolioData,
   useRefreshUserData,
   useSetSelectedAccountKey,
   useWrappedMarginfiAccount,
