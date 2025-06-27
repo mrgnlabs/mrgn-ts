@@ -68,21 +68,21 @@ export const AssetsList = ({ data }: AssetListProps) => {
     let filtered = currentModeData;
 
     // Filter by pool category
-    if (poolFilter !== PoolTypes.GLOBAL) {
-      filtered = filtered.filter((item) => {
-        const categories = item.assetCategory || [];
-        switch (poolFilter) {
-          case PoolTypes.ISOLATED:
-            return categories.includes(PoolTypes.ISOLATED);
-          case PoolTypes.NATIVE_STAKE:
-            return categories.includes(PoolTypes.NATIVE_STAKE);
-          case PoolTypes.E_MODE:
-            return categories.includes(PoolTypes.E_MODE);
-          default:
-            return true;
-        }
-      });
-    }
+    filtered = filtered.filter((item) => {
+      const categories = item.assetCategory || [];
+      switch (poolFilter) {
+        case PoolTypes.E_MODE:
+          return categories.includes(PoolTypes.E_MODE);
+        case PoolTypes.GLOBAL:
+          return categories.includes(PoolTypes.GLOBAL);
+        case PoolTypes.ISOLATED:
+          return categories.includes(PoolTypes.ISOLATED);
+        case PoolTypes.NATIVE_STAKE:
+          return categories.includes(PoolTypes.NATIVE_STAKE);
+        default:
+          return true;
+      }
+    });
 
     // Filter by token type
     if (tokenFilter !== TokenFilters.ALL) {

@@ -306,16 +306,11 @@ export const generateColumns = (isInLendingMode: boolean) => {
 export const determineBankCategories = (bank: ExtendedBankInfo): PoolTypes[] => {
   const categories: PoolTypes[] = [];
 
-  // Check if bank belongs to native stake pools
   if (bank.info.rawBank.config.assetTag === 2) {
     categories.push(PoolTypes.NATIVE_STAKE);
-  }
-
-  // Check if bank is isolated
-  if (bank.info.rawBank.config.riskTier === RiskTier.Isolated) {
+  } else if (bank.info.rawBank.config.riskTier === RiskTier.Isolated) {
     categories.push(PoolTypes.ISOLATED);
   } else {
-    // Non-isolated banks belong to global pools
     categories.push(PoolTypes.GLOBAL);
   }
 
