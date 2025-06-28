@@ -5,13 +5,7 @@ import * as RadixPortal from "@radix-ui/react-portal";
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { useUiStore } from "~/store";
-import {
-  ExtendedBankInfo,
-  useExtendedBanks,
-  useRefreshUserData,
-  useUserBalances,
-  useUserStakeAccounts,
-} from "@mrgnlabs/mrgn-state";
+import { ExtendedBankInfo, useExtendedBanks, useRefreshUserData, useUserBalances } from "@mrgnlabs/mrgn-state";
 import { BankListWrapper } from "~/components/action-box-v2/components";
 import { LendBoxBankList } from "~/components/action-box-v2/actions";
 
@@ -20,7 +14,6 @@ export const GlobalActionBoxPortal = () => {
   const [selectedBank, setSelectedBank] = React.useState<ExtendedBankInfo | null>(null);
 
   const refreshUserData = useRefreshUserData();
-  const { data: stakeAccounts } = useUserStakeAccounts();
   const { extendedBanks } = useExtendedBanks();
   const { data: balances } = useUserBalances();
   const [globalActionBoxProps, setGlobalActionBoxProps] = useUiStore((state) => [
@@ -48,7 +41,6 @@ export const GlobalActionBoxPortal = () => {
                   requestedLendType: globalActionBoxProps.actionType,
                   connected,
                   walletContextState,
-                  stakeAccounts,
                   captureEvent: (event, properties) => {
                     capture(event, properties);
                   },

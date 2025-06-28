@@ -14,7 +14,7 @@ import { Skeleton } from "~/components/ui/skeleton";
 
 import { AssetListModel, generateColumns, getColumnVisibility } from "./utils";
 import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants, AssetListHeader } from "./components";
-import { EmodeExploreWrapper, EmodeHeader } from "~/components/common/emode/components";
+import { EmodeExploreWrapper } from "~/components/common/emode/components";
 import { Button } from "~/components/ui/button";
 import { TokenFilters } from "~/store/uiStore";
 import { STABLECOINS, LSTS, MEMES } from "~/config/constants";

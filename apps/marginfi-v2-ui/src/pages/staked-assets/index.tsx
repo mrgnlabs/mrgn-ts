@@ -49,7 +49,6 @@ export default function StakedAssetsPage() {
             requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
             connected: connected,
             walletContextState: walletContextState,
-            stakeAccounts,
             onComplete: () => {
               fetchMrgnlendState();
             },

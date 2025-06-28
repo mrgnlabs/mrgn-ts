@@ -17,8 +17,8 @@ type ActionBoxContextType = {
   walletContextState?: WalletContextStateOverride | WalletContextState;
   accountSummaryArg?: AccountSummary;
   hidePoolStats?: HidePoolStats;
-  stakePoolMetadataMap: Map<string, StakePoolMetadata>;
-  stakeAccounts: ValidatorStakeGroup[];
+  stakePoolMetadataMap?: Map<string, StakePoolMetadata>;
+  stakeAccounts?: ValidatorStakeGroup[];
   setDisplaySettings?: (displaySettings: boolean) => void;
 };
 

@@ -55,7 +55,6 @@ export const StrategiesView = ({ emodeStrategies }: StrategiesViewProps) => {
                       requestedBank: strategy.bank,
                       walletContextState: walletContextState,
                       connected: connected,
-                      stakeAccounts: [],
                       captureEvent: (event, properties) => {
                         capture(event, properties);
                       },

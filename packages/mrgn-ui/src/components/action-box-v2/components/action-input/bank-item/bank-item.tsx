@@ -60,10 +60,9 @@ export const BankItem = ({
     [bank, openPosition]
   );
 
-
   const contextProps = useActionBoxContext();
 
-  const stakePoolMetadata = contextProps?.stakePoolMetadataMap.get(bank.address.toBase58());
+  const stakePoolMetadata = contextProps?.stakePoolMetadataMap?.get(bank.address.toBase58());
   const isStakedActivating = bank.info.rawBank.config.assetTag === 2 && !stakePoolMetadata?.isActive;
 
   return (

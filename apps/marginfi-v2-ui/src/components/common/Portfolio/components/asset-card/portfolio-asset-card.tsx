@@ -557,7 +557,6 @@ const PortfolioAction = ({
           requestedBank: requestedBank ?? undefined,
           walletContextState: walletContextState,
           connected: connected,
-          stakeAccounts: stakeAccounts,
           captureEvent: (event, properties) => {
             capture(event, properties);
           },
