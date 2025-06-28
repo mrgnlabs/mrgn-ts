@@ -57,27 +57,101 @@ export function usePortfolioData(
 }
 
 /**
+ * Transform bank portfolio data into chart format for deposits or borrows
+ * @param bankData Per-bank daily totals
+ * @param variant Which data to use (deposits or borrows)
+ * @returns Chart data and bank symbols
+ */
+function transformBankPortfolioData(
+  bankData: Record<string, Record<string, { deposits: number; borrows: number }>>,
+  variant: "deposits" | "borrows"
+): { data: any[]; bankSymbols: string[] } {
+  // Get all bank symbols and dates
+  const allBankSymbols = Object.keys(bankData);
+  if (allBankSymbols.length === 0) {
+    return { data: [], bankSymbols: [] };
+  }
+
+  // Get all dates from the first bank (all banks should have the same date range)
+  const firstBank = allBankSymbols[0];
+  const allDates = Object.keys(bankData[firstBank]).sort();
+  
+  // Filter out banks that have all zero values for the selected variant
+  const filteredBankSymbols = allBankSymbols.filter(symbol => {
+    // Check if this bank has any non-zero values for the selected variant
+    return Object.values(bankData[symbol]).some(dayData => {
+      return dayData[variant] > 0;
+    });
+  });
+  
+  // If no banks have non-zero values, return empty data
+  if (filteredBankSymbols.length === 0) {
+    return { data: [], bankSymbols: [] };
+  }
+
+  // Create chart data points with filtered banks for each date
+  const chartData = allDates.map((date) => {
+    const dataPoint: any = { timestamp: date };
+    
+    // Add each filtered bank's value for this date
+    filteredBankSymbols.forEach((symbol) => {
+      const bankValues = bankData[symbol][date];
+      dataPoint[symbol] = bankValues ? bankValues[variant] : 0;
+    });
+    
+    return dataPoint;
+  });
+
+  return { data: chartData, bankSymbols: filteredBankSymbols };
+}
+
+/**
  * React Query hook for transforming portfolio data into chart format
  * @param selectedAccount The wallet address to fetch portfolio data for
  * @param banks Array of ExtendedBankInfo objects for price data
- * @returns Chart-ready portfolio data
+ * @param variant Type of portfolio data to display (deposits, borrows, or net)
+ * @returns Chart-ready portfolio data with bank symbols
  */
 export function usePortfolioChart(
   selectedAccount: string | null,
-  banks: ExtendedBankInfo[]
+  banks: ExtendedBankInfo[],
+  variant: "deposits" | "borrows" | "net" = "net"
 ): PortfolioChartResult {
-  const { data: portfolioData, filledDailyTotals, error, isLoading, isError } = usePortfolioData(selectedAccount, banks);
+  const { data: portfolioData, filledDailyTotals, filledBankData, error, isLoading, isError } = usePortfolioData(selectedAccount, banks);
 
-  // Transform data into chart format using utility function
-  const data = useMemo(() => {
-    if (!portfolioData.length || !Object.keys(filledDailyTotals).length) {
-      return [];
+  // Transform data based on variant
+  const { data, bankSymbols } = useMemo(() => {
+    if (isLoading || !portfolioData || portfolioData.length === 0) {
+      return { data: [], bankSymbols: [] };
     }
-    return transformPortfolioDataToChartFormat(filledDailyTotals);
-  }, [portfolioData, filledDailyTotals]);
+
+    // For the "net" variant, we use the total portfolio data
+    if (variant === "net") {
+      // Convert the filled daily totals to chart format
+      const sortedDates = Object.keys(filledDailyTotals).sort();
+      const chartData = sortedDates.map((dateStr) => {
+        const totals = filledDailyTotals[dateStr];
+        const netValue = totals.deposits - totals.borrows;
+        
+        return {
+          timestamp: dateStr,
+          net: netValue
+        };
+      });
+      
+      return { data: chartData, bankSymbols: ["net"] };
+    }
+    
+    // For deposits or borrows, use the bank-specific data
+    return transformBankPortfolioData(
+      filledBankData,
+      variant as "deposits" | "borrows"
+    );
+  }, [portfolioData, filledDailyTotals, filledBankData, variant, isLoading]);
 
   return {
     data,
+    bankSymbols,
     error,
     isLoading,
     isError,

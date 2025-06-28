@@ -18,7 +18,8 @@ import {
   ChartLegendContent,
 } from "~/components/ui/chart";
 import { Loader } from "~/components/ui/loader";
-import { usePortfolioChart } from "../../hooks/use-portfolio-chart.hook";
+import { usePortfolioData } from "@mrgnlabs/mrgn-state";
+import { useMemo } from "react";
 import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
 type PortfolioChartProps = {
@@ -38,7 +39,73 @@ const formatDate = (dateStr: string) => {
 const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps) => {
   const accountAddress = selectedAccount?.address.toBase58();
 
-  const { data: chartData, bankSymbols, error, isLoading } = usePortfolioChart(accountAddress, variant, banks);
+  // Use the state layer's data hook directly
+  const { data: portfolioData, filledDailyTotals, filledBankData, error, isLoading } = usePortfolioData(
+    accountAddress,
+    banks
+  );
+
+  // Transform data based on variant
+  const { chartData, bankSymbols } = useMemo(() => {
+    if (isLoading || !portfolioData || portfolioData.length === 0) {
+      return { chartData: [], bankSymbols: [] };
+    }
+
+    // For the "net" variant, use the total portfolio data
+    if (variant === "net") {
+      // Convert the filled daily totals to chart format
+      const sortedDates = Object.keys(filledDailyTotals).sort();
+      const chartData = sortedDates.map((dateStr) => {
+        const totals = filledDailyTotals[dateStr];
+        const netValue = totals.deposits - totals.borrows;
+        
+        return {
+          timestamp: dateStr,
+          net: netValue
+        };
+      });
+      
+      return { chartData, bankSymbols: ["net"] };
+    }
+    
+    // For deposits or borrows, use the bank-specific data
+    const allBankSymbols = Object.keys(filledBankData);
+    if (allBankSymbols.length === 0) {
+      return { chartData: [], bankSymbols: [] };
+    }
+
+    // Get all dates from the first bank (all banks should have the same date range)
+    const firstBank = allBankSymbols[0];
+    const allDates = Object.keys(filledBankData[firstBank]).sort();
+    
+    // Filter out banks that have all zero values for the selected variant
+    const filteredBankSymbols = allBankSymbols.filter((symbol: string) => {
+      // Check if this bank has any non-zero values for the selected variant
+      return Object.values(filledBankData[symbol]).some((dayData) => {
+        return dayData[variant] > 0;
+      });
+    });
+    
+    // If no banks have non-zero values, return empty data
+    if (filteredBankSymbols.length === 0) {
+      return { chartData: [], bankSymbols: [] };
+    }
+
+    // Create chart data points with filtered banks for each date
+    const chartData = allDates.map((date) => {
+      const dataPoint: any = { timestamp: date };
+      
+      // Add each filtered bank's value for this date
+      filteredBankSymbols.forEach((symbol: string) => {
+        const bankValues = filledBankData[symbol][date];
+        dataPoint[symbol] = bankValues ? bankValues[variant] : 0;
+      });
+      
+      return dataPoint;
+    });
+
+    return { chartData, bankSymbols: filteredBankSymbols };
+  }, [portfolioData, filledDailyTotals, filledBankData, variant, isLoading]);
 
   // Dynamic chart config with new color scheme
   const dynamicChartConfig = React.useMemo(() => {
@@ -46,7 +113,7 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
 
     // For net variant, use positive/negative colors
     if (variant === "net") {
-      bankSymbols.forEach((symbol) => {
+      bankSymbols.forEach((symbol: string) => {
         if (symbol === "Total Deposits") {
           config[symbol] = {
             label: symbol,
@@ -80,7 +147,7 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
         "hsl(var(--mfi-chart-6))",
       ];
 
-      bankSymbols.forEach((symbol, index) => {
+      bankSymbols.forEach((symbol: string, index: number) => {
         config[symbol] = {
           label: symbol,
           color: chartColors[index % chartColors.length],
@@ -157,8 +224,8 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
             <defs>
               {bankSymbols
                 .filter((symbol) => symbol !== "Net Portfolio")
-                .map((symbol, index) => {
-                  const color = (dynamicChartConfig as any)[symbol]?.color || "hsl(var(--mfi-chart-1))";
+                .map((symbol: string) => {
+                  const { color } = dynamicChartConfig[symbol] || {};
                   const uniqueId = `${variant}-${symbol.replace(/\s+/g, "")}-Fill`;
                   return (
                     <linearGradient key={uniqueId} id={uniqueId} x1="0" y1="0" x2="0" y2="1">
@@ -168,7 +235,7 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
                   );
                 })}
             </defs>
-            {bankSymbols.map((symbol, index) => {
+            {bankSymbols.map((symbol: string, index: number) => {
               if (symbol === "Net Portfolio") {
                 // Render net portfolio as a transparent area (appears as line on top)
                 return (

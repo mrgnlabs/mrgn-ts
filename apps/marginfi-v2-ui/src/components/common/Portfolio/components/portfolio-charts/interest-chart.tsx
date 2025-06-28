@@ -18,7 +18,7 @@ import {
   ChartLegendContent,
 } from "~/components/ui/chart";
 import { Loader } from "~/components/ui/loader";
-import { useInterestChart } from "../../hooks/use-interest-chart.hook";
+import { useInterestChart } from "@mrgnlabs/mrgn-state";
 
 type InterestChartProps = {
   selectedAccount: string | null;

@@ -69,7 +69,8 @@ export interface PortfolioChartDataPoint {
  * Return type for usePortfolioChart hook
  */
 export interface PortfolioChartResult {
-  data: PortfolioChartDataPoint[];
+  data: any[]; // Using any[] to support both standard and variant-specific data points
+  bankSymbols: string[]; // Added to support variant-specific bank symbols
   error: Error | null;
   isLoading: boolean;
   isError: boolean;
