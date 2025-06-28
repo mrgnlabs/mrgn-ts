@@ -172,7 +172,19 @@ const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
   },
 
   setSelectedStakeAccount(stakeAccount) {
-    set({ selectedStakeAccount: stakeAccount });
+    const currentStakeAccount = get().selectedStakeAccount;
+    const hasStakeAccountChanged =
+      !stakeAccount || !currentStakeAccount || !stakeAccount.address.equals(currentStakeAccount.address);
+
+    if (hasStakeAccountChanged) {
+      set({
+        selectedStakeAccount: stakeAccount,
+        amountRaw: "",
+        errorMessage: null,
+      });
+    } else {
+      set({ selectedStakeAccount: stakeAccount });
+    }
   },
 });
 
