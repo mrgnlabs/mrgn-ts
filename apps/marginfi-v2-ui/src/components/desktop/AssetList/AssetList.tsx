@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
-import { IconExternalLink, IconInfoCircle, IconSearch } from "@tabler/icons-react";
+import { IconExternalLink, IconPlus, IconSearch } from "@tabler/icons-react";
 
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
@@ -13,13 +13,14 @@ import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "~
 import { Skeleton } from "~/components/ui/skeleton";
 
 import { AssetListModel, generateColumns, getColumnVisibility } from "./utils";
-import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants } from "./components";
-import { EmodeHeader } from "~/components/common/emode/components";
+import { AssetRow, AssetListNav, LSTDialog, LSTDialogVariants, AssetListHeader } from "./components";
+import { EmodeExploreWrapper, EmodeHeader } from "~/components/common/emode/components";
 import { Button } from "~/components/ui/button";
 import { TokenFilters } from "~/store/uiStore";
 import { STABLECOINS, LSTS, MEMES } from "~/config/constants";
 
 import { AssetListData } from "~/hooks/use-asset-data.hooks";
+import { IconEmode } from "~/components/ui/icons";
 
 type AssetListProps = {
   data: AssetListData;
@@ -193,6 +194,80 @@ export const AssetsList = ({ data }: AssetListProps) => {
     <div className="space-y-6">
       {/* <AssetListFilters /> */}
       <AssetListNav />
+      {poolFilter === PoolTypes.E_MODE ? (
+        <AssetListHeader
+          icon={<IconEmode size={38} />}
+          title="marginfi e-mode"
+          description={
+            <>
+              Banks with e-mode pairings get boosted weights.
+              <br className="hidden lg:block" />{" "}
+              <EmodeExploreWrapper
+                trigger={
+                  <span className="text-foreground border-b border-foreground/50 transition-colors cursor-pointer hover:border-transparent">
+                    Explore the groups
+                  </span>
+                }
+              />{" "}
+              or{" "}
+              <Link
+                href="https://docs.marginfi.com/emode"
+                target="_blank"
+                rel="noreferrer"
+                className="text-foreground border-b border-foreground/50 transition-colors hover:border-transparent"
+              >
+                read the docs
+              </Link>{" "}
+              for more information.
+            </>
+          }
+          backgroundImage="/emode-header.png"
+          actionContent={
+            emodeGroups.length > 0 && (
+              <div className="py-2 flex items-end gap-2.5">
+                <EmodeExploreWrapper
+                  trigger={
+                    <Button>
+                      <IconSearch size={16} />
+                      Explore e-mode
+                    </Button>
+                  }
+                />
+              </div>
+            )
+          }
+          bgFrom="from-[#161A1D]"
+          bgTo="to-[#130D1B]"
+        />
+      ) : poolFilter === PoolTypes.NATIVE_STAKE ? (
+        <AssetListHeader
+          title="Native Stake Collateral"
+          backgroundImage="/native-stake-header.png"
+          description={
+            <div className="md:max-w-[400px]">
+              Collateralize your native stake on any of the validators listed below.{" "}
+              <Link
+                href="https://docs.marginfi.com/staked-collateral"
+                target="_blank"
+                rel="noreferrer"
+                className="text-foreground border-b border-foreground/50 transition-colors hover:border-transparent"
+              >
+                Read the docs
+              </Link>{" "}
+              for more information.
+            </div>
+          }
+          actionContent={
+            <Link href="/staked-assets/create">
+              <Button>
+                <IconPlus size={16} /> List your validator
+              </Button>
+            </Link>
+          }
+          bgFrom="from-[#111518]"
+          bgTo="to-[#2C363D]"
+        />
+      ) : null}
       {filteredTableData.length > 0 && (
         <Table>
           <TableHeader>
@@ -238,40 +313,6 @@ export const AssetsList = ({ data }: AssetListProps) => {
               </Button>
             </Link>
           </div>
-        </div>
-      )}
-      {poolFilter === PoolTypes.E_MODE && (
-        <div className="space-y-6">
-          <EmodeHeader emodeGroups={emodeGroups} />
-          {filteredTableData.length > 0 ? (
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead
-                        key={header.id}
-                        style={{
-                          width: header.column.getSize(),
-                        }}
-                      >
-                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.map((row) => {
-                  return <AssetRow key={row.id} {...row} />;
-                })}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="text-muted-foreground text-center py-4">
-              <span>No banks with e-mode weights found.</span>
-            </div>
-          )}
         </div>
       )}
       <LSTDialog
