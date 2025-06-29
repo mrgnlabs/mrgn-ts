@@ -227,8 +227,6 @@ export async function executeLeverageAction({
         broadcastType,
       });
 
-      clearAccountCache(marginfiClient.provider.publicKey);
-
       multiStepToast.successAndNext();
     } catch (error: any) {
       const msg = extractErrorString(error);

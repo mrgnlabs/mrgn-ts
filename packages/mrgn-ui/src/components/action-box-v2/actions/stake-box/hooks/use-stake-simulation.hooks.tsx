@@ -3,7 +3,7 @@ import React from "react";
 import { Connection, Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActionType } from "@mrgnlabs/mrgn-state";
 import {
   ActionMessageType,
   extractErrorString,

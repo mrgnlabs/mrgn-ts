@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo, StakePoolMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { ActionInputTag } from "~/components/action-box-v2/components";
@@ -54,7 +54,15 @@ export const LendingAction = ({
       case ActionType.Deposit:
         if (selectedBank.info.rawBank.config.assetTag === 2) {
           return {
-            label: <StakeAccountSwitcher selectedBank={selectedBank} selectedStakeAccount={selectedStakeAccount} stakeAccounts={stakeAccounts ?? []} onStakeAccountChange={onStakeAccountChange} stakePoolMetadataMap={stakePoolMetadataMap ?? null} />,
+            label: (
+              <StakeAccountSwitcher
+                selectedBank={selectedBank}
+                selectedStakeAccount={selectedStakeAccount}
+                stakeAccounts={stakeAccounts ?? []}
+                onStakeAccountChange={onStakeAccountChange}
+                stakePoolMetadataMap={stakePoolMetadataMap ?? null}
+              />
+            ),
             amount: formatAmount(walletAmount, "SOL"),
           };
         }

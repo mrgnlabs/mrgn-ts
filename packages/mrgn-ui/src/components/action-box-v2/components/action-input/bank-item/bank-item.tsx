@@ -1,7 +1,7 @@
 import React from "react";
 
 import { shortenAddress, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { EmodeTag, OracleSetup } from "@mrgnlabs/marginfi-client-v2";

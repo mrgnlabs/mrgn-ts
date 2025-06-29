@@ -24,7 +24,7 @@ import {
   getFavoriteDomain,
 } from "@bonfida/spl-name-service";
 import { Connection, PublicKey } from "@solana/web3.js";
-import * as firebaseApi from "./firebase.utils";
+import { db } from "./firebase.utils";
 
 type LeaderboardRow = {
   id: string;
@@ -93,7 +93,7 @@ async function fetchLeaderboardData(connection: Connection, settings: Leaderboar
   }
 
   const pointsQuery = query(
-    collection(firebaseApi.db, POINTS_DOCUMENT),
+    collection(db, POINTS_DOCUMENT),
 
     ...(settings.search
       ? searchQ
@@ -147,76 +147,17 @@ async function fetchLeaderboardData(connection: Connection, settings: Leaderboar
 }
 
 async function fetchTotalLeaderboardCount() {
-  const q = query(collection(firebaseApi.db, POINTS_DOCUMENT), where("total_points", ">=", 1));
+  const q = query(collection(db, POINTS_DOCUMENT), where("total_points", ">=", 1));
 
   const qCount = await getCountFromServer(q);
   const count = qCount.data().count;
   return count;
 }
 
-/*
-  async function fetchLeaderboardDataOld({
-    connection,
-    queryCursor,
-    pageSize = 50,
-    orderCol = "total_points",
-    orderDir = "desc",
-  }: {
-    connection?: Connection;
-    queryCursor?: QueryDocumentSnapshot<DocumentData>;
-    pageSize?: number;
-    orderCol?: string;
-    orderDir?: "desc" | "asc";
-  }): Promise<LeaderboardRow[]> {
-    const pointsCollection = collection(firebaseApi.db, "migrated_points");
-  
-    const pointsQuery: Query<DocumentData> = query(
-      pointsCollection,
-      orderBy(orderCol, orderDir),
-      ...(queryCursor ? [startAfter(queryCursor)] : []),
-      limit(pageSize)
-    );
-  
-    const querySnapshot = await getDocs(pointsQuery);
-    const leaderboardSlice = querySnapshot.docs
-      .filter((item) => item.id !== null && item.id !== undefined && item.id != "None")
-      .map((doc) => {
-        const data = { id: doc.id, doc, ...doc.data() } as LeaderboardRow;
-        return data;
-      });
-  
-    const leaderboardFinalSlice: LeaderboardRow[] = [...leaderboardSlice];
-  
-    if (!connection) {
-      return leaderboardFinalSlice;
-    }
-  
-    // batch fetch all favorite domains and update array
-    const publicKeys = leaderboardFinalSlice.map((value) => {
-      const [favoriteDomains] = FavouriteDomain.getKeySync(NAME_OFFERS_ID, new PublicKey(value.id));
-      return favoriteDomains;
-    });
-    const favoriteDomainsInfo = (await connection.getMultipleAccountsInfo(publicKeys)).map((accountInfo, idx) =>
-      accountInfo ? FavouriteDomain.deserialize(accountInfo.data).nameAccount : publicKeys[idx]
-    );
-    const reverseLookup = await reverseLookupBatch(connection, favoriteDomainsInfo);
-  
-    leaderboardFinalSlice.map((value, idx) => {
-      const domain = reverseLookup[idx];
-      if (domain) {
-        value.domain = `${domain}.sol`;
-      }
-  
-      return value;
-    });
-  
-    return leaderboardFinalSlice;
-  }*/
-
 // Firebase query is very constrained, so we calculate the number of users with more points
 // as the the count of users with more points inclusive of corrupted rows - the count of corrupted rows
 async function fetchUserRank(address: string): Promise<number> {
-  const q = query(collection(firebaseApi.db, POINTS_DOCUMENT), where("owner", "==", address));
+  const q = query(collection(db, POINTS_DOCUMENT), where("owner", "==", address));
 
   const data = await getDocs(q);
 
@@ -228,15 +169,18 @@ async function fetchUserRank(address: string): Promise<number> {
 }
 
 async function fetchTotalUserCount() {
-  const q1 = query(collection(firebaseApi.db, POINTS_DOCUMENT));
-  const q2 = query(collection(firebaseApi.db, POINTS_DOCUMENT), where("owner", "==", null));
+  const q1 = query(collection(db, POINTS_DOCUMENT));
+  const q2 = query(collection(db, POINTS_DOCUMENT), where("owner", "==", null));
 
   const q1Count = await getCountFromServer(q1);
   const q2Count = await getCountFromServer(q2);
   return q1Count.data().count - q2Count.data().count;
 }
 
-interface UserPointsData {
+/**
+ * User points data interface
+ */
+export interface UserPointsData {
   owner: string;
   depositPoints: number;
   borrowPoints: number;
@@ -247,7 +191,10 @@ interface UserPointsData {
   totalPoints: number;
 }
 
-const DEFAULT_USER_POINTS_DATA: UserPointsData = {
+/**
+ * Default user points data
+ */
+export const DEFAULT_USER_POINTS_DATA: UserPointsData = {
   owner: "",
   depositPoints: 0,
   borrowPoints: 0,
@@ -258,11 +205,14 @@ const DEFAULT_USER_POINTS_DATA: UserPointsData = {
   totalPoints: 0,
 };
 
-const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPointsData> => {
+/**
+ * Get user points data by wallet address
+ */
+export async function getUserPoints(wallet: string | undefined): Promise<UserPointsData> {
   if (!wallet) return DEFAULT_USER_POINTS_DATA;
 
-  const userPointsDoc = doc(firebaseApi.db, POINTS_DOCUMENT, wallet);
-  const userPublicProfileDoc = doc(firebaseApi.db, "users_public", wallet);
+  const userPointsDoc = doc(db, POINTS_DOCUMENT, wallet);
+  const userPublicProfileDoc = doc(db, "users_public", wallet);
 
   let userPointsSnap;
   let userPublicProfileSnap;
@@ -325,23 +275,18 @@ const getPointsDataForUser = async (wallet: string | undefined): Promise<UserPoi
     userRank: pointsData.rank - 1,
     totalPoints,
   };
-};
+}
 
-async function getPointsSummary() {
-  const pointsSummaryCollection = collection(firebaseApi.db, "points_summary");
+/**
+ * Get points summary
+ */
+export async function getPointsSummary(): Promise<DocumentData> {
+  const pointsSummaryCollection = collection(db, "points_summary");
   const pointSummarySnapshot = await getDocs(pointsSummaryCollection);
   const pointSummary = pointSummarySnapshot.docs[0]?.data() ?? { points_total: 0 };
   return pointSummary;
 }
 
-export {
-  fetchLeaderboardData,
-  fetchTotalLeaderboardCount,
-  fetchUserRank,
-  fetchTotalUserCount,
-  getPointsSummary,
-  getPointsDataForUser,
-  DEFAULT_USER_POINTS_DATA,
-};
+export { fetchLeaderboardData, fetchTotalLeaderboardCount, fetchUserRank, fetchTotalUserCount };
 
-export type { LeaderboardRow, LeaderboardSettings, UserPointsData };
+export type { LeaderboardRow, LeaderboardSettings };

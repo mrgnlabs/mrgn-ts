@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { WalletToken, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";

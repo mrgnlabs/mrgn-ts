@@ -3,7 +3,7 @@ import React from "react";
 import { IconCheck, IconSwitch, IconChevronDown } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
-import { ExtendedBankInfo, StakePoolMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { ValidatorStakeGroup } from "@mrgnlabs/marginfi-client-v2";
 import { dynamicNumeralFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
@@ -41,7 +41,7 @@ const StakeAccountSwitcher = ({
     stakeAccount.validator.equals(stakePoolMetadata?.validatorVoteAccount || PublicKey.default)
   );
 
-  console.log("HERE IN STAKESWITCHER")
+  console.log("HERE IN STAKESWITCHER");
   console.log("stakeAccounts", stakeAccounts);
   console.log("currentValidator", currentValidator);
   console.log("selectedStakeAccount", selectedStakeAccount);
@@ -80,7 +80,11 @@ const StakeAccountSwitcher = ({
               <Button
                 key={account.pubkey.toBase58()}
                 variant="ghost"
-                className={cn("w-full justify-between items-start h-auto p-2 text-sm font-normal", mergeMode && accountsToMerge.includes(account.pubkey) && "bg-accent", isSelected && "bg-accent")}
+                className={cn(
+                  "w-full justify-between items-start h-auto p-2 text-sm font-normal",
+                  mergeMode && accountsToMerge.includes(account.pubkey) && "bg-accent",
+                  isSelected && "bg-accent"
+                )}
                 onClick={() => {
                   if (mergeMode) {
                     // check if account is already in accountsToMerge
@@ -123,7 +127,7 @@ const StakeAccountSwitcher = ({
         )}
       </PopoverContent>
     </Popover>
-  )
+  );
 };
 
 export { StakeAccountSwitcher };

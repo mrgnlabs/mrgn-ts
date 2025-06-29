@@ -1,7 +1,7 @@
 import React from "react";
 
 import { WalletToken, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActionType } from "@mrgnlabs/mrgn-state";
 import { LendingModes, cn, computeBankRate } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";

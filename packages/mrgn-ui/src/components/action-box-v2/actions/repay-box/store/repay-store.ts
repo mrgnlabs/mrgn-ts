@@ -1,6 +1,6 @@
 import { create, StateCreator } from "zustand";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ActionMessageType, RepayActionTxns } from "@mrgnlabs/mrgn-utils";
 

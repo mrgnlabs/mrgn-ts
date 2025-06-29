@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { cn, formatAmount, LendSelectionGroups, useIsMobile } from "@mrgnlabs/mrgn-utils";
 import { tokenPriceFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
@@ -25,6 +25,7 @@ type ActionInputProps = {
   selectionGroups?: LendSelectionGroups[];
   isMini?: boolean;
   selectedStakeAccount?: PublicKey;
+  stakePoolMetadata?: StakePoolMetadata;
   onStakeAccountChange: (stakeAccount: { address: PublicKey; balance: number }) => void;
   setAmountRaw: (amount: string) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
@@ -45,6 +46,7 @@ export const ActionInput = ({
   selectedBank,
   lendMode,
   selectedStakeAccount,
+  stakePoolMetadata,
   onStakeAccountChange,
   setAmountRaw,
   setSelectedBank,
@@ -109,6 +111,7 @@ export const ActionInput = ({
             nativeSolBalance={nativeSolBalance}
             lendMode={lendMode}
             connected={connected}
+            stakePoolMetadata={stakePoolMetadata}
           />
         </div>
         <div className="flex-auto flex flex-col gap-0 items-end">

@@ -14,7 +14,7 @@ import {
   getTradeSpecificChecks,
   ArenaGroupStatus,
 } from ".";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { EmodeImpact, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { QuoteResponse } from "@jup-ag/api";
 import { WalletToken } from "@mrgnlabs/mrgn-common";

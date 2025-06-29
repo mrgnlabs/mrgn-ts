@@ -9,7 +9,7 @@ import {
   JupiterOptions,
 } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 export interface CalculateRepayTransactionsProps {
   actionType: ActionType;

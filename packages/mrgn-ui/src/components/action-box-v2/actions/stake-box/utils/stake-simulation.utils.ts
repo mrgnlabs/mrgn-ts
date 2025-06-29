@@ -1,7 +1,7 @@
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/mrgn-state";
 import { LST_MINT, getAssociatedTokenAddressSync } from "@mrgnlabs/mrgn-common";
 import { ActionMessageType, handleSimulationError } from "@mrgnlabs/mrgn-utils";
 

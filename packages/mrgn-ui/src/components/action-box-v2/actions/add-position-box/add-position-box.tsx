@@ -7,7 +7,7 @@ import {
   DEFAULT_ACCOUNT_SUMMARY,
   AccountSummary,
   ActionType,
-} from "@mrgnlabs/marginfi-v2-ui-state";
+} from "@mrgnlabs/mrgn-state";
 import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,

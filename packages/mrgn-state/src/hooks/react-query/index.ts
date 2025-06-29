@@ -6,3 +6,4 @@ export * from "./use-native-stake.hooks";
 export * from "./use-charts.hooks";
 export * from "./use-interest.hooks";
 export * from "./use-portfolio.hooks";
+export * from "./use-firebase.hooks";

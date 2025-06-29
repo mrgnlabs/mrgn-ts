@@ -1,7 +1,7 @@
 import React from "react";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
-import { ExtendedBankInfo, TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, TokenAccountMap } from "@mrgnlabs/mrgn-state";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 type UseActionAmountsProps = {

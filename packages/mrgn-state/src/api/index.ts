@@ -5,3 +5,4 @@ export * from "./portfolio-api";
 export * from "./group-api";
 export * from "./stake-api";
 export * from "./interest-api";
+export * from "./firebase-api";

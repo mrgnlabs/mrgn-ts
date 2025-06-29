@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithCustomToken } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth, signInWithCustomToken, User, onAuthStateChanged, signOut } from "firebase/auth";
+import { getFirestore, collection, doc, getDocs, getDoc, DocumentData } from "firebase/firestore";
 
 import { v4 as uuidv4 } from "uuid";
 import { BlockhashWithExpiryBlockHeight, Transaction } from "@solana/web3.js";
@@ -15,7 +15,6 @@ export const STATUS_BAD_REQUEST = 400;
 export const STATUS_UNAUTHORIZED = 401;
 export const STATUS_NOT_FOUND = 404;
 export const STATUS_INTERNAL_ERROR = 500;
-export const FEE_MARGIN = 0.01;
 
 const FIREBASE_CONFIG = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -69,12 +68,20 @@ const AccountLabelPayloadStruct = object({
 });
 type AccountLabelPayload = Infer<typeof AccountLabelPayloadStruct>;
 
-async function loginOrSignup(walletAddress: string, walletId?: string, referralCode?: string) {
-  const user = await getUser(walletAddress);
+/**
+ * Check if user exists in Firebase, then login or signup as needed
+ * This function is used by the React Query hooks layer via firebase-api.ts
+ */
+export async function loginOrSignup(walletAddress: string, walletId?: string, referralCode?: string) {
+  // Check if user exists directly using Firebase SDK
+  const userDocRef = doc(db, "users", walletAddress);
+  const userDoc = await getDoc(userDocRef);
 
-  if (user) {
+  if (userDoc.exists()) {
+    // User exists, just login
     await login(walletAddress, walletId);
   } else {
+    // User doesn't exist, create new account
     await signup(walletAddress, walletId, referralCode);
   }
 }
@@ -95,29 +102,6 @@ async function signup(walletAddress: string, walletId?: string, referralCode?: s
   };
 
   await signupWithAddress(walletAddress, authData, walletId);
-}
-
-async function getUser(walletAddress: string): Promise<UserData | undefined> {
-  const response = await fetch("/api/user/get", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ wallet: walletAddress }),
-  });
-
-  if (response.status === STATUS_OK) {
-    // User found
-    const { user } = await response.json();
-    return user;
-  } else if (response.status === STATUS_NOT_FOUND) {
-    // User not found
-    return undefined;
-  } else {
-    // Error
-    const { error } = await response.json();
-    throw new Error(`Failed to fetch user: ${error}`);
-  }
 }
 
 async function migratePoints(
@@ -171,8 +155,6 @@ async function setAccountLabel(
 }
 
 export {
-  getUser,
-  loginOrSignup,
   signup,
   login,
   migratePoints,
@@ -382,3 +364,23 @@ async function signinFirebaseAuth(token: string) {
     }
   }
 }
+
+// ----------------------------------------------------------------------------
+// Firebase Auth Utilities for React Query
+// ----------------------------------------------------------------------------
+
+/**
+ * Subscribe to Firebase auth state changes
+ */
+export function subscribeToAuthState(callback: (user: User | null) => void) {
+  return onAuthStateChanged(auth, callback);
+}
+
+/**
+ * Sign out current user
+ */
+export async function signOutUser(): Promise<void> {
+  await signOut(auth);
+}
+
+// ----------------------------------------------------------------------------

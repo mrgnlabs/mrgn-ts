@@ -47,7 +47,9 @@ import {
   useExtendedBanks,
   useMarginfiAccountAddresses,
   useMarginfiClient,
+  useNativeStakeData,
   useRefreshUserData,
+  useStakePoolMevMap,
   useUserBalances,
   useUserStakeAccounts,
   useWrappedMarginfiAccount,
@@ -80,7 +82,9 @@ export const PortfolioAssetCard = ({
   const { extendedBanks } = useExtendedBanks();
   const { data: userBalances } = useUserBalances();
   const { emodePairs, activeEmodePairs } = useEmode();
+  const { stakePoolMetadataMap } = useNativeStakeData();
   const accountSummary = useAccountSummary();
+  const stakePoolMetadata = stakePoolMetadataMap?.get(bank.address.toBase58());
 
   const [collateralBanksByLiabilityBank, liabilityBanksByCollateralBank] = React.useMemo(() => {
     return [
@@ -444,6 +448,7 @@ export const PortfolioAssetCard = ({
           {bank.info.rawBank.config.assetTag === AssetTag.STAKED && (
             <SVSPMEV
               bank={bank}
+              stakePool={stakePoolMetadata}
               onClaim={async () => {
                 if (!marginfiClient || !bank.meta.stakePool?.validatorVoteAccount) return;
 

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { dynamicNumeralFormatter, WalletToken } from "@mrgnlabs/mrgn-common";
 import { ActionInputTag } from "~/components/action-box-v2/components";
 

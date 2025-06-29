@@ -1,9 +1,8 @@
 import { create, StateCreator } from "zustand";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { ActionMessageType, DepositSwapActionTxns } from "@mrgnlabs/mrgn-utils";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { WalletToken } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 
 interface DepositSwapBoxState {

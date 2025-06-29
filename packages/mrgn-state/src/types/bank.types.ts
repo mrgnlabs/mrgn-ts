@@ -62,7 +62,7 @@ export interface InactiveBankInfo {
   userInfo: UserInfo;
 }
 
-interface ActiveBankInfo {
+export interface ActiveBankInfo {
   address: PublicKey;
   meta: ExtendedBankMetadata;
   info: BankInfo;

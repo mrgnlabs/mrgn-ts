@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActionType, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { computeBankRate, LendingModes, LendSelectionGroups } from "@mrgnlabs/mrgn-utils";
 
 import { SelectedBankItem, BankListWrapper } from "~/components/action-box-v2/components";
@@ -15,6 +15,7 @@ type BankSelectProps = {
   connected: boolean;
   isSelectable?: boolean;
   selectionGroups?: LendSelectionGroups[];
+  stakePoolMetadata?: StakePoolMetadata;
   setSelectedBank: (selectedBank: ExtendedBankInfo | null) => void;
 };
 
@@ -26,6 +27,7 @@ export const BankSelect = ({
   connected,
   isSelectable = true,
   selectionGroups,
+  stakePoolMetadata,
   setSelectedBank,
 }: BankSelectProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -48,7 +50,12 @@ export const BankSelect = ({
       {!isSelectable && (
         <div className="flex gap-3 w-full items-center">
           {selectedBank && (
-            <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={calculateRate(selectedBank)} />
+            <SelectedBankItem
+              bank={selectedBank}
+              lendingMode={lendingMode}
+              rate={calculateRate(selectedBank)}
+              stakePoolMetadata={stakePoolMetadata}
+            />
           )}
         </div>
       )}
@@ -73,6 +80,7 @@ export const BankSelect = ({
               nativeSolBalance={nativeSolBalance}
               connected={connected}
               selectionGroups={selectionGroups}
+              stakePoolMetadata={stakePoolMetadata}
             />
           }
         />

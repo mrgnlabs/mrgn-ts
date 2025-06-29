@@ -3,7 +3,7 @@ import { SolanaJSONRPCError } from "@solana/web3.js";
 import { TransactionConfigMap, TransactionOptions } from "@mrgnlabs/mrgn-common";
 import { toastManager, MultiStepToastController } from "@mrgnlabs/mrgn-toasts";
 import { MarginfiClient, ProcessTransactionsClientOpts, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
-import { ActionType, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, FEE_MARGIN } from "@mrgnlabs/mrgn-state";
 
 import { ActionTxns } from "./types";
 import { composeExplorerUrl } from "./helpers";

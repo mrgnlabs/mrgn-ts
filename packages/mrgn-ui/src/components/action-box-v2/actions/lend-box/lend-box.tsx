@@ -13,9 +13,9 @@ import {
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
-} from "@mrgnlabs/marginfi-v2-ui-state";
+} from "@mrgnlabs/mrgn-state";
 
-import { AssetTag, MarginfiAccountWrapper, MarginfiClient, ValidatorStakeGroup } from "@mrgnlabs/marginfi-client-v2";
+import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
   checkLendActionAvailable,
@@ -348,7 +348,7 @@ export const LendBox = ({
         });
       }
     }
-  }, [requestedBank, stakeAccounts, setSelectedStakeAccount]);
+  }, [requestedBank, stakeAccounts, setSelectedStakeAccount, stakePoolMetadataMap]);
 
   // set selected stake account when selected bank changes
   React.useEffect(() => {
@@ -418,10 +418,11 @@ export const LendBox = ({
         <SVSPMEV
           className="hidden md:block mb-4"
           bank={selectedBank}
+          stakePool={stakePoolMetadata}
           onClaim={async () => {
-            if (!marginfiClient || !selectedBank.meta.stakePool?.validatorVoteAccount) return;
+            if (!marginfiClient || !stakePoolMetadata?.validatorVoteAccount) return;
 
-            const ix = await replenishPoolIx(selectedBank.meta.stakePool?.validatorVoteAccount);
+            const ix = await replenishPoolIx(stakePoolMetadata.validatorVoteAccount);
             const tx = addTransactionMetadata(new Transaction().add(ix), {
               type: TransactionType.INITIALIZE_STAKED_POOL,
             });

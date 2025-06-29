@@ -7,7 +7,7 @@ import BigNumber from "bignumber.js";
 
 import { SolanaTransaction, TransactionBroadcastType, TransactionOptions, Wallet } from "@mrgnlabs/mrgn-common";
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 import { WalletContextStateOverride } from "../wallet";
 import { QuoteResponseMeta } from "../types";

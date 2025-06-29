@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType } from "@mrgnlabs/mrgn-state";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { IconInfoCircle, IconRefresh, IconRocket, IconSparkles } from "@tabler/icons-react";
 import { Button } from "~/components/ui/button";

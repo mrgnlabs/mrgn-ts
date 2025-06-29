@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
@@ -55,9 +55,7 @@ export const BankList = ({
     return banks
       .filter(searchFilter)
       .filter((bankInfo) => bankInfo.isActive)
-      .filter(
-        (bankInfo) => bankInfo.position.isLending
-      )
+      .filter((bankInfo) => bankInfo.position.isLending)
       .filter((bankInfo) => bankInfo.info.rawBank.config.assetTag !== 2)
       .sort((a, b) => (b.isActive ? b?.position?.usdValue : 0) - (a.isActive ? a?.position?.usdValue : 0));
   }, [banks, searchFilter]);

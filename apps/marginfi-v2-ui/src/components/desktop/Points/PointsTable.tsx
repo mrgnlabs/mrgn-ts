@@ -11,7 +11,7 @@ import {
   LeaderboardRow,
   LeaderboardSettings,
   UserPointsData,
-} from "@mrgnlabs/marginfi-v2-ui-state";
+} from "@mrgnlabs/mrgn-state";
 import { groupedNumberFormatter, shortenAddress } from "@mrgnlabs/mrgn-common";
 import { IconSearch, IconSortAscending, IconSortDescending, IconX } from "@tabler/icons-react";
 

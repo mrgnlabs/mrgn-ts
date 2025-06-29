@@ -153,40 +153,6 @@ export const PointsOverview = ({ userPointsData }: PointsOverviewProps) => {
           </div>
         </div>
       </div>
-      {/* <div className="flex flex-wrap justify-center items-center gap-3 md:gap-5">
-        <Link
-          href="https://medium.com/marginfi/introducing-mrgn-points-949e18f31a8c"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Button size="lg" className="rounded-full md:text-lg h-auto py-2 md:py-3 min-w-[232px]">
-            How do points work?
-          </Button>
-        </Link>
-
-        <CopyToClipboard
-          text={`https://www.mfi.gg/refer/${userPointsData.referralLink}`}
-          onCopy={() => {
-            if (userPointsData.referralLink && userPointsData.referralLink.length > 0) {
-              setIsReferralCopied(true);
-              setTimeout(() => setIsReferralCopied(false), 2000);
-            } else {
-              setIsWalletAuthDialogOpen(true);
-            }
-          }}
-        >
-          <Button size="lg" className="rounded-full md:text-lg h-auto py-2 md:py-3 min-w-[232px]">
-            {isReferralCopied
-              ? "Link copied"
-              : `${
-                  userPointsData.isCustomReferralLink
-                    ? userPointsData.referralLink?.replace("https://", "")
-                    : "Copy referral link"
-                }`}
-            {isReferralCopied ? <IconCheck size={22} /> : <IconCopy size={22} />}
-          </Button>
-        </CopyToClipboard>
-      </div> */}
     </>
   );
 };

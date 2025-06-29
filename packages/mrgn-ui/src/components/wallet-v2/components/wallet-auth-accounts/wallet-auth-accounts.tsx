@@ -1,7 +1,7 @@
 import React from "react";
 
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { clearAccountCache, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
+import { firebaseApi } from "@mrgnlabs/mrgn-state";
 import { getMaybeSquadsOptions, capture } from "@mrgnlabs/mrgn-utils";
 import { toastManager } from "@mrgnlabs/mrgn-toasts";
 import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle, IconCopy, IconCheck } from "@tabler/icons-react";
@@ -112,11 +112,10 @@ export const WalletAuthAccounts = ({
 
     if (!cacheTimestamp || now - parseInt(cacheTimestamp, 10) > FIFTEEN_MINUTES) {
       console.log("Clearing account cache and refetching accounts");
-      clearAccountCache(wallet.publicKey);
       fetchAccountLabels?.(marginfiAccounts);
       localStorage.setItem("mrgnClearedAccountCache", now.toString());
     }
-  }, [wallet.publicKey, fetchAccountLabels, marginfiAccounts]);
+  }, [fetchAccountLabels, marginfiAccounts]);
 
   const editAccount = React.useCallback(async () => {
     if (
@@ -201,7 +200,6 @@ export const WalletAuthAccounts = ({
         return;
       }
 
-      clearAccountCache(mfiClient.provider.publicKey);
       multiStepToast.successAndNext();
 
       const blockhashInfo = await connection.getLatestBlockhash();

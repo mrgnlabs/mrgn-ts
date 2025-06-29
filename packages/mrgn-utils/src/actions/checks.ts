@@ -9,8 +9,8 @@ import {
   EmodeImpactStatus,
   EmodeImpact,
 } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, ActiveBankInfo, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
-import { PublicKey } from "@solana/web3.js";
+import { ExtendedBankInfo, FEE_MARGIN } from "@mrgnlabs/mrgn-state";
+
 import { DYNAMIC_SIMULATION_ERRORS, STATIC_INFO_MESSAGES, STATIC_SIMULATION_ERRORS } from "../errors";
 import { ArenaGroupStatus } from "../types";
 import { isWholePosition } from "../mrgnUtils";

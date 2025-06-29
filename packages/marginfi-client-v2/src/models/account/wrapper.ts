@@ -1203,10 +1203,6 @@ class MarginfiAccountWrapper {
       this._program.idl
     );
 
-    const decodedAccount = MarginfiAccount.decodeAccountRaw(mfiAccountData, this._program.idl);
-    console.log({ decodedAccount });
-
-    console.log({ previewMarginfiAccount });
     return {
       banks: previewBanks,
       marginfiAccount: previewMarginfiAccount,

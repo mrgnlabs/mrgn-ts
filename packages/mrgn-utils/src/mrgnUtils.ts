@@ -4,7 +4,7 @@ import BN from "bn.js";
 
 import { OracleSetup } from "@mrgnlabs/marginfi-client-v2";
 import { TOKEN_PROGRAM_ID, aprToApy, ceil, floor, percentFormatter } from "@mrgnlabs/mrgn-common";
-import { ActiveBankInfo, Emissions, ExtendedBankInfo, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActiveBankInfo, Emissions } from "@mrgnlabs/mrgn-state";
 
 import { LendingModes } from "./types";
 import { handleError } from "./errors";

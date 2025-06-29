@@ -1,5 +1,5 @@
 import { EmodeImpactStatus } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 export function getEmodeStrategies(extendedBanks: ExtendedBankInfo[]) {
   const repayAllImpacts: ExtendedBankInfo[] = [];

@@ -21,7 +21,7 @@ import {
 } from "@tabler/icons-react";
 
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, UserPointsData, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, UserPointsData, AccountSummary } from "@mrgnlabs/mrgn-state";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 

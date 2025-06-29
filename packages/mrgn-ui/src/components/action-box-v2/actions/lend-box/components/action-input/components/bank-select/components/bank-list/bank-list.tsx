@@ -4,7 +4,7 @@ import { IconExternalLink } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 
 import { percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActionType, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { LendSelectionGroups, LendingModes, cn, computeBankRate, getEmodeStrategies } from "@mrgnlabs/mrgn-utils";
 
 import { useActionBoxContext } from "~/components/action-box-v2/contexts";
@@ -20,6 +20,7 @@ type BankListProps = {
   actionType: ActionType;
   connected: boolean;
   selectionGroups?: LendSelectionGroups[];
+  stakePoolMetadata?: StakePoolMetadata;
   onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: (hasSetBank: boolean) => void;
 };
@@ -41,6 +42,7 @@ export const BankList = ({
   connected,
   selectionGroups,
   isOpen,
+  stakePoolMetadata,
   onClose,
   onSetSelectedBank,
 }: BankListProps) => {
@@ -137,7 +139,7 @@ export const BankList = ({
   const filteredBanksUserOwns = React.useMemo(() => {
     return (
       banks
-        .filter((bank) => bank.info.rawBank.config.assetTag !== 2 || bank.meta.stakePool?.isActive)
+        .filter((bank) => bank.info.rawBank.config.assetTag !== 2 || stakePoolMetadata?.isActive)
         .filter(balanceFilter)
         .filter(searchFilter)
         // .filter((bank) => positionFilter(bank, true))

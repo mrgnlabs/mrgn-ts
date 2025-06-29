@@ -2,7 +2,7 @@ import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
 import { TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
 import { createMarginfiAccountTx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import {
   addTransactionMetadata,
   LUT_PROGRAM_AUTHORITY_INDEX,

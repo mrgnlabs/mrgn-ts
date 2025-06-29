@@ -1,3 +1,6 @@
+import { PublicKey } from "@solana/web3.js";
+import BigNumber from "bignumber.js";
+
 import {
   getPriceWithConfidence,
   OracleSetup,
@@ -8,11 +11,10 @@ import {
   getPrice,
   ValidatorStakeGroup,
 } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, Emissions, StakePoolMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, Emissions, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { aprToApy, nativeToUi, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { PublicKey } from "@solana/web3.js";
+
 import { isBankOracleStale } from "./mrgnUtils";
-import BigNumber from "bignumber.js";
 
 export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 
@@ -134,7 +136,6 @@ export const getAssetData = (
     symbol: bank.meta.tokenSymbol,
     name: bank.meta.tokenName,
     image: bank.meta.tokenLogoUri,
-    stakePool: bank.meta.stakePool,
     hasEmode: bank.info.state.hasEmode,
     emodeTag: bank.info.state.hasEmode ? EmodeTag[bank.info.rawBank.emode.emodeTag] : "",
     isInLendingMode,

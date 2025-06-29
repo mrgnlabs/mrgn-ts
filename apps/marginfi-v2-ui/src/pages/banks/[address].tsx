@@ -9,7 +9,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import { ActionBox, useWallet, AddressActions } from "@mrgnlabs/mrgn-ui";
 import { Skeleton } from "~/components/ui/skeleton";
 import { LendingModes, getAssetPriceData, getAssetWeightData, cn } from "@mrgnlabs/mrgn-utils";
-import { ActionType, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, Emissions } from "@mrgnlabs/mrgn-state";
 import { MarginRequirementType, AssetTag, OperationalState } from "@mrgnlabs/marginfi-client-v2";
 import {
   aprToApy,
@@ -19,10 +19,9 @@ import {
   dynamicNumeralFormatter,
 } from "@mrgnlabs/mrgn-common";
 
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useUiStore } from "~/store";
 
 import { BankChart, BankShare } from "~/components/common/bank/components";
-import { Loader } from "~/components/ui/loader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { IconSwitchboard, IconPyth, IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
