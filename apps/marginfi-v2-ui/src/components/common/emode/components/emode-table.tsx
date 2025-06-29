@@ -5,7 +5,7 @@ import Image from "next/image";
 import BigNumber from "bignumber.js";
 
 import { computeMaxLeverage, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { numeralFormatter, percentFormatterMod } from "@mrgnlabs/mrgn-common";
 
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";

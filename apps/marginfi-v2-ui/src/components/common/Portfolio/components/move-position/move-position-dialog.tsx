@@ -9,7 +9,7 @@ import {
   percentFormatter,
   SolanaTransaction,
 } from "@mrgnlabs/mrgn-common";
-import { AccountSummary, ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import {
   ActionMessageType,
   captureSentryException,

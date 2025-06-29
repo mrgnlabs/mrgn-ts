@@ -22,7 +22,7 @@ import {
   ActionType,
   ExtendedBankInfo,
   groupLiabilityBanksByCollateralBank,
-} from "@mrgnlabs/marginfi-v2-ui-state";
+} from "@mrgnlabs/mrgn-state";
 import { AssetTag, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { capture, cn, composeExplorerUrl, executeActionWrapper, getAssetWeightData } from "@mrgnlabs/mrgn-utils";
 import { ActionBox, SVSPMEV, useWallet } from "@mrgnlabs/mrgn-ui";
@@ -253,10 +253,10 @@ export const PortfolioAssetCard = ({
                   <div>
                     {bank.info.rawBank.config.assetTag === AssetTag.STAKED ? (
                       <div className="font-normal flex items-center text-sm text-muted-foreground">
-                        {bank.meta.stakePool?.validatorRewards && (
+                        {stakePoolMetadata?.validatorRewards && (
                           <>
                             <span className="text-success">
-                              {percentFormatter.format(bank.meta.stakePool?.validatorRewards / 100)}
+                              {percentFormatter.format(stakePoolMetadata.validatorRewards / 100)}
                             </span>
                             <TooltipProvider>
                               <Tooltip>
@@ -326,18 +326,18 @@ export const PortfolioAssetCard = ({
           )}
           <div className="bg-background/60 py-3 px-4 rounded-lg">
             <dl className="grid grid-cols-2 gap-y-0.5">
-              {bank.info.rawBank.config.assetTag === AssetTag.STAKED && bank.meta.stakePool?.validatorVoteAccount && (
+              {bank.info.rawBank.config.assetTag === AssetTag.STAKED && stakePoolMetadata?.validatorVoteAccount && (
                 <>
                   <dt className="text-muted-foreground">Validator</dt>
                   <dd className="text-right text-white">
                     <Link
-                      href={`https://solscan.io/account/${bank.meta.stakePool?.validatorVoteAccount}`}
+                      href={`https://solscan.io/account/${stakePoolMetadata.validatorVoteAccount}`}
                       target="_blank"
                       rel="noreferrer"
                       className="flex items-center justify-end gap-1 transition-colors hover:text-chartreuse"
                     >
                       <IconExternalLink size={14} className="text-muted-foreground" />
-                      {shortenAddress(bank.meta.stakePool?.validatorVoteAccount)}
+                      {shortenAddress(stakePoolMetadata.validatorVoteAccount)}
                     </Link>
                   </dd>
                 </>
@@ -450,9 +450,9 @@ export const PortfolioAssetCard = ({
               bank={bank}
               stakePool={stakePoolMetadata}
               onClaim={async () => {
-                if (!marginfiClient || !bank.meta.stakePool?.validatorVoteAccount) return;
+                if (!marginfiClient || !stakePoolMetadata?.validatorVoteAccount) return;
 
-                const ix = await replenishPoolIx(bank.meta.stakePool?.validatorVoteAccount);
+                const ix = await replenishPoolIx(stakePoolMetadata.validatorVoteAccount);
                 const tx = addTransactionMetadata(new Transaction().add(ix), {
                   type: TransactionType.INITIALIZE_STAKED_POOL,
                 });

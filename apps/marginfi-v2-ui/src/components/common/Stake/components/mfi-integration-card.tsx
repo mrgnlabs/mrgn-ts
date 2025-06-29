@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
 import { getDepositsData, getRateData } from "@mrgnlabs/mrgn-utils";

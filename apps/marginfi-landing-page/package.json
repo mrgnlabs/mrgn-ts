@@ -11,7 +11,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.4.0",
     "@mrgnlabs/marginfi-client-v2": "workspace:*",
-    "@mrgnlabs/marginfi-v2-ui-state": "workspace:*",
+    "@mrgnlabs/mrgn-state": "workspace:*",
     "@mrgnlabs/mrgn-common": "workspace:*",
     "@next/third-parties": "^15.1.7",
     "@radix-ui/react-accordion": "^1.1.2",

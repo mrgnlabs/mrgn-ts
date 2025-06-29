@@ -408,6 +408,7 @@ export const LendBox = ({
           showTokenSelection={showTokenSelection}
           selectionGroups={selectionGroups}
           selectedStakeAccount={selectedStakeAccount?.address}
+          stakePoolMetadata={stakePoolMetadata}
           onStakeAccountChange={setSelectedStakeAccount}
           setAmountRaw={setAmountRaw}
           setSelectedBank={setSelectedBank}

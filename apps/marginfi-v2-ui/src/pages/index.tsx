@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { capture, Desktop, LendingModes, Mobile } from "@mrgnlabs/mrgn-utils";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useUiStore } from "~/store";
@@ -22,13 +22,7 @@ import {
 import { OverlaySpinner } from "~/components/ui/overlay-spinner";
 import { Loader } from "~/components/ui/loader";
 import { EmodePortfolio } from "~/components/common/emode/components";
-import {
-  useBanks,
-  useEmode,
-  useExtendedBanks,
-  useMarginfiAccount,
-  useRefreshUserData,
-} from "@mrgnlabs/mrgn-state";
+import { useBanks, useEmode, useExtendedBanks, useMarginfiAccount, useRefreshUserData } from "@mrgnlabs/mrgn-state";
 import { useAssetData } from "~/hooks/use-asset-data.hooks";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {

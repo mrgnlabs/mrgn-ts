@@ -1,7 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, computeAccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, computeAccountSummary } from "@mrgnlabs/mrgn-state";
 
 import { useTradeStoreV2 } from "~/store";
 

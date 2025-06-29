@@ -7,7 +7,7 @@ import { IconArrowRight } from "@tabler/icons-react";
 
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { capture, LendingModes, cn } from "@mrgnlabs/mrgn-utils";
-import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActionType } from "@mrgnlabs/mrgn-state";
 
 import "swiper/css";
 import "swiper/css/autoplay";

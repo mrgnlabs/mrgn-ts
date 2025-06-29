@@ -1,4 +1,4 @@
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 export type RewardsType = {
   state: "NOT_FETCHED" | "NO_REWARDS" | "EARNING_REWARDS" | "REWARDS_FETCHED" | "ERROR";

@@ -6,7 +6,7 @@ import {
   MarginRequirementType,
   SimulationResult,
 } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { Wallet } from "@mrgnlabs/mrgn-common";
 import { ActionMessageType, handleSimulationError } from "@mrgnlabs/mrgn-utils";
 import { Transaction, VersionedTransaction } from "@solana/web3.js";

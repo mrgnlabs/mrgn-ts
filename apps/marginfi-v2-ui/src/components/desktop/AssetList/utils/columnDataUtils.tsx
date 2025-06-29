@@ -1,7 +1,7 @@
 import React from "react";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
-import { ExtendedBankInfo, getCurrentAction, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, getCurrentAction, ActionType } from "@mrgnlabs/mrgn-state";
 import { MarginfiAccountType } from "@mrgnlabs/marginfi-client-v2";
 import { ActionBox, useWallet, WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
 import { capture } from "@mrgnlabs/mrgn-utils";

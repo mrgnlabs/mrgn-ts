@@ -3,7 +3,7 @@ import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 import { generateTradeStats } from "./utils/stats-utils";
 import { cn, TradeActionTxns } from "@mrgnlabs/mrgn-utils";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary } from "@mrgnlabs/mrgn-state";
 import { ActionStatItem } from "~/components/action-box-v2/components/action-stats/action-stat-item";
 
 interface StatsProps {

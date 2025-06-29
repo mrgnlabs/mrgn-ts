@@ -4,7 +4,7 @@ import Link from "next/link";
 import { IconInfoCircleFilled } from "@tabler/icons-react";
 
 import { numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { UserPointsData } from "@mrgnlabs/marginfi-v2-ui-state";
+import { UserPointsData } from "@mrgnlabs/mrgn-state";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 

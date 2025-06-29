@@ -10,8 +10,16 @@ import {
   OraclePrice,
   PythPushFeedIdMap,
 } from "@mrgnlabs/marginfi-client-v2";
-import { fetchTokenAccounts, makeExtendedBankInfo, TokenAccount, UserDataProps } from "@mrgnlabs/marginfi-v2-ui-state";
-import { BankMetadata, TokenMetadata } from "@mrgnlabs/mrgn-common";
+import { makeExtendedBankInfo, TokenAccount, TokenAccountMap, UserDataProps } from "@mrgnlabs/mrgn-state";
+import {
+  BankMetadata,
+  getAssociatedTokenAddressSync,
+  nativeToUi,
+  TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+  TokenMetadata,
+  unpackAccount,
+} from "@mrgnlabs/mrgn-common";
 import { ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 
 import { TOKEN_ICON_BASE_URL } from "~/config/trade";
@@ -24,6 +32,7 @@ import {
   ArenaPoolV2,
   TokenVolumeData,
 } from "~/types/trade-store.types";
+import BN from "bn.js";
 
 /**
  * Server-Side Rendering Logic
@@ -530,4 +539,109 @@ export function getPoolPositionStatus(pool: ArenaPoolV2, tokenBank: ArenaBank, q
   }
 
   return status;
+}
+
+async function fetchTokenAccounts(
+  connection: Connection,
+  walletAddress: PublicKey,
+  bankInfos: { mint: PublicKey; mintDecimals: number; bankAddress: PublicKey; assetTag?: number }[],
+  mintDatas: Map<string, MintData>,
+  fetchStakeAccounts: boolean = true
+): Promise<{
+  nativeSolBalance: number;
+  tokenAccountMap: TokenAccountMap;
+}> {
+  // Get relevant addresses
+  const mintList = bankInfos.map((bank) => ({
+    address: bank.mint,
+    decimals: bank.mintDecimals,
+    bankAddress: bank.bankAddress,
+    assetTag: bank.assetTag,
+  }));
+
+  if (walletAddress === null) {
+    const emptyTokenAccountMap = new Map(
+      mintList.map(({ address }) => [
+        address.toBase58(),
+        {
+          created: false,
+          mint: address,
+          balance: 0,
+        },
+      ])
+    );
+
+    return {
+      nativeSolBalance: 0,
+      tokenAccountMap: emptyTokenAccountMap,
+    };
+  }
+
+  const ataAddresses = mintList.map((mint) => {
+    const mintData = mintDatas.get(mint.bankAddress.toBase58());
+    if (!mintData) {
+      throw new Error(`Failed to find mint data for ${mint.bankAddress.toBase58()}`);
+    }
+    return getAssociatedTokenAddressSync(mint.address, walletAddress!, true, mintData.tokenProgram);
+  }); // We allow off curve addresses here to support Fuse.
+
+  // Fetch relevant accounts
+
+  // temporary logic
+  const maxAccounts = 100;
+  const totalArray: PublicKey[] = [walletAddress, ...ataAddresses];
+
+  function chunkArray<T>(arr: T[], chunkSize: number): T[][] {
+    const result: T[][] = [];
+    for (let i = 0; i < arr.length; i += chunkSize) {
+      result.push(arr.slice(i, i + chunkSize));
+    }
+    return result;
+  }
+
+  const chunkedArrays = chunkArray(totalArray, maxAccounts);
+
+  const accountsAiList = (
+    await Promise.all(chunkedArrays.map((chunk) => connection.getMultipleAccountsInfo(chunk)))
+  ).flat();
+
+  // Decode account buffers
+  const [walletAi, ...ataAiList] = accountsAiList;
+  const nativeSolBalance = walletAi?.lamports ? walletAi.lamports / 1e9 : 0;
+
+  const ataList: TokenAccount[] = ataAiList.map((ai, index) => {
+    const mint = mintList[index];
+
+    // if user has no stake account for this validator, return 0
+    if (mint.assetTag === 2) {
+      return {
+        created: false,
+        mint: mint.address,
+        balance: 0,
+      };
+    }
+
+    if (!ai || (!ai?.owner?.equals(TOKEN_PROGRAM_ID) && !ai?.owner?.equals(TOKEN_2022_PROGRAM_ID))) {
+      return {
+        created: false,
+        mint: mint.address,
+        balance: 0,
+      };
+    }
+
+    const mintData = mintDatas.get(mint.bankAddress.toBase58());
+    if (!mintData) {
+      throw new Error(`Failed to find mint data for ${mint.bankAddress.toBase58()}`);
+    }
+
+    const decoded = unpackAccount(ataAddresses[index], ai, mintData.tokenProgram);
+
+    return {
+      created: true,
+      mint: decoded.mint,
+      balance: nativeToUi(new BN(decoded.amount.toString()), mintList[index].decimals),
+    };
+  });
+
+  return { nativeSolBalance, tokenAccountMap: new Map(ataList.map((ata) => [ata.mint.toString(), ata])) };
 }

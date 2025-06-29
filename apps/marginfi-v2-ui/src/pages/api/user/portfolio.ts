@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { STATUS_INTERNAL_ERROR, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
+import { STATUS_INTERNAL_ERROR, STATUS_OK } from "@mrgnlabs/mrgn-state";
 import { createServerSupabaseClient } from "~/auth";
 
 export const MAX_DURATION = 60;

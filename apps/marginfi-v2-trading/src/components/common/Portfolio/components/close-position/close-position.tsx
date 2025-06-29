@@ -8,7 +8,7 @@ import {
   extractErrorString,
   capture,
 } from "@mrgnlabs/mrgn-utils";
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo } from "@mrgnlabs/mrgn-state";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
 import { MultiStepToastController, toastManager } from "@mrgnlabs/mrgn-toasts";
 

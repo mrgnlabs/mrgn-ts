@@ -6,7 +6,7 @@ import Image from "next/image";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { EmodePair, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { percentFormatterMod } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { cn, getAssetWeightData, getEmodeStrategies } from "@mrgnlabs/mrgn-utils";
 import { useDebounce } from "@uidotdev/usehooks";
 

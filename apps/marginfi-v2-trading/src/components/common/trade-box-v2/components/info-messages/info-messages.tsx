@@ -1,7 +1,6 @@
 import { IconAlertTriangle, IconExternalLink, IconLoader } from "@tabler/icons-react";
 import Link from "next/link";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
 import { ActionMessageType, cn } from "@mrgnlabs/mrgn-utils";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
 

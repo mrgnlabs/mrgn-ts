@@ -3,7 +3,7 @@ import React from "react";
 import { IconCheck } from "@tabler/icons-react";
 
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
 import { capture } from "@mrgnlabs/mrgn-utils";
 import { LSTOverview } from "~/components/common/Stake/utils/stake-utils";

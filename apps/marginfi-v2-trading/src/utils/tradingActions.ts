@@ -32,7 +32,7 @@ import {
   ActionProcessingError,
   JupiterOptions,
 } from "@mrgnlabs/mrgn-utils";
-import { ExtendedBankInfo, clearAccountCache, ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActiveBankInfo } from "@mrgnlabs/mrgn-state";
 import { WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
 import { TransactionBroadcastType } from "@mrgnlabs/mrgn-common";
 import { toastManager } from "@mrgnlabs/mrgn-toasts";

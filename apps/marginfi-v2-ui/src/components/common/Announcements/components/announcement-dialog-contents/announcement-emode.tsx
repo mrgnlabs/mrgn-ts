@@ -12,7 +12,7 @@ import { Button } from "~/components/ui/button";
 import { IconEmode, IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { EmodePair } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { EmodeTable } from "~/components/common/emode/components/emode-table";
 import { useEmode, useExtendedBanks } from "@mrgnlabs/mrgn-state";
 

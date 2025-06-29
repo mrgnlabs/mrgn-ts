@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { IconSearch, IconSparkles } from "@tabler/icons-react";
 import Link from "next/link";
 

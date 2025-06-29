@@ -20,7 +20,7 @@ import {
 import { Loader } from "~/components/ui/loader";
 import { usePortfolioData } from "@mrgnlabs/mrgn-state";
 import { useMemo } from "react";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 type PortfolioChartProps = {
   variant: "deposits" | "borrows" | "net";
@@ -40,10 +40,13 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
   const accountAddress = selectedAccount?.address.toBase58();
 
   // Use the state layer's data hook directly
-  const { data: portfolioData, filledDailyTotals, filledBankData, error, isLoading } = usePortfolioData(
-    accountAddress,
-    banks
-  );
+  const {
+    data: portfolioData,
+    filledDailyTotals,
+    filledBankData,
+    error,
+    isLoading,
+  } = usePortfolioData(accountAddress, banks);
 
   // Transform data based on variant
   const { chartData, bankSymbols } = useMemo(() => {
@@ -58,16 +61,16 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
       const chartData = sortedDates.map((dateStr) => {
         const totals = filledDailyTotals[dateStr];
         const netValue = totals.deposits - totals.borrows;
-        
+
         return {
           timestamp: dateStr,
-          net: netValue
+          net: netValue,
         };
       });
-      
+
       return { chartData, bankSymbols: ["net"] };
     }
-    
+
     // For deposits or borrows, use the bank-specific data
     const allBankSymbols = Object.keys(filledBankData);
     if (allBankSymbols.length === 0) {
@@ -77,7 +80,7 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
     // Get all dates from the first bank (all banks should have the same date range)
     const firstBank = allBankSymbols[0];
     const allDates = Object.keys(filledBankData[firstBank]).sort();
-    
+
     // Filter out banks that have all zero values for the selected variant
     const filteredBankSymbols = allBankSymbols.filter((symbol: string) => {
       // Check if this bank has any non-zero values for the selected variant
@@ -85,7 +88,7 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
         return dayData[variant] > 0;
       });
     });
-    
+
     // If no banks have non-zero values, return empty data
     if (filteredBankSymbols.length === 0) {
       return { chartData: [], bankSymbols: [] };
@@ -94,13 +97,13 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
     // Create chart data points with filtered banks for each date
     const chartData = allDates.map((date) => {
       const dataPoint: any = { timestamp: date };
-      
+
       // Add each filtered bank's value for this date
       filteredBankSymbols.forEach((symbol: string) => {
         const bankValues = filledBankData[symbol][date];
         dataPoint[symbol] = bankValues ? bankValues[variant] : 0;
       });
-      
+
       return dataPoint;
     });
 

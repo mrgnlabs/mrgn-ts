@@ -14,7 +14,7 @@ import {
   STATUS_OK,
   STATUS_UNAUTHORIZED,
   STATUS_INTERNAL_ERROR,
-} from "@mrgnlabs/marginfi-v2-ui-state";
+} from "@mrgnlabs/mrgn-state";
 
 import { initFirebaseIfNeeded } from "./utils";
 import { NextApiRequest } from "../utils";

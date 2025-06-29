@@ -11,7 +11,7 @@ import {
   USDC_MINT,
   tokenPriceFormatter,
 } from "@mrgnlabs/mrgn-common";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType } from "@mrgnlabs/mrgn-state";
 import {
   cn,
   capture,

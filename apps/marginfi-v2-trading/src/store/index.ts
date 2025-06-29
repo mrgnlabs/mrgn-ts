@@ -1,4 +1,4 @@
-import { UserProfileState, createUserProfileStore } from "@mrgnlabs/marginfi-v2-ui-state";
+import { UserProfileState, createUserProfileStore } from "./userProfileStore";
 import { UseBoundStore, StoreApi } from "zustand";
 import { UiState, createUiStore } from "./uiStore";
 import { TradeStoreV2State } from "./tradeStoreV2";

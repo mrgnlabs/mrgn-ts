@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
 import { initFirebaseIfNeeded } from "./utils";
 import { NextApiRequest } from "../utils";
-import { STATUS_BAD_REQUEST, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
+import { STATUS_BAD_REQUEST, STATUS_OK } from "@mrgnlabs/mrgn-state";
 
 initFirebaseIfNeeded();
 

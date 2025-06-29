@@ -1,9 +1,6 @@
-import { WalletContextState } from "@solana/wallet-adapter-react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import { MarginfiAccountWrapper, EmodePair, RiskTier, MarginfiAccountType } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import {
   AssetData,
   AssetPriceData,
@@ -13,16 +10,9 @@ import {
   BankCapData,
   UtilizationData,
   PositionData,
-  getAssetData,
-  getAssetPriceData,
-  getRateData,
-  getAssetWeightData,
-  getBankCapData,
-  getUtilizationData,
-  getDepositsData,
-  getPositionData,
   PoolTypes,
 } from "@mrgnlabs/mrgn-utils";
+import { RiskTier } from "@mrgnlabs/marginfi-client-v2";
 
 import {
   HeaderWrapper,
@@ -36,8 +26,6 @@ import {
   getValidatorCell,
   getValidatorRateCell,
 } from "../components";
-import { getAction } from "./columnDataUtils";
-import Link from "next/link";
 
 export interface AssetListModel {
   asset: AssetData;
@@ -53,52 +41,6 @@ export interface AssetListModel {
   assetCategory: PoolTypes[];
   action: React.JSX.Element;
 }
-
-export const makeData = (
-  data: ExtendedBankInfo[],
-  isInLendingMode: boolean,
-  nativeSolBalance: number,
-  marginfiAccount: MarginfiAccountType | null,
-  connected: boolean,
-  walletContextState: WalletContextStateOverride | WalletContextState,
-  solPrice: number | null,
-  fetchMrgnlendState: () => void,
-  userActiveEmodes: EmodePair[] = [],
-  collateralBanksByLiabilityBank?: Record<
-    string,
-    {
-      collateralBank: ExtendedBankInfo;
-      emodePair: EmodePair;
-    }[]
-  >,
-  liabilityBanksByCollateralBank?: Record<string, { liabilityBank: ExtendedBankInfo; emodePair: EmodePair }[]>
-) => {
-  return data.map((bank) => {
-    const collateralBanks = collateralBanksByLiabilityBank?.[bank.address.toBase58()] || [];
-    const liabilityBanks = liabilityBanksByCollateralBank?.[bank.address.toBase58()] || [];
-    return {
-      asset: getAssetData(bank, isInLendingMode, undefined, collateralBanks, liabilityBanks),
-      validator: bank.meta.stakePool?.validatorVoteAccount || "",
-      "validator-rate": bank.meta.stakePool?.validatorRewards || "",
-      price: getAssetPriceData(bank),
-      rate: getRateData(bank, isInLendingMode),
-      weight: getAssetWeightData(
-        bank,
-        isInLendingMode,
-        data,
-        undefined,
-        collateralBanks,
-        liabilityBanks,
-        userActiveEmodes
-      ),
-      deposits: getDepositsData(bank, isInLendingMode),
-      bankCap: getBankCapData(bank, isInLendingMode),
-      utilization: getUtilizationData(bank),
-      position: getPositionData(bank, nativeSolBalance, isInLendingMode, solPrice),
-      action: getAction(bank, isInLendingMode, connected, walletContextState, fetchMrgnlendState, marginfiAccount),
-    } as AssetListModel;
-  });
-};
 
 // Generate ALL possible columns once, use visibility to control what shows
 export const generateColumns = (isInLendingMode: boolean) => {

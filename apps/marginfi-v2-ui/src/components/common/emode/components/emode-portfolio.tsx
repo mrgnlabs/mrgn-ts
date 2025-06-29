@@ -7,8 +7,7 @@ import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Button } from "~/components/ui/button";
 import { IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 type EmodePortfolioProps = {
   extendedBankInfos: ExtendedBankInfo[];

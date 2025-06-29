@@ -1,7 +1,6 @@
+import { auth, DEFAULT_USER_POINTS_DATA, fetchUser, getUserPoints, UserPointsData } from "@mrgnlabs/mrgn-state";
 import { User, signOut } from "firebase/auth";
 import { create } from "zustand";
-import { firebaseApi } from "../lib";
-import { DEFAULT_USER_POINTS_DATA, UserPointsData, getPointsDataForUser } from "../lib/points";
 
 type ZoomLevel = 1 | 2 | 3;
 
@@ -38,7 +37,7 @@ function createUserProfileStore() {
     checkForFirebaseUser: async (walletAddress: string) => {
       let user;
       try {
-        user = await firebaseApi.getUser(walletAddress);
+        user = await fetchUser(walletAddress);
       } catch (error: any) {}
 
       set({ hasUser: !!user });
@@ -52,11 +51,11 @@ function createUserProfileStore() {
       const disconnected = !isConnected && currentFirebaseUser;
       const mismatchingId = walletAddress && currentFirebaseUser?.uid && walletAddress !== currentFirebaseUser.uid;
       if (disconnected || mismatchingId) {
-        await signOut(firebaseApi.auth);
+        await signOut(auth);
         set(() => ({ currentFirebaseUser: null }));
       }
     },
-    fetchPoints: async (wallet: string) => set({ userPointsData: await getPointsDataForUser(wallet) }),
+    fetchPoints: async (wallet: string) => set({ userPointsData: await getUserPoints(wallet) }),
     resetPoints: () => set({ userPointsData: DEFAULT_USER_POINTS_DATA }),
   }));
 }

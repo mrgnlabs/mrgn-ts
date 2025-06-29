@@ -7,7 +7,7 @@ import { SolanaTransaction } from "@mrgnlabs/mrgn-common";
 
 import { getSimulationResult, simulatedHealthFactor } from "../utils/move-position.utils";
 import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo } from "@mrgnlabs/mrgn-state";
 
 interface ActionSummary {
   health: number;

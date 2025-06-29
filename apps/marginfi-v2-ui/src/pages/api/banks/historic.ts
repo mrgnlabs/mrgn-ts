@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { createServerSupabaseClient } from "@mrgnlabs/mrgn-utils";
-import { STATUS_INTERNAL_ERROR, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
+import { STATUS_INTERNAL_ERROR, STATUS_OK } from "@mrgnlabs/mrgn-state";
 import { formatRawBankMetrics } from "@mrgnlabs/mrgn-state/src/services/bank-chart.service";
 
 export const MAX_DURATION = 60;
