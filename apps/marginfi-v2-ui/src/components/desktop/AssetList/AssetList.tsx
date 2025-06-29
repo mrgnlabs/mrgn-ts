@@ -159,24 +159,24 @@ export const AssetsList = ({ data }: AssetListProps) => {
               {Array.from({ length: 8 }).map((_, index) => (
                 <TableRow key={index}>
                   {table.getHeaderGroups()[0].headers.map((header, colIndex) => (
-                    <TableCell key={colIndex} style={{ width: header.column.getSize() }}>
+                    <TableCell key={colIndex} style={{ width: header.column.getSize() }} className="h-[54px]">
                       {colIndex === 0 ? (
                         // Asset column with icon and text - match exact getAssetCell structure
                         <div className="flex gap-2 justify-start items-center">
-                          <div className="flex items-center gap-4">
-                            <Skeleton className="h-6 w-6 rounded-full bg-[#373F45]" />
-                            <Skeleton className="h-4 w-12 bg-[#373F45]" />
+                          <div className="flex items-center gap-4 w-full">
+                            <Skeleton className="size-8 rounded-full bg-[#373F45]" />
+                            <Skeleton className="h-3 w-1/2 bg-[#373F45]" />
                           </div>
                         </div>
                       ) : colIndex === table.getHeaderGroups()[0].headers.length - 1 ? (
                         // Action column
                         <div className="flex justify-end">
-                          <Skeleton className="h-8 w-20 bg-[#373F45]" />
+                          <Skeleton className="h-8 w-3/4 bg-[#373F45]" />
                         </div>
                       ) : (
                         // Regular data columns - right aligned like the actual data
                         <div className="flex justify-end">
-                          <Skeleton className="h-4 w-16 bg-[#373F45]" />
+                          <Skeleton className="h-3 w-16 bg-[#373F45]" />
                         </div>
                       )}
                     </TableCell>
