@@ -74,7 +74,7 @@ export const ActionDialogWrapper = ({
           <DialogPortal>
             <DialogContent
               className={cn(
-                "shadow-none overflow-visible md:flex md:max-w-[520px] md:py-3 md:px-5  sm:rounded-2xl bg-transparent border-none",
+                "mfi-action-box shadow-none overflow-visible md:flex md:max-w-[520px] md:py-3 md:px-5  sm:rounded-2xl bg-transparent border-none",
                 hidden ? "opacity-0" : "opacity-100"
               )}
               closeClassName={"-top-1 -right-1"}

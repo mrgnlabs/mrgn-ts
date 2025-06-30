@@ -26,11 +26,13 @@ export const AssetRow = (row: Row<AssetListModel>) => {
         key={row.id}
         className={cn("cursor-pointer group hover:bg-background-gray", isStakedActivating && "opacity-50")}
         onClick={(e) => {
-          // don't navigate if clicking on a button, inside a button, or a dialog overlay
+          // disable asset row link for action box interaction
           if (
             e.target instanceof HTMLButtonElement ||
-            (e.target as Element).closest("button") ||
-            (e.target as Element).hasAttribute("data-state")
+            (e.target as Element).closest(".mfi-action-box") ||
+            (e.target as Element).classList.contains("mfi-action-box") ||
+            (e.target as Element).closest(".dialog-overlay") ||
+            (e.target as Element).classList.contains("dialog-overlay")
           ) {
             return;
           }
