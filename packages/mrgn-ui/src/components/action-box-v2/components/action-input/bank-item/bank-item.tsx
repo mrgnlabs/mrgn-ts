@@ -90,7 +90,7 @@ export const BankItem = ({
               <p className="text-xs font-light text-muted-foreground ml-2">
                 validator: {shortenAddress(stakePoolMetadata?.validatorVoteAccount?.toBase58() ?? "")}
               </p>
-            ) : isLoading ? (
+            ) : bank.info.rawBank.config.assetTag === 2 && isLoading ? (
               <Skeleton className="h-3 w-16" />
             ) : null}
             {!available && <span className="text-[11px] ml-1 font-light">(currently unavailable)</span>}

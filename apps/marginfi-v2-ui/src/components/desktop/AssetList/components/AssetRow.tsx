@@ -31,6 +31,8 @@ export const AssetRow = (row: Row<AssetListModel>) => {
             e.target instanceof HTMLButtonElement ||
             (e.target as Element).closest(".mfi-action-box") ||
             (e.target as Element).classList.contains("mfi-action-box") ||
+            (e.target as Element).closest(".mfi-action-box-action") ||
+            (e.target as Element).classList.contains("mfi-action-box-action") ||
             (e.target as Element).closest(".dialog-overlay") ||
             (e.target as Element).classList.contains("dialog-overlay")
           ) {

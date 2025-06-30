@@ -41,11 +41,6 @@ const StakeAccountSwitcher = ({
     stakeAccount.validator.equals(stakePoolMetadata?.validatorVoteAccount || PublicKey.default)
   );
 
-  console.log("HERE IN STAKESWITCHER");
-  console.log("stakeAccounts", stakeAccounts);
-  console.log("currentValidator", currentValidator);
-  console.log("selectedStakeAccount", selectedStakeAccount);
-
   if (!currentValidator || currentValidator.accounts.length <= 1 || !selectedStakeAccount) return null;
 
   return (
@@ -58,7 +53,8 @@ const StakeAccountSwitcher = ({
           </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-0 bg-muted">
+      {/* mfi-action-box-action class to prevent AssetRow link */}
+      <PopoverContent className="mfi-action-box-action w-64 p-0 bg-muted">
         {/* Header with Merge switch */}
         {/* <div className="flex items-center gap-4 p-3 px-4 border-b">
           <Label htmlFor="merge-mode" className={cn("text-sm text-muted-foreground", mergeMode && "text-foreground")}>
