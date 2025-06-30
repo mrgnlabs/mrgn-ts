@@ -133,7 +133,15 @@ export const calculateNetInterest30dStats = (data: InterestEarnedDataPoint[]): S
 
   // Calculate change (last vs first)
   const change = lastValue - firstValue;
-  const changePercent = firstValue !== 0 ? (change / Math.abs(firstValue)) * 100 : 0;
+
+  let changePercent = 0;
+  if (firstValue !== 0) {
+    if (Math.abs(firstValue) < 0.01) {
+      changePercent = change > 0 ? 100 : -100;
+    } else {
+      changePercent = (change / Math.abs(firstValue)) * 100;
+    }
+  }
 
   return {
     value: lastValue,

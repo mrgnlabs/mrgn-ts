@@ -151,7 +151,6 @@ export const fillPortfolioDataGaps = (
   // Use override dates if provided (for consistent cross-bank date range)
   const firstDate = overrideStartDate || existingDates[0];
 
-
   const today = new Date().toISOString().split("T")[0];
   const lastDate = today;
 
@@ -257,17 +256,47 @@ export const calculatePortfolioStats = (
 
   // Calculate supplied stats (last vs first)
   const suppliedChange = lastValues.deposits - firstValues.deposits;
-  const suppliedChangePercent = firstValues.deposits !== 0 ? (suppliedChange / firstValues.deposits) * 100 : 0;
+  let suppliedChangePercent = 0;
+  if (firstValues.deposits !== 0) {
+    if (Math.abs(firstValues.deposits) < 0.01) {
+      suppliedChangePercent = suppliedChange > 0 ? 100 : -100;
+    } else {
+      suppliedChangePercent = (suppliedChange / Math.abs(firstValues.deposits)) * 100;
+    }
+  }
 
   // Calculate borrowed stats (last vs first)
   const borrowedChange = lastValues.borrows - firstValues.borrows;
-  const borrowedChangePercent = firstValues.borrows !== 0 ? (borrowedChange / firstValues.borrows) * 100 : 0;
+  let borrowedChangePercent = 0;
+  if (firstValues.borrows !== 0) {
+    // Cap percentage change for very small values
+    if (Math.abs(firstValues.borrows) < 0.01) {
+      borrowedChangePercent = borrowedChange > 0 ? 100 : -100;
+    } else {
+      borrowedChangePercent = (borrowedChange / Math.abs(firstValues.borrows)) * 100;
+    }
+  }
 
   // Calculate net value stats (last vs first)
   const firstNet = firstValues.deposits - firstValues.borrows;
   const lastNet = lastValues.deposits - lastValues.borrows;
   const netChange = lastNet - firstNet;
-  const netChangePercent = firstNet !== 0 ? (netChange / Math.abs(firstNet)) * 100 : 0;
+  let netChangePercent = 0;
+  if (firstNet !== 0) {
+    // Cap percentage change for very small values
+    if (Math.abs(firstNet) < 0.01) {
+      netChangePercent = netChange > 0 ? 100 : -100;
+    } else {
+      netChangePercent = (netChange / Math.abs(firstNet)) * 100;
+    }
+  }
+
+  // Log the calculated percentages
+  console.log("[Portfolio Percentages]", {
+    suppliedChangePercent,
+    borrowedChangePercent,
+    netChangePercent,
+  });
 
   return {
     supplied30d: {
