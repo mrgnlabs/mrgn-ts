@@ -184,12 +184,12 @@ export const fillPortfolioDataGaps = (
       filledTotals[dateStr] = {
         deposits,
         borrows,
-        net,
+        net: net ?? 0,
       };
 
       lastDeposits = deposits;
       lastBorrows = borrows;
-      lastNet = net;
+      lastNet = net ?? 0;
     } else {
       // No actual data for this date, use last known values (only within actual range)
       filledTotals[dateStr] = {
@@ -256,47 +256,17 @@ export const calculatePortfolioStats = (
 
   // Calculate supplied stats (last vs first)
   const suppliedChange = lastValues.deposits - firstValues.deposits;
-  let suppliedChangePercent = 0;
-  if (firstValues.deposits !== 0) {
-    if (Math.abs(firstValues.deposits) < 0.01) {
-      suppliedChangePercent = suppliedChange > 0 ? 100 : -100;
-    } else {
-      suppliedChangePercent = (suppliedChange / Math.abs(firstValues.deposits)) * 100;
-    }
-  }
+  const suppliedChangePercent = firstValues.deposits !== 0 ? (suppliedChange / firstValues.deposits) * 100 : 0;
 
   // Calculate borrowed stats (last vs first)
   const borrowedChange = lastValues.borrows - firstValues.borrows;
-  let borrowedChangePercent = 0;
-  if (firstValues.borrows !== 0) {
-    // Cap percentage change for very small values
-    if (Math.abs(firstValues.borrows) < 0.01) {
-      borrowedChangePercent = borrowedChange > 0 ? 100 : -100;
-    } else {
-      borrowedChangePercent = (borrowedChange / Math.abs(firstValues.borrows)) * 100;
-    }
-  }
+  const borrowedChangePercent = firstValues.borrows !== 0 ? (borrowedChange / firstValues.borrows) * 100 : 0;
 
   // Calculate net value stats (last vs first)
   const firstNet = firstValues.deposits - firstValues.borrows;
   const lastNet = lastValues.deposits - lastValues.borrows;
   const netChange = lastNet - firstNet;
-  let netChangePercent = 0;
-  if (firstNet !== 0) {
-    // Cap percentage change for very small values
-    if (Math.abs(firstNet) < 0.01) {
-      netChangePercent = netChange > 0 ? 100 : -100;
-    } else {
-      netChangePercent = (netChange / Math.abs(firstNet)) * 100;
-    }
-  }
-
-  // Log the calculated percentages
-  console.log("[Portfolio Percentages]", {
-    suppliedChangePercent,
-    borrowedChangePercent,
-    netChangePercent,
-  });
+  const netChangePercent = firstNet !== 0 ? (netChange / Math.abs(firstNet)) * 100 : 0;
 
   return {
     supplied30d: {
