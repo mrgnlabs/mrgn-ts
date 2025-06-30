@@ -16,12 +16,12 @@ export const AnnouncementsSkeleton = ({ itemCount = 3, showPagination = true }: 
         <div className="bg-background-gray border border-background-gray rounded-lg w-full p-2.5 px-2 md:p-3">
           <div className="flex items-center gap-2 w-full">
             {/* Token icon skeleton */}
-            <Skeleton className="h-6 w-6 rounded-full bg-[#373F45]" />
+            <Skeleton className="h-6 w-6 rounded-full" />
 
             {/* Text content skeleton */}
             <div className="flex-1 flex items-center gap-2">
-              <Skeleton className="h-3 w-12 bg-[#373F45]" /> {/* Token symbol */}
-              <Skeleton className="h-3 w-32 bg-[#373F45]" /> {/* Announcement text */}
+              <Skeleton className="h-3 w-12" /> {/* Token symbol */}
+              <Skeleton className="h-3 w-32" /> {/* Announcement text */}
             </div>
           </div>
         </div>
@@ -32,7 +32,7 @@ export const AnnouncementsSkeleton = ({ itemCount = 3, showPagination = true }: 
             <ul className="flex items-center gap-2">
               {Array.from({ length: itemCount }).map((_, index) => (
                 <li key={index}>
-                  <Skeleton className={`h-1.5 bg-[#373F45] rounded-full ${index === 0 ? "w-4" : "w-1.5"}`} />
+                  <Skeleton className={`h-1.5 rounded-full ${index === 0 ? "w-4" : "w-1.5"}`} />
                 </li>
               ))}
             </ul>
