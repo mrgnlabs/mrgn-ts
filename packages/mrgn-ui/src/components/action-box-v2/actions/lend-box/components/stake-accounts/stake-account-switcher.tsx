@@ -3,7 +3,7 @@ import React from "react";
 import { IconCheck, IconSwitch, IconChevronDown } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
-import { ExtendedBankInfo, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
+import { ExtendedBankInfo, StakePoolMetadata, useRefreshUserData } from "@mrgnlabs/mrgn-state";
 import { ValidatorStakeGroup, MarginfiClient, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import {
   dynamicNumeralFormatter,
@@ -33,7 +33,6 @@ const StakeAccountSwitcher = ({
   stakePoolMetadataMap,
   marginfiClient,
   selectedAccount,
-  onRefresh,
 }: {
   selectedBank: ExtendedBankInfo;
   selectedStakeAccount?: PublicKey;
@@ -42,11 +41,13 @@ const StakeAccountSwitcher = ({
   onStakeAccountChange: (stakeAccount: { address: PublicKey; balance: number }) => void;
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
-  onRefresh?: () => void;
 }) => {
   const [mergeMode, setMergeMode] = React.useState(false);
   const [accountsToMerge, setAccountsToMerge] = React.useState<PublicKey[]>([]);
+  const [isMerging, setIsMerging] = React.useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const stakePoolMetadata = stakePoolMetadataMap?.get(selectedBank.address.toBase58());
+  const refreshUserData = useRefreshUserData();
 
   const currentValidator = stakeAccounts.find((stakeAccount) =>
     stakeAccount.validator.equals(stakePoolMetadata?.validatorVoteAccount || PublicKey.default)
@@ -62,43 +63,67 @@ const StakeAccountSwitcher = ({
   }, [mergeMode, selectedStakeAccount]);
 
   const mergeStakeAccounts = async () => {
+    console.log("mergeStakeAccounts called", {
+      marginfiClient,
+      selectedAccount,
+      accountsToMerge,
+    });
     if (!marginfiClient || !selectedAccount || accountsToMerge.length !== 2) {
+      console.error("Precondition failed", { marginfiClient, selectedAccount, accountsToMerge });
+      alert("Merge precondition failed. Check console for details.");
       return;
     }
 
-    // The first account (currently selected) is the destination
-    // The second account (additional selected) is the source
-    const [destinationAccount, sourceAccount] = accountsToMerge;
+    setIsMerging(true);
 
-    await executeActionWrapper({
-      actionName: "Merge stake accounts",
-      steps: [{ label: "Signing transaction" }, { label: "Merging stake accounts" }],
-      action: async (txns, onSuccessAndNext) => {
-        const mergeTx = await selectedAccount.makeMergeStakeAccountsTx(sourceAccount, destinationAccount);
-        const sigs = await marginfiClient.processTransactions([mergeTx], {
-          broadcastType: "RPC",
-          callback(index, success, sig, stepsToAdvance) {
-            success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
-          },
-        });
-        return sigs[0];
-      },
-      onComplete: () => {
-        // Reset merge mode and refresh
-        setMergeMode(false);
-        setAccountsToMerge([]);
-        onRefresh?.();
-      },
-      txns: {
-        transactions: [],
-      },
-    });
+    try {
+      // The first account (currently selected) is the destination
+      // The second account (additional selected) is the source
+      const [destinationAccount, sourceAccount] = accountsToMerge;
+
+      await executeActionWrapper({
+        actionName: "Merge stake accounts",
+        steps: [{ label: "Signing transaction" }, { label: "Merging stake accounts" }],
+        action: async (txns, onSuccessAndNext) => {
+          const mergeTx = await selectedAccount.makeMergeStakeAccountsTx(sourceAccount, destinationAccount);
+          const sigs = await marginfiClient.processTransactions([mergeTx], {
+            broadcastType: "RPC",
+            callback(index, success, sig, stepsToAdvance) {
+              success && onSuccessAndNext(stepsToAdvance, composeExplorerUrl(sig), sig);
+            },
+          });
+          return sigs[0];
+        },
+        onComplete: () => {
+          // Reset merge mode and refresh
+          setMergeMode(false);
+          setAccountsToMerge([]);
+          refreshUserData({ clearStakeAccountsCache: true });
+        },
+        txns: {
+          transactions: [],
+        },
+      });
+    } finally {
+      // Always reset merging state, regardless of success or failure
+      refreshUserData({ clearStakeAccountsCache: true });
+      setIsMerging(false);
+      setMergeMode(false);
+      setAccountsToMerge([]);
+    }
   };
 
-  if (!currentValidator || currentValidator.accounts.length <= 1 || !selectedStakeAccount) return null;
+  if (
+    !currentValidator ||
+    currentValidator.accounts.length <= 1 ||
+    !selectedStakeAccount ||
+    !marginfiClient ||
+    !selectedAccount
+  )
+    return null;
 
   return (
-    <Popover>
+    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" className="group h-auto p-0 text-xs font-normal hover:bg-transparent">
           <span className="flex items-center gap-1">
@@ -118,6 +143,7 @@ const StakeAccountSwitcher = ({
             id="merge-mode"
             checked={mergeMode}
             onCheckedChange={setMergeMode}
+            disabled={isMerging}
             className="data-[state=unchecked]:bg-accent"
           />
         </div>
@@ -133,19 +159,19 @@ const StakeAccountSwitcher = ({
               <Button
                 key={account.pubkey.toBase58()}
                 variant="ghost"
-                disabled={mergeMode && isCurrentAccount} // Disable current account in merge mode
+                disabled={(mergeMode && isCurrentAccount) || isMerging} // Disable current account in merge mode and all during merging
                 className={cn(
                   "w-full justify-between items-start h-auto p-2 text-sm font-normal",
                   mergeMode && isInMergeList && "bg-accent",
                   isSelected && !mergeMode && "bg-accent"
                 )}
                 onClick={() => {
+                  if (isMerging) return; // Prevent clicks during merge
                   if (mergeMode) {
                     if (isCurrentAccount) {
                       // Current account is always selected in merge mode
                       return;
                     }
-
                     // Toggle additional account selection
                     if (isInMergeList) {
                       setAccountsToMerge(accountsToMerge.filter((p) => !p.equals(account.pubkey)));
@@ -154,6 +180,7 @@ const StakeAccountSwitcher = ({
                       const currentAccount = accountsToMerge[0]; // The currently selected account
                       setAccountsToMerge([currentAccount, account.pubkey]);
                     }
+                    console.log("accountsToMerge after click", accountsToMerge, account.pubkey);
                   } else if (!isSelected) {
                     onStakeAccountChange({ address: account.pubkey, balance: account.amount });
                   }
@@ -186,11 +213,12 @@ const StakeAccountSwitcher = ({
             <Button
               className="w-full"
               size="sm"
+              disabled={isMerging}
               onClick={() => {
                 mergeStakeAccounts();
               }}
             >
-              Merge into {shortenAddress(accountsToMerge[0])}
+              {isMerging ? "Merging..." : `Merge into ${shortenAddress(accountsToMerge[0])}`}
             </Button>
           </div>
         )}

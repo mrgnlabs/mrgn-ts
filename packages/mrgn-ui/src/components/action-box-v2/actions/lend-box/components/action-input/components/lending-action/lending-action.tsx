@@ -65,10 +65,6 @@ export const LendingAction = ({
                 stakePoolMetadataMap={stakePoolMetadataMap ?? null}
                 marginfiClient={marginfiClient ?? null}
                 selectedAccount={selectedAccount ?? null}
-                onRefresh={() => {
-                  // Refresh stake account data after merge
-                  // This will be handled by the parent component's refresh mechanism
-                }}
               />
             ),
             amount: formatAmount(walletAmount, "SOL"),
