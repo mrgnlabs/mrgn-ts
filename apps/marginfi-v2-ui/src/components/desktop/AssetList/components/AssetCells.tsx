@@ -26,8 +26,6 @@ import {
   EMISSION_MINT_INFO_MAP,
 } from "@mrgnlabs/mrgn-utils";
 
-import { useNativeStakeData } from "@mrgnlabs/mrgn-state";
-
 import { IMAGE_CDN_URL } from "~/config/constants";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, TooltipPortal } from "~/components/ui/tooltip";
 import { IconPyth, IconSwitchboard } from "~/components/ui/icons";
@@ -40,7 +38,6 @@ import { EmodePopover } from "~/components/common/emode/components/emode-popover
 import { IconEmode } from "~/components/ui/icons";
 import { BankChartDialog } from "~/components/common/bank/components/bank-chart-dialog";
 import { Button } from "~/components/ui/button";
-import { Skeleton } from "~/components/ui/skeleton";
 
 export const getAssetCell = (asset: AssetData) => {
   return (
@@ -397,14 +394,6 @@ export const getPositionCell = (positionData: PositionData) => {
 };
 
 export const getValidatorCell = (validatorVoteAccount: PublicKey) => {
-  const { isLoading } = useNativeStakeData();
-  if (isLoading) {
-    return (
-      <div className="flex justify-end items-center">
-        <Skeleton className="h-3 w-16" />
-      </div>
-    );
-  }
   if (!validatorVoteAccount) return null;
   const pkStr = validatorVoteAccount.toBase58();
   return (
@@ -426,13 +415,5 @@ export const getValidatorCell = (validatorVoteAccount: PublicKey) => {
 };
 
 export const getValidatorRateCell = (rewardRate: number) => {
-  const { isLoading } = useNativeStakeData();
-  if (isLoading) {
-    return (
-      <div className="flex justify-end items-center">
-        <Skeleton className="h-3 w-16" />
-      </div>
-    );
-  }
   return <div className="text-right text-success">{rewardRate ? percentFormatter.format(rewardRate / 100) : 0}</div>;
 };
