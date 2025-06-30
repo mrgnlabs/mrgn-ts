@@ -18,7 +18,7 @@ import {
   ChartLegendContent,
 } from "~/components/ui/chart";
 import { Loader } from "~/components/ui/loader";
-import { usePortfolioData } from "@mrgnlabs/mrgn-state";
+import { usePortfolioData, usePortfolioChart } from "@mrgnlabs/mrgn-state";
 import { useMemo } from "react";
 import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
@@ -48,67 +48,13 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
     isLoading,
   } = usePortfolioData(accountAddress, banks);
 
-  // Transform data based on variant
-  const { chartData, bankSymbols } = useMemo(() => {
-    if (isLoading || !portfolioData || portfolioData.length === 0) {
-      return { chartData: [], bankSymbols: [] };
-    }
 
-    // For the "net" variant, use the total portfolio data
-    if (variant === "net") {
-      // Convert the filled daily totals to chart format
-      const sortedDates = Object.keys(filledDailyTotals).sort();
-      const chartData = sortedDates.map((dateStr) => {
-        const totals = filledDailyTotals[dateStr];
-        const netValue = totals.deposits - totals.borrows;
-
-        return {
-          timestamp: dateStr,
-          net: netValue,
-        };
-      });
-
-      return { chartData, bankSymbols: ["net"] };
-    }
-
-    // For deposits or borrows, use the bank-specific data
-    const allBankSymbols = Object.keys(filledBankData);
-    if (allBankSymbols.length === 0) {
-      return { chartData: [], bankSymbols: [] };
-    }
-
-    // Get all dates from the first bank (all banks should have the same date range)
-    const firstBank = allBankSymbols[0];
-    const allDates = Object.keys(filledBankData[firstBank]).sort();
-
-    // Filter out banks that have all zero values for the selected variant
-    const filteredBankSymbols = allBankSymbols.filter((symbol: string) => {
-      // Check if this bank has any non-zero values for the selected variant
-      return Object.values(filledBankData[symbol]).some((dayData) => {
-        return dayData[variant] > 0;
-      });
-    });
-
-    // If no banks have non-zero values, return empty data
-    if (filteredBankSymbols.length === 0) {
-      return { chartData: [], bankSymbols: [] };
-    }
-
-    // Create chart data points with filtered banks for each date
-    const chartData = allDates.map((date) => {
-      const dataPoint: any = { timestamp: date };
-
-      // Add each filtered bank's value for this date
-      filteredBankSymbols.forEach((symbol: string) => {
-        const bankValues = filledBankData[symbol][date];
-        dataPoint[symbol] = bankValues ? bankValues[variant] : 0;
-      });
-
-      return dataPoint;
-    });
-
-    return { chartData, bankSymbols: filteredBankSymbols };
-  }, [portfolioData, filledDailyTotals, filledBankData, variant, isLoading]);
+  const {
+    data: chartData,
+    bankSymbols,
+    isLoading: isChartLoading,
+    error: chartError,
+  } = usePortfolioChart(accountAddress, banks, variant as "deposits" | "borrows" | "net");
 
   // Dynamic chart config with new color scheme
   const dynamicChartConfig = React.useMemo(() => {
@@ -127,9 +73,9 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
             label: symbol,
             color: "hsl(var(--mfi-chart-negative))",
           };
-        } else if (symbol === "Net Portfolio") {
+        } else if (symbol === "Net Portfolio" || symbol === "net") {
           config[symbol] = {
-            label: symbol,
+            label: symbol === "net" ? "Net Portfolio" : symbol,
             color: "hsl(var(--mfi-chart-neutral))",
           };
         } else {
@@ -161,7 +107,7 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
     return config;
   }, [variant, bankSymbols]);
 
-  if (isLoading) {
+  if (isChartLoading) {
     return (
       <div className="w-full h-[300px] flex items-center justify-center">
         <Loader label="Loading portfolio data..." />
@@ -169,18 +115,23 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
     );
   }
 
-  if (error) {
+  if (chartError) {
     return (
       <div className="w-full h-[300px] flex items-center justify-center">
-        <p className="text-muted-foreground">{error.message}</p>
+        <div className="text-center text-muted-foreground">
+          <p>Failed to load {variant === "borrows" ? "borrow" : variant === "deposits" ? "deposit" : ""} data</p>
+          <p className="text-sm">{chartError.message}</p>
+        </div>
       </div>
     );
   }
-
   if (!chartData || chartData.length === 0) {
     return (
       <div className="w-full h-[300px] flex items-center justify-center">
-        <p className="text-muted-foreground">No portfolio data available</p>
+        <div className="text-center text-muted-foreground">
+          <p>No {variant === "borrows" ? "borrow" : variant === "deposits" ? "deposit" : ""} data available</p>
+          <p className="text-sm">Data will appear here when available</p>
+        </div>
       </div>
     );
   }
@@ -225,29 +176,27 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
             />
             <ChartLegend content={<ChartLegendContent />} className="mt-2" />
             <defs>
-              {bankSymbols
-                .filter((symbol) => symbol !== "Net Portfolio")
-                .map((symbol: string) => {
-                  const { color } = dynamicChartConfig[symbol] || {};
-                  const uniqueId = `${variant}-${symbol.replace(/\s+/g, "")}-Fill`;
-                  return (
-                    <linearGradient key={uniqueId} id={uniqueId} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={color} stopOpacity={0.3} />
-                      <stop offset="95%" stopColor={color} stopOpacity={0.05} />
-                    </linearGradient>
-                  );
-                })}
+              {bankSymbols.map((symbol: string) => {
+                const { color } = dynamicChartConfig[symbol] || {};
+                const uniqueId = `${variant}-${symbol.replace(/\s+/g, "")}-Fill`;
+                return (
+                  <linearGradient key={uniqueId} id={uniqueId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={color} stopOpacity={0.05} />
+                  </linearGradient>
+                );
+              })}
             </defs>
             {bankSymbols.map((symbol: string, index: number) => {
-              if (symbol === "Net Portfolio") {
-                // Render net portfolio as a transparent area (appears as line on top)
+              if (symbol === "net" || symbol === "Net Portfolio") {
+                const uniqueId = `${variant}-${symbol.replace(/\s+/g, "")}-Fill`;
                 return (
                   <Area
                     key={symbol}
                     dataKey={symbol}
                     type="monotone"
-                    fill="transparent"
-                    fillOpacity={0}
+                    fill={`url(#${uniqueId})`}
+                    fillOpacity={0.7}
                     stroke={(dynamicChartConfig as any)[symbol]?.color || "hsl(var(--mfi-chart-neutral))"}
                     strokeWidth={2}
                     name={symbol}
@@ -256,7 +205,6 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
                   />
                 );
               } else {
-                // Render main data with gradients
                 const uniqueId = `${variant}-${symbol.replace(/\s+/g, "")}-Fill`;
                 return (
                   <Area

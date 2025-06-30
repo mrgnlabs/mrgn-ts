@@ -36,6 +36,8 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
     return extendedBanks.find((bank) => bank.address.toBase58() === bankAddress);
   }, [extendedBanks, bankAddress]);
 
+  const isNativeStakeBank = bank?.info.rawBank.config.assetTag === 2;
+
   const currentUtilizationRateDecimal = React.useMemo(() => {
     if (!bank) return 0;
     return bank.info.state.utilizationRate / 100; // Convert from percentage to decimal
@@ -172,12 +174,15 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
             >
               TVL
             </ToggleGroupItem>
-            <ToggleGroupItem
-              value="rates"
-              className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 disabled:opacity-50"
-            >
-              Rates
-            </ToggleGroupItem>
+            {!isNativeStakeBank && (
+              <ToggleGroupItem
+                value="rates"
+                className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 disabled:opacity-50"
+              >
+                Rates
+              </ToggleGroupItem>
+            )}
+
             <ToggleGroupItem
               value="interest-curve"
               className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 disabled:opacity-50"

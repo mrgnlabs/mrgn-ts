@@ -48,18 +48,19 @@ export const enrichPortfolioData = (
  */
 export const calculateDailyTotals = (
   data: EnrichedPortfolioDataPoint[]
-): Record<string, { deposits: number; borrows: number }> => {
+): Record<string, { deposits: number; borrows: number; net: number }> => {
   if (!data?.length) return {};
 
-  const dailyTotals: Record<string, { deposits: number; borrows: number }> = {};
-  
+  const dailyTotals: Record<string, { deposits: number; borrows: number; net: number }> = {};
+
   data.forEach((item) => {
     const date = item.bucket_start.split("T")[0];
     if (!dailyTotals[date]) {
-      dailyTotals[date] = { deposits: 0, borrows: 0 };
+      dailyTotals[date] = { deposits: 0, borrows: 0, net: 0 };
     }
     dailyTotals[date].deposits += item.deposit_value_usd;
     dailyTotals[date].borrows += item.borrow_value_usd;
+    dailyTotals[date].net = dailyTotals[date].deposits - dailyTotals[date].borrows;
   });
 
   return dailyTotals;
@@ -72,7 +73,7 @@ export const calculateDailyTotals = (
  */
 export const calculatePerBankDailyTotals = (
   data: EnrichedPortfolioDataPoint[]
-): Record<string, Record<string, { deposits: number; borrows: number }>> => {
+): Record<string, Record<string, { deposits: number; borrows: number; net: number }>> => {
   if (!data?.length) return {};
 
   // Get unique bank symbols
@@ -83,21 +84,23 @@ export const calculatePerBankDailyTotals = (
   const overallStartDate = allDates[0];
   const overallEndDate = allDates[allDates.length - 1];
 
-  const bankData: Record<string, Record<string, { deposits: number; borrows: number }>> = {};
+  const bankData: Record<string, Record<string, { deposits: number; borrows: number; net: number }>> = {};
 
   // Process each bank separately
   bankSymbols.forEach((bankSymbol) => {
     const bankItems = data.filter((item) => item.bank_symbol === bankSymbol);
 
     // Create daily totals for this bank
-    const bankDailyTotals: Record<string, { deposits: number; borrows: number }> = {};
+    const bankDailyTotals: Record<string, { deposits: number; borrows: number; net: number }> = {};
     bankItems.forEach((item) => {
       const date = item.bucket_start.split("T")[0];
       if (!bankDailyTotals[date]) {
-        bankDailyTotals[date] = { deposits: 0, borrows: 0 };
+        bankDailyTotals[date] = { deposits: 0, borrows: 0, net: 0 };
       }
       bankDailyTotals[date].deposits += item.deposit_value_usd;
       bankDailyTotals[date].borrows += item.borrow_value_usd;
+      // Calculate net value
+      bankDailyTotals[date].net = bankDailyTotals[date].deposits - bankDailyTotals[date].borrows;
     });
 
     // Fill gaps for this bank using the OVERALL date range for consistency
@@ -113,7 +116,7 @@ export const calculatePerBankDailyTotals = (
  * @returns Chart-ready data points
  */
 export const transformPortfolioDataToChartFormat = (
-  filledDailyTotals: Record<string, { deposits: number; borrows: number }>
+  filledDailyTotals: Record<string, { deposits: number; borrows: number; net: number }>
 ): PortfolioChartDataPoint[] => {
   if (!filledDailyTotals || Object.keys(filledDailyTotals).length === 0) {
     return [];
@@ -125,29 +128,32 @@ export const transformPortfolioDataToChartFormat = (
       timestamp: date,
       deposits: values.deposits,
       borrows: values.borrows,
-      net: values.deposits - values.borrows,
+      net: values.net, // Use the pre-calculated net value
     }))
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 };
 
-
 /**
- * Fill gaps in daily totals within the actual data range (no artificial dates)
+ * Fill gaps in daily totals within the actual data range and extend to current date
  */
 export const fillPortfolioDataGaps = (
-  dailyTotals: Record<string, { deposits: number; borrows: number }>,
+  dailyTotals: Record<string, { deposits: number; borrows: number; net?: number }>,
   overrideStartDate?: string,
   overrideEndDate?: string
-): Record<string, { deposits: number; borrows: number }> => {
+): Record<string, { deposits: number; borrows: number; net: number }> => {
   const existingDates = Object.keys(dailyTotals).sort();
 
   if (existingDates.length === 0) {
+    console.log("No existing dates in dailyTotals");
     return {};
   }
 
   // Use override dates if provided (for consistent cross-bank date range)
   const firstDate = overrideStartDate || existingDates[0];
-  const lastDate = overrideEndDate || existingDates[existingDates.length - 1];
+
+
+  const today = new Date().toISOString().split("T")[0];
+  const lastDate = today;
 
   // Generate all dates between first and last date (inclusive)
   const startDateObj = new Date(firstDate);
@@ -161,24 +167,36 @@ export const fillPortfolioDataGaps = (
     currentDate.setDate(currentDate.getDate() + 1);
   }
 
-  const filledTotals: Record<string, { deposits: number; borrows: number }> = {};
+  const filledTotals: Record<string, { deposits: number; borrows: number; net: number }> = {};
 
   // Forward-fill missing data with last known values (within actual date range only)
   let lastDeposits = 0;
   let lastBorrows = 0;
+  let lastNet = 0;
 
   allDates.forEach((dateStr) => {
     // Check if we have actual data for this date
     if (dailyTotals[dateStr]) {
       // Use actual data and update last known values
-      filledTotals[dateStr] = dailyTotals[dateStr];
-      lastDeposits = dailyTotals[dateStr].deposits;
-      lastBorrows = dailyTotals[dateStr].borrows;
+      const deposits = dailyTotals[dateStr].deposits;
+      const borrows = dailyTotals[dateStr].borrows;
+      const net = dailyTotals[dateStr].net !== undefined ? dailyTotals[dateStr].net : deposits - borrows;
+
+      filledTotals[dateStr] = {
+        deposits,
+        borrows,
+        net,
+      };
+
+      lastDeposits = deposits;
+      lastBorrows = borrows;
+      lastNet = net;
     } else {
       // No actual data for this date, use last known values (only within actual range)
       filledTotals[dateStr] = {
         deposits: lastDeposits,
         borrows: lastBorrows,
+        net: lastNet,
       };
     }
   });

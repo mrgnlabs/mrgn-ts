@@ -45,8 +45,8 @@ export interface PortfolioStatsData {
  */
 export interface PortfolioDataResult {
   data: EnrichedPortfolioDataPoint[];
-  filledDailyTotals: Record<string, { deposits: number; borrows: number }>; // Gap-filled daily totals for chart consistency
-  filledBankData: Record<string, Record<string, { deposits: number; borrows: number }>>; // Gap-filled per-bank data
+  filledDailyTotals: Record<string, { deposits: number; borrows: number; net: number }>; // Gap-filled daily totals for chart consistency
+  filledBankData: Record<string, Record<string, { deposits: number; borrows: number; net: number }>>; // Gap-filled per-bank data
   supplied30d: PortfolioStatsData; // Stats across actual data range
   borrowed30d: PortfolioStatsData; // Stats across actual data range
   netValue30d: PortfolioStatsData; // Stats across actual data range

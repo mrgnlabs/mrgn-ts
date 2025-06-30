@@ -9,3 +9,4 @@ export * from "./use-account-summary";
 export * from "./use-native-stake-data";
 export * from "./use-protocol-stats";
 export * from "./use-firebase-user.hooks";
+export * from "./use-chart.hooks";
