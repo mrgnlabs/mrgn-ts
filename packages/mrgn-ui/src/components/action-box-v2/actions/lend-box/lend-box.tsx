@@ -247,8 +247,19 @@ export const LendBox = ({
       marginfiAccount: selectedAccount,
       nativeSolBalance,
       lendMode,
+      selectedStakeAccount,
     });
-  }, [amount, connected, showCloseBalance, selectedBank, banks, selectedAccount, nativeSolBalance, lendMode]);
+  }, [
+    amount,
+    connected,
+    showCloseBalance,
+    selectedBank,
+    banks,
+    selectedAccount,
+    nativeSolBalance,
+    lendMode,
+    selectedStakeAccount,
+  ]);
 
   const buttonLabel = React.useMemo(() => (showCloseBalance ? "Close" : lendMode), [showCloseBalance, lendMode]);
 

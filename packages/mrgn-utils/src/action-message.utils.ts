@@ -18,6 +18,7 @@ import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { EmodeImpact, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { QuoteResponse } from "@jup-ag/api";
 import { WalletToken } from "@mrgnlabs/mrgn-common";
+import { PublicKey } from "@solana/web3.js";
 
 export function getColorForActionMessageUIType(type?: ActionMessageUIType) {
   if (type === "INFO") {
@@ -48,6 +49,10 @@ interface CheckLendActionAvailableProps {
   banks: ExtendedBankInfo[];
   marginfiAccount: MarginfiAccountWrapper | null;
   lendMode: ActionType;
+  selectedStakeAccount: {
+    address: PublicKey;
+    balance: number;
+  } | null;
 }
 
 export function checkLendActionAvailable({
@@ -59,6 +64,7 @@ export function checkLendActionAvailable({
   banks,
   marginfiAccount,
   lendMode,
+  selectedStakeAccount,
 }: CheckLendActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
@@ -72,7 +78,7 @@ export function checkLendActionAvailable({
   if (selectedBank) {
     switch (lendMode) {
       case ActionType.Deposit:
-        const lentChecks = canBeLent(selectedBank, nativeSolBalance);
+        const lentChecks = canBeLent(selectedBank, nativeSolBalance, selectedStakeAccount);
         if (lentChecks.length) checks.push(...lentChecks);
         break;
       case ActionType.Withdraw:

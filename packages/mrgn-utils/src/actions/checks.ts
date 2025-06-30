@@ -14,6 +14,7 @@ import { ExtendedBankInfo, FEE_MARGIN } from "@mrgnlabs/mrgn-state";
 import { DYNAMIC_SIMULATION_ERRORS, STATIC_INFO_MESSAGES, STATIC_SIMULATION_ERRORS } from "../errors";
 import { ArenaGroupStatus } from "../types";
 import { isWholePosition } from "../mrgnUtils";
+import { PublicKey } from "@solana/web3.js";
 
 type QuoteResponseMeta = {
   quoteResponse: QuoteResponse;
@@ -425,7 +426,14 @@ function canBeBorrowed(
   return checks;
 }
 
-function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): ActionMessageType[] {
+function canBeLent(
+  targetBankInfo: ExtendedBankInfo,
+  nativeSolBalance: number,
+  selectedStakeAccount: {
+    address: PublicKey;
+    balance: number;
+  } | null
+): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
 
@@ -463,12 +471,16 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   }
 
   const isWrappedSol = targetBankInfo.info.state.mint.equals(WSOL_MINT);
-  const walletBalance = floor(
+  let walletBalance = floor(
     isWrappedSol
       ? Math.max(targetBankInfo.userInfo.tokenAccount.balance + nativeSolBalance - FEE_MARGIN, 0)
       : targetBankInfo.userInfo.tokenAccount.balance,
     targetBankInfo.info.state.mintDecimals
   );
+
+  if (targetBankInfo.info.rawBank.config.assetTag === 2) {
+    walletBalance = selectedStakeAccount?.balance || 0;
+  }
 
   if (walletBalance === 0 && targetBankInfo.info.rawBank.config.assetTag !== 2) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.INSUFFICIENT_BALANCE_CHECK(targetBankInfo.meta.tokenSymbol));
