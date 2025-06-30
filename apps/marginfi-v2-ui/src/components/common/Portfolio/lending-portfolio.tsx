@@ -493,6 +493,8 @@ export const LendingPortfolio = () => {
               latestNetInterest={latestNetInterest}
               netInterest30d={netInterest30d}
               isLoading={isLoadingSelectedAccount}
+              isLoadingPortfolio={portfolioLoading}
+              isLoadingInterest={interestLoading}
             />
           </div>
         </div>

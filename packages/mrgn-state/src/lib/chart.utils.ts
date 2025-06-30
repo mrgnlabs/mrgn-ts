@@ -443,7 +443,6 @@ export function forwardFillDataToCurrentDate<T extends { timestamp: string }>(ch
 
   // If the last data point is already today or in the future, no need to forward-fill
   if (lastTimestamp >= today) {
-    console.log("Last data point is already at or beyond today, no forward-filling needed");
     return chartData;
   }
 

@@ -19,6 +19,8 @@ interface PortfolioUserStatsProps {
   latestNetInterest?: number;
   netInterest30d?: StatsData;
   isLoading?: boolean;
+  isLoadingPortfolio?: boolean;
+  isLoadingInterest?: boolean;
 }
 
 // Helper function to format change value and percentage
@@ -46,6 +48,8 @@ export const PortfolioUserStats = ({
   latestNetInterest,
   netInterest30d,
   isLoading,
+  isLoadingPortfolio,
+  isLoadingInterest,
 }: PortfolioUserStatsProps) => {
   return (
     <div className="flex justify-between flex-wrap gap-y-4">
@@ -56,7 +60,7 @@ export const PortfolioUserStats = ({
             <Skeleton className="h-6 w-20 mt-1" />
           ) : (
             <>
-              {supplied} {supplied30d && formatChange(supplied30d.change, supplied30d.changePercent)}
+              {supplied} {!isLoadingPortfolio && supplied30d ? formatChange(supplied30d.change, supplied30d.changePercent) : <Skeleton className="inline-block h-4 w-16 ml-1" />}
             </>
           )
         }
@@ -68,7 +72,7 @@ export const PortfolioUserStats = ({
             <Skeleton className="h-6 w-20 mt-1" />
           ) : (
             <>
-              {borrowed} {borrowed30d && formatChange(borrowed30d.change, borrowed30d.changePercent)}
+              {borrowed} {!isLoadingPortfolio && borrowed30d ? formatChange(borrowed30d.change, borrowed30d.changePercent) : <Skeleton className="inline-block h-4 w-16 ml-1" />}
             </>
           )
         }
@@ -80,7 +84,7 @@ export const PortfolioUserStats = ({
             <Skeleton className="h-6 w-20 mt-1" />
           ) : (
             <>
-              {netValue} {netValue30d && formatChange(netValue30d.change, netValue30d.changePercent)}
+              {netValue} {!isLoadingPortfolio && netValue30d ? formatChange(netValue30d.change, netValue30d.changePercent) : <Skeleton className="inline-block h-4 w-16 ml-1" />}
             </>
           )
         }
@@ -88,12 +92,12 @@ export const PortfolioUserStats = ({
       <Stat
         label="Interest earned"
         value={
-          isLoading ? (
+          isLoading || isLoadingInterest ? (
             <Skeleton className="h-6 w-20 mt-1" />
           ) : (
             <>
               {latestNetInterest !== undefined ? usdFormatter.format(latestNetInterest) : "$0.00"}{" "}
-              {netInterest30d && formatChange(netInterest30d.change, netInterest30d.changePercent)}
+              {!isLoadingInterest && netInterest30d ? formatChange(netInterest30d.change, netInterest30d.changePercent) : <Skeleton className="inline-block h-4 w-16 ml-1" />}
             </>
           )
         }

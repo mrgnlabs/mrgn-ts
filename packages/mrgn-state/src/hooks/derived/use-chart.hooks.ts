@@ -74,25 +74,57 @@ export function usePortfolioChart(
 
 
     if (variant === "net") {
-      // Convert the filled daily totals to chart format
-      const sortedDates = Object.keys(filledDailyTotals).sort();
-      const chartData = sortedDates.map((dateStr) => {
-        const totals = filledDailyTotals[dateStr];
-
-        const netValue = totals.net !== undefined ? totals.net : totals.deposits - totals.borrows;
-
-
-        return {
-          timestamp: dateStr,
-          net: netValue,
-          "Net Portfolio": netValue,
-        };
+      // For net chart, we need to ensure we have data for all dates including gaps
+      // First, get all dates from the filled daily totals
+      const allDates = Object.keys(filledDailyTotals).sort();
+      
+      if (allDates.length === 0) {
+        return { data: [], bankSymbols: [] };
+      }
+      
+      // Create a continuous array of dates from first to last date
+      const firstDate = new Date(allDates[0]);
+      const lastDate = new Date(allDates[allDates.length - 1]);
+      const today = new Date();
+      
+      // Always extend to today
+      const endDate = today > lastDate ? today : lastDate;
+      
+      // Generate all dates in range
+      const continuousDates: string[] = [];
+      const currentDate = new Date(firstDate);
+      
+      while (currentDate <= endDate) {
+        continuousDates.push(currentDate.toISOString().split('T')[0]);
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      
+      // Create chart data with proper forward filling for ALL dates
+      let lastNetValue = 0;
+      
+      const chartData = continuousDates.map(dateStr => {
+        if (filledDailyTotals[dateStr]) {
+          // Use actual data if available
+          const totals = filledDailyTotals[dateStr];
+          const netValue = totals.net !== undefined ? totals.net : totals.deposits - totals.borrows;
+          lastNetValue = netValue;
+          
+          return {
+            timestamp: dateStr,
+            net: netValue,
+            "Net Portfolio": netValue
+          };
+        } else {
+          // Forward fill with last known value
+          return {
+            timestamp: dateStr,
+            net: lastNetValue,
+            "Net Portfolio": lastNetValue
+          };
+        }
       });
-
-      // Forward-fill net variant data to current date
-      const forwardFilledData = forwardFillDataToCurrentDate(chartData, ["net"]);
-
-      return { data: forwardFilledData, bankSymbols: ["Net Portfolio"] };
+      
+      return { data: chartData, bankSymbols: ["Net Portfolio"] };
     }
 
     const transformedData = transformBankPortfolioData(filledBankData, variant as "deposits" | "borrows");
