@@ -1,5 +1,6 @@
 import { IconClockHour4, IconInfoCircle } from "@tabler/icons-react";
 import { usdFormatter } from "@mrgnlabs/mrgn-common";
+import { Skeleton } from "~/components/ui/skeleton";
 
 interface StatsData {
   value: number;
@@ -17,6 +18,7 @@ interface PortfolioUserStatsProps {
   netValue30d?: StatsData;
   latestNetInterest?: number;
   netInterest30d?: StatsData;
+  isLoading?: boolean;
 }
 
 // Helper function to format change value and percentage
@@ -43,40 +45,57 @@ export const PortfolioUserStats = ({
   netValue30d,
   latestNetInterest,
   netInterest30d,
+  isLoading,
 }: PortfolioUserStatsProps) => {
   return (
     <div className="flex justify-between flex-wrap gap-y-4">
       <Stat
         label="Supplied"
         value={
-          <>
-            {supplied} {supplied30d && formatChange(supplied30d.change, supplied30d.changePercent)}
-          </>
+          isLoading ? (
+            <Skeleton className="h-6 w-20 mt-1" />
+          ) : (
+            <>
+              {supplied} {supplied30d && formatChange(supplied30d.change, supplied30d.changePercent)}
+            </>
+          )
         }
       />
       <Stat
         label="Borrowed"
         value={
-          <>
-            {borrowed} {borrowed30d && formatChange(borrowed30d.change, borrowed30d.changePercent)}
-          </>
+          isLoading ? (
+            <Skeleton className="h-6 w-20 mt-1" />
+          ) : (
+            <>
+              {borrowed} {borrowed30d && formatChange(borrowed30d.change, borrowed30d.changePercent)}
+            </>
+          )
         }
       />
       <Stat
         label="Net value"
         value={
-          <>
-            {netValue} {netValue30d && formatChange(netValue30d.change, netValue30d.changePercent)}
-          </>
+          isLoading ? (
+            <Skeleton className="h-6 w-20 mt-1" />
+          ) : (
+            <>
+              {netValue} {netValue30d && formatChange(netValue30d.change, netValue30d.changePercent)}
+            </>
+          )
         }
       />
       <Stat
         label="Interest earned"
         value={
-          <>
-            {latestNetInterest !== undefined ? usdFormatter.format(latestNetInterest) : "$0.00"}{" "}
-            {netInterest30d && formatChange(netInterest30d.change, netInterest30d.changePercent)}
-          </>
+          isLoading ? (
+            <Skeleton className="h-6 w-20 mt-1" />
+          ) : (
+            <>
+              {latestNetInterest !== undefined ? usdFormatter.format(latestNetInterest) : "$0.00"}{" "}
+              {netInterest30d && formatChange(netInterest30d.change, netInterest30d.changePercent)}
+            </>
+          )
         }
       />
     </div>

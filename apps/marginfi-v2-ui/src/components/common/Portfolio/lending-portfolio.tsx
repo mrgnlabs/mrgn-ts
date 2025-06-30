@@ -1,18 +1,9 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
 
-import {
-  IconAlertCircle,
-  IconChartAreaLine,
-  IconDashboard,
-  IconInfoCircle,
-  IconSearch,
-  IconSparkles,
-  IconX,
-} from "@tabler/icons-react";
+import { IconAlertCircle, IconChartAreaLine, IconInfoCircle } from "@tabler/icons-react";
 
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
@@ -26,7 +17,6 @@ import { useUiStore, useUserProfileStore } from "~/store";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { WalletAuthAccounts, WalletButton } from "~/components/wallet-v2";
-import { Loader } from "~/components/ui/loader";
 
 import { RewardsDialog } from "./components/rewards";
 
@@ -56,8 +46,7 @@ import {
   useWrappedMarginfiAccount,
 } from "@mrgnlabs/mrgn-state";
 import { PublicKey } from "@solana/web3.js";
-
-// Removed old interest chart types - now handled by hooks
+import { Skeleton } from "~/components/ui/skeleton";
 
 const initialRewardsState: RewardsType = {
   state: "NOT_FETCHED",
@@ -66,18 +55,14 @@ const initialRewardsState: RewardsType = {
   totalRewardAmount: 0,
 };
 
-// Removed old transformation functions - now handled by hooks
-
 export const LendingPortfolio = () => {
-  const { connected, wallet, walletAddress } = useWallet();
-  const { connection } = useConnection();
+  const { connected, wallet } = useWallet();
 
-  const [walletConnectionDelay, setWalletConnectionDelay] = React.useState(false);
-  const { extendedBanks: sortedBanks } = useExtendedBanks();
+  const { extendedBanks: sortedBanks, isLoading: isLoadingExtendedBanks } = useExtendedBanks();
   const accountSummary = useAccountSummary();
-  const { marginfiClient } = useMarginfiClient(wallet);
-  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(wallet);
-  const { data: marginfiAccounts } = useMarginfiAccountAddresses();
+  const { marginfiClient, isLoading: isLoadingMarginfiClient } = useMarginfiClient(wallet);
+  const { wrappedAccount: selectedAccount, isLoading: isLoadingSelectedAccount } = useWrappedMarginfiAccount(wallet);
+  const { data: marginfiAccounts, isLoading: isLoadingMarginfiAccounts } = useMarginfiAccountAddresses();
   const { activeEmodePairs, emodePairs } = useEmode();
   const refreshUserData = useRefreshUserData();
 
@@ -89,9 +74,6 @@ export const LendingPortfolio = () => {
     },
     [setSelectedKey]
   );
-
-  const isStoreInitialized = true;
-  const isRefreshingStore = false;
 
   const [priorityFees, broadcastType, accountLabels, setGlobalActionBoxProps, globalActionBoxProps] = useUiStore(
     (state) => [
@@ -119,8 +101,6 @@ export const LendingPortfolio = () => {
   const [rewardsToastOpen, setRewardsToastOpen] = React.useState(false);
   const [rewardsToast, setRewardsToast] = React.useState<CustomToastType | null>(null);
 
-  // Removed old interest state - now handled by hooks
-
   // Fetch portfolio and interest data for user stats
   const {
     supplied30d,
@@ -137,7 +117,6 @@ export const LendingPortfolio = () => {
     isLoading: interestLoading,
   } = useInterestData(selectedAccount?.address.toBase58() || null);
 
-  const hasMultipleAccount = React.useMemo(() => marginfiAccounts && marginfiAccounts.length > 1, [marginfiAccounts]);
   const { handleSimulation } = useRewardSimulation({
     simulationResult: rewardsState,
     marginfiClient,
@@ -147,8 +126,6 @@ export const LendingPortfolio = () => {
     setErrorMessage: () => {}, // No error handling, should fail silently since it is on page load.
     setActionTxn,
   });
-
-  // Removed old interest data fetching - now handled by hooks
 
   ////////////////////////////
   // handleSimulation logic //
@@ -161,12 +138,12 @@ export const LendingPortfolio = () => {
     }
   }, [selectedAccount, prevSelectedAccount]);
   React.useEffect(() => {
-    if (selectedAccount && marginfiClient?.banks && shouldFetchRewards) {
+    if (selectedAccount && sortedBanks && shouldFetchRewards) {
       setRewardsState(initialRewardsState);
       handleSimulation();
       setShouldFetchRewards(false);
     }
-  }, [handleSimulation, marginfiClient, selectedAccount, shouldFetchRewards]);
+  }, [handleSimulation, sortedBanks, selectedAccount, shouldFetchRewards]);
 
   const handleCollectRewardsAction = React.useCallback(async () => {
     if (!marginfiClient || !actionTxn) return;
@@ -191,22 +168,22 @@ export const LendingPortfolio = () => {
 
   const lendingBanks = React.useMemo(
     () =>
-      sortedBanks && isStoreInitialized
+      sortedBanks
         ? (sortedBanks.filter((b) => b.isActive && b.position.isLending) as ActiveBankInfo[]).sort(
             (a, b) => b.position.usdValue - a.position.usdValue
           )
         : [],
-    [sortedBanks, isStoreInitialized]
+    [sortedBanks]
   ) as ActiveBankInfo[];
 
   const borrowingBanks = React.useMemo(
     () =>
-      sortedBanks && isStoreInitialized
+      sortedBanks
         ? (sortedBanks.filter((b) => b.isActive && !b.position.isLending) as ActiveBankInfo[]).sort(
             (a, b) => b.position.usdValue - a.position.usdValue
           )
         : [],
-    [sortedBanks, isStoreInitialized]
+    [sortedBanks]
   ) as ActiveBankInfo[];
 
   const accountSupplied = React.useMemo(
@@ -257,23 +234,7 @@ export const LendingPortfolio = () => {
     }
   }, [accountSummary.healthFactor, accountSummary.healthSimFailed]);
 
-  const isLoading = React.useMemo(
-    () =>
-      (!isStoreInitialized ||
-        walletConnectionDelay ||
-        isRefreshingStore ||
-        (!isStoreInitialized && accountSummary.balanceEquity === 0)) &&
-      !lendingBanks.length &&
-      !borrowingBanks.length,
-    [
-      isStoreInitialized,
-      walletConnectionDelay,
-      isRefreshingStore,
-      accountSummary.balanceEquity,
-      lendingBanks,
-      borrowingBanks,
-    ]
-  ); // Create refs for each lending and borrowing card, keyed by address
+  // Create refs for each lending and borrowing card, keyed by address
   const lendingRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
   const borrowingRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -355,18 +316,6 @@ export const LendingPortfolio = () => {
     setRewardsToast(newToast);
   }, [rewardsState, rewardsToastOpen, rewardsToast]);
 
-  // Introduced this useEffect to show the loader for 2 seconds after wallet connection. This is to avoid the flickering of the loader, since the isRefreshingStore isnt set immediately after the wallet connection.
-  React.useEffect(() => {
-    if (connected) {
-      setWalletConnectionDelay(true);
-      const timer = setTimeout(() => {
-        setWalletConnectionDelay(false);
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [connected]);
-
   // Close all accordions when filterEmode is turned on
   React.useEffect(() => {
     if (filterEmode) {
@@ -388,30 +337,8 @@ export const LendingPortfolio = () => {
     };
   }, [filterEmode]);
 
-  if (isStoreInitialized && !connected) {
+  if (!connected) {
     return <WalletButton />;
-  }
-
-  if (isLoading) {
-    return <Loader label={connected ? "Loading portfolio" : "Loading"} />;
-  }
-
-  if (isStoreInitialized && connected && !hasMultipleAccount) {
-    if (!lendingBanks.length && !borrowingBanks.length) {
-      return (
-        <div className="flex flex-col items-center justify-center gap-4">
-          <p className="text-center mt-4 text-muted-foreground">
-            You do not have any open positions.
-            <br className="md:hidden" />{" "}
-            <Link href="/" className="border-b border-muted-foreground transition-colors hover:border-transparent">
-              Explore the pools
-            </Link>{" "}
-            and make your first deposit
-            {hasMultipleAccount && " or select a different account from the dropdown below"}.
-          </p>
-        </div>
-      );
-    }
   }
 
   return (
@@ -421,63 +348,69 @@ export const LendingPortfolio = () => {
           <div className="flex items-center gap-4 w-full">
             <div className="flex items-center gap-2">
               <p className="text-sm text-muted-foreground hidden md:block">Account</p>
-              <WalletAuthAccounts
-                mfiClient={marginfiClient}
-                connection={marginfiClient?.provider.connection ?? null}
-                marginfiAccounts={marginfiAccounts ?? []}
-                selectedAccount={selectedAccount}
-                setSelectedAccount={setSelectedAccount}
-                closeOnSwitch={true}
-                popoverContentAlign="start"
-                processOpts={{
-                  ...priorityFees,
-                  broadcastType,
-                }}
-                accountLabels={accountLabels}
-              />
+              {isLoadingMarginfiAccounts || isLoadingSelectedAccount ? (
+                <Skeleton className="w-24 h-8" />
+              ) : (
+                <WalletAuthAccounts
+                  mfiClient={marginfiClient}
+                  connection={marginfiClient?.provider.connection ?? null}
+                  marginfiAccounts={marginfiAccounts ?? []}
+                  selectedAccount={selectedAccount}
+                  setSelectedAccount={setSelectedAccount}
+                  closeOnSwitch={true}
+                  popoverContentAlign="start"
+                  processOpts={{
+                    ...priorityFees,
+                    broadcastType,
+                  }}
+                  accountLabels={accountLabels}
+                />
+              )}
             </div>
             <div className="flex text-sm items-center gap-1.5 ml-auto">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger className="inline-flex items-center gap-1">
-                    {rewardsState.state === "NOT_FETCHED" && (
-                      <span className="cursor-default text-muted-foreground flex gap-1 items-center">
-                        Calculating rewards <IconLoader size={16} />
-                      </span>
-                    )}
-                    {rewardsState.state === "NO_REWARDS" && (
-                      <span className="cursor-default text-muted-foreground">No outstanding rewards</span>
-                    )}
-                    {rewardsState.state === "REWARDS_FETCHED" && (
-                      <button
-                        className={cn(
-                          rewardsState.totalRewardAmount === 0
-                            ? "cursor-default text-muted-foreground"
-                            : "cursor-pointer underline hover:text-muted-foreground"
-                        )}
-                        disabled={rewardsState.totalRewardAmount === 0}
-                        onClick={() => {
-                          setRewardsDialogOpen(true);
-                        }}
-                      >
-                        Collect rewards
-                      </button>
-                    )}
-                    {rewardsState.state === "EARNING_REWARDS" && (
-                      <span className="cursor-default text-muted-foreground">Earning rewards</span>
-                    )}
-                    {rewardsState.state === "ERROR" && (
-                      <span className="cursor-default text-muted-foreground">No outstanding rewards</span>
-                    )}
-                    {rewardsState.state !== "NOT_FETCHED" && (
-                      <IconInfoCircle size={16} className="text-muted-foreground" />
-                    )}
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <span>{rewardsState.tooltipContent}</span>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {!isLoadingMarginfiClient && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="inline-flex items-center gap-1">
+                      {rewardsState.state === "NOT_FETCHED" && (
+                        <span className="cursor-default text-muted-foreground flex gap-1 items-center">
+                          Calculating rewards <IconLoader size={16} />
+                        </span>
+                      )}
+                      {rewardsState.state === "NO_REWARDS" && (
+                        <span className="cursor-default text-muted-foreground">No outstanding rewards</span>
+                      )}
+                      {rewardsState.state === "REWARDS_FETCHED" && (
+                        <button
+                          className={cn(
+                            rewardsState.totalRewardAmount === 0
+                              ? "cursor-default text-muted-foreground"
+                              : "cursor-pointer underline hover:text-muted-foreground"
+                          )}
+                          disabled={rewardsState.totalRewardAmount === 0}
+                          onClick={() => {
+                            setRewardsDialogOpen(true);
+                          }}
+                        >
+                          Collect rewards
+                        </button>
+                      )}
+                      {rewardsState.state === "EARNING_REWARDS" && (
+                        <span className="cursor-default text-muted-foreground">Earning rewards</span>
+                      )}
+                      {rewardsState.state === "ERROR" && (
+                        <span className="cursor-default text-muted-foreground">No outstanding rewards</span>
+                      )}
+                      {rewardsState.state !== "NOT_FETCHED" && (
+                        <IconInfoCircle size={16} className="text-muted-foreground" />
+                      )}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <span>{rewardsState.tooltipContent}</span>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
           </div>
           <div className="text-muted-foreground mt-8">
@@ -510,36 +443,44 @@ export const LendingPortfolio = () => {
                   </Tooltip>
                 </TooltipProvider>
               </dt>
-              <dd
-                className="text-xl md:text-2xl font-medium flex flex-row items-center gap-1.5"
-                style={{ color: healthColor }}
-              >
-                {accountSummary.healthSimFailed && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger className="inline-flex items-center gap-1">
-                        <IconAlertCircle size={16} className="text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <span>
-                          Health simulation failed. The displayed health factor is estimated and may not reflect
-                          real-time accuracy. Refresh the page to try again.
-                        </span>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-                {numeralFormatter(accountSummary.healthFactor * 100)}%
-              </dd>
+              {isLoadingSelectedAccount ? (
+                <Skeleton className="w-24 h-6 mb-2" />
+              ) : (
+                <dd
+                  className="text-xl md:text-2xl font-medium flex flex-row items-center gap-1.5"
+                  style={{ color: healthColor }}
+                >
+                  {accountSummary.healthSimFailed && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger className="inline-flex items-center gap-1">
+                          <IconAlertCircle size={16} className="text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <span>
+                            Health simulation failed. The displayed health factor is estimated and may not reflect
+                            real-time accuracy. Refresh the page to try again.
+                          </span>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                  {numeralFormatter(accountSummary.healthFactor * 100)}%
+                </dd>
+              )}
             </dl>
             <div className="h-2 bg-background-gray-light rounded-full mt-1 mb-4">
-              <div
-                className="h-2 rounded-full"
-                style={{
-                  backgroundColor: healthColor,
-                  width: `${accountSummary.healthFactor * 100}%`,
-                }}
-              />
+              {isLoadingSelectedAccount ? (
+                <Skeleton className="h-2 w-full rounded-full" />
+              ) : (
+                <div
+                  className="h-2 rounded-full"
+                  style={{
+                    backgroundColor: healthColor,
+                    width: `${accountSummary.healthFactor * 100}%`,
+                  }}
+                />
+              )}
             </div>
             <PortfolioUserStats
               supplied={accountSupplied}
@@ -551,13 +492,16 @@ export const LendingPortfolio = () => {
               netValue30d={netValue30d}
               latestNetInterest={latestNetInterest}
               netInterest30d={netInterest30d}
+              isLoading={isLoadingSelectedAccount}
             />
           </div>
         </div>
         <Tabs defaultValue="portfolio" className="w-full">
           <TabsList className="grid max-w-fit grid-cols-2">
-            <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-1">
+            <TabsTrigger value="portfolio" disabled={isLoadingMarginfiClient}>
+              Portfolio
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-1" disabled={isLoadingMarginfiClient}>
               <IconChartAreaLine size={18} /> Analytics
             </TabsTrigger>
           </TabsList>
@@ -605,9 +549,11 @@ export const LendingPortfolio = () => {
                 <div className="flex flex-col flex-1 gap-4 md:min-w-[340px] relative z-[2]">
                   <dl className="flex justify-between items-center gap-2 text-xl font-medium">
                     <dt>Supplied</dt>
-                    <dd className="text-lg">{accountSupplied}</dd>
+                    <dd className="text-lg">
+                      {isLoadingExtendedBanks ? <Skeleton className="h-6 w-20 mt-1" /> : accountSupplied}
+                    </dd>
                   </dl>
-                  {isStoreInitialized ? (
+                  {!isLoadingExtendedBanks ? (
                     lendingBanks.length > 0 ? (
                       <div className="flex flex-col gap-4">
                         {lendingBanks.map((bank, i) => {
@@ -690,9 +636,11 @@ export const LendingPortfolio = () => {
                 <div className="flex flex-wrap flex-col flex-1 gap-4 md:min-w-[340px] relative z-[2]">
                   <dl className="flex justify-between items-center gap-2 text-xl font-medium">
                     <dt>Borrowed</dt>
-                    <dd className="text-lg">{accountBorrowed}</dd>
+                    <dd className="text-lg">
+                      {isLoadingExtendedBanks ? <Skeleton className="h-6 w-20 mt-1" /> : accountBorrowed}
+                    </dd>
                   </dl>
-                  {isStoreInitialized ? (
+                  {!isLoadingExtendedBanks ? (
                     borrowingBanks.length > 0 ? (
                       <div className="flex flex-col gap-4">
                         {borrowingBanks.map((bank) => {
