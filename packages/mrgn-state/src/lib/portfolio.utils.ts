@@ -179,17 +179,19 @@ export const fillPortfolioDataGaps = (
       // Use actual data and update last known values
       const deposits = dailyTotals[dateStr].deposits;
       const borrows = dailyTotals[dateStr].borrows;
-      const net = dailyTotals[dateStr].net !== undefined ? dailyTotals[dateStr].net : deposits - borrows;
+      const netValue = (
+        dailyTotals[dateStr].net !== undefined ? dailyTotals[dateStr].net : deposits - borrows
+      ) as number;
 
       filledTotals[dateStr] = {
         deposits,
         borrows,
-        net: net ?? 0,
+        net: netValue,
       };
 
       lastDeposits = deposits;
       lastBorrows = borrows;
-      lastNet = net ?? 0;
+      lastNet = netValue;
     } else {
       // No actual data for this date, use last known values (only within actual range)
       filledTotals[dateStr] = {
