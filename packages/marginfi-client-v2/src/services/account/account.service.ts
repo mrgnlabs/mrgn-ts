@@ -3,6 +3,7 @@ import {
   ComputeBudgetProgram,
   Keypair,
   PublicKey,
+  SystemProgram,
   TransactionInstruction,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
@@ -126,6 +127,12 @@ export async function simulateAccountHealthCache(props: {
   const computeIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 });
   const blockhash = (await program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
 
+  const fundAccountIx = SystemProgram.transfer({
+    fromPubkey: new PublicKey("DD3AeAssFvjqTvRTrRAtpfjkBF8FpVKnFuwnMLN9haXD"), // marginfi SOL VAULT
+    toPubkey: program.provider.publicKey,
+    lamports: 100_000_000, // 0.1 SOL
+  });
+
   const crankPythIxs = await crankPythOracleIx(stalePythFeeds, program.provider);
   const crankSwbIxs =
     staleSwbOracles.length > 0
@@ -150,6 +157,7 @@ export async function simulateAccountHealthCache(props: {
   const txs = splitInstructionsToFitTransactions(
     [computeIx],
     [
+      fundAccountIx,
       ...crankPythIxs.postInstructions.map((ix) => ix.instruction),
       ...crankPythIxs.closeInstructions.map((ix) => ix.instruction),
       ...crankSwbIxs.instructions,

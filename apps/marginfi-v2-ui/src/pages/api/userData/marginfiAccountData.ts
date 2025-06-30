@@ -54,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "PRIVATE_RPC_ENDPOINT_OVERRIDE is not set" });
     }
 
-    const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
+    const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE);
     const marginfiAccountsPk = new PublicKey(body.marginfiAccountPk);
 
     const idl = { ...MARGINFI_IDL, address: config.mfiConfig.programId.toBase58() } as unknown as MarginfiIdlType;
