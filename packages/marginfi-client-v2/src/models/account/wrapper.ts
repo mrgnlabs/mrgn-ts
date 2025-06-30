@@ -1073,6 +1073,30 @@ class MarginfiAccountWrapper {
     });
   }
 
+  async makeMergeStakeAccountsTx(
+    stakeAccountSrc: PublicKey,
+    stakeAccountDest: PublicKey
+  ): Promise<ExtendedTransaction> {
+    // Create the merge instruction
+    const mergeInstruction = StakeProgram.merge({
+      stakePubkey: stakeAccountDest, // Public key of the destination stake account
+      sourceStakePubKey: stakeAccountSrc, // Public key of the source stake account
+      authorizedPubkey: this.authority, // Public key of the stake authority
+    });
+
+    // Build the transaction
+    const transaction = new Transaction().add(mergeInstruction);
+
+    // Get client lookup tables for consistency with other functions
+    const clientLookupTables = await getClientAddressLookupTableAccounts(this.client);
+
+    return addTransactionMetadata(transaction, {
+      type: TransactionType.MERGE_STAKE_ACCOUNTS,
+      signers: [],
+      addressLookupTables: clientLookupTables,
+    });
+  }
+
   /**
    * Deposits tokens into a marginfi bank account.
    *

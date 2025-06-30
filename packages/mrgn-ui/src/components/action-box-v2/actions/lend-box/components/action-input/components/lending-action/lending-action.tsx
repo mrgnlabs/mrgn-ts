@@ -34,6 +34,8 @@ export const LendingAction = ({
   const contextProps = useActionBoxContext();
   const stakeAccounts = contextProps?.stakeAccounts;
   const stakePoolMetadataMap = contextProps?.stakePoolMetadataMap;
+  const marginfiClient = contextProps?.marginfiClient;
+  const selectedAccount = contextProps?.selectedAccount;
 
   const maxLabel = React.useMemo((): {
     amount: string;
@@ -61,6 +63,12 @@ export const LendingAction = ({
                 stakeAccounts={stakeAccounts ?? []}
                 onStakeAccountChange={onStakeAccountChange}
                 stakePoolMetadataMap={stakePoolMetadataMap ?? null}
+                marginfiClient={marginfiClient ?? null}
+                selectedAccount={selectedAccount ?? null}
+                onRefresh={() => {
+                  // Refresh stake account data after merge
+                  // This will be handled by the parent component's refresh mechanism
+                }}
               />
             ),
             amount: formatAmount(walletAmount, "SOL"),
@@ -98,7 +106,17 @@ export const LendingAction = ({
       default:
         return { amount: "-" };
     }
-  }, [selectedBank, lendMode, walletAmount]);
+  }, [
+    selectedBank,
+    lendMode,
+    walletAmount,
+    stakeAccounts,
+    stakePoolMetadataMap,
+    marginfiClient,
+    selectedAccount,
+    selectedStakeAccount,
+    onStakeAccountChange,
+  ]);
 
   return (
     <>
