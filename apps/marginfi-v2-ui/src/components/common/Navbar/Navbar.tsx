@@ -77,8 +77,6 @@ export const Navbar: FC = () => {
 
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
-  console.log("userPointsData", userPointsData);
-
   const setSelectedKey = useSetSelectedAccountKey();
 
   const setSelectedAccount = useCallback(
