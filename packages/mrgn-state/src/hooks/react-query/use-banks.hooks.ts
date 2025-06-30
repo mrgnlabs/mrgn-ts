@@ -11,7 +11,7 @@ export function useRawBanks() {
     queryKey: ["rawBanks"],
     queryFn: () => fetchRawBanks(metadata.data?.bankAddresses ?? []),
     enabled: metadata.isSuccess,
-    staleTime: 5 * 60_000, // 5 minutes
+    staleTime: 2 * 60_000, // 2 minutes
     // refetchInterval: 60_000, // Temporarily disabled for performance
     retry: 2,
   });
@@ -46,8 +46,8 @@ export function useOracleData() {
     queryKey: ["oracleData"],
     queryFn: () => fetchOraclePrices(bankData.data ?? [], metadata.data?.bankMetadataMap ?? {}),
     enabled: bankData.isSuccess && metadata.isSuccess,
-    staleTime: 5 * 60_000, // 5 minutes
-    // refetchInterval: 30_000, // Temporarily disabled for performance
+    staleTime: 0.5 * 60_000, // 1 minutes
+    refetchInterval: 30_000, // Temporarily disabled for performance
     retry: 2,
   });
 }
@@ -59,7 +59,7 @@ export function useEmissionPriceMap() {
     queryKey: ["emissionPriceMap"],
     queryFn: () => fetchEmissionPriceMap(bankData.data ?? []),
     enabled: bankData.isSuccess,
-    staleTime: 4 * 60 * 1000, // 4 minutes
+    staleTime: 4 * 60_000, // 4 minutes
     retry: 2,
   });
 }

@@ -1,5 +1,12 @@
 import { PublicKey } from "@solana/web3.js";
-import { fetchMultipleBanks, fetchOracleData, OraclePrice, PythPushFeedIdMap } from "@mrgnlabs/marginfi-client-v2";
+import {
+  BankRawDto,
+  dtoToBankRaw,
+  fetchMultipleBanks,
+  fetchOracleData,
+  OraclePrice,
+  PythPushFeedIdMap,
+} from "@mrgnlabs/marginfi-client-v2";
 import { getConfig } from "../config/app.config";
 import { BankRaw, AssetTag } from "@mrgnlabs/marginfi-client-v2";
 import { BankMetadata } from "@mrgnlabs/mrgn-common";
@@ -21,9 +28,32 @@ export interface BankRawDatas {
 }
 
 export const fetchRawBanks = async (addresses: Address[]): Promise<BankRawDatas[]> => {
-  const program = getConfig().program;
+  const chunks: Address[][] = [];
+  for (let i = 0; i < addresses.length; i += 60) {
+    chunks.push(addresses.slice(i, i + 60));
+  }
 
-  const banks = await fetchMultipleBanks(program, { bankAddresses: addresses });
+  // Fetch all chunks in parallel
+  const responses = await Promise.all(
+    chunks.map((chunk) =>
+      fetch(`/api/bankData/rawBankData?addresses=${chunk.map((addr) => addr.toString()).join(",")}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+    )
+  );
+
+  const banks = (await Promise.all(responses.map((response) => response.json())))
+    .map((responseData: { address: string; data: BankRawDto }[]) => Object.values(responseData))
+    .flat()
+    .map((d) => {
+      return {
+        address: new PublicKey(d.address),
+        data: dtoToBankRaw(d.data),
+      };
+    });
 
   return banks;
 };

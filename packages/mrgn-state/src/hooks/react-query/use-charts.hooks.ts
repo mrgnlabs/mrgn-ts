@@ -11,7 +11,6 @@ export function useBankChart(
     queryKey: ["bankChart"],
     queryFn: () => fetchBankRates(bankAddress, bank, stakepoolMetadataMap),
     staleTime: 5 * 60_000, // 5 minutes
-    // refetchInterval: 60_000, // Temporarily disabled for performance
     retry: 2,
   });
 }

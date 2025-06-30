@@ -2,7 +2,13 @@ import { Connection } from "@solana/web3.js";
 import { NextApiRequest, NextApiResponse } from "next";
 
 import { Wallet } from "@mrgnlabs/mrgn-common";
-import { fetchMultipleBanks, MARGINFI_IDL, MarginfiIdlType, MarginfiProgram } from "@mrgnlabs/marginfi-client-v2";
+import {
+  bankRawToDto,
+  fetchMultipleBanks,
+  MARGINFI_IDL,
+  MarginfiIdlType,
+  MarginfiProgram,
+} from "@mrgnlabs/marginfi-client-v2";
 import config from "~/config/marginfi";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 
@@ -36,14 +42,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     const program = new Program(idl, provider) as any as MarginfiProgram;
 
-    const dataByBank = await fetchMultipleBanks(program, {
-      bankAddresses: requestedBanks,
-      groupAddress: config.mfiConfig.groupPk,
-    });
-    // Set cache headers for 1 day
-    res.setHeader("Cache-Control", "public, max-age=40, s-maxage=40, stale-while-revalidate=40");
-    res.setHeader("CDN-Cache-Control", "max-age=40");
-    res.setHeader("Vercel-CDN-Cache-Control", "max-age=40");
+    const dataByBank = (
+      await fetchMultipleBanks(program, {
+        bankAddresses: requestedBanks,
+        groupAddress: config.mfiConfig.groupPk,
+      })
+    ).map((d) => ({
+      address: d.address.toBase58(),
+      data: bankRawToDto(d.data),
+    }));
+    // Set cache headers for 60 seconds
+    res.setHeader("Cache-Control", "public, max-age=60, s-maxage=60, stale-while-revalidate=60");
+    res.setHeader("CDN-Cache-Control", "max-age=60");
+    res.setHeader("Vercel-CDN-Cache-Control", "max-age=60");
     res.status(200).json(dataByBank);
   } catch (error) {
     console.error("Error fetching bank data:", error);

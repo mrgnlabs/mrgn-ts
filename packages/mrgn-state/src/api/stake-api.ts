@@ -8,6 +8,10 @@ import {
 import { PublicKey } from "@solana/web3.js";
 
 export const fetchStakePoolMevMap = async (voteAccounts: PublicKey[]) => {
+  if (voteAccounts.length === 0) {
+    return new Map<string, { pool: number; onramp: number }>();
+  }
+
   const response = await fetch(
     "/api/stakeData/stakePoolMevMap?voteAccounts=" + voteAccounts.map((account) => account.toBase58()).join(","),
     {
@@ -30,6 +34,10 @@ export const fetchStakePoolMevMap = async (voteAccounts: PublicKey[]) => {
 };
 
 export const fetchValidatorRates = async (voteAccounts: PublicKey[]) => {
+  if (voteAccounts.length === 0) {
+    return [];
+  }
+
   const response = await fetch(
     "/api/stakeData/validatorRateData?voteAccounts=" + voteAccounts.map((account) => account.toBase58()).join(","),
     {
@@ -46,6 +54,10 @@ export const fetchValidatorRates = async (voteAccounts: PublicKey[]) => {
 };
 
 export const fetchActiveStakePoolMap = async (voteAccounts: PublicKey[]) => {
+  if (voteAccounts.length === 0) {
+    return new Map<string, boolean>();
+  }
+
   const response = await fetch(
     "/api/stakeData/activeStakePoolMap?voteAccounts=" + voteAccounts.map((account) => account.toBase58()).join(","),
     {

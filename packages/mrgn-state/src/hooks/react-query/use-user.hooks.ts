@@ -2,7 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { PublicKey } from "@solana/web3.js";
 import { MarginfiAccountType } from "@mrgnlabs/marginfi-client-v2";
 import { WalletToken } from "@mrgnlabs/mrgn-common";
-import { fetchMarginfiAccount, fetchMarginfiAccountAddresses, fetchUserBalances, fetchWalletTokens } from "../../api/user-api";
+import {
+  fetchMarginfiAccount,
+  fetchMarginfiAccountAddresses,
+  fetchUserBalances,
+  fetchWalletTokens,
+} from "../../api/user-api";
 import { useRawBanks, useMetadata, useOracleData, useMintData } from ".";
 import { TokenAccount } from "../../types";
 import { useWalletAddress } from "../../context/wallet-state.context";
@@ -50,14 +55,6 @@ export function useMarginfiAccount(opts?: UseMarginfiAccountOpts) {
   return useQuery<MarginfiAccountType | null, Error>({
     queryKey: ["marginfiAccount", authority?.toBase58() ?? null, selectedAccountKey ?? null],
     queryFn: async () => {
-      console.log("🔍 useMarginfiAccount queryFn - executing with:", {
-        authority: authority?.toBase58(),
-        selectedAccount: selectedAccountKey ?? null,
-        hasRawBanks: Boolean(rawBanks),
-        hasOracleData: Boolean(oracleData?.pythFeedIdMap),
-        hasMetadata: Boolean(metadata?.bankMetadataMap),
-      });
-
       if (!rawBanks || !oracleData?.pythFeedIdMap || !oracleData?.oracleMap || !metadata?.bankMetadataMap) {
         throw new Error("Required data not available for fetching MarginFi account");
       }
@@ -117,7 +114,7 @@ export function useWalletTokens() {
 
   // Check if dependencies have errors
   const hasErrors = isErrorRawBanks || isErrorMetadata;
-  
+
   // Check if all required data is available
   const allDataReady = isSuccessRawBanks && isSuccessMetadata && Boolean(authority);
 
