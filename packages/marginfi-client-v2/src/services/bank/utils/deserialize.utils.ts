@@ -32,6 +32,10 @@ import {
   BankTypeDto,
   EmodeSettingsDto,
   InterestRateConfigDto,
+  BankRawDto,
+  EmodeSettingsRaw,
+  EmodeSettingsRawDto,
+  BankConfigRawDto,
 } from "../types";
 
 /*
@@ -132,6 +136,10 @@ export function parseBankRaw(
   };
 }
 
+/*
+ * DTO Bank deserialization
+ */
+
 export function dtoToBank(bankDto: BankTypeDto): BankType {
   return {
     address: new PublicKey(bankDto.address),
@@ -212,6 +220,82 @@ export function dtoToInterestRateConfig(interestRateConfigDto: InterestRateConfi
     protocolFixedFeeApr: new BigNumber(interestRateConfigDto.protocolFixedFeeApr),
     protocolIrFee: new BigNumber(interestRateConfigDto.protocolIrFee),
     protocolOriginationFee: new BigNumber(interestRateConfigDto.protocolOriginationFee),
+  };
+}
+
+export function dtoToBankRaw(bankDto: BankRawDto): BankRaw {
+  return {
+    group: new PublicKey(bankDto.group),
+    mint: new PublicKey(bankDto.mint),
+    mintDecimals: bankDto.mintDecimals,
+
+    assetShareValue: bankDto.assetShareValue,
+    liabilityShareValue: bankDto.liabilityShareValue,
+
+    liquidityVault: new PublicKey(bankDto.liquidityVault),
+    liquidityVaultBump: bankDto.liquidityVaultBump,
+    liquidityVaultAuthorityBump: bankDto.liquidityVaultAuthorityBump,
+
+    insuranceVault: new PublicKey(bankDto.insuranceVault),
+    insuranceVaultBump: bankDto.insuranceVaultBump,
+    insuranceVaultAuthorityBump: bankDto.insuranceVaultAuthorityBump,
+    collectedInsuranceFeesOutstanding: bankDto.collectedInsuranceFeesOutstanding,
+
+    feeVault: new PublicKey(bankDto.feeVault),
+    feeVaultBump: bankDto.feeVaultBump,
+    feeVaultAuthorityBump: bankDto.feeVaultAuthorityBump,
+    collectedGroupFeesOutstanding: bankDto.collectedGroupFeesOutstanding,
+
+    lastUpdate: new BN(bankDto.lastUpdate),
+
+    config: dtoToBankConfigRaw(bankDto.config),
+
+    totalAssetShares: bankDto.totalAssetShares,
+    totalLiabilityShares: bankDto.totalLiabilityShares,
+
+    flags: new BN(bankDto.flags),
+    emissionsRate: new BN(bankDto.emissionsRate),
+    emissionsRemaining: bankDto.emissionsRemaining,
+    emissionsMint: new PublicKey(bankDto.emissionsMint),
+
+    emode: dtoToEmodeSettingsRaw(bankDto.emode),
+  };
+}
+
+export function dtoToEmodeSettingsRaw(emodeSettingsDto: EmodeSettingsRawDto): EmodeSettingsRaw {
+  return {
+    emodeTag: emodeSettingsDto.emodeTag,
+    timestamp: new BN(emodeSettingsDto.timestamp),
+    flags: new BN(emodeSettingsDto.flags),
+    emodeConfig: {
+      entries: emodeSettingsDto.emodeConfig.entries.map((entry) => {
+        return {
+          collateralBankEmodeTag: entry.collateralBankEmodeTag,
+          flags: entry.flags,
+          assetWeightInit: entry.assetWeightInit,
+          assetWeightMaint: entry.assetWeightMaint,
+        };
+      }),
+    },
+  };
+}
+
+export function dtoToBankConfigRaw(bankConfigDto: BankConfigRawDto): BankConfigRaw {
+  return {
+    assetWeightInit: bankConfigDto.assetWeightInit,
+    assetWeightMaint: bankConfigDto.assetWeightMaint,
+    liabilityWeightInit: bankConfigDto.liabilityWeightInit,
+    liabilityWeightMaint: bankConfigDto.liabilityWeightMaint,
+    depositLimit: new BN(bankConfigDto.depositLimit),
+    borrowLimit: new BN(bankConfigDto.borrowLimit),
+    riskTier: bankConfigDto.riskTier,
+    operationalState: bankConfigDto.operationalState,
+    totalAssetValueInitLimit: new BN(bankConfigDto.totalAssetValueInitLimit),
+    assetTag: bankConfigDto.assetTag,
+    oracleSetup: bankConfigDto.oracleSetup,
+    oracleKeys: bankConfigDto.oracleKeys.map((key: string) => new PublicKey(key)),
+    oracleMaxAge: bankConfigDto.oracleMaxAge,
+    interestRateConfig: bankConfigDto.interestRateConfig,
   };
 }
 

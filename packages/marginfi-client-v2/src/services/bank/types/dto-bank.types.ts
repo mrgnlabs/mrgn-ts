@@ -1,5 +1,10 @@
+import { WrappedI80F48 } from "@mrgnlabs/mrgn-common";
 import { AssetTag, EmodeEntryFlags, EmodeFlags, EmodeTag, OperationalState, OracleSetup, RiskTier } from "./bank.types";
+import { InterestRateConfigRaw, OperationalStateRaw, OracleSetupRaw, RiskTierRaw } from "./raw-bank.types";
 
+/*
+ * Bank types Dto
+ */
 export interface InterestRateConfigDto {
   // Curve Params
   optimalUtilizationRate: string;
@@ -90,4 +95,85 @@ export interface BankTypeDto {
   oracleKey: string;
   pythShardId?: number;
   emode: EmodeSettingsDto;
+}
+
+/*
+ * Bank Raw DTO
+ */
+
+export interface BankRawDto {
+  group: string;
+  mint: string;
+  mintDecimals: number;
+
+  assetShareValue: WrappedI80F48;
+  liabilityShareValue: WrappedI80F48;
+
+  liquidityVault: string;
+  liquidityVaultBump: number;
+  liquidityVaultAuthorityBump: number;
+
+  insuranceVault: string;
+  insuranceVaultBump: number;
+  insuranceVaultAuthorityBump: number;
+  collectedInsuranceFeesOutstanding: WrappedI80F48;
+
+  feeVault: string;
+  feeVaultBump: number;
+  feeVaultAuthorityBump: number;
+  collectedGroupFeesOutstanding: WrappedI80F48;
+
+  lastUpdate: string;
+
+  config: BankConfigRawDto;
+
+  totalLiabilityShares: WrappedI80F48;
+  totalAssetShares: WrappedI80F48;
+
+  flags: string;
+  emissionsRate: string;
+  emissionsRemaining: WrappedI80F48;
+  emissionsMint: string;
+
+  emode: EmodeSettingsRawDto;
+}
+
+export interface BankConfigRawDto {
+  assetWeightInit: WrappedI80F48;
+  assetWeightMaint: WrappedI80F48;
+
+  liabilityWeightInit: WrappedI80F48;
+  liabilityWeightMaint: WrappedI80F48;
+
+  depositLimit: string;
+  interestRateConfig: InterestRateConfigRaw;
+  operationalState: OperationalStateRaw;
+
+  oracleSetup: OracleSetupRaw;
+  oracleKeys: string[];
+
+  borrowLimit: string;
+  riskTier: RiskTierRaw;
+  assetTag: number;
+
+  totalAssetValueInitLimit: string;
+  oracleMaxAge: number;
+}
+
+export interface EmodeSettingsRawDto {
+  emodeTag: number;
+  timestamp: string;
+  flags: string;
+  emodeConfig: EmodeConfigRawDto;
+}
+
+export interface EmodeConfigRawDto {
+  entries: EmodeEntryRawDto[];
+}
+
+interface EmodeEntryRawDto {
+  collateralBankEmodeTag: number;
+  flags: number;
+  assetWeightInit: WrappedI80F48;
+  assetWeightMaint: WrappedI80F48;
 }
