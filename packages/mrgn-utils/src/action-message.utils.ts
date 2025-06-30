@@ -49,7 +49,7 @@ interface CheckLendActionAvailableProps {
   banks: ExtendedBankInfo[];
   marginfiAccount: MarginfiAccountWrapper | null;
   lendMode: ActionType;
-  selectedStakeAccount: {
+  selectedStakeAccount?: {
     address: PublicKey;
     balance: number;
   } | null;

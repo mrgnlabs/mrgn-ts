@@ -429,7 +429,7 @@ function canBeBorrowed(
 function canBeLent(
   targetBankInfo: ExtendedBankInfo,
   nativeSolBalance: number,
-  selectedStakeAccount: {
+  selectedStakeAccount?: {
     address: PublicKey;
     balance: number;
   } | null
