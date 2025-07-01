@@ -44,12 +44,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
+    let finalPortfolioData = portfolioData;
+
     if (!portfolioData || portfolioData.length === 0) {
-      return res.status(404).json({ error: "No portfolio data found for this wallet" });
+      const { data: allPortfolioData, error: allDataError } = await supabase
+        .schema("application")
+        .from("fv_account_balance_daily")
+        .select("*")
+        .eq("account_address", accountAddress)
+        .order("bucket_start", { ascending: false });
+
+      if (allDataError) {
+        console.error("Error fetching all portfolio data from Supabase:", allDataError);
+        return res.status(STATUS_INTERNAL_ERROR).json({
+          error: "Error fetching all portfolio data",
+          details: allDataError.message,
+        });
+      }
+
+      if (!allPortfolioData || allPortfolioData.length === 0) {
+        return res.status(404).json({ error: "No portfolio data found for this wallet" });
+      }
+
+      let mostRecentDate = new Date(0);
+
+      allPortfolioData.forEach((entry: any) => {
+        const entryDate = new Date(entry.bucket_start);
+        if (entryDate > mostRecentDate) {
+          mostRecentDate = entryDate;
+        }
+      });
+
+      finalPortfolioData = allPortfolioData.filter((entry: any) => {
+        const entryDate = new Date(entry.bucket_start);
+        return (
+          entryDate.getFullYear() === mostRecentDate.getFullYear() &&
+          entryDate.getMonth() === mostRecentDate.getMonth() &&
+          entryDate.getDate() === mostRecentDate.getDate()
+        );
+      });
     }
 
     // Get unique bank addresses to fetch bank information
-    const bankAddresses = Array.from(new Set(portfolioData.map((entry: any) => entry.bank_pk)));
+    const bankAddresses = Array.from(new Set(finalPortfolioData.map((entry: any) => entry.bank_pk)));
 
     // Fetch bank information separately
     const { data: bankData, error: bankError } = await supabase
@@ -73,7 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }, {});
 
     // Transform data to include bank information and USD values
-    const formattedData = portfolioData.map((entry: any) => {
+    const formattedData = finalPortfolioData.map((entry: any) => {
       const bankInfo = bankMap[entry.bank_pk] || {};
       return {
         account_id: entry.account_id,
