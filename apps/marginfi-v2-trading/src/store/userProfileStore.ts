@@ -1,4 +1,4 @@
-import { auth, DEFAULT_USER_POINTS_DATA, fetchUser, getUserPoints, UserPointsData } from "@mrgnlabs/mrgn-state";
+import { auth, DEFAULT_USER_POINTS_DATA, fetchUser, getPointsDataForUser, UserPointsData } from "@mrgnlabs/mrgn-state";
 import { User, signOut } from "firebase/auth";
 import { create } from "zustand";
 
@@ -55,7 +55,7 @@ function createUserProfileStore() {
         set(() => ({ currentFirebaseUser: null }));
       }
     },
-    fetchPoints: async (wallet: string) => set({ userPointsData: await getUserPoints(wallet) }),
+    fetchPoints: async (wallet: string) => set({ userPointsData: await getPointsDataForUser(wallet) }),
     resetPoints: () => set({ userPointsData: DEFAULT_USER_POINTS_DATA }),
   }));
 }
