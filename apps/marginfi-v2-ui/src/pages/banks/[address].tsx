@@ -34,6 +34,7 @@ import {
   useExtendedBanks,
   useRefreshUserData,
 } from "@mrgnlabs/mrgn-state";
+import { Loader } from "~/components/ui/loader";
 
 export default function BankPage() {
   const router = useRouter();
@@ -278,8 +279,8 @@ export default function BankPage() {
     }
   }, [extendedBanks]);
 
-  if (!address) {
-    return <Error statusCode={400} />;
+  if (!address || !bank) {
+    return <Loader label="Loading bank" />;
   }
 
   if (isLoading) {
@@ -359,17 +360,13 @@ export default function BankPage() {
             <Card className="w-full bg-background-gray h-[200px] md:h-full flex flex-col items-center justify-center">
               <CardContent className="flex flex-col items-center justify-center w-full h-full gap-2">
                 <IconLoader2 size={16} className="animate-spin" />
-                <p className="text-muted-foreground">Loading actionbox...</p>
+                <p className="text-muted-foreground">Loading data...</p>
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
     );
-  }
-
-  if (!bank) {
-    return <Error statusCode={404} />;
   }
 
   return (
