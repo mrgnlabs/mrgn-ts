@@ -52,7 +52,11 @@ export const GlobalActionBoxPortal = () => {
             ) : (
               <BankListWrapper
                 isOpen={true}
-                setIsOpen={(open) => {}}
+                setIsOpen={(open) => {
+                  if (!open) {
+                    setGlobalActionBoxProps({ ...globalActionBoxProps, isOpen: false });
+                  }
+                }}
                 Trigger={<></>}
                 Content={
                   <LendBoxBankList.BankList
