@@ -1,5 +1,5 @@
 import { IconClockHour4, IconInfoCircle } from "@tabler/icons-react";
-import { usdFormatter } from "@mrgnlabs/mrgn-common";
+import { dynamicNumeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { Skeleton } from "~/components/ui/skeleton";
 
 interface StatsData {
@@ -31,8 +31,7 @@ const formatChange = (change: number, changePercent: number) => {
 
   return (
     <span className={`text-sm font-light ${colorClass}`}>
-      {sign}
-      {usdFormatter.format(change)} ({sign}
+      {sign}${dynamicNumeralFormatter(change)} ({sign}
       {changePercent.toFixed(1)}%)
     </span>
   );
@@ -60,7 +59,12 @@ export const PortfolioUserStats = ({
             <Skeleton className="h-6 w-20 mt-1" />
           ) : (
             <>
-              {supplied} {!isLoadingPortfolio && supplied30d ? formatChange(supplied30d.change, supplied30d.changePercent) : <Skeleton className="inline-block h-4 w-16 ml-1" />}
+              {supplied}{" "}
+              {!isLoadingPortfolio && supplied30d ? (
+                formatChange(supplied30d.change, supplied30d.changePercent)
+              ) : (
+                <Skeleton className="inline-block h-4 w-16 ml-1" />
+              )}
             </>
           )
         }
@@ -72,7 +76,12 @@ export const PortfolioUserStats = ({
             <Skeleton className="h-6 w-20 mt-1" />
           ) : (
             <>
-              {borrowed} {!isLoadingPortfolio && borrowed30d ? formatChange(borrowed30d.change, borrowed30d.changePercent) : <Skeleton className="inline-block h-4 w-16 ml-1" />}
+              {borrowed}{" "}
+              {!isLoadingPortfolio && borrowed30d ? (
+                formatChange(borrowed30d.change, borrowed30d.changePercent)
+              ) : (
+                <Skeleton className="inline-block h-4 w-16 ml-1" />
+              )}
             </>
           )
         }
@@ -84,7 +93,12 @@ export const PortfolioUserStats = ({
             <Skeleton className="h-6 w-20 mt-1" />
           ) : (
             <>
-              {netValue} {!isLoadingPortfolio && netValue30d ? formatChange(netValue30d.change, netValue30d.changePercent) : <Skeleton className="inline-block h-4 w-16 ml-1" />}
+              {netValue}{" "}
+              {!isLoadingPortfolio && netValue30d ? (
+                formatChange(netValue30d.change, netValue30d.changePercent)
+              ) : (
+                <Skeleton className="inline-block h-4 w-16 ml-1" />
+              )}
             </>
           )
         }
@@ -97,7 +111,11 @@ export const PortfolioUserStats = ({
           ) : (
             <>
               {latestNetInterest !== undefined ? usdFormatter.format(latestNetInterest) : "$0.00"}{" "}
-              {!isLoadingInterest && netInterest30d ? formatChange(netInterest30d.change, netInterest30d.changePercent) : <Skeleton className="inline-block h-4 w-16 ml-1" />}
+              {!isLoadingInterest && netInterest30d ? (
+                formatChange(netInterest30d.change, netInterest30d.changePercent)
+              ) : (
+                <Skeleton className="inline-block h-4 w-16 ml-1" />
+              )}
             </>
           )
         }
