@@ -1,4 +1,4 @@
-import { SolanaJSONRPCError } from "@solana/web3.js";
+import { PublicKey, SolanaJSONRPCError } from "@solana/web3.js";
 
 import { TransactionConfigMap, TransactionOptions, TransactionType } from "@mrgnlabs/mrgn-common";
 import { toastManager, MultiStepToastController } from "@mrgnlabs/mrgn-toasts";
@@ -10,6 +10,7 @@ import { composeExplorerUrl } from "./helpers";
 import { STATIC_SIMULATION_ERRORS } from "../errors";
 import { captureSentryException } from "../sentry.utils";
 import { extractErrorString } from "../mrgnUtils";
+import { getAccountCreationKey } from "../transaction.utils";
 
 // ------------------------------------------------------------------//
 // Actions //
@@ -28,7 +29,7 @@ export interface ExecuteActionProps {
   txOpts: TransactionOptions;
   callbacks: {
     captureEvent?: (event: string, properties?: Record<string, any>) => void;
-    onComplete?: (txnSig: string) => void | null;
+    onComplete?: (txnSig: string, newAccountKey?: PublicKey) => void | null;
   };
   nativeSolBalance?: number;
 }
@@ -60,7 +61,7 @@ export async function executeActionWrapper(props: {
   txns: ActionTxns;
   existingToast?: MultiStepToastController;
   nativeSolBalance?: number;
-  onComplete?: (txnSig: string) => void;
+  onComplete?: (txnSig: string, newAccountKey?: PublicKey) => void;
 }) {
   const { action, steps, actionName, txns, existingToast, nativeSolBalance, onComplete } = props;
 
@@ -76,18 +77,13 @@ export async function executeActionWrapper(props: {
     toast.resetAndStart();
   }
 
-  const accountCreationTxn = txns.transactions.find((tx) => tx.type === TransactionType.CREATE_ACCOUNT);
-
-  if (accountCreationTxn) {
-    accountCreationTxn;
-  }
-
+  const accountCreationKey = getAccountCreationKey(txns.transactions);
   try {
     const txnSig = await action(txns, (stepsToAdvance, explorerUrl, signature) => {
       toast.successAndNext(stepsToAdvance ?? 1, explorerUrl, signature);
     });
     toast.success(composeExplorerUrl(txnSig), txnSig);
-    onComplete && onComplete(txnSig);
+    onComplete && onComplete(txnSig, accountCreationKey);
     return txnSig;
   } catch (error) {
     if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {

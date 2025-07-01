@@ -151,7 +151,7 @@ const Stake = () => {
           </p>
           <div className="flex items-center justify-center flex-wrap gap-8 mt-10 w-full">
             {lstBank ? (
-              <MfiIntegrationCard lstBank={lstBank} connected={connected} fetchMrgnlendState={refreshUserData} />
+              <MfiIntegrationCard lstBank={lstBank} connected={connected} refreshUserData={refreshUserData} />
             ) : (
               <IntegrationCardSkeleton />
             )}

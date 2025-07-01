@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import Error from "next/error";
+import { PublicKey } from "@solana/web3.js";
 
 import { IconArrowLeft, IconCheck, IconLink, IconInfoCircle, IconLoader2 } from "@tabler/icons-react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
@@ -475,8 +475,8 @@ export default function BankPage() {
               captureEvent: (event, properties) => {
                 // capture(event, properties);
               },
-              onComplete: () => {
-                refreshUserData();
+              onComplete: (newAccountKey?: PublicKey) => {
+                refreshUserData({ newAccountKey });
               },
             }}
           />

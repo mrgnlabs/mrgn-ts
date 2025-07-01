@@ -12,6 +12,7 @@ import { ExtendedBankInfo, ActionType } from "@mrgnlabs/mrgn-state";
 import "swiper/css";
 import "swiper/css/autoplay";
 import { useRefreshUserData } from "@mrgnlabs/mrgn-state";
+import { PublicKey } from "@solana/web3.js";
 
 export type AnnouncementCustomItem = {
   text: string;
@@ -113,8 +114,8 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                       captureEvent: (event, properties) => {
                         capture(event, properties);
                       },
-                      onComplete: () => {
-                        refreshUserData();
+                      onComplete: (newAccountKey?: PublicKey) => {
+                        refreshUserData({ newAccountKey });
                       },
                     }}
                     dialogProps={{

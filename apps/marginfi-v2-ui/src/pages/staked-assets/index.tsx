@@ -1,8 +1,9 @@
 import React from "react";
 
 import Link from "next/link";
+import { PublicKey } from "@solana/web3.js";
 
-import { ActionType } from "@mrgnlabs/mrgn-state";
+import { ActionType, useExtendedBanks, useRefreshUserData } from "@mrgnlabs/mrgn-state";
 import { LendingModes } from "@mrgnlabs/mrgn-utils";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
@@ -10,9 +11,7 @@ import { useWallet } from "@mrgnlabs/mrgn-ui";
 import { useUiStore } from "~/store";
 
 import { PageHeading } from "~/components/common/PageHeading";
-
 import { Button } from "~/components/ui/button";
-import { useExtendedBanks, useRefreshUserData } from "@mrgnlabs/mrgn-state";
 
 export default function StakedAssetsPage() {
   const { walletContextState, connected } = useWallet();
@@ -52,8 +51,8 @@ export default function StakedAssetsPage() {
             requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
             connected: connected,
             walletContextState: walletContextState,
-            onComplete: () => {
-              refreshUserData();
+            onComplete: (newAccountKey?: PublicKey) => {
+              refreshUserData({ newAccountKey });
             },
           }}
         />

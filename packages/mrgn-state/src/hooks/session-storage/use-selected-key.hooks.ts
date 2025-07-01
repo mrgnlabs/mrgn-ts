@@ -48,11 +48,10 @@ export function useSelectedAccountKey(keys: PublicKey[] | undefined) {
   // Setter that validates and updates both localStorage and state
   const setSelectedKey = useCallback(
     (key: string) => {
-      console.log("🔍 setSelectedKey called with:", key, "current:", selectedKey);
-
       const base58Keys = keys?.map((k) => k.toBase58());
       if (!base58Keys || !base58Keys?.includes(key)) {
-        console.warn(`Cannot select "${key}", not in current keys list.`);
+        console.warn(`Setting state to unregistered "${key}"`);
+        setSelectedKeyState(key);
         return;
       }
 

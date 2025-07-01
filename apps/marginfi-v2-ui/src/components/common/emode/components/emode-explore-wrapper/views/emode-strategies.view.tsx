@@ -9,6 +9,7 @@ import { ActionBox, useWallet } from "~/components";
 import { capture } from "~/analytics";
 import { EmodeStrategyType } from "..";
 import { useRefreshUserData } from "@mrgnlabs/mrgn-state";
+import { PublicKey } from "@solana/web3.js";
 
 interface StrategiesViewProps {
   emodeStrategies: EmodeStrategyType[];
@@ -58,8 +59,8 @@ export const StrategiesView = ({ emodeStrategies }: StrategiesViewProps) => {
                       captureEvent: (event, properties) => {
                         capture(event, properties);
                       },
-                      onComplete: () => {
-                        refreshUserData();
+                      onComplete: (newAccountKey?: PublicKey) => {
+                        refreshUserData({ newAccountKey });
                       },
                     }}
                     isDialog={true}

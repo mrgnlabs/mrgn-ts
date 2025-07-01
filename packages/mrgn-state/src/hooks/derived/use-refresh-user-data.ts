@@ -1,17 +1,21 @@
 import { useCallback } from "react";
 import { useMarginfiAccount, useUserBalances, useUserStakeAccounts } from "../react-query";
-import { UseMarginfiAccountOpts } from "../react-query/use-user.hooks";
+import { useMarginfiAccountAddresses } from "../react-query/use-user.hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWalletAddress } from "../../context/wallet-state.context";
+import { useSelectedAccount } from "../../context";
+import { PublicKey } from "@solana/web3.js";
 
 /**
  * Returns a single callback that refetches user state, with optional targeted cache invalidation.
  */
-export function useRefreshUserData(accountOpts?: UseMarginfiAccountOpts) {
+export function useRefreshUserData() {
   const queryClient = useQueryClient();
   const address = useWalletAddress();
-  const { refetch: refetchAccount } = useMarginfiAccount(accountOpts);
+  const { setSelectedAccountKey } = useSelectedAccount();
+  const { refetch: refetchAccount } = useMarginfiAccount();
   const { refetch: refetchBalances } = useUserBalances();
+  const { refetch: refetchAddresses } = useMarginfiAccountAddresses();
   const { refetch: refetchStakeAccounts } = useUserStakeAccounts();
 
   /**
@@ -19,14 +23,15 @@ export function useRefreshUserData(accountOpts?: UseMarginfiAccountOpts) {
    *   - clearStakeAccountsCache: boolean (default false)
    */
   const refresh = useCallback(
-    (options?: { clearStakeAccountsCache?: boolean }) => {
-      if (options?.clearStakeAccountsCache) {
-        queryClient.invalidateQueries({ queryKey: ["userStakeAccounts", address?.toBase58()] });
+    async (options?: { clearStakeAccountsCache?: boolean; newAccountKey?: PublicKey }) => {
+      if (options?.newAccountKey) {
+        setSelectedAccountKey(options.newAccountKey.toBase58());
+        refetchBalances();
+      } else {
+        refetchAccount();
+        refetchBalances();
+        refetchStakeAccounts();
       }
-      // Add more cache keys here as needed in the future
-      refetchAccount();
-      refetchBalances();
-      refetchStakeAccounts();
     },
     [refetchAccount, refetchBalances, queryClient, address, refetchStakeAccounts]
   );

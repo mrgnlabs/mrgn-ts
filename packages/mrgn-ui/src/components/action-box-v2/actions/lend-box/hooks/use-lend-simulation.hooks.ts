@@ -15,6 +15,7 @@ import {
 
 import { calculateSummary, generateActionTxns, getLendSimulationResult } from "../utils";
 import { SimulationStatus } from "~/components/action-box-v2/utils";
+import { TransactionType } from "@mrgnlabs/mrgn-common";
 
 type LendSimulationProps = {
   debouncedAmount: number;

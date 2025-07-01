@@ -24,6 +24,7 @@ import { Loader } from "~/components/ui/loader";
 import { EmodePortfolio } from "~/components/common/emode/components";
 import { useBanks, useEmode, useExtendedBanks, useMarginfiAccount, useRefreshUserData } from "@mrgnlabs/mrgn-state";
 import { useAssetData } from "~/hooks/use-asset-data.hooks";
+import { PublicKey } from "@solana/web3.js";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
   ssr: false,
@@ -82,8 +83,8 @@ export default function HomePage() {
                   captureEvent: (event, properties) => {
                     capture(event, properties);
                   },
-                  onComplete: () => {
-                    refreshUserData();
+                  onComplete: (newAccountKey?: PublicKey) => {
+                    refreshUserData({ newAccountKey });
                   },
                 }}
               />
@@ -112,8 +113,8 @@ export default function HomePage() {
                 requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
                 connected: connected,
                 walletContextState: walletContextState,
-                onComplete: () => {
-                  refreshUserData();
+                onComplete: (newAccountKey?: PublicKey) => {
+                  refreshUserData({ newAccountKey });
                 },
               }}
             />

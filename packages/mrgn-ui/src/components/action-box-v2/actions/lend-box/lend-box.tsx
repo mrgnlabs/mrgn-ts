@@ -67,7 +67,7 @@ export type LendBoxProps = {
   onCloseDialog?: () => void;
   setShouldBeHidden?: (hidden: boolean) => void;
 
-  onComplete?: () => void;
+  onComplete?: (newAccountKey?: PublicKey) => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
   setDisplaySettings?: (displaySettings: boolean) => void;
 };
@@ -291,8 +291,8 @@ export const LendBox = ({
       txOpts: {},
       callbacks: {
         captureEvent: captureEvent,
-        onComplete: (txnSig: string) => {
-          onComplete?.();
+        onComplete: (txnSig: string, newAccountKey?: PublicKey) => {
+          onComplete?.(newAccountKey);
 
           // Log the activity
           const activityDetails: Record<string, any> = {
