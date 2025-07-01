@@ -42,7 +42,10 @@ export const getMarginfiAccountData = async (
   oraclePrices: Map<string, OraclePrice>,
   bankMetadataMap: BankMetadataMap
 ): Promise<MarginfiAccountType> => {
-  const marginfiAccountRaw: MarginfiAccountRaw = await program.account.marginfiAccount.fetch(marginfiAccountPk);
+  const marginfiAccountRaw: MarginfiAccountRaw = await program.account.marginfiAccount.fetch(
+    marginfiAccountPk,
+    "confirmed"
+  );
   const marginfiAccount = MarginfiAccount.fromAccountParsed(marginfiAccountPk, marginfiAccountRaw);
 
   const marginfiAccountWithCache = await simulateAccountHealthCacheWithFallback({

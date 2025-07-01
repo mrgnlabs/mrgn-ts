@@ -1,6 +1,6 @@
 import { SolanaJSONRPCError } from "@solana/web3.js";
 
-import { TransactionConfigMap, TransactionOptions } from "@mrgnlabs/mrgn-common";
+import { TransactionConfigMap, TransactionOptions, TransactionType } from "@mrgnlabs/mrgn-common";
 import { toastManager, MultiStepToastController } from "@mrgnlabs/mrgn-toasts";
 import { MarginfiClient, ProcessTransactionsClientOpts, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, FEE_MARGIN } from "@mrgnlabs/mrgn-state";
@@ -74,6 +74,12 @@ export async function executeActionWrapper(props: {
     toast.start();
   } else {
     toast.resetAndStart();
+  }
+
+  const accountCreationTxn = txns.transactions.find((tx) => tx.type === TransactionType.CREATE_ACCOUNT);
+
+  if (accountCreationTxn) {
+    accountCreationTxn;
   }
 
   try {

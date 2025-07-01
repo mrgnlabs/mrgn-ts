@@ -35,6 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ...AnchorProvider.defaultOptions(),
       commitment: connection.commitment ?? AnchorProvider.defaultOptions().commitment,
     });
+
     const program = new Program(idl, provider) as any as MarginfiProgram;
 
     const authorityPk = new PublicKey(authority);
