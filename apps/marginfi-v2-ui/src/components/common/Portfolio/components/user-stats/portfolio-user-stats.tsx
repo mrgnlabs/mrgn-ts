@@ -1,6 +1,7 @@
 import { IconClockHour4, IconInfoCircle } from "@tabler/icons-react";
 import { dynamicNumeralFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { Skeleton } from "~/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 interface StatsData {
   value: number;
@@ -29,11 +30,27 @@ const formatChange = (change: number, changePercent: number) => {
   const colorClass = isPositive ? "text-mrgn-success" : "text-mrgn-warning";
   const sign = isPositive ? "+" : "";
 
-  return (
+  const formattedChange = (
     <span className={`text-sm font-light ${colorClass}`}>
       {sign}${dynamicNumeralFormatter(change)} ({sign}
       {changePercent.toFixed(1)}%)
     </span>
+  );
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex items-center gap-1">
+            {formattedChange}
+            <IconInfoCircle size={12} className={`${colorClass} cursor-help`} />
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>30 day change</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 
