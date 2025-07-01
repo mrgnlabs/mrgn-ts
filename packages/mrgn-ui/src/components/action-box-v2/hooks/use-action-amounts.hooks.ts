@@ -36,7 +36,7 @@ export function useActionAmounts({
     }
 
     if (selectedBank.info.rawBank.config.assetTag === 2) {
-      return selectedBank?.userInfo.tokenAccount.balance + (selectedStakeAccount?.balance ?? 0);
+      return selectedBank?.userInfo.tokenAccount.balance;
     }
 
     if (selectedBank?.info.state.mint?.equals(WSOL_MINT)) {

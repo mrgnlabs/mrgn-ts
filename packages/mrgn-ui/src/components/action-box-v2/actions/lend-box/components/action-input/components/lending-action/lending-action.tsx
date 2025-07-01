@@ -67,7 +67,7 @@ export const LendingAction = ({
                 selectedAccount={selectedAccount ?? null}
               />
             ),
-            amount: formatAmount(walletAmount, "SOL"),
+            amount: formatAmount(maxAmount, "SOL"),
           };
         }
 
