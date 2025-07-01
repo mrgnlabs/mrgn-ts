@@ -48,7 +48,6 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
     isLoading,
   } = usePortfolioData(accountAddress, banks);
 
-
   const {
     data: chartData,
     bankSymbols,
@@ -120,7 +119,11 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
       <div className="w-full h-[300px] flex items-center justify-center">
         <div className="text-center text-muted-foreground">
           <p>Failed to load {variant === "borrows" ? "borrow" : variant === "deposits" ? "deposit" : ""} data</p>
-          <p className="text-sm">{chartError.message}</p>
+          <p className="text-sm">
+            {chartError.message.includes("Error fetching portfolio data: Not Found")
+              ? "No activity found in the last 30 days for this account."
+              : chartError.message}
+          </p>
         </div>
       </div>
     );
