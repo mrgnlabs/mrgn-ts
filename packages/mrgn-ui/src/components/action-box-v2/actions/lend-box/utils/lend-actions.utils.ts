@@ -27,13 +27,6 @@ export async function generateActionTxns(props: {
     if (!props.stakeOpts?.stakePoolMetadata?.validatorVoteAccount) {
       throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.NATIVE_STAKE_NOT_FOUND);
     }
-
-    if (props.amount > props.stakeOpts?.walletAmount) {
-      if (!props.stakeOpts?.stakeAmount) {
-        throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.NOT_ENOUGH_STAKE);
-      }
-      doStakeDeposit = true;
-    }
   }
 
   if (!account && props.lendMode === ActionType.Deposit) {
@@ -52,6 +45,14 @@ export async function generateActionTxns(props: {
   switch (props.lendMode) {
     case ActionType.Deposit:
       let depositTx: SolanaTransaction;
+
+      if (props.bank.info.rawBank.config.assetTag === 2 && props.amount > (props.stakeOpts?.walletAmount ?? 0)) {
+        if (!props.stakeOpts?.stakeAmount) {
+          throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.NOT_ENOUGH_STAKE);
+        }
+        doStakeDeposit = true;
+      }
+
       if (doStakeDeposit) {
         if (!props.stakeOpts?.stakeAccount || !props.stakeOpts?.stakePoolMetadata?.validatorVoteAccount) {
           throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.NATIVE_STAKE_NOT_FOUND);

@@ -479,7 +479,7 @@ function canBeLent(
   );
 
   if (targetBankInfo.info.rawBank.config.assetTag === 2) {
-    walletBalance = selectedStakeAccount?.balance || 0;
+    walletBalance += selectedStakeAccount?.balance || 0;
   }
 
   if (walletBalance === 0 && targetBankInfo.info.rawBank.config.assetTag !== 2) {
