@@ -1,9 +1,9 @@
-import { getPointsSummary, getUserPoints, STATUS_NOT_FOUND, STATUS_OK } from "../lib";
+import { getPointsSummary, STATUS_NOT_FOUND, STATUS_OK } from "../lib";
 
-export const fetchUserPoints = async (userAddress?: string) => {
-  const response = await getUserPoints(userAddress);
-  return response;
-};
+// export const fetchUserPoints = async (userAddress?: string) => {
+//   const response = await getUserPoints(userAddress);
+//   return response;
+// };
 
 export const fetchPointsSummary = async () => {
   const response = await getPointsSummary();

@@ -12,7 +12,7 @@ import {
 } from "@mrgnlabs/marginfi-client-v2";
 import { TokenMetadata, nativeToUi, WSOL_MINT, floor, ceil, uiToNative } from "@mrgnlabs/mrgn-common";
 
-import { FEE_MARGIN, VOLATILITY_FACTOR } from "../consts";
+import { VOLATILITY_FACTOR } from "../consts";
 import {
   ExtendedBankMetadata,
   TokenPrice,
@@ -28,6 +28,7 @@ import {
   LendingPosition,
   MakeLendingPositionProps,
 } from "../types";
+import { FEE_MARGIN } from "./firebase.utils";
 
 export function makeExtendedBankMetadata(
   bank: Bank,

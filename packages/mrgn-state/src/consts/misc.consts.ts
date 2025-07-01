@@ -12,5 +12,3 @@ export const DEFAULT_ACCOUNT_SUMMARY = {
   signedFreeCollateral: 0,
   healthSimFailed: false,
 };
-
-export const FEE_MARGIN = 0.01;

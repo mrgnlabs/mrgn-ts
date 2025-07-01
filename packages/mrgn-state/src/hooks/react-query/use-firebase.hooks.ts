@@ -4,13 +4,7 @@ import { DocumentData } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Connection } from "@solana/web3.js";
 
-import {
-  signOutUser,
-  loginOrSignup,
-  login,
-  signup,
-  UserData,
-} from "../../lib/firebase.utils";
+import { loginOrSignup, login, signup, UserData } from "../../lib/firebase.utils";
 import {
   getPointsSummary,
   UserPointsData,
@@ -23,7 +17,7 @@ import {
   LeaderboardSettings,
 } from "../../lib/points.utils";
 import { useWalletAddress } from "../../context/wallet-state.context";
-import { fetchUser, fetchUserPoints } from "../../api";
+import { fetchUser } from "../../api";
 
 // ----------------------------------------------------------------------------
 // Firebase User Data Management
@@ -58,22 +52,22 @@ export function useFirebaseUser() {
  * Hook to get user points data
  * Enhanced version with wallet-specific points
  */
-export function useUserPoints() {
-  const walletAddress = useWalletAddress();
+// export function useUserPoints() {
+//   const walletAddress = useWalletAddress();
 
-  return useQuery<UserPointsData, Error>({
-    queryKey: ["userPoints", walletAddress?.toBase58() ?? null],
-    queryFn: async () => {
-      const wallet = walletAddress?.toBase58();
-      return await fetchUserPoints(wallet);
-    },
-    enabled: Boolean(walletAddress),
-    staleTime: 2 * 60_000, // 2 minutes
-    retry: 2,
-    // Return default data while loading
-    placeholderData: DEFAULT_USER_POINTS_DATA,
-  });
-}
+//   return useQuery<UserPointsData, Error>({
+//     queryKey: ["userPoints", walletAddress?.toBase58() ?? null],
+//     queryFn: async () => {
+//       const wallet = walletAddress?.toBase58();
+//       return await fetchUserPoints(wallet);
+//     },
+//     enabled: Boolean(walletAddress),
+//     staleTime: 2 * 60_000, // 2 minutes
+//     retry: 2,
+//     // Return default data while loading
+//     placeholderData: DEFAULT_USER_POINTS_DATA,
+//   });
+// }
 
 /**
  * Hook to get global points summary
@@ -144,24 +138,24 @@ export function useFirebaseAuthMutations() {
     },
   });
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await signOutUser();
-    },
-    onSuccess: () => {
-      // Clear all user-related queries on logout
-      queryClient.invalidateQueries({ queryKey: ["firebaseUser"] });
-      queryClient.invalidateQueries({ queryKey: ["userPoints"] });
-      queryClient.removeQueries({ queryKey: ["firebaseUser"] });
-      queryClient.removeQueries({ queryKey: ["userPoints"] });
-    },
-  });
+  // const logoutMutation = useMutation({
+  //   mutationFn: async () => {
+  //     await signOutUser();
+  //   },
+  //   onSuccess: () => {
+  //     // Clear all user-related queries on logout
+  //     queryClient.invalidateQueries({ queryKey: ["firebaseUser"] });
+  //     queryClient.invalidateQueries({ queryKey: ["userPoints"] });
+  //     queryClient.removeQueries({ queryKey: ["firebaseUser"] });
+  //     queryClient.removeQueries({ queryKey: ["userPoints"] });
+  //   },
+  // });
 
   return {
     loginOrSignup: loginMutation,
     login: explicitLoginMutation,
     signup: signupMutation,
-    logout: logoutMutation,
+    // logout: logoutMutation,
   };
 }
 
@@ -174,19 +168,16 @@ export function useFirebaseAuthMutations() {
  * @param settings LeaderboardSettings for pagination, sorting, and search
  * @param connection Solana connection for domain name resolution
  */
-export function useLeaderboardData(
-  settings: LeaderboardSettings, 
-  connection: Connection
-) {
+export function useLeaderboardData(settings: LeaderboardSettings, connection: Connection) {
   return useQuery<LeaderboardRow[], Error>({
     queryKey: [
-      "leaderboardData", 
+      "leaderboardData",
       settings.pageSize,
-      settings.currentPage, 
-      settings.orderCol, 
-      settings.orderDir, 
+      settings.currentPage,
+      settings.orderCol,
+      settings.orderDir,
       settings.search,
-      settings.pageDirection
+      settings.pageDirection,
     ],
     queryFn: () => fetchLeaderboardData(connection, settings),
     staleTime: 5 * 60_000, // 5 minutes
