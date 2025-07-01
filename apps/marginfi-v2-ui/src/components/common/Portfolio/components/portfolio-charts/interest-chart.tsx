@@ -162,7 +162,7 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
       <div className="w-full h-[300px] flex items-center justify-center">
         <div className="text-center text-muted-foreground">
           <p>No interest data available</p>
-          <p className="text-sm">Interest activity will appear here when available</p>
+          <p className="text-sm">No activity found in the last 30 days for this account</p>
         </div>
       </div>
     );

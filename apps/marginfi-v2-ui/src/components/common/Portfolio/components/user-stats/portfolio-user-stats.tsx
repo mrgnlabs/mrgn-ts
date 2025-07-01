@@ -26,6 +26,25 @@ interface PortfolioUserStatsProps {
 
 // Helper function to format change value and percentage
 const formatChange = (change: number, changePercent: number) => {
+  // If change is effectively zero, show +$0.00 (0.0%)
+  if (Math.abs(change) < 1e-10) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="inline-flex items-center gap-1">
+              <span className="text-sm font-light text-muted-foreground">+$0.00 (0.0%)</span>
+              <IconInfoCircle size={12} className="text-muted-foreground cursor-help" />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>30 day change</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+  
   const isPositive = change >= 0;
   const colorClass = isPositive ? "text-mrgn-success" : "text-mrgn-warning";
   const sign = isPositive ? "+" : "";
@@ -127,7 +146,11 @@ export const PortfolioUserStats = ({
             <Skeleton className="h-6 w-20 mt-1" />
           ) : (
             <>
-              {latestNetInterest !== undefined ? usdFormatter.format(latestNetInterest) : "$0.00"}{" "}
+              {(() => {
+                // Handle potential negative zero or very small values
+                const displayValue = Math.abs(latestNetInterest || 0) < 1e-10 ? 0 : latestNetInterest;
+                return displayValue !== undefined ? usdFormatter.format(displayValue) : "$0.00";
+              })()}{" "}
               {!isLoadingInterest && netInterest30d ? (
                 formatChange(netInterest30d.change, netInterest30d.changePercent)
               ) : (

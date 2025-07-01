@@ -22,8 +22,12 @@ export const calculateLatestNetInterest = (data: InterestEarnedDataPoint[]): num
     0
   );
   const totalPaid = Object.values(latestByBank).reduce((sum, item) => sum + item.cumulative_interest_paid_usd_close, 0);
+  
+  // Handle floating-point precision issues by treating very small values as zero
+  const netInterest = totalEarned - totalPaid;
+  const result = Math.abs(netInterest) < 1e-10 ? 0 : netInterest;
 
-  return totalEarned - totalPaid;
+  return result;
 };
 
 /**
@@ -113,7 +117,9 @@ export const calculateNetInterest30dStats = (data: InterestEarnedDataPoint[]): S
       totalPaid += item.cumulative_interest_paid_usd_close;
     });
 
-    rawDailyNetInterest[date] = totalEarned - totalPaid;
+    // Handle floating-point precision issues
+    const netInterest = totalEarned - totalPaid;
+    rawDailyNetInterest[date] = Math.abs(netInterest) < 1e-10 ? 0 : netInterest;
   });
 
   // Fill gaps within actual data range only
@@ -128,16 +134,18 @@ export const calculateNetInterest30dStats = (data: InterestEarnedDataPoint[]): S
   const firstDate = sortedDates[0];
   const lastDate = sortedDates[sortedDates.length - 1];
 
-  const firstValue = dailyNetInterest[firstDate];
-  const lastValue = dailyNetInterest[lastDate];
+  // Handle floating-point precision issues
+  const firstValue = Math.abs(dailyNetInterest[firstDate]) < 1e-10 ? 0 : dailyNetInterest[firstDate];
+  const lastValue = Math.abs(dailyNetInterest[lastDate]) < 1e-10 ? 0 : dailyNetInterest[lastDate];
 
   // Calculate change (last vs first)
   const change = lastValue - firstValue;
 
   let changePercent = 0;
-  if (firstValue !== 0) {
+  // Only calculate percentage if both values aren't effectively zero
+  if (Math.abs(firstValue) >= 1e-10) {
     if (Math.abs(firstValue) < 0.01) {
-      changePercent = change > 0 ? 100 : -100;
+      changePercent = change > 0 ? 100 : (change < 0 ? -100 : 0);
     } else {
       changePercent = (change / Math.abs(firstValue)) * 100;
     }
