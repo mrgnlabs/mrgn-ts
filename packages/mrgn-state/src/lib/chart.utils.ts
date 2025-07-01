@@ -149,15 +149,8 @@ export function transformInterestData(
   // Get unique bank symbols
   const allBankSymbols = Array.from(new Set(data.map((item) => item.bank_symbol)));
 
-  // Filter out banks with no meaningful interest BEFORE gap filling
-  const activeBankSymbols = allBankSymbols.filter((bankSymbol) => {
-    const bankData = data.filter((item) => item.bank_symbol === bankSymbol);
-    const hasSignificantValue = bankData.some((item) => Math.abs(item[fieldName]) > 0.01);
-    return hasSignificantValue;
-  });
-
-  // If no active banks, return empty
-  if (activeBankSymbols.length === 0) {
+  // If no banks, return empty
+  if (allBankSymbols.length === 0) {
     return { chartData: [], bankSymbols: [] };
   }
 
@@ -184,7 +177,7 @@ export function transformInterestData(
 
   // Group data by bank symbol (only for active banks)
   const dataByBank: Record<string, InterestEarnedDataPoint[]> = {};
-  activeBankSymbols.forEach((symbol) => {
+  allBankSymbols.forEach((symbol) => {
     dataByBank[symbol] = data
       .filter((item) => item.bank_symbol === symbol)
       .sort((a, b) => new Date(a.bank_snapshot_time).getTime() - new Date(b.bank_snapshot_time).getTime());
@@ -193,7 +186,7 @@ export function transformInterestData(
   // Fill gaps for each active bank symbol (within actual date range only)
   const filledDataByBank: Record<string, Record<string, number>> = {};
 
-  activeBankSymbols.forEach((bankSymbol) => {
+  allBankSymbols.forEach((bankSymbol) => {
     const bankData = dataByBank[bankSymbol];
     filledDataByBank[bankSymbol] = {};
 
@@ -234,7 +227,7 @@ export function transformInterestData(
       timestamp: `${dateStr}T12:00:00.000Z`,
     };
 
-    activeBankSymbols.forEach((bankSymbol) => {
+    allBankSymbols.forEach((bankSymbol) => {
       dataPoint[bankSymbol] = filledDataByBank[bankSymbol][dateStr] || 0;
     });
 
@@ -242,9 +235,9 @@ export function transformInterestData(
   });
 
   // Forward-fill data to current date
-  const forwardFilledData = forwardFillDataToCurrentDate(chartData, activeBankSymbols);
+  const forwardFilledData = forwardFillDataToCurrentDate(chartData, allBankSymbols);
 
-  return { chartData: forwardFilledData, bankSymbols: activeBankSymbols };
+  return { chartData: forwardFilledData, bankSymbols: allBankSymbols };
 }
 
 /**
@@ -256,19 +249,14 @@ export function transformTotalInterestData(data: InterestEarnedDataPoint[]): {
 } {
   if (!data.length) return { chartData: [], bankSymbols: [] };
 
-  // Get banks that would appear in individual earned chart
+  // Get all bank symbols
   const allBankSymbols = Array.from(new Set(data.map((item) => item.bank_symbol)));
 
-  const earnedActiveBanks = allBankSymbols.filter((bankSymbol) => {
-    const bankData = data.filter((item) => item.bank_symbol === bankSymbol);
-    return bankData.some((item) => Math.abs(item.cumulative_interest_earned_usd_close) > 0.01);
-  });
+  const earnedActiveBanks = allBankSymbols.filter((bankSymbol) =>
+    data.filter((item) => item.bank_symbol === bankSymbol)
+  );
 
-  // Get banks that would appear in individual paid chart
-  const paidActiveBanks = allBankSymbols.filter((bankSymbol) => {
-    const bankData = data.filter((item) => item.bank_symbol === bankSymbol);
-    return bankData.some((item) => Math.abs(item.cumulative_interest_paid_usd_close) > 0.01);
-  });
+  const paidActiveBanks = allBankSymbols.filter((bankSymbol) => data.filter((item) => item.bank_symbol === bankSymbol));
 
   // For total chart, we need ALL banks that appear in either chart for date range calculation
   const allActiveBanks = Array.from(new Set([...earnedActiveBanks, ...paidActiveBanks]));
@@ -305,7 +293,7 @@ export function transformTotalInterestData(data: InterestEarnedDataPoint[]): {
   }
 
   // Use the same gap-filling approach as individual charts for each bank
-  // Calculate earned totals: gap-fill each earned bank then sum final values by date
+  // Calculate earned totals: gap-fill each bank then sum final values by date
   const earnedByBankByDate: Record<string, Record<string, number>> = {};
 
   earnedActiveBanks.forEach((bankSymbol) => {
@@ -341,7 +329,7 @@ export function transformTotalInterestData(data: InterestEarnedDataPoint[]): {
     }
   });
 
-  // Calculate paid totals: gap-fill each paid bank then sum final values by date
+  // Calculate paid totals: gap-fill each bank then sum final values by date
   const paidByBankByDate: Record<string, Record<string, number>> = {};
 
   paidActiveBanks.forEach((bankSymbol) => {
@@ -398,15 +386,6 @@ export function transformTotalInterestData(data: InterestEarnedDataPoint[]): {
       "Net Interest": netInterest,
     };
   });
-
-  // Check if we have any meaningful data (threshold of $0.01) - should pass since we filtered banks
-  const hasSignificantData = chartData.some(
-    (point) => Math.abs(point["Total Earned"] as number) > 0.01 || Math.abs(point["Total Paid"] as number) > 0.01
-  );
-
-  if (!hasSignificantData) {
-    return { chartData: [], bankSymbols: [] };
-  }
 
   // Forward-fill data to current date
   const forwardFilledData = forwardFillDataToCurrentDate(chartData, ["Total Earned", "Total Paid", "Net Interest"]);
