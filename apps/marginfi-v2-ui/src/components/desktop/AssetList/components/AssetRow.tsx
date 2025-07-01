@@ -13,7 +13,8 @@ import { AssetListModel } from "../utils";
 export const AssetRow = (row: Row<AssetListModel>) => {
   const router = useRouter();
   const isPosition = React.useMemo(
-    () => row.original.position.walletAmount || row.original.position.positionAmount,
+    () =>
+      row.original.position.walletAmount || row.original.position.positionAmount || row.original.position.stakedAmount,
     [row.original.position]
   );
   const isStakedActivating = row.original.asset.stakePool && !row.original.asset.stakePool?.isActive;

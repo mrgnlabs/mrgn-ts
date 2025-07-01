@@ -331,7 +331,7 @@ export const getPositionCell = (positionData: PositionData) => {
   const makeTokenAmount = (amount: number, symbol: string) => dynamicNumeralFormatter(amount) + " " + symbol;
   const tokenWalletAmount = makeTokenAmount(positionData.walletAmount, positionData.symbol);
   const tokenPositionAmount = makeTokenAmount(positionData.positionAmount!, positionData.symbol);
-  const tokenPrice = positionData.assetTag === 2 ? positionData.solPrice || positionData.price : positionData.price;
+  const tokenPrice = positionData.price;
 
   return (
     <div className="mt-2 w-full bg-background-gray rounded-md flex items-center gap-8 px-2 py-3">
@@ -346,6 +346,19 @@ export const getPositionCell = (positionData: PositionData) => {
           </div>
         </dd>
       </dl>
+      {positionData.stakedAmount && (
+        <dl className="flex gap-2 items-center">
+          <dt className="text-accent-foreground font-light">Total staked:</dt>
+          <dd>
+            <div className="flex items-center gap-2">
+              <span className="text-foreground">{makeTokenAmount(positionData.stakedAmount, "SOL")}</span>
+              <span className="text-muted-foreground">
+                ({usdFormatter.format(positionData.stakedAmount * (positionData.solPrice || 0))})
+              </span>
+            </div>
+          </dd>
+        </dl>
+      )}
       {positionData.positionAmount && positionData.positionUsd && (
         <dl className="flex gap-2 items-center">
           <dt className="text-accent-foreground font-light">

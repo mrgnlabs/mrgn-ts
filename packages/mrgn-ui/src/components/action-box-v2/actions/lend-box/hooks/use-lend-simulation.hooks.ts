@@ -26,8 +26,12 @@ type LendSimulationProps = {
   lendMode: ActionType;
   actionTxns: ActionTxns;
   simulationResult: SimulationResult | null;
-  selectedStakeAccount?: PublicKey;
-  stakePoolMetadata?: StakePoolMetadata;
+  stakeOpts?: {
+    stakeAccount?: PublicKey;
+    stakePoolMetadata: StakePoolMetadata;
+    stakeAmount?: number;
+    walletAmount: number;
+  };
   setSimulationResult: (result: SimulationResult | null) => void;
   setActionTxns: (actionTxns: ActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
@@ -41,8 +45,7 @@ export function useLendSimulation({
   selectedBank,
   lendMode,
   simulationResult,
-  selectedStakeAccount,
-  stakePoolMetadata,
+  stakeOpts,
   marginfiClient,
   setSimulationResult,
   setActionTxns,
@@ -85,8 +88,12 @@ export function useLendSimulation({
     bank: ExtendedBankInfo;
     lendMode: ActionType;
     amount: number;
-    stakeAccount?: PublicKey;
-    stakePoolMetadata?: StakePoolMetadata;
+    stakeOpts?: {
+      stakeAccount?: PublicKey;
+      stakePoolMetadata: StakePoolMetadata;
+      stakeAmount?: number;
+      walletAmount: number;
+    };
   }): Promise<{
     actionTxns: ActionTxns;
     finalAccount: MarginfiAccountWrapper;
@@ -115,11 +122,10 @@ export function useLendSimulation({
         const props = {
           marginfiAccount: selectedAccount,
           marginfiClient: marginfiClient,
-          stakeAccount: selectedStakeAccount,
           bank: selectedBank,
           lendMode: lendMode,
           amount: amount,
-          stakePoolMetadata: stakePoolMetadata,
+          stakeOpts: stakeOpts,
         };
 
         const actionTxns = await fetchActionTxns(props);
@@ -166,7 +172,7 @@ export function useLendSimulation({
       marginfiClient,
       selectedAccount,
       selectedBank,
-      selectedStakeAccount,
+      stakeOpts,
       setActionTxns,
       setErrorMessage,
       setIsLoading,

@@ -179,8 +179,14 @@ export const LendBox = ({
     lendMode,
     actionTxns,
     simulationResult,
-    selectedStakeAccount: selectedStakeAccount?.address || undefined,
-    stakePoolMetadata,
+    stakeOpts: stakePoolMetadata
+      ? {
+          stakeAccount: selectedStakeAccount?.address,
+          stakePoolMetadata,
+          stakeAmount: selectedStakeAccount?.balance,
+          walletAmount: walletAmount,
+        }
+      : undefined,
     setSimulationResult,
     setActionTxns,
     setErrorMessage,

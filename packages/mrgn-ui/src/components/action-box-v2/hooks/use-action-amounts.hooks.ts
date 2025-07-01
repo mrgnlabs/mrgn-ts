@@ -36,7 +36,7 @@ export function useActionAmounts({
     }
 
     if (selectedBank.info.rawBank.config.assetTag === 2) {
-      return selectedStakeAccount?.balance ?? 0;
+      return selectedBank?.userInfo.tokenAccount.balance + (selectedStakeAccount?.balance ?? 0);
     }
 
     if (selectedBank?.info.state.mint?.equals(WSOL_MINT)) {
@@ -54,7 +54,7 @@ export function useActionAmounts({
     switch (actionMode) {
       case ActionType.Deposit:
         return selectedBank.info.rawBank.config.assetTag === 2
-          ? (selectedStakeAccount?.balance ?? 0)
+          ? selectedBank?.userInfo.tokenAccount.balance + (selectedStakeAccount?.balance ?? 0)
           : (selectedBank?.userInfo.maxDeposit ?? 0);
       case ActionType.Withdraw:
         return selectedBank?.userInfo.maxWithdraw ?? 0;

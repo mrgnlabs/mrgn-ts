@@ -110,6 +110,7 @@ export interface PositionData {
   solPrice: number | null;
   assetTag: number;
   walletAmount: number;
+  stakedAmount?: number;
   symbol: string;
   positionAmount?: number;
   positionUsd?: number;
@@ -376,10 +377,6 @@ export const getPositionData = (
     }
   }
 
-  if (validatorStakeGroup) {
-    walletAmount = validatorStakeGroup.totalStake;
-  }
-
   const positionData: PositionData = {
     price: bank.info.state.price,
     walletAmount,
@@ -391,6 +388,7 @@ export const getPositionData = (
     symbol: bank.meta.tokenSymbol,
     assetTag: bank.info.rawBank.config.assetTag,
     denominationUSD: false,
+    stakedAmount: validatorStakeGroup?.totalStake,
     solPrice,
   };
 
