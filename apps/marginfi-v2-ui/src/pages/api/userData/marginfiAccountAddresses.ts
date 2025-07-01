@@ -1,3 +1,4 @@
+import { NextApiRequest, NextApiResponse } from "next";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import { Connection, PublicKey } from "@solana/web3.js";
 
@@ -5,7 +6,6 @@ import { MARGINFI_IDL, MarginfiIdlType, MarginfiProgram } from "@mrgnlabs/margin
 import { Wallet } from "@mrgnlabs/mrgn-common";
 import { getMarginfiAccountAddresses } from "@mrgnlabs/mrgn-state";
 
-import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -47,12 +47,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error("Error:", error);
     res.status(500).json({ error: "Error processing request" });
   }
-}
-
-function chunkArray<T>(arr: T[], chunkSize: number): T[][] {
-  const result: T[][] = [];
-  for (let i = 0; i < arr.length; i += chunkSize) {
-    result.push(arr.slice(i, i + chunkSize));
-  }
-  return result;
 }

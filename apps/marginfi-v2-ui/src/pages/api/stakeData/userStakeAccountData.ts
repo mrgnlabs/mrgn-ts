@@ -1,6 +1,7 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { fetchNativeStakeAccounts, validatorStakeGroupToDto } from "@mrgnlabs/marginfi-client-v2";
 import { NextApiRequest, NextApiResponse } from "next";
+
+import { fetchNativeStakeAccounts, validatorStakeGroupToDto } from "@mrgnlabs/marginfi-client-v2";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { address } = req.query;
@@ -23,8 +24,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const stakeAccounts = await fetchNativeStakeAccounts(connection, addressPk);
     const stakeAccountsDto = stakeAccounts.map(validatorStakeGroupToDto);
-
-    res.setHeader("Cache-Control", "s-maxage=240, stale-while-revalidate=59");
     res.status(200).json(stakeAccountsDto);
   } catch (error) {
     console.error("Error:", error);

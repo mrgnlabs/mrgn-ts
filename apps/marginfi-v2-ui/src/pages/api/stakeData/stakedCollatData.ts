@@ -8,8 +8,8 @@ import { chunkedGetRawMultipleAccountInfoOrdered, MintLayout, RawMint } from "@m
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { NextApiRequest, NextApiResponse } from "next";
 
-const S_MAXAGE_TIME = 10;
-const STALE_WHILE_REVALIDATE_TIME = 15;
+const S_MAXAGE_TIME = 300;
+const STALE_WHILE_REVALIDATE_TIME = 300;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const rawQuery = req.query.voteAccMintTuple;
@@ -17,10 +17,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!rawQuery || typeof rawQuery !== "string") {
     return res.status(400).json({ error: "Invalid input: expected JSON string in voteAccMintTuple." });
   }
+
+  if (!process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE) {
+    return res.status(400).json({ error: "PRIVATE_RPC_ENDPOINT_OVERRIDE is not set" });
+  }
+
   try {
     const voteAccMintTuples: [string, string] = JSON.parse(rawQuery);
 
-    const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
+    const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE);
 
     const stakedCollatMap: Record<
       string,

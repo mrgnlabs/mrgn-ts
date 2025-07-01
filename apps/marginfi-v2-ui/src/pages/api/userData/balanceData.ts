@@ -1,4 +1,11 @@
-import { getAssociatedTokenAddressSync, MintLayout, nativeToUi, unpackAccount } from "@mrgnlabs/mrgn-common";
+import {
+  chunkedGetRawMultipleAccountInfoOrdered,
+  chunkedGetRawMultipleAccountInfoOrderedWithNulls,
+  getAssociatedTokenAddressSync,
+  MintLayout,
+  nativeToUi,
+  unpackAccount,
+} from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -68,15 +75,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const ataAddresses = tokens.map((token) => token.ata);
+    const totalArray: string[] = [addressPk, ...ataAddresses].map((pk) => pk.toBase58());
 
-    const maxAccounts = 100;
-    const totalArray: PublicKey[] = [addressPk, ...ataAddresses];
-
-    const chunkedArrays = chunkArray(totalArray, maxAccounts);
-
-    const accountsAiList = (
-      await Promise.all(chunkedArrays.map((chunk) => connection.getMultipleAccountsInfo(chunk)))
-    ).flat();
+    const accountsAiList = await chunkedGetRawMultipleAccountInfoOrderedWithNulls(connection, totalArray);
 
     // Decode account buffers
     const [walletAi, ...ataAiList] = accountsAiList;
@@ -96,6 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           balance: 0,
         };
       }
+
       const decoded = unpackAccount(token.ata, ai, token.tokenProgram);
       return {
         created: true,
@@ -112,12 +114,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error("Error:", error);
     res.status(500).json({ error: "Error processing request" });
   }
-}
-
-function chunkArray<T>(arr: T[], chunkSize: number): T[][] {
-  const result: T[][] = [];
-  for (let i = 0; i < arr.length; i += chunkSize) {
-    result.push(arr.slice(i, i + chunkSize));
-  }
-  return result;
 }
