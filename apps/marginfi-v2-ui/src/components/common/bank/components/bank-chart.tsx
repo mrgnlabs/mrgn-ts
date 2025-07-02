@@ -320,7 +320,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
                           data={interestCurveData}
                           type="monotone"
                           fill="url(#fillPrimary)"
-                          stroke={chartColors.primary}
+                          stroke={chartColors.secondary}
                           strokeWidth={2}
                           name="Borrow APY"
                         />
@@ -329,7 +329,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
                           data={interestCurveData}
                           type="monotone"
                           fill="url(#fillSecondary)"
-                          stroke={chartColors.secondary}
+                          stroke={chartColors.primary}
                           strokeWidth={2}
                           name="Supply APY"
                         />

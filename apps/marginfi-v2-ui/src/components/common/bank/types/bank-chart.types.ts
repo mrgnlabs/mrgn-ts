@@ -52,11 +52,11 @@ export const chartConfigs = {
   interestCurve: {
     borrowAPY: {
       label: "Borrow APY",
-      color: chartColors.primary,
+      color: chartColors.secondary,
     },
     supplyAPY: {
       label: "Supply APY",
-      color: chartColors.secondary,
+      color: chartColors.primary,
     },
   },
   tvl: {

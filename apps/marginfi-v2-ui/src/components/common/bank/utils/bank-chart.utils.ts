@@ -301,8 +301,8 @@ export const generateInterestCurveData = (latestData: BankChartDataDailyAverages
 
     return {
       utilization,
-      borrowAPY: rates.borrowingRate,
-      supplyAPY: rates.lendingRate,
+      borrowAPY: rates.borrowingRate * 100,
+      supplyAPY: rates.lendingRate * 100,
     };
   });
 };
