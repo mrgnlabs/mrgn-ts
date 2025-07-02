@@ -32,6 +32,27 @@ export function computeFreeCollateral(marginfiAccount: MarginfiAccountType, opts
   return _clamped ? BigNumber.max(0, signedFreeCollateral) : signedFreeCollateral;
 }
 
+export function computeFreeCollateralLegacy(
+  activeBalances: BalanceType[],
+  banks: Map<string, BankType>,
+  oraclePrices: Map<string, OraclePrice>,
+  opts?: { clamped?: boolean }
+): BigNumber {
+  const _clamped = opts?.clamped ?? true;
+
+  const { assets, liabilities } = computeHealthComponentsLegacy(
+    activeBalances,
+    banks,
+    oraclePrices,
+    MarginRequirementType.Initial,
+    []
+  );
+
+  const signedFreeCollateral = assets.minus(liabilities);
+
+  return _clamped ? BigNumber.max(0, signedFreeCollateral) : signedFreeCollateral;
+}
+
 export function computeHealthComponents(
   marginfiAccount: MarginfiAccountType,
   marginReqType: MarginRequirementType

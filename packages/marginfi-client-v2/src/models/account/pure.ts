@@ -61,6 +61,8 @@ import {
   BankType,
   computeHealthCheckAccounts,
   makePulseHealthIx,
+  computeFreeCollateralLegacy,
+  EmodeImpactStatus,
 } from "../..";
 import BN from "bn.js";
 import { BorshInstructionCoder } from "@coral-xyz/anchor";
@@ -179,6 +181,14 @@ class MarginfiAccount implements MarginfiAccountType {
     return computeFreeCollateral(this, opts);
   }
 
+  computeFreeCollateralLegacy(
+    banks: Map<string, BankType>,
+    oraclePrices: Map<string, OraclePrice>,
+    opts?: { clamped?: boolean }
+  ): BigNumber {
+    return computeFreeCollateralLegacy(this.activeBalances, banks, oraclePrices, opts);
+  }
+
   computeHealthComponents(marginReqType: MarginRequirementType): {
     assets: BigNumber;
     liabilities: BigNumber;
@@ -242,6 +252,7 @@ class MarginfiAccount implements MarginfiAccountType {
     oraclePrices: Map<string, OraclePrice>,
     bankAddress: PublicKey,
     opts?: {
+      emodeImpactStatus?: EmodeImpactStatus;
       volatilityFactor?: number;
       emodeWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber; collateralTag: EmodeTag };
     }
@@ -314,7 +325,13 @@ class MarginfiAccount implements MarginfiAccountType {
 
     const balance = this.getBalance(bankAddress);
 
-    const freeCollateral = this.computeFreeCollateral().times(_volatilityFactor);
+    const useCache =
+      opts?.emodeImpactStatus === EmodeImpactStatus.InactiveEmode ||
+      opts?.emodeImpactStatus === EmodeImpactStatus.ExtendEmode;
+
+    let freeCollateral = useCache
+      ? this.computeFreeCollateral().times(_volatilityFactor)
+      : this.computeFreeCollateralLegacy(banks, oraclePrices);
 
     debug("Free collateral: %d", freeCollateral.toFixed(6));
 
