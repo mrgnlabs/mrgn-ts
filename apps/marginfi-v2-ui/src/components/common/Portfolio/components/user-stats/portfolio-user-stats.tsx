@@ -44,7 +44,7 @@ const formatChange = (change: number, changePercent: number) => {
       </TooltipProvider>
     );
   }
-  
+
   const isPositive = change >= 0;
   const colorClass = isPositive ? "text-mrgn-success" : "text-mrgn-warning";
   const sign = isPositive ? "+" : "";
@@ -96,11 +96,11 @@ export const PortfolioUserStats = ({
           ) : (
             <>
               {supplied}{" "}
-              {!isLoadingPortfolio && supplied30d ? (
+              {/* {!isLoadingPortfolio && supplied30d ? (
                 formatChange(supplied30d.change, supplied30d.changePercent)
               ) : (
                 <Skeleton className="inline-block h-4 w-16 ml-1" />
-              )}
+              )} */}
             </>
           )
         }
@@ -113,11 +113,11 @@ export const PortfolioUserStats = ({
           ) : (
             <>
               {borrowed}{" "}
-              {!isLoadingPortfolio && borrowed30d ? (
+              {/* {!isLoadingPortfolio && borrowed30d ? (
                 formatChange(borrowed30d.change, borrowed30d.changePercent)
               ) : (
                 <Skeleton className="inline-block h-4 w-16 ml-1" />
-              )}
+              )} */}
             </>
           )
         }
@@ -130,11 +130,11 @@ export const PortfolioUserStats = ({
           ) : (
             <>
               {netValue}{" "}
-              {!isLoadingPortfolio && netValue30d ? (
+              {/* {!isLoadingPortfolio && netValue30d ? (
                 formatChange(netValue30d.change, netValue30d.changePercent)
               ) : (
                 <Skeleton className="inline-block h-4 w-16 ml-1" />
-              )}
+              )} */}
             </>
           )
         }
