@@ -1,18 +1,23 @@
 // Runs once per group, before any staked banks can be init.
+import dotenv from "dotenv";
+dotenv.config();
+
 import { AccountMeta, Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
-import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
+import { Program, AnchorProvider, Wallet, BN } from "@coral-xyz/anchor";
 import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
 import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
-import { loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
+import { I80F48_ONE, loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
 import {
   TOKEN_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
+import { findPoolStakeAddress, findPoolMintAddress } from "@mrgnlabs/marginfi-client-v2/src/vendor/single-spl-pool";
 
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
  */
 const sendTx = true;
+const simulate = true;
 const verbose = true;
 
 type Config = {
@@ -28,16 +33,21 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
   GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
-  STAKE_POOL: new PublicKey("AvS4oXtxWdrJGCJwDbcZ7DqpSqNQtKjyXnbkDbrSk6Fq"),
+  STAKE_POOL: findPoolStakeAddress(new PublicKey("FrtCZRajYfrdoZarPxCsUB6f66ga5DPSXGz4F7VKyfKP")),
   SOL_ORACLE_FEED: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
   SEED: 0,
   MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
 };
 
+console.log(
+  "mint address",
+  findPoolStakeAddress(new PublicKey("FrtCZRajYfrdoZarPxCsUB6f66ga5DPSXGz4F7VKyfKP")).toBase58()
+);
+
 async function main() {
   marginfiIdl.address = config.PROGRAM_ID;
-  const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
-  const wallet = loadKeypairFromFile(process.env.HOME + "/keys/staging-deploy.json");
+  const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT, "confirmed");
+  const wallet = loadKeypairFromFile(process.env.MARGINFI_WALLET);
 
   // @ts-ignore
   const provider = new AnchorProvider(connection, wallet, {
@@ -106,11 +116,16 @@ async function main() {
   );
 
   if (sendTx) {
-    try {
-      const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
-      console.log("Transaction signature:", signature);
-    } catch (error) {
-      console.error("Transaction failed:", error);
+    if (simulate) {
+      const simulation = await connection.simulateTransaction(transaction, [wallet]);
+      console.log("Simulation:", simulation);
+    } else {
+      try {
+        const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
+        console.log("Transaction signature:", signature);
+      } catch (error) {
+        console.error("Transaction failed:", error);
+      }
     }
 
     if (verbose) {
