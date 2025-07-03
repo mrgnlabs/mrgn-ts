@@ -1,7 +1,12 @@
 import { PublicKey, StakeProgram, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 
-import { InstructionsWrapper, SINGLE_POOL_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import {
+  composeRemainingAccounts,
+  InstructionsWrapper,
+  SINGLE_POOL_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+} from "@mrgnlabs/mrgn-common";
 
 import { FLASHLOAN_ENABLED_FLAG, TRANSFER_ACCOUNT_AUTHORITY_FLAG } from "../../constants";
 import instructions from "../../instructions";
@@ -134,6 +139,8 @@ export async function makeAddPermissionlessStakedBankIx(
     data,
   });
 
+  const remainingKeys = [pythOracle, lstMint, solPool];
+
   const ix = await instructions.makePoolAddPermissionlessStakedBankIx(
     program,
     {
@@ -143,23 +150,7 @@ export async function makeAddPermissionlessStakedBankIx(
       solPool,
       stakePool: poolAddress,
     },
-    [
-      {
-        pubkey: pythOracle,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: lstMint,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: solPool,
-        isSigner: false,
-        isWritable: false,
-      },
-    ],
+    remainingKeys.map((key) => ({ pubkey: key, isSigner: false, isWritable: false })),
     {
       seed: new BN(0),
     }
