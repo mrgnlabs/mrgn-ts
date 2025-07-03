@@ -5,6 +5,8 @@ import {
   PublicKey,
   SystemProgram,
   TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
@@ -154,21 +156,44 @@ export async function simulateAccountHealthCache(props: {
 
   const pythLut = crankPythIxs.lut ? [crankPythIxs.lut] : [];
 
-  const txs = splitInstructionsToFitTransactions(
-    [computeIx],
-    [
-      fundAccountIx,
-      ...crankPythIxs.postInstructions.map((ix) => ix.instruction),
-      ...crankPythIxs.closeInstructions.map((ix) => ix.instruction),
-      ...crankSwbIxs.instructions,
-      ...healthPulseIxs.instructions,
-    ],
-    {
-      blockhash,
-      payerKey: program.provider.publicKey,
-      luts: [...crankSwbIxs.luts, ...pythLut],
-    }
-  );
+  const txs = [];
+
+  if (crankPythIxs.postInstructions.length > 0) {
+    txs.push(
+      ...splitInstructionsToFitTransactions(
+        [computeIx],
+        [
+          fundAccountIx,
+          ...crankPythIxs.postInstructions.map((ix) => ix.instruction),
+          ...crankPythIxs.closeInstructions.map((ix) => ix.instruction),
+        ],
+        {
+          blockhash,
+          payerKey: program.provider.publicKey,
+          luts: [...crankSwbIxs.luts, ...pythLut],
+        }
+      )
+    );
+  }
+
+  const messageV0 = new TransactionMessage({
+    payerKey: program.provider.publicKey,
+    recentBlockhash: blockhash,
+    instructions: [...crankSwbIxs.instructions],
+  }).compileToV0Message([...crankSwbIxs.luts]);
+
+  const swbTx = new VersionedTransaction(messageV0);
+
+  txs.push(swbTx);
+
+  const healthTx = new TransactionMessage({
+    payerKey: program.provider.publicKey,
+    recentBlockhash: blockhash,
+    instructions: [...healthPulseIxs.instructions],
+  }).compileToV0Message([]);
+
+  const healthTxV0 = new VersionedTransaction(healthTx);
+  txs.push(healthTxV0);
 
   if (txs.length > 5) {
     console.error("Too many transactions", txs.length);
@@ -189,6 +214,10 @@ export async function simulateAccountHealthCache(props: {
   );
 
   if (marginfiAccountPost.healthCache.mrgnErr || marginfiAccountPost.healthCache.internalErr) {
+    console.log(
+      "cranked swb oracles",
+      staleSwbOracles.map((oracle) => oracle.oracleKey)
+    );
     console.log("MarginfiAccountPost healthCache internalErr", marginfiAccountPost.healthCache.internalErr);
     console.log("MarginfiAccountPost healthCache mrgnErr", marginfiAccountPost.healthCache.mrgnErr);
 
@@ -335,7 +364,10 @@ export function getActiveStaleBanks(
   const allBanks = [...activeBanks, ...additionalBanks];
 
   const staleBanks = allBanks.filter((bank) => {
-    if (bank.config.oracleSetup === OracleSetup.SwitchboardPull) {
+    if (
+      bank.config.oracleSetup === OracleSetup.SwitchboardPull ||
+      bank.config.oracleSetup === OracleSetup.SwitchboardV2
+    ) {
       // always crank swb banks
       return true;
     }

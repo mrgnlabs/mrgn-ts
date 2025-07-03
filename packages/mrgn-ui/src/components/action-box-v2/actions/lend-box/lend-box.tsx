@@ -13,9 +13,10 @@ import {
   AccountSummary,
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
+  getEmodePairs,
 } from "@mrgnlabs/mrgn-state";
 
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { ActionEmodeImpact, EmodeImpact, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
   checkLendActionAvailable,
@@ -164,6 +165,29 @@ export const LendBox = ({
     return accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount) : DEFAULT_ACCOUNT_SUMMARY);
   }, [accountSummaryArg, selectedAccount]);
 
+  const actionEmodeImpact: ActionEmodeImpact | undefined = React.useMemo(() => {
+    if (selectedBank && selectedAccount) {
+      const rawBanks = banks.map((bank) => bank.info.rawBank);
+      const emodePairs = getEmodePairs(rawBanks);
+      const emodeImpacts = selectedAccount.computeEmodeImpacts(emodePairs);
+      const emodeImpact: ActionEmodeImpact | undefined = emodeImpacts[selectedBank.address.toBase58()];
+      return emodeImpact;
+    }
+    return undefined;
+  }, [banks, selectedBank, selectedAccount]);
+
+  const emodeImpact = React.useMemo(() => {
+    let impact: EmodeImpact | undefined;
+
+    if (lendMode === ActionType.Deposit) {
+      impact = actionEmodeImpact?.supplyImpact;
+    } else if (lendMode === ActionType.Borrow) {
+      impact = actionEmodeImpact?.borrowImpact;
+    }
+
+    return impact;
+  }, [actionEmodeImpact]);
+
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
     selectedBank,
@@ -171,6 +195,7 @@ export const LendBox = ({
     actionMode: lendMode,
     selectedStakeAccount: selectedStakeAccount || undefined,
   });
+
   const { actionSummary, refreshSimulation } = useLendSimulation({
     debouncedAmount: debouncedAmount ?? 0,
     selectedAccount,
@@ -483,7 +508,7 @@ export const LendBox = ({
       )}
       {showAvailableCollateral && (
         <div className="mb-6">
-          <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} />
+          <Collateral selectedAccount={selectedAccount} actionSummary={actionSummary} emodeImpact={emodeImpact} />
         </div>
       )}
       <div className="mb-3">

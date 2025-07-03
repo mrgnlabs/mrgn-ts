@@ -117,7 +117,7 @@ class MarginfiAccountWrapper {
    */
   constructor(
     marginfiAccountPk: PublicKey,
-    private readonly client: MarginfiClient,
+    readonly client: MarginfiClient,
     marginfiAccount: MarginfiAccount
   ) {
     this.address = marginfiAccountPk;
@@ -1974,6 +1974,8 @@ class MarginfiAccountWrapper {
       (bank) => bank.config.oracleSetup === OracleSetup.SwitchboardPull
     );
 
+    console.log("swbPullBanks", swbPullBanks);
+
     if (swbPullBanks.length > 0) {
       const staleOracles = swbPullBanks
         .filter((bank) => {
@@ -1998,7 +2000,6 @@ class MarginfiAccountWrapper {
           feeds: staleOracles,
           numSignatures: 1,
         });
-
         return { instructions: [pullIx], luts };
       }
 

@@ -278,8 +278,6 @@ class MarginfiAccount implements MarginfiAccountType {
               assetWeightInit: emodeWeights.assetWeightInit,
             })
           );
-          // Only update if the provided weights are lower (more favorable)
-          // TODO come back to this
         }
       });
 
