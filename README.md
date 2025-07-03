@@ -4,8 +4,6 @@
   <h1>mrgn-ts</h1>
   
   <p>
-    <!-- Build -->
-    <a><img alt="Build" src="https://img.shields.io/github/actions/workflow/status/mrgnlabs/mrgn-ts/main.yml?style=flat-square"/></a>
     <!-- License -->
     <a href="http://www.apache.org/licenses/LICENSE-2.0"><img alt="License" src="https://img.shields.io/github/license/mrgnlabs/mrgn-ts?style=flat-square&color=ffff00"/></a>
     <!-- Total lines -->
