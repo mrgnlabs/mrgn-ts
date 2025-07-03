@@ -5,7 +5,7 @@
   
   <p>
     <!-- License -->
-    <a href="http://www.apache.org/licenses/LICENSE-2.0"><img alt="License" src="https://img.shields.io/github/license/mrgnlabs/mrgn-ts?style=flat-square&color=ffff00"/></a>
+    <a href="https://github.com/mrgnlabs/mrgn-ts/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/mrgnlabs/mrgn-ts?style=flat-square&color=ffff00"/></a>
     <!-- Total lines -->
     <a href=""><img alt="License" src="https://img.shields.io/tokei/lines/github/mrgnlabs/mrgn-ts?style=flat-square&color=000000"/></a>
     <!-- Twitter -->
