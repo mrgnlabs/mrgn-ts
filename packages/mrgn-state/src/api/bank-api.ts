@@ -99,7 +99,7 @@ export const fetchOraclePrices = async (
 ): Promise<{ oracleMap: Map<string, OraclePrice>; pythFeedIdMap: PythPushFeedIdMap }> => {
   const connection = getConfig().connection;
 
-  const oracleData = await fetchOracleData(banks, connection, bankMetadataMap, { useApiEndpoint: true });
+  const oracleData = await fetchOracleData(banks, bankMetadataMap, connection, { useApiEndpoint: true });
   return { oracleMap: oracleData.bankOraclePriceMap, pythFeedIdMap: oracleData.pythFeedMap };
 };
 

@@ -225,10 +225,10 @@ const mapPythBanksToOraclePrices = (
 
 export const fetchPythOracleData = async (
   banks: { address: PublicKey; data: BankRaw }[],
-  connection: Connection,
   bankMetadataMap: {
     [address: string]: BankMetadata;
   },
+  connection?: Connection,
   opts?: { useApiEndpoint?: boolean }
 ): Promise<{
   pythFeedMap: PythPushFeedIdMap;
@@ -247,7 +247,7 @@ export const fetchPythOracleData = async (
   let pythFeedMap: PythPushFeedIdMap;
   let priceCoeffByBank: Record<string, number>;
 
-  if (opts?.useApiEndpoint) {
+  if (opts?.useApiEndpoint || !connection) {
     const { pythFeedMap: feedMap, priceCoeffByBank: voteAccCoeffs } = await fetchPythDataViaAPI(
       pythPushBanks,
       voteAccMintTuples
@@ -428,17 +428,17 @@ const mapSwbBanksToOraclePrices = (
 
 export const fetchOracleData = async (
   banks: { address: PublicKey; data: BankRaw }[],
-  connection: Connection,
   bankMetadataMap: {
     [address: string]: BankMetadata;
   },
+  connection?: Connection,
   opts?: { useApiEndpoint?: boolean }
 ): Promise<{
   bankOraclePriceMap: Map<string, OraclePrice>;
   pythFeedMap: PythPushFeedIdMap;
 }> => {
   const [pythData, swbData] = await Promise.all([
-    fetchPythOracleData(banks, connection, bankMetadataMap, opts),
+    fetchPythOracleData(banks, bankMetadataMap, connection, opts),
     fetchSwbOracleData(banks, opts),
   ]);
 
