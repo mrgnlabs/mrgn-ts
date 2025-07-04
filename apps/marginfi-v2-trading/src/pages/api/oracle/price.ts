@@ -13,12 +13,9 @@ import {
   parsePriceInfo,
   PythPushFeedIdMap,
   oraclePriceToDto,
+  vendor,
 } from "@mrgnlabs/marginfi-client-v2";
-import {
-  CrossbarSimulatePayload,
-  decodeSwitchboardPullFeedData,
-  FeedResponse,
-} from "@mrgnlabs/marginfi-client-v2/dist/vendor";
+
 import { chunkedGetRawMultipleAccountInfoOrdered, median, Wallet } from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
@@ -139,7 +136,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // If on-chain data is recent enough, use it even for SwitchboardPull oracles
       if (oracleData.oracleSetup === OracleSetup.SwitchboardPull && isStale) {
-        const feedHash = Buffer.from(decodeSwitchboardPullFeedData(priceDataRaw.data).feed_hash).toString("hex");
+        const feedHash = Buffer.from(vendor.decodeSwitchboardPullFeedData(priceDataRaw.data).feed_hash).toString("hex");
         feedHashMintMap.set(feedHash, mintData);
         swbPullOraclesStale.push({
           data: { ...oracleData, timestamp: oraclePrice.timestamp },
@@ -204,7 +201,7 @@ async function handleFetchCrossbarPrices(
 ): Promise<Map<string, OraclePrice>> {
   try {
     // main crossbar
-    const payload: CrossbarSimulatePayload = [];
+    const payload: vendor.CrossbarSimulatePayload = [];
 
     const { payload: mainPayload, brokenFeeds: mainBrokenFeeds } = await fetchCrossbarPrices(
       feedHashes,
@@ -252,7 +249,7 @@ async function handleFetchCrossbarPrices(
 async function fetchBirdeyePrices(
   feedHashes: string[],
   mintMap: Map<string, PublicKey>
-): Promise<{ payload: CrossbarSimulatePayload; brokenFeeds: string[] }> {
+): Promise<{ payload: vendor.CrossbarSimulatePayload; brokenFeeds: string[] }> {
   try {
     const brokenFeeds: string[] = [];
 
@@ -271,7 +268,7 @@ async function fetchBirdeyePrices(
 
     const priceData = response.data;
 
-    const finalPayload: CrossbarSimulatePayload = feedHashes.map((feedHash) => {
+    const finalPayload: vendor.CrossbarSimulatePayload = feedHashes.map((feedHash) => {
       const tokenAddress = mintMap.get(feedHash)!.toBase58();
       const price = priceData[tokenAddress];
       return {
@@ -292,7 +289,7 @@ async function fetchCrossbarPrices(
   endpoint: string,
   username?: string,
   bearer?: string
-): Promise<{ payload: CrossbarSimulatePayload; brokenFeeds: string[] }> {
+): Promise<{ payload: vendor.CrossbarSimulatePayload; brokenFeeds: string[] }> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
@@ -318,7 +315,7 @@ async function fetchCrossbarPrices(
       throw new Error("Network response was not ok");
     }
 
-    const payload = (await response.json()) as CrossbarSimulatePayload;
+    const payload = (await response.json()) as vendor.CrossbarSimulatePayload;
 
     const brokenFeeds = payload.filter((feed) => feed.results[0] === null).map((feed) => feed.feedHash);
 
@@ -329,7 +326,7 @@ async function fetchCrossbarPrices(
   }
 }
 
-function crossbarPayloadToOraclePricePerFeedHash(payload: CrossbarSimulatePayload): Map<string, OraclePrice> {
+function crossbarPayloadToOraclePricePerFeedHash(payload: vendor.CrossbarSimulatePayload): Map<string, OraclePrice> {
   const oraclePrices: Map<string, OraclePrice> = new Map();
   for (const feedResponse of payload) {
     const oraclePrice = crossbarFeedResultToOraclePrice(feedResponse);
@@ -338,7 +335,7 @@ function crossbarPayloadToOraclePricePerFeedHash(payload: CrossbarSimulatePayloa
   return oraclePrices;
 }
 
-function crossbarFeedResultToOraclePrice(feedResponse: FeedResponse): OraclePrice {
+function crossbarFeedResultToOraclePrice(feedResponse: vendor.FeedResponse): OraclePrice {
   let medianPrice = new BigNumber(median(feedResponse.results));
 
   const priceRealtime = {

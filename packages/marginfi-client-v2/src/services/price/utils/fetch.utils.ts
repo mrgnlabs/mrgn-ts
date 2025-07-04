@@ -1,10 +1,12 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-
-import { BankRaw } from "../../bank/types";
-import { buildFeedIdMap, PythPushFeedIdMap } from "../../../utils";
 import BigNumber from "bignumber.js";
-import { OraclePrice, PriceWithConfidence } from "..";
+
 import { BankMetadata } from "@mrgnlabs/mrgn-common";
+
+import { BankRaw } from "~/services/bank";
+import { PythPushFeedIdMap, buildFeedIdMap } from "~/utils";
+
+import { OraclePrice, PriceWithConfidence } from "../types";
 
 /**
  * =============================================================================

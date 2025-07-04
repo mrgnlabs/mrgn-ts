@@ -5,11 +5,11 @@ import BN from "bn.js";
 
 import { BankMetadata, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 
-import { DEFAULT_ORACLE_MAX_AGE } from "../../../constants";
-import { findOracleKey, PythPushFeedIdMap } from "../../../utils";
-import { EmodeSettings } from "../../../models/emode-settings";
-import { MarginfiIdlType } from "../../../idl";
-import { AccountType } from "../../../types";
+import { DEFAULT_ORACLE_MAX_AGE } from "~/constants";
+import { MarginfiIdlType } from "~/idl";
+import { EmodeSettings } from "~/models/emode-settings";
+import { AccountType } from "~/types";
+import { PythPushFeedIdMap, findOracleKey } from "~/utils";
 
 import {
   AssetTag,

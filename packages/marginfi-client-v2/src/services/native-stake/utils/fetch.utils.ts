@@ -1,12 +1,15 @@
-import {
-  chunkedGetRawMultipleAccountInfoOrdered,
-  chunkedGetRawMultipleAccountInfos,
-  MAX_U64,
-} from "@mrgnlabs/mrgn-common";
 import { Connection, PublicKey, StakeProgram, ParsedAccountData, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { vendor } from "../../..";
-import { StakeAccount, StakePoolMevMap, ValidatorStakeGroup } from "../types";
-import { findPoolAddress, findPoolStakeAddress, findPoolMintAddress, findPoolOnRampAddress } from "../../../vendor";
+
+import { chunkedGetRawMultipleAccountInfoOrdered, MAX_U64 } from "@mrgnlabs/mrgn-common";
+
+import {
+  findPoolAddress,
+  findPoolStakeAddress,
+  findPoolMintAddress,
+  findPoolOnRampAddress,
+} from "~/vendor/single-spl-pool";
+
+import { ValidatorStakeGroup, StakeAccount, StakePoolMevMap } from "../types";
 
 /**
  * Retrieves all active stake accounts associated with a given public key grouped by validator
@@ -24,8 +27,8 @@ export const fetchNativeStakeAccounts = async (
   opts: {
     filterInactive: boolean;
   } = {
-      filterInactive: true,
-    }
+    filterInactive: true,
+  }
 ): Promise<ValidatorStakeGroup[]> => {
   if (!connection || !publicKey) {
     throw new Error("Invalid connection or public key");
@@ -74,8 +77,8 @@ export const fetchNativeStakeAccounts = async (
     // Calculate pool keys once per validator when creating return value
     return Promise.all(
       Array.from(validatorMap.entries()).map(async ([validatorAddress, accounts]) => {
-        const poolKey = vendor.findPoolAddress(new PublicKey(validatorAddress));
-        const poolMintKey = vendor.findPoolMintAddress(poolKey);
+        const poolKey = findPoolAddress(new PublicKey(validatorAddress));
+        const poolMintKey = findPoolMintAddress(poolKey);
         const totalStake = accounts.reduce((acc, curr) => acc + curr.amount, 0);
         const largestAccount = accounts.reduce((acc, curr) => (acc.amount > curr.amount ? acc : curr));
         const sortedAccounts = accounts.sort((a, b) => b.amount - a.amount);

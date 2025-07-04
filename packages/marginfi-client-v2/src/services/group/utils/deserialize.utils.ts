@@ -1,4 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
+
 import { MarginfiGroupTypeDto, MarginfiGroupType } from "../types";
 
 export function dtoToGroup(groupDto: MarginfiGroupTypeDto): MarginfiGroupType {

@@ -1,4 +1,5 @@
 import BigNumber from "bignumber.js";
+
 import { OraclePriceDto, OraclePrice } from "../types";
 
 export function dtoToOraclePrice(dto: OraclePriceDto): OraclePrice {

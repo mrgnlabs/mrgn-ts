@@ -1,9 +1,4 @@
-import {
-  findPoolAddress,
-  findPoolStakeAddress,
-  getStakeAccount,
-  StakeAccount,
-} from "@mrgnlabs/marginfi-client-v2/dist/vendor";
+import { vendor } from "@mrgnlabs/marginfi-client-v2";
 import { chunkedGetRawMultipleAccountInfoOrdered, MintLayout, RawMint } from "@mrgnlabs/mrgn-common";
 import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -42,8 +37,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const priceCoeffByVoteAcc: Record<string, number> = {};
 
     voteAccMintTuples.forEach(([validatorVoteAccount, mint]) => {
-      const poolAddress = findPoolAddress(new PublicKey(validatorVoteAccount));
-      const stakePoolAddress = findPoolStakeAddress(poolAddress);
+      const poolAddress = vendor.findPoolAddress(new PublicKey(validatorVoteAccount));
+      const stakePoolAddress = vendor.findPoolStakeAddress(poolAddress);
 
       stakedCollatMap[validatorVoteAccount] = {
         validatorVoteAccount: new PublicKey(validatorVoteAccount),
@@ -56,11 +51,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const dataAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, [...mints, ...solPools]);
-    const stakePoolsAis: StakeAccount[] = dataAis.slice(mints.length).map((ai) => getStakeAccount(ai.data));
+    const stakePoolsAis: vendor.StakeAccount[] = dataAis
+      .slice(mints.length)
+      .map((ai) => vendor.getStakeAccount(ai.data));
     const lstMintsAis: RawMint[] = dataAis.slice(0, mints.length).map((mintAi) => MintLayout.decode(mintAi.data));
 
     const lstMintRecord: Record<string, RawMint> = Object.fromEntries(mints.map((mint, i) => [mint, lstMintsAis[i]]));
-    const solPoolsRecord: Record<string, StakeAccount> = Object.fromEntries(
+    const solPoolsRecord: Record<string, vendor.StakeAccount> = Object.fromEntries(
       solPools.map((poolKey, i) => [poolKey, stakePoolsAis[i]])
     );
 

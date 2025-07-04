@@ -16,14 +16,13 @@ import {
   addTransactionMetadata,
   percentFormatterMod,
 } from "@mrgnlabs/mrgn-common";
-import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 import {
   ActiveBankInfo,
   ActionType,
   ExtendedBankInfo,
   groupLiabilityBanksByCollateralBank,
 } from "@mrgnlabs/mrgn-state";
-import { AssetTag, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
+import { AssetTag, EmodeTag, vendor } from "@mrgnlabs/marginfi-client-v2";
 import { capture, cn, composeExplorerUrl, executeActionWrapper, getAssetWeightData } from "@mrgnlabs/mrgn-utils";
 import { ActionBox, SVSPMEV, useWallet } from "@mrgnlabs/mrgn-ui";
 
@@ -452,7 +451,7 @@ export const PortfolioAssetCard = ({
               onClaim={async () => {
                 if (!marginfiClient || !stakePoolMetadata?.validatorVoteAccount) return;
 
-                const ix = await replenishPoolIx(stakePoolMetadata.validatorVoteAccount);
+                const ix = await vendor.replenishPoolIx(stakePoolMetadata.validatorVoteAccount);
                 const tx = addTransactionMetadata(new Transaction().add(ix), {
                   type: TransactionType.INITIALIZE_STAKED_POOL,
                 });

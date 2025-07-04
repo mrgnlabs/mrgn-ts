@@ -1,18 +1,18 @@
 import { PublicKey, StakeProgram, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 
+import { InstructionsWrapper, SINGLE_POOL_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import { FLASHLOAN_ENABLED_FLAG, TRANSFER_ACCOUNT_AUTHORITY_FLAG } from "~/constants";
+import instructions from "~/instructions";
+import { MarginfiProgram } from "~/types";
 import {
-  composeRemainingAccounts,
-  InstructionsWrapper,
-  SINGLE_POOL_PROGRAM_ID,
-  TOKEN_PROGRAM_ID,
-} from "@mrgnlabs/mrgn-common";
+  findPoolAddress,
+  findPoolStakeAddress,
+  findPoolMintAddress,
+  findPoolOnRampAddress,
+} from "~/vendor/single-spl-pool";
 
-import { FLASHLOAN_ENABLED_FLAG, TRANSFER_ACCOUNT_AUTHORITY_FLAG } from "../../constants";
-import instructions from "../../instructions";
-import { MarginfiProgram } from "../../types";
-import { BankConfigCompactRaw, BankConfigOpt, BankConfigOptRaw, serializeBankConfigOpt } from "../bank";
-import { findPoolAddress, findPoolMintAddress, findPoolOnRampAddress, findPoolStakeAddress } from "../../vendor";
+import { BankConfigOptRaw, BankConfigOpt, serializeBankConfigOpt, BankConfigCompactRaw } from "../bank";
 
 export async function makeEnableFlashLoanForAccountIx(
   program: MarginfiProgram,

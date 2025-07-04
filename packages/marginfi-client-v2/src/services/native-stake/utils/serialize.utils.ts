@@ -1,4 +1,3 @@
-import { PublicKey } from "@solana/web3.js";
 import { ValidatorStakeGroup, ValidatorStakeGroupDto } from "../types";
 
 export function validatorStakeGroupToDto(validatorStakeGroup: ValidatorStakeGroup): ValidatorStakeGroupDto {

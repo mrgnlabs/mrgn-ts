@@ -2,9 +2,13 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import { Connection, PublicKey } from "@solana/web3.js";
 
-import { MARGINFI_IDL, MarginfiIdlType, MarginfiProgram } from "@mrgnlabs/marginfi-client-v2";
+import {
+  fetchMarginfiAccountAddresses,
+  MARGINFI_IDL,
+  MarginfiIdlType,
+  MarginfiProgram,
+} from "@mrgnlabs/marginfi-client-v2";
 import { Wallet } from "@mrgnlabs/mrgn-common";
-import { getMarginfiAccountAddresses } from "@mrgnlabs/mrgn-state";
 
 import config from "~/config/marginfi";
 
@@ -41,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const authorityPk = new PublicKey(authority);
     const groupPk = new PublicKey(group);
 
-    const marginfiAccounts = await getMarginfiAccountAddresses(program, authorityPk, groupPk);
+    const marginfiAccounts = await fetchMarginfiAccountAddresses(program, authorityPk, groupPk);
 
     res.status(200).json({ marginfiAccounts: marginfiAccounts.map((a) => a.toBase58()) });
   } catch (error) {

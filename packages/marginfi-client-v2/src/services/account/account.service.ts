@@ -22,19 +22,21 @@ import {
   wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
 
-import { feedIdToString } from "../../utils";
-import { MarginfiProgram } from "../../types";
-import instructions from "../../instructions";
-import { OraclePrice } from "../price";
-import { BankType, crankPythOracleIx, OracleSetup } from "../bank";
-import { MarginfiIdlType } from "../../idl";
-import { getSwitchboardProgram } from "../../vendor";
-import { Balance } from "../../models/balance";
-import { HealthCache } from "../../models/health-cache";
-import { Bank } from "../../models/bank";
-import { simulateBundle } from "../transaction/helpers";
-import { MarginfiAccountWrapper, MarginfiAccount, MarginRequirementType } from "../../models/account";
-import MarginfiClient, { BankMap, OraclePriceMap } from "../../clients/client";
+import instructions from "~/instructions";
+import { MarginfiProgram } from "~/types";
+import { feedIdToString } from "~/utils";
+import MarginfiClient, { BankMap, OraclePriceMap } from "~/clients/client";
+import { getSwitchboardProgram } from "~/vendor/switchboard_pull";
+import { MarginfiIdlType } from "~/idl";
+
+import { BankType, crankPythOracleIx, OracleSetup } from "~/services/bank";
+import { simulateBundle } from "~/services/transaction/helpers";
+import { OraclePrice } from "~/services/price";
+
+import { MarginfiAccount, MarginRequirementType, MarginfiAccountWrapper } from "~/models/account";
+import { Balance } from "~/models/balance";
+import { Bank } from "~/models/bank";
+import { HealthCache } from "~/models/health-cache";
 
 import {
   computeHealthAccountMetas,

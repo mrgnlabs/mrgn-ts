@@ -3,19 +3,19 @@ import { Program, Provider } from "@coral-xyz/anchor";
 
 import { InstructionsWrapper, SYSTEM_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
-import instructions from "../../instructions";
-import { MarginfiProgram } from "../../types";
+import instructions from "~/instructions";
+import { MarginfiProgram } from "~/types";
 import {
-  parseAccumulatorUpdateData,
-  InstructionWithEphemeralSigners,
-  buildPostEncodedVaaInstructions,
-  PYTH_WORMHOLE_IDL,
-  UPDATE_PRICE_FEED_COMPUTE_BUDGET,
-  PYTH_PUSH_ORACLE_IDL,
-  parsePriceFeedMessage,
-  PYTH_SOLANA_RECEIVER_PROGRAM_IDL,
   DEFAULT_PUSH_ORACLE_PROGRAM_ID,
-} from "../../vendor/pyth_crank";
+  PYTH_WORMHOLE_IDL,
+  PYTH_PUSH_ORACLE_IDL,
+  PYTH_SOLANA_RECEIVER_PROGRAM_IDL,
+  parseAccumulatorUpdateData,
+  buildPostEncodedVaaInstructions,
+  parsePriceFeedMessage,
+  UPDATE_PRICE_FEED_COMPUTE_BUDGET,
+  InstructionWithEphemeralSigners,
+} from "~/vendor/pyth_crank";
 
 import { BankConfigOpt, BankConfigOptRaw, OracleSetup } from "./types";
 import { serializeBankConfigOpt, serializeOracleSetupToIndex } from "./utils";

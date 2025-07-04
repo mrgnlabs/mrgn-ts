@@ -1,27 +1,28 @@
 import BN from "bn.js";
+import BigNumber from "bignumber.js";
+
 import { BorshCoder } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
 
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 
-import { MarginfiIdlType } from "../../../idl";
-import { AccountType } from "../../../types";
-import { Balance } from "../../../models/balance";
-import { HealthCache } from "../../../models/health-cache";
+import { Balance } from "~/models/balance";
+import { HealthCache } from "~/models/health-cache";
+import { AccountType } from "~/types";
+import { MarginfiIdlType } from "~/idl";
 
 import {
-  AccountFlags,
+  MarginfiAccountRaw,
   BalanceRaw,
   BalanceType,
-  BalanceTypeDto,
+  AccountFlags,
   HealthCacheFlags,
-  HealthCacheType,
-  HealthCacheTypeDto,
-  MarginfiAccountRaw,
-  MarginfiAccountType,
   MarginfiAccountTypeDto,
+  MarginfiAccountType,
+  BalanceTypeDto,
+  HealthCacheTypeDto,
+  HealthCacheType,
 } from "../types";
-import BigNumber from "bignumber.js";
 
 export function decodeAccountRaw(encoded: Buffer, idl: MarginfiIdlType): MarginfiAccountRaw {
   const coder = new BorshCoder(idl);

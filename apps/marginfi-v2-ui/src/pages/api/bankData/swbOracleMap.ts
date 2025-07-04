@@ -1,7 +1,8 @@
-import { decodeSwitchboardPullFeedData } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
-import { chunkedGetRawMultipleAccountInfoOrdered } from "@mrgnlabs/mrgn-common";
 import { Connection } from "@solana/web3.js";
 import { NextApiRequest, NextApiResponse } from "next";
+
+import { vendor } from "@mrgnlabs/marginfi-client-v2";
+import { chunkedGetRawMultipleAccountInfoOrdered } from "@mrgnlabs/mrgn-common";
 
 /*
 Pyth push oracles have a specific feed id starting with 0x
@@ -26,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const oracleAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, oracleKeys);
 
     oracleAis.forEach((oracleAi, idx) => {
-      const feedHash = Buffer.from(decodeSwitchboardPullFeedData(oracleAi.data).feed_hash).toString("hex");
+      const feedHash = Buffer.from(vendor.decodeSwitchboardPullFeedData(oracleAi.data).feed_hash).toString("hex");
       const oracleKey = oracleKeys[idx];
 
       feedIdMap[oracleKey] = { feedId: feedHash };

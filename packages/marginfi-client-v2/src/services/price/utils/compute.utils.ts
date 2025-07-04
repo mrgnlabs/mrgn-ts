@@ -1,15 +1,14 @@
 import BigNumber from "bignumber.js";
-import { PYTH_PRICE_CONF_INTERVALS, MAX_CONFIDENCE_INTERVAL_RATIO, SWB_PRICE_CONF_INTERVALS } from "../../../constants";
-import {
-  parsePriceData,
-  AggregatorAccountData,
-  AggregatorAccount,
-  decodeSwitchboardPullFeedData,
-  SWITCHBOARD_ONDEMANDE_PRICE_PRECISION,
-} from "../../../vendor";
-import * as PythPushOracle from "../../../vendor/pyth_push_oracle";
-import { OracleSetup } from "../../bank";
-import { OraclePrice, PriceBias, PriceWithConfidence } from "../types";
+
+import { PYTH_PRICE_CONF_INTERVALS, MAX_CONFIDENCE_INTERVAL_RATIO, SWB_PRICE_CONF_INTERVALS } from "~/constants";
+import { OracleSetup } from "~/services/bank";
+
+import { parsePriceData } from "~/vendor/pyth_legacy";
+import { parsePriceInfo } from "~/vendor/pyth_push_oracle";
+import { AggregatorAccountData, AggregatorAccount } from "~/vendor/switchboard_legacy";
+import { decodeSwitchboardPullFeedData, SWITCHBOARD_ONDEMANDE_PRICE_PRECISION } from "~/vendor/switchboard_pull";
+
+import { OraclePrice, PriceWithConfidence, PriceBias } from "../types";
 
 export function getPriceWithConfidence(oraclePrice: OraclePrice, weighted: boolean): PriceWithConfidence {
   return weighted ? oraclePrice.priceWeighted : oraclePrice.priceRealtime;
@@ -103,7 +102,7 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, shardId
     case OracleSetup.PythPushOracle:
     case OracleSetup.StakedWithPythPush: {
       let bytesWithoutDiscriminator = rawData.slice(8);
-      let data = PythPushOracle.parsePriceInfo(bytesWithoutDiscriminator);
+      let data = parsePriceInfo(bytesWithoutDiscriminator);
 
       const exponent = new BigNumber(10 ** data.priceMessage.exponent);
 

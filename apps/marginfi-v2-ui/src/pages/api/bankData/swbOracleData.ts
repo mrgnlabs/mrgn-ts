@@ -1,8 +1,7 @@
 import BigNumber from "bignumber.js";
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { OraclePrice, OraclePriceDto } from "@mrgnlabs/marginfi-client-v2";
-import { CrossbarSimulatePayload, FeedResponse } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
+import { OraclePrice, OraclePriceDto, vendor } from "@mrgnlabs/marginfi-client-v2";
 import { median } from "@mrgnlabs/mrgn-common";
 
 const SWITCHBOARD_CROSSSBAR_API = process.env.SWITCHBOARD_CROSSSBAR_API || "https://crossbar.switchboard.xyz";
@@ -33,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 async function handleFetchCrossbarPrices(feedHashes: string[]): Promise<Record<string, OraclePriceDto>> {
   try {
     // main crossbar
-    const payload: CrossbarSimulatePayload = [];
+    const payload: vendor.CrossbarSimulatePayload = [];
     let brokenFeeds: string[] = [];
 
     const { payload: mainPayload, brokenFeeds: mainBrokenFeeds } = await fetchCrossbarPrices(
@@ -80,7 +79,7 @@ async function fetchCrossbarPrices(
   endpoint: string,
   username?: string,
   bearer?: string
-): Promise<{ payload: CrossbarSimulatePayload; brokenFeeds: string[] }> {
+): Promise<{ payload: vendor.CrossbarSimulatePayload; brokenFeeds: string[] }> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
@@ -108,7 +107,7 @@ async function fetchCrossbarPrices(
       throw new Error("Network response was not ok");
     }
 
-    const payload = (await response.json()) as CrossbarSimulatePayload;
+    const payload = (await response.json()) as vendor.CrossbarSimulatePayload;
 
     const brokenFeeds = payload
       .filter((feed) => {
@@ -127,7 +126,9 @@ async function fetchCrossbarPrices(
   }
 }
 
-function crossbarPayloadToOraclePricePerFeedHash(payload: CrossbarSimulatePayload): Record<string, OraclePriceDto> {
+function crossbarPayloadToOraclePricePerFeedHash(
+  payload: vendor.CrossbarSimulatePayload
+): Record<string, OraclePriceDto> {
   const oraclePrices: Record<string, OraclePriceDto> = {};
   for (const feedResponse of payload) {
     const oraclePrice = crossbarFeedResultToOraclePrice(feedResponse);
@@ -136,7 +137,7 @@ function crossbarPayloadToOraclePricePerFeedHash(payload: CrossbarSimulatePayloa
   return oraclePrices;
 }
 
-function crossbarFeedResultToOraclePrice(feedResponse: FeedResponse): OraclePrice {
+function crossbarFeedResultToOraclePrice(feedResponse: vendor.FeedResponse): OraclePrice {
   let medianPrice = new BigNumber(median(feedResponse.results));
 
   const priceRealtime = {

@@ -13,8 +13,8 @@ import {
   OraclePriceDto,
   dtoToOraclePrice,
   marginfiAccountToDto,
+  fetchMarginfiAccountData,
 } from "@mrgnlabs/marginfi-client-v2";
-import { getMarginfiAccountData } from "@mrgnlabs/mrgn-state";
 import { BankMetadataMap, Wallet } from "@mrgnlabs/mrgn-common";
 
 import config from "~/config/marginfi";
@@ -75,7 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       oraclePrices.set(bankPk, dtoToOraclePrice(oraclePrice));
     });
 
-    const marginfiAccountWithCache = await getMarginfiAccountData(
+    const marginfiAccountWithCache = await fetchMarginfiAccountData(
       program,
       marginfiAccountsPk,
       bankMap,

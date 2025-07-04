@@ -16,7 +16,13 @@ import {
   getEmodePairs,
 } from "@mrgnlabs/mrgn-state";
 
-import { ActionEmodeImpact, EmodeImpact, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import {
+  ActionEmodeImpact,
+  EmodeImpact,
+  MarginfiAccountWrapper,
+  MarginfiClient,
+  vendor,
+} from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
   checkLendActionAvailable,
@@ -43,7 +49,6 @@ import { SimulationStatus } from "../../utils";
 import { useLendSimulation } from "./hooks";
 import { HidePoolStats, useActionBoxContext } from "../../contexts/actionbox/actionbox.context";
 import { useActionContext } from "../../contexts";
-import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
 
 // error handling
 export type LendBoxProps = {
@@ -465,7 +470,7 @@ export const LendBox = ({
           onClaim={async () => {
             if (!marginfiClient || !stakePoolMetadata?.validatorVoteAccount) return;
 
-            const ix = await replenishPoolIx(stakePoolMetadata.validatorVoteAccount);
+            const ix = await vendor.replenishPoolIx(stakePoolMetadata.validatorVoteAccount);
             const tx = addTransactionMetadata(new Transaction().add(ix), {
               type: TransactionType.INITIALIZE_STAKED_POOL,
             });

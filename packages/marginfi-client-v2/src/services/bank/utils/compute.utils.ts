@@ -2,10 +2,10 @@ import BigNumber from "bignumber.js";
 
 import { Amount, toBigNumber } from "@mrgnlabs/mrgn-common";
 
-import { BankConfigType, BankType } from "../types";
-import { MarginRequirementType, isWeightedPrice } from "../../../models/account";
-import { getPrice, OraclePrice } from "../../price";
-import { PriceBias } from "../../price/types";
+import { MarginRequirementType, isWeightedPrice } from "~/models/account";
+import { OraclePrice, PriceBias, getPrice } from "~/services/price";
+
+import { BankType, BankConfigType } from "../types";
 
 export function computeMaxLeverage(
   depositBank: BankType,

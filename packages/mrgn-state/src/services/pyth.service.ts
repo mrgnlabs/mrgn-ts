@@ -10,8 +10,8 @@ import {
   PYTH_PUSH_ORACLE_ID,
   PYTH_SPONSORED_SHARD_ID,
   PythPushFeedIdMap,
+  vendor,
 } from "@mrgnlabs/marginfi-client-v2";
-import { parsePriceInfo } from "@mrgnlabs/marginfi-client-v2/dist/vendor/pyth_push_oracle";
 import { chunkedGetRawMultipleAccountInfoOrdered } from "@mrgnlabs/mrgn-common";
 
 /*
@@ -154,7 +154,7 @@ function parseRpcPythPriceData(rawData: Buffer): OraclePriceDto {
   }
 
   let bytesWithoutDiscriminator = rawData.slice(8);
-  let data = parsePriceInfo(bytesWithoutDiscriminator);
+  let data = vendor.parsePriceInfo(bytesWithoutDiscriminator);
 
   const exponent = new BigNumber(10 ** data.priceMessage.exponent);
 
@@ -238,10 +238,10 @@ export async function getPythFeedIdMap(feedIds: PublicKey[], connection: Connect
     const feedId = feedIdsWithAddresses[i].feedId.toString("hex");
 
     if (mfiSponsoredOracle && pythSponsoredOracle) {
-      let pythPriceAccount = parsePriceInfo(pythSponsoredOracle.data.slice(8));
+      let pythPriceAccount = vendor.parsePriceInfo(pythSponsoredOracle.data.slice(8));
       let pythPublishTime = pythPriceAccount.priceMessage.publishTime;
 
-      let mfiPriceAccount = parsePriceInfo(mfiSponsoredOracle.data.slice(8));
+      let mfiPriceAccount = vendor.parsePriceInfo(mfiSponsoredOracle.data.slice(8));
       let mfiPublishTime = mfiPriceAccount.priceMessage.publishTime;
 
       if (pythPublishTime > mfiPublishTime) {

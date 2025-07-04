@@ -1,16 +1,16 @@
-import {
-  Bank,
-  MarginfiAccount,
-  MarginfiAccountRaw,
-  MarginfiAccountType,
-  MarginfiProgram,
-  OraclePrice,
-  simulateAccountHealthCacheWithFallback,
-} from "@mrgnlabs/marginfi-client-v2";
-import { BankMetadataMap } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 
-export const getMarginfiAccountAddresses = async (
+import { BankMetadataMap } from "@mrgnlabs/mrgn-common";
+
+import { MarginfiAccount } from "~/models/account";
+import { Bank } from "~/models/bank";
+import { OraclePrice } from "~/services/price";
+import { MarginfiProgram } from "~/types";
+
+import { simulateAccountHealthCacheWithFallback } from "../account.service";
+import { MarginfiAccountType, MarginfiAccountRaw } from "../types";
+
+export const fetchMarginfiAccountAddresses = async (
   program: MarginfiProgram,
   authority: PublicKey,
   group: PublicKey
@@ -35,7 +35,7 @@ export const getMarginfiAccountAddresses = async (
   return marginfiAccounts;
 };
 
-export const getMarginfiAccountData = async (
+export const fetchMarginfiAccountData = async (
   program: MarginfiProgram,
   marginfiAccountPk: PublicKey,
   bankMap: Map<string, Bank>,
