@@ -191,7 +191,7 @@ export const LendBox = ({
     }
 
     return impact;
-  }, [actionEmodeImpact]);
+  }, [actionEmodeImpact?.borrowImpact, actionEmodeImpact?.supplyImpact, lendMode]);
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
@@ -411,7 +411,7 @@ export const LendBox = ({
         });
       }
     }
-  }, [selectedBank, stakeAccounts, setSelectedStakeAccount]);
+  }, [selectedBank, stakeAccounts, setSelectedStakeAccount, stakePoolMetadataMap]);
 
   React.useEffect(() => {
     if (marginfiClient) {

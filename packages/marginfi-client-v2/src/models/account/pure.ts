@@ -52,6 +52,7 @@ import {
   makePulseHealthIx,
   computeFreeCollateralLegacy,
   EmodeImpactStatus,
+  OracleSetup,
 } from "../..";
 import BN from "bn.js";
 import { BorshInstructionCoder } from "@coral-xyz/anchor";
@@ -308,6 +309,43 @@ class MarginfiAccount implements MarginfiAccountType {
 
     const _volatilityFactor = opts?.volatilityFactor ?? 1;
 
+    // Track switchboard positions separately for variance adjustment
+    let switchboardCollateral = new BigNumber(0);
+    let switchboardLiability = new BigNumber(0);
+
+    this.activeBalances.forEach((b) => {
+      const isBorrowingBalance = b.liabilityShares.gt(0);
+      const bank = banks.get(b.bankPk.toBase58());
+
+      if (!bank) return;
+      if (
+        bank.config.oracleSetup === OracleSetup.SwitchboardPull ||
+        bank.config.oracleSetup === OracleSetup.SwitchboardV2
+      ) {
+        if (isBorrowingBalance) {
+          const liabilityValueInit = bank.computeLiabilityUsdValue(
+            priceInfo,
+            b.liabilityShares,
+            MarginRequirementType.Initial,
+            PriceBias.Highest
+          );
+          switchboardLiability = switchboardLiability.plus(liabilityValueInit);
+        } else {
+          const assetValueInit = bank.computeAssetUsdValue(
+            priceInfo,
+            b.assetShares,
+            MarginRequirementType.Initial,
+            PriceBias.Lowest
+          );
+          switchboardCollateral = switchboardCollateral.plus(assetValueInit);
+        }
+      }
+    });
+
+    // Calculate net switchboard position and apply 5% variance adjustment
+    const switchboardNetPosition = switchboardCollateral.minus(switchboardLiability);
+    const switchboardVarianceAdjustment = switchboardNetPosition.times(0.05); // 5% reduction
+
     const balance = this.getBalance(bankAddress);
 
     const useCache =
@@ -318,7 +356,14 @@ class MarginfiAccount implements MarginfiAccountType {
       ? this.computeFreeCollateral().times(_volatilityFactor)
       : this.computeFreeCollateralLegacy(banks, oraclePrices);
 
+    // Apply switchboard variance adjustment to free collateral only when using legacy computation
+    // This reduces borrowing power by the amount of switchboard variance risk
+    if (!useCache) {
+      freeCollateral = freeCollateral.minus(switchboardVarianceAdjustment);
+    }
+
     debug("Free collateral: %d", freeCollateral.toFixed(6));
+    debug("Switchboard variance adjustment: %d", switchboardVarianceAdjustment.toFixed(6));
 
     const untiedCollateralForBank = BigNumber.min(
       bank.computeAssetUsdValue(priceInfo, balance.assetShares, MarginRequirementType.Initial, PriceBias.Lowest),

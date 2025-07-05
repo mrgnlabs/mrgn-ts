@@ -1,4 +1,3 @@
-import { ActionEmodeImpact } from "@mrgnlabs/marginfi-client-v2";
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 

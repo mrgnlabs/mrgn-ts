@@ -1197,6 +1197,7 @@ class MarginfiAccountWrapper {
 
     if (!mfiAccountData) throw new Error("Failed to simulate");
     const mfiAccount = MarginfiAccount.decode(mfiAccountData, this._program.idl);
+    console.log("mfiAccount", mfiAccount);
     if (!bankData) throw new Error("Failed to simulate");
     const previewBanks = this.client.banks;
 
