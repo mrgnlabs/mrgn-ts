@@ -11,7 +11,11 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
-import { findPoolStakeAddress, findPoolMintAddress } from "@mrgnlabs/marginfi-client-v2/src/vendor/single-spl-pool";
+import {
+  findPoolStakeAddress,
+  findPoolMintAddress,
+  findPoolAddress,
+} from "@mrgnlabs/marginfi-client-v2/src/vendor/single-spl-pool";
 
 /**
  * If true, send the tx. If false, output the unsigned b58 tx to console.
@@ -23,7 +27,7 @@ const verbose = true;
 type Config = {
   PROGRAM_ID: string;
   GROUP_KEY: PublicKey;
-  STAKE_POOL: PublicKey;
+  VALIDATOR_VOTE_ACCOUNT: PublicKey;
   /** A pyth price feed that matches the configured Oracle */
   SOL_ORACLE_FEED: PublicKey;
   SEED: number;
@@ -33,16 +37,11 @@ type Config = {
 const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
   GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
-  STAKE_POOL: findPoolStakeAddress(new PublicKey("FrtCZRajYfrdoZarPxCsUB6f66ga5DPSXGz4F7VKyfKP")),
+  VALIDATOR_VOTE_ACCOUNT: new PublicKey("FrtCZRajYfrdoZarPxCsUB6f66ga5DPSXGz4F7VKyfKP"),
   SOL_ORACLE_FEED: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
   SEED: 0,
   MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
 };
-
-console.log(
-  "mint address",
-  findPoolStakeAddress(new PublicKey("FrtCZRajYfrdoZarPxCsUB6f66ga5DPSXGz4F7VKyfKP")).toBase58()
-);
 
 async function main() {
   marginfiIdl.address = config.PROGRAM_ID;
@@ -58,14 +57,13 @@ async function main() {
 
   let [stakedSettingsKey] = deriveStakedSettings(program.programId, config.GROUP_KEY);
 
-  const [lstMint] = PublicKey.findProgramAddressSync(
-    [Buffer.from("mint"), config.STAKE_POOL.toBuffer()],
-    SINGLE_POOL_PROGRAM_ID
-  );
-  const [solPool] = PublicKey.findProgramAddressSync(
-    [Buffer.from("stake"), config.STAKE_POOL.toBuffer()],
-    SINGLE_POOL_PROGRAM_ID
-  );
+  const POOL_ADDRESS = findPoolAddress(config.VALIDATOR_VOTE_ACCOUNT);
+  const STAKE_POOL = findPoolStakeAddress(POOL_ADDRESS);
+  const MINT = findPoolMintAddress(POOL_ADDRESS);
+
+  console.log("pool address", POOL_ADDRESS.toBase58());
+  console.log("stake pool", STAKE_POOL.toBase58());
+  console.log("mint", MINT.toBase58());
 
   // Note: oracle and lst mint/pool are also passed in meta for validation
   const oracleMeta: AccountMeta = {
@@ -74,17 +72,17 @@ async function main() {
     isWritable: false,
   };
   const lstMeta: AccountMeta = {
-    pubkey: lstMint,
+    pubkey: MINT,
     isSigner: false,
     isWritable: false,
   };
   const solPoolMeta: AccountMeta = {
-    pubkey: solPool,
+    pubkey: STAKE_POOL,
     isSigner: false,
     isWritable: false,
   };
 
-  const [bankKey] = deriveBankWithSeed(program.programId, config.GROUP_KEY, lstMint, new BN(config.SEED));
+  const [bankKey] = deriveBankWithSeed(program.programId, config.GROUP_KEY, MINT, new BN(config.SEED));
 
   const transaction = new Transaction();
 
@@ -95,9 +93,9 @@ async function main() {
         // marginfiGroup: args.marginfiGroup, // implied from stakedSettings
         stakedSettings: stakedSettingsKey,
         feePayer: wallet.publicKey,
-        bankMint: lstMint,
-        solPool: solPool,
-        stakePool: config.STAKE_POOL,
+        bankMint: MINT,
+        solPool: STAKE_POOL,
+        stakePool: POOL_ADDRESS,
         // bank: bankKey, // deriveBankWithSeed
         // globalFeeState: deriveGlobalFeeState(id),
         // globalFeeWallet: // implied from globalFeeState,

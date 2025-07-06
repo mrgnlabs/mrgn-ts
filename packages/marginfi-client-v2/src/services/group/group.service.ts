@@ -157,7 +157,7 @@ export async function makeAddPermissionlessStakedBankIx(
   );
 
   return {
-    instructions: [ix, onrampIx],
+    instructions: [ix],
     keys: [],
   };
 }
