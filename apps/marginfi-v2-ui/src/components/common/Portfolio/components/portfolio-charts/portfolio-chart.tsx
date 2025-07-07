@@ -129,7 +129,8 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
       </div>
     );
   }
-  if (!chartData || chartData.length === 0) {
+
+  if (!chartData || chartData.length === 0 || bankSymbols.length === 0) {
     return (
       <div className="w-full h-[300px] flex items-center justify-center">
         <div className="text-center text-muted-foreground">
@@ -220,14 +221,14 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
                 [symbol]: point[symbol] || 0,
               }));
 
+              console.log({ scatterData });
+
               return (
                 <Scatter
                   key={symbol}
                   name={symbol}
                   data={scatterData}
                   fill={color}
-                  line={{ stroke: color, strokeWidth }}
-                  lineType="joint"
                   shape="circle"
                   isAnimationActive={false}
                 />
