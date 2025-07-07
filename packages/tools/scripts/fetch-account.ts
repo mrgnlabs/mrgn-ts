@@ -1,14 +1,11 @@
-import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
 
 import { loadKeypairFromFile } from "./utils";
-import { assertI80F48Approx, assertKeysEqual } from "./softTests";
 
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
-
-const verbose = true;
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
+import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
 
 type Config = {
   PROGRAM_ID: string;
@@ -35,7 +32,7 @@ async function main() {
   let balances = acc.lendingAccount.balances;
   let activeBalances = [];
   for (let i = 0; i < balances.length; i++) {
-    if (balances[i].active === false) continue; // Skip inactive balances
+    if (balances[i].active === 0) continue; // Skip inactive balances
 
     activeBalances.push({
       "Bank PK": balances[i].bankPk.toString(),

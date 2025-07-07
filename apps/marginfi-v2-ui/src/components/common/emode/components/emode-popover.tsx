@@ -3,20 +3,23 @@
 import React from "react";
 
 import Image from "next/image";
-import { IconExternalLink } from "@tabler/icons-react";
+import { IconInfoCircle } from "@tabler/icons-react";
 import { EmodePair, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { percentFormatterMod } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { cn, getAssetWeightData } from "@mrgnlabs/mrgn-utils";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
+import { cn, getAssetWeightData, getEmodeStrategies } from "@mrgnlabs/mrgn-utils";
+import { useDebounce } from "@uidotdev/usehooks";
 
 import { EmodeDiff } from "./emode-diff";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { Table } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { IconEmode } from "~/components/ui/icons";
+import { IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
 
 interface EmodePopoverProps {
+  bank: ExtendedBankInfo;
+  extendedBanks: ExtendedBankInfo[];
   assetWeight: number;
   originalAssetWeight?: number;
   emodeActive?: boolean;
@@ -31,9 +34,13 @@ interface EmodePopoverProps {
     emodePair: EmodePair;
   }[];
   triggerType?: "weight" | "tag";
+  showActiveOnly?: boolean;
+  iconSize?: "base" | "lg";
 }
 
 export const EmodePopover = ({
+  bank,
+  extendedBanks,
   assetWeight,
   originalAssetWeight,
   emodeActive,
@@ -42,31 +49,112 @@ export const EmodePopover = ({
   collateralBanks,
   liabilityBanks,
   triggerType = "weight",
+  showActiveOnly = false,
+  iconSize = "base",
 }: EmodePopoverProps) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [shouldClose, setShouldClose] = React.useState(false);
+  const debouncedShouldClose = useDebounce(shouldClose, 300);
+
+  React.useEffect(() => {
+    if (debouncedShouldClose) {
+      setIsOpen(false);
+      setShouldClose(false);
+    }
+  }, [debouncedShouldClose]);
+
+  const handleMouseEnter = React.useCallback(() => {
+    setShouldClose(false);
+    setIsOpen(true);
+  }, []);
+
+  const handleMouseLeave = React.useCallback(() => {
+    setShouldClose(true);
+  }, []);
+
+  const filteredLiabilityBanks = React.useMemo(() => {
+    if (!showActiveOnly || !liabilityBanks) return liabilityBanks;
+    return liabilityBanks.filter(
+      (item) =>
+        item.liabilityBank.isActive && item.liabilityBank.position.isLending && item.liabilityBank.position.emodeActive
+    );
+  }, [liabilityBanks, showActiveOnly]);
+
+  const filteredCollateralBanks = React.useMemo(() => {
+    if (!showActiveOnly || !collateralBanks) return collateralBanks;
+    return collateralBanks.filter(
+      (item) =>
+        item.collateralBank.isActive &&
+        item.collateralBank.position.isLending &&
+        item.collateralBank.position.emodeActive
+    );
+  }, [collateralBanks, showActiveOnly]);
+
+  const isAvailableForEmode = React.useMemo(() => {
+    if (isInLendingMode) {
+      const { activateSupplyEmodeBanks, increaseSupplyEmodeBanks, extendSupplyEmodeBanks } = getEmodeStrategies([
+        ...extendedBanks,
+      ]);
+
+      return !![...activateSupplyEmodeBanks, ...increaseSupplyEmodeBanks, ...extendSupplyEmodeBanks].find((b) =>
+        b.address.equals(bank.address)
+      );
+    } else {
+      const { activateBorrowEmodeBanks, extendBorrowEmodeBanks } = getEmodeStrategies([...extendedBanks]);
+
+      return !![...activateBorrowEmodeBanks, ...extendBorrowEmodeBanks].find((b) => b.address.equals(bank.address));
+    }
+  }, [bank.address, isInLendingMode, extendedBanks]);
+
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       {triggerType === "weight" ? (
-        <PopoverTrigger className={cn("flex items-center gap-1", emodeActive && "text-mfi-emode")}>
-          <IconEmode size={20} />
-          {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}{" "}
-          <IconExternalLink size={12} className={cn(emodeActive && "text-mfi-emode")} />
+        <PopoverTrigger
+          className={cn("flex items-center", emodeActive && "text-mfi-emode")}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          {emodeActive ? (
+            <IconEmodeSimple size={iconSize === "base" ? 20 : 28} />
+          ) : isAvailableForEmode ? (
+            <IconEmodeSimpleInactive size={iconSize === "base" ? 18 : 26} />
+          ) : (
+            <></>
+          )}
+          <span className="min-w-[33px] text-right mr-1.5 ml-0.5">
+            {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}
+          </span>
+          <IconInfoCircle size={iconSize === "base" ? 13 : 20} className={cn(emodeActive && "text-mfi-emode")} />
         </PopoverTrigger>
       ) : (
-        <PopoverTrigger className="flex items-center gap-1">
-          <Badge variant="emode" className={cn("pr-2.5", !emodeActive && "text-foreground")}>
-            <IconEmode size={18} /> {emodeTag}
-          </Badge>
+        <PopoverTrigger
+          className="flex items-center gap-1"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <div className="min-w-[33px] text-right mr-1.5">
+            {emodeActive ? (
+              <IconEmodeSimple size={iconSize === "base" ? 18 : 26} />
+            ) : (
+              <IconEmodeSimpleInactive size={iconSize === "base" ? 18 : 26} />
+            )}
+          </div>
         </PopoverTrigger>
       )}
-      <PopoverContent className="w-auto text-xs md:py-3 md:px-4" side="top">
+      <PopoverContent
+        className="w-auto text-xs md:py-3 md:px-4"
+        side="top"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         {isInLendingMode && emodeActive && originalAssetWeight ? (
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 items-center">
             <div className="flex gap-1 items-center">
-              <IconEmode size={18} /> <p>e-mode weights active</p>
+              <IconEmodeSimple size={18} /> <p>e-mode weights active</p>
             </div>
             <EmodeDiff assetWeight={assetWeight} originalAssetWeight={originalAssetWeight} className="text-center" />
           </div>
-        ) : isInLendingMode && liabilityBanks ? (
+        ) : isInLendingMode && filteredLiabilityBanks ? (
           <div className="flex flex-col gap-4">
             <p className="w-4/5">e-mode pairings available when borrowing from the following banks:</p>
             <Table>
@@ -77,14 +165,14 @@ export const EmodePopover = ({
                   <TableHead className="h-6">Weight</TableHead>
                   <TableHead className="h-6">
                     <div className="flex items-center gap-1">
-                      <IconEmode size={18} className="-ml-1.5" />
+                      <IconEmodeSimple size={18} className="-ml-1.5" />
                       e-mode
                     </div>
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {liabilityBanks?.map((liabilityBankItem) => {
+                {filteredLiabilityBanks?.map((liabilityBankItem) => {
                   return (
                     <TableRow key={liabilityBankItem.liabilityBank.address.toBase58()} className="text-xs">
                       <TableCell className="py-1">
@@ -103,6 +191,7 @@ export const EmodePopover = ({
                         {EmodeTag[liabilityBankItem.emodePair.liabilityBankTag]}
                       </TableCell>
                       <TableCell className="py-1">
+                        asd
                         {percentFormatterMod(originalAssetWeight || 0, {
                           minFractionDigits: 0,
                           maxFractionDigits: 2,
@@ -121,7 +210,7 @@ export const EmodePopover = ({
               </TableBody>
             </Table>
           </div>
-        ) : !isInLendingMode && collateralBanks ? (
+        ) : !isInLendingMode && filteredCollateralBanks ? (
           <div className="flex flex-col gap-4">
             <p className="w-4/5">e-mode pairings available when lending to the following banks:</p>
             <Table>
@@ -132,17 +221,18 @@ export const EmodePopover = ({
                   <TableHead className="h-6">Weight</TableHead>
                   <TableHead className="h-6">
                     <div className="flex items-center gap-1">
-                      <IconEmode size={12} />
+                      <IconEmodeSimple size={12} />
                       e-mode
                     </div>
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {collateralBanks?.map((collateralBankItem) => {
-                  const { assetWeight: collateralAssetWeight } = getAssetWeightData(
+                {filteredCollateralBanks?.map((collateralBankItem) => {
+                  const { originalAssetWeight: collateralOriginalAssetWeight } = getAssetWeightData(
                     collateralBankItem.collateralBank,
-                    true
+                    true,
+                    extendedBanks
                   );
                   return (
                     <TableRow key={collateralBankItem.collateralBank.address.toBase58()} className="text-xs">
@@ -162,7 +252,8 @@ export const EmodePopover = ({
                         {EmodeTag[collateralBankItem.emodePair.collateralBankTag]}
                       </TableCell>
                       <TableCell className="py-1">
-                        {percentFormatterMod(collateralAssetWeight || 0, {
+                        asd
+                        {percentFormatterMod(collateralOriginalAssetWeight || 0, {
                           minFractionDigits: 0,
                           maxFractionDigits: 2,
                         })}
@@ -170,7 +261,7 @@ export const EmodePopover = ({
                       <TableCell className="py-1">
                         <EmodeDiff
                           assetWeight={collateralBankItem.emodePair.assetWeightInit.toNumber()}
-                          originalAssetWeight={collateralAssetWeight}
+                          originalAssetWeight={collateralOriginalAssetWeight}
                           className="text-mfi-emode"
                         />
                       </TableCell>

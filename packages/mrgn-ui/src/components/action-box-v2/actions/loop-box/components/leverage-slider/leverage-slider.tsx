@@ -1,7 +1,7 @@
 import React from "react";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { Slider } from "~/components/ui/slider";
 
 type LeverageSliderProps = {

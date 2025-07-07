@@ -1,15 +1,16 @@
-import { SolanaJSONRPCError } from "@solana/web3.js";
+import { PublicKey, SolanaJSONRPCError } from "@solana/web3.js";
 
-import { TransactionConfigMap, TransactionOptions } from "@mrgnlabs/mrgn-common";
+import { TransactionConfigMap, TransactionOptions, TransactionType } from "@mrgnlabs/mrgn-common";
 import { toastManager, MultiStepToastController } from "@mrgnlabs/mrgn-toasts";
 import { MarginfiClient, ProcessTransactionsClientOpts, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
-import { ActionType, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, FEE_MARGIN } from "@mrgnlabs/mrgn-state";
 
 import { ActionTxns } from "./types";
 import { composeExplorerUrl } from "./helpers";
 import { STATIC_SIMULATION_ERRORS } from "../errors";
 import { captureSentryException } from "../sentry.utils";
 import { extractErrorString } from "../mrgnUtils";
+import { getAccountCreationKey } from "../transaction.utils";
 
 // ------------------------------------------------------------------//
 // Actions //
@@ -28,7 +29,7 @@ export interface ExecuteActionProps {
   txOpts: TransactionOptions;
   callbacks: {
     captureEvent?: (event: string, properties?: Record<string, any>) => void;
-    onComplete?: (txnSig: string) => void | null;
+    onComplete?: (txnSig: string, newAccountKey?: PublicKey) => void | null;
   };
   nativeSolBalance?: number;
 }
@@ -60,7 +61,7 @@ export async function executeActionWrapper(props: {
   txns: ActionTxns;
   existingToast?: MultiStepToastController;
   nativeSolBalance?: number;
-  onComplete?: (txnSig: string) => void;
+  onComplete?: (txnSig: string, newAccountKey?: PublicKey) => void;
 }) {
   const { action, steps, actionName, txns, existingToast, nativeSolBalance, onComplete } = props;
 
@@ -76,12 +77,13 @@ export async function executeActionWrapper(props: {
     toast.resetAndStart();
   }
 
+  const accountCreationKey = getAccountCreationKey(txns.transactions);
   try {
     const txnSig = await action(txns, (stepsToAdvance, explorerUrl, signature) => {
       toast.successAndNext(stepsToAdvance ?? 1, explorerUrl, signature);
     });
     toast.success(composeExplorerUrl(txnSig), txnSig);
-    onComplete && onComplete(txnSig);
+    onComplete && onComplete(txnSig, accountCreationKey);
     return txnSig;
   } catch (error) {
     if (!(error instanceof ProcessTransactionError || error instanceof SolanaJSONRPCError)) {

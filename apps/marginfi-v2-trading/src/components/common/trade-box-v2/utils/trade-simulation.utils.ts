@@ -1,7 +1,7 @@
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ActionMessageType, handleSimulationError, TradeActionTxns } from "@mrgnlabs/mrgn-utils";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
-import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary } from "@mrgnlabs/mrgn-state";
 
 import { ArenaBank } from "~/types/trade-store.types";
 import {
@@ -94,7 +94,7 @@ function calculateActionPreview(
   actionTxns: TradeActionTxns
 ): ActionPreview {
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
-  const health = accountSummary.balance && accountSummary.healthFactor ? accountSummary.healthFactor : 1;
+  const health = accountSummary.balanceEquity && accountSummary.healthFactor ? accountSummary.healthFactor : 1;
   const liquidationPrice =
     bank.isActive && bank.position.liquidationPrice && bank.position.liquidationPrice > 0.01
       ? bank.position.liquidationPrice

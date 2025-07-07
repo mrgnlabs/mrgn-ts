@@ -1,0 +1,130 @@
+{
+  "address": "pythWSnswVUd12oZpeFP8e9CVaEqJg25g1Vtc2biRsT",
+  "metadata": {
+    "name": "pyth_push_oracle",
+    "version": "0.1.0",
+    "spec": "0.1.0"
+  },
+  "instructions": [
+    {
+      "name": "update_price_feed",
+      "discriminator": [
+        28,
+        9,
+        93,
+        150,
+        86,
+        153,
+        188,
+        115
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pyth_solana_receiver"
+        },
+        {
+          "name": "encoded_vaa"
+        },
+        {
+          "name": "config"
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        },
+        {
+          "name": "price_feed_account",
+          "writable": true
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "PostUpdateParams"
+            }
+          }
+        },
+        {
+          "name": "shard_id",
+          "type": "u16"
+        },
+        {
+          "name": "feed_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "UpdatesNotMonotonic",
+      "msg": "Updates must be monotonically increasing"
+    },
+    {
+      "code": 6001,
+      "name": "PriceFeedMessageMismatch",
+      "msg": "Trying to update price feed with the wrong feed id"
+    }
+  ],
+  "types": [
+    {
+      "name": "PostUpdateParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "merkle_price_update",
+            "type": {
+              "defined": {
+                "name": "MerklePriceUpdate"
+              }
+            }
+          },
+          {
+            "name": "treasury_id",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MerklePriceUpdate",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "message",
+            "type": "bytes"
+          },
+          {
+            "name": "proof",
+            "type": {
+              "vec": {
+                "array": [
+                  "u8",
+                  20
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

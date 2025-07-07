@@ -1,8 +1,22 @@
 import { PublicKey } from "@solana/web3.js";
-import { InstructionsWrapper } from "@mrgnlabs/mrgn-common";
+import { Program, Provider } from "@coral-xyz/anchor";
 
-import instructions from "../../instructions";
-import { MarginfiProgram } from "../../types";
+import { InstructionsWrapper, SYSTEM_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+
+import instructions from "~/instructions";
+import { MarginfiProgram } from "~/types";
+import {
+  DEFAULT_PUSH_ORACLE_PROGRAM_ID,
+  PYTH_WORMHOLE_IDL,
+  PYTH_PUSH_ORACLE_IDL,
+  PYTH_SOLANA_RECEIVER_PROGRAM_IDL,
+  parseAccumulatorUpdateData,
+  buildPostEncodedVaaInstructions,
+  parsePriceFeedMessage,
+  UPDATE_PRICE_FEED_COMPUTE_BUDGET,
+  InstructionWithEphemeralSigners,
+} from "~/vendor/pyth_crank";
+
 import { BankConfigOpt, BankConfigOptRaw, OracleSetup } from "./types";
 import { serializeBankConfigOpt, serializeOracleSetupToIndex } from "./utils";
 
@@ -89,5 +103,130 @@ export async function addOracleToBanksIx({
   return {
     instructions: [ix],
     keys: [],
+  };
+}
+
+/**
+ * Derive the address of a price feed account
+ * @param shardId The shard ID of the set of price feed accounts. This shard ID allows for multiple price feed accounts for the same price feed id to exist.
+ * @param priceFeedId The price feed ID, as either a 32-byte buffer or hexadecimal string with or without a leading "0x" prefix.
+ * @param pushOracleProgramId The program ID of the Pyth Push Oracle program. If not provided, the default deployment will be used.
+ * @returns The address of the price feed account
+ */
+export function getPriceFeedAccountForProgram(
+  shardId: number,
+  priceFeedId: Buffer | string,
+  pushOracleProgramId?: PublicKey
+): PublicKey {
+  if (typeof priceFeedId == "string") {
+    if (priceFeedId.startsWith("0x")) {
+      priceFeedId = Buffer.from(priceFeedId.slice(2), "hex");
+    } else {
+      priceFeedId = Buffer.from(priceFeedId, "hex");
+    }
+  }
+
+  if (priceFeedId.length != 32) {
+    throw new Error("Feed ID should be 32 bytes long");
+  }
+  const shardBuffer = Buffer.alloc(2);
+  shardBuffer.writeUint16LE(shardId, 0);
+
+  return PublicKey.findProgramAddressSync(
+    [shardBuffer, priceFeedId],
+    pushOracleProgramId ?? DEFAULT_PUSH_ORACLE_PROGRAM_ID
+  )[0];
+}
+
+export const getTreasuryPda = (treasuryId: number, receiverProgramId: PublicKey) => {
+  return PublicKey.findProgramAddressSync([Buffer.from("treasury"), Buffer.from([treasuryId])], receiverProgramId)[0];
+};
+
+export const getConfigPda = (receiverProgramId: PublicKey) => {
+  return PublicKey.findProgramAddressSync([Buffer.from("config")], receiverProgramId)[0];
+};
+
+export async function crankPythOracleIx(oracles: { feedId: string; shardId: number }[], provider: Provider) {
+  const feedIdsByShardId: Record<number, string[]> = {};
+  const wormholeProgram = new Program(PYTH_WORMHOLE_IDL, provider);
+  const pushOracleProgram = new Program(PYTH_PUSH_ORACLE_IDL, provider);
+  const receiverProgram = new Program(PYTH_SOLANA_RECEIVER_PROGRAM_IDL, provider);
+
+  const addressLookupTableAccount = new PublicKey("5DNCErWQFBdvCxWQXaC1mrEFsvL3ftrzZ2gVZWNybaSX");
+
+  const lookupTableAccount = (await provider.connection.getAddressLookupTable(addressLookupTableAccount)).value;
+
+  const buildURL = (endpoint: string) => {
+    return new URL(`./v2/${endpoint}`, `https://hermes.pyth.network/`);
+  };
+
+  for (const oracle of oracles) {
+    const { shardId, feedId } = oracle;
+    if (!feedIdsByShardId[shardId]) {
+      feedIdsByShardId[shardId] = [];
+    }
+    feedIdsByShardId[shardId].push(feedId);
+  }
+  const postInstructions: InstructionWithEphemeralSigners[] = [];
+  const priceFeedIdToPriceUpdateAccount: Record<string, PublicKey> = {};
+  const closeInstructions: InstructionWithEphemeralSigners[] = [];
+
+  for (const [shardId, feedIds] of Object.entries(feedIdsByShardId)) {
+    const url = buildURL("updates/price/latest");
+    for (const id of feedIds) {
+      url.searchParams.append("ids[]", id);
+    }
+
+    url.searchParams.append("encoding", "base64");
+
+    const response = await fetch(url);
+    const priceDataArray: string[] = (await response.json()).binary.data;
+
+    const treasuryId = 0;
+
+    for (const priceData of priceDataArray) {
+      const accumulatorUpdateData = parseAccumulatorUpdateData(Buffer.from(priceData, "base64"));
+
+      const {
+        postInstructions: postEncodedVaaInstructions,
+        encodedVaaAddress: encodedVaa,
+        closeInstructions: postEncodedVaacloseInstructions,
+      } = await buildPostEncodedVaaInstructions(wormholeProgram, accumulatorUpdateData.vaa);
+      postInstructions.push(...postEncodedVaaInstructions);
+      closeInstructions.push(...postEncodedVaacloseInstructions);
+
+      for (const update of accumulatorUpdateData.updates) {
+        const feedId = parsePriceFeedMessage(update.message).feedId;
+        postInstructions.push({
+          instruction: await pushOracleProgram.methods
+            .updatePriceFeed(
+              {
+                merklePriceUpdate: update,
+                treasuryId,
+              },
+              Number(shardId),
+              Array.from(feedId)
+            )
+            .accounts({
+              pythSolanaReceiver: receiverProgram.programId,
+              encodedVaa,
+              priceFeedAccount: getPriceFeedAccountForProgram(Number(shardId), feedId, pushOracleProgram.programId),
+              treasury: getTreasuryPda(treasuryId, receiverProgram.programId),
+              config: getConfigPda(receiverProgram.programId),
+              systemProgram: SYSTEM_PROGRAM_ID,
+            })
+            .instruction(),
+          signers: [],
+          computeUnits: UPDATE_PRICE_FEED_COMPUTE_BUDGET,
+        });
+      }
+    }
+  }
+
+  return {
+    postInstructions: postInstructions,
+    closeInstructions: closeInstructions,
+    keys: [],
+    lut: lookupTableAccount,
   };
 }

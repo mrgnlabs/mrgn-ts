@@ -11,7 +11,7 @@ import {
   aprToApy,
   dynamicNumeralFormatter,
 } from "@mrgnlabs/mrgn-common";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType } from "@mrgnlabs/mrgn-state";
 import { Desktop, Mobile, cn, capture, ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 import { IconChevronDown, IconExternalLink } from "@tabler/icons-react";
 import { useWallet } from "@mrgnlabs/mrgn-ui";

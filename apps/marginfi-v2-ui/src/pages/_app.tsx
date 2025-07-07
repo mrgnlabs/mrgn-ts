@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Profiler } from "react";
 import App, { AppContext, AppInitialProps, AppProps } from "next/app";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
@@ -9,15 +9,18 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { TipLinkWalletAutoConnect } from "@tiplink/wallet-adapter-react-ui";
 import { Analytics } from "@vercel/analytics/react";
 import { registerMoonGateWallet } from "@moongate/moongate-adapter";
+import { QueryClient } from "@tanstack/react-query";
 
+import { initializeConfig, StateProvider } from "@mrgnlabs/mrgn-state";
 import { cn, Desktop, Mobile, init as initAnalytics, AuthProvider } from "@mrgnlabs/mrgn-utils";
-import { ActionBoxProvider, ActionProvider, AuthDialog, WalletProvider as MrgnWalletProvider } from "@mrgnlabs/mrgn-ui";
+import { ActionProvider, WalletProvider as MrgnWalletProvider } from "@mrgnlabs/mrgn-ui";
 import { generateEndpoint } from "~/rpc.utils";
 
-import config from "~/config";
+import rpcConfig from "~/config";
+import config from "~/config/marginfi";
 import { MrgnlendProvider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useUiStore } from "~/store";
 import { ConnectionProvider } from "~/hooks/use-connection";
 
 import GlobalActionBoxPortal from "~/components/common/global-actionbox-portal/global-actionbox-portal";
@@ -27,7 +30,9 @@ import { Tutorial } from "~/components/common/Tutorial";
 
 import "swiper/css";
 import "swiper/css/pagination";
+import "swiper/css/effect-fade";
 import { ToastProvider } from "@mrgnlabs/mrgn-toasts";
+import { AdditionalProvider } from "~/context/AdditionalProvider";
 
 registerMoonGateWallet({ authMode: "Google", position: "bottom-right" });
 registerMoonGateWallet({ authMode: "Ethereum", position: "bottom-right" });
@@ -44,7 +49,14 @@ const Footer = dynamic(async () => (await import("~/components/desktop/Footer"))
 
 type MrgnAppProps = { path: string };
 
-export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnAppProps) {
+const qc = new QueryClient();
+
+initializeConfig({
+  rpcUrl: rpcConfig.rpcEndpoint,
+  mrgnConfig: config.mfiConfig,
+});
+
+export default function MrgnApp({ Component, pageProps }: AppProps) {
   const [
     broadcastType,
     priorityFees,
@@ -66,36 +78,19 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
     state.maxCapType,
     state.globalActionBoxProps,
   ]);
-  const [
-    isMrgnlendStoreInitialized,
-    isRefreshingMrgnlendStore,
-    marginfiClient,
-    selectedAccount,
-    extendedBankInfos,
-    nativeSolBalance,
-    accountSummary,
-  ] = useMrgnlendStore((state) => [
-    state.initialized,
-    state.isRefreshingStore,
-    state.marginfiClient,
-    state.selectedAccount,
-    state.extendedBankInfos,
-    state.nativeSolBalance,
-    state.accountSummary,
-  ]);
 
-  const { query, isReady } = useRouter();
+  const { query, isReady, pathname } = useRouter();
   const [ready, setReady] = React.useState(false);
   const [rpcEndpoint, setRpcEndpoint] = React.useState("");
 
-  React.useEffect(() => {
-    const isFetchingData = isRefreshingMrgnlendStore;
-    setIsFetchingData(isFetchingData);
-  }, [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, setIsFetchingData]);
+  // React.useEffect(() => {
+  //   const isFetchingData = isRefreshingMrgnlendStore;
+  //   setIsFetchingData(isFetchingData);
+  // }, [isMrgnlendStoreInitialized, isRefreshingMrgnlendStore, setIsFetchingData]);
 
   React.useEffect(() => {
     const init = async () => {
-      const rpcEndpoint = await generateEndpoint(config.rpcEndpoint, process.env.NEXT_PUBLIC_RPC_PROXY_KEY ?? "");
+      const rpcEndpoint = await generateEndpoint(rpcConfig.rpcEndpoint, process.env.NEXT_PUBLIC_RPC_PROXY_KEY ?? "");
       setRpcEndpoint(rpcEndpoint);
       setReady(true);
       initAnalytics();
@@ -106,68 +101,60 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 
   return (
     <>
-      <Meta path={path} />
-      {ready && rpcEndpoint && (
-        <ConnectionProvider endpoint={rpcEndpoint}>
-          <TipLinkWalletAutoConnect isReady={isReady} query={query}>
-            <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
-              <AuthProvider>
-                <MrgnWalletProvider>
-                  <MrgnlendProvider>
-                    <ActionProvider
-                      transactionSettings={{
-                        broadcastType,
-                        priorityType,
-                        maxCap: priorityFees.maxCapUi ?? 0,
-                        maxCapType,
-                      }}
-                      jupiterOptions={{ ...jupiterOptions, slippageBps: jupiterOptions.slippageBps }}
-                      priorityFees={priorityFees}
-                    >
-                      <ActionBoxProvider
-                        banks={extendedBankInfos}
-                        nativeSolBalance={nativeSolBalance}
-                        marginfiClient={marginfiClient}
-                        selectedAccount={selectedAccount}
-                        connected={false}
-                        accountSummaryArg={accountSummary}
-                        setDisplaySettings={setDisplaySettings}
-                      >
-                        <Navbar />
+      <Meta path={pathname} />
 
-                        <Desktop>
-                          <WalletModalProvider>
+      <StateProvider config={{ rpcUrl: rpcConfig.rpcEndpoint, mrgnConfig: config.mfiConfig }}>
+        {ready && rpcEndpoint && (
+          <ConnectionProvider endpoint={rpcEndpoint}>
+            <TipLinkWalletAutoConnect isReady={isReady} query={query}>
+              <WalletProvider wallets={WALLET_ADAPTERS} autoConnect={true}>
+                <AuthProvider>
+                  <MrgnWalletProvider>
+                    <AdditionalProvider>
+                      <MrgnlendProvider>
+                        <ActionProvider
+                          transactionSettings={{
+                            broadcastType,
+                            priorityType,
+                            maxCap: priorityFees.maxCapUi ?? 0,
+                            maxCapType,
+                          }}
+                          jupiterOptions={{ ...jupiterOptions, slippageBps: jupiterOptions.slippageBps }}
+                          priorityFees={priorityFees}
+                        >
+                          <Navbar />
+
+                          <Desktop>
+                            <WalletModalProvider>
+                              <div className={cn("w-full flex flex-col justify-center items-center")}>
+                                <Component {...pageProps} />
+                              </div>
+                              <Footer />
+                            </WalletModalProvider>
+                          </Desktop>
+
+                          <Mobile>
                             <div className={cn("w-full flex flex-col justify-center items-center")}>
                               <Component {...pageProps} />
                             </div>
-                            <Footer />
-                          </WalletModalProvider>
-                        </Desktop>
+                            <MobileNavbar />
+                          </Mobile>
 
-                        <Mobile>
-                          <div className={cn("w-full flex flex-col justify-center items-center")}>
-                            <Component {...pageProps} />
-                          </div>
-                          <MobileNavbar />
-                        </Mobile>
+                          <Analytics />
+                          <Tutorial />
 
-                        <Analytics />
-                        <Tutorial />
-                        <AuthDialog
-                          mrgnState={{ marginfiClient, selectedAccount, extendedBankInfos, nativeSolBalance }}
-                        />
-
-                        <ToastProvider />
-                        {globalActionBoxProps.isOpen && <GlobalActionBoxPortal />}
-                      </ActionBoxProvider>
-                    </ActionProvider>
-                  </MrgnlendProvider>
-                </MrgnWalletProvider>
-              </AuthProvider>
-            </WalletProvider>
-          </TipLinkWalletAutoConnect>
-        </ConnectionProvider>
-      )}
+                          <ToastProvider />
+                          {globalActionBoxProps.isOpen && <GlobalActionBoxPortal />}
+                        </ActionProvider>
+                      </MrgnlendProvider>
+                    </AdditionalProvider>
+                  </MrgnWalletProvider>
+                </AuthProvider>
+              </WalletProvider>
+            </TipLinkWalletAutoConnect>
+          </ConnectionProvider>
+        )}
+      </StateProvider>
 
       {process.env.NEXT_PUBLIC_ANALYTICS === "true" && ready && (
         <>
@@ -183,5 +170,17 @@ export default function MrgnApp({ Component, pageProps, path }: AppProps & MrgnA
 MrgnApp.getInitialProps = async (appContext: AppContext): Promise<AppInitialProps & MrgnAppProps> => {
   const appProps = await App.getInitialProps(appContext);
   const path = appContext.ctx.pathname;
+
+  if (path === "/banks/[address]") {
+    console.log("appContext.ctx.query.address", appContext.ctx.query.address);
+    const mintData = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/banks/get?address=${appContext.ctx.query.address}`
+    );
+    const mintDataJson = await mintData.json();
+    appProps.pageProps.metadata = {
+      title: mintDataJson.symbol,
+    };
+  }
+
   return { ...appProps, path };
 };

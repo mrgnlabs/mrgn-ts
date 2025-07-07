@@ -9,7 +9,7 @@ import {
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
   getEmodePairs,
-} from "@mrgnlabs/marginfi-v2-ui-state";
+} from "@mrgnlabs/mrgn-state";
 import {
   ActionEmodeImpact,
   computeEmodeImpacts,
@@ -41,7 +41,7 @@ import { useLoopBoxStore } from "./store";
 import { useLoopSimulation } from "./hooks";
 import { LeverageSlider } from "./components/leverage-slider";
 import { ApyStat } from "./components/apy-stat";
-import { IconEmode } from "~/components/ui/icons";
+import { IconEmode, IconEmodeSimple } from "~/components/ui/icons";
 import { PublicKey } from "@solana/web3.js";
 
 export type LoopBoxProps = {
@@ -207,11 +207,11 @@ export const LoopBox = ({
 
   const isEmodeLoop = React.useMemo(() => {
     if (!selectedSecondaryBank) {
-      return emodeSupplyState.emodeBorrowBanks.length > 0;
+      return selectedBank?.info.state.hasEmode && emodeSupplyState.emodeBorrowBanks.length > 0;
     }
 
     return !!emodeImpact?.activePair;
-  }, [selectedSecondaryBank, emodeImpact?.activePair, emodeSupplyState.emodeBorrowBanks.length]);
+  }, [selectedBank, selectedSecondaryBank, emodeImpact?.activePair, emodeSupplyState.emodeBorrowBanks.length]);
 
   const [simulationStatus, setSimulationStatus] = React.useState<{
     isLoading: boolean;
@@ -228,10 +228,8 @@ export const LoopBox = ({
   }, [refreshState]);
 
   const accountSummary = React.useMemo(() => {
-    return (
-      accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount, banks) : DEFAULT_ACCOUNT_SUMMARY)
-    );
-  }, [accountSummaryArg, selectedAccount, banks]);
+    return accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount) : DEFAULT_ACCOUNT_SUMMARY);
+  }, [accountSummaryArg, selectedAccount]);
 
   const { amount, debouncedAmount, walletAmount, maxAmount } = useActionAmounts({
     amountRaw,
@@ -250,12 +248,22 @@ export const LoopBox = ({
       amount,
       connected,
       selectedBank,
+      marginfiAccount: selectedAccount,
       selectedSecondaryBank,
       actionQuote: actionTxns.actionQuote,
       banks: allBanks ?? [],
       emodeImpact,
     });
-  }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote, allBanks]);
+  }, [
+    amount,
+    connected,
+    selectedBank,
+    selectedAccount,
+    selectedSecondaryBank,
+    actionTxns.actionQuote,
+    allBanks,
+    emodeImpact,
+  ]);
 
   const { actionSummary, refreshSimulation } = useLoopSimulation({
     debouncedAmount: debouncedAmount ?? 0,
@@ -449,7 +457,7 @@ export const LoopBox = ({
           setSelectedSecondaryBank={(bank) => {
             setSelectedSecondaryBank(bank);
           }}
-          highlightedEmodeBanks={emodeSupplyState.emodeBorrowBanks}
+          emodeBorrowBanks={emodeSupplyState.emodeBorrowBanks}
           isLoading={simulationStatus.isLoading}
           walletAmount={walletAmount}
           actionTxns={actionTxns}
@@ -457,9 +465,9 @@ export const LoopBox = ({
         />
       </div>
 
-      {isEmodeLoop && selectedBank && (
+      {isEmodeLoop && selectedBank && selectedSecondaryBank && (
         <div className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
-          <IconEmode size={14} className="text-mfi-emode" />
+          <IconEmodeSimple size={18} className="text-mfi-emode" />
           <p>e-mode looping active</p>
         </div>
       )}
@@ -472,7 +480,7 @@ export const LoopBox = ({
           leverageAmount={leverage}
           maxLeverage={maxLeverage}
           setLeverageAmount={setLeverage}
-          isEmodeLoop={isEmodeLoop}
+          isEmodeLoop={isEmodeLoop || false}
         />
 
         <ApyStat

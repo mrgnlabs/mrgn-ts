@@ -1,24 +1,19 @@
 import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
+import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
 import { loadKeypairFromFile } from "./utils";
 
 type Config = {
   PROGRAM_ID: string;
-  ACCOUNT_KEY: PublicKey;
-  AUTHORITY_KEY: PublicKey;
-  FEE_PAYER_KEY: PublicKey;
+  ACCOUNT: PublicKey;
+  FEE_PAYER: PublicKey;
 };
 
 const config: Config = {
-  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  // Fill your marginfi account key here....
-  ACCOUNT_KEY: new PublicKey("stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct"),
-  // Fill your wallet here...
-  AUTHORITY_KEY: new PublicKey("stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct"),
-  // Fill your account to get the rent here...
-  FEE_PAYER_KEY: new PublicKey("stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct"),
+  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+  ACCOUNT: new PublicKey("EjaNvWcsPxVoKkADhpMre433bhdeU8uPgtgYPLsYKCjH"),
+  FEE_PAYER: new PublicKey("CCzftmCoJxWdEeKxsn9AAiHFZ2QMbgqYqrRA7tRbfdnF"),
 };
 
 async function main() {
@@ -40,9 +35,8 @@ async function main() {
     await program.methods
       .marginfiAccountClose()
       .accounts({
-        marginfiAccount: config.ACCOUNT_KEY,
-        feePayer: config.FEE_PAYER_KEY,
-        authority: config.AUTHORITY_KEY,
+        marginfiAccount: config.ACCOUNT,
+        feePayer: config.FEE_PAYER,
       })
       .instruction()
   );

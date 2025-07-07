@@ -1,12 +1,11 @@
 import { AccountMeta, Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
-import { Program, AnchorProvider, Wallet, BN } from "@coral-xyz/anchor";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
+import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
+import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
 import { I80F48_ONE, loadKeypairFromFile } from "./utils";
-import { assertI80F48Approx, assertKeysEqual } from "./softTests";
 import { bigNumberToWrappedI80F48, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 // TODO move to package import after update
-import { InterestRateConfigRaw, BankConfigCompactRaw } from "../../marginfi-client-v2/src/models/bank";
+import { InterestRateConfigRaw, BankConfigCompactRaw } from "../../marginfi-client-v2/src/services";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
 /**
@@ -20,7 +19,7 @@ type Config = {
   GROUP_KEY: PublicKey;
   ORACLE: PublicKey;
   /** A pyth price feed that matches the configured Oracle */
-  SOL_ORACLE_FEED: PublicKey;
+  ORACLE_FEED: PublicKey;
   ADMIN: PublicKey;
   FEE_PAYER: PublicKey;
   BANK_MINT: PublicKey;
@@ -28,16 +27,26 @@ type Config = {
   MULTISIG_PAYER?: PublicKey; // May be omitted if not using squads
 };
 
+// Feed IDs can be taken from here: https://www.pyth.network/developers/price-feed-ids
+// USDC
+// const mint = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+// const oracle = "9km7RzRAuWPPeJGk9DNWTAjA8V5Xnm1o9CdUQuDG1654";
+// const feed_id_hex = "eaa020c61cc479712813461ce153894a96a6c00b21ed0cfc2798d1f9a9e9c94a";
+// BONK
+const mint = "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263";
+const oracle = "DBE3N8uNjhKPRHfANdwGvCZghWXyLPdqdSbEW2XFwBiX";
+const feed_id_hex = "72b021217ca3fe68922a19aaf990109cb9d84e9ad004b4d2025ad6f529314419";
+
 const config: Config = {
-  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
-  GROUP_KEY: new PublicKey("4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8"),
-  ORACLE: new PublicKey("H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG"),
-  SOL_ORACLE_FEED: new PublicKey("7UVimffxr9ow1uXYxsr4LHAcV58mLzhmwaeKvJ1pjLiE"),
+  PROGRAM_ID: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA", // Staging - "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct"
+  GROUP_KEY: new PublicKey("4qft5jS6ZkQtBX8WiSFYw9DUNTJcqUjSnv7sEUAH2dn3"),
+  ORACLE: new PublicKey(oracle),
+  ORACLE_FEED: new PublicKey(Buffer.from(feed_id_hex, "hex")),
   ADMIN: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
   FEE_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
-  BANK_MINT: new PublicKey("So11111111111111111111111111111111111111112"),
+  BANK_MINT: new PublicKey(mint),
   SEED: 0,
-  MULTISIG_PAYER: new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1"),
+  MULTISIG_PAYER: null, // new PublicKey("AZtUUe9GvTFq9kfseu9jxTioSgdSfjgmZfGQBmhVpTj1")
 
   // TODO configurable settings up here (currently, scroll down)
 };
@@ -102,8 +111,6 @@ async function main() {
     totalAssetValueInitLimit: new BN(100000000000),
     oracleMaxAge: 100,
     assetTag: 0,
-    permissionlessBadDebtSettlement: false,
-    freezeSettings: false,
   };
 
   // Note: the BN used by `BankConfigCompactRaw` is different from the kind used in the anchor
@@ -120,7 +127,7 @@ async function main() {
         operationalState: bankConfig.operationalState,
         borrowLimit: new BN(bankConfig.borrowLimit.toString()),
         riskTier: bankConfig.riskTier,
-        assetTag: 1, // ASSET TAG SOL
+        assetTag: 0, // 0 - normal asset, 1 - sol, 2 - staked
         pad0: [0, 0, 0, 0, 0, 0],
         totalAssetValueInitLimit: new BN(bankConfig.totalAssetValueInitLimit.toString()),
         oracleMaxAge: bankConfig.oracleMaxAge,
@@ -129,7 +136,7 @@ async function main() {
     )
     .accounts({
       marginfiGroup: config.GROUP_KEY,
-      admin: config.ADMIN,
+      // admin: config.ADMIN, // implied from group
       feePayer: config.FEE_PAYER,
       bankMint: config.BANK_MINT,
       // bank: // derived from mint/seed
@@ -146,17 +153,35 @@ async function main() {
       // systemProgram: SystemProgram.programId,
     })
     .instruction();
-
-  // TODO configure oracle here...
-
   transaction.add(ix);
+
+  const [bankKey] = deriveBankWithSeed(program.programId, config.GROUP_KEY, config.BANK_MINT, new BN(config.SEED));
+  console.log("bank key: " + bankKey);
+
+  const oracleMeta: AccountMeta = {
+    pubkey: config.ORACLE,
+    isSigner: false,
+    isWritable: false,
+  };
+  const config_ix = await program.methods
+    .lendingPoolConfigureBankOracle(
+      3, // 3 = PythPull, 4 = SwitchboardPull, 5 = StakedWithPythPush
+      config.ORACLE_FEED
+    )
+    .accountsPartial({
+      group: config.GROUP_KEY,
+      bank: bankKey,
+      admin: config.ADMIN,
+    })
+    .remainingAccounts([oracleMeta])
+    .instruction();
+
+  transaction.add(config_ix);
 
   if (sendTx) {
     try {
       const signature = await sendAndConfirmTransaction(connection, transaction, [wallet]);
       console.log("Transaction signature:", signature);
-      const [bankKey] = deriveBankWithSeed(program.programId, config.GROUP_KEY, config.BANK_MINT, new BN(config.SEED));
-      console.log("bank key: " + bankKey);
     } catch (error) {
       console.error("Transaction failed:", error);
     }
@@ -166,7 +191,7 @@ async function main() {
       console.log("fee wallet lamports after: " + feeWalletAfter.lamports);
     }
   } else {
-    transaction.feePayer = config.MULTISIG_PAYER; // Set the fee payer to Squads wallet
+    transaction.feePayer = config.MULTISIG_PAYER ?? config.FEE_PAYER;
     const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
     const serializedTransaction = transaction.serialize({

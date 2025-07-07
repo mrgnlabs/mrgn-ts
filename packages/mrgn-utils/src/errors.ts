@@ -1,9 +1,10 @@
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/common";
 
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
+
 import { ActionMessageType } from "./actions";
 import { MAX_SLIPPAGE_PERCENTAGE } from "./slippage.consts";
-import { JUPITER_PROGRAM_V6_ID } from "@jup-ag/common";
 
 // Static info messages
 export const STATIC_INFO_MESSAGES: { [key: string]: ActionMessageType } = {
@@ -334,6 +335,13 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     actionMethod: "WARNING",
     actionSubType: "EMODE",
     code: 157,
+  },
+  HEALTH_SIMULATION_CHECK: {
+    description:
+      "Health simulation failed. The displayed health factor is estimated and may not reflect real-time accuracy. Refresh the page to try again.",
+    isEnabled: true,
+    actionMethod: "WARNING",
+    code: 158,
   },
 };
 

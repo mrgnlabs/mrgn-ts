@@ -273,11 +273,12 @@ export function useEmodeLineConnections(
     const numCurvedConnections = lineCoordinates.filter((l) => l.pathType !== "straight").length;
     // Expanded color palette for better readability
     const colorPalette = mergedOptions.colors || [
-      { base: "hsl(273.6 65.6% 32%)", pulse: "hsl(273.6 65.6% 42%)" },
-      { base: "hsl(263.5 67.4% 34.9%)", pulse: "hsl(263.5 67.4% 44.9%)" },
-      { base: "hsl(242.2 47.4% 34.3%)", pulse: "hsl(242.2 47.4% 44.3%)" },
-      { base: "hsl(224.4 64.3% 32.9%)", pulse: "hsl(224.4 64.3% 42.9%)" },
-      { base: "hsl(202 80.3% 23.9%)", pulse: "hsl(202 80.3% 23.9%)" },
+      { base: "hsl(252 100% 70%)", pulse: "hsl(252 100% 96%)" }, // New brand color with double lightness
+      { base: "hsl(262 95% 67%)", pulse: "hsl(262 95% 94%)" }, // Slightly shifted hue, reduced saturation
+      { base: "hsl(242 90% 63%)", pulse: "hsl(242 90% 88%)" }, // More blue-shifted, reduced saturation
+      { base: "hsl(272 85% 65%)", pulse: "hsl(272 85% 90%)" }, // More magenta-shifted, reduced saturation
+      { base: "hsl(232 80% 59%)", pulse: "hsl(232 80% 86%)" }, // Even more blue, reduced saturation and lightness
+      { base: "hsl(282 75% 61%)", pulse: "hsl(282 75% 86%)" }, // More purple, reduced saturation and lightness
     ];
 
     // Helper: is this line highlighted?
@@ -312,16 +313,10 @@ export function useEmodeLineConnections(
               </linearGradient>
             );
           })}
-          {/* Add a linearGradient for each pulse (white to line color) */}
+          {/* Add a linearGradient for each pulse (line color to pulse color) */}
           {lineCoordinates.map((coords, idx) => {
             const { x1, y1, x2, y2 } = coords;
-            const lineColor = (options.colors || [
-              { base: "hsl(273.6 65.6% 32%)", pulse: "hsl(273.6 65.6% 42%)" },
-              { base: "hsl(263.5 67.4% 34.9%)", pulse: "hsl(263.5 67.4% 44.9%)" },
-              { base: "hsl(242.2 47.4% 34.3%)", pulse: "hsl(242.2 47.4% 44.3%)" },
-              { base: "hsl(224.4 64.3% 32.9%)", pulse: "hsl(224.4 64.3% 42.9%)" },
-              { base: "hsl(202 80.3% 23.9%)", pulse: "hsl(202 80.3% 23.9%)" },
-            ])[idx % 5].base;
+            const lineColorObj = colorPalette[idx % colorPalette.length];
             return (
               <linearGradient
                 key={`pulse-gradient-${idx}`}
@@ -332,8 +327,8 @@ export function useEmodeLineConnections(
                 y2={y2}
                 gradientUnits="userSpaceOnUse"
               >
-                <stop offset="0%" stopColor={lineColor} />
-                <stop offset="50%" stopColor="#fff" />
+                <stop offset="0%" stopColor={lineColorObj.base} />
+                <stop offset="50%" stopColor={lineColorObj.pulse} />
               </linearGradient>
             );
           })}

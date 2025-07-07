@@ -1,16 +1,16 @@
-import { WrappedI80F48 } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
+
+import { WrappedI80F48 } from "@mrgnlabs/mrgn-common";
 
 // ----------------------------------------------------------------------------
 // On-chain types
 // ----------------------------------------------------------------------------
 
 interface BankRaw {
+  group: PublicKey;
   mint: PublicKey;
   mintDecimals: number;
-
-  group: PublicKey;
 
   assetShareValue: WrappedI80F48;
   liabilityShareValue: WrappedI80F48;
@@ -29,17 +29,18 @@ interface BankRaw {
   feeVaultAuthorityBump: number;
   collectedGroupFeesOutstanding: WrappedI80F48;
 
-  totalLiabilityShares: WrappedI80F48;
-  totalAssetShares: WrappedI80F48;
-
   lastUpdate: BN;
 
   config: BankConfigRaw;
+
+  totalLiabilityShares: WrappedI80F48;
+  totalAssetShares: WrappedI80F48;
 
   flags: BN;
   emissionsRate: BN;
   emissionsRemaining: WrappedI80F48;
   emissionsMint: PublicKey;
+
   emode: EmodeSettingsRaw;
 }
 

@@ -3,9 +3,8 @@ import React from "react";
 import { IconFilter, IconSearch, IconX } from "@tabler/icons-react";
 
 import { cn, LendingModes, PoolTypes } from "@mrgnlabs/mrgn-utils";
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 
-import { useUiStore, useMrgnlendStore } from "~/store";
+import { useUiStore } from "~/store";
 import { TokenFilters } from "~/store/uiStore";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
@@ -14,7 +13,9 @@ import { Switch } from "~/components/ui/switch";
 import { Input } from "~/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
-import { IconEmode } from "~/components/ui/icons";
+import { IconEmode, IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
+import { useWallet } from "~/components";
+import { useEmode } from "@mrgnlabs/mrgn-state";
 
 const AssetListNav = () => {
   const [
@@ -36,7 +37,8 @@ const AssetListNav = () => {
     state.tokenFilter,
     state.setTokenFilter,
   ]);
-  const [userActiveEmodes, emodePairs] = useMrgnlendStore((state) => [state.userActiveEmodes, state.emodePairs]);
+
+  const { activeEmodePairs, emodePairs } = useEmode();
   const [isSearchExpanded, setIsSearchExpanded] = React.useState(assetListSearch.length > 0);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -61,27 +63,30 @@ const AssetListNav = () => {
             if (!value) return;
             setPoolFilter(value as PoolTypes);
           }}
-          className="shrink-0 bg-background-gray p-1.5 rounded-lg"
+          className="shrink-0 bg-background-gray p-1.5 rounded-lg gap-4"
         >
-          <ToggleGroupItem value="global" aria-label="Toggle global">
+          <ToggleGroupItem value="global" aria-label="Toggle global" className="h-9">
             Global
           </ToggleGroupItem>
-          <ToggleGroupItem value="isolated" aria-label="Toggle isolated">
+          <ToggleGroupItem value="isolated" aria-label="Toggle isolated" className="h-9">
             Isolated
           </ToggleGroupItem>
-          <ToggleGroupItem value="native_stake" aria-label="Toggle staked" className="relative">
+          <ToggleGroupItem value="native_stake" aria-label="Toggle staked" className="relative h-9">
             Native Stake
           </ToggleGroupItem>
           {emodePairs.length > 0 && (
-            <ToggleGroupItem value="e_mode" aria-label="Toggle e-mode" className="relative gap-1 items-center pl-1.5">
-              <IconEmode size={24} className="text-mfi-emode" />
-              <span className="ml-0.5">e-mode</span>
-              <span
-                className={cn(
-                  "bg-gray-400 rounded-full h-2 w-2 ml-2",
-                  userActiveEmodes.length > 0 && "bg-mrgn-success"
-                )}
-              />
+            <ToggleGroupItem
+              value="e_mode"
+              aria-label="Toggle e-mode"
+              className={cn(
+                "relative h-9 pr-1.5 rounded-lg",
+                activeEmodePairs.length > 0 && "data-[state=on]:bg-gradient-to-r to-[#483975] from-[#292E32]"
+              )}
+            >
+              <div className="flex items-center gap-1 w-full">
+                <span>e-mode</span>
+                {activeEmodePairs.length > 0 ? <IconEmodeSimple size={18} /> : <IconEmodeSimpleInactive size={18} />}
+              </div>
             </ToggleGroupItem>
           )}
         </ToggleGroup>

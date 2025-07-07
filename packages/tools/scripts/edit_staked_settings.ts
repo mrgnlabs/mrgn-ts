@@ -3,8 +3,8 @@
 // you're reading this)
 import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
 import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
+import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
 import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile } from "./utils";
 import { bigNumberToWrappedI80F48, WrappedI80F48, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { assertBNEqual, assertI80F48Approx, assertKeysEqual } from "./softTests";

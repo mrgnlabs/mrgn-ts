@@ -1,6 +1,6 @@
 import React from "react";
 import { IconX } from "@tabler/icons-react";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 import { Command, CommandInput, CommandList } from "~/components/ui/command";
 import { cn, useIsMobile } from "@mrgnlabs/mrgn-utils";

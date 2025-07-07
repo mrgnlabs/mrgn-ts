@@ -54,7 +54,7 @@ async function main() {
 
   const parsedPositions = activePositions.map((b, index) => ({
     bank: b.bankPk,
-    oracleKey: findOracleKey(BankConfig.fromAccountParsed(banks[index].config), bankConfigs),
+    oracleKey: findOracleKey(BankConfig.fromAccountParsed(banks[index].config), bankConfigs).oracleKey,
     isActive: b.active,
   }));
 

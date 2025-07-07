@@ -2,7 +2,7 @@ import React from "react";
 import { IconLoader2 } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType } from "@mrgnlabs/mrgn-state";
 
 import { OnrampScreenProps } from "~/components/wallet-v2/components/sign-up/sign-up.utils";
 import { ActionBox } from "~/components/action-box-v2";

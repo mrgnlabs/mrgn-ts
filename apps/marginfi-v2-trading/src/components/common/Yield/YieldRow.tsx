@@ -14,7 +14,7 @@ import {
   shortenAddress,
   usdFormatter,
 } from "@mrgnlabs/mrgn-common";
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType } from "@mrgnlabs/mrgn-state";
 import { cn, capture, ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 import { Wallet } from "@mrgnlabs/mrgn-common";
 import { useWallet } from "@mrgnlabs/mrgn-ui";

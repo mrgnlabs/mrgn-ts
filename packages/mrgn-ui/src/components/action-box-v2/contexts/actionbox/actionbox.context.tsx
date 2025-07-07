@@ -1,8 +1,8 @@
 import React from "react";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
-import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
+import { ExtendedBankInfo, AccountSummary, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
+import { MarginfiAccountWrapper, MarginfiClient, ValidatorStakeGroup } from "@mrgnlabs/marginfi-client-v2";
 
 import { WalletContextStateOverride } from "~/components/wallet-v2";
 
@@ -17,6 +17,8 @@ type ActionBoxContextType = {
   walletContextState?: WalletContextStateOverride | WalletContextState;
   accountSummaryArg?: AccountSummary;
   hidePoolStats?: HidePoolStats;
+  stakePoolMetadataMap?: Map<string, StakePoolMetadata>;
+  stakeAccounts?: ValidatorStakeGroup[];
   setDisplaySettings?: (displaySettings: boolean) => void;
 };
 

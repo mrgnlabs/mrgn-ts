@@ -3,7 +3,7 @@
 import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
 import * as SplStakePool from "@solana/spl-stake-pool";
 import { makeUnwrapSolIx } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActionType } from "@mrgnlabs/mrgn-state";
 import {
   uiToNative,
   LST_MINT,

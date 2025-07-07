@@ -4,7 +4,7 @@ import BN from "bn.js";
 
 import { OracleSetup } from "@mrgnlabs/marginfi-client-v2";
 import { TOKEN_PROGRAM_ID, aprToApy, ceil, floor, percentFormatter } from "@mrgnlabs/mrgn-common";
-import { ActiveBankInfo, Emissions, ExtendedBankInfo, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActiveBankInfo, Emissions } from "@mrgnlabs/mrgn-state";
 
 import { LendingModes } from "./types";
 import { handleError } from "./errors";
@@ -170,11 +170,13 @@ export function isBankOracleStale(bank: ExtendedBankInfo) {
   }
 
   const maxAge = bank.info.rawBank.config.oracleMaxAge;
+
+  const threshold = maxAge + 3 * 60; // seconds
   const currentTime = Math.round(Date.now() / 1000);
   const oracleTime = Math.round(
     bank.info.oraclePrice.timestamp ? bank.info.oraclePrice.timestamp.toNumber() : new Date().getTime()
   );
-  const isStale = currentTime - oracleTime > maxAge;
+  const isStale = currentTime - oracleTime > threshold;
 
   return isStale;
 }

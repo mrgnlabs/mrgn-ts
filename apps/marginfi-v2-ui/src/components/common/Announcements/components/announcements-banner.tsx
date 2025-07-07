@@ -7,12 +7,12 @@ import { IconArrowRight } from "@tabler/icons-react";
 
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { capture, LendingModes, cn } from "@mrgnlabs/mrgn-utils";
-import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-
-import { useMrgnlendStore } from "~/store";
+import { ExtendedBankInfo, ActionType } from "@mrgnlabs/mrgn-state";
 
 import "swiper/css";
 import "swiper/css/autoplay";
+import { useRefreshUserData } from "@mrgnlabs/mrgn-state";
+import { PublicKey } from "@solana/web3.js";
 
 export type AnnouncementCustomItem = {
   text: string;
@@ -71,8 +71,8 @@ const Pagination = ({ itemsLength }: PaginationProps) => {
 };
 
 export const Announcements = ({ items }: AnnouncementsProps) => {
-  const [fetchMrgnlendState] = useMrgnlendStore((state) => [state.fetchMrgnlendState]);
-  const { connected } = useWallet();
+  const { connected, walletAddress } = useWallet();
+  const refreshUserData = useRefreshUserData();
   const [requestedAction, setRequestedAction] = React.useState<ActionType>();
   const [requestedBank, setRequestedBank] = React.useState<ExtendedBankInfo | null>(null);
 
@@ -114,8 +114,8 @@ export const Announcements = ({ items }: AnnouncementsProps) => {
                       captureEvent: (event, properties) => {
                         capture(event, properties);
                       },
-                      onComplete: () => {
-                        fetchMrgnlendState();
+                      onComplete: (newAccountKey?: PublicKey) => {
+                        refreshUserData({ newAccountKey });
                       },
                     }}
                     dialogProps={{

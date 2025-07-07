@@ -2,7 +2,7 @@ import React from "react";
 
 import { PublicKey } from "@solana/web3.js";
 
-import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ActionType, ExtendedBankInfo, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { MarginfiAccountWrapper, MarginfiClient, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import {
   ActionMessageType,
@@ -15,6 +15,7 @@ import {
 
 import { calculateSummary, generateActionTxns, getLendSimulationResult } from "../utils";
 import { SimulationStatus } from "~/components/action-box-v2/utils";
+import { TransactionType } from "@mrgnlabs/mrgn-common";
 
 type LendSimulationProps = {
   debouncedAmount: number;
@@ -25,7 +26,12 @@ type LendSimulationProps = {
   lendMode: ActionType;
   actionTxns: ActionTxns;
   simulationResult: SimulationResult | null;
-  selectedStakeAccount?: PublicKey;
+  stakeOpts?: {
+    stakeAccount?: PublicKey;
+    stakePoolMetadata: StakePoolMetadata;
+    stakeAmount?: number;
+    walletAmount: number;
+  };
   setSimulationResult: (result: SimulationResult | null) => void;
   setActionTxns: (actionTxns: ActionTxns) => void;
   setErrorMessage: (error: ActionMessageType | null) => void;
@@ -39,7 +45,7 @@ export function useLendSimulation({
   selectedBank,
   lendMode,
   simulationResult,
-  selectedStakeAccount,
+  stakeOpts,
   marginfiClient,
   setSimulationResult,
   setActionTxns,
@@ -82,7 +88,12 @@ export function useLendSimulation({
     bank: ExtendedBankInfo;
     lendMode: ActionType;
     amount: number;
-    stakeAccount?: PublicKey;
+    stakeOpts?: {
+      stakeAccount?: PublicKey;
+      stakePoolMetadata: StakePoolMetadata;
+      stakeAmount?: number;
+      walletAmount: number;
+    };
   }): Promise<{
     actionTxns: ActionTxns;
     finalAccount: MarginfiAccountWrapper;
@@ -111,10 +122,10 @@ export function useLendSimulation({
         const props = {
           marginfiAccount: selectedAccount,
           marginfiClient: marginfiClient,
-          stakeAccount: selectedStakeAccount,
           bank: selectedBank,
           lendMode: lendMode,
           amount: amount,
+          stakeOpts: stakeOpts,
         };
 
         const actionTxns = await fetchActionTxns(props);
@@ -161,7 +172,7 @@ export function useLendSimulation({
       marginfiClient,
       selectedAccount,
       selectedBank,
-      selectedStakeAccount,
+      stakeOpts,
       setActionTxns,
       setErrorMessage,
       setIsLoading,

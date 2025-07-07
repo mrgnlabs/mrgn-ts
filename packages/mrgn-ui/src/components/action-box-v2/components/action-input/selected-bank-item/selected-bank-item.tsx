@@ -1,12 +1,13 @@
 import React from "react";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { WalletToken } from "@mrgnlabs/mrgn-common";
 import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
 
 type SelectedBankItemProps = {
   bank: ExtendedBankInfo | WalletToken;
+  stakePoolMetadata?: StakePoolMetadata;
   lendingMode?: LendingModes;
   rate?: string;
 };
@@ -16,13 +17,13 @@ const isExtendedBankInfo = (bank: ExtendedBankInfo | WalletToken): bank is Exten
   return "info" in bank;
 };
 
-export const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemProps) => {
+export const SelectedBankItem = ({ rate, bank, lendingMode, stakePoolMetadata }: SelectedBankItemProps) => {
   // Extract common properties based on bank type
   const { tokenName, tokenSymbol, tokenLogoUri, calculatedApy } = React.useMemo(() => {
     if (isExtendedBankInfo(bank)) {
       // Handle ExtendedBankInfo
       const isStaked = bank.info.rawBank.config.assetTag === AssetTag.STAKED;
-      const calculatedApy = isStaked ? bank.meta.stakePool?.validatorRewards.toString() : rate;
+      const calculatedApy = isStaked ? stakePoolMetadata?.validatorRewards.toString() : rate;
 
       return {
         tokenName: bank.meta.tokenName,

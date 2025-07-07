@@ -12,7 +12,6 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 
-import { Program } from "@mrgnlabs/mrgn-common";
 import {
   PDA_BANK_FEE_VAULT_AUTH_SEED,
   PDA_BANK_FEE_VAULT_SEED,
@@ -22,7 +21,7 @@ import {
   PDA_BANK_LIQUIDITY_VAULT_SEED,
   PYTH_PUSH_ORACLE_ID,
 } from "./constants";
-import { BankVaultType, MarginfiProgram } from "./types";
+import { BankVaultType } from "./types";
 import {
   NATIVE_MINT,
   createAssociatedTokenAccountIdempotentInstruction,
@@ -32,8 +31,11 @@ import {
   getAssociatedTokenAddressSync,
 } from "@mrgnlabs/mrgn-common";
 import BigNumber from "bignumber.js";
-import { BankConfig, BankConfigRaw, OracleSetup, parseOracleSetup } from ".";
+import { OracleSetup } from "./services/bank/types/bank.types";
+import { parseOracleSetup } from "./services/bank/utils/deserialize.utils";
 import { parsePriceInfo } from "./vendor";
+import { BankConfig } from "./models/bank";
+import { BankConfigRaw } from "./services";
 
 export function getBankVaultSeeds(type: BankVaultType): Buffer {
   switch (type) {
@@ -155,10 +157,10 @@ export function feedIdToString(feedId: PublicKey): string {
   return feedId.toBuffer().toString("hex");
 }
 
-export type PythPushFeedIdMap = Map<string, PublicKey>;
+export type PythPushFeedIdMap = Map<string, { feedId: PublicKey; shardId?: number }>;
 
 export async function buildFeedIdMap(bankConfigs: BankConfigRaw[], connection: Connection): Promise<PythPushFeedIdMap> {
-  const feedIdMap: PythPushFeedIdMap = new Map<string, PublicKey>();
+  const feedIdMap: PythPushFeedIdMap = new Map<string, { feedId: PublicKey; shardId?: number }>();
 
   const feedIdsWithAddresses = bankConfigs
     .filter((bankConfig) => parseOracleSetup(bankConfig.oracleSetup) == OracleSetup.PythPushOracle)
@@ -200,14 +202,14 @@ export async function buildFeedIdMap(bankConfigs: BankConfigRaw[], connection: C
       let mfiPublishTime = mfiPriceAccount.priceMessage.publishTime;
 
       if (pythPublishTime > mfiPublishTime) {
-        feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[0]);
+        feedIdMap.set(feedId, { feedId: feedIdsWithAddresses[i].addresses[0], shardId: PYTH_SPONSORED_SHARD_ID });
       } else {
-        feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[1]);
+        feedIdMap.set(feedId, { feedId: feedIdsWithAddresses[i].addresses[1], shardId: MARGINFI_SPONSORED_SHARD_ID });
       }
     } else if (pythSponsoredOracle) {
-      feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[0]);
+      feedIdMap.set(feedId, { feedId: feedIdsWithAddresses[i].addresses[0], shardId: PYTH_SPONSORED_SHARD_ID });
     } else if (mfiSponsoredOracle) {
-      feedIdMap.set(feedId, feedIdsWithAddresses[i].addresses[1]);
+      feedIdMap.set(feedId, { feedId: feedIdsWithAddresses[i].addresses[1], shardId: MARGINFI_SPONSORED_SHARD_ID });
     } else {
       throw new Error(`No oracle found for feedId: ${feedId}, either Pyth or MFI sponsored oracle must exist`);
     }
@@ -216,20 +218,31 @@ export async function buildFeedIdMap(bankConfigs: BankConfigRaw[], connection: C
   return feedIdMap;
 }
 
-export function findOracleKey(bankConfig: BankConfig, feedMap: PythPushFeedIdMap): PublicKey {
-  const oracleSetup = bankConfig.oracleSetup;
-  let oracleKey = bankConfig.oracleKeys[0];
+export function findOracleKey(
+  bankConfig: BankConfig,
+  feedMap: PythPushFeedIdMap
+): { oracleKey: PublicKey; shardId?: number } {
+  try {
+    const oracleSetup = bankConfig.oracleSetup;
+    let oracleKey: PublicKey = bankConfig.oracleKeys[0];
+    let shardId: number | undefined = undefined;
 
-  if (oracleSetup == OracleSetup.PythPushOracle || oracleSetup == OracleSetup.StakedWithPythPush) {
-    const feedId = feedIdToString(oracleKey);
-    const maybeOracleKey = feedMap.get(feedId);
-    if (!maybeOracleKey) {
-      throw new Error(`No oracle key found for feedId: ${feedId}`);
+    if (oracleSetup == OracleSetup.PythPushOracle || oracleSetup == OracleSetup.StakedWithPythPush) {
+      const feedId = feedIdToString(oracleKey);
+      const maybeOracleKey = feedMap.get(feedId);
+      if (!maybeOracleKey) {
+        throw new Error(`No oracle key found for feedId: ${feedId}`);
+      }
+      oracleKey = maybeOracleKey.feedId;
+      shardId = maybeOracleKey.shardId;
     }
-    oracleKey = maybeOracleKey;
-  }
 
-  return oracleKey;
+    return { oracleKey, shardId };
+  } catch (error) {
+    console.error("Error finding oracle key", error);
+    console.log("oracleSetup", bankConfig.oracleSetup);
+    return { oracleKey: bankConfig.oracleKeys[0] };
+  }
 }
 
 export const PYTH_SPONSORED_SHARD_ID = 0;

@@ -1,11 +1,13 @@
 import React from "react";
 
 import { shortenAddress, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, useNativeStakeData } from "@mrgnlabs/mrgn-state";
 import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { EmodeTag, OracleSetup } from "@mrgnlabs/marginfi-client-v2";
-import { IconEmode } from "~/components/ui/icons";
+import { IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
+import { useActionBoxContext } from "~/components/action-box-v2/contexts";
+import { Skeleton } from "~/components/ui/skeleton";
 
 type BankItemProps = {
   bank: ExtendedBankInfo;
@@ -32,6 +34,8 @@ export const BankItem = ({
   highlightEmodeLabel,
   available = true,
 }: BankItemProps) => {
+  const { isLoading } = useNativeStakeData();
+
   const balance = React.useMemo(() => {
     const isWSOL = bank.info.state.mint?.equals ? bank.info.state.mint.equals(WSOL_MINT) : false;
 
@@ -59,7 +63,10 @@ export const BankItem = ({
     [bank, openPosition]
   );
 
-  const isStakedActivating = bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakePool?.isActive;
+  const contextProps = useActionBoxContext();
+
+  const stakePoolMetadata = contextProps?.stakePoolMetadataMap?.get(bank.address.toBase58());
+  const isStakedActivating = bank.info.rawBank.config.assetTag === 2 && !stakePoolMetadata?.isActive;
 
   return (
     <>
@@ -69,26 +76,34 @@ export const BankItem = ({
         <div>
           <div className="flex items-center">
             <p className="font-medium">{bank.meta.tokenSymbol}</p>
-            {bank.info.state.hasEmode && <IconEmode size={18} className="ml-1" />}
+            {highlightEmodeLabel && bank.info.state.hasEmode ? (
+              <div className="flex items-center gap-0.5 ml-2 text-mfi-emode">
+                <IconEmodeSimple size={14} className="translate-y-px" />
+                <span className="text-xs font-light">e-mode active</span>
+              </div>
+            ) : bank.info.state.hasEmode ? (
+              <div className="flex items-center gap-0.5 ml-2 text-muted-foreground">
+                <IconEmodeSimpleInactive size={14} className="translate-y-px" />
+                <span className="text-xs font-light">e-mode available</span>
+              </div>
+            ) : bank.info.rawBank.config.assetTag === 2 && !isLoading ? (
+              <p className="text-xs font-light text-muted-foreground ml-2">
+                validator: {shortenAddress(stakePoolMetadata?.validatorVoteAccount?.toBase58() ?? "")}
+              </p>
+            ) : bank.info.rawBank.config.assetTag === 2 && isLoading ? (
+              <Skeleton className="h-3 w-16" />
+            ) : null}
             {!available && <span className="text-[11px] ml-1 font-light">(currently unavailable)</span>}
           </div>
-          {bank.info.rawBank.config.assetTag !== 2 ? (
-            <p
-              className={cn(
-                "text-xs font-normal",
-                (lendingMode === LendingModes.LEND || isRepay) && "text-success",
-                lendingMode === LendingModes.BORROW && !isRepay && "text-warning"
-              )}
-            >
-              {rate}
-            </p>
-          ) : (
-            bank.info.rawBank.config.assetTag === 2 && (
-              <p className="text-xs font-normal text-muted-foreground">
-                Validator: {shortenAddress(bank.meta.stakePool?.validatorVoteAccount?.toBase58() ?? "")}
-              </p>
-            )
-          )}
+          <p
+            className={cn(
+              "text-xs font-normal",
+              (lendingMode === LendingModes.LEND || isRepay) && "text-success",
+              lendingMode === LendingModes.BORROW && !isRepay && "text-warning"
+            )}
+          >
+            {rate}
+          </p>
         </div>
       </div>
 

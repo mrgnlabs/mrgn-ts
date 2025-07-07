@@ -6,11 +6,32 @@
     "esModuleInterop": true,
     "downlevelIteration": true,
     "paths": {
-      "~/*": ["./src/*", "../../packages/mrgn-ui/src/*", "../../packages/mrgn-utils/src/*"],
-      "@mrgnlabs/mrgn-ui": ["../../packages/mrgn-ui/src"],
-      "@mrgnlabs/mrgn-utils": ["../../packages/mrgn-utils/src"]
-    }
+      "~/*": [
+        "./src/*",
+        "../../packages/mrgn-ui/src/*",
+        "../../packages/mrgn-utils/src/*"
+      ],
+      "@mrgnlabs/mrgn-ui": [
+        "../../packages/mrgn-ui/src"
+      ],
+      "@mrgnlabs/mrgn-utils": [
+        "../../packages/mrgn-utils/src"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "strictNullChecks": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

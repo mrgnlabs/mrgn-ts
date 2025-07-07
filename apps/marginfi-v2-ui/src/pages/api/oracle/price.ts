@@ -11,18 +11,11 @@ import {
   OracleSetup,
   parseOracleSetup,
   parsePriceInfo,
+  PythPushFeedIdMap,
+  vendor,
 } from "@mrgnlabs/marginfi-client-v2";
+
 import {
-  CrossbarSimulatePayload,
-  decodeSwitchboardPullFeedData,
-  FeedResponse,
-  findPoolAddress,
-  findPoolStakeAddress,
-  getStakeAccount,
-  StakeAccount,
-} from "@mrgnlabs/marginfi-client-v2/dist/vendor";
-import {
-  BankMetadata,
   chunkedGetRawMultipleAccountInfoOrdered,
   loadBankMetadatas,
   median,
@@ -30,9 +23,8 @@ import {
   RawMint,
   Wallet,
 } from "@mrgnlabs/mrgn-common";
-import { Connection, LAMPORTS_PER_SOL, PublicKey, StakeProgram } from "@solana/web3.js";
+import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import { cp } from "fs";
 import { NextApiRequest, NextApiResponse } from "next";
 import config from "~/config/marginfi";
 
@@ -101,17 +93,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!host) {
       return res.status(400).json({ error: "Invalid input: expected a valid host." });
     }
-    const feedIdMapRaw: Record<string, string> = await fetch(
+    const feedIdMapRaw: Record<string, { feedId: string; shardId?: number }> = await fetch(
       `${host}/api/oracle/pythFeedMap?groupPk=${banksMap[0].data.group.toBase58()}`
     ).then((response) => response.json());
-    const feedIdMap: Map<string, PublicKey> = new Map(
-      Object.entries(feedIdMapRaw).map(([key, value]) => [key, new PublicKey(value)])
+    const feedIdMap: PythPushFeedIdMap = new Map(
+      Object.entries(feedIdMapRaw).map(([key, value]) => [
+        key,
+        { feedId: new PublicKey(value.feedId), shardId: value.shardId },
+      ])
     );
 
     const feedHashMintMap = new Map<string, PublicKey>();
 
     const requestedOraclesData = banksMap.map((b) => {
-      const oracleKey = findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap).toBase58();
+      const oracleKey = findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap).oracleKey.toBase58();
 
       return {
         bankAddress: b.address,
@@ -167,7 +162,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // If on-chain data is recent enough, use it even for SwitchboardPull oracles
       if (oracleData.oracleSetup === OracleSetup.SwitchboardPull && isStale) {
-        const feedHash = Buffer.from(decodeSwitchboardPullFeedData(priceDataRaw.data).feed_hash).toString("hex");
+        const feedHash = Buffer.from(vendor.decodeSwitchboardPullFeedData(priceDataRaw.data).feed_hash).toString("hex");
         feedHashMintMap.set(feedHash, oracleData.mint);
         swbPullOraclesStale.push({
           data: { ...oracleData, timestamp: oraclePrice.timestamp },
@@ -200,8 +195,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const { key: bankAddress } = bankObj;
         const bankMetadata = bankMetadataMap[bankAddress];
         if (bankMetadata && bankMetadata.validatorVoteAccount) {
-          const poolAddress = findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
-          const stakePoolAddress = findPoolStakeAddress(poolAddress);
+          const poolAddress = vendor.findPoolAddress(new PublicKey(bankMetadata.validatorVoteAccount));
+          const stakePoolAddress = vendor.findPoolStakeAddress(poolAddress);
 
           stakedCollatMap[bankAddress] = {
             bankAddress: new PublicKey(bankAddress),
@@ -218,11 +213,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ...mints,
         ...solPools,
       ]);
-      const stakePoolsAis: StakeAccount[] = dataAis.slice(mints.length).map((ai) => getStakeAccount(ai.data));
+      const stakePoolsAis: vendor.StakeAccount[] = dataAis
+        .slice(mints.length)
+        .map((ai) => vendor.getStakeAccount(ai.data));
       const lstMintsAis: RawMint[] = dataAis.slice(0, mints.length).map((mintAi) => MintLayout.decode(mintAi.data));
 
       const lstMintRecord: Record<string, RawMint> = Object.fromEntries(mints.map((mint, i) => [mint, lstMintsAis[i]]));
-      const solPoolsRecord: Record<string, StakeAccount> = Object.fromEntries(
+      const solPoolsRecord: Record<string, vendor.StakeAccount> = Object.fromEntries(
         solPools.map((poolKey, i) => [poolKey, stakePoolsAis[i]])
       );
 
@@ -311,7 +308,7 @@ async function handleFetchCrossbarPrices(
 ): Promise<Map<string, OraclePrice>> {
   try {
     // main crossbar
-    const payload: CrossbarSimulatePayload = [];
+    const payload: vendor.CrossbarSimulatePayload = [];
     let brokenFeeds: string[] = [];
 
     const { payload: mainPayload, brokenFeeds: mainBrokenFeeds } = await fetchCrossbarPrices(
@@ -363,7 +360,7 @@ async function handleFetchCrossbarPrices(
 async function fetchBirdeyePrices(
   feedHashes: string[],
   mintMap: Map<string, PublicKey>
-): Promise<{ payload: CrossbarSimulatePayload; brokenFeeds: string[] }> {
+): Promise<{ payload: vendor.CrossbarSimulatePayload; brokenFeeds: string[] }> {
   try {
     const brokenFeeds: string[] = [];
 
@@ -382,7 +379,7 @@ async function fetchBirdeyePrices(
 
     const priceData = response.data;
 
-    const finalPayload: CrossbarSimulatePayload = feedHashes.map((feedHash) => {
+    const finalPayload: vendor.CrossbarSimulatePayload = feedHashes.map((feedHash) => {
       const tokenAddress = mintMap.get(feedHash)!.toBase58();
       const price = priceData[tokenAddress];
       return {
@@ -403,7 +400,7 @@ async function fetchCrossbarPrices(
   endpoint: string,
   username?: string,
   bearer?: string
-): Promise<{ payload: CrossbarSimulatePayload; brokenFeeds: string[] }> {
+): Promise<{ payload: vendor.CrossbarSimulatePayload; brokenFeeds: string[] }> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
     controller.abort();
@@ -431,7 +428,7 @@ async function fetchCrossbarPrices(
       throw new Error("Network response was not ok");
     }
 
-    const payload = (await response.json()) as CrossbarSimulatePayload;
+    const payload = (await response.json()) as vendor.CrossbarSimulatePayload;
 
     const brokenFeeds = payload
       .filter((feed) => {
@@ -450,7 +447,7 @@ async function fetchCrossbarPrices(
   }
 }
 
-function crossbarPayloadToOraclePricePerFeedHash(payload: CrossbarSimulatePayload): Map<string, OraclePrice> {
+function crossbarPayloadToOraclePricePerFeedHash(payload: vendor.CrossbarSimulatePayload): Map<string, OraclePrice> {
   const oraclePrices: Map<string, OraclePrice> = new Map();
   for (const feedResponse of payload) {
     const oraclePrice = crossbarFeedResultToOraclePrice(feedResponse);
@@ -459,7 +456,7 @@ function crossbarPayloadToOraclePricePerFeedHash(payload: CrossbarSimulatePayloa
   return oraclePrices;
 }
 
-function crossbarFeedResultToOraclePrice(feedResponse: FeedResponse): OraclePrice {
+function crossbarFeedResultToOraclePrice(feedResponse: vendor.FeedResponse): OraclePrice {
   let medianPrice = new BigNumber(median(feedResponse.results));
 
   const priceRealtime = {

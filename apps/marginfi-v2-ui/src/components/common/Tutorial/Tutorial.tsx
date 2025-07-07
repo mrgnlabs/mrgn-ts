@@ -131,7 +131,7 @@ export const Tutorial = () => {
           if (!open) handleDialogClose();
         }}
       >
-        <DialogContent className="p-4 md:py-8 md:max-w-4xl" isBgGlass={true}>
+        <DialogContent className="p-4 bg-background-gray rounded-lg md:py-8 md:pt-10 md:max-w-4xl" isBgGlass={true}>
           <div className="max-w-3xl">
             <Swiper modules={[Pagination]} slidesPerView={1} navigation pagination={{ clickable: true }}>
               <SwiperSlide className="h-full">
@@ -223,24 +223,24 @@ export const Tutorial = () => {
                 </TutorialSlide>
               </SwiperSlide>
               <SwiperSlide className="h-full">
-                <TutorialSlide icon={<IconMrgn size={48} />} heading="Follow marginfi" closeDialog={handleDialogClose}>
-                  <div className="space-y-6 md:space-y-8 pb-2 max-w-[30rem] mx-auto flex-col justify-center">
+                <TutorialSlide icon={<IconMrgn size={42} />} heading="Follow marginfi" closeDialog={handleDialogClose}>
+                  <div className="space-y-6 md:space-y-4 max-w-[30rem] mx-auto flex-col justify-center">
                     <p>
                       Join the fastest growing crypto community and keep up with the latest industry news, product
                       releases, and alpha.
                     </p>
-                    <ul className="flex items-center justify-center gap-3">
-                      <li className="p-4 rounded-full bg-muted">
+                    <ul className="flex items-center justify-center gap-4 pb-4 md:pb-0">
+                      <li className="p-3 rounded-full bg-accent">
                         <a href="https://discord.gg/pJ3U7gHJFe" target="_blank" rel="noreferrer">
                           <IconBrandDiscordFilled />
                         </a>
                       </li>
-                      <li className="p-4 rounded-full bg-muted">
+                      <li className="p-3 rounded-full bg-accent">
                         <a href="https://twitter.com/marginfi" target="_blank" rel="noreferrer">
                           <IconBrandX />
                         </a>
                       </li>
-                      <li className="p-4 rounded-full bg-muted">
+                      <li className="p-3 rounded-full bg-accent">
                         <a href="https://mrgn.substack.com/" target="_blank" rel="noreferrer">
                           <IconSubstack />
                         </a>

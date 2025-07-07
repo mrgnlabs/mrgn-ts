@@ -1,7 +1,7 @@
 import React from "react";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType } from "@mrgnlabs/mrgn-state";
 import { cn, capture, LendSelectionGroups } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
 

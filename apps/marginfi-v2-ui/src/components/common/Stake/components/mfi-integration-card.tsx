@@ -1,8 +1,9 @@
 import React from "react";
 import Image from "next/image";
+import { PublicKey } from "@solana/web3.js";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { numeralFormatter, percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
+import { percentFormatter, usdFormatter } from "@mrgnlabs/mrgn-common";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
 import { getDepositsData, getRateData } from "@mrgnlabs/mrgn-utils";
 
@@ -14,10 +15,10 @@ import { Skeleton } from "~/components/ui/skeleton";
 interface MfiIntegrationCardProps {
   lstBank: ExtendedBankInfo;
   connected: boolean;
-  fetchMrgnlendState: () => void;
+  refreshUserData: (options?: { clearStakeAccountsCache?: boolean; newAccountKey?: PublicKey }) => void;
 }
 
-const MfiIntegrationCard = ({ lstBank, connected, fetchMrgnlendState }: MfiIntegrationCardProps) => {
+const MfiIntegrationCard = ({ lstBank, connected, refreshUserData }: MfiIntegrationCardProps) => {
   const depositData = React.useMemo(() => getDepositsData(lstBank, true), [lstBank]);
   const rateData = React.useMemo(() => getRateData(lstBank, true), [lstBank]);
 
@@ -63,8 +64,8 @@ const MfiIntegrationCard = ({ lstBank, connected, fetchMrgnlendState }: MfiInteg
             connected: connected,
             requestedLendType: ActionType.Deposit,
             requestedBank: lstBank,
-            onComplete: () => {
-              fetchMrgnlendState();
+            onComplete: (newAccountKey?: PublicKey) => {
+              refreshUserData({ newAccountKey });
             },
           }}
           dialogProps={{

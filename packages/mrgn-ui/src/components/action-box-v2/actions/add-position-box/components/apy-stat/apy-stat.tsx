@@ -2,7 +2,7 @@ import React from "react";
 import { IconChevronDown } from "@tabler/icons-react";
 
 import { calcNetLoopingApy, cn } from "@mrgnlabs/mrgn-utils";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";

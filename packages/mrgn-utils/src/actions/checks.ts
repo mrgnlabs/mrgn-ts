@@ -9,11 +9,12 @@ import {
   EmodeImpactStatus,
   EmodeImpact,
 } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, ActiveBankInfo, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
-import { PublicKey } from "@solana/web3.js";
+import { ExtendedBankInfo, FEE_MARGIN } from "@mrgnlabs/mrgn-state";
+
 import { DYNAMIC_SIMULATION_ERRORS, STATIC_INFO_MESSAGES, STATIC_SIMULATION_ERRORS } from "../errors";
 import { ArenaGroupStatus } from "../types";
 import { isWholePosition } from "../mrgnUtils";
+import { PublicKey } from "@solana/web3.js";
 
 type QuoteResponseMeta = {
   quoteResponse: QuoteResponse;
@@ -62,9 +63,9 @@ function canBeWithdrawn(
     checks.push(STATIC_SIMULATION_ERRORS.NO_COLLATERAL);
   }
 
-  if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Withdrawals"));
-  }
+  // if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
+  //   checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Withdrawals"));
+  // }
 
   if (amount && targetBankInfo.userInfo.emodeImpact?.withdrawAllImpact && targetBankInfo.isActive) {
     const isWithdrawingAll = isWholePosition(targetBankInfo, amount);
@@ -339,6 +340,11 @@ function canBeBorrowed(
     checks.push(DYNAMIC_SIMULATION_ERRORS.REDUCE_ONLY_CHECK(targetBankInfo.info.rawBank.tokenSymbol));
   }
 
+  if (!marginfiAccount) {
+    checks.push(STATIC_SIMULATION_ERRORS.NO_ACCOUNT);
+    return checks;
+  }
+
   const isBeingRetired =
     targetBankInfo.info.rawBank
       .getAssetWeight(MarginRequirementType.Initial, targetBankInfo.info.oraclePrice, true)
@@ -370,28 +376,28 @@ function canBeBorrowed(
     checks.push(STATIC_SIMULATION_ERRORS.NO_COLLATERAL);
   }
 
-  const existingLiabilityBanks = extendedBankInfos.filter(
-    (b) => b.isActive && !b.position.isLending
-  ) as ActiveBankInfo[];
-  const existingIsolatedBorrow = existingLiabilityBanks.find(
-    (b) => b.info.rawBank.config.riskTier === RiskTier.Isolated && !b.address.equals(targetBankInfo.address)
-  );
+  const activeBorrowBanks = marginfiAccount.activeBalances
+    .filter((b) => b.liabilityShares.gt(0) && b.active)
+    .map((b) => extendedBankInfos.find((bankInfo) => bankInfo.address.equals(b.bankPk)))
+    .filter((b): b is ExtendedBankInfo => b !== undefined);
+
+  const existingIsolatedBorrow = activeBorrowBanks.find((bankInfo) => {
+    const hasBankIsolatedBorrow = bankInfo.info.rawBank.config.riskTier === RiskTier.Isolated;
+    return hasBankIsolatedBorrow;
+  });
   if (existingIsolatedBorrow) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.EXISTING_ISO_BORROW_CHECK(existingIsolatedBorrow.meta.tokenSymbol));
   }
 
   const attemptingToBorrowIsolatedAssetWithActiveDebt =
-    targetBankInfo.info.rawBank.config.riskTier === RiskTier.Isolated &&
-    !marginfiAccount
-      ?.computeHealthComponents(MarginRequirementType.Equity, [targetBankInfo.address])
-      .liabilities.isZero();
+    targetBankInfo.info.rawBank.config.riskTier === RiskTier.Isolated && activeBorrowBanks.length > 0;
   if (attemptingToBorrowIsolatedAssetWithActiveDebt) {
     checks.push(STATIC_SIMULATION_ERRORS.EXISTING_BORROW);
   }
 
-  if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Borrows"));
-  }
+  // if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
+  //   checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Borrows"));
+  // }
 
   if (targetBankInfo.userInfo.emodeImpact?.borrowImpact) {
     const borrowImpact = targetBankInfo.userInfo.emodeImpact?.borrowImpact;
@@ -420,7 +426,14 @@ function canBeBorrowed(
   return checks;
 }
 
-function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): ActionMessageType[] {
+function canBeLent(
+  targetBankInfo: ExtendedBankInfo,
+  nativeSolBalance: number,
+  selectedStakeAccount?: {
+    address: PublicKey;
+    balance: number;
+  } | null
+): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
 
@@ -458,12 +471,16 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   }
 
   const isWrappedSol = targetBankInfo.info.state.mint.equals(WSOL_MINT);
-  const walletBalance = floor(
+  let walletBalance = floor(
     isWrappedSol
       ? Math.max(targetBankInfo.userInfo.tokenAccount.balance + nativeSolBalance - FEE_MARGIN, 0)
       : targetBankInfo.userInfo.tokenAccount.balance,
     targetBankInfo.info.state.mintDecimals
   );
+
+  if (targetBankInfo.info.rawBank.config.assetTag === 2) {
+    walletBalance += selectedStakeAccount?.balance || 0;
+  }
 
   if (walletBalance === 0 && targetBankInfo.info.rawBank.config.assetTag !== 2) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.INSUFFICIENT_BALANCE_CHECK(targetBankInfo.meta.tokenSymbol));
@@ -555,6 +572,30 @@ function canBeDepositSwapped(
       description: `The ${depositBank.meta.tokenSymbol} bank is at deposit capacity.`,
       isEnabled: false,
     });
+  }
+
+  if (depositBank.userInfo.emodeImpact?.supplyImpact) {
+    const supplyImpact = depositBank.userInfo.emodeImpact?.supplyImpact;
+
+    switch (supplyImpact.status) {
+      case EmodeImpactStatus.ActivateEmode:
+        checks.push(STATIC_INFO_MESSAGES.EMODE_ACTIVATE_IMPACT);
+        break;
+      case EmodeImpactStatus.ExtendEmode:
+        checks.push(STATIC_INFO_MESSAGES.EMODE_EXTEND_IMPACT);
+        break;
+      case EmodeImpactStatus.IncreaseEmode:
+        checks.push(DYNAMIC_SIMULATION_ERRORS.EMODE_INCREASE_CHECK());
+        break;
+      case EmodeImpactStatus.ReduceEmode:
+        checks.push(DYNAMIC_SIMULATION_ERRORS.EMODE_REDUCE_CHECK());
+        break;
+      case EmodeImpactStatus.RemoveEmode:
+        checks.push(STATIC_SIMULATION_ERRORS.REMOVE_E_MODE_CHECK);
+        break;
+      case EmodeImpactStatus.InactiveEmode:
+        break;
+    }
   }
 
   const swapBankInfo =

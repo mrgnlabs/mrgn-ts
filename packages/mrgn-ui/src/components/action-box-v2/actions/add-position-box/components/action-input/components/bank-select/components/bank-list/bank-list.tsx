@@ -1,13 +1,14 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { cn, computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
+import { cn, computeBankRate, getEmodeStrategies, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 
 import { BankItem, BankListCommand } from "~/components/action-box-v2/components";
 import { MarginRequirementType, OperationalState } from "@mrgnlabs/marginfi-client-v2";
 import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { PublicKey } from "@solana/web3.js";
 
 type BankListProps = {
   selectedBank: ExtendedBankInfo | null;

@@ -19,7 +19,7 @@ import {
   usePrevious,
   TradeSide,
 } from "@mrgnlabs/mrgn-utils";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 import { SimulationStatus } from "~/components/action-box-v2/utils";
 

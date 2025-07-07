@@ -14,7 +14,6 @@ import {
 } from "@solana/web3.js";
 import { IconCheck, IconX, IconWallet } from "@tabler/icons-react";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
 import {
   shortenAddress,
   numeralFormatter,
@@ -25,22 +24,20 @@ import {
 } from "@mrgnlabs/mrgn-common";
 
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
-import { useWallet } from "~/components/wallet-v2";
+import { TokenWalletData, useWallet } from "~/components/wallet-v2";
 
 import { Loader } from "~/components/ui/loader";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 
-import { Token as TokenType } from "~/components/wallet-v2/components/wallet-tokens/wallet-tokens";
 import { confirmTransaction } from "@mrgnlabs/marginfi-client-v2";
 import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 type WalletSendProps = {
   connection: Connection;
-  extendedBankInfos: ExtendedBankInfo[];
-  nativeSolBalance: number;
-  activeToken: TokenType;
+  walletTokens: TokenWalletData[];
+  activeToken: TokenWalletData;
   onSendMore?: () => void;
   onBack?: () => void;
   onRetry?: () => void;
@@ -57,8 +54,7 @@ enum SendingState {
 
 export const WalletSend = ({
   connection,
-  extendedBankInfos,
-  nativeSolBalance,
+  walletTokens,
   activeToken,
   onSendMore,
   onBack,
@@ -75,25 +71,18 @@ export const WalletSend = ({
 
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
 
-  const activeBank = React.useMemo(() => {
-    if (!activeToken) return null;
-    return extendedBankInfos.find((bank) => bank.address.equals(activeToken.address));
-  }, [activeToken, extendedBankInfos]);
-
   const maxAmount = React.useMemo(() => {
-    if (!activeBank) return 0;
-    return activeBank.info.state.mint.equals(WSOL_MINT)
-      ? activeBank.userInfo.tokenAccount.balance + nativeSolBalance
-      : activeBank.userInfo.tokenAccount.balance;
-  }, [activeBank, nativeSolBalance]);
+    if (!activeToken) return 0;
+    return activeToken.value;
+  }, [activeToken]);
 
   const formatAmount = React.useCallback(
-    (newAmount: string, bank: ExtendedBankInfo) => {
+    (newAmount: string, decimals: number) => {
       let formattedAmount: string, amount: number;
       // Remove commas from the formatted string
       const newAmountWithoutCommas = newAmount.replace(/,/g, "");
       let decimalPart = newAmountWithoutCommas.split(".")[1];
-      const mintDecimals = bank?.info.state.mintDecimals ?? 9;
+      const mintDecimals = decimals;
 
       if (
         (newAmount.endsWith(",") || newAmount.endsWith(".")) &&
@@ -122,26 +111,26 @@ export const WalletSend = ({
 
   const handleInputChange = React.useCallback(
     (newAmount: string) => {
-      if (!activeBank) return;
-      setAmountRaw(formatAmount(newAmount, activeBank));
+      if (!activeToken) return;
+      setAmountRaw(formatAmount(newAmount, activeToken.decimals));
       setAmount(Number.parseFloat(newAmount.replace(/,/g, "")) || 0);
     },
-    [activeBank, formatAmount]
+    [activeToken, formatAmount]
   );
 
   const handleTransfer = React.useCallback(
-    async (recipientAddress: string, token: ExtendedBankInfo, amount: number) => {
+    async (recipientAddress: string, token: TokenWalletData, amount: number) => {
       if (!wallet.publicKey) {
         console.log("Wallet is not connected");
         return;
       }
 
-      const multiStepToast = toastManager.createMultiStepToast(`Transfer ${token.meta.tokenSymbol}`, [
-        { label: `Sending ${amount} ${token.meta.tokenSymbol} to ${shortenAddress(recipientAddress)}` },
+      const multiStepToast = toastManager.createMultiStepToast(`Transfer ${token.symbol}`, [
+        { label: `Sending ${amount} ${token.symbol} to ${shortenAddress(recipientAddress)}` },
       ]);
 
-      const tokenMint = token.info.state.mint;
-      const tokenDecimals = token.info.state.mintDecimals;
+      const tokenMint = token.mint;
+      const tokenDecimals = token.decimals;
 
       const senderWalletAddress = wallet.publicKey;
       const recipientPublicKey = new PublicKey(recipientAddress);
@@ -219,7 +208,7 @@ export const WalletSend = ({
         setSendingState(SendingState.SUCCESS);
         setSendSig(signature);
         capture("send_token", {
-          token: token.meta.tokenSymbol,
+          token: token.symbol,
           amount,
           recipient: recipientAddress,
           wallet: wallet.publicKey,
@@ -231,7 +220,7 @@ export const WalletSend = ({
         console.error("Transaction failed:", error);
       }
     },
-    [wallet, connection]
+    [wallet, connection, onComplete]
   );
 
   if (sendingState === SendingState.SENDING) {
@@ -324,8 +313,8 @@ export const WalletSend = ({
           className="w-4/5 flex flex-col gap-6"
           onSubmit={(e) => {
             e.preventDefault();
-            if (!toAddressRef.current || !activeBank) return;
-            handleTransfer(toAddressRef.current.value, activeBank, amount);
+            if (!toAddressRef.current || !activeToken) return;
+            handleTransfer(toAddressRef.current.value, activeToken, amount);
           }}
         >
           <div className="space-y-1">

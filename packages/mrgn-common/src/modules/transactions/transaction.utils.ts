@@ -12,6 +12,7 @@ import {
   VersionedTransaction,
 } from "@solana/web3.js";
 import { ExtendedTransactionProperties, SolanaTransaction, TransactionType } from "./transaction.types";
+import { MAX_TX_SIZE } from "../../constants";
 
 /**
  * Determines if a given transaction is a VersionedTransaction.
@@ -387,3 +388,71 @@ export const microLamportsToUi = (microLamports: number, limitCU: number = 1_400
   const priorityFeeUi = priorityFeeMicroLamports / (LAMPORTS_PER_SOL * 1_000_000);
   return Math.trunc(priorityFeeUi * LAMPORTS_PER_SOL) / LAMPORTS_PER_SOL;
 };
+
+/**
+ * Splits your instructions into as many VersionedTransactions as needed
+ * so that none exceed MAX_TX_SIZE.
+ */
+export function splitInstructionsToFitTransactions(
+  mandatoryIxs: TransactionInstruction[],
+  ixs: TransactionInstruction[],
+  opts: {
+    blockhash: string;
+    payerKey: PublicKey;
+    luts: AddressLookupTableAccount[];
+  }
+): VersionedTransaction[] {
+  const result: VersionedTransaction[] = [];
+  let buffer: TransactionInstruction[] = [];
+
+  function buildTx(
+    mandatoryIxs: TransactionInstruction[],
+    extraIxs: TransactionInstruction[],
+    opts: {
+      blockhash: string;
+      payerKey: PublicKey;
+      luts: AddressLookupTableAccount[];
+    }
+  ): VersionedTransaction {
+    const messageV0 = new TransactionMessage({
+      payerKey: opts.payerKey,
+      recentBlockhash: opts.blockhash,
+      instructions: [...mandatoryIxs, ...extraIxs],
+    }).compileToV0Message(opts.luts);
+
+    return new VersionedTransaction(messageV0);
+  }
+
+  for (const ix of ixs) {
+    // Try adding this ix to the current buffer
+    const trial = buildTx(mandatoryIxs, [...buffer, ix], opts);
+    if (getTxSize(trial) <= MAX_TX_SIZE) {
+      buffer.push(ix);
+    } else {
+      // If buffer is empty, this single ix won't fit even alone
+      if (buffer.length === 0) {
+        throw new Error("Single instruction too large to fit in a transaction");
+      }
+      // Flush current buffer as its own tx
+      const tx = buildTx(mandatoryIxs, buffer, opts);
+      result.push(tx);
+
+      // Start new buffer with this ix
+      buffer = [ix];
+
+      // And check if that alone fits
+      const solo = buildTx(mandatoryIxs, buffer, opts);
+      if (getTxSize(solo) > MAX_TX_SIZE) {
+        throw new Error("Single instruction too large to fit in a transaction");
+      }
+    }
+  }
+
+  // Flush any remaining
+  if (buffer.length > 0) {
+    const tx = buildTx(mandatoryIxs, buffer, opts);
+    result.push(tx);
+  }
+
+  return result;
+}

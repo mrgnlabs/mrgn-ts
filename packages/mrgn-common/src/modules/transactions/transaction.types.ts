@@ -35,6 +35,8 @@ export enum TransactionType {
   INITIALIZE_STAKED_POOL = "INITIALIZE_STAKED_POOL",
   ADD_STAKED_BANK = "ADD_STAKED_BANK",
 
+  MERGE_STAKE_ACCOUNTS = "MERGE_STAKE_ACCOUNTS",
+
   // LST
   STAKE_TO_STAKE = "STAKE_TO_STAKE",
   MINT_LST_NATIVE = "MINT_LST_NATIVE",
@@ -134,6 +136,7 @@ export const TransactionConfigMap: Record<TransactionType, TransactionConfig> = 
   },
   [TransactionType.INITIALIZE_STAKED_POOL]: { label: () => "Initialize stake pool" },
   [TransactionType.ADD_STAKED_BANK]: { label: () => "Create staked asset bank" },
+  [TransactionType.MERGE_STAKE_ACCOUNTS]: { label: () => "Merge stake accounts" },
 
   // LST (Liquid Staking Tokens)
   [TransactionType.STAKE_TO_STAKE]: { label: () => "Convert stake" },

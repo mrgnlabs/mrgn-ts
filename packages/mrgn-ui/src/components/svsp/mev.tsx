@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
@@ -9,13 +9,14 @@ import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 type SVSPMEVProps = {
   bank: ExtendedBankInfo;
+  stakePool?: StakePoolMetadata;
   onClaim?: () => Promise<void>;
   className?: string;
 };
 
-const SVSPMEV = ({ bank, onClaim, className }: SVSPMEVProps) => {
-  if (!bank?.meta.stakePool?.mev) return null;
-  const { pool, onramp } = bank.meta.stakePool.mev;
+const SVSPMEV = ({ bank, stakePool, onClaim, className }: SVSPMEVProps) => {
+  if (!stakePool?.mev) return null;
+  const { pool, onramp } = stakePool.mev;
 
   return (
     <div className={cn("bg-info py-3 px-4 rounded-lg text-foreground/80 text-sm", className)}>

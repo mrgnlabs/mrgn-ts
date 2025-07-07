@@ -1,5 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
+
 import { WrappedI80F48 } from "@mrgnlabs/mrgn-common";
 
 // ----------------------------------------------------------------------------
@@ -25,6 +26,12 @@ export interface HealthCacheRaw {
   timestamp: BN;
   flags: number;
   prices: number[][];
+
+  errIndex: number;
+  internalErr: number;
+  internalBankruptcyErr: number;
+  internalLiqErr: number;
+  mrgnErr: number;
 }
 
 export interface MarginfiAccountRaw {

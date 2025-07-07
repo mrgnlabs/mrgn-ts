@@ -4,7 +4,7 @@ import Link from "next/link";
 import { IconAlertTriangle, IconExternalLink } from "@tabler/icons-react";
 import { ActionMessageType, cn } from "@mrgnlabs/mrgn-utils";
 
-import { IconLoader, IconEmode } from "~/components/ui/icons";
+import { IconLoader, IconEmode, IconEmodeSimple } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 
 type ActionMessageProps = {
@@ -25,7 +25,7 @@ export const ActionMessage = ({ actionMessage, isRetrying = false, retry }: Acti
     let methodStyles = "";
     switch (actionMethod) {
       case "EMODE":
-        methodStyles = "text-mfi-emode border border-mfi-emode/40 pr-0 pb-2";
+        methodStyles = "text-mfi-emode bg-purple-900/5 border border-mfi-emode/20 pr-0";
         break;
       case "INFO":
         methodStyles = "bg-info text-info-foreground";
@@ -45,7 +45,7 @@ export const ActionMessage = ({ actionMessage, isRetrying = false, retry }: Acti
   return (
     <div className={getActionStyles()}>
       {isEmode ? (
-        <IconEmode className="shrink-0 -translate-y-1" size={24} />
+        <IconEmodeSimple className="shrink-0" size={18} />
       ) : (
         <IconAlertTriangle className="shrink-0 translate-y-0.5" size={16} />
       )}

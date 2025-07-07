@@ -1,6 +1,8 @@
-import { sleep } from "@mrgnlabs/mrgn-common";
-import { confirmBundle } from "../transaction.service";
 import { Connection } from "@solana/web3.js";
+
+import { sleep } from "@mrgnlabs/mrgn-common";
+
+import { confirmBundle } from "../transaction.service";
 
 export class SendBundleError extends Error {
   public readonly bundleId?: string;

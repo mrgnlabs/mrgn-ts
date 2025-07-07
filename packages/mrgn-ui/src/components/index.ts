@@ -5,3 +5,4 @@ export * from "./action-message";
 export * from "./settings";
 export * from "./svsp";
 export * from "./stake-calculator";
+export * from "./address-actions";

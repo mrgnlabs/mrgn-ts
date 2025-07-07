@@ -1,5 +1,71 @@
 import BN from "bn.js";
-import { AccountFlags, HealthCacheFlags } from "../types";
+import BigNumber from "bignumber.js";
+
+import { BorshCoder } from "@coral-xyz/anchor";
+import { PublicKey } from "@solana/web3.js";
+
+import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
+
+import { Balance } from "~/models/balance";
+import { HealthCache } from "~/models/health-cache";
+import { AccountType } from "~/types";
+import { MarginfiIdlType } from "~/idl";
+
+import {
+  MarginfiAccountRaw,
+  BalanceRaw,
+  BalanceType,
+  AccountFlags,
+  HealthCacheFlags,
+  MarginfiAccountTypeDto,
+  MarginfiAccountType,
+  BalanceTypeDto,
+  HealthCacheTypeDto,
+  HealthCacheType,
+} from "../types";
+
+export function decodeAccountRaw(encoded: Buffer, idl: MarginfiIdlType): MarginfiAccountRaw {
+  const coder = new BorshCoder(idl);
+  return coder.accounts.decode(AccountType.MarginfiAccount, encoded);
+}
+
+export function parseBalanceRaw(balanceRaw: BalanceRaw): BalanceType {
+  const active = typeof balanceRaw.active === "number" ? balanceRaw.active === 1 : balanceRaw.active;
+  const bankPk = balanceRaw.bankPk;
+  const assetShares = wrappedI80F48toBigNumber(balanceRaw.assetShares);
+  const liabilityShares = wrappedI80F48toBigNumber(balanceRaw.liabilityShares);
+  const emissionsOutstanding = wrappedI80F48toBigNumber(balanceRaw.emissionsOutstanding);
+  const lastUpdate = balanceRaw.lastUpdate.toNumber();
+
+  return {
+    active,
+    bankPk,
+    assetShares,
+    liabilityShares,
+    emissionsOutstanding,
+    lastUpdate,
+  };
+}
+
+export function parseMarginfiAccountRaw(marginfiAccountPk: PublicKey, accountData: MarginfiAccountRaw) {
+  const address = marginfiAccountPk;
+  const group = accountData.group;
+  const authority = accountData.authority;
+  const balances = accountData.lendingAccount.balances.map(Balance.from);
+  const accountFlags = getActiveAccountFlags(accountData.accountFlags);
+  const emissionsDestinationAccount = accountData.emissionsDestinationAccount;
+  const healthCache = HealthCache.from(accountData.healthCache);
+
+  return {
+    address,
+    group,
+    authority,
+    balances,
+    accountFlags,
+    emissionsDestinationAccount,
+    healthCache,
+  };
+}
 
 /**
  * Get all active account flags as an array of flag names
@@ -86,4 +152,42 @@ export function getHealthCacheStatusDescription(flags: number): string {
 
   // Default case (shouldn't happen often)
   return `Status flags: ${activeFlags.join(", ")}`;
+}
+
+export function dtoToMarginfiAccount(marginfiAccountDto: MarginfiAccountTypeDto): MarginfiAccountType {
+  return {
+    address: new PublicKey(marginfiAccountDto.address),
+    group: new PublicKey(marginfiAccountDto.group),
+    authority: new PublicKey(marginfiAccountDto.authority),
+    balances: marginfiAccountDto.balances.map(dtoToBalance),
+    accountFlags: marginfiAccountDto.accountFlags,
+    emissionsDestinationAccount: new PublicKey(marginfiAccountDto.emissionsDestinationAccount),
+    healthCache: dtoToHealthCache(marginfiAccountDto.healthCache),
+  };
+}
+
+export function dtoToBalance(balanceDto: BalanceTypeDto): BalanceType {
+  return {
+    active: balanceDto.active,
+    bankPk: new PublicKey(balanceDto.bankPk),
+    assetShares: new BigNumber(balanceDto.assetShares),
+    liabilityShares: new BigNumber(balanceDto.liabilityShares),
+    emissionsOutstanding: new BigNumber(balanceDto.emissionsOutstanding),
+    lastUpdate: balanceDto.lastUpdate,
+  };
+}
+
+export function dtoToHealthCache(healthCacheDto: HealthCacheTypeDto): HealthCacheType {
+  return {
+    assetValue: new BigNumber(healthCacheDto.assetValue),
+    liabilityValue: new BigNumber(healthCacheDto.liabilityValue),
+    assetValueMaint: new BigNumber(healthCacheDto.assetValueMaint),
+    liabilityValueMaint: new BigNumber(healthCacheDto.liabilityValueMaint),
+    assetValueEquity: new BigNumber(healthCacheDto.assetValueEquity),
+    liabilityValueEquity: new BigNumber(healthCacheDto.liabilityValueEquity),
+    timestamp: new BigNumber(healthCacheDto.timestamp),
+    flags: healthCacheDto.flags,
+    prices: healthCacheDto.prices,
+    simulationFailed: healthCacheDto.simulationFailed,
+  };
 }

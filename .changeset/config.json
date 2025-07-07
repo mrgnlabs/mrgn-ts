@@ -9,7 +9,7 @@
     "@mrgnlabs/mrgn-utils",
     "@mrgnlabs/scripts",
     "@mrgnlabs/marginfi-landing-page",
-    "@mrgnlabs/marginfi-v2-ui-state",
+    "@mrgnlabs/mrgn-state",
     "@mrgnlabs/mrgn-toasts"
   ],
   "versioning": {
@@ -20,7 +20,7 @@
       "@mrgnlabs/mrgn-utils",
       "@mrgnlabs/scripts",
       "@mrgnlabs/marginfi-landing-page",
-      "@mrgnlabs/marginfi-v2-ui-state",
+      "@mrgnlabs/mrgn-state",
       "@mrgnlabs/mrgn-toasts"
     ]
   },

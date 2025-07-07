@@ -1,7 +1,7 @@
 import React from "react";
 
 import { useAmountDebounce } from "~/hooks/useAmountDebounce";
-import { TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
+import { TokenAccountMap } from "@mrgnlabs/mrgn-state";
 import { ArenaPoolV2Extended } from "~/types/trade-store.types";
 
 export function useActionAmounts({

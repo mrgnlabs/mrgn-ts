@@ -16,14 +16,18 @@ import {
   addTransactionMetadata,
   percentFormatterMod,
 } from "@mrgnlabs/mrgn-common";
-import { replenishPoolIx } from "@mrgnlabs/marginfi-client-v2/dist/vendor";
-import { ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { AssetTag, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
+import {
+  ActiveBankInfo,
+  ActionType,
+  ExtendedBankInfo,
+  groupLiabilityBanksByCollateralBank,
+} from "@mrgnlabs/mrgn-state";
+import { AssetTag, EmodeTag, vendor } from "@mrgnlabs/marginfi-client-v2";
 import { capture, cn, composeExplorerUrl, executeActionWrapper, getAssetWeightData } from "@mrgnlabs/mrgn-utils";
 import { ActionBox, SVSPMEV, useWallet } from "@mrgnlabs/mrgn-ui";
 
 import { useAssetItemData } from "~/hooks/useAssetItemData";
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useUiStore } from "~/store";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ChevronDown } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -34,7 +38,21 @@ import { TooltipContent, TooltipTrigger } from "~/components/ui/tooltip";
 import { Tooltip } from "~/components/ui/tooltip";
 import { EmodeDiff, EmodePopover } from "~/components/common/emode/components";
 import { Badge } from "~/components/ui/badge";
-import { IconEmode } from "~/components/ui/icons";
+import { IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
+import {
+  groupCollateralBanksByLiabilityBank,
+  useAccountSummary,
+  useEmode,
+  useExtendedBanks,
+  useMarginfiAccountAddresses,
+  useMarginfiClient,
+  useNativeStakeData,
+  useRefreshUserData,
+  useStakePoolMevMap,
+  useUserBalances,
+  useUserStakeAccounts,
+  useWrappedMarginfiAccount,
+} from "@mrgnlabs/mrgn-state";
 
 interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
@@ -55,29 +73,25 @@ export const PortfolioAssetCard = ({
   onCardClick,
 }: PortfolioAssetCardProps) => {
   const { rateAP } = useAssetItemData({ bank, isInLendingMode });
-  const [
-    selectedAccount,
-    marginfiAccounts,
-    marginfiClient,
-    fetchMrgnlendState,
-    extendedBankInfos,
-    nativeSolBalance,
-    accountSummary,
-    userActiveEmodes,
-    collateralBanksByLiabilityBank,
-    liabilityBanksByCollateralBank,
-  ] = useMrgnlendStore((state) => [
-    state.selectedAccount,
-    state.marginfiAccounts,
-    state.marginfiClient,
-    state.fetchMrgnlendState,
-    state.extendedBankInfos,
-    state.nativeSolBalance,
-    state.accountSummary,
-    state.userActiveEmodes,
-    state.collateralBanksByLiabilityBank,
-    state.liabilityBanksByCollateralBank,
-  ]);
+  const { wallet } = useWallet();
+  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(wallet);
+  const { data: marginfiAccounts } = useMarginfiAccountAddresses();
+  const { marginfiClient } = useMarginfiClient(wallet);
+  const refreshUserData = useRefreshUserData();
+  const { extendedBanks } = useExtendedBanks();
+  const { data: userBalances } = useUserBalances();
+  const { emodePairs, activeEmodePairs } = useEmode();
+  const { stakePoolMetadataMap } = useNativeStakeData();
+  const accountSummary = useAccountSummary();
+  const stakePoolMetadata = stakePoolMetadataMap?.get(bank.address.toBase58());
+
+  const [collateralBanksByLiabilityBank, liabilityBanksByCollateralBank] = React.useMemo(() => {
+    return [
+      groupCollateralBanksByLiabilityBank(extendedBanks, emodePairs),
+      groupLiabilityBanksByCollateralBank(extendedBanks, emodePairs),
+    ];
+  }, [extendedBanks, emodePairs]);
+
   const [priorityFees] = useUiStore((state) => [state.priorityFees]);
   const isIsolated = React.useMemo(() => bank.info.state.isIsolated, [bank]);
 
@@ -96,9 +110,9 @@ export const PortfolioAssetCard = ({
   const isEmodeActive = React.useMemo(() => {
     return (
       (isInLendingMode && bank.position.emodeActive) ||
-      (!isInLendingMode && collateralBanks.length > 0 && userActiveEmodes.length > 0)
+      (!isInLendingMode && collateralBanks.length > 0 && activeEmodePairs.length > 0)
     );
-  }, [bank.position.emodeActive, collateralBanks, isInLendingMode, userActiveEmodes]);
+  }, [bank.position.emodeActive, collateralBanks, isInLendingMode, activeEmodePairs]);
 
   const isUserPositionPoorHealth = React.useMemo(() => {
     if (!bank || !bank?.position?.liquidationPrice) {
@@ -116,21 +130,23 @@ export const PortfolioAssetCard = ({
 
   const [isMovePositionDialogOpen, setIsMovePositionDialogOpen] = React.useState<boolean>(false);
   const postionMovingPossible = React.useMemo(
-    () => marginfiAccounts.length > 1 && bank.position.isLending,
-    [marginfiAccounts.length, bank]
+    () => marginfiAccounts && marginfiAccounts.length > 1 && bank.position.isLending,
+    [marginfiAccounts, bank.position.isLending]
   );
 
   const assetWeight = React.useMemo(
-    () => getAssetWeightData(bank, isInLendingMode).assetWeight,
-    [bank, isInLendingMode]
+    () => getAssetWeightData(bank, isInLendingMode, extendedBanks).assetWeight,
+    [bank, extendedBanks, isInLendingMode]
   );
 
   const originalAssetWeight = React.useMemo(
-    () => getAssetWeightData(bank, isInLendingMode, bank.info.state.originalWeights.assetWeightInit).assetWeight,
-    [bank, isInLendingMode]
+    () =>
+      getAssetWeightData(bank, isInLendingMode, extendedBanks, bank.info.state.originalWeights.assetWeightInit)
+        .assetWeight,
+    [bank, extendedBanks, isInLendingMode]
   );
 
-  const solBank = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "SOL");
+  const solBank = extendedBanks.find((bank) => bank.meta.tokenSymbol === "SOL");
 
   if (variant === "simple") {
     return (
@@ -148,8 +164,7 @@ export const PortfolioAssetCard = ({
         <div className="flex items-center gap-1 w-full">
           <div className="flex flex-col flex-1 -translate-y-0.5">
             <div className="flex items-center gap-2 font-medium text-lg">
-              {bank.meta.tokenSymbol}
-              {isEmodeActive && <IconEmode size={22} className="-translate-y-1" />}
+              {bank.meta.tokenSymbol} {isEmodeActive && <IconEmodeSimple size={18} />}{" "}
             </div>
             <div className="flex items-center gap-4 text-sm">
               <span className={isInLendingMode ? "text-success" : "text-warning"}>{rateAP} APY</span>
@@ -182,22 +197,50 @@ export const PortfolioAssetCard = ({
           variant="portfolio"
           className="hover:no-underline outline-none py-3 [&[data-state=open]>div>div>#health-label]:opacity-0 [&[data-state=open]>div>div>#health-label]:mb-[-24px]"
         >
-          <div className="w-full space-y-1 pr-3 ">
+          <div className="w-full space-y-1 pr-3">
             <div className="flex gap-3">
               <div className="flex items-center">
-                <Image
-                  src={bank.meta.tokenLogoUri}
-                  className="rounded-full"
-                  alt={bank.meta.tokenSymbol}
-                  height={40}
-                  width={40}
-                />
+                <Link href={`/banks/${bank.address.toBase58()}`}>
+                  <Image
+                    src={bank.meta.tokenLogoUri}
+                    className="rounded-full"
+                    alt={bank.meta.tokenSymbol}
+                    height={40}
+                    width={40}
+                  />
+                </Link>
               </div>
               <div className="flex flex-col w-full">
                 <div className="flex justify-between items-center w-full">
-                  <div className="flex items-center gap-2 font-medium text-lg">
-                    {bank.meta.tokenSymbol} {isEmodeActive && <IconEmode size={22} className="-translate-y-1" />}
-                  </div>
+                  <Link
+                    href={`/banks/${bank.address.toBase58()}`}
+                    className="flex items-center gap-2 font-medium text-lg"
+                  >
+                    {bank.meta.tokenSymbol}{" "}
+                    {isEmodeActive && (
+                      <EmodePopover
+                        bank={bank}
+                        extendedBanks={extendedBanks}
+                        assetWeight={assetWeight}
+                        originalAssetWeight={originalAssetWeight}
+                        emodeActive={isEmodeActive}
+                        emodeTag={
+                          isInLendingMode
+                            ? liabilityBanks.length > 0
+                              ? EmodeTag[liabilityBanks[0].emodePair.liabilityBankTag]
+                              : undefined
+                            : collateralBanks.length > 0
+                              ? EmodeTag[collateralBanks[0].emodePair.collateralBankTag]
+                              : undefined
+                        }
+                        isInLendingMode={isInLendingMode}
+                        collateralBanks={collateralBanks}
+                        liabilityBanks={liabilityBanks}
+                        triggerType="tag"
+                        showActiveOnly={!isInLendingMode}
+                      />
+                    )}{" "}
+                  </Link>
                   <div className="font-medium text-lg text-right">
                     {dynamicNumeralFormatter(bank.position.amount, {
                       tokenPrice: bank.info.oraclePrice.priceRealtime.price.toNumber(),
@@ -209,10 +252,10 @@ export const PortfolioAssetCard = ({
                   <div>
                     {bank.info.rawBank.config.assetTag === AssetTag.STAKED ? (
                       <div className="font-normal flex items-center text-sm text-muted-foreground">
-                        {bank.meta.stakePool?.validatorRewards && (
+                        {stakePoolMetadata?.validatorRewards && (
                           <>
                             <span className="text-success">
-                              {percentFormatter.format(bank.meta.stakePool?.validatorRewards / 100)}
+                              {percentFormatter.format(stakePoolMetadata.validatorRewards / 100)}
                             </span>
                             <TooltipProvider>
                               <Tooltip>
@@ -282,18 +325,18 @@ export const PortfolioAssetCard = ({
           )}
           <div className="bg-background/60 py-3 px-4 rounded-lg">
             <dl className="grid grid-cols-2 gap-y-0.5">
-              {bank.info.rawBank.config.assetTag === AssetTag.STAKED && bank.meta.stakePool?.validatorVoteAccount && (
+              {bank.info.rawBank.config.assetTag === AssetTag.STAKED && stakePoolMetadata?.validatorVoteAccount && (
                 <>
                   <dt className="text-muted-foreground">Validator</dt>
                   <dd className="text-right text-white">
                     <Link
-                      href={`https://solscan.io/account/${bank.meta.stakePool?.validatorVoteAccount}`}
+                      href={`https://solscan.io/account/${stakePoolMetadata.validatorVoteAccount}`}
                       target="_blank"
                       rel="noreferrer"
                       className="flex items-center justify-end gap-1 transition-colors hover:text-chartreuse"
                     >
                       <IconExternalLink size={14} className="text-muted-foreground" />
-                      {shortenAddress(bank.meta.stakePool?.validatorVoteAccount)}
+                      {shortenAddress(stakePoolMetadata.validatorVoteAccount)}
                     </Link>
                   </dd>
                 </>
@@ -303,11 +346,13 @@ export const PortfolioAssetCard = ({
                   <dt className="text-muted-foreground">{isInLendingMode ? "Weight" : "e-mode boost"}</dt>
                   <dd className="text-right text-white">
                     {bank.position || collateralBanks.length > 0 ? (
-                      <div className={cn("flex items-center justify-end gap-1", isEmodeActive && "text-mfi-emode")}>
+                      <div
+                        className={cn("flex items-center justify-end gap-1 w-full", isEmodeActive && "text-mfi-emode")}
+                      >
                         {!isInLendingMode && collateralBanks.length > 0 && (
                           <div className="flex items-center">
-                            <IconEmode size={18} />
-                            <ul className="flex items-center gap-1">
+                            <IconEmodeSimple size={18} />
+                            <ul className="flex items-center gap-1 ml-1">
                               {collateralBanks.map((bank) => (
                                 <li key={bank.collateralBank.address.toBase58()}>
                                   <Image
@@ -323,10 +368,10 @@ export const PortfolioAssetCard = ({
                           </div>
                         )}
                         {isInLendingMode && isEmodeActive && (
-                          <>
-                            <IconEmode size={18} />
+                          <div className="flex items-center">
+                            <IconEmodeSimple size={16} />
                             <EmodeDiff assetWeight={assetWeight} originalAssetWeight={originalAssetWeight} />
-                          </>
+                          </div>
                         )}
                       </div>
                     ) : null}
@@ -337,8 +382,10 @@ export const PortfolioAssetCard = ({
                 <>
                   <dt className="text-muted-foreground">{isInLendingMode ? "Weight" : "LTV"}</dt>
                   <dd className="text-right text-white flex items-center justify-end">
-                    {/* {!isEmodeActive ? (
+                    {!isEmodeActive && bank.info.state.hasEmode ? (
                       <EmodePopover
+                        bank={bank}
+                        extendedBanks={extendedBanks}
                         assetWeight={assetWeight}
                         originalAssetWeight={originalAssetWeight}
                         emodeActive={isEmodeActive}
@@ -346,11 +393,14 @@ export const PortfolioAssetCard = ({
                         collateralBanks={collateralBanks}
                         liabilityBanks={liabilityBanks}
                         triggerType="weight"
+                        showActiveOnly={!isInLendingMode}
                       />
                     ) : (
-                      percentFormatter.format(assetWeight)
-                    )} */}
-                    {percentFormatter.format(assetWeight)}
+                      percentFormatterMod(assetWeight, {
+                        minFractionDigits: 0,
+                        maxFractionDigits: 2,
+                      })
+                    )}
                   </dd>
                 </>
               )}
@@ -397,10 +447,11 @@ export const PortfolioAssetCard = ({
           {bank.info.rawBank.config.assetTag === AssetTag.STAKED && (
             <SVSPMEV
               bank={bank}
+              stakePool={stakePoolMetadata}
               onClaim={async () => {
-                if (!marginfiClient || !bank.meta.stakePool?.validatorVoteAccount) return;
+                if (!marginfiClient || !stakePoolMetadata?.validatorVoteAccount) return;
 
-                const ix = await replenishPoolIx(bank.meta.stakePool?.validatorVoteAccount);
+                const ix = await vendor.replenishPoolIx(stakePoolMetadata.validatorVoteAccount);
                 const tx = addTransactionMetadata(new Transaction().add(ix), {
                   type: TransactionType.INITIALIZE_STAKED_POOL,
                 });
@@ -419,7 +470,7 @@ export const PortfolioAssetCard = ({
                     return sigs[0];
                   },
                   onComplete: () => {
-                    fetchMrgnlendState();
+                    refreshUserData();
                   },
                   txns: {
                     transactions: [tx],
@@ -456,12 +507,12 @@ export const PortfolioAssetCard = ({
             isOpen={isMovePositionDialogOpen}
             setIsOpen={setIsMovePositionDialogOpen}
             selectedAccount={selectedAccount}
-            marginfiAccounts={marginfiAccounts}
+            marginfiAccounts={marginfiAccounts ?? []}
             bank={bank}
             marginfiClient={marginfiClient}
-            fetchMrgnlendState={fetchMrgnlendState}
-            extendedBankInfos={extendedBankInfos}
-            nativeSolBalance={nativeSolBalance}
+            fetchMrgnlendState={refreshUserData}
+            extendedBankInfos={extendedBanks}
+            nativeSolBalance={userBalances?.nativeSolBalance ?? 0}
             accountSummary={accountSummary}
             accountLabels={accountLabels}
           />
@@ -481,10 +532,9 @@ const PortfolioAction = ({
   buttonVariant?: "default" | "outline" | "outline-dark" | "secondary";
 }) => {
   const { walletContextState, connected } = useWallet();
-  const [fetchMrgnlendState, stakeAccounts] = useMrgnlendStore((state) => [
-    state.fetchMrgnlendState,
-    state.stakeAccounts,
-  ]);
+
+  const refreshUserData = useRefreshUserData();
+  const { data: stakeAccounts } = useUserStakeAccounts();
   const isDust = React.useMemo(() => requestedBank?.isActive && requestedBank?.position.isDust, [requestedBank]);
 
   const buttonText = React.useMemo(() => {
@@ -511,12 +561,11 @@ const PortfolioAction = ({
           requestedBank: requestedBank ?? undefined,
           walletContextState: walletContextState,
           connected: connected,
-          stakeAccounts: stakeAccounts,
           captureEvent: (event, properties) => {
             capture(event, properties);
           },
           onComplete: () => {
-            fetchMrgnlendState();
+            refreshUserData();
           },
         }}
         isDialog={true}
@@ -542,7 +591,7 @@ const PortfolioAction = ({
             capture(event, properties);
           },
           onComplete: () => {
-            fetchMrgnlendState();
+            refreshUserData();
           },
         }}
         isDialog={true}

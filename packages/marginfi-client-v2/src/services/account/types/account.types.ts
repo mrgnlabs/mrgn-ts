@@ -1,6 +1,5 @@
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-import BN from "bn.js";
 
 export interface BalanceType {
   active: boolean;
@@ -41,9 +40,10 @@ export interface HealthCacheType {
   liabilityValueMaint: BigNumber;
   assetValueEquity: BigNumber;
   liabilityValueEquity: BigNumber;
-  timestamp: number;
+  timestamp: BigNumber;
   flags: HealthCacheFlags[];
   prices: number[][];
+  simulationFailed?: boolean;
 }
 
 export interface MarginfiAccountType {

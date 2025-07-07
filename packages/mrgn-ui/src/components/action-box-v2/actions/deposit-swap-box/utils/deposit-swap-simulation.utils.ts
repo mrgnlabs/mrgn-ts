@@ -1,7 +1,7 @@
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { handleSimulationError, DepositSwapActionTxns, ActionProcessingError } from "@mrgnlabs/mrgn-utils";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
 
@@ -30,7 +30,11 @@ export interface CalculatePreviewProps {
 
 export const getSimulationResult = async (props: SimulateActionProps) => {
   try {
-    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address]);
+    return await props.account.simulateBorrowLendTransaction(props.txns, [props.bank.address], {
+      enabled: true,
+      mandatoryBanks: [props.bank.address],
+      excludedBanks: [],
+    });
   } catch (error: any) {
     const actionString = "Deposit Swapping";
     const actionMethod = handleSimulationError(error, props.bank, false, actionString);
@@ -72,10 +76,7 @@ function calculateActionPreview(
 ): ActionPreview {
   const isLending = [ActionType.Deposit, ActionType.Withdraw].includes(actionMode);
   const positionAmount = bank?.isActive ? bank.position.amount : 0;
-  const health =
-    accountSummary.balance && accountSummary.healthFactor
-      ? accountSummary.healthFactor
-      : { riskEngineHealth: 1, computedHealth: 1 };
+  const health = accountSummary.balanceEquity && accountSummary.healthFactor ? accountSummary.healthFactor : 1;
   const liquidationPrice =
     bank.isActive && bank.position.liquidationPrice && bank.position.liquidationPrice > 0.01
       ? bank.position.liquidationPrice

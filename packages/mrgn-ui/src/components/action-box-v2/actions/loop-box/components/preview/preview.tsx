@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { ActionStatItem } from "~/components/action-box-v2/components";
@@ -61,9 +61,7 @@ function generateLoopStats(summary: ActionSummary, bank: ExtendedBankInfo, isLoa
   if (summary.actionPreview.priceImpactPct) stats.push(getPriceImpactStat(summary.actionPreview.priceImpactPct));
   if (summary.actionPreview.slippageBps) stats.push(getSlippageStat(summary.actionPreview.slippageBps));
 
-  stats.push(
-    getHealthStat(summary.actionPreview.health.computedHealth, false, summary.simulationPreview?.health.computedHealth)
-  );
+  stats.push(getHealthStat(summary.actionPreview.health, false, summary.simulationPreview?.health));
 
   if (summary.simulationPreview?.liquidationPrice && bank.isActive)
     stats.push(getLiquidationStat(bank, false, summary.simulationPreview?.liquidationPrice));

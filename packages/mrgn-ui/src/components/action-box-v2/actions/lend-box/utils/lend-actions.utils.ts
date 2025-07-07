@@ -1,7 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, MarginfiClient, createMarginfiAccountTx } from "@mrgnlabs/marginfi-client-v2";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { getAssociatedTokenAddressSync, NATIVE_MINT, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { ActionProcessingError, isWholePosition, STATIC_SIMULATION_ERRORS } from "@mrgnlabs/mrgn-utils";
 
@@ -10,11 +10,24 @@ export async function generateActionTxns(props: {
   marginfiClient: MarginfiClient;
   bank: ExtendedBankInfo;
   lendMode: ActionType;
-  stakeAccount?: PublicKey;
   amount: number;
+  stakeOpts?: {
+    stakeAccount?: PublicKey;
+    stakePoolMetadata: StakePoolMetadata;
+    stakeAmount?: number;
+    walletAmount: number;
+  };
 }): Promise<{ transactions: SolanaTransaction[]; finalAccount: MarginfiAccountWrapper }> {
   let accountCreationTx: SolanaTransaction | null = null;
   let account: MarginfiAccountWrapper | null = props.marginfiAccount;
+
+  let doStakeDeposit = false;
+
+  if (props.bank.info.rawBank.config.assetTag === 2) {
+    if (!props.stakeOpts?.stakePoolMetadata?.validatorVoteAccount) {
+      throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.NATIVE_STAKE_NOT_FOUND);
+    }
+  }
 
   if (!account && props.lendMode === ActionType.Deposit) {
     const { account: newAccount, tx } = await createMarginfiAccountTx({
@@ -32,15 +45,23 @@ export async function generateActionTxns(props: {
   switch (props.lendMode) {
     case ActionType.Deposit:
       let depositTx: SolanaTransaction;
-      if (account && props.bank.info.rawBank.config.assetTag === 2) {
-        if (!props.stakeAccount || !props.bank.meta.stakePool?.validatorVoteAccount) {
+
+      if (props.bank.info.rawBank.config.assetTag === 2 && props.amount > (props.stakeOpts?.walletAmount ?? 0)) {
+        if (!props.stakeOpts?.stakeAmount) {
+          throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.NOT_ENOUGH_STAKE);
+        }
+        doStakeDeposit = true;
+      }
+
+      if (doStakeDeposit) {
+        if (!props.stakeOpts?.stakeAccount || !props.stakeOpts?.stakePoolMetadata?.validatorVoteAccount) {
           throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.NATIVE_STAKE_NOT_FOUND);
         }
         depositTx = await account.makeDepositStakedTx(
           props.amount,
           props.bank.address,
-          props.stakeAccount,
-          props.bank.meta.stakePool?.validatorVoteAccount
+          props.stakeOpts?.stakeAccount,
+          props.stakeOpts?.stakePoolMetadata?.validatorVoteAccount
         );
       } else {
         let wSolBalanceUi = 0;

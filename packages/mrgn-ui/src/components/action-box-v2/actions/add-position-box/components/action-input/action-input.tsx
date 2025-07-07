@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { formatAmount } from "@mrgnlabs/mrgn-utils";
 import { tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 

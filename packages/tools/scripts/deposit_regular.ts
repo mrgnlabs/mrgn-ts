@@ -1,17 +1,13 @@
 // Run deposit_single_pool first to convert to LST. In production, these will likely be atomic.
-import { Connection, Keypair, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
+import { Connection, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
 import { Program, AnchorProvider, BN } from "@coral-xyz/anchor";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
-import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
+import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
+import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile } from "./utils";
 import {
-  createAssociatedTokenAccountIdempotent,
-  createAssociatedTokenAccountInstruction,
-  createSyncNativeInstruction,
-  getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { createAssociatedTokenAccountIdempotentInstruction } from "@mrgnlabs/mrgn-common";
+import { createSyncNativeInstruction, getAssociatedTokenAddressSync, createAssociatedTokenAccountIdempotentInstruction } from "@mrgnlabs/mrgn-common";
 
 type Config = {
   PROGRAM_ID: string;
@@ -23,14 +19,34 @@ type Config = {
   AMOUNT: BN;
 };
 
-const config: Config = {
-  PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
-  GROUP: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
-  ACCOUNT: new PublicKey("F12SjiKaksVMJs7EQ2GBaWHLr5shFRei1seDDwFA2pek"),
-  BANK: new PublicKey("3evdJSa25nsUiZzEUzd92UNa13TPRJrje1dRyiQP5Lhp"),
-  MINT: new PublicKey("So11111111111111111111111111111111111111112"),
-  AMOUNT: new BN(0.2 * 10 ** 9), // sol has 9 decimals
-};
+const examples = {
+  depositUSDCArena: {
+    PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+    GROUP: new PublicKey("4qft5jS6ZkQtBX8WiSFYw9DUNTJcqUjSnv7sEUAH2dn3"),
+    ACCOUNT: new PublicKey("EjaNvWcsPxVoKkADhpMre433bhdeU8uPgtgYPLsYKCjH"),
+    BANK: new PublicKey("5n125hjbaeH4Ft5UrgFN3Tkv6qG5RNhfNLTRZpddkRag"),
+    MINT: new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
+    AMOUNT: new BN(10 * 10 ** 6), // 10 USDC (** 6 decimals)
+    REMAINING: [
+      new PublicKey("5n125hjbaeH4Ft5UrgFN3Tkv6qG5RNhfNLTRZpddkRag"), // usdc bank
+      new PublicKey("9km7RzRAuWPPeJGk9DNWTAjA8V5Xnm1o9CdUQuDG1654"), // usdc oracle
+    ],
+  },
+  depositBonkArena: {
+    PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
+    GROUP: new PublicKey("4qft5jS6ZkQtBX8WiSFYw9DUNTJcqUjSnv7sEUAH2dn3"),
+    ACCOUNT: new PublicKey("EjaNvWcsPxVoKkADhpMre433bhdeU8uPgtgYPLsYKCjH"),
+    BANK: new PublicKey("B5ZzNsDNNPxcWQMPD33pFtNVfDWMXzzgBdExnU4aoJne"),
+    MINT: new PublicKey("DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263"),
+    AMOUNT: new BN(900000 * 10 ** 5), // 900'000 BONK (** 5 decimals)
+    REMAINING: [
+      new PublicKey("B5ZzNsDNNPxcWQMPD33pFtNVfDWMXzzgBdExnU4aoJne"), // bonk bank
+      new PublicKey("DBE3N8uNjhKPRHfANdwGvCZghWXyLPdqdSbEW2XFwBiX"), // bonk oracle
+    ],
+  },
+}
+
+const config: Config = examples.depositBonkArena;
 
 async function main() {
   marginfiIdl.address = config.PROGRAM_ID;
@@ -68,13 +84,13 @@ async function main() {
     );
     transaction.add(createSyncNativeInstruction(ata));
   }
+  const depositUpToLimit = false;
   transaction.add(
     await program.methods
-      .lendingAccountDeposit(config.AMOUNT)
+      .lendingAccountDeposit(config.AMOUNT, depositUpToLimit)
       .accounts({
-        marginfiGroup: config.GROUP,
+        // marginfiGroup: config.GROUP,
         marginfiAccount: config.ACCOUNT,
-        signer: wallet.publicKey,
         bank: config.BANK,
         signerTokenAccount: ata,
         // bankLiquidityVault = deriveLiquidityVault(id, bank)

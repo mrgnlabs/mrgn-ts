@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType } from "@mrgnlabs/mrgn-state";
 
 import {
   LendBox,
@@ -208,11 +208,8 @@ const BorrowLend = (
       ? { ...contextProps, ...(lendProps as RequiredLendBoxProps) }
       : (lendProps as LendBoxProps);
 
-  // State to store whether the action box should be hidden
-  const [shouldBeHidden, setShouldBeHidden] = React.useState<boolean>(!!combinedProps.searchMode);
-
   if (actionBoxProps.isDialog) {
-    actionBoxProps.dialogProps = { ...actionBoxProps.dialogProps, hidden: shouldBeHidden };
+    actionBoxProps.dialogProps = { ...actionBoxProps.dialogProps };
   }
 
   return (
@@ -228,17 +225,11 @@ const BorrowLend = (
             {...combinedProps}
             requestedLendType={ActionType.Deposit}
             onCloseDialog={actionBoxProps.isDialog ? actionBoxProps.dialogProps?.onClose : undefined}
-            searchMode={combinedProps.searchMode}
-            shouldBeHidden={shouldBeHidden}
-            setShouldBeHidden={setShouldBeHidden}
           />
           <LendBox
             {...combinedProps}
             requestedLendType={ActionType.Borrow}
             onCloseDialog={actionBoxProps.isDialog ? actionBoxProps.dialogProps?.onClose : undefined}
-            searchMode={combinedProps.searchMode}
-            shouldBeHidden={shouldBeHidden}
-            setShouldBeHidden={setShouldBeHidden}
           />
         </ActionBoxNavigator>
       </ActionBoxWrapper>

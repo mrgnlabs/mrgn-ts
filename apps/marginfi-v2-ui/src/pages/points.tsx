@@ -3,24 +3,20 @@ import Link from "next/link";
 
 import { useWallet } from "@mrgnlabs/mrgn-ui";
 
-import { useMrgnlendStore, useUserProfileStore } from "~/store";
-
 import { PointsOverview, PointsConnectWallet } from "~/components/common/Points";
-import { PointsTable } from "~/components/desktop/Points";
 import { Loader } from "~/components/ui/loader";
+import { PointsTable } from "~/components/desktop/Points";
+import { useUserProfileStore } from "~/store";
 
 export default function PointsPage() {
   const { connected } = useWallet();
-
-  const [initialized] = useMrgnlendStore((state) => [state.initialized]);
-
   const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
   return (
     <>
-      {!initialized && <Loader label="Loading marginfi points..." className="mt-16" />}
+      {!userPointsData && <Loader label="Loading marginfi points..." className="mt-16" />}
 
-      {initialized && (
+      {userPointsData && (
         <div className="flex flex-col items-center w-full max-w-8xl px-4 md:px-10 gap-5 pb-[64px] sm:pb-[32px]">
           {!connected ? <PointsConnectWallet /> : <PointsOverview userPointsData={userPointsData} />}
           <div className="text-muted-foreground text-xs">

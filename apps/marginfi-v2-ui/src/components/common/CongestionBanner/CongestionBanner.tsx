@@ -5,24 +5,25 @@ import Link from "next/link";
 import { isBankOracleStale } from "@mrgnlabs/mrgn-utils";
 import { IconAlertTriangle, IconX } from "@tabler/icons-react";
 
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useUiStore } from "~/store";
 
 import { Button } from "~/components/ui/button";
+import { useExtendedBanks } from "@mrgnlabs/mrgn-state";
 
 export const CONGESTION_THRESHOLD = 5;
 
 export const CongestionBanner = () => {
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+  const { extendedBanks } = useExtendedBanks();
   const [isOraclesStale, setIsOraclesStale] = useUiStore((state) => [state.isOraclesStale, state.setIsOraclesStale]);
   const [isCongestionBannerDismissed, setIsCongestionBannerDismissed] = React.useState(false);
 
   const banksWithStaleOracles = React.useMemo(() => {
-    const staleBanks = extendedBankInfos.filter((bank) => {
+    const staleBanks = extendedBanks.filter((bank) => {
       return isBankOracleStale(bank);
     });
 
     return staleBanks;
-  }, [extendedBankInfos]);
+  }, [extendedBanks]);
 
   React.useEffect(() => {
     const thresholdMet = banksWithStaleOracles.length >= CONGESTION_THRESHOLD;

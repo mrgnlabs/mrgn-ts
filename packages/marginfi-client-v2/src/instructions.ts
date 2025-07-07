@@ -546,6 +546,20 @@ async function makeCloseAccountIx(
     .instruction();
 }
 
+async function makeLendingAccountSortBalancesIx(
+  mfProgram: MarginfiProgram,
+  accounts: {
+    marginfiAccount: PublicKey;
+  }
+) {
+  return mfProgram.methods
+    .lendingAccountSortBalances()
+    .accounts({
+      marginfiAccount: accounts.marginfiAccount,
+    })
+    .instruction();
+}
+
 async function makePulseHealthIx(
   mfProgram: MarginfiProgram,
   accounts: {
@@ -586,6 +600,7 @@ const instructions = {
   makePoolAddPermissionlessStakedBankIx,
   makeLendingPoolConfigureBankOracleIx,
   makePulseHealthIx,
+  makeLendingAccountSortBalancesIx,
 };
 
 export default instructions;

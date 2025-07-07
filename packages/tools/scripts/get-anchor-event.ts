@@ -1,14 +1,11 @@
-import { Connection, LAMPORTS_PER_SOL, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
+import { Connection } from "@solana/web3.js";
 import { Program, AnchorProvider, EventParser, BorshCoder } from "@coral-xyz/anchor";
 
-import { DEFAULT_API_URL, loadEnvFile, loadKeypairFromFile, SINGLE_POOL_PROGRAM_ID } from "./utils";
-import { assertI80F48Approx, assertKeysEqual } from "./softTests";
+import { loadKeypairFromFile } from "./utils";
 
-import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
-import { getMint } from "@solana/spl-token";
-import { base64, bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
+import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
+import { base64 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
 type Config = {
   PROGRAM_ID: string;

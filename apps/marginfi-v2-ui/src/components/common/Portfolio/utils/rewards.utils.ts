@@ -14,7 +14,7 @@ import {
   SolanaTransaction,
   TOKEN_PROGRAM_ID,
 } from "@mrgnlabs/mrgn-common";
-import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 /**

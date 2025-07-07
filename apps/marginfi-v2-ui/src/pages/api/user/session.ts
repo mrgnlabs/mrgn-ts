@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { initFirebaseIfNeeded } from "./utils";
 import * as admin from "firebase-admin";
-import { STATUS_BAD_REQUEST, STATUS_INTERNAL_ERROR, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
+import { STATUS_BAD_REQUEST, STATUS_INTERNAL_ERROR, STATUS_OK } from "@mrgnlabs/mrgn-state";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== "POST") {

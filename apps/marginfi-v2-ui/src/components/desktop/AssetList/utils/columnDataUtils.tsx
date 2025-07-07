@@ -1,32 +1,34 @@
 import React from "react";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
-import { ExtendedBankInfo, getCurrentAction, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
-import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { ActionBox, WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
+import { ExtendedBankInfo, getCurrentAction, ActionType } from "@mrgnlabs/mrgn-state";
+import { MarginfiAccountType } from "@mrgnlabs/marginfi-client-v2";
+import { ActionBox, useWallet, WalletContextStateOverride } from "@mrgnlabs/mrgn-ui";
 import { capture } from "@mrgnlabs/mrgn-utils";
 
-import { useMrgnlendStore } from "~/store";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
+import { useNativeStakeData } from "@mrgnlabs/mrgn-state";
+import { PublicKey } from "@solana/web3.js";
 
 const ActionBoxCell = ({
   bank,
   isInLendingMode,
   connected,
   walletContextState,
-  fetchMrgnlendState,
+  refreshUserData,
 }: {
   bank: ExtendedBankInfo;
   isInLendingMode: boolean;
   connected: boolean;
   walletContextState: WalletContextStateOverride | WalletContextState;
-  fetchMrgnlendState: () => void;
+  refreshUserData: (options?: { clearStakeAccountsCache?: boolean; newAccountKey?: PublicKey }) => void;
 }) => {
-  const [stakeAccounts] = useMrgnlendStore((state) => [state.stakeAccounts]);
+  const { stakePoolMetadataMap } = useNativeStakeData();
   const currentAction = getCurrentAction(isInLendingMode, bank);
   const isDust = bank.isActive && bank.position.isDust;
   const showCloseBalance = currentAction === ActionType.Withdraw && isDust;
+  const stakePoolMetadata = stakePoolMetadataMap.get(bank.address.toBase58());
 
   if (currentAction === ActionType.Repay) {
     return (
@@ -38,7 +40,7 @@ const ActionBoxCell = ({
           requestedBank: bank,
           requestedSecondaryBank: undefined,
           onComplete: () => {
-            fetchMrgnlendState();
+            refreshUserData();
           },
           captureEvent: (event, properties) => {
             capture(event, properties);
@@ -64,9 +66,8 @@ const ActionBoxCell = ({
           requestedLendType: currentAction,
           connected: connected,
           walletContextState,
-          stakeAccounts,
-          onComplete: () => {
-            fetchMrgnlendState();
+          onComplete: (newAccountKey?: PublicKey) => {
+            refreshUserData({ newAccountKey });
           },
         }}
         dialogProps={{
@@ -75,7 +76,7 @@ const ActionBoxCell = ({
             <Button
               variant="secondary"
               className="w-full md:w-[120px] hover:bg-primary hover:text-primary-foreground"
-              disabled={bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakePool?.isActive}
+              disabled={bank.info.rawBank.config.assetTag === 2 && !stakePoolMetadata?.isActive}
             >
               {showCloseBalance ? "Close" : currentAction}
             </Button>
@@ -89,10 +90,10 @@ const ActionBoxCell = ({
 export const getAction = (
   bank: ExtendedBankInfo,
   isInLendingMode: boolean,
-  marginfiAccount: MarginfiAccountWrapper | null,
   connected: boolean,
   walletContextState: WalletContextStateOverride | WalletContextState,
-  fetchMrgnlendState: () => void
+  refreshUserData: (options?: { clearStakeAccountsCache?: boolean; newAccountKey?: PublicKey }) => void,
+  marginfiAccount?: MarginfiAccountType | null
 ) => {
   const currentAction = getCurrentAction(isInLendingMode, bank);
   const isDust = bank.isActive && bank.position.isDust;
@@ -100,7 +101,7 @@ export const getAction = (
 
   return (
     <>
-      {marginfiAccount === null && (
+      {!marginfiAccount && (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -113,7 +114,7 @@ export const getAction = (
                   isInLendingMode={isInLendingMode}
                   connected={connected}
                   walletContextState={walletContextState}
-                  fetchMrgnlendState={fetchMrgnlendState}
+                  refreshUserData={refreshUserData}
                 />
               </div>
             </TooltipTrigger>
@@ -122,14 +123,14 @@ export const getAction = (
         </TooltipProvider>
       )}
 
-      {marginfiAccount !== null && (
+      {marginfiAccount && (
         <div className="flex px-0 sm:pl-4 gap-4 justify-center lg:justify-end items-center">
           <ActionBoxCell
             bank={bank}
             isInLendingMode={isInLendingMode}
             connected={connected}
             walletContextState={walletContextState}
-            fetchMrgnlendState={fetchMrgnlendState}
+            refreshUserData={refreshUserData}
           />
         </div>
       )}

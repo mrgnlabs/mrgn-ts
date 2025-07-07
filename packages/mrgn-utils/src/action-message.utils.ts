@@ -14,10 +14,11 @@ import {
   getTradeSpecificChecks,
   ArenaGroupStatus,
 } from ".";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { EmodeImpact, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { QuoteResponse } from "@jup-ag/api";
 import { WalletToken } from "@mrgnlabs/mrgn-common";
+import { PublicKey } from "@solana/web3.js";
 
 export function getColorForActionMessageUIType(type?: ActionMessageUIType) {
   if (type === "INFO") {
@@ -32,6 +33,7 @@ export function getColorForActionMessageUIType(type?: ActionMessageUIType) {
 interface CheckActionAvailableProps {
   amount: number | null;
   connected: boolean;
+  marginfiAccount: MarginfiAccountWrapper | null;
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
   actionQuote: QuoteResponse | null;
@@ -47,6 +49,10 @@ interface CheckLendActionAvailableProps {
   banks: ExtendedBankInfo[];
   marginfiAccount: MarginfiAccountWrapper | null;
   lendMode: ActionType;
+  selectedStakeAccount?: {
+    address: PublicKey;
+    balance: number;
+  } | null;
 }
 
 export function checkLendActionAvailable({
@@ -58,20 +64,21 @@ export function checkLendActionAvailable({
   banks,
   marginfiAccount,
   lendMode,
+  selectedStakeAccount,
 }: CheckLendActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
   const requiredCheck = getRequiredCheck(connected, selectedBank);
   if (requiredCheck) return [requiredCheck];
 
-  const generalChecks = getGeneralChecks(amount ?? 0, showCloseBalance);
+  const generalChecks = getGeneralChecks(amount ?? 0, showCloseBalance, undefined, marginfiAccount ?? undefined);
   if (generalChecks) checks.push(...generalChecks);
 
   // allert checks
   if (selectedBank) {
     switch (lendMode) {
       case ActionType.Deposit:
-        const lentChecks = canBeLent(selectedBank, nativeSolBalance);
+        const lentChecks = canBeLent(selectedBank, nativeSolBalance, selectedStakeAccount);
         if (lentChecks.length) checks.push(...lentChecks);
         break;
       case ActionType.Withdraw:
@@ -100,6 +107,7 @@ export function checkLendActionAvailable({
 interface CheckLoopActionAvailableProps {
   amount: number | null;
   connected: boolean;
+  marginfiAccount: MarginfiAccountWrapper | null;
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
   actionQuote: QuoteResponse | null;
@@ -110,6 +118,7 @@ interface CheckLoopActionAvailableProps {
 export function checkLoopActionAvailable({
   amount,
   connected,
+  marginfiAccount,
   selectedBank,
   selectedSecondaryBank,
   banks,
@@ -121,7 +130,7 @@ export function checkLoopActionAvailable({
   const requiredCheck = getRequiredCheck(connected, selectedBank);
   if (requiredCheck) return [requiredCheck];
 
-  const generalChecks = getGeneralChecks(amount ?? 0);
+  const generalChecks = getGeneralChecks(amount ?? 0, undefined, undefined, marginfiAccount ?? undefined);
   if (generalChecks) checks.push(...generalChecks);
 
   // alert checks
@@ -142,6 +151,7 @@ export function checkRepayActionAvailable({
   amount,
   connected,
   selectedBank,
+  marginfiAccount,
   selectedSecondaryBank,
   actionQuote,
   maxOverflowHit,
@@ -151,7 +161,7 @@ export function checkRepayActionAvailable({
   const requiredCheck = getRequiredCheck(connected, selectedBank);
   if (requiredCheck) return [requiredCheck];
 
-  const generalChecks = getGeneralChecks(amount ?? 0);
+  const generalChecks = getGeneralChecks(amount ?? 0, undefined, undefined, marginfiAccount ?? undefined);
   if (generalChecks) checks.push(...generalChecks);
 
   let repayChecks: ActionMessageType[] = [];
@@ -185,8 +195,21 @@ function getRequiredCheck(connected: boolean, selectedBank: ExtendedBankInfo | n
   return null;
 }
 
-function getGeneralChecks(amount: number = 0, showCloseBalance?: boolean, leverage?: number): ActionMessageType[] {
+function getGeneralChecks(
+  amount: number = 0,
+  showCloseBalance?: boolean,
+  leverage?: number,
+  marginfiAccount?: MarginfiAccountWrapper
+): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
+
+  if (marginfiAccount) {
+    if (marginfiAccount.data.healthCache.simulationFailed) {
+      checks.push(STATIC_SIMULATION_ERRORS.HEALTH_SIMULATION_CHECK);
+      return checks;
+    }
+  }
+
   if (showCloseBalance) {
     checks.push({ actionMethod: "INFO", description: "Close lending balance.", isEnabled: true });
   } // TODO: only for lend and withdraw
@@ -290,7 +313,7 @@ export function checkDepositSwapActionAvailable({
     return checks;
   }
 
-  const generalChecks = getGeneralChecks(amount ?? 0, showCloseBalance);
+  const generalChecks = getGeneralChecks(amount ?? 0, showCloseBalance, undefined, marginfiAccount ?? undefined);
   if (generalChecks) checks.push(...generalChecks);
 
   // alert checks

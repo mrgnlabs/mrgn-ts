@@ -3,7 +3,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { Connection } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import {
   IconChevronDown,
   IconCopy,
@@ -21,7 +21,7 @@ import {
 } from "@tabler/icons-react";
 
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, UserPointsData, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, UserPointsData, AccountSummary } from "@mrgnlabs/mrgn-state";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 
@@ -32,7 +32,6 @@ import {
   WalletButton,
   WalletAvatar,
   WalletTokens,
-  Token as TokenType,
   WalletOnramp,
   WalletPkDialog,
   WalletSend,
@@ -48,23 +47,35 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/comp
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { WalletActivity } from "./components/wallet-activity/wallet-activity";
 
+export type TokenWalletData = {
+  mint: PublicKey;
+  name: string;
+  symbol: string;
+  decimals: number;
+  image: string;
+  value: number;
+  valueUSD: number;
+  formattedValue: string;
+  formattedValueUSD?: string;
+};
+
 type WalletProps = {
   connection: Connection;
-  initialized: boolean;
-  userDataFetched: boolean;
   mfiClient?: MarginfiClient | null;
-  marginfiAccounts?: MarginfiAccountWrapper[];
+  marginfiAccounts?: PublicKey[];
   selectedAccount?: MarginfiAccountWrapper | null;
   extendedBankInfos: ExtendedBankInfo[];
-  nativeSolBalance: number;
+  isLoadingUserBalances: boolean;
+  walletTokens: TokenWalletData[];
   userPointsData?: UserPointsData;
   accountSummary?: AccountSummary;
   hideActivity?: boolean;
+  setSelectedAccount: (account: PublicKey) => void;
   refreshState: () => void;
   headerComponent?: JSX.Element;
   processOpts?: ProcessTransactionsClientOpts;
   accountLabels?: Record<string, string>;
-  fetchAccountLabels?: (accounts: MarginfiAccountWrapper[]) => Promise<void>;
+  fetchAccountLabels?: (accounts: PublicKey[]) => Promise<void>;
 };
 
 enum WalletState {
@@ -82,16 +93,16 @@ enum WalletState {
 
 const Wallet = ({
   connection,
-  initialized,
-  userDataFetched,
   mfiClient,
   marginfiAccounts,
   selectedAccount,
   extendedBankInfos,
-  nativeSolBalance,
+  isLoadingUserBalances,
+  walletTokens,
   userPointsData,
   hideActivity,
   accountSummary,
+  setSelectedAccount,
   refreshState,
   headerComponent,
   processOpts,
@@ -105,7 +116,7 @@ const Wallet = ({
     address: string;
     shortAddress: string;
     balanceUSD: string;
-    tokens: TokenType[];
+    tokens: TokenWalletData[];
   }>({
     address: "",
     shortAddress: "",
@@ -113,69 +124,13 @@ const Wallet = ({
     tokens: [],
   });
   const [walletTokenState, setWalletTokenState] = React.useState<WalletState>(WalletState.DEFAULT);
-  const [activeToken, setActiveToken] = React.useState<TokenType | null>(null);
+  const [activeToken, setActiveToken] = React.useState<TokenWalletData | null>(null);
   const [isReferralCopied, setIsReferralCopied] = React.useState(false);
   const [bridgeType, setBridgeType] = React.useState<"mayan" | "debridge">("mayan");
   const [isWalletBalanceErrorShown, setIsWalletBalanceErrorShown] = React.useState(false);
   const prevIsWalletOpenRef = React.useRef(isWalletOpen);
 
   const isMobile = useIsMobile();
-
-  const activeBank = React.useMemo(() => {
-    if (!activeToken) return null;
-    return extendedBankInfos.find((bank) => bank.address.equals(activeToken.address));
-  }, [activeToken, extendedBankInfos]);
-
-  const solPrice = React.useMemo(() => {
-    const solBank = extendedBankInfos.find((bank) => bank.meta.tokenSymbol === "SOL");
-    return solBank?.info.oraclePrice.priceRealtime.price.toNumber() || null;
-  }, [extendedBankInfos]);
-
-  const getUserTokens = React.useCallback(() => {
-    if (isNaN(nativeSolBalance) || !extendedBankInfos) return [];
-    const prioritizedSymbols = ["SOL", "LST"];
-
-    const userBanks = extendedBankInfos.filter(
-      (bank) => bank.userInfo.tokenAccount.balance !== 0 || bank.meta.tokenSymbol === "SOL"
-    );
-
-    return userBanks
-      .map((bank) => {
-        const isSolBank = bank.meta.tokenSymbol === "SOL";
-        let value = isSolBank
-          ? nativeSolBalance + bank.userInfo.tokenAccount.balance
-          : bank.userInfo.tokenAccount.balance;
-
-        const tokenPrice =
-          bank.info.rawBank.config.assetTag === 2 ? solPrice || bank.info.state.price : bank.info.state.price;
-
-        let valueUSD =
-          (isSolBank ? nativeSolBalance + bank.userInfo.tokenAccount.balance : bank.userInfo.tokenAccount.balance) *
-          tokenPrice;
-
-        if (Number.isNaN(value) || Number.isNaN(valueUSD)) {
-          value = 0;
-          valueUSD = 0;
-        }
-
-        return {
-          address: bank.address,
-          name: isSolBank ? "Solana" : bank.meta.tokenName,
-          image: bank.meta.tokenLogoUri,
-          symbol: bank.meta.tokenSymbol,
-          value: value,
-          valueUSD: valueUSD,
-          formattedValue: value < 0.01 ? `< 0.01` : numeralFormatter(value),
-          formattedValueUSD: usdFormatter.format(valueUSD),
-        };
-      })
-      .sort((a, b) => {
-        return (
-          (prioritizedSymbols.includes(b.symbol) ? 1 : 0) - (prioritizedSymbols.includes(a.symbol) ? 1 : 0) ||
-          b.valueUSD - a.valueUSD
-        );
-      });
-  }, [extendedBankInfos, nativeSolBalance, solPrice]);
 
   const resetWalletState = React.useCallback(() => {
     setWalletTokenState(WalletState.DEFAULT);
@@ -184,11 +139,10 @@ const Wallet = ({
 
   const getWalletData = React.useCallback(async () => {
     if (!wallet?.publicKey) return;
-    const userTokens = getUserTokens();
 
-    if (!userTokens) return;
+    if (!walletTokens) return;
 
-    const totalBalance = userTokens.reduce(
+    const totalBalance = walletTokens.reduce(
       (acc, token) => acc + (typeof token.valueUSD === "number" ? token.valueUSD : 0),
       0
     );
@@ -197,9 +151,9 @@ const Wallet = ({
       address: wallet?.publicKey.toString(),
       shortAddress: shortenAddress(wallet?.publicKey.toString()),
       balanceUSD: usdFormatter.format(totalBalance),
-      tokens: (userTokens || []) as TokenType[],
+      tokens: walletTokens || [],
     });
-  }, [wallet?.publicKey, getUserTokens]);
+  }, [wallet?.publicKey, walletTokens]);
 
   React.useEffect(() => {
     getWalletData();
@@ -218,27 +172,18 @@ const Wallet = ({
 
       {connected && (
         <Sheet open={isWalletOpen} onOpenChange={(open) => setIsWalletOpen(open)}>
-          <SheetTrigger asChild disabled={!userDataFetched || isLoading}>
-            <button
-              className="flex items-center gap-2 hover:bg-accent/50 transition-colors rounded-full py-1 sm:pr-3 sm:pl-1 text-sm text-muted-foreground font-normal shrink-0"
-              disabled={!userDataFetched || isLoading}
-            >
+          <SheetTrigger asChild>
+            <button className="flex items-center gap-2 hover:bg-accent/50 transition-colors rounded-full py-1 sm:pr-3 sm:pl-1 text-sm text-muted-foreground font-normal shrink-0">
               {wallet?.publicKey && <WalletAvatar pfp={pfp} address={wallet?.publicKey.toBase58()} size="sm" />}
 
-              {!userDataFetched || isLoading ? (
-                <div className="flex flex-col items-start">
-                  <span>Loading...</span>
+              <div className="flex flex-col items-start">
+                {shortenAddress(wallet?.publicKey)}
+                <div className="text-muted-foreground/70 text-xs">
+                  {accountLabels?.[selectedAccount?.address.toBase58() ?? "Account"]}
                 </div>
-              ) : (
-                <div className="flex flex-col items-start">
-                  {shortenAddress(wallet?.publicKey)}
-                  <div className="text-muted-foreground/70 text-xs">
-                    {accountLabels?.[selectedAccount?.address.toBase58() ?? "Account"]}
-                  </div>
-                </div>
-              )}
+              </div>
 
-              {!isLoading && userDataFetched && <IconChevronDown size={16} className="sm:ml-4 ml-2" />}
+              <IconChevronDown size={16} className="sm:ml-4 ml-2" />
             </button>
           </SheetTrigger>
           <SheetContent className="outline-none z-[50] px-4 bg-background border-0 pt-2">
@@ -256,12 +201,11 @@ const Wallet = ({
                       <p className="text-xs self-center text-muted-foreground ">Manage accounts</p>
 
                       <WalletAuthAccounts
-                        initialized={initialized}
                         mfiClient={mfiClient}
                         connection={connection}
                         marginfiAccounts={marginfiAccounts}
                         selectedAccount={selectedAccount}
-                        fetchMrgnlendState={refreshState}
+                        setSelectedAccount={setSelectedAccount}
                         processOpts={processOpts}
                         accountLabels={accountLabels}
                         fetchAccountLabels={fetchAccountLabels}
@@ -361,7 +305,9 @@ const Wallet = ({
                             <p className="flex items-center gap-1.5 text-muted-foreground text-sm">
                               Portfolio balance
                               <span className="flex items-center gap-1 text-primary">
-                                <strong className="font-medium">{usdFormatter.format(accountSummary.balance)}</strong>{" "}
+                                <strong className="font-medium">
+                                  {usdFormatter.format(accountSummary.balanceEquity)}
+                                </strong>{" "}
                                 <TooltipProvider>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
@@ -383,6 +329,7 @@ const Wallet = ({
                           <WalletTokens
                             className="h-[calc(100vh-325px)] pb-16"
                             tokens={walletData.tokens}
+                            isLoading={isLoadingUserBalances}
                             onTokenClick={(token) => {
                               setActiveToken(token);
                               setWalletTokenState(WalletState.TOKEN);
@@ -428,8 +375,7 @@ const Wallet = ({
                           <WalletSend
                             connection={connection}
                             activeToken={activeToken}
-                            extendedBankInfos={extendedBankInfos}
-                            nativeSolBalance={nativeSolBalance}
+                            walletTokens={walletData.tokens}
                             onSendMore={() => {
                               setWalletTokenState(WalletState.SEND);
                             }}
@@ -468,6 +414,7 @@ const Wallet = ({
                         <WalletTokens
                           className="h-[calc(100vh-210px)] mt-8"
                           tokens={walletData.tokens}
+                          isLoading={isLoadingUserBalances}
                           onTokenClick={(token) => {
                             setActiveToken(token);
                             setWalletTokenState(WalletState.SEND);
@@ -478,7 +425,7 @@ const Wallet = ({
                     {walletTokenState === WalletState.SWAP && (
                       <TabWrapper resetWalletState={resetWalletState}>
                         <div className="max-w-[590px] mx-auto px-3 transition-opacity" id="integrated-terminal"></div>
-                        <Swap initialInputMint={activeBank?.info.state.mint} />
+                        <Swap initialInputMint={activeToken?.mint} />
                       </TabWrapper>
                     )}
                     {walletTokenState === WalletState.BRIDGE && (

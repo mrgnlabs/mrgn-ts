@@ -15,7 +15,7 @@ import {
   STATUS_NOT_FOUND,
   STATUS_OK,
   firebaseApi,
-} from "@mrgnlabs/marginfi-v2-ui-state";
+} from "@mrgnlabs/mrgn-state";
 
 initFirebaseIfNeeded();
 

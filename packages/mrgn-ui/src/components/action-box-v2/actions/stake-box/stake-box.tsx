@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
 import { getPriceWithConfidence, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 import { dynamicNumeralFormatter, nativeToUi, NATIVE_MINT as SOL_MINT, uiToNative } from "@mrgnlabs/mrgn-common";
 import {

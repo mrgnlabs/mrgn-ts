@@ -1,7 +1,7 @@
 import { Connection } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
-import { ActiveBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo } from "@mrgnlabs/mrgn-state";
 import { SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import {
   ArenaGroupStatus,

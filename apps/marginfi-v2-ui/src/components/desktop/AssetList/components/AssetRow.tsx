@@ -1,50 +1,59 @@
 import React from "react";
+import { useRouter } from "next/navigation";
+
 import { Row, flexRender } from "@tanstack/react-table";
 
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { TableCell, TableRow } from "~/components/ui/table";
 
 import { getPositionCell } from "./AssetCells";
 import { AssetListModel } from "../utils";
-import { cn, PoolTypes } from "@mrgnlabs/mrgn-utils";
-import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 export const AssetRow = (row: Row<AssetListModel>) => {
+  const router = useRouter();
   const isPosition = React.useMemo(
-    () => row.original.position.walletAmount || row.original.position.positionAmount,
+    () =>
+      row.original.position.walletAmount || row.original.position.positionAmount || row.original.position.stakedAmount,
     [row.original.position]
   );
-  const [assetListSearch, poolFilter] = useUiStore((state) => [state.assetListSearch, state.poolFilter]);
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
-  const solPrice = React.useMemo(() => {
-    const solBank = extendedBankInfos.find((bank) => bank.info.state.mint.equals(WSOL_MINT));
-    return solBank?.info.oraclePrice.priceRealtime.price.toNumber() || null;
-  }, [extendedBankInfos]);
-
   const isStakedActivating = row.original.asset.stakePool && !row.original.asset.stakePool?.isActive;
 
-  if (
-    assetListSearch.length > 1 &&
-    !row.original.asset.name.toLowerCase().includes(assetListSearch.toLowerCase()) &&
-    !row.original.asset.symbol.toLowerCase().includes(assetListSearch.toLowerCase())
-  ) {
-    return null;
-  }
-
-  const visibleCells = row.getVisibleCells().filter((cell) => {
-    // Filter out rate column for native stake pool
-    if (poolFilter === PoolTypes.NATIVE_STAKE && cell.column.id === "rate") {
-      return false;
-    }
-    return true;
-  });
+  const visibleCells = row.getVisibleCells();
 
   return (
     <React.Fragment key={row.id}>
-      <TableRow key={row.id} className={cn(isStakedActivating && "opacity-50")}>
+      <TableRow
+        key={row.id}
+        className={cn("cursor-pointer group hover:bg-background-gray", isStakedActivating && "opacity-50")}
+        onClick={(e) => {
+          // disable asset row link for action box interaction
+          if (
+            e.target instanceof HTMLButtonElement ||
+            (e.target as Element).closest(".mfi-action-box") ||
+            (e.target as Element).classList.contains("mfi-action-box") ||
+            (e.target as Element).closest(".mfi-action-box-action") ||
+            (e.target as Element).classList.contains("mfi-action-box-action") ||
+            (e.target as Element).closest(".dialog-overlay") ||
+            (e.target as Element).classList.contains("dialog-overlay")
+          ) {
+            return;
+          }
+
+          router.push(`/banks/${row.original.asset.address.toBase58()}`);
+          document.body.scrollTo({ top: 0 });
+        }}
+      >
         {visibleCells.map((cell, idx) => (
-          <TableCell className={cn(!isPosition ? "pb-2 rounded-md" : "rounded-t-md")} key={cell.id}>
+          <TableCell
+            className={cn(
+              "group",
+              !isPosition && "pb-2",
+              idx === 0 && "rounded-l-md",
+              idx === visibleCells.length - 1 && "rounded-r-md"
+            )}
+            key={cell.id}
+          >
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </TableCell>
         ))}
@@ -53,7 +62,7 @@ export const AssetRow = (row: Row<AssetListModel>) => {
       {isPosition && (
         <TableRow>
           <TableCell showPadding={true} className={cn("rounded-b-md", "pb-2")} colSpan={visibleCells.length}>
-            {getPositionCell({ ...row.original.position, solPrice })}
+            {getPositionCell({ ...row.original.position })}
           </TableCell>
         </TableRow>
       )}

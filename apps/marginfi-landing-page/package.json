@@ -11,7 +11,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.4.0",
     "@mrgnlabs/marginfi-client-v2": "workspace:*",
-    "@mrgnlabs/marginfi-v2-ui-state": "workspace:*",
+    "@mrgnlabs/mrgn-state": "workspace:*",
     "@mrgnlabs/mrgn-common": "workspace:*",
     "@next/third-parties": "^15.1.7",
     "@radix-ui/react-accordion": "^1.1.2",
@@ -33,7 +33,7 @@
     "lodash.shuffle": "^4.2.0",
     "lottie-react": "^2.4.0",
     "millify": "^6.1.0",
-    "next": "14.2.21",
+    "next": "14.2.30",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.50.1",

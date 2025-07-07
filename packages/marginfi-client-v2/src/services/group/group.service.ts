@@ -2,12 +2,17 @@ import { PublicKey, StakeProgram, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction
 import BN from "bn.js";
 
 import { InstructionsWrapper, SINGLE_POOL_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
+import { FLASHLOAN_ENABLED_FLAG, TRANSFER_ACCOUNT_AUTHORITY_FLAG } from "~/constants";
+import instructions from "~/instructions";
+import { MarginfiProgram } from "~/types";
+import {
+  findPoolAddress,
+  findPoolStakeAddress,
+  findPoolMintAddress,
+  findPoolOnRampAddress,
+} from "~/vendor/single-spl-pool";
 
-import { FLASHLOAN_ENABLED_FLAG, TRANSFER_ACCOUNT_AUTHORITY_FLAG } from "../../constants";
-import instructions from "../../instructions";
-import { MarginfiProgram } from "../../types";
-import { BankConfigCompactRaw, BankConfigOpt, BankConfigOptRaw, serializeBankConfigOpt } from "../bank";
-import { findPoolAddress, findPoolMintAddress, findPoolOnRampAddress, findPoolStakeAddress } from "../../vendor";
+import { BankConfigOptRaw, BankConfigOpt, serializeBankConfigOpt, BankConfigCompactRaw } from "../bank";
 
 export async function makeEnableFlashLoanForAccountIx(
   program: MarginfiProgram,
@@ -134,6 +139,8 @@ export async function makeAddPermissionlessStakedBankIx(
     data,
   });
 
+  const remainingKeys = [pythOracle, lstMint, solPool];
+
   const ix = await instructions.makePoolAddPermissionlessStakedBankIx(
     program,
     {
@@ -143,30 +150,14 @@ export async function makeAddPermissionlessStakedBankIx(
       solPool,
       stakePool: poolAddress,
     },
-    [
-      {
-        pubkey: pythOracle,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: lstMint,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: solPool,
-        isSigner: false,
-        isWritable: false,
-      },
-    ],
+    remainingKeys.map((key) => ({ pubkey: key, isSigner: false, isWritable: false })),
     {
       seed: new BN(0),
     }
   );
 
   return {
-    instructions: [ix, onrampIx],
+    instructions: [ix],
     keys: [],
   };
 }

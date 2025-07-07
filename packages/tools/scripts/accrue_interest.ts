@@ -1,18 +1,16 @@
 import { Connection, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
-import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.2";
-import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi.json";
+import { Marginfi } from "@mrgnlabs/marginfi-client-v2/src/idl/marginfi-types_0.1.3";
+import marginfiIdl from "../../marginfi-client-v2/src/idl/marginfi_0.1.3.json";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import { loadKeypairFromFile } from "./utils";
 
 type Config = {
   PROGRAM_ID: string;
   BANK_KEY: PublicKey;
-  GROUP_KEY: PublicKey;
 };
 const config: Config = {
   PROGRAM_ID: "stag8sTKds2h4KzjUw3zKTsxbqvT4XKHdaR9X9E6Rct",
   BANK_KEY: new PublicKey("Fe5QkKPVAh629UPP5aJ8sDZu8HTfe6M26jDQkKyXVhoA"),
-  GROUP_KEY: new PublicKey("FCPfpHA69EbS8f9KKSreTRkXbzFpunsKuYf5qNmnJjpo"),
 };
 
 async function main() {
@@ -34,7 +32,6 @@ async function main() {
       .lendingPoolAccrueBankInterest()
       .accounts({
         bank: config.BANK_KEY,
-        marginfiGroup: config.GROUP_KEY,
       })
       .instruction()
   );

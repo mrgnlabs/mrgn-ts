@@ -1,4 +1,4 @@
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { WalletToken } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 

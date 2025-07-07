@@ -2,7 +2,7 @@ import React from "react";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 
 import { cn, capture, ArenaGroupStatus, TradeSide } from "@mrgnlabs/mrgn-utils";
-import { ActiveBankInfo, ActionType, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo, ActionType, AccountSummary } from "@mrgnlabs/mrgn-state";
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
 

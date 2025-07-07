@@ -1,4 +1,4 @@
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType } from "@mrgnlabs/mrgn-state";
 
 type WalletActivity = {
   id: string;

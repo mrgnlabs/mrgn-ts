@@ -14,7 +14,7 @@ import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { ActionBox } from "~/components/action-box-v2";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 const getActivityText = (activity: WalletActivity) => {

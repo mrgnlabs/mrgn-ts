@@ -2,7 +2,7 @@ import Image from "next/image";
 import { IconArrowRight, IconAlertTriangle } from "@tabler/icons-react";
 
 import { getPriceWithConfidence } from "@mrgnlabs/marginfi-client-v2";
-import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import {
   dynamicNumeralFormatter,
   numeralFormatter,

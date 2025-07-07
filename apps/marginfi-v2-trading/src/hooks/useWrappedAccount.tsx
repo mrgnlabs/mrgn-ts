@@ -1,7 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, computeAccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, computeAccountSummary } from "@mrgnlabs/mrgn-state";
 
 import { useTradeStoreV2 } from "~/store";
 
@@ -23,7 +23,7 @@ export function useWrappedAccount({ client, groupPk, banks }: UseWrappedAccountP
   const wrappedAccount =
     client && marginfiAccount ? new MarginfiAccountWrapper(marginfiAccount.address, client, marginfiAccount) : null;
 
-  const accountSummary = wrappedAccount ? computeAccountSummary(wrappedAccount, banks) : null;
+  const accountSummary = wrappedAccount ? computeAccountSummary(wrappedAccount) : null;
 
   return { wrappedAccount, accountSummary };
 }
