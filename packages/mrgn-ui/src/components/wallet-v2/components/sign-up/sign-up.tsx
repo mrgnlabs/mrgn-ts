@@ -2,7 +2,7 @@ import React from "react";
 import { useRouter } from "next/router";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 import { Dialog, DialogContent } from "~/components/ui/dialog";
 import { useOs, useBrowser, cn } from "@mrgnlabs/mrgn-utils";

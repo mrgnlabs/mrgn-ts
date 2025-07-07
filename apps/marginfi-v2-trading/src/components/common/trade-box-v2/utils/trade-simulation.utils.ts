@@ -1,7 +1,7 @@
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ActionMessageType, handleSimulationError, TradeActionTxns } from "@mrgnlabs/mrgn-utils";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
-import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary } from "@mrgnlabs/mrgn-state";
 
 import { ArenaBank } from "~/types/trade-store.types";
 import {

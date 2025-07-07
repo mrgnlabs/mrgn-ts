@@ -6,7 +6,7 @@ import Image from "next/image";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { EmodePair, EmodeTag } from "@mrgnlabs/marginfi-client-v2";
 import { percentFormatterMod } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { cn, getAssetWeightData, getEmodeStrategies } from "@mrgnlabs/mrgn-utils";
 import { useDebounce } from "@uidotdev/usehooks";
 
@@ -35,6 +35,7 @@ interface EmodePopoverProps {
   }[];
   triggerType?: "weight" | "tag";
   showActiveOnly?: boolean;
+  iconSize?: "base" | "lg";
 }
 
 export const EmodePopover = ({
@@ -49,6 +50,7 @@ export const EmodePopover = ({
   liabilityBanks,
   triggerType = "weight",
   showActiveOnly = false,
+  iconSize = "base",
 }: EmodePopoverProps) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [shouldClose, setShouldClose] = React.useState(false);
@@ -113,16 +115,16 @@ export const EmodePopover = ({
           onMouseLeave={handleMouseLeave}
         >
           {emodeActive ? (
-            <IconEmodeSimple size={20} />
+            <IconEmodeSimple size={iconSize === "base" ? 20 : 28} />
           ) : isAvailableForEmode ? (
-            <IconEmodeSimpleInactive size={18} />
+            <IconEmodeSimpleInactive size={iconSize === "base" ? 18 : 26} />
           ) : (
             <></>
           )}
           <span className="min-w-[33px] text-right mr-1.5 ml-0.5">
             {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}
           </span>
-          <IconInfoCircle size={13} className={cn(emodeActive && "text-mfi-emode")} />
+          <IconInfoCircle size={iconSize === "base" ? 13 : 20} className={cn(emodeActive && "text-mfi-emode")} />
         </PopoverTrigger>
       ) : (
         <PopoverTrigger
@@ -131,7 +133,11 @@ export const EmodePopover = ({
           onMouseLeave={handleMouseLeave}
         >
           <div className="min-w-[33px] text-right mr-1.5">
-            {emodeActive ? <IconEmodeSimple size={18} /> : <IconEmodeSimpleInactive size={18} />}
+            {emodeActive ? (
+              <IconEmodeSimple size={iconSize === "base" ? 18 : 26} />
+            ) : (
+              <IconEmodeSimpleInactive size={iconSize === "base" ? 18 : 26} />
+            )}
           </div>
         </PopoverTrigger>
       )}

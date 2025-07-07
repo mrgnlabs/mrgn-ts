@@ -8,13 +8,13 @@ import { Pagination, Navigation, EffectFade } from "swiper/modules";
 import { useSwiper } from "swiper/react";
 import { IconX, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
-import { useMrgnlendStore } from "~/store";
 import { Button } from "~/components/ui/button";
 import { IconEmode, IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
 import { useWallet } from "~/components/wallet-v2/hooks/use-wallet.hook";
 import { EmodePair } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { EmodeTable } from "~/components/common/emode/components/emode-table";
+import { useEmode, useExtendedBanks } from "@mrgnlabs/mrgn-state";
 
 type AnnouncementSlideProps = {
   title: string;
@@ -297,10 +297,8 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
   const [currentSlide, setCurrentSlide] = React.useState(0);
   const [tableResetKey, setTableResetKey] = React.useState(1);
   const { connected } = useWallet();
-  const [userActiveEmodes, extendedBankInfos] = useMrgnlendStore((state) => [
-    state.userActiveEmodes,
-    state.extendedBankInfos,
-  ]);
+  const { extendedBanks } = useExtendedBanks();
+  const { activeEmodePairs } = useEmode();
 
   const prevSlideRef = React.useRef(currentSlide);
 
@@ -387,9 +385,9 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
               onClose={onClose}
               currentSlide={currentSlide}
               totalSlides={slides.length}
-              userActiveEmodes={userActiveEmodes}
+              userActiveEmodes={activeEmodePairs}
               connected={connected}
-              banks={extendedBankInfos}
+              banks={extendedBanks}
               tableResetKey={tableResetKey}
             />
           </SwiperSlide>

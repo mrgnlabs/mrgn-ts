@@ -1,11 +1,13 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { cn, formatAmount, LendSelectionGroups, useIsMobile } from "@mrgnlabs/mrgn-utils";
 import { tokenPriceFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { Input } from "~/components/ui/input";
 import { LendingAction, BankSelect } from "./components";
+import { PublicKey } from "@solana/web3.js";
+import { ValidatorStakeGroup } from "@mrgnlabs/marginfi-client-v2";
 
 type ActionInputProps = {
   amountRaw: string;
@@ -22,10 +24,9 @@ type ActionInputProps = {
   showTokenSelection?: boolean;
   selectionGroups?: LendSelectionGroups[];
   isMini?: boolean;
-
-  searchMode?: boolean;
-  onCloseDialog?: () => void;
-
+  selectedStakeAccount?: PublicKey;
+  stakePoolMetadata?: StakePoolMetadata;
+  onStakeAccountChange: (stakeAccount: { address: PublicKey; balance: number }) => void;
   setAmountRaw: (amount: string) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
 };
@@ -44,8 +45,9 @@ export const ActionInput = ({
   amount,
   selectedBank,
   lendMode,
-  searchMode,
-  onCloseDialog,
+  selectedStakeAccount,
+  stakePoolMetadata,
+  onStakeAccountChange,
   setAmountRaw,
   setSelectedBank,
 }: ActionInputProps) => {
@@ -109,10 +111,7 @@ export const ActionInput = ({
             nativeSolBalance={nativeSolBalance}
             lendMode={lendMode}
             connected={connected}
-            isInitialOpen={searchMode}
-            onCloseDialog={() => {
-              selectedBank === null && onCloseDialog?.();
-            }}
+            stakePoolMetadata={stakePoolMetadata}
           />
         </div>
         <div className="flex-auto flex flex-col gap-0 items-end">
@@ -139,6 +138,8 @@ export const ActionInput = ({
         onSetAmountRaw={(amount) => handleInputChange(amount)}
         selectedBank={selectedBank}
         lendMode={lendMode}
+        selectedStakeAccount={selectedStakeAccount}
+        onStakeAccountChange={onStakeAccountChange}
       />
     </div>
   );

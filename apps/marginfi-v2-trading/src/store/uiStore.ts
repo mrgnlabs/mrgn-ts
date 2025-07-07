@@ -1,7 +1,7 @@
 import { create, StateCreator } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType } from "@mrgnlabs/mrgn-state";
 
 import { LendingModes } from "~/types";
 import {

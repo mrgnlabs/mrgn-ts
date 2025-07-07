@@ -1,26 +1,28 @@
 import React from "react";
 
 import Link from "next/link";
+import { PublicKey } from "@solana/web3.js";
 
-import { ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, useExtendedBanks, useRefreshUserData } from "@mrgnlabs/mrgn-state";
 import { LendingModes } from "@mrgnlabs/mrgn-utils";
 import { ActionBox } from "@mrgnlabs/mrgn-ui";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
 
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useUiStore } from "~/store";
 
 import { PageHeading } from "~/components/common/PageHeading";
-
 import { Button } from "~/components/ui/button";
 
 export default function StakedAssetsPage() {
   const { walletContextState, connected } = useWallet();
   const [lendingMode] = useUiStore((state) => [state.lendingMode]);
-  const [fetchMrgnlendState, stakedAssetBankInfos, stakeAccounts] = useMrgnlendStore((state) => [
-    state.fetchMrgnlendState,
-    state.stakedAssetBankInfos,
-    state.stakeAccounts,
-  ]);
+
+  const refreshUserData = useRefreshUserData();
+  const { extendedBanks } = useExtendedBanks();
+  const stakedAssetBanks = React.useMemo(
+    () => extendedBanks.filter((bank) => bank.info.rawBank.config.assetTag === 2),
+    [extendedBanks]
+  );
 
   return (
     <div className="flex flex-col justify-center items-center px-4 max-w-7xl mx-auto w-full">
@@ -45,13 +47,12 @@ export default function StakedAssetsPage() {
         <ActionBox.Lend
           useProvider={true}
           lendProps={{
-            banks: stakedAssetBankInfos,
+            banks: stakedAssetBanks,
             requestedLendType: lendingMode === LendingModes.LEND ? ActionType.Deposit : ActionType.Borrow,
             connected: connected,
             walletContextState: walletContextState,
-            stakeAccounts,
-            onComplete: () => {
-              fetchMrgnlendState();
+            onComplete: (newAccountKey?: PublicKey) => {
+              refreshUserData({ newAccountKey });
             },
           }}
         />

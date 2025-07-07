@@ -3,7 +3,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import BigNumber from "bignumber.js";
 
-import { TokenAccountMap } from "@mrgnlabs/marginfi-v2-ui-state";
+import { TokenAccountMap } from "@mrgnlabs/mrgn-state";
 import {
   getConfig,
   OraclePrice,

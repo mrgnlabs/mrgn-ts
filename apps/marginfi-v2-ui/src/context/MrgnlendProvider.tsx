@@ -1,34 +1,39 @@
 import React from "react";
 import { useRouter } from "next/router";
+import { identify } from "@mrgnlabs/mrgn-utils";
 
-import { getTransactionStrategy, identify } from "@mrgnlabs/mrgn-utils";
-import { useWallet } from "@mrgnlabs/mrgn-ui";
-
-import config from "~/config/marginfi";
-import { useMrgnlendStore, useUiStore } from "~/store";
-import { useConnection } from "~/hooks/use-connection";
-
-// @ts-ignore - Safe because context hook checks for null
-const MrgnlendContext = React.createContext<>();
+import { ActionBoxProvider, AuthDialog, useWallet } from "@mrgnlabs/mrgn-ui";
+import { useUiStore } from "~/store";
+import {
+  useExtendedBanks,
+  useMarginfiAccountAddresses,
+  useMarginfiClient,
+  useNativeStakeData,
+  useUserBalances,
+  useUserStakeAccounts,
+  useWrappedMarginfiAccount,
+  WalletStateProvider,
+} from "@mrgnlabs/mrgn-state";
 
 export const MrgnlendProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   const router = useRouter();
-  const debounceId = React.useRef<NodeJS.Timeout | null>(null);
-  const { wallet, isOverride, connected } = useWallet();
-  const { connection } = useConnection();
-  const [fetchMrgnlendState, setIsRefreshingStore, resetUserData, marginfiAccounts] = useMrgnlendStore((state) => [
-    state.fetchMrgnlendState,
-    state.setIsRefreshingStore,
-    state.resetUserData,
+  const { wallet, walletAddress } = useWallet();
 
-    state.marginfiAccounts,
-  ]);
-  const [fetchPriorityFee, fetchAccountLabels] = useUiStore((state) => [
+  const { extendedBanks } = useExtendedBanks();
+  const { stakePoolMetadataMap } = useNativeStakeData();
+  const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(wallet);
+  const { data: marginfiAccounts, isSuccess: isSuccessMarginfiAccounts } = useMarginfiAccountAddresses();
+  const { data: userBalances } = useUserBalances();
+  const { data: stakeAccounts } = useUserStakeAccounts();
+  const { marginfiClient } = useMarginfiClient(wallet);
+
+  const [fetchPriorityFee, fetchAccountLabels, accountLabels, setDisplaySettings] = useUiStore((state) => [
     state.fetchPriorityFee,
     state.fetchAccountLabels,
     state.accountLabels,
+    state.setDisplaySettings,
   ]);
 
   const [hasFetchedAccountLabels, setHasFetchedAccountLabels] = React.useState(false);
@@ -52,64 +57,39 @@ export const MrgnlendProvider: React.FC<{
 
     localStorage.setItem("mfiAccount", account as string);
     router.replace(router.pathname, undefined, { shallow: true });
-    fetchMrgnlendState();
   }, [router.query]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  React.useEffect(() => {
-    const initializeAndFetch = () => {
-      setIsRefreshingStore(true);
-      fetchPriorityFee(connection);
-      fetchMrgnlendState({
-        marginfiConfig: config.mfiConfig,
-        stageTokens: process.env.NEXT_PUBLIC_STAGE_TOKENS
-          ? JSON.parse(process.env.NEXT_PUBLIC_STAGE_TOKENS)
-          : undefined,
-        connection,
-        wallet,
-        isOverride,
-        processTransactionStrategy: getTransactionStrategy(),
-      }).catch(console.error);
-    };
-
-    const periodicFetch = () => {
-      console.log("🔄 Periodically fetching marginfi state");
-      setIsRefreshingStore(true);
-      fetchPriorityFee(connection);
-      fetchMrgnlendState().catch(console.error);
-    };
-
-    if (debounceId.current) {
-      clearTimeout(debounceId.current);
-    }
-
-    debounceId.current = setTimeout(initializeAndFetch, 1000);
-
-    // Periodic updates without needing full configuration
-    const intervalId = setInterval(periodicFetch, 30_000);
-
-    return () => {
-      if (debounceId.current) {
-        clearTimeout(debounceId.current);
-      }
-      clearInterval(intervalId);
-    };
-  }, [wallet, isOverride]); // eslint-disable-line react-hooks/exhaustive-deps
-  // ^ crucial to omit both `connection` and `fetchMrgnlendState` from the dependency array
-  // TODO: fix...
-
-  React.useEffect(() => {
-    if (!connected) {
-      resetUserData();
-    }
-  }, [connected, resetUserData]);
 
   // Fetch account labels
   React.useEffect(() => {
-    if (marginfiAccounts.length > 0 && !hasFetchedAccountLabels) {
+    if (marginfiAccounts && marginfiAccounts.length > 0 && isSuccessMarginfiAccounts) {
       setHasFetchedAccountLabels(true);
       fetchAccountLabels(marginfiAccounts);
     }
-  }, [marginfiAccounts, fetchAccountLabels, hasFetchedAccountLabels]);
+  }, [marginfiAccounts, isSuccessMarginfiAccounts, fetchAccountLabels]);
 
-  return <MrgnlendContext.Provider value={{}}>{children}</MrgnlendContext.Provider>;
+  return (
+    <WalletStateProvider walletAddress={walletAddress}>
+      <ActionBoxProvider
+        banks={extendedBanks}
+        nativeSolBalance={userBalances?.nativeSolBalance ?? 0}
+        marginfiClient={marginfiClient ?? null}
+        selectedAccount={selectedAccount}
+        connected={false}
+        setDisplaySettings={setDisplaySettings}
+        stakePoolMetadataMap={stakePoolMetadataMap}
+        stakeAccounts={stakeAccounts ?? []}
+      >
+        {children}
+
+        <AuthDialog
+          mrgnState={{
+            marginfiClient: marginfiClient ?? null,
+            selectedAccount,
+            extendedBankInfos: extendedBanks,
+            nativeSolBalance: userBalances?.nativeSolBalance ?? 0,
+          }}
+        />
+      </ActionBoxProvider>
+    </WalletStateProvider>
+  );
 };

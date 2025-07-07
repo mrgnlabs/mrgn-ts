@@ -1,6 +1,5 @@
 import React from "react";
-
-import { Transaction, VersionedTransaction } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { v4 as uuidv4 } from "uuid";
 
 import {
@@ -10,7 +9,7 @@ import {
   percentFormatter,
   SolanaTransaction,
 } from "@mrgnlabs/mrgn-common";
-import { AccountSummary, ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ActiveBankInfo, ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import {
   ActionMessageType,
   captureSentryException,
@@ -34,12 +33,12 @@ import { toastManager } from "@mrgnlabs/mrgn-toasts";
 
 interface MovePositionDialogProps {
   selectedAccount: MarginfiAccountWrapper | null;
-  marginfiAccounts: MarginfiAccountWrapper[];
+  marginfiAccounts: PublicKey[];
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   bank: ActiveBankInfo;
   marginfiClient: MarginfiClient | null;
-  fetchMrgnlendState: () => Promise<void>;
+  fetchMrgnlendState: () => void;
   extendedBankInfos: ExtendedBankInfo[];
   nativeSolBalance: number;
   accountSummary: AccountSummary | null;
@@ -59,7 +58,7 @@ export const MovePositionDialog = ({
   accountSummary,
   accountLabels,
 }: MovePositionDialogProps) => {
-  const [accountToMoveTo, setAccountToMoveTo] = React.useState<MarginfiAccountWrapper | null>(null);
+  const [accountToMoveTo, setAccountToMoveTo] = React.useState<PublicKey | null>(null);
   const [actionTxns, setActionTxns] = React.useState<SolanaTransaction[]>([]);
   const [isExecutionLoading, setIsExecutionLoading] = React.useState<boolean>(false);
   const [isSimulationLoading, setIsSimulationLoading] = React.useState<boolean>(false);
@@ -112,12 +111,12 @@ export const MovePositionDialog = ({
       nativeSolBalance: nativeSolBalance,
       banks: extendedBankInfos,
       lendMode: ActionType.Deposit,
-      marginfiAccount: accountToMoveTo!,
+      marginfiAccount: null,
     }).filter((result) => !/^Insufficient .* in wallet\.$/.test(result.description ?? ""));
     // filtering out insufficient balance messages since the user will always have enough balance after withdrawing
 
     return [...withdrawActionResult, ...depositActionResult];
-  }, [bank, selectedAccount, extendedBankInfos, accountToMoveTo, nativeSolBalance]);
+  }, [bank, selectedAccount, extendedBankInfos, nativeSolBalance]);
 
   React.useEffect(() => {
     if (errorMessage && errorMessage.description) {
@@ -149,7 +148,7 @@ export const MovePositionDialog = ({
       txOpts: {},
       infoProps: {
         originAccountAddress: shortenAddress(selectedAccount?.address.toBase58() ?? ""),
-        destinationAccountAddress: shortenAddress(accountToMoveTo?.address.toBase58() ?? ""),
+        destinationAccountAddress: shortenAddress(accountToMoveTo?.toBase58() ?? ""),
       },
       callbacks: {
         onComplete: () => {
@@ -215,31 +214,27 @@ export const MovePositionDialog = ({
               <span className="text-muted-foreground">Select account to move position to:</span>
               <Select
                 onValueChange={(value) => {
-                  setAccountToMoveTo(marginfiAccounts.find((account) => account.address.toBase58() === value) || null);
+                  setAccountToMoveTo(marginfiAccounts.find((account) => account.toBase58() === value) || null);
                 }}
               >
                 <SelectTrigger className="w-max">
                   {accountToMoveTo
-                    ? accountLabels?.[accountToMoveTo?.address.toBase58()]
-                      ? accountLabels[accountToMoveTo?.address.toBase58()]
+                    ? accountLabels?.[accountToMoveTo?.toBase58()]
+                      ? accountLabels[accountToMoveTo?.toBase58()]
                       : `Account ${
-                          marginfiAccounts.findIndex(
-                            (acc) => acc.address.toBase58() === accountToMoveTo?.address.toBase58()
-                          ) + 1
+                          marginfiAccounts.findIndex((acc) => acc.toBase58() === accountToMoveTo?.toBase58()) + 1
                         }`
                     : "Select account"}
                 </SelectTrigger>
                 <SelectContent>
                   {marginfiAccounts
-                    ?.filter((acc) => acc.address.toBase58() !== selectedAccount?.address.toBase58())
+                    ?.filter((acc) => acc.toBase58() !== selectedAccount?.address.toBase58())
                     .map((account, i) => (
-                      <SelectItem key={i} value={account.address.toBase58()}>
-                        {accountLabels?.[account.address.toBase58()]
-                          ? accountLabels[account.address.toBase58()]
+                      <SelectItem key={i} value={account.toBase58()}>
+                        {accountLabels?.[account.toBase58()]
+                          ? accountLabels[account.toBase58()]
                           : `Account ${
-                              marginfiAccounts.findIndex(
-                                (_acc) => _acc.address.toBase58() === account?.address.toBase58()
-                              ) + 1
+                              marginfiAccounts.findIndex((_acc) => _acc.toBase58() === account?.toBase58()) + 1
                             }`}
                       </SelectItem>
                     ))}

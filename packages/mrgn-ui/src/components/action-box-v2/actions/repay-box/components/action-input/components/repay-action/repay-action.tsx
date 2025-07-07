@@ -1,7 +1,7 @@
 import React from "react";
 import { IconArrowRight } from "@tabler/icons-react";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 type RepayActionProps = {

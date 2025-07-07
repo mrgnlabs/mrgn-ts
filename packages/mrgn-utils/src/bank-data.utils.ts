@@ -1,3 +1,6 @@
+import { PublicKey } from "@solana/web3.js";
+import BigNumber from "bignumber.js";
+
 import {
   getPriceWithConfidence,
   OracleSetup,
@@ -6,16 +9,17 @@ import {
   EmodePair,
   PriceBias,
   getPrice,
+  ValidatorStakeGroup,
 } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, Emissions, StakePoolMetadata } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, Emissions, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { aprToApy, nativeToUi, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { isBankOracleStale } from "./mrgnUtils";
-import BigNumber from "bignumber.js";
 
 export const REDUCE_ONLY_BANKS = ["stSOL", "RLB"];
 
 export interface AssetData {
+  address: PublicKey;
   symbol: string;
   name: string;
   image: string;
@@ -43,6 +47,8 @@ export interface RateData {
   rateAPY: number;
   symbol: string;
   isInLendingMode: boolean;
+  bankAddress: PublicKey;
+  mintAddress: PublicKey;
 }
 
 export interface AssetPriceData {
@@ -84,6 +90,8 @@ export interface DepositsData {
   symbol: string;
   isInLendingMode: boolean;
   isStakedAsset: boolean;
+  bankAddress: PublicKey;
+  mintAddress: PublicKey;
 }
 
 export interface BankCapData {
@@ -102,6 +110,7 @@ export interface PositionData {
   solPrice: number | null;
   assetTag: number;
   walletAmount: number;
+  stakedAmount?: number;
   symbol: string;
   positionAmount?: number;
   positionUsd?: number;
@@ -124,10 +133,10 @@ export const getAssetData = (
   }[]
 ): AssetData => {
   return {
+    address: bank.address,
     symbol: bank.meta.tokenSymbol,
     name: bank.meta.tokenName,
     image: bank.meta.tokenLogoUri,
-    stakePool: bank.meta.stakePool,
     hasEmode: bank.info.state.hasEmode,
     emodeTag: bank.info.state.hasEmode ? EmodeTag[bank.info.rawBank.emode.emodeTag] : "",
     isInLendingMode,
@@ -167,6 +176,8 @@ export const getRateData = (bank: ExtendedBankInfo, isInLendingMode: boolean): R
     rateAPY,
     symbol: bank.meta.tokenSymbol,
     isInLendingMode,
+    bankAddress: bank.address,
+    mintAddress: bank.info.rawBank.mint,
   };
 };
 
@@ -309,6 +320,8 @@ export const getDepositsData = (bank: ExtendedBankInfo, isInLendingMode: boolean
     symbol: bank.meta.tokenSymbol,
     isInLendingMode,
     isStakedAsset,
+    bankAddress: bank.address,
+    mintAddress: bank.info.rawBank.mint,
   };
 };
 
@@ -336,14 +349,15 @@ export const getPositionData = (
   bank: ExtendedBankInfo,
   nativeSolBalance: number,
   isInLendingMode: boolean,
-  solPrice: number | null
+  solPrice: number | null,
+  validatorStakeGroup?: ValidatorStakeGroup
 ): PositionData => {
   let positionAmount,
     liquidationPrice,
     positionUsd,
     isUserPositionPoorHealth = false;
 
-  const walletAmount = bank.info.state.mint.equals(WSOL_MINT)
+  let walletAmount = bank.info.state.mint.equals(WSOL_MINT)
     ? bank.userInfo.tokenAccount.balance + nativeSolBalance
     : bank.userInfo.tokenAccount.balance;
 
@@ -374,6 +388,7 @@ export const getPositionData = (
     symbol: bank.meta.tokenSymbol,
     assetTag: bank.info.rawBank.config.assetTag,
     denominationUSD: false,
+    stakedAmount: validatorStakeGroup?.totalStake,
     solPrice,
   };
 

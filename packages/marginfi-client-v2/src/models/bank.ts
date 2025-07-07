@@ -96,10 +96,61 @@ class Bank implements BankType {
     return Bank.fromAccountParsed(bankPk, accountParsed, feedIdMap);
   }
 
+  static fromBankType(bankType: BankType): Bank {
+    const config = new BankConfig(
+      bankType.config.assetWeightInit,
+      bankType.config.assetWeightMaint,
+      bankType.config.liabilityWeightInit,
+      bankType.config.liabilityWeightMaint,
+      bankType.config.depositLimit,
+      bankType.config.borrowLimit,
+      bankType.config.riskTier,
+      bankType.config.totalAssetValueInitLimit,
+      bankType.config.assetTag,
+      bankType.config.oracleSetup,
+      bankType.config.oracleKeys,
+      bankType.config.oracleMaxAge,
+      bankType.config.interestRateConfig,
+      bankType.config.operationalState
+    );
+    return new Bank(
+      bankType.address,
+      bankType.mint,
+      bankType.mintDecimals,
+      bankType.group,
+      bankType.assetShareValue,
+      bankType.liabilityShareValue,
+      bankType.liquidityVault,
+      bankType.liquidityVaultBump,
+      bankType.liquidityVaultAuthorityBump,
+      bankType.insuranceVault,
+      bankType.insuranceVaultBump,
+      bankType.insuranceVaultAuthorityBump,
+      bankType.collectedInsuranceFeesOutstanding,
+      bankType.feeVault,
+      bankType.feeVaultBump,
+      bankType.feeVaultAuthorityBump,
+      bankType.collectedGroupFeesOutstanding,
+      bankType.lastUpdate,
+      config,
+      bankType.totalAssetShares,
+      bankType.totalLiabilityShares,
+      bankType.emissionsActiveBorrowing,
+      bankType.emissionsActiveLending,
+      bankType.emissionsRate,
+      bankType.emissionsMint,
+      bankType.emissionsRemaining,
+      bankType.oracleKey,
+      bankType.emode,
+      bankType.pythShardId,
+      bankType.tokenSymbol
+    );
+  }
+
   static fromAccountParsed(
     address: PublicKey,
     accountParsed: BankRaw,
-    feedIdMap: PythPushFeedIdMap,
+    feedIdMap?: PythPushFeedIdMap,
     bankMetadata?: BankMetadata
   ): Bank {
     const props = parseBankRaw(address, accountParsed, feedIdMap, bankMetadata);

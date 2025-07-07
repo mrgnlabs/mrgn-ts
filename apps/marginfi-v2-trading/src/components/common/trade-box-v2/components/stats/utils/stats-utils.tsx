@@ -1,5 +1,5 @@
 import { MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary } from "@mrgnlabs/mrgn-state";
 import { percentFormatter, tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 import { TradeActionTxns } from "@mrgnlabs/mrgn-utils";
 import Link from "next/link";

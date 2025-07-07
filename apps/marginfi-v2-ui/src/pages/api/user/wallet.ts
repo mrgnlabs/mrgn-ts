@@ -1,5 +1,5 @@
 import { NextApiResponse } from "next";
-import { STATUS_BAD_REQUEST, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
+import { STATUS_BAD_REQUEST, STATUS_OK } from "@mrgnlabs/mrgn-state";
 import { WalletToken } from "@mrgnlabs/mrgn-common";
 import { NextApiRequest } from "../utils";
 import { PublicKey } from "@solana/web3.js";
@@ -42,26 +42,29 @@ export default async function handler(req: NextApiRequest<WalletRequest>, res: N
     if (!success || !data) {
       throw new Error("Invalid response from Birdeye API");
     }
-    
+
     const tokens: WalletToken[] = (
       await Promise.all(
-        data.items.filter((item: any) => item.name !== null && item.symbol !== null).slice(0, 20).map(async (item: any) => {
-          const mint = new PublicKey(item.address);
-          const owner = new PublicKey(ownerAddress);
-          const ata = getAssociatedTokenAddressSync(mint, owner);
+        data.items
+          .filter((item: any) => item.name !== null && item.symbol !== null)
+          .slice(0, 20)
+          .map(async (item: any) => {
+            const mint = new PublicKey(item.address);
+            const owner = new PublicKey(ownerAddress);
+            const ata = getAssociatedTokenAddressSync(mint, owner);
 
-          return {
-            address: item.address,
-            name: item.name,
-            symbol: item.symbol,
-            price: item.priceUsd,
-            value: item.valueUsd,
-            logoUri: item.logoURI,
-            balance: item.uiAmount,
-            ata: ata.toBase58(),
-            mintDecimals: item.decimals,
-          };
-        })
+            return {
+              address: item.address,
+              name: item.name,
+              symbol: item.symbol,
+              price: item.priceUsd,
+              value: item.valueUsd,
+              logoUri: item.logoURI,
+              balance: item.uiAmount,
+              ata: ata.toBase58(),
+              mintDecimals: item.decimals,
+            };
+          })
       )
     ).sort((a, b) => b.value - a.value);
 

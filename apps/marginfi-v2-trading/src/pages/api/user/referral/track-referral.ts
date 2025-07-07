@@ -1,7 +1,7 @@
 import { NextApiResponse } from "next";
 import { initFirebaseIfNeeded, trackReferral } from "../utils";
 import { NextApiRequest } from "../../utils";
-import { STATUS_INTERNAL_ERROR, STATUS_NOT_FOUND, STATUS_BAD_REQUEST, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
+import { STATUS_INTERNAL_ERROR, STATUS_NOT_FOUND, STATUS_BAD_REQUEST, STATUS_OK } from "@mrgnlabs/mrgn-state";
 
 initFirebaseIfNeeded();
 

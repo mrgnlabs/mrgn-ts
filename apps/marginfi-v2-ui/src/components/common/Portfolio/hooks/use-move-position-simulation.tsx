@@ -1,10 +1,13 @@
 import React from "react";
+import { PublicKey } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { getSimulationResult, simulatedHealthFactor } from "../utils/move-position.utils";
 import { ActionMessageType } from "@mrgnlabs/mrgn-utils";
 import { SolanaTransaction } from "@mrgnlabs/mrgn-common";
+
+import { getSimulationResult, simulatedHealthFactor } from "../utils/move-position.utils";
+import { AccountSummary, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
+import { ActiveBankInfo } from "@mrgnlabs/mrgn-state";
 
 interface ActionSummary {
   health: number;
@@ -15,7 +18,7 @@ type MovePositionSimulationProps = {
   actionTxns: SolanaTransaction[] | null;
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
-  accountToMoveTo: MarginfiAccountWrapper | null;
+  accountToMoveTo: PublicKey | null;
   extendedBankInfos: ExtendedBankInfo[];
   activeBank: ActiveBankInfo;
   accountSummary: AccountSummary | null;
@@ -51,7 +54,7 @@ export const useMoveSimulation = ({
       const { transactions } = await selectedAccount.makeMovePositionTx(
         activeBank.position.amount,
         activeBank.address,
-        accountToMoveTo
+        new PublicKey(accountToMoveTo)
       );
       return [...transactions];
     } catch (error) {

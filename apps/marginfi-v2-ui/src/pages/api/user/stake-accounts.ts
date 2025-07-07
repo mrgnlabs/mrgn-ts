@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { getStakeAccounts } from "@mrgnlabs/marginfi-v2-ui-state";
 import { Connection, PublicKey } from "@solana/web3.js";
+import { fetchNativeStakeAccounts } from "@mrgnlabs/marginfi-client-v2";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { address } = req.query;
@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
     const addressPk = new PublicKey(address);
 
-    const stakeAccounts = await getStakeAccounts(connection, addressPk);
+    const stakeAccounts = await fetchNativeStakeAccounts(connection, addressPk);
 
     // cache for 4 minutes
     // res.setHeader("Cache-Control", "s-maxage=240, stale-while-revalidate=59");

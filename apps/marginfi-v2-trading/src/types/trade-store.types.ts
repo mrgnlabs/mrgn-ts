@@ -1,4 +1,4 @@
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { ArenaGroupStatus } from "@mrgnlabs/mrgn-utils";
 
 import { PublicKey } from "@solana/web3.js";

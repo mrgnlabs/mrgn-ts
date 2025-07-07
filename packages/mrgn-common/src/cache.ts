@@ -5,9 +5,11 @@ import { object, string, number, array, Infer, assert, optional } from "superstr
 // ----------------------------------------------------------------------------
 
 interface TokenMetadata {
+  address: string;
   icon?: string;
   name: string;
   symbol: string;
+  decimals: number;
 }
 
 const TokenMetadataRaw = object({
@@ -26,9 +28,11 @@ type TokenMetadataListRaw = Infer<typeof TokenMetadataList>;
 
 function parseTokenMetadata(tokenMetadataRaw: TokenMetadataRaw): TokenMetadata {
   return {
+    address: tokenMetadataRaw.address,
     icon: tokenMetadataRaw.logoURI,
     name: tokenMetadataRaw.name,
     symbol: tokenMetadataRaw.symbol,
+    decimals: tokenMetadataRaw.decimals,
   };
 }
 

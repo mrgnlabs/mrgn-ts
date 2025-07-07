@@ -1,0 +1,12 @@
+{
+  "extends": "@mrgnlabs/tsconfig/base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "jsx": "preserve",
+    "downlevelIteration": true,
+    "lib": ["dom"],
+    "resolveJsonModule": true
+  },
+  "include": ["."],
+  "exclude": ["dist", "node_modules"]
+}

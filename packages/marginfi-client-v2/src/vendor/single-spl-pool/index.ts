@@ -35,11 +35,12 @@ interface AccountMeta {
 // Instruction type enum
 enum SinglePoolInstructionType {
   InitializePool = 0,
-  ReactivatePoolStake,
+  ReplenishPool,
   DepositStake,
   WithdrawStake,
   CreateTokenMetadata,
   UpdateTokenMetadata,
+  InitializeOnRamp,
 }
 
 const SinglePoolInstruction = {
@@ -71,24 +72,21 @@ const SinglePoolInstruction = {
     );
   },
 
-  reactivatePoolStake: (voteAccount: PublicKey): TransactionInstruction => {
-    const pool = findPoolAddress(voteAccount);
-    const stake = findPoolStakeAddress(pool);
+  initializeOnRamp: (pool: PublicKey): TransactionInstruction => {
+    const onRamp = findPoolOnRampAddress(pool);
     const stakeAuthority = findPoolStakeAuthorityAddress(pool);
 
     return createTransactionInstruction(
       SINGLE_POOL_PROGRAM_ID,
       [
-        { pubkey: voteAccount, isSigner: false, isWritable: false },
         { pubkey: pool, isSigner: false, isWritable: false },
-        { pubkey: stake, isSigner: false, isWritable: true },
+        { pubkey: onRamp, isSigner: false, isWritable: true },
         { pubkey: stakeAuthority, isSigner: false, isWritable: false },
-        { pubkey: SYSVAR_CLOCK_ID, isSigner: false, isWritable: false },
-        { pubkey: SYSVAR_STAKE_HISTORY_ID, isSigner: false, isWritable: false },
-        { pubkey: STAKE_CONFIG_ID, isSigner: false, isWritable: false },
+        { pubkey: SYSVAR_RENT_ID, isSigner: false, isWritable: false },
+        { pubkey: SYSTEM_PROGRAM_ID, isSigner: false, isWritable: false },
         { pubkey: STAKE_PROGRAM_ID, isSigner: false, isWritable: false },
       ],
-      Buffer.from([SinglePoolInstructionType.ReactivatePoolStake])
+      Buffer.from([SinglePoolInstructionType.InitializeOnRamp])
     );
   },
 
@@ -282,6 +280,7 @@ async function initializeStakedPoolIxs(connection: Connection, payer: PublicKey,
 
   const stakeAddress = findPoolStakeAddress(poolAddress);
   const mintAddress = findPoolMintAddress(poolAddress);
+  const onRampAddress = findPoolOnRampAddress(poolAddress);
 
   // get min rent
   const [poolRent, stakeRent, mintRent, minimumDelegationObj] = await Promise.all([
@@ -297,7 +296,6 @@ async function initializeStakedPoolIxs(connection: Connection, payer: PublicKey,
 
   // instructions
   instructions.push(SystemProgram.transfer({ fromPubkey: payer, toPubkey: poolAddress, lamports: poolRent }));
-
   instructions.push(
     SystemProgram.transfer({
       fromPubkey: payer,
@@ -305,9 +303,11 @@ async function initializeStakedPoolIxs(connection: Connection, payer: PublicKey,
       lamports: stakeRent + minimumDelegation + LAMPORTS_PER_SOL * 1,
     })
   );
+  instructions.push(SystemProgram.transfer({ fromPubkey: payer, toPubkey: onRampAddress, lamports: stakeRent }));
   instructions.push(SystemProgram.transfer({ fromPubkey: payer, toPubkey: mintAddress, lamports: mintRent }));
 
   instructions.push(SinglePoolInstruction.initializePool(voteAccountAddress));
+  instructions.push(SinglePoolInstruction.initializeOnRamp(poolAddress));
   instructions.push(await SinglePoolInstruction.createTokenMetadata(poolAddress, payer));
 
   return instructions;

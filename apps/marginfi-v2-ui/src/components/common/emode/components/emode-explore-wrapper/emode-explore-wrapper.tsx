@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { EmodeTag } from "@mrgnlabs/marginfi-client-v2";
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { IconSearch, IconSparkles } from "@tabler/icons-react";
 import Link from "next/link";
 
@@ -25,11 +25,12 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { getEmodeStrategies } from "~/emode.utils";
-import { useMrgnlendStore } from "~/store";
 
 import { Desktop, Mobile } from "~/mediaQueryUtils";
 import { ExploreView } from "./views/emode-explore.view";
 import { StrategiesView } from "./views/emode-strategies.view";
+import { useWallet } from "~/components";
+import { useExtendedBanks } from "@mrgnlabs/mrgn-state";
 
 export type EmodeStrategyType = {
   symbol: string;
@@ -48,10 +49,10 @@ interface EmodeExploreWrapperProps {
 const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWrapperProps) => {
   const [activeTab, setActiveTab] = useState<"explore" | "strategies">("explore");
 
-  const [extendedBankInfos] = useMrgnlendStore((state) => [state.extendedBankInfos]);
+  const { extendedBanks } = useExtendedBanks();
 
   const emodeStrategies = useMemo(() => {
-    if (!extendedBankInfos) return [];
+    if (!extendedBanks) return [];
 
     const strategies: EmodeStrategyType[] = [];
     const {
@@ -60,7 +61,7 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
       increaseSupplyEmodeBanks,
       blockingBorrowEmodeBanks,
       extendBorrowEmodeBanks,
-    } = getEmodeStrategies(extendedBankInfos);
+    } = getEmodeStrategies(extendedBanks);
 
     activateBorrowEmodeBanks.forEach((bank) => {
       strategies.push({
@@ -113,7 +114,7 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
     });
 
     return strategies;
-  }, [extendedBankInfos]);
+  }, [extendedBanks]);
 
   const defaultTrigger = (
     <Button>

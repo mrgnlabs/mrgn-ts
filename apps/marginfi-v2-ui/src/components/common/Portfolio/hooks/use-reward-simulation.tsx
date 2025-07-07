@@ -2,7 +2,7 @@ import React from "react";
 
 import { MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { ActionMessageType, captureSentryException } from "@mrgnlabs/mrgn-utils";
-import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActiveBankInfo, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { nativeToUi, numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 
 import { RewardsType } from "../types";

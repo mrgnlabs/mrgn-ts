@@ -1,4 +1,16 @@
+import {
+  VersionedTransaction,
+  Transaction,
+  TransactionSignature,
+  Connection,
+  ConfirmOptions,
+  PublicKey,
+  Commitment,
+  SimulatedTransactionResponse,
+  SolanaJSONRPCError,
+} from "@solana/web3.js";
 import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
+
 import {
   TransactionOptions,
   TransactionBroadcastType,
@@ -14,18 +26,9 @@ import {
   getComputeBudgetUnits,
   SKIP_SIMULATION,
 } from "@mrgnlabs/mrgn-common";
-import {
-  VersionedTransaction,
-  TransactionSignature,
-  Connection,
-  ConfirmOptions,
-  PublicKey,
-  Commitment,
-  SimulatedTransactionResponse,
-  SolanaJSONRPCError,
-} from "@solana/web3.js";
 
-import { parseTransactionError, ProcessTransactionError, ProcessTransactionErrorType } from "../../errors";
+import { ProcessTransactionError, ProcessTransactionErrorType, parseTransactionError } from "~/errors";
+
 import {
   formatTransactions,
   sendTransactionAsGrpcBundle,
@@ -37,7 +40,6 @@ import {
   BundleSimulationError,
   SendBundleError,
 } from "./helpers";
-import { Transaction } from "@solana/web3.js";
 
 // TEMPORARY
 export const MARGINFI_PROGRAM = new PublicKey("MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA");

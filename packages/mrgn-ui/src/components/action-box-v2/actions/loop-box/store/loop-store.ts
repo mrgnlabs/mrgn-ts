@@ -1,7 +1,7 @@
 import { create, StateCreator } from "zustand";
 import BigNumber from "bignumber.js";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
 import { ActionMessageType, calculateLstYield, LoopActionTxns, LSTS_SOLANA_COMPASS_MAP } from "@mrgnlabs/mrgn-utils";
 interface LoopBoxState {

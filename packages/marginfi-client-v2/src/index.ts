@@ -11,6 +11,8 @@ export * from "./models/bank";
 export * from "./models/balance";
 export * from "./models/group";
 export * from "./models/account";
+export * from "./models/emode-settings";
+export * from "./models/health-cache";
 export * from "./services";
 export * from "./idl";
 export * from "./types";

@@ -2,20 +2,21 @@ import Head from "next/head";
 
 type MrgnProps = {
   path: string;
+  title?: string;
 };
 
-export const Meta = ({ path }: MrgnProps) => {
+export const Meta = ({ path, title }: MrgnProps) => {
   const customPages: Record<string, { description: string }> = {
     "/": {
       description: "Liquidity, Yield, Leverage.",
     },
   };
-  const title = `marginfi ${path !== "/" ? ` - ${path.substring(1)}` : "- lend"}`;
+  const finalTitle = (title || `${path !== "/" ? `${path.substring(1)}` : "lend"}`) + " - marginfi";
   const description = customPages[path] ? customPages[path].description : null;
   return (
     <Head>
-      <title>{title}</title>
-      <meta property="og:title" content={title} />
+      <title>{finalTitle}</title>
+      <meta property="og:title" content={finalTitle} />
       {description && <meta name="description" content={description} />}
       {description && <meta property="og:description" content={description} />}
       {description && <meta name="twitter:description" content={description} />}
@@ -28,7 +29,7 @@ export const Meta = ({ path }: MrgnProps) => {
       <meta property="og:image:height" content="630" />
       <meta property="og:locale" content="en_US" />
       <meta property="og:site_name" content="marginfi" />
-      <meta name="twitter:title" content={title} />
+      <meta name="twitter:title" content={finalTitle} />
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:site" content="@marginfi" />
       <meta name="twitter:creator" content="@marginfi" />

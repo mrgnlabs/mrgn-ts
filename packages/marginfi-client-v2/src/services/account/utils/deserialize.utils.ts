@@ -1,15 +1,28 @@
 import BN from "bn.js";
+import BigNumber from "bignumber.js";
+
 import { BorshCoder } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
 
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 
-import { MarginfiIdlType } from "../../../idl";
-import { AccountType } from "../../../types";
-import { Balance } from "../../../models/balance";
-import { HealthCache } from "../../../models/health-cache";
+import { Balance } from "~/models/balance";
+import { HealthCache } from "~/models/health-cache";
+import { AccountType } from "~/types";
+import { MarginfiIdlType } from "~/idl";
 
-import { AccountFlags, BalanceRaw, BalanceType, HealthCacheFlags, MarginfiAccountRaw } from "../types";
+import {
+  MarginfiAccountRaw,
+  BalanceRaw,
+  BalanceType,
+  AccountFlags,
+  HealthCacheFlags,
+  MarginfiAccountTypeDto,
+  MarginfiAccountType,
+  BalanceTypeDto,
+  HealthCacheTypeDto,
+  HealthCacheType,
+} from "../types";
 
 export function decodeAccountRaw(encoded: Buffer, idl: MarginfiIdlType): MarginfiAccountRaw {
   const coder = new BorshCoder(idl);
@@ -139,4 +152,42 @@ export function getHealthCacheStatusDescription(flags: number): string {
 
   // Default case (shouldn't happen often)
   return `Status flags: ${activeFlags.join(", ")}`;
+}
+
+export function dtoToMarginfiAccount(marginfiAccountDto: MarginfiAccountTypeDto): MarginfiAccountType {
+  return {
+    address: new PublicKey(marginfiAccountDto.address),
+    group: new PublicKey(marginfiAccountDto.group),
+    authority: new PublicKey(marginfiAccountDto.authority),
+    balances: marginfiAccountDto.balances.map(dtoToBalance),
+    accountFlags: marginfiAccountDto.accountFlags,
+    emissionsDestinationAccount: new PublicKey(marginfiAccountDto.emissionsDestinationAccount),
+    healthCache: dtoToHealthCache(marginfiAccountDto.healthCache),
+  };
+}
+
+export function dtoToBalance(balanceDto: BalanceTypeDto): BalanceType {
+  return {
+    active: balanceDto.active,
+    bankPk: new PublicKey(balanceDto.bankPk),
+    assetShares: new BigNumber(balanceDto.assetShares),
+    liabilityShares: new BigNumber(balanceDto.liabilityShares),
+    emissionsOutstanding: new BigNumber(balanceDto.emissionsOutstanding),
+    lastUpdate: balanceDto.lastUpdate,
+  };
+}
+
+export function dtoToHealthCache(healthCacheDto: HealthCacheTypeDto): HealthCacheType {
+  return {
+    assetValue: new BigNumber(healthCacheDto.assetValue),
+    liabilityValue: new BigNumber(healthCacheDto.liabilityValue),
+    assetValueMaint: new BigNumber(healthCacheDto.assetValueMaint),
+    liabilityValueMaint: new BigNumber(healthCacheDto.liabilityValueMaint),
+    assetValueEquity: new BigNumber(healthCacheDto.assetValueEquity),
+    liabilityValueEquity: new BigNumber(healthCacheDto.liabilityValueEquity),
+    timestamp: new BigNumber(healthCacheDto.timestamp),
+    flags: healthCacheDto.flags,
+    prices: healthCacheDto.prices,
+    simulationFailed: healthCacheDto.simulationFailed,
+  };
 }

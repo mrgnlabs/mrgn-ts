@@ -19,3 +19,17 @@ export enum PriceBias {
   None = 1,
   Highest = 2,
 }
+
+export interface PriceWithConfidenceDto {
+  price: string;
+  confidence: string;
+  lowestPrice: string;
+  highestPrice: string;
+}
+
+export interface OraclePriceDto {
+  priceRealtime: PriceWithConfidenceDto;
+  priceWeighted: PriceWithConfidenceDto;
+  timestamp: string;
+  pythShardId?: number;
+}

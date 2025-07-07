@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { ActionStatItem } from "~/components/action-box-v2/components";

@@ -19,7 +19,7 @@
     "@jup-ag/common": "^6.1.0",
     "@meso-network/meso-js": "^0.1.2",
     "@mrgnlabs/marginfi-client-v2": "workspace:*",
-    "@mrgnlabs/marginfi-v2-ui-state": "workspace:*",
+    "@mrgnlabs/mrgn-state": "workspace:*",
     "@mrgnlabs/mrgn-common": "workspace:*",
     "@mrgnlabs/mrgn-toasts": "workspace:*",
     "@mrgnlabs/mrgn-utils": "workspace:*",

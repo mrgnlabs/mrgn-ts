@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { getTokenImageURL } from "@mrgnlabs/mrgn-utils";
 import { PublicKey } from "@solana/web3.js";
 

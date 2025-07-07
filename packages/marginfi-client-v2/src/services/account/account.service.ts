@@ -3,7 +3,10 @@ import {
   ComputeBudgetProgram,
   Keypair,
   PublicKey,
+  SystemProgram,
   TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
@@ -19,19 +22,21 @@ import {
   wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
 
-import { feedIdToString } from "../../utils";
-import { MarginfiProgram } from "../../types";
-import instructions from "../../instructions";
-import { OraclePrice } from "../price";
-import { BankType, crankPythOracleIx, OracleSetup } from "../bank";
-import { MarginfiIdlType } from "../../idl";
-import { getSwitchboardProgram } from "../../vendor";
-import { Balance } from "../../models/balance";
-import { HealthCache } from "../../models/health-cache";
-import { Bank } from "../../models/bank";
-import { simulateBundle } from "../transaction/helpers";
-import { MarginfiAccountWrapper, MarginfiAccount, MarginRequirementType } from "../../models/account";
-import MarginfiClient, { BankMap, OraclePriceMap } from "../../clients/client";
+import instructions from "~/instructions";
+import { MarginfiProgram } from "~/types";
+import { feedIdToString } from "~/utils";
+import MarginfiClient, { BankMap, OraclePriceMap } from "~/clients/client";
+import { getSwitchboardProgram } from "~/vendor/switchboard_pull";
+import { MarginfiIdlType } from "~/idl";
+
+import { BankType, crankPythOracleIx, OracleSetup } from "~/services/bank";
+import { simulateBundle } from "~/services/transaction/helpers";
+import { OraclePrice } from "~/services/price";
+
+import { MarginfiAccount, MarginRequirementType, MarginfiAccountWrapper } from "~/models/account";
+import { Balance } from "~/models/balance";
+import { Bank } from "~/models/bank";
+import { HealthCache } from "~/models/health-cache";
 
 import {
   computeHealthAccountMetas,
@@ -75,6 +80,7 @@ export async function simulateAccountHealthCacheWithFallback(props: {
 
     marginfiAccount = MarginfiAccount.fromAccountParsed(props.marginfiAccount.address, simulatedAccount);
   } catch (e) {
+    console.log("e", e);
     const { assets: assetValueMaint, liabilities: liabilityValueMaint } = computeHealthComponentsLegacy(
       activeBalances,
       props.bankMap,
@@ -120,18 +126,16 @@ export async function simulateAccountHealthCache(props: {
 
   const activeBalances = balances.filter((b) => b.active);
 
-  const banks = activeBalances
-    .map((b) => {
-      const bank = bankMap.get(b.bankPk.toBase58());
-      if (!bank) return undefined;
-      return bank;
-    })
-    .filter((b) => b !== undefined);
-
   const { stalePythFeeds, staleSwbOracles } = getActiveStaleBanks(activeBalances, bankMap, [], oraclePrices, 30);
 
   const computeIx = ComputeBudgetProgram.setComputeUnitLimit({ units: 1_400_000 });
   const blockhash = (await program.provider.connection.getLatestBlockhash("confirmed")).blockhash;
+
+  const fundAccountIx = SystemProgram.transfer({
+    fromPubkey: new PublicKey("DD3AeAssFvjqTvRTrRAtpfjkBF8FpVKnFuwnMLN9haXD"), // marginfi SOL VAULT
+    toPubkey: program.provider.publicKey,
+    lamports: 100_000_000, // 0.1 SOL
+  });
 
   const crankPythIxs = await crankPythOracleIx(stalePythFeeds, program.provider);
   const crankSwbIxs =
@@ -154,20 +158,44 @@ export async function simulateAccountHealthCache(props: {
 
   const pythLut = crankPythIxs.lut ? [crankPythIxs.lut] : [];
 
-  const txs = splitInstructionsToFitTransactions(
-    [computeIx],
-    [
-      ...crankPythIxs.postInstructions.map((ix) => ix.instruction),
-      ...crankPythIxs.closeInstructions.map((ix) => ix.instruction),
-      ...crankSwbIxs.instructions,
-      ...healthPulseIxs.instructions,
-    ],
-    {
-      blockhash,
-      payerKey: program.provider.publicKey,
-      luts: pythLut,
-    }
-  );
+  const txs = [];
+
+  if (crankPythIxs.postInstructions.length > 0) {
+    txs.push(
+      ...splitInstructionsToFitTransactions(
+        [computeIx],
+        [
+          fundAccountIx,
+          ...crankPythIxs.postInstructions.map((ix) => ix.instruction),
+          ...crankPythIxs.closeInstructions.map((ix) => ix.instruction),
+        ],
+        {
+          blockhash,
+          payerKey: program.provider.publicKey,
+          luts: [...crankSwbIxs.luts, ...pythLut],
+        }
+      )
+    );
+  }
+
+  const messageV0 = new TransactionMessage({
+    payerKey: program.provider.publicKey,
+    recentBlockhash: blockhash,
+    instructions: [...crankSwbIxs.instructions],
+  }).compileToV0Message([...crankSwbIxs.luts]);
+
+  const swbTx = new VersionedTransaction(messageV0);
+
+  txs.push(swbTx);
+
+  const healthTx = new TransactionMessage({
+    payerKey: program.provider.publicKey,
+    recentBlockhash: blockhash,
+    instructions: [...healthPulseIxs.instructions],
+  }).compileToV0Message([]);
+
+  const healthTxV0 = new VersionedTransaction(healthTx);
+  txs.push(healthTxV0);
 
   if (txs.length > 5) {
     console.error("Too many transactions", txs.length);
@@ -188,6 +216,13 @@ export async function simulateAccountHealthCache(props: {
   );
 
   if (marginfiAccountPost.healthCache.mrgnErr || marginfiAccountPost.healthCache.internalErr) {
+    console.log(
+      "cranked swb oracles",
+      staleSwbOracles.map((oracle) => oracle.oracleKey)
+    );
+    console.log("MarginfiAccountPost healthCache internalErr", marginfiAccountPost.healthCache.internalErr);
+    console.log("MarginfiAccountPost healthCache mrgnErr", marginfiAccountPost.healthCache.mrgnErr);
+
     if (marginfiAccountPost.healthCache.mrgnErr === 6009) {
       const assetValue = !wrappedI80F48toBigNumber(marginfiAccountPost.healthCache.assetValue).isZero();
       const liabilityValue = !wrappedI80F48toBigNumber(marginfiAccountPost.healthCache.liabilityValue).isZero();
@@ -252,6 +287,7 @@ export async function createUpdateFeedIx(props: {
   const [pullIx, luts] = await sb.PullFeed.fetchUpdateManyIx(sbProgram, {
     feeds: props.swbPullOracles,
     numSignatures: 1,
+    payer: props.provider.publicKey,
   });
   return { instructions: [pullIx], luts };
 }
@@ -330,6 +366,13 @@ export function getActiveStaleBanks(
   const allBanks = [...activeBanks, ...additionalBanks];
 
   const staleBanks = allBanks.filter((bank) => {
+    if (
+      bank.config.oracleSetup === OracleSetup.SwitchboardPull ||
+      bank.config.oracleSetup === OracleSetup.SwitchboardV2
+    ) {
+      // always crank swb banks
+      return true;
+    }
     const oraclePrice = oraclePrices.get(bank.address.toBase58());
     const maxAge = bank.config.oracleMaxAge;
     const currentTime = Math.round(Date.now() / 1000);

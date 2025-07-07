@@ -20,10 +20,11 @@ import Confetti from "react-confetti";
 
 import { PageHeading } from "~/components/common/PageHeading";
 import { useConnection } from "~/hooks/use-connection";
-import { useMrgnlendStore, useUiStore } from "~/store";
+import { useUiStore } from "~/store";
 import { CreateStakedPoolDialog, CreateStakedPoolForm } from "~/components/common/create-staked-pool";
 import { addTransactionMetadata, SolanaTransaction, TransactionType } from "@mrgnlabs/mrgn-common";
 import { MultiStepToastController, toastManager } from "@mrgnlabs/mrgn-toasts";
+import { useExtendedBanks, useMarginfiClient, useMetadata, useRefreshUserData } from "@mrgnlabs/mrgn-state";
 
 type CreateStakedAssetForm = {
   voteAccountKey: string;
@@ -48,12 +49,13 @@ export default function CreateStakedAssetPage() {
   const router = useRouter();
   const { connection } = useConnection();
   const { wallet } = useWallet();
-  const [client, extendedBankInfos, stakedAssetBankInfos, fetchMrgnlendState] = useMrgnlendStore((state) => [
-    state.marginfiClient,
-    state.extendedBankInfos,
-    state.stakedAssetBankInfos,
-    state.fetchMrgnlendState,
-  ]);
+  const { marginfiClient } = useMarginfiClient(wallet);
+  const { extendedBanks } = useExtendedBanks();
+
+  const { data: metadata } = useMetadata();
+
+  const refreshUserData = useRefreshUserData();
+
   const [broadcastType, priorityFees] = useUiStore((state) => [state.broadcastType, state.priorityFees]);
   const [completedForm, setCompletedForm] = React.useState<CreateStakedAssetForm>({
     voteAccountKey: "",
@@ -70,15 +72,21 @@ export default function CreateStakedAssetPage() {
 
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const bankMetas = extendedBankInfos.map((bank) => ({
+  const bankMetas = extendedBanks.map((bank) => ({
     tokenName: bank.meta.tokenName,
     tokenSymbol: bank.meta.tokenSymbol,
     tokenAddress: bank.meta.address.toBase58(),
   }));
 
-  const validatorPubKeys = stakedAssetBankInfos
-    .map((bank) => bank.meta.stakePool?.validatorVoteAccount)
-    .filter((key) => key !== undefined) as PublicKey[];
+  const validatorPubKeys: PublicKey[] = React.useMemo(
+    () =>
+      metadata?.bankMetadataMap
+        ? Object.values(metadata.bankMetadataMap)
+            .map((bank) => (bank.validatorVoteAccount ? new PublicKey(bank.validatorVoteAccount) : undefined))
+            .filter((account): account is PublicKey => account !== undefined)
+        : [],
+    [metadata]
+  );
 
   const createStakedAssetSplPoolTxn = React.useCallback(
     async (voteAccount: PublicKey, client: MarginfiClient) => {
@@ -220,7 +228,7 @@ export default function CreateStakedAssetPage() {
         multiStepToast: undefined,
       }
     ) => {
-      if (!client) return;
+      if (!marginfiClient) return;
       setIsLoading(true);
 
       if (!retryOptions.multiStepToast) {
@@ -246,7 +254,7 @@ export default function CreateStakedAssetPage() {
       }
 
       if (!retryOptions.txns || retryOptions.txns.length === 0) {
-        retryOptions.txns = await createStakedAssetSplPoolTxn(new PublicKey(form.voteAccountKey), client);
+        retryOptions.txns = await createStakedAssetSplPoolTxn(new PublicKey(form.voteAccountKey), marginfiClient);
       }
 
       let bankKey = retryOptions.bankKey;
@@ -256,13 +264,13 @@ export default function CreateStakedAssetPage() {
         if (!retryOptions.hasExecutedCreateStakedAssetSplPoolTxn || !bankKey || !mintAddress) {
           mintAddress = vendor.findPoolMintAddressByVoteAccount(new PublicKey(form.voteAccountKey));
           [bankKey] = PublicKey.findProgramAddressSync(
-            [client.group.address.toBuffer(), mintAddress.toBuffer(), new BN(0).toArrayLike(Buffer, "le", 8)],
-            client.program.programId
+            [marginfiClient.group.address.toBuffer(), mintAddress.toBuffer(), new BN(0).toArrayLike(Buffer, "le", 8)],
+            marginfiClient.program.programId
           );
           const bankInfo = await connection.getAccountInfo(bankKey);
 
           if (!bankInfo) {
-            await executeCreatedStakedAssetSplPoolTxn(retryOptions.txns, client, retryOptions.multiStepToast);
+            await executeCreatedStakedAssetSplPoolTxn(retryOptions.txns, marginfiClient, retryOptions.multiStepToast);
           }
 
           retryOptions.hasExecutedCreateStakedAssetSplPoolTxn = true;
@@ -281,7 +289,7 @@ export default function CreateStakedAssetPage() {
         retryOptions.multiStepToast.success();
         setCompletedForm({ ...form, assetMint: mintAddress });
         setIsDialogOpen(true);
-        fetchMrgnlendState();
+        refreshUserData();
       } catch (e: any) {
         console.error(e);
         setIsLoading(false);
@@ -305,7 +313,7 @@ export default function CreateStakedAssetPage() {
         setIsLoading(false);
       }
     },
-    [client, connection, createStakedAssetSplPoolTxn, executeCreatedStakedAssetSplPoolTxn, fetchMrgnlendState]
+    [connection, createStakedAssetSplPoolTxn, executeCreatedStakedAssetSplPoolTxn, marginfiClient, refreshUserData]
   );
 
   const handleSumbitForm = React.useCallback(

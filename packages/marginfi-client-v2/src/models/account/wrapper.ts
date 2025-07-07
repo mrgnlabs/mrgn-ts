@@ -117,7 +117,7 @@ class MarginfiAccountWrapper {
    */
   constructor(
     marginfiAccountPk: PublicKey,
-    private readonly client: MarginfiClient,
+    readonly client: MarginfiClient,
     marginfiAccount: MarginfiAccount
   ) {
     this.address = marginfiAccountPk;
@@ -443,14 +443,14 @@ class MarginfiAccountWrapper {
   async movePosition(
     amount: Amount,
     bankAddress: PublicKey,
-    destinationAccount: MarginfiAccountWrapper,
+    destinationAccountPk: PublicKey,
     processOpts?: ProcessTransactionsClientOpts,
     txOpts?: TransactionOptions
   ): Promise<TransactionSignature[]> {
     const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:move-position`);
     debug("Moving position from %s marginfi account", this.address.toBase58());
 
-    const { transactions, actionTxIndex } = await this.makeMovePositionTx(amount, bankAddress, destinationAccount);
+    const { transactions, actionTxIndex } = await this.makeMovePositionTx(amount, bankAddress, destinationAccountPk);
 
     const sigs = await this.client.processTransactions(transactions, processOpts, txOpts);
 
@@ -469,7 +469,7 @@ class MarginfiAccountWrapper {
   async makeMovePositionTx(
     amount: Amount,
     bankAddress: PublicKey,
-    destinationAccount: MarginfiAccountWrapper
+    destinationAccountPk: PublicKey
   ): Promise<TransactionBuilderResult> {
     const cuRequestIxs = this.makeComputeBudgetIx();
     const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx([]);
@@ -515,6 +515,8 @@ class MarginfiAccountWrapper {
         type: TransactionType.MOVE_POSITION_WITHDRAW,
       }
     );
+
+    const destinationAccount = await MarginfiAccountWrapper.fetch(destinationAccountPk, this.client);
 
     const depositIx = await destinationAccount.makeDepositIx(amount, bankAddress);
     const tx = new Transaction().add(...depositIx.instructions);
@@ -1071,6 +1073,30 @@ class MarginfiAccountWrapper {
     });
   }
 
+  async makeMergeStakeAccountsTx(
+    stakeAccountSrc: PublicKey,
+    stakeAccountDest: PublicKey
+  ): Promise<ExtendedTransaction> {
+    // Create the merge instruction
+    const mergeInstruction = StakeProgram.merge({
+      stakePubkey: stakeAccountDest, // Public key of the destination stake account
+      sourceStakePubKey: stakeAccountSrc, // Public key of the source stake account
+      authorizedPubkey: this.authority, // Public key of the stake authority
+    });
+
+    // Build the transaction
+    const transaction = new Transaction().add(mergeInstruction);
+
+    // Get client lookup tables for consistency with other functions
+    const clientLookupTables = await getClientAddressLookupTableAccounts(this.client);
+
+    return addTransactionMetadata(transaction, {
+      type: TransactionType.MERGE_STAKE_ACCOUNTS,
+      signers: [],
+      addressLookupTables: clientLookupTables,
+    });
+  }
+
   /**
    * Deposits tokens into a marginfi bank account.
    *
@@ -1171,6 +1197,7 @@ class MarginfiAccountWrapper {
 
     if (!mfiAccountData) throw new Error("Failed to simulate");
     const mfiAccount = MarginfiAccount.decode(mfiAccountData, this._program.idl);
+    console.log("mfiAccount", mfiAccount);
     if (!bankData) throw new Error("Failed to simulate");
     const previewBanks = this.client.banks;
 
@@ -1201,10 +1228,6 @@ class MarginfiAccountWrapper {
       this._program.idl
     );
 
-    const decodedAccount = MarginfiAccount.decodeAccountRaw(mfiAccountData, this._program.idl);
-    console.log({ decodedAccount });
-
-    console.log({ previewMarginfiAccount });
     return {
       banks: previewBanks,
       marginfiAccount: previewMarginfiAccount,
@@ -1952,19 +1975,23 @@ class MarginfiAccountWrapper {
       (bank) => bank.config.oracleSetup === OracleSetup.SwitchboardPull
     );
 
+    console.log("swbPullBanks", swbPullBanks);
+
     if (swbPullBanks.length > 0) {
       const staleOracles = swbPullBanks
         .filter((bank) => {
-          const oraclePrice = this.client.oraclePrices.get(bank.address.toBase58());
-          const maxAge = bank.config.oracleMaxAge;
-          const currentTime = Math.round(Date.now() / 1000);
-          const oracleTime = Math.round(
-            oraclePrice?.timestamp ? oraclePrice.timestamp.toNumber() : new Date().getTime()
-          );
-          const adjustedMaxAge = Math.max(maxAge - txLandingBuffer, 0);
-          const isStale = currentTime - oracleTime > adjustedMaxAge;
+          // always crank swb feeds
+          return true;
+          // const oraclePrice = this.client.oraclePrices.get(bank.address.toBase58());
+          // const maxAge = bank.config.oracleMaxAge;
+          // const currentTime = Math.round(Date.now() / 1000);
+          // const oracleTime = Math.round(
+          //   oraclePrice?.timestamp ? oraclePrice.timestamp.toNumber() : new Date().getTime()
+          // );
+          // const adjustedMaxAge = Math.max(maxAge - txLandingBuffer, 0);
+          // const isStale = currentTime - oracleTime > adjustedMaxAge;
 
-          return isStale;
+          // return isStale;
         })
         .map((bank) => bank.oracleKey);
 
@@ -1974,7 +2001,6 @@ class MarginfiAccountWrapper {
           feeds: staleOracles,
           numSignatures: 1,
         });
-
         return { instructions: [pullIx], luts };
       }
 

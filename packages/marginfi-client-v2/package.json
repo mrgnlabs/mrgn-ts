@@ -2,13 +2,21 @@
   "name": "@mrgnlabs/marginfi-client-v2",
   "version": "6.1.0",
   "main": "dist/index.js",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js"
+    }
+  },
   "license": "MIT",
   "scripts": {
     "clean": "rimraf dist node_modules",
-    "dev": "tsc --watch",
+    "dev": "rollup -c -w",
     "lint": "TIMING=1 eslint \"**/*.ts*\"",
-    "build": "tsc -p tsconfig.json"
+    "build": "rollup -c",
+    "build:types": "tsc --emitDeclarationOnly"
   },
   "files": [
     "dist",
@@ -19,26 +27,33 @@
     "@coral-xyz/borsh": "^0.30.1",
     "@mrgnlabs/mrgn-common": "workspace:*",
     "@pythnetwork/pyth-solana-receiver": "^0.8.0",
+    "@solana/spl-token": "^0.1.8",
     "@solana/wallet-adapter-base": "^0.9.23",
     "@solana/web3.js": "^1.93.2",
-    "@solana/spl-token": "^0.1.8",
     "@switchboard-xyz/on-demand": "^1.2.54",
     "bignumber.js": "^9.1.2",
     "borsh": "^2.0.0",
     "bs58": "^6.0.0",
-    "decimal.js": "^10.4.3",
     "crypto-hash": "^3.1.0",
+    "decimal.js": "^10.4.3",
     "superstruct": "^1.0.4"
   },
   "devDependencies": {
-    "@mrgnlabs/tsconfig": "workspace:*",
     "@jup-ag/api": "^6.0.38",
+    "@mrgnlabs/tsconfig": "workspace:*",
+    "@rollup/plugin-alias": "^5.1.1",
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-typescript": "^12.1.4",
     "@types/big.js": "^6.2.2",
     "@types/bn.js": "^5.1.5",
     "@types/debug": "^4.1.12",
     "@types/inquirer": "^9.0.7",
     "big.js": "^6.2.1",
     "inquirer": "^9.2.23",
+    "rollup": "^4.44.1",
+    "rollup-plugin-dts": "^6.2.1",
     "ts-node": "^10.9.2",
     "typedoc": "^0.26.2",
     "typescript": "^5.5.2",

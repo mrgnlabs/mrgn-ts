@@ -1,5 +1,5 @@
 import React from "react";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { WalletContextStateOverride } from "~/components/wallet-v2/hooks/use-wallet.hook";
 
 import { useWalletActivity } from "../../hooks/use-wallet-activity.hook";

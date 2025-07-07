@@ -1,7 +1,7 @@
 import { QuoteResponse } from "@jup-ag/api";
 import { createMarginfiAccountTx, MarginfiAccountWrapper } from "@mrgnlabs/marginfi-client-v2";
 import { MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { nativeToUi, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import {
   calculateLoopingParams,

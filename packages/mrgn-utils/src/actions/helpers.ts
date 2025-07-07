@@ -1,7 +1,7 @@
 import { PublicKey, TransactionInstruction, Connection, AddressLookupTableAccount } from "@solana/web3.js";
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 import { WalletContextState } from "@solana/wallet-adapter-react";
-import { ExtendedBankInfo, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 import { WalletContextStateOverride } from "../wallet";
 import { WalletToken } from "@mrgnlabs/mrgn-common";

@@ -1,4 +1,4 @@
-import { ExtendedBankInfo, Emissions } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, Emissions } from "@mrgnlabs/mrgn-state";
 import { useMemo } from "react";
 import { aprToApy, nativeToUi, percentFormatter } from "@mrgnlabs/mrgn-common";
 import { MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
@@ -14,8 +14,8 @@ export function useAssetItemData({ bank, isInLendingMode }: { bank: ExtendedBank
         ? emissionsRate
         : 0
       : emissions == Emissions.Borrowing
-      ? emissionsRate
-      : 0;
+        ? emissionsRate
+        : 0;
 
     return interestRate + emissionRate;
   }, [isInLendingMode, bank?.info?.state]);

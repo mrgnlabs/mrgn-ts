@@ -1,9 +1,6 @@
 import React from "react";
 
-import Image from "next/image";
-
-import { numeralFormatter, usdFormatter, WalletToken, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { usdFormatter, WalletToken } from "@mrgnlabs/mrgn-common";
 import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 

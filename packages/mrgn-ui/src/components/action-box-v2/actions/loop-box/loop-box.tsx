@@ -9,7 +9,7 @@ import {
   computeAccountSummary,
   DEFAULT_ACCOUNT_SUMMARY,
   getEmodePairs,
-} from "@mrgnlabs/marginfi-v2-ui-state";
+} from "@mrgnlabs/mrgn-state";
 import {
   ActionEmodeImpact,
   computeEmodeImpacts,

@@ -1,3 +1,5 @@
+import { ComputeBudgetProgram, PublicKey, TransactionInstruction } from "@solana/web3.js";
+
 import {
   Amount,
   BankMetadataMap,
@@ -5,27 +7,18 @@ import {
   NATIVE_MINT,
   Program,
   TOKEN_2022_PROGRAM_ID,
-  aprToApy,
-  bigNumberToWrappedI80F48,
-  composeRemainingAccounts,
   createAssociatedTokenAccountIdempotentInstruction,
   getAssociatedTokenAddressSync,
-  shortenAddress,
   uiToNative,
-  wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
-import {
-  ComputeBudgetProgram,
-  PublicKey,
-  TransactionInstruction,
-  TransactionMessage,
-  VersionedTransaction,
-} from "@solana/web3.js";
+
 import BigNumber from "bignumber.js";
+
+import instructions from "~/instructions";
+import { MarginfiProgram } from "~/types";
+import { makeWrapSolIxs, makeUnwrapSolIx } from "~/utils";
+
 import { Bank } from "../bank";
-import instructions from "../../instructions";
-import { MarginfiProgram } from "../../types";
-import { makeWrapSolIxs, makeUnwrapSolIx, feedIdToString } from "../../utils";
 import { Balance } from "../balance";
 import {
   BankMap,
@@ -52,22 +45,19 @@ import {
   computeHealthComponentsWithoutBiasLegacy,
   computeAccountValue,
   computeNetApy,
-  OracleSetup,
-  createUpdateFeedIx,
-  crankPythOracleIx,
-  simulateAccountHealthCache,
   simulateAccountHealthCacheWithFallback,
   computeHealthAccountMetas,
   BankType,
   computeHealthCheckAccounts,
   makePulseHealthIx,
+  computeFreeCollateralLegacy,
+  EmodeImpactStatus,
+  OracleSetup,
 } from "../..";
 import BN from "bn.js";
 import { BorshInstructionCoder } from "@coral-xyz/anchor";
-import { findPoolMintAddress, findPoolAddress, findPoolStakeAddress } from "../../vendor/single-spl-pool";
 import { HealthCache } from "../health-cache";
 import { PriceBias } from "../../services/price/types";
-import { simulateBundle } from "../../services/transaction/helpers";
 
 // ----------------------------------------------------------------------------
 // Client types
@@ -98,6 +88,18 @@ class MarginfiAccount implements MarginfiAccountType {
 
   static decodeAccountRaw(encoded: Buffer, idl: MarginfiIdlType): MarginfiAccountRaw {
     return decodeAccountRaw(encoded, idl);
+  }
+
+  static fromAccountType(account: MarginfiAccountType) {
+    return new MarginfiAccount(
+      account.address,
+      account.group,
+      account.authority,
+      account.balances.map((b) => Balance.fromBalanceType(b)),
+      account.accountFlags,
+      account.emissionsDestinationAccount,
+      account.healthCache
+    );
   }
 
   static fromAccountParsed(marginfiAccountPk: PublicKey, accountData: MarginfiAccountRaw) {
@@ -167,6 +169,14 @@ class MarginfiAccount implements MarginfiAccountType {
     return computeFreeCollateral(this, opts);
   }
 
+  computeFreeCollateralLegacy(
+    banks: Map<string, BankType>,
+    oraclePrices: Map<string, OraclePrice>,
+    opts?: { clamped?: boolean }
+  ): BigNumber {
+    return computeFreeCollateralLegacy(this.activeBalances, banks, oraclePrices, opts);
+  }
+
   computeHealthComponents(marginReqType: MarginRequirementType): {
     assets: BigNumber;
     liabilities: BigNumber;
@@ -230,6 +240,7 @@ class MarginfiAccount implements MarginfiAccountType {
     oraclePrices: Map<string, OraclePrice>,
     bankAddress: PublicKey,
     opts?: {
+      emodeImpactStatus?: EmodeImpactStatus;
       volatilityFactor?: number;
       emodeWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber; collateralTag: EmodeTag };
     }
@@ -255,8 +266,6 @@ class MarginfiAccount implements MarginfiAccountType {
               assetWeightInit: emodeWeights.assetWeightInit,
             })
           );
-          // Only update if the provided weights are lower (more favorable)
-          // TODO come back to this
         }
       });
 
@@ -300,11 +309,61 @@ class MarginfiAccount implements MarginfiAccountType {
 
     const _volatilityFactor = opts?.volatilityFactor ?? 1;
 
+    // Track switchboard positions separately for variance adjustment
+    let switchboardCollateral = new BigNumber(0);
+    let switchboardLiability = new BigNumber(0);
+
+    this.activeBalances.forEach((b) => {
+      const isBorrowingBalance = b.liabilityShares.gt(0);
+      const bank = banks.get(b.bankPk.toBase58());
+
+      if (!bank) return;
+      if (
+        bank.config.oracleSetup === OracleSetup.SwitchboardPull ||
+        bank.config.oracleSetup === OracleSetup.SwitchboardV2
+      ) {
+        if (isBorrowingBalance) {
+          const liabilityValueInit = bank.computeLiabilityUsdValue(
+            priceInfo,
+            b.liabilityShares,
+            MarginRequirementType.Initial,
+            PriceBias.Highest
+          );
+          switchboardLiability = switchboardLiability.plus(liabilityValueInit);
+        } else {
+          const assetValueInit = bank.computeAssetUsdValue(
+            priceInfo,
+            b.assetShares,
+            MarginRequirementType.Initial,
+            PriceBias.Lowest
+          );
+          switchboardCollateral = switchboardCollateral.plus(assetValueInit);
+        }
+      }
+    });
+
+    // Calculate net switchboard position and apply 5% variance adjustment
+    const switchboardNetPosition = switchboardCollateral.minus(switchboardLiability);
+    const switchboardVarianceAdjustment = switchboardNetPosition.times(0.05); // 5% reduction
+
     const balance = this.getBalance(bankAddress);
 
-    const freeCollateral = this.computeFreeCollateral().times(_volatilityFactor);
+    const useCache =
+      opts?.emodeImpactStatus === EmodeImpactStatus.InactiveEmode ||
+      opts?.emodeImpactStatus === EmodeImpactStatus.ExtendEmode;
+
+    let freeCollateral = useCache
+      ? this.computeFreeCollateral().times(_volatilityFactor)
+      : this.computeFreeCollateralLegacy(banks, oraclePrices);
+
+    // Apply switchboard variance adjustment to free collateral only when using legacy computation
+    // This reduces borrowing power by the amount of switchboard variance risk
+    if (!useCache) {
+      freeCollateral = freeCollateral.minus(switchboardVarianceAdjustment);
+    }
 
     debug("Free collateral: %d", freeCollateral.toFixed(6));
+    debug("Switchboard variance adjustment: %d", switchboardVarianceAdjustment.toFixed(6));
 
     const untiedCollateralForBank = BigNumber.min(
       bank.computeAssetUsdValue(priceInfo, balance.assetShares, MarginRequirementType.Initial, PriceBias.Lowest),

@@ -5,11 +5,11 @@ import BN from "bn.js";
 
 import { BankMetadata, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 
-import { DEFAULT_ORACLE_MAX_AGE } from "../../../constants";
-import { findOracleKey, PythPushFeedIdMap } from "../../../utils";
-import { EmodeSettings } from "../../../models/emode-settings";
-import { MarginfiIdlType } from "../../../idl";
-import { AccountType } from "../../../types";
+import { DEFAULT_ORACLE_MAX_AGE } from "~/constants";
+import { MarginfiIdlType } from "~/idl";
+import { EmodeSettings } from "~/models/emode-settings";
+import { AccountType } from "~/types";
+import { PythPushFeedIdMap, findOracleKey } from "~/utils";
 
 import {
   AssetTag,
@@ -19,13 +19,23 @@ import {
   BankType,
   EmodeEntryFlags,
   EmodeFlags,
+  EmodeSettingsType,
   EmodeTag,
+  InterestRateConfig,
   OperationalState,
   OperationalStateRaw,
   OracleSetup,
   OracleSetupRaw,
   RiskTier,
   RiskTierRaw,
+  BankConfigDto,
+  BankTypeDto,
+  EmodeSettingsDto,
+  InterestRateConfigDto,
+  BankRawDto,
+  EmodeSettingsRaw,
+  EmodeSettingsRawDto,
+  BankConfigRawDto,
 } from "../types";
 
 /*
@@ -40,7 +50,7 @@ export function decodeBankRaw(encoded: Buffer, idl: MarginfiIdlType): BankRaw {
 export function parseBankRaw(
   address: PublicKey,
   accountParsed: BankRaw,
-  feedIdMap: PythPushFeedIdMap,
+  feedIdMap?: PythPushFeedIdMap,
   bankMetadata?: BankMetadata
 ): BankType {
   const flags = accountParsed.flags.toNumber();
@@ -85,7 +95,9 @@ export function parseBankRaw(
     ? wrappedI80F48toBigNumber(accountParsed.emissionsRemaining)
     : new BigNumber(0);
 
-  const { oracleKey, shardId: pythShardId } = findOracleKey(config, feedIdMap);
+  const { oracleKey, shardId: pythShardId } = feedIdMap
+    ? findOracleKey(config, feedIdMap)
+    : { oracleKey: config.oracleKeys[0] };
   const emode = EmodeSettings.from(accountParsed.emode);
 
   const tokenSymbol = bankMetadata?.tokenSymbol;
@@ -121,6 +133,169 @@ export function parseBankRaw(
     pythShardId,
     emode,
     tokenSymbol,
+  };
+}
+
+/*
+ * DTO Bank deserialization
+ */
+
+export function dtoToBank(bankDto: BankTypeDto): BankType {
+  return {
+    address: new PublicKey(bankDto.address),
+    group: new PublicKey(bankDto.group),
+    mint: new PublicKey(bankDto.mint),
+    mintDecimals: bankDto.mintDecimals,
+    assetShareValue: new BigNumber(bankDto.assetShareValue),
+    liabilityShareValue: new BigNumber(bankDto.liabilityShareValue),
+    liquidityVault: new PublicKey(bankDto.liquidityVault),
+    liquidityVaultBump: bankDto.liquidityVaultBump,
+    liquidityVaultAuthorityBump: bankDto.liquidityVaultAuthorityBump,
+    insuranceVault: new PublicKey(bankDto.insuranceVault),
+    insuranceVaultBump: bankDto.insuranceVaultBump,
+    insuranceVaultAuthorityBump: bankDto.insuranceVaultAuthorityBump,
+    collectedInsuranceFeesOutstanding: new BigNumber(bankDto.collectedInsuranceFeesOutstanding),
+    feeVault: new PublicKey(bankDto.feeVault),
+    feeVaultBump: bankDto.feeVaultBump,
+    feeVaultAuthorityBump: bankDto.feeVaultAuthorityBump,
+    collectedGroupFeesOutstanding: new BigNumber(bankDto.collectedGroupFeesOutstanding),
+    lastUpdate: bankDto.lastUpdate,
+    config: dtoToBankConfig(bankDto.config),
+    totalAssetShares: new BigNumber(bankDto.totalAssetShares),
+    totalLiabilityShares: new BigNumber(bankDto.totalLiabilityShares),
+    emissionsActiveBorrowing: bankDto.emissionsActiveBorrowing,
+    emissionsActiveLending: bankDto.emissionsActiveLending,
+    emissionsRate: bankDto.emissionsRate,
+    emissionsMint: new PublicKey(bankDto.emissionsMint),
+    emissionsRemaining: new BigNumber(bankDto.emissionsRemaining),
+    oracleKey: new PublicKey(bankDto.oracleKey),
+    pythShardId: bankDto.pythShardId,
+    emode: dtoToEmodeSettings(bankDto.emode),
+    tokenSymbol: bankDto.tokenSymbol,
+  };
+}
+
+export function dtoToEmodeSettings(emodeSettingsDto: EmodeSettingsDto): EmodeSettingsType {
+  return {
+    emodeTag: emodeSettingsDto.emodeTag,
+    timestamp: emodeSettingsDto.timestamp,
+    flags: emodeSettingsDto.flags,
+    emodeEntries: emodeSettingsDto.emodeEntries.map((entry) => {
+      return {
+        collateralBankEmodeTag: entry.collateralBankEmodeTag,
+        flags: entry.flags,
+        assetWeightInit: new BigNumber(entry.assetWeightInit),
+        assetWeightMaint: new BigNumber(entry.assetWeightMaint),
+      };
+    }),
+  };
+}
+
+export function dtoToBankConfig(bankConfigDto: BankConfigDto): BankConfigType {
+  return {
+    assetWeightInit: new BigNumber(bankConfigDto.assetWeightInit),
+    assetWeightMaint: new BigNumber(bankConfigDto.assetWeightMaint),
+    liabilityWeightInit: new BigNumber(bankConfigDto.liabilityWeightInit),
+    liabilityWeightMaint: new BigNumber(bankConfigDto.liabilityWeightMaint),
+    depositLimit: new BigNumber(bankConfigDto.depositLimit),
+    borrowLimit: new BigNumber(bankConfigDto.borrowLimit),
+    riskTier: bankConfigDto.riskTier,
+    operationalState: bankConfigDto.operationalState,
+    totalAssetValueInitLimit: new BigNumber(bankConfigDto.totalAssetValueInitLimit),
+    assetTag: bankConfigDto.assetTag,
+    oracleSetup: bankConfigDto.oracleSetup,
+    oracleKeys: bankConfigDto.oracleKeys.map((key) => new PublicKey(key)),
+    oracleMaxAge: bankConfigDto.oracleMaxAge,
+    interestRateConfig: dtoToInterestRateConfig(bankConfigDto.interestRateConfig),
+  };
+}
+
+export function dtoToInterestRateConfig(interestRateConfigDto: InterestRateConfigDto): InterestRateConfig {
+  return {
+    optimalUtilizationRate: new BigNumber(interestRateConfigDto.optimalUtilizationRate),
+    plateauInterestRate: new BigNumber(interestRateConfigDto.plateauInterestRate),
+    maxInterestRate: new BigNumber(interestRateConfigDto.maxInterestRate),
+    insuranceFeeFixedApr: new BigNumber(interestRateConfigDto.insuranceFeeFixedApr),
+    insuranceIrFee: new BigNumber(interestRateConfigDto.insuranceIrFee),
+    protocolFixedFeeApr: new BigNumber(interestRateConfigDto.protocolFixedFeeApr),
+    protocolIrFee: new BigNumber(interestRateConfigDto.protocolIrFee),
+    protocolOriginationFee: new BigNumber(interestRateConfigDto.protocolOriginationFee),
+  };
+}
+
+export function dtoToBankRaw(bankDto: BankRawDto): BankRaw {
+  return {
+    group: new PublicKey(bankDto.group),
+    mint: new PublicKey(bankDto.mint),
+    mintDecimals: bankDto.mintDecimals,
+
+    assetShareValue: bankDto.assetShareValue,
+    liabilityShareValue: bankDto.liabilityShareValue,
+
+    liquidityVault: new PublicKey(bankDto.liquidityVault),
+    liquidityVaultBump: bankDto.liquidityVaultBump,
+    liquidityVaultAuthorityBump: bankDto.liquidityVaultAuthorityBump,
+
+    insuranceVault: new PublicKey(bankDto.insuranceVault),
+    insuranceVaultBump: bankDto.insuranceVaultBump,
+    insuranceVaultAuthorityBump: bankDto.insuranceVaultAuthorityBump,
+    collectedInsuranceFeesOutstanding: bankDto.collectedInsuranceFeesOutstanding,
+
+    feeVault: new PublicKey(bankDto.feeVault),
+    feeVaultBump: bankDto.feeVaultBump,
+    feeVaultAuthorityBump: bankDto.feeVaultAuthorityBump,
+    collectedGroupFeesOutstanding: bankDto.collectedGroupFeesOutstanding,
+
+    lastUpdate: new BN(bankDto.lastUpdate),
+
+    config: dtoToBankConfigRaw(bankDto.config),
+
+    totalAssetShares: bankDto.totalAssetShares,
+    totalLiabilityShares: bankDto.totalLiabilityShares,
+
+    flags: new BN(bankDto.flags),
+    emissionsRate: new BN(bankDto.emissionsRate),
+    emissionsRemaining: bankDto.emissionsRemaining,
+    emissionsMint: new PublicKey(bankDto.emissionsMint),
+
+    emode: dtoToEmodeSettingsRaw(bankDto.emode),
+  };
+}
+
+export function dtoToEmodeSettingsRaw(emodeSettingsDto: EmodeSettingsRawDto): EmodeSettingsRaw {
+  return {
+    emodeTag: emodeSettingsDto.emodeTag,
+    timestamp: new BN(emodeSettingsDto.timestamp),
+    flags: new BN(emodeSettingsDto.flags),
+    emodeConfig: {
+      entries: emodeSettingsDto.emodeConfig.entries.map((entry) => {
+        return {
+          collateralBankEmodeTag: entry.collateralBankEmodeTag,
+          flags: entry.flags,
+          assetWeightInit: entry.assetWeightInit,
+          assetWeightMaint: entry.assetWeightMaint,
+        };
+      }),
+    },
+  };
+}
+
+export function dtoToBankConfigRaw(bankConfigDto: BankConfigRawDto): BankConfigRaw {
+  return {
+    assetWeightInit: bankConfigDto.assetWeightInit,
+    assetWeightMaint: bankConfigDto.assetWeightMaint,
+    liabilityWeightInit: bankConfigDto.liabilityWeightInit,
+    liabilityWeightMaint: bankConfigDto.liabilityWeightMaint,
+    depositLimit: new BN(bankConfigDto.depositLimit),
+    borrowLimit: new BN(bankConfigDto.borrowLimit),
+    riskTier: bankConfigDto.riskTier,
+    operationalState: bankConfigDto.operationalState,
+    totalAssetValueInitLimit: new BN(bankConfigDto.totalAssetValueInitLimit),
+    assetTag: bankConfigDto.assetTag,
+    oracleSetup: bankConfigDto.oracleSetup,
+    oracleKeys: bankConfigDto.oracleKeys.map((key: string) => new PublicKey(key)),
+    oracleMaxAge: bankConfigDto.oracleMaxAge,
+    interestRateConfig: bankConfigDto.interestRateConfig,
   };
 }
 

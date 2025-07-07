@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   createServerSupabaseClient,
+  createAdminSupabaseClient,
   AuthPayload,
   verifySignature,
   generateCreds,
@@ -20,6 +21,7 @@ export default async function handler(
 
   try {
     const supabase = createServerSupabaseClient(req, res);
+    const adminSupabase = createAdminSupabaseClient();
     const hasSignature = req.body.signature && req.body.signedMessage;
 
     if (hasSignature) {
@@ -35,8 +37,8 @@ export default async function handler(
 
       const { email, password } = generateCreds(walletAddress, signature);
 
-      // Check if user exists in Supabase Auth
-      const { data: userList, error: listError } = await supabase.auth.admin.listUsers();
+      // Check if user exists in Supabase Auth using admin client
+      const { data: userList, error: listError } = await adminSupabase.auth.admin.listUsers();
       if (listError) {
         console.error("Error fetching users:", listError);
         return res.status(500).json({ user: null, error: "Failed to check existing users" });
@@ -54,7 +56,7 @@ export default async function handler(
       });
 
       if (authData.user && walletId && walletId !== authData.user.user_metadata?.wallet_id) {
-        const { error: updateError } = await supabase.auth.admin.updateUserById(authData.user.id, {
+        const { error: updateError } = await adminSupabase.auth.admin.updateUserById(authData.user.id, {
           user_metadata: {
             ...authData.user.user_metadata,
             wallet_id: walletId,
@@ -111,7 +113,7 @@ export default async function handler(
       }
 
       if (walletId && walletId !== user.user_metadata?.wallet_id) {
-        const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
+        const { error: updateError } = await adminSupabase.auth.admin.updateUserById(user.id, {
           user_metadata: {
             ...user.user_metadata,
             wallet_id: walletId,

@@ -1,16 +1,17 @@
 import React from "react";
 
-import { MarginfiAccountWrapper, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
+import { Bank, EmodeImpact, MarginfiAccountWrapper, MarginRequirementType } from "@mrgnlabs/marginfi-client-v2";
 
 import { ActionSummary } from "~/components/action-box-v2/utils";
-import { ActionProgressBar } from "~/components/action-box-v2/components";
+import { ActionProgressBar, ActionProgressBarSkeleton } from "~/components/action-box-v2/components";
 
 type CollateralProps = {
   selectedAccount: MarginfiAccountWrapper | null;
+  emodeImpact?: EmodeImpact;
   actionSummary?: ActionSummary;
 };
 
-export const Collateral = ({ selectedAccount, actionSummary }: CollateralProps) => {
+export const Collateral = ({ selectedAccount, emodeImpact, actionSummary }: CollateralProps) => {
   const availableCollateral = React.useMemo(() => {
     if (!selectedAccount) return null;
 
@@ -18,19 +19,55 @@ export const Collateral = ({ selectedAccount, actionSummary }: CollateralProps) 
       return actionSummary.simulationPreview.availableCollateral;
     }
 
-    const collateralAmount = selectedAccount?.computeFreeCollateral().toNumber();
-    const collateralRatio =
-      collateralAmount / selectedAccount.computeHealthComponents(MarginRequirementType.Initial).assets.toNumber();
+    if (emodeImpact?.activePair) {
+      const banks = selectedAccount.client.banks;
+      const modifiedBanks = new Map(banks);
+      const activePair = emodeImpact.activePair;
+      const collateralTag = activePair.collateralBankTag;
 
-    return {
-      amount: collateralAmount,
-      ratio: collateralRatio,
-    };
-  }, [actionSummary, selectedAccount]);
+      const oraclePrices = selectedAccount.client.oraclePrices;
+
+      banks.forEach((existingBank, bankKey) => {
+        // Only apply to banks with matching tag
+        if (existingBank.emode?.emodeTag === collateralTag) {
+          modifiedBanks.set(
+            bankKey,
+            Bank.withEmodeWeights(existingBank, {
+              assetWeightMaint: activePair.assetWeightMaint,
+              assetWeightInit: activePair.assetWeightInit,
+            })
+          );
+        }
+      });
+
+      const collateralAmount = selectedAccount.pureAccount
+        .computeFreeCollateralLegacy(modifiedBanks, oraclePrices)
+        .toNumber();
+      const collateralRatio =
+        collateralAmount /
+        selectedAccount.pureAccount
+          .computeHealthComponentsLegacy(modifiedBanks, oraclePrices, MarginRequirementType.Initial, [])
+          .assets.toNumber();
+
+      return {
+        amount: collateralAmount,
+        ratio: collateralRatio,
+      };
+    } else {
+      const collateralAmount = selectedAccount?.computeFreeCollateral().toNumber();
+      const collateralRatio =
+        collateralAmount / selectedAccount.computeHealthComponents(MarginRequirementType.Initial).assets.toNumber();
+
+      return {
+        amount: collateralAmount,
+        ratio: collateralRatio,
+      };
+    }
+  }, [actionSummary, emodeImpact, selectedAccount]);
 
   return (
     <>
-      {availableCollateral && (
+      {availableCollateral ? (
         <ActionProgressBar
           amount={availableCollateral.amount}
           ratio={availableCollateral.ratio}
@@ -42,6 +79,8 @@ export const Collateral = ({ selectedAccount, actionSummary }: CollateralProps) 
             </div>
           }
         />
+      ) : (
+        <ActionProgressBarSkeleton label="Available collateral" />
       )}
     </>
   );

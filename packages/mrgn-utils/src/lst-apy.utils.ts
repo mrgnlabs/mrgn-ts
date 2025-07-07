@@ -1,7 +1,7 @@
 import { Readable } from "stream";
 import { parse } from "csv-parse";
 
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 import { computeBankRateRaw } from "./mrgnUtils";
 import { LendingModes } from "./types";

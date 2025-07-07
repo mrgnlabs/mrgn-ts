@@ -9,11 +9,12 @@ import {
   EmodeImpactStatus,
   EmodeImpact,
 } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, ActiveBankInfo, FEE_MARGIN } from "@mrgnlabs/marginfi-v2-ui-state";
-import { PublicKey } from "@solana/web3.js";
+import { ExtendedBankInfo, FEE_MARGIN } from "@mrgnlabs/mrgn-state";
+
 import { DYNAMIC_SIMULATION_ERRORS, STATIC_INFO_MESSAGES, STATIC_SIMULATION_ERRORS } from "../errors";
 import { ArenaGroupStatus } from "../types";
 import { isWholePosition } from "../mrgnUtils";
+import { PublicKey } from "@solana/web3.js";
 
 type QuoteResponseMeta = {
   quoteResponse: QuoteResponse;
@@ -62,9 +63,9 @@ function canBeWithdrawn(
     checks.push(STATIC_SIMULATION_ERRORS.NO_COLLATERAL);
   }
 
-  if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Withdrawals"));
-  }
+  // if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
+  //   checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Withdrawals"));
+  // }
 
   if (amount && targetBankInfo.userInfo.emodeImpact?.withdrawAllImpact && targetBankInfo.isActive) {
     const isWithdrawingAll = isWholePosition(targetBankInfo, amount);
@@ -394,9 +395,9 @@ function canBeBorrowed(
     checks.push(STATIC_SIMULATION_ERRORS.EXISTING_BORROW);
   }
 
-  if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
-    checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Borrows"));
-  }
+  // if (targetBankInfo && isBankOracleStale(targetBankInfo)) {
+  //   checks.push(DYNAMIC_SIMULATION_ERRORS.STALE_CHECK("Borrows"));
+  // }
 
   if (targetBankInfo.userInfo.emodeImpact?.borrowImpact) {
     const borrowImpact = targetBankInfo.userInfo.emodeImpact?.borrowImpact;
@@ -425,7 +426,14 @@ function canBeBorrowed(
   return checks;
 }
 
-function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): ActionMessageType[] {
+function canBeLent(
+  targetBankInfo: ExtendedBankInfo,
+  nativeSolBalance: number,
+  selectedStakeAccount?: {
+    address: PublicKey;
+    balance: number;
+  } | null
+): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
   const isPaused = targetBankInfo.info.rawBank.config.operationalState === OperationalState.Paused;
 
@@ -463,12 +471,16 @@ function canBeLent(targetBankInfo: ExtendedBankInfo, nativeSolBalance: number): 
   }
 
   const isWrappedSol = targetBankInfo.info.state.mint.equals(WSOL_MINT);
-  const walletBalance = floor(
+  let walletBalance = floor(
     isWrappedSol
       ? Math.max(targetBankInfo.userInfo.tokenAccount.balance + nativeSolBalance - FEE_MARGIN, 0)
       : targetBankInfo.userInfo.tokenAccount.balance,
     targetBankInfo.info.state.mintDecimals
   );
+
+  if (targetBankInfo.info.rawBank.config.assetTag === 2) {
+    walletBalance += selectedStakeAccount?.balance || 0;
+  }
 
   if (walletBalance === 0 && targetBankInfo.info.rawBank.config.assetTag !== 2) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.INSUFFICIENT_BALANCE_CHECK(targetBankInfo.meta.tokenSymbol));

@@ -1,7 +1,7 @@
 import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { QuoteResponse } from "@jup-ag/api";
 
-import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/mrgn-state";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
 import { ActionProcessingError, ActionTxns, handleSimulationError, isWholePosition } from "@mrgnlabs/mrgn-utils";
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";

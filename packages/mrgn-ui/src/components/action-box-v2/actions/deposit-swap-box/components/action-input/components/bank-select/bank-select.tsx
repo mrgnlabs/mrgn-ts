@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ExtendedBankInfo, ActionType } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, ActionType } from "@mrgnlabs/mrgn-state";
 import { computeBankRate, getEmodeStrategies, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { SelectedBankItem, BankListWrapper } from "~/components/action-box-v2/components";

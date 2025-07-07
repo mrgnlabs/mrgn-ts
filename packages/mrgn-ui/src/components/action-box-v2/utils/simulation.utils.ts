@@ -1,7 +1,5 @@
 import { MarginRequirementType, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { HealthCache } from "@mrgnlabs/marginfi-client-v2/dist/models/health-cache";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import BigNumber from "bignumber.js";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 export enum SimulationStatus {
   IDLE = "idle",

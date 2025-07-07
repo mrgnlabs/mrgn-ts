@@ -15,7 +15,7 @@ import {
   STATUS_NOT_FOUND,
   STATUS_OK,
   firebaseApi,
-} from "@mrgnlabs/marginfi-v2-ui-state";
+} from "@mrgnlabs/mrgn-state";
 import { capture, identify } from "@mrgnlabs/mrgn-utils";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

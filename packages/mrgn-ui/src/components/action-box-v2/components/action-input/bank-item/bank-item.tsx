@@ -1,11 +1,13 @@
 import React from "react";
 
 import { shortenAddress, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo, useNativeStakeData } from "@mrgnlabs/mrgn-state";
 import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 import { EmodeTag, OracleSetup } from "@mrgnlabs/marginfi-client-v2";
 import { IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
+import { useActionBoxContext } from "~/components/action-box-v2/contexts";
+import { Skeleton } from "~/components/ui/skeleton";
 
 type BankItemProps = {
   bank: ExtendedBankInfo;
@@ -32,6 +34,8 @@ export const BankItem = ({
   highlightEmodeLabel,
   available = true,
 }: BankItemProps) => {
+  const { isLoading } = useNativeStakeData();
+
   const balance = React.useMemo(() => {
     const isWSOL = bank.info.state.mint?.equals ? bank.info.state.mint.equals(WSOL_MINT) : false;
 
@@ -59,7 +63,10 @@ export const BankItem = ({
     [bank, openPosition]
   );
 
-  const isStakedActivating = bank.info.rawBank.config.assetTag === 2 && !bank.meta.stakePool?.isActive;
+  const contextProps = useActionBoxContext();
+
+  const stakePoolMetadata = contextProps?.stakePoolMetadataMap?.get(bank.address.toBase58());
+  const isStakedActivating = bank.info.rawBank.config.assetTag === 2 && !stakePoolMetadata?.isActive;
 
   return (
     <>
@@ -79,13 +86,13 @@ export const BankItem = ({
                 <IconEmodeSimpleInactive size={14} className="translate-y-px" />
                 <span className="text-xs font-light">e-mode available</span>
               </div>
-            ) : (
-              bank.info.rawBank.config.assetTag === 2 && (
-                <p className="text-xs font-light text-muted-foreground ml-2">
-                  validator: {shortenAddress(bank.meta.stakePool?.validatorVoteAccount?.toBase58() ?? "")}
-                </p>
-              )
-            )}
+            ) : bank.info.rawBank.config.assetTag === 2 && !isLoading ? (
+              <p className="text-xs font-light text-muted-foreground ml-2">
+                validator: {shortenAddress(stakePoolMetadata?.validatorVoteAccount?.toBase58() ?? "")}
+              </p>
+            ) : bank.info.rawBank.config.assetTag === 2 && isLoading ? (
+              <Skeleton className="h-3 w-16" />
+            ) : null}
             {!available && <span className="text-[11px] ml-1 font-light">(currently unavailable)</span>}
           </div>
           <p

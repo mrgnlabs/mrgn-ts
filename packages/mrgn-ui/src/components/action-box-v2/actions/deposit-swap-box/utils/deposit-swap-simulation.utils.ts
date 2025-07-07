@@ -1,7 +1,7 @@
 import { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 import { MarginfiAccountWrapper, SimulationResult } from "@mrgnlabs/marginfi-client-v2";
-import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { handleSimulationError, DepositSwapActionTxns, ActionProcessingError } from "@mrgnlabs/mrgn-utils";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
 

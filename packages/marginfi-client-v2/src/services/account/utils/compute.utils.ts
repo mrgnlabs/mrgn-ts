@@ -3,19 +3,19 @@ import { PublicKey } from "@solana/web3.js";
 
 import { aprToApy, BankMetadataMap, composeRemainingAccounts, nativeToUi, shortenAddress } from "@mrgnlabs/mrgn-common";
 
-import { BalanceType, MarginfiAccountType } from "../types";
-import { MarginRequirementType } from "../../../models/account";
-import { OraclePrice } from "../../price";
-import { PriceBias } from "../../price/types";
+import { MarginRequirementType } from "~/models/account";
 import {
   BankType,
-  computeAssetUsdValue,
   computeInterestRates,
+  computeAssetUsdValue,
   computeLiabilityUsdValue,
   getAssetQuantity,
   getLiabilityQuantity,
-} from "../../bank";
-import { findPoolAddress, findPoolMintAddress, findPoolStakeAddress } from "../../../vendor";
+} from "~/services/bank";
+import { OraclePrice, PriceBias } from "~/services/price";
+import { findPoolAddress, findPoolStakeAddress, findPoolMintAddress } from "~/vendor/single-spl-pool";
+
+import { MarginfiAccountType, BalanceType } from "../types";
 
 /**
  * Marginfi Account Computes
@@ -26,6 +26,27 @@ export function computeFreeCollateral(marginfiAccount: MarginfiAccountType, opts
   const _clamped = opts?.clamped ?? true;
 
   const { assets, liabilities } = computeHealthComponents(marginfiAccount, MarginRequirementType.Initial);
+
+  const signedFreeCollateral = assets.minus(liabilities);
+
+  return _clamped ? BigNumber.max(0, signedFreeCollateral) : signedFreeCollateral;
+}
+
+export function computeFreeCollateralLegacy(
+  activeBalances: BalanceType[],
+  banks: Map<string, BankType>,
+  oraclePrices: Map<string, OraclePrice>,
+  opts?: { clamped?: boolean }
+): BigNumber {
+  const _clamped = opts?.clamped ?? true;
+
+  const { assets, liabilities } = computeHealthComponentsLegacy(
+    activeBalances,
+    banks,
+    oraclePrices,
+    MarginRequirementType.Initial,
+    []
+  );
 
   const signedFreeCollateral = assets.minus(liabilities);
 

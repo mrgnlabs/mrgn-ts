@@ -1,8 +1,8 @@
 import { create, StateCreator } from "zustand";
 import { PublicKey } from "@solana/web3.js";
-import { ActionType, ExtendedBankInfo, ValidatorStakeGroup } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { ActionMessageType, ActionTxns } from "@mrgnlabs/mrgn-utils";
-import { SimulationResult } from "@mrgnlabs/marginfi-client-v2";
+import { SimulationResult, ValidatorStakeGroup } from "@mrgnlabs/marginfi-client-v2";
 
 interface LendBoxState {
   // State
@@ -132,7 +132,7 @@ const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
       if (tokenBank?.info.rawBank.config.assetTag === 2) {
         const stakeAccounts = get().stakeAccounts;
         const stakeAccount = stakeAccounts.find((stakeAccount) =>
-          stakeAccount.validator.equals(tokenBank.meta.stakePool?.validatorVoteAccount || PublicKey.default)
+          stakeAccount.poolMintKey.equals(tokenBank.info.rawBank.mint)
         );
         if (stakeAccount) {
           data.selectedStakeAccount = {
@@ -172,7 +172,19 @@ const stateCreator: StateCreator<LendBoxState, [], []> = (set, get) => ({
   },
 
   setSelectedStakeAccount(stakeAccount) {
-    set({ selectedStakeAccount: stakeAccount });
+    const currentStakeAccount = get().selectedStakeAccount;
+    const hasStakeAccountChanged =
+      !stakeAccount || !currentStakeAccount || !stakeAccount.address.equals(currentStakeAccount.address);
+
+    if (hasStakeAccountChanged) {
+      set({
+        selectedStakeAccount: stakeAccount,
+        amountRaw: "",
+        errorMessage: null,
+      });
+    } else {
+      set({ selectedStakeAccount: stakeAccount });
+    }
   },
 });
 

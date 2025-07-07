@@ -1,18 +1,11 @@
-import { AddressLookupTableAccount, VersionedTransaction } from "@solana/web3.js";
 import { QuoteGetRequest } from "@jup-ag/api";
 
 import { computeLoopingParams, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
-import { bpsToPercentile, nativeToUi, SolanaTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
+import { bpsToPercentile, SolanaTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 import { STATIC_SIMULATION_ERRORS } from "../../errors";
-import {
-  ActionMessageType,
-  ActionProcessingError,
-  ClosePositionProps,
-  LoopingProps,
-  RepayWithCollatProps,
-} from "../types";
+import { ActionProcessingError, ClosePositionProps, LoopingProps, RepayWithCollatProps } from "../types";
 import { closePositionBuilder, loopingBuilder, repayWithCollatBuilder } from "./builders";
 import { getSwapQuoteWithRetry } from "../helpers";
 

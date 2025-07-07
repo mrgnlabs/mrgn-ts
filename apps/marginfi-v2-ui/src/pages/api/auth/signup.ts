@@ -1,15 +1,19 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { 
-  createServerSupabaseClient, 
-  verifySignature, 
-  generateCreds, 
-  SignupPayload, 
-  AuthApiSuccessResponse, 
+import {
+  createServerSupabaseClient,
+  createAdminSupabaseClient,
+  verifySignature,
+  generateCreds,
+  SignupPayload,
+  AuthApiSuccessResponse,
   AuthApiErrorResponse,
-  AuthUser 
+  AuthUser,
 } from "@mrgnlabs/mrgn-utils";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<AuthApiSuccessResponse | AuthApiErrorResponse>) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<AuthApiSuccessResponse | AuthApiErrorResponse>
+) {
   if (req.method !== "POST") {
     return res.status(405).json({ user: null, error: "Method not allowed" });
   }
@@ -26,10 +30,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     }
 
     const supabase = createServerSupabaseClient(req, res);
+    const adminSupabase = createAdminSupabaseClient();
     const { email, password } = generateCreds(walletAddress, signature);
 
-    // Check if user exists in Supabase Auth
-    const { data: userList, error: listError } = await supabase.auth.admin.listUsers();
+    // Check if user exists in Supabase Auth using admin client
+    const { data: userList, error: listError } = await adminSupabase.auth.admin.listUsers();
     if (listError) {
       console.error("Error fetching users:", listError);
       return res.status(500).json({ user: null, error: "Failed to check existing users" });
@@ -41,8 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(400).json({ user: null, error: "User already exists" });
     }
 
-    // Create the user in Supabase Auth
-    const { data: userData, error: createError } = await supabase.auth.admin.createUser({
+    // Create the user in Supabase Auth using admin client
+    const { data: userData, error: createError } = await adminSupabase.auth.admin.createUser({
       email,
       password,
       email_confirm: true, // Auto-confirm email
@@ -59,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       return res.status(400).json({ user: null, error: createError?.message || "Failed to create user" });
     }
 
-    // Authenticate the user
+    // Authenticate the user using regular client
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -83,9 +88,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       walletId,
       referralCode,
     };
-    
+
     return res.status(200).json({
-      user
+      user,
     });
   } catch (error) {
     console.error("Signup error:", error);

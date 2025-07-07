@@ -1,5 +1,5 @@
 import { QuoteResponse, createJupiterApiClient } from "@jup-ag/api";
-import { ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import {
   SolanaTransaction,
   uiToNative,

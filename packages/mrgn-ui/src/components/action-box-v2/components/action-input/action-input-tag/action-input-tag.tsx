@@ -1,7 +1,7 @@
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 type ActionInputTagProps = {
-  label?: string;
+  label?: string | React.ReactNode;
   amount: string;
   isDisabled: boolean;
   tag?: string;

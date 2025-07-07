@@ -1,9 +1,12 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { ActionType, ExtendedBankInfo, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
 
 import { ActionInputTag } from "~/components/action-box-v2/components";
+import { StakeAccountSwitcher } from "~/components/action-box-v2/actions/lend-box/components/stake-accounts";
+import { PublicKey } from "@solana/web3.js";
+import { useActionBoxContext } from "~/components/action-box-v2/contexts";
 
 type LendingActionProps = {
   walletAmount: number | undefined;
@@ -12,7 +15,8 @@ type LendingActionProps = {
   lendMode: ActionType;
   selectedBank: ExtendedBankInfo | null;
   disabled?: boolean;
-
+  selectedStakeAccount?: PublicKey;
+  onStakeAccountChange: (stakeAccount: { address: PublicKey; balance: number }) => void;
   onSetAmountRaw: (amount: string) => void;
 };
 
@@ -23,13 +27,20 @@ export const LendingAction = ({
   selectedBank,
   lendMode,
   disabled = false,
+  selectedStakeAccount,
+  onStakeAccountChange,
 }: LendingActionProps) => {
   const numberFormater = React.useMemo(() => new Intl.NumberFormat("en-US", { maximumFractionDigits: 10 }), []);
+  const contextProps = useActionBoxContext();
+  const stakeAccounts = contextProps?.stakeAccounts;
+  const stakePoolMetadataMap = contextProps?.stakePoolMetadataMap;
+  const marginfiClient = contextProps?.marginfiClient;
+  const selectedAccount = contextProps?.selectedAccount;
 
   const maxLabel = React.useMemo((): {
     amount: string;
     showWalletIcon?: boolean;
-    label?: string;
+    label?: string | React.ReactNode;
   } => {
     if (!selectedBank) {
       return {
@@ -45,8 +56,18 @@ export const LendingAction = ({
       case ActionType.Deposit:
         if (selectedBank.info.rawBank.config.assetTag === 2) {
           return {
-            label: "Stake Account: ",
-            amount: formatAmount(walletAmount, "SOL"),
+            label: (
+              <StakeAccountSwitcher
+                selectedBank={selectedBank}
+                selectedStakeAccount={selectedStakeAccount}
+                stakeAccounts={stakeAccounts ?? []}
+                onStakeAccountChange={onStakeAccountChange}
+                stakePoolMetadataMap={stakePoolMetadataMap ?? null}
+                marginfiClient={marginfiClient ?? null}
+                selectedAccount={selectedAccount ?? null}
+              />
+            ),
+            amount: formatAmount(maxAmount, "SOL"),
           };
         }
 
@@ -81,7 +102,17 @@ export const LendingAction = ({
       default:
         return { amount: "-" };
     }
-  }, [selectedBank, lendMode, walletAmount]);
+  }, [
+    selectedBank,
+    lendMode,
+    walletAmount,
+    stakeAccounts,
+    stakePoolMetadataMap,
+    marginfiClient,
+    selectedAccount,
+    selectedStakeAccount,
+    onStakeAccountChange,
+  ]);
 
   return (
     <>

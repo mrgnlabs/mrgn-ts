@@ -1,11 +1,11 @@
 import React from "react";
 
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { clearAccountCache, firebaseApi } from "@mrgnlabs/marginfi-v2-ui-state";
+import { firebaseApi } from "@mrgnlabs/mrgn-state";
 import { getMaybeSquadsOptions, capture } from "@mrgnlabs/mrgn-utils";
 import { toastManager } from "@mrgnlabs/mrgn-toasts";
 import { IconChevronDown, IconUserPlus, IconPencil, IconAlertTriangle, IconCopy, IconCheck } from "@tabler/icons-react";
-import { Connection } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 import CopyToClipboard from "react-copy-to-clipboard";
 
 import { cn } from "@mrgnlabs/mrgn-utils";
@@ -28,28 +28,26 @@ enum WalletAuthAccountsState {
 }
 
 type WalletAuthAccountsProps = {
-  initialized: boolean;
   mfiClient: MarginfiClient | null;
   connection: Connection | null;
-  marginfiAccounts: MarginfiAccountWrapper[];
+  marginfiAccounts: PublicKey[];
   selectedAccount: MarginfiAccountWrapper | null;
-  fetchMrgnlendState: () => void;
+  setSelectedAccount: (account: PublicKey) => void;
   processOpts?: ProcessTransactionsClientOpts;
   closeOnSwitch?: boolean;
   fullHeight?: boolean;
   popoverContentAlign?: "start" | "end" | "center";
   showAddAccountButton?: boolean;
   accountLabels?: Record<string, string>;
-  fetchAccountLabels?: (accounts: MarginfiAccountWrapper[]) => Promise<void>;
+  fetchAccountLabels?: (accounts: PublicKey[]) => Promise<void>;
 };
 
 export const WalletAuthAccounts = ({
-  initialized,
   mfiClient,
   connection,
   marginfiAccounts,
   selectedAccount,
-  fetchMrgnlendState,
+  setSelectedAccount,
   closeOnSwitch = false,
   fullHeight = false,
   popoverContentAlign = "center",
@@ -59,14 +57,14 @@ export const WalletAuthAccounts = ({
   fetchAccountLabels,
 }: WalletAuthAccountsProps) => {
   const [popoverOpen, setPopoverOpen] = React.useState(false);
-  const { wallet, walletContextState } = useWallet();
+  const { wallet, walletAddress, walletContextState } = useWallet();
   const [isActivatingAccount, setIsActivatingAccount] = React.useState<number | null>(null);
   const [isActivatingAccountDelay, setIsActivatingAccountDelay] = React.useState<number | null>(null);
   const [walletAuthAccountsState, setWalletAuthAccountsState] = React.useState<WalletAuthAccountsState>(
     WalletAuthAccountsState.DEFAULT
   );
   const [newAccountName, setNewAccountName] = React.useState<string>();
-  const [editingAccount, setEditingAccount] = React.useState<MarginfiAccountWrapper | null>(null);
+  const [editingAccount, setEditingAccount] = React.useState<PublicKey | null>(null);
   const [editingAccountName, setEditingAccountName] = React.useState<string>("");
   const [editAccountError, setEditAccountError] = React.useState<string>("");
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
@@ -87,18 +85,16 @@ export const WalletAuthAccounts = ({
   }, []);
 
   const activateAccount = React.useCallback(
-    async (account: MarginfiAccountWrapper, index: number) => {
-      if (selectedAccount && selectedAccount.address.equals(account.address)) return;
+    (account: PublicKey, index: number) => {
+      if (selectedAccount && selectedAccount.address.equals(account)) return;
       setIsActivatingAccount(index);
       const switchingLabelTimer = setTimeout(() => setIsActivatingAccountDelay(index), 500);
-
-      localStorage.setItem("mfiAccount", account.address.toBase58());
-      await fetchMrgnlendState();
+      setSelectedAccount(account);
 
       clearTimeout(switchingLabelTimer);
       setIsActivatingAccount(null);
       setIsActivatingAccountDelay(null);
-      capture("account_switched", { wallet: account.authority.toBase58(), account: account.address.toBase58() });
+      capture("account_switched", { wallet: walletAddress.toBase58(), account: account.toBase58() });
 
       if (closeOnSwitch) {
         setPopoverOpen(false);
@@ -106,7 +102,7 @@ export const WalletAuthAccounts = ({
 
       return () => clearTimeout(switchingLabelTimer);
     },
-    [fetchMrgnlendState, selectedAccount, closeOnSwitch]
+    [selectedAccount, setSelectedAccount, walletAddress, closeOnSwitch]
   );
 
   const checkAndClearAccountCache = React.useCallback(() => {
@@ -116,18 +112,17 @@ export const WalletAuthAccounts = ({
 
     if (!cacheTimestamp || now - parseInt(cacheTimestamp, 10) > FIFTEEN_MINUTES) {
       console.log("Clearing account cache and refetching accounts");
-      clearAccountCache(wallet.publicKey);
       fetchAccountLabels?.(marginfiAccounts);
       localStorage.setItem("mrgnClearedAccountCache", now.toString());
     }
-  }, [wallet.publicKey, fetchAccountLabels, marginfiAccounts]);
+  }, [fetchAccountLabels, marginfiAccounts]);
 
   const editAccount = React.useCallback(async () => {
     if (
       !connection ||
       !editingAccount ||
       !editingAccountName ||
-      editingAccountName === accountLabels?.[editingAccount.address.toBase58()]
+      editingAccountName === accountLabels?.[editingAccount.toBase58()]
     ) {
       return;
     }
@@ -145,7 +140,7 @@ export const WalletAuthAccounts = ({
       useAuthTxn ? "tx" : "memo",
       blockhashInfo,
       wallet,
-      editingAccount.address.toBase58(),
+      editingAccount.toBase58(),
       editingAccountName
     );
 
@@ -165,8 +160,8 @@ export const WalletAuthAccounts = ({
     setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
 
     capture("account_label_updated", {
-      wallet: editingAccount.authority.toBase58(),
-      account: editingAccount.address.toBase58(),
+      wallet: walletAddress.toBase58(),
+      account: editingAccount.toBase58(),
       label: editingAccountName,
     });
   }, [
@@ -178,6 +173,7 @@ export const WalletAuthAccounts = ({
     wallet,
     fetchAccountLabels,
     marginfiAccounts,
+    walletAddress,
   ]);
 
   const createNewAccount = React.useCallback(async () => {
@@ -204,7 +200,6 @@ export const WalletAuthAccounts = ({
         return;
       }
 
-      clearAccountCache(mfiClient.provider.publicKey);
       multiStepToast.successAndNext();
 
       const blockhashInfo = await connection.getLatestBlockhash();
@@ -227,7 +222,7 @@ export const WalletAuthAccounts = ({
       setIsSubmitting(false);
       setWalletAuthAccountsState(WalletAuthAccountsState.DEFAULT);
       await fetchAccountLabels?.(marginfiAccounts);
-      activateAccount(mfiAccount, marginfiAccounts.length - 1);
+      activateAccount(mfiAccount.address, marginfiAccounts.length - 1);
       setNewAccountName(`Account ${marginfiAccounts.length + 1}`);
 
       capture("account_created", {
@@ -258,8 +253,6 @@ export const WalletAuthAccounts = ({
     }
   }, [walletAuthAccountsState, marginfiAccounts]);
 
-  if (!initialized) return null;
-
   return (
     <div>
       <Popover
@@ -271,23 +264,26 @@ export const WalletAuthAccounts = ({
         }}
         open={popoverOpen}
       >
-        {selectedAccount && accountLabels?.[selectedAccount.address.toBase58()] && (
+        {selectedAccount && (
           <PopoverTrigger asChild>
             <Button variant="secondary" size="sm" className="text-sm">
               <span className="max-w-[80px] lg:max-w-[120px] truncate">
-                {accountLabels?.[selectedAccount.address.toBase58()]}
-              </span>{" "}
+                {accountLabels?.[selectedAccount.address.toBase58()] || "Account"}
+              </span>
               <IconChevronDown size={16} />
             </Button>
           </PopoverTrigger>
         )}
-        {/* TODO: fix this z-index mess */}
         <PopoverContent className="w-80 z-50" align={popoverContentAlign}>
           {walletAuthAccountsState === WalletAuthAccountsState.DEFAULT && (
             <div className="grid gap-4 w-[80]">
               <div className="space-y-2">
                 <h4 className="font-medium leading-none">Your accounts</h4>
-                <p className="text-sm text-muted-foreground">Manage your accounts or create a new one below.</p>
+                <p className="text-sm text-muted-foreground">
+                  {marginfiAccounts.length === 1
+                    ? "Create another account below."
+                    : "Manage your accounts or create a new one below."}
+                </p>
               </div>
               <div
                 className={cn(
@@ -298,13 +294,13 @@ export const WalletAuthAccounts = ({
               >
                 {marginfiAccounts
                   .sort((a, b) => {
-                    const indexA = Object.keys(accountLabels || {}).indexOf(a.address.toBase58());
-                    const indexB = Object.keys(accountLabels || {}).indexOf(b.address.toBase58());
+                    const indexA = Object.keys(accountLabels || {}).indexOf(a.toBase58());
+                    const indexB = Object.keys(accountLabels || {}).indexOf(b.toBase58());
                     return indexA - indexB;
                   })
                   .map((account, index) => {
-                    const isActiveAccount = selectedAccount && selectedAccount.address.equals(account.address);
-                    const accountLabel = accountLabels?.[account.address.toBase58()] || `Account`;
+                    const isActiveAccount = selectedAccount && selectedAccount.address.equals(account);
+                    const accountLabel = accountLabels?.[account.toBase58()] || `Account`;
                     return (
                       <div key={index} className="flex items-center justify-start gap-2">
                         <Button
@@ -338,10 +334,8 @@ export const WalletAuthAccounts = ({
                             </Tooltip>
                           </TooltipProvider>
 
-                          <span id={account.address.toBase58()} className="text-muted-foreground text-[10px]">
-                            {isActivatingAccountDelay === index
-                              ? "Switching..."
-                              : shortenAddress(account.address.toBase58())}
+                          <span id={account.toBase58()} className="text-muted-foreground text-[10px]">
+                            {isActivatingAccountDelay === index ? "Switching..." : shortenAddress(account.toBase58())}
                           </span>
 
                           {isActivatingAccount === null && isActiveAccount && (
@@ -378,12 +372,12 @@ export const WalletAuthAccounts = ({
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <div>
-                                    {copiedAddresses.has(account.address.toBase58()) ? (
+                                    {copiedAddresses.has(account.toBase58()) ? (
                                       <IconCheck size={16} />
                                     ) : (
                                       <CopyToClipboard
-                                        text={account.address.toBase58()}
-                                        onCopy={() => handleCopyAddress(account.address.toBase58())}
+                                        text={account.toBase58()}
+                                        onCopy={() => handleCopyAddress(account.toBase58())}
                                       >
                                         <IconCopy size={16} />
                                       </CopyToClipboard>
@@ -391,7 +385,7 @@ export const WalletAuthAccounts = ({
                                   </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  {copiedAddresses.has(account.address.toBase58()) ? "Copied!" : "Copy account address"}
+                                  {copiedAddresses.has(account.toBase58()) ? "Copied!" : "Copy account address"}
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>

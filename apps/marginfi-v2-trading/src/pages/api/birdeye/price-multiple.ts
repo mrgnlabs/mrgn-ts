@@ -1,5 +1,5 @@
 import { NextApiResponse } from "next";
-import { STATUS_BAD_REQUEST, STATUS_OK } from "@mrgnlabs/marginfi-v2-ui-state";
+import { STATUS_BAD_REQUEST, STATUS_OK } from "@mrgnlabs/mrgn-state";
 import { NextApiRequest } from "../utils";
 
 type WalletRequest = {

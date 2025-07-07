@@ -11,7 +11,7 @@ import {
   usePrevious,
   JupiterOptions,
 } from "@mrgnlabs/mrgn-utils";
-import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/marginfi-v2-ui-state";
+import { AccountSummary, ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 import { SimulationStatus } from "~/components/action-box-v2/utils";
 

@@ -11,6 +11,20 @@ import {
   OperationalState,
   OracleSetup,
   OracleSetupRaw,
+  BankTypeDto,
+  BankType,
+  EmodeSettingsDto,
+  EmodeSettingsType,
+  BankConfigType,
+  BankConfigDto,
+  InterestRateConfigDto,
+  InterestRateConfig,
+  BankRaw,
+  BankRawDto,
+  BankConfigRaw,
+  BankConfigRawDto,
+  EmodeSettingsRaw,
+  EmodeSettingsRawDto,
 } from "../types";
 
 function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw {
@@ -109,10 +123,173 @@ function serializeOracleSetup(oracleSetup: OracleSetup): OracleSetupRaw {
   }
 }
 
+function toBankDto(bank: BankType): BankTypeDto {
+  return {
+    address: bank.address.toBase58(),
+    group: bank.group.toBase58(),
+    mint: bank.mint.toBase58(),
+    mintDecimals: bank.mintDecimals,
+    assetShareValue: bank.assetShareValue.toString(),
+    liabilityShareValue: bank.liabilityShareValue.toString(),
+    liquidityVault: bank.liquidityVault.toBase58(),
+    liquidityVaultBump: bank.liquidityVaultBump,
+    liquidityVaultAuthorityBump: bank.liquidityVaultAuthorityBump,
+    insuranceVault: bank.insuranceVault.toBase58(),
+    insuranceVaultBump: bank.insuranceVaultBump,
+    insuranceVaultAuthorityBump: bank.insuranceVaultAuthorityBump,
+    collectedInsuranceFeesOutstanding: bank.collectedInsuranceFeesOutstanding.toString(),
+    feeVault: bank.feeVault.toBase58(),
+    feeVaultBump: bank.feeVaultBump,
+    feeVaultAuthorityBump: bank.feeVaultAuthorityBump,
+    collectedGroupFeesOutstanding: bank.collectedGroupFeesOutstanding.toString(),
+    lastUpdate: bank.lastUpdate,
+    config: toBankConfigDto(bank.config),
+    totalAssetShares: bank.totalAssetShares.toString(),
+    totalLiabilityShares: bank.totalLiabilityShares.toString(),
+    emissionsActiveBorrowing: bank.emissionsActiveBorrowing,
+    emissionsActiveLending: bank.emissionsActiveLending,
+    emissionsRate: bank.emissionsRate,
+    emissionsMint: bank.emissionsMint.toBase58(),
+    emissionsRemaining: bank.emissionsRemaining.toString(),
+    oracleKey: bank.oracleKey.toBase58(),
+    pythShardId: bank.pythShardId,
+    emode: toEmodeSettingsDto(bank.emode),
+    tokenSymbol: bank.tokenSymbol,
+  };
+}
+
+function toEmodeSettingsDto(emodeSettings: EmodeSettingsType): EmodeSettingsDto {
+  return {
+    emodeTag: emodeSettings.emodeTag,
+    timestamp: emodeSettings.timestamp,
+    flags: emodeSettings.flags,
+    emodeEntries: emodeSettings.emodeEntries.map((entry) => {
+      return {
+        collateralBankEmodeTag: entry.collateralBankEmodeTag,
+        flags: entry.flags,
+        assetWeightInit: entry.assetWeightInit.toString(),
+        assetWeightMaint: entry.assetWeightMaint.toString(),
+      };
+    }),
+  };
+}
+
+function toBankConfigDto(bankConfig: BankConfigType): BankConfigDto {
+  return {
+    assetWeightInit: bankConfig.assetWeightInit.toString(),
+    assetWeightMaint: bankConfig.assetWeightMaint.toString(),
+    liabilityWeightInit: bankConfig.liabilityWeightInit.toString(),
+    liabilityWeightMaint: bankConfig.liabilityWeightMaint.toString(),
+    depositLimit: bankConfig.depositLimit.toString(),
+    borrowLimit: bankConfig.borrowLimit.toString(),
+    riskTier: bankConfig.riskTier,
+    operationalState: bankConfig.operationalState,
+    totalAssetValueInitLimit: bankConfig.totalAssetValueInitLimit.toString(),
+    assetTag: bankConfig.assetTag,
+    oracleSetup: bankConfig.oracleSetup,
+    oracleKeys: bankConfig.oracleKeys.map((key) => key.toBase58()),
+    oracleMaxAge: bankConfig.oracleMaxAge,
+    interestRateConfig: toInterestRateConfigDto(bankConfig.interestRateConfig),
+  };
+}
+
+function toInterestRateConfigDto(interestRateConfig: InterestRateConfig): InterestRateConfigDto {
+  return {
+    optimalUtilizationRate: interestRateConfig.optimalUtilizationRate.toString(),
+    plateauInterestRate: interestRateConfig.plateauInterestRate.toString(),
+    maxInterestRate: interestRateConfig.maxInterestRate.toString(),
+    insuranceFeeFixedApr: interestRateConfig.insuranceFeeFixedApr.toString(),
+    insuranceIrFee: interestRateConfig.insuranceIrFee.toString(),
+    protocolFixedFeeApr: interestRateConfig.protocolFixedFeeApr.toString(),
+    protocolIrFee: interestRateConfig.protocolIrFee.toString(),
+    protocolOriginationFee: interestRateConfig.protocolOriginationFee.toString(),
+  };
+}
+
+export function bankRawToDto(bankRaw: BankRaw): BankRawDto {
+  return {
+    group: bankRaw.group.toBase58(),
+    mint: bankRaw.mint.toBase58(),
+    mintDecimals: bankRaw.mintDecimals,
+
+    assetShareValue: bankRaw.assetShareValue,
+    liabilityShareValue: bankRaw.liabilityShareValue,
+
+    liquidityVault: bankRaw.liquidityVault.toBase58(),
+    liquidityVaultBump: bankRaw.liquidityVaultBump,
+    liquidityVaultAuthorityBump: bankRaw.liquidityVaultAuthorityBump,
+
+    insuranceVault: bankRaw.insuranceVault.toBase58(),
+    insuranceVaultBump: bankRaw.insuranceVaultBump,
+    insuranceVaultAuthorityBump: bankRaw.insuranceVaultAuthorityBump,
+    collectedInsuranceFeesOutstanding: bankRaw.collectedInsuranceFeesOutstanding,
+
+    feeVault: bankRaw.feeVault.toBase58(),
+    feeVaultBump: bankRaw.feeVaultBump,
+    feeVaultAuthorityBump: bankRaw.feeVaultAuthorityBump,
+    collectedGroupFeesOutstanding: bankRaw.collectedGroupFeesOutstanding,
+
+    lastUpdate: bankRaw.lastUpdate.toString(),
+
+    config: bankConfigRawToDto(bankRaw.config),
+
+    totalAssetShares: bankRaw.totalAssetShares,
+    totalLiabilityShares: bankRaw.totalLiabilityShares,
+
+    flags: bankRaw.flags.toString(),
+    emissionsRate: bankRaw.emissionsRate.toString(),
+    emissionsRemaining: bankRaw.emissionsRemaining,
+    emissionsMint: bankRaw.emissionsMint.toBase58(),
+
+    emode: emodeSettingsRawToDto(bankRaw.emode),
+  };
+}
+
+export function emodeSettingsRawToDto(emodeSettingsRaw: EmodeSettingsRaw): EmodeSettingsRawDto {
+  return {
+    emodeTag: emodeSettingsRaw.emodeTag,
+    timestamp: emodeSettingsRaw.timestamp.toString(),
+    flags: emodeSettingsRaw.flags.toString(),
+    emodeConfig: {
+      entries: emodeSettingsRaw.emodeConfig.entries.map((entry) => {
+        return {
+          collateralBankEmodeTag: entry.collateralBankEmodeTag,
+          flags: entry.flags,
+          assetWeightInit: entry.assetWeightInit,
+          assetWeightMaint: entry.assetWeightMaint,
+        };
+      }),
+    },
+  };
+}
+
+export function bankConfigRawToDto(bankConfigRaw: BankConfigRaw): BankConfigRawDto {
+  return {
+    assetWeightInit: bankConfigRaw.assetWeightInit,
+    assetWeightMaint: bankConfigRaw.assetWeightMaint,
+    liabilityWeightInit: bankConfigRaw.liabilityWeightInit,
+    liabilityWeightMaint: bankConfigRaw.liabilityWeightMaint,
+    depositLimit: bankConfigRaw.depositLimit.toString(),
+    borrowLimit: bankConfigRaw.borrowLimit.toString(),
+    riskTier: bankConfigRaw.riskTier,
+    operationalState: bankConfigRaw.operationalState,
+    totalAssetValueInitLimit: bankConfigRaw.totalAssetValueInitLimit.toString(),
+    assetTag: bankConfigRaw.assetTag,
+    oracleSetup: bankConfigRaw.oracleSetup,
+    oracleKeys: bankConfigRaw.oracleKeys.map((key) => key.toBase58()),
+    oracleMaxAge: bankConfigRaw.oracleMaxAge,
+    interestRateConfig: bankConfigRaw.interestRateConfig,
+  };
+}
+
 export {
   serializeOracleSetupToIndex,
   serializeBankConfigOpt,
   serializeRiskTier,
   serializeOperationalState,
   serializeOracleSetup,
+  toBankDto,
+  toEmodeSettingsDto,
+  toBankConfigDto,
+  toInterestRateConfigDto,
 };

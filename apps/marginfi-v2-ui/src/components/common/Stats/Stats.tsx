@@ -1,13 +1,10 @@
 import React from "react";
 
-import { useMrgnlendStore } from "~/store";
-
-import { cn } from "@mrgnlabs/mrgn-utils";
-
-import { numeralFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
+import { numeralFormatter } from "@mrgnlabs/mrgn-common";
+import { useProtocolStats } from "@mrgnlabs/mrgn-state";
 
 export const Stats = () => {
-  const [protocolStats] = useMrgnlendStore((state) => [state.protocolStats]);
+  const protocolStats = useProtocolStats();
 
   const statsList = React.useMemo(() => {
     return [
