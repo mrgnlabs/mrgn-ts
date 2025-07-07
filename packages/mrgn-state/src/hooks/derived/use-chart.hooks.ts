@@ -97,12 +97,12 @@ export function usePortfolioChart(
 
         return {
           timestamp: timestamp,
-          "Net Portfolio": netValue,
+          "Portfolio Balance": netValue,
           net: netValue, // Keep both for backward compatibility
         };
       });
 
-      return { data: chartData, bankSymbols: ["Net Portfolio"] };
+      return { data: chartData, bankSymbols: ["Portfolio Balance"] };
     } else {
       // For deposits or borrows view, we need to track each bank separately
       const bankMap = new Map<string, boolean>(); // Track active banks

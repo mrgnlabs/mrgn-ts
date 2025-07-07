@@ -73,9 +73,9 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
             label: symbol,
             color: "hsl(var(--mfi-chart-negative))",
           };
-        } else if (symbol === "Net Portfolio" || symbol === "net") {
+        } else if (symbol === "Portfolio Balance" || symbol === "net") {
           config[symbol] = {
-            label: symbol === "net" ? "Net Portfolio" : symbol,
+            label: symbol === "net" ? "Portfolio Balance" : symbol,
             color: "hsl(var(--mfi-chart-neutral))",
           };
         } else {
