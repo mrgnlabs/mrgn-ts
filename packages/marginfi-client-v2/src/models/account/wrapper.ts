@@ -218,7 +218,7 @@ class MarginfiAccountWrapper {
   }
 
   public async simulateHealthCache(): Promise<MarginfiAccountWrapper> {
-    const account = await this._marginfiAccount.simulateHealthCache(
+    const { marginfiAccount: account } = await this._marginfiAccount.simulateHealthCache(
       this._program,
       this.client.banks,
       this.client.oraclePrices,

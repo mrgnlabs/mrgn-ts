@@ -45,7 +45,7 @@ import {
 export const MARGINFI_PROGRAM = new PublicKey("MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA");
 
 export const DEFAULT_PROCESS_TX_OPTS = {
-  broadcastType: "BUNDLE" as TransactionBroadcastType,
+  broadcastType: "RPC" as TransactionBroadcastType,
   isSequentialTxs: true,
   isReadOnly: false,
 };
@@ -82,7 +82,7 @@ export type ProcessTransactionStrategy = {
 export const DEFAULT_PROCESS_TX_STRATEGY: ProcessTransactionStrategy = {
   splitExecutionsStrategy: {
     singleTx: "RPC",
-    multiTx: "BUNDLE",
+    multiTx: "RPC",
   },
   // if splitExecutionsStrategy is provided, the fallbackSequence will prioritize the first relevant broadcast method in the array
   fallbackSequence: [

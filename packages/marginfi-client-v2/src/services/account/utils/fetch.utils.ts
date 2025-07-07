@@ -7,7 +7,7 @@ import { Bank } from "~/models/bank";
 import { OraclePrice } from "~/services/price";
 import { MarginfiProgram } from "~/types";
 
-import { simulateAccountHealthCacheWithFallback } from "../account.service";
+import { HealthCacheSimulationError, simulateAccountHealthCacheWithFallback } from "../account.service";
 import { MarginfiAccountType, MarginfiAccountRaw } from "../types";
 
 export const fetchMarginfiAccountAddresses = async (
@@ -41,7 +41,7 @@ export const fetchMarginfiAccountData = async (
   bankMap: Map<string, Bank>,
   oraclePrices: Map<string, OraclePrice>,
   bankMetadataMap: BankMetadataMap
-): Promise<MarginfiAccountType> => {
+): Promise<{ marginfiAccount: MarginfiAccountType; error?: HealthCacheSimulationError }> => {
   const marginfiAccountRaw: MarginfiAccountRaw = await program.account.marginfiAccount.fetch(
     marginfiAccountPk,
     "confirmed"
