@@ -46,8 +46,11 @@ export function usePortfolioData(selectedAccount: string | null, banks: Extended
         const oraclePrice = bank?.info.oraclePrice.priceRealtime.price.toNumber() || 0;
         const mintDecimals = bank?.info.rawBank.mintDecimals || 0;
 
-        const assetTokens = point.assetShares / 10 ** mintDecimals;
-        const liabilityTokens = point.liabilityShares / 10 ** mintDecimals;
+        const assetShareValue = bank?.info.rawBank.assetShareValue?.toNumber() || 1;
+        const liabilityShareValue = bank?.info.rawBank.liabilityShareValue?.toNumber() || 1;
+
+        const assetTokens = (point.assetShares * assetShareValue) / 10 ** mintDecimals;
+        const liabilityTokens = (point.liabilityShares * liabilityShareValue) / 10 ** mintDecimals;
 
         const depositValueUsd = assetTokens * oraclePrice;
         const borrowValueUsd = liabilityTokens * oraclePrice;

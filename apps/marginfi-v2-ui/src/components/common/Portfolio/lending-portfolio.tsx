@@ -732,7 +732,7 @@ export const LendingPortfolio = () => {
           </TabsContent>
           <TabsContent value="analytics" className="mt-6">
             <div className="space-y-8">
-              {/* <div className="space-y-4">
+              <div className="space-y-4">
                 <h3 className="text-lg font-medium">Portfolio Balance</h3>
                 <PortfolioChart variant="net" selectedAccount={selectedAccount} banks={sortedBanks} />
               </div>
@@ -743,7 +743,7 @@ export const LendingPortfolio = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Total Borrows by Bank</h3>
                 <PortfolioChart variant="borrows" selectedAccount={selectedAccount} banks={sortedBanks} />
-              </div> */}
+              </div>
               <div className="space-y-4">
                 <TooltipProvider>
                   <Tooltip>
