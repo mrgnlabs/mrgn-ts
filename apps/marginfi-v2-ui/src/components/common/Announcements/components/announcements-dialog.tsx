@@ -6,7 +6,8 @@ import { AnnouncementEmode } from "./announcement-dialog-contents";
 import { Desktop, Mobile } from "~/mediaQueryUtils";
 import { Drawer, DrawerContent } from "~/components/ui/drawer";
 
-const announcementLabel = "emode" as const;
+// const announcementLabel = "emode" as const;
+const announcementLabel = "" as const;
 
 export const AnnouncementsDialog = () => {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -21,10 +22,14 @@ export const AnnouncementsDialog = () => {
     const announcementPopup = localStorage.getItem(`mrgnAnnouncementPopup-${announcementLabel}`);
 
     // Only show announcement if tutorial has been acknowledged and announcement hasn't been shown
-    if (tutorialAcknowledged && !announcementPopup) {
+    if (tutorialAcknowledged && !announcementPopup && announcementLabel) {
       setIsOpen(true);
     }
   }, []);
+
+  if (!announcementLabel) {
+    return null;
+  }
 
   return (
     <>
