@@ -77,20 +77,20 @@ export function usePortfolioData(selectedAccount: string | null, banks: Extended
     }, {});
   }, [data, bankMap]);
 
+  const normalizedPortfolioSnapshot = useMemo(() => {
+    if (!groupedByLastSeenAt) return {};
+    return normalizePortfolioSnapshots(groupedByLastSeenAt);
+  }, [groupedByLastSeenAt]);
+
   const stats = useMemo(() => {
-    if (!groupedByLastSeenAt)
+    if (!normalizedPortfolioSnapshot)
       return {
         supplied7d: { value: 0, change: 0, changePercent: 0 },
         borrowed7d: { value: 0, change: 0, changePercent: 0 },
         netValue7d: { value: 0, change: 0, changePercent: 0 },
       };
-    return calculate7dPortfolioStats(groupedByLastSeenAt);
-  }, [groupedByLastSeenAt]);
-
-  const normalizedPortfolioSnapshot = useMemo(() => {
-    if (!groupedByLastSeenAt) return {};
-    return normalizePortfolioSnapshots(groupedByLastSeenAt);
-  }, [groupedByLastSeenAt]);
+    return calculate7dPortfolioStats(normalizedPortfolioSnapshot);
+  }, [normalizedPortfolioSnapshot]);
 
   return {
     data: normalizedPortfolioSnapshot,

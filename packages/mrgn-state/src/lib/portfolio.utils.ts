@@ -11,29 +11,40 @@ export function calculate7dPortfolioStats(data: Record<string, EnrichedPortfolio
   const now = new Date();
   const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  type Snapshot = {
-    timestamp: string;
-    snapshotTime: string;
-    deposits: number;
-    borrows: number;
-  };
+  const sortedTimestamps = Object.keys(data).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 
-  const snapshots: Snapshot[] = Object.entries(data)
-    .flatMap(([lastSeenAt, entries]) => {
-      return entries.map((entry) => ({
-        timestamp: lastSeenAt,
-        snapshotTime: entry.snapshotTime,
-        deposits: entry.depositValueUsd,
-        borrows: entry.borrowValueUsd,
-      }));
-    })
-    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  if (sortedTimestamps.length === 0) {
+    const emptyStats = { value: 0, change: 0, changePercent: 0 };
+    return {
+      supplied7d: emptyStats,
+      borrowed7d: emptyStats,
+      netValue7d: emptyStats,
+    };
+  }
 
-  const start = snapshots.find((s) => new Date(s.snapshotTime) <= cutoff && cutoff < new Date(s.timestamp));
+  let startTimestamp = null;
+  for (let i = sortedTimestamps.length - 1; i >= 0; i--) {
+    if (new Date(sortedTimestamps[i]) <= cutoff) {
+      startTimestamp = sortedTimestamps[i];
+      break;
+    }
+  }
 
-  const end = snapshots.at(-1);
+  if (!startTimestamp) {
+    startTimestamp = sortedTimestamps[0];
+  }
 
-  if (!start || !end) {
+  const endTimestamp = sortedTimestamps[sortedTimestamps.length - 1];
+
+  const startEntries = data[startTimestamp] || [];
+  const endEntries = data[endTimestamp] || [];
+
+  const startDeposits = startEntries.reduce((sum, entry) => sum + entry.depositValueUsd, 0);
+  const startBorrows = startEntries.reduce((sum, entry) => sum + entry.borrowValueUsd, 0);
+  const endDeposits = endEntries.reduce((sum, entry) => sum + entry.depositValueUsd, 0);
+  const endBorrows = endEntries.reduce((sum, entry) => sum + entry.borrowValueUsd, 0);
+
+  if (!startDeposits && !startBorrows && !endDeposits && !endBorrows) {
     const emptyStats = { value: 0, change: 0, changePercent: 0 };
     return {
       supplied7d: emptyStats,
@@ -53,9 +64,9 @@ export function calculate7dPortfolioStats(data: Record<string, EnrichedPortfolio
   };
 
   return {
-    supplied7d: compute(start.deposits, end.deposits),
-    borrowed7d: compute(start.borrows, end.borrows),
-    netValue7d: compute(start.deposits - start.borrows, end.deposits - end.borrows),
+    supplied7d: compute(startDeposits, endDeposits),
+    borrowed7d: compute(startBorrows, endBorrows),
+    netValue7d: compute(startDeposits - startBorrows, endDeposits - endBorrows),
   };
 }
 
