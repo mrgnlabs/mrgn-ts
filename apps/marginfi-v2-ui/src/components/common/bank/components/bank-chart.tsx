@@ -16,9 +16,27 @@ import { Switch } from "~/components/ui/switch";
 import { formatDate, formatChartData, generateInterestCurveData } from "../utils/bank-chart.utils";
 import { chartConfigs, chartColors } from "../types";
 
+type Tabs = "rates" | "tvl" | "interest-curve";
+
 type BankChartProps = {
   bankAddress: string;
-  tab?: "rates" | "tvl" | "interest-curve";
+  tab?: Tabs;
+};
+
+const headerContent: Record<Tabs, { title: string; description: string }> = {
+  tvl: {
+    title: "TVL",
+    description: "This chart is a historical view of the total locked value in the bank.",
+  },
+  rates: {
+    title: "Rates",
+    description: "This chart is a historical view of the deposit and borrow rates.",
+  },
+  "interest-curve": {
+    title: "Interest rate curves",
+    description:
+      "This chart represents the interest curves at different utilization rates. The x-axis represents the utilization rate and the y-axis represents both borrow and supply rates.",
+  },
 };
 
 const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
@@ -149,47 +167,54 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="p-3 rounded-lg space-y-4 relative bg-background-gray pt-8">
-        <div className="absolute top-3 right-3 z-20 flex items-center gap-4">
-          {activeTab === "tvl" && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">USD</span>
-              <Switch
-                checked={showUSD}
-                onCheckedChange={setShowUSD}
-                className="data-[state=unchecked]:bg-background-gray-light"
-                disabled={hasError}
-              />
-            </div>
-          )}
-          <ToggleGroup
-            type="single"
-            value={activeTab}
-            onValueChange={(value) => setActiveTab(value as "tvl" | "rates" | "interest-curve")}
-            className="p-1.5 rounded-md"
-            disabled={hasError}
-          >
-            <ToggleGroupItem
-              value="tvl"
-              className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 disabled:opacity-50"
+        <div className="flex items-center justify-between px-3">
+          <div className="max-w-[65%] flex flex-col items-start justify-start gpa-1">
+            <h3 className="text-lg">{headerContent[activeTab].title}</h3>
+
+            <p className="text-sm text-muted-foreground">{headerContent[activeTab].description}</p>
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            {activeTab === "tvl" && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">USD</span>
+                <Switch
+                  checked={showUSD}
+                  onCheckedChange={setShowUSD}
+                  className="data-[state=unchecked]:bg-background-gray-light"
+                  disabled={hasError}
+                />
+              </div>
+            )}
+            <ToggleGroup
+              type="single"
+              value={activeTab}
+              onValueChange={(value) => setActiveTab(value as "tvl" | "rates" | "interest-curve")}
+              className="p-1.5 rounded-md"
+              disabled={hasError}
             >
-              TVL
-            </ToggleGroupItem>
-            {!isNativeStakeBank && (
               <ToggleGroupItem
-                value="rates"
+                value="tvl"
                 className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 disabled:opacity-50"
               >
-                Rates
+                TVL
               </ToggleGroupItem>
-            )}
+              {!isNativeStakeBank && (
+                <ToggleGroupItem
+                  value="rates"
+                  className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 disabled:opacity-50"
+                >
+                  Rates
+                </ToggleGroupItem>
+              )}
 
-            <ToggleGroupItem
-              value="interest-curve"
-              className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 disabled:opacity-50"
-            >
-              IR Curve
-            </ToggleGroupItem>
-          </ToggleGroup>
+              <ToggleGroupItem
+                value="interest-curve"
+                className="text-muted-foreground font-normal h-[1.65rem] data-[state=on]:font-medium data-[state=on]:bg-mfi-action-box-accent data-[state=on]:text-mfi-action-box-accent-foreground hover:bg-mfi-action-box-accent/50 disabled:opacity-50"
+              >
+                IR Curve
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
         </div>
 
         {/* Error Overlay */}
