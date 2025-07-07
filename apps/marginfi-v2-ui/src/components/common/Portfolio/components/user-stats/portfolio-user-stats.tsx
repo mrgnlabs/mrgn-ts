@@ -96,11 +96,11 @@ export const PortfolioUserStats = ({
           ) : (
             <>
               {supplied}{" "}
-              {!isLoadingPortfolio && supplied7d ? (
+              {/* {!isLoadingPortfolio && supplied7d ? (
                 formatChange(supplied7d.change, supplied7d.changePercent, "7 day change")
               ) : (
                 <Skeleton className="inline-block h-4 w-16 ml-1" />
-              )}
+              )} */}
             </>
           )
         }
@@ -113,11 +113,11 @@ export const PortfolioUserStats = ({
           ) : (
             <>
               {borrowed}{" "}
-              {!isLoadingPortfolio && borrowed7d ? (
+              {/* {!isLoadingPortfolio && borrowed7d ? (
                 formatChange(borrowed7d.change, borrowed7d.changePercent, "7 day change")
               ) : (
                 <Skeleton className="inline-block h-4 w-16 ml-1" />
-              )}
+              )} */}
             </>
           )
         }
@@ -130,11 +130,11 @@ export const PortfolioUserStats = ({
           ) : (
             <>
               {netValue}{" "}
-              {!isLoadingPortfolio && netValue7d ? (
+              {/* {!isLoadingPortfolio && netValue7d ? (
                 formatChange(netValue7d.change, netValue7d.changePercent, "7 day change")
               ) : (
                 <Skeleton className="inline-block h-4 w-16 ml-1" />
-              )}
+              )} */}
             </>
           )
         }

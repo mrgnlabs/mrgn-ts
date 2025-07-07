@@ -229,6 +229,8 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
                   fill={color}
                   shape="circle"
                   isAnimationActive={false}
+                  line={{ stroke: color, strokeWidth }}
+                  lineType="joint"
                 />
               );
             })}
