@@ -140,7 +140,7 @@ export const PortfolioUserStats = ({
         }
       />
       <Stat
-        label="Interest earned"
+        label="Net interest"
         value={
           isLoading || isLoadingInterest ? (
             <Skeleton className="h-6 w-20 mt-1" />

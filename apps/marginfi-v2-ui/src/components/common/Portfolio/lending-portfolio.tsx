@@ -745,15 +745,51 @@ export const LendingPortfolio = () => {
                 <PortfolioChart variant="borrows" selectedAccount={selectedAccount} banks={sortedBanks} />
               </div> */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Interest Earned</h3>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1 w-max">
+                        <h3 className="text-lg font-medium cursor-help">Interest Earned</h3>
+                        <IconInfoCircle size={14} className="" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="mb-2">
+                      <p>Interest Earned</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <InterestChart selectedAccount={selectedAccount?.address.toBase58() || null} dataType="earned" />
               </div>
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Interest Paid</h3>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1 w-max">
+                        <h3 className="text-lg font-medium cursor-help">Interest Paid</h3>
+                        <IconInfoCircle size={14} className="" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="mb-2">
+                      <p>Interest Paid</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <InterestChart selectedAccount={selectedAccount?.address.toBase58() || null} dataType="paid" />
               </div>
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Total Interest</h3>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1 w-max">
+                        <h3 className="text-lg font-medium cursor-help">Total Interest</h3>
+                        <IconInfoCircle size={14} className="" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="mb-2">
+                      <p>Total Interest</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <InterestChart
                   selectedAccount={selectedAccount?.address.toBase58() || null}
                   dataType="total"

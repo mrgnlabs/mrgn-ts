@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Area, AreaChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from "recharts";
 import { IconLoader2 } from "@tabler/icons-react";
 
@@ -34,8 +34,7 @@ const headerContent: Record<Tabs, { title: string; description: string }> = {
   },
   "interest-curve": {
     title: "Interest rate curves",
-    description:
-      "This chart represents the interest curves at different utilization rates. The x-axis represents the utilization rate and the y-axis represents both borrow and supply rates.",
+    description: "This chart represents the interest curves at different utilization rates.",
   },
 };
 
@@ -62,7 +61,6 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
   }, [bank]);
 
   const { data, error, isLoading } = useBankChart(bankAddress, bank);
-
   const chartConfig = (() => {
     switch (activeTab) {
       case "tvl":
@@ -226,7 +224,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
           </div>
         )}
 
-        <ChartContainer config={chartConfig} className="lg:h-[460px] w-full">
+        <ChartContainer config={chartConfig} className="lg:h-[420px] w-full">
           <AreaChart
             key={activeTab}
             data={activeTab === "interest-curve" ? interestCurveData : formattedData}
@@ -363,7 +361,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
                           stroke="#ffffff"
                           strokeDasharray="3 3"
                           label={{
-                            value: `${(currentUtilizationRateDecimal * 100).toFixed(1)}%`,
+                            value: `Current utilization: ${(currentUtilizationRateDecimal * 100).toFixed(1)}%`,
                             position: "top",
                             fill: "#ffffff",
                             fontSize: 12,
