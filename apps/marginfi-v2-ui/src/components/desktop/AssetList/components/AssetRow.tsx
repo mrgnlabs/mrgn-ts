@@ -30,6 +30,7 @@ export const AssetRow = (row: Row<AssetListModel>) => {
           // disable asset row link for action box interaction
           if (
             e.target instanceof HTMLButtonElement ||
+            e.target instanceof HTMLAnchorElement ||
             (e.target as Element).closest(".mfi-action-box") ||
             (e.target as Element).classList.contains("mfi-action-box") ||
             (e.target as Element).closest(".mfi-action-box-action") ||
@@ -41,7 +42,6 @@ export const AssetRow = (row: Row<AssetListModel>) => {
           }
 
           router.push(`/banks/${row.original.asset.address.toBase58()}`);
-          document.body.scrollTo({ top: 0 });
         }}
       >
         {visibleCells.map((cell, idx) => (
