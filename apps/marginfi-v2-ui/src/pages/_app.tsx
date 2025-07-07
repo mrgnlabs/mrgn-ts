@@ -17,7 +17,6 @@ import { ActionProvider, WalletProvider as MrgnWalletProvider } from "@mrgnlabs/
 import { generateEndpoint } from "~/rpc.utils";
 
 import rpcConfig from "~/config";
-
 import config from "~/config/marginfi";
 import { MrgnlendProvider } from "~/context";
 import { WALLET_ADAPTERS } from "~/config/wallets";
