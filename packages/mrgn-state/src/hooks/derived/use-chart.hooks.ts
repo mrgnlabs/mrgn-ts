@@ -3,6 +3,7 @@ import { transformInterestData, transformTotalInterestData } from "../../lib/cha
 import { useInterestData } from "../react-query/use-interest.hooks";
 import { usePortfolioData } from "../react-query/use-portfolio.hooks";
 import { InterestChartResult, PortfolioChartResult } from "../../types";
+import { InterestChartDataPoint } from "../../types/interest.types";
 import type { ExtendedBankInfo } from "../../types/bank.types";
 
 /**
@@ -15,11 +16,9 @@ export function useInterestChart(
   selectedAccount: string | null,
   dataType: "earned" | "paid" | "total"
 ): InterestChartResult {
-  // Use the data hook for fetching interest data
   const { data: interestData, error, isLoading, isError } = useInterestData(selectedAccount);
 
-  // Transform data into chart format based on type
-  const { chartData, bankSymbols } = useMemo(() => {
+  const { chartData, bankSymbols: initialBankSymbols } = useMemo(() => {
     if (isLoading || isError || !interestData.length) {
       return { chartData: [], bankSymbols: [] };
     }
@@ -31,9 +30,32 @@ export function useInterestChart(
     return transformInterestData(interestData, dataType);
   }, [interestData, dataType, isLoading, isError]);
 
+  const { filteredData, filteredBankSymbols } = useMemo(() => {
+    if (!chartData.length) {
+      return { filteredData: [], filteredBankSymbols: [] };
+    }
+
+    const keys = Object.keys(chartData[0]).filter((k) => k !== "timestamp");
+
+    const keysToKeep = keys.filter((key) => chartData.some((entry) => Math.abs(entry[key] as number) >= 0.0001));
+
+    const filteredData = chartData.map((entry) => {
+      const filtered: InterestChartDataPoint = { timestamp: entry.timestamp };
+      for (const key of keysToKeep) {
+        filtered[key] = entry[key];
+      }
+      return filtered;
+    });
+
+    return {
+      filteredData,
+      filteredBankSymbols: initialBankSymbols.filter((symbol) => keysToKeep.includes(symbol)),
+    };
+  }, [chartData, initialBankSymbols]);
+
   return {
-    data: chartData,
-    bankSymbols,
+    data: filteredData,
+    bankSymbols: filteredBankSymbols,
     error,
     isLoading,
     isError,
