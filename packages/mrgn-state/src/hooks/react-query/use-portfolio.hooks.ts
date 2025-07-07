@@ -1,12 +1,8 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPortfolioData } from "../../api";
-import { 
-  calculatePortfolioStats, 
-  calculateDailyTotals, 
-  calculatePerBankDailyTotals
-} from "../../lib";
-import { PortfolioDataResult } from "../../types";
+import { calculate7dPortfolioStats, normalizePortfolioSnapshots } from "../../lib";
+import { EnrichedPortfolioDataPoint, PortfolioDataResult, PositionType } from "../../types";
 import type { ExtendedBankInfo } from "../../types/bank.types";
 
 /**
@@ -15,40 +11,84 @@ import type { ExtendedBankInfo } from "../../types/bank.types";
  * @param banks Array of ExtendedBankInfo objects for price data
  * @returns Portfolio data and statistics
  */
-export function usePortfolioData(
-  selectedAccount: string | null,
-  banks: ExtendedBankInfo[]
-): PortfolioDataResult {
+export function usePortfolioData(selectedAccount: string | null, banks: ExtendedBankInfo[]): PortfolioDataResult {
   const { data, error, isLoading, isError } = useQuery({
     queryKey: ["portfolioData", selectedAccount],
-    queryFn: () => fetchPortfolioData(selectedAccount, banks),
+    queryFn: () => fetchPortfolioData(selectedAccount),
     staleTime: 5 * 60_000, // 5 minutes
     enabled: !!selectedAccount && banks.length > 0,
   });
 
-  // Calculate portfolio statistics using utility function
-  const stats = useMemo(() => calculatePortfolioStats(data || []), [data]);
+  const bankMap = useMemo(() => {
+    return banks.reduce(
+      (map, bank) => {
+        map[bank.address.toBase58()] = bank;
+        return map;
+      },
+      {} as Record<string, ExtendedBankInfo>
+    );
+  }, [banks]);
 
-  // Calculate gap-filled daily totals using utility function
-  const filledDailyTotals = useMemo(() => {
-    if (!data?.length) return {};
-    const dailyTotals = calculateDailyTotals(data);
-    return dailyTotals;
-  }, [data]);
+  const groupedByLastSeenAt = useMemo(() => {
+    return data?.reduce<Record<string, EnrichedPortfolioDataPoint[]>>((acc, point) => {
+      if (!point.lastSeenAt || !point.bankAddress) {
+        return acc;
+      }
 
-  // Calculate gap-filled per-bank data using utility function
-  const filledBankData = useMemo(() => {
-    if (!data?.length) return {};
-    return calculatePerBankDailyTotals(data);
-  }, [data]);
+      if (!acc[point.lastSeenAt]) {
+        acc[point.lastSeenAt] = [];
+      }
+
+      const bank = bankMap[point.bankAddress];
+      const oraclePrice = bank?.info.oraclePrice.priceRealtime.price.toNumber() || 0;
+      const mintDecimals = bank?.info.rawBank.mintDecimals || 0;
+
+      const assetTokens = point.assetShares / 10 ** mintDecimals;
+      const liabilityTokens = point.liabilityShares / 10 ** mintDecimals;
+
+      const depositValueUsd = assetTokens * oraclePrice;
+      const borrowValueUsd = liabilityTokens * oraclePrice;
+      const netValueUsd = depositValueUsd - borrowValueUsd;
+
+      let positionType: PositionType;
+      if (point.assetShares > 0) {
+        positionType = "deposit";
+      } else {
+        positionType = "borrow";
+      }
+      acc[point.lastSeenAt].push({
+        ...point,
+        bankSymbol: bank.meta.tokenSymbol,
+        depositValueUsd,
+        borrowValueUsd,
+        netValueUsd,
+        positionType,
+      });
+
+      return acc;
+    }, {});
+  }, [data, bankMap]);
+
+  const stats = useMemo(() => {
+    if (!groupedByLastSeenAt)
+      return {
+        supplied7d: { value: 0, change: 0, changePercent: 0 },
+        borrowed7d: { value: 0, change: 0, changePercent: 0 },
+        netValue7d: { value: 0, change: 0, changePercent: 0 },
+      };
+    return calculate7dPortfolioStats(groupedByLastSeenAt);
+  }, [groupedByLastSeenAt]);
+
+  const normalizedPortfolioSnapshot = useMemo(() => {
+    if (!groupedByLastSeenAt) return {};
+    return normalizePortfolioSnapshots(groupedByLastSeenAt);
+  }, [groupedByLastSeenAt]);
 
   return {
-    data: data || [],
-    filledDailyTotals,
-    filledBankData,
-    supplied30d: stats.supplied30d,
-    borrowed30d: stats.borrowed30d,
-    netValue30d: stats.netValue30d,
+    data: normalizedPortfolioSnapshot,
+    supplied7d: stats.supplied7d,
+    borrowed7d: stats.borrowed7d,
+    netValue7d: stats.netValue7d,
     error: error as Error | null,
     isLoading,
     isError,

@@ -1,10 +1,5 @@
 import { useMemo } from "react";
-import {
-  transformInterestData,
-  transformTotalInterestData,
-  transformBankPortfolioData,
-  forwardFillDataToCurrentDate,
-} from "../../lib/chart.utils";
+import { transformInterestData, transformTotalInterestData } from "../../lib/chart.utils";
 import { useInterestData } from "../react-query/use-interest.hooks";
 import { usePortfolioData } from "../react-query/use-portfolio.hooks";
 import { InterestChartResult, PortfolioChartResult } from "../../types";
@@ -57,80 +52,78 @@ export function usePortfolioChart(
   banks: ExtendedBankInfo[],
   variant: "deposits" | "borrows" | "net" = "net"
 ): PortfolioChartResult {
-  const {
-    data: portfolioData,
-    filledDailyTotals,
-    filledBankData,
-    error,
-    isLoading,
-    isError,
-  } = usePortfolioData(selectedAccount, banks);
+  const { data: portfolioData, error, isLoading, isError } = usePortfolioData(selectedAccount, banks);
 
   // Transform data based on variant
   const { data, bankSymbols } = useMemo(() => {
-    if (isLoading || !portfolioData || portfolioData.length === 0) {
+    if (isLoading || !portfolioData || Object.keys(portfolioData).length === 0) {
       return { data: [], bankSymbols: [] };
     }
 
+    // Get all timestamps (sorted chronologically)
+    const timestamps = Object.keys(portfolioData).sort();
 
-    if (variant === "net") {
-      // For net chart, we need to ensure we have data for all dates including gaps
-      // First, get all dates from the filled daily totals
-      const allDates = Object.keys(filledDailyTotals).sort();
-      
-      if (allDates.length === 0) {
-        return { data: [], bankSymbols: [] };
-      }
-      
-      // Create a continuous array of dates from first to last date
-      const firstDate = new Date(allDates[0]);
-      const lastDate = new Date(allDates[allDates.length - 1]);
-      const today = new Date();
-      
-      // Always extend to today
-      const endDate = today > lastDate ? today : lastDate;
-      
-      // Generate all dates in range
-      const continuousDates: string[] = [];
-      const currentDate = new Date(firstDate);
-      
-      while (currentDate <= endDate) {
-        continuousDates.push(currentDate.toISOString().split('T')[0]);
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-      
-      // Create chart data with proper forward filling for ALL dates
-      let lastNetValue = 0;
-      
-      const chartData = continuousDates.map(dateStr => {
-        if (filledDailyTotals[dateStr]) {
-          // Use actual data if available
-          const totals = filledDailyTotals[dateStr];
-          const netValue = totals.net !== undefined ? totals.net : totals.deposits - totals.borrows;
-          lastNetValue = netValue;
-          
-          return {
-            timestamp: dateStr,
-            net: netValue,
-            "Net Portfolio": netValue
-          };
-        } else {
-          // Forward fill with last known value
-          return {
-            timestamp: dateStr,
-            net: lastNetValue,
-            "Net Portfolio": lastNetValue
-          };
-        }
-      });
-      
-      return { data: chartData, bankSymbols: ["Net Portfolio"] };
+    if (timestamps.length === 0) {
+      return { data: [], bankSymbols: [] };
     }
 
-    const transformedData = transformBankPortfolioData(filledBankData, variant as "deposits" | "borrows");
+    if (variant === "net") {
+      // For net view, we aggregate the total net value across all assets at each timestamp
+      const chartData = timestamps.map((timestamp) => {
+        const positions = portfolioData[timestamp];
+        const netValue = positions.reduce((sum, position) => sum + position.netValueUsd, 0);
 
-    return transformedData;
-  }, [portfolioData, filledDailyTotals, filledBankData, variant, isLoading]);
+        return {
+          timestamp: timestamp,
+          "Net Portfolio": netValue,
+          net: netValue, // Keep both for backward compatibility
+        };
+      });
+
+      return { data: chartData, bankSymbols: ["Net Portfolio"] };
+    } else {
+      // For deposits or borrows view, we need to track each bank separately
+      const bankMap = new Map<string, boolean>(); // Track active banks
+
+      // First pass - identify all active banks that have deposits or borrows
+      timestamps.forEach((timestamp) => {
+        portfolioData[timestamp].forEach((position) => {
+          if (variant === "deposits" && position.depositValueUsd > 0) {
+            bankMap.set(position.bankSymbol, true);
+          } else if (variant === "borrows" && position.borrowValueUsd > 0) {
+            bankMap.set(position.bankSymbol, true);
+          }
+        });
+      });
+
+      // Get all active bank symbols
+      const activeBankSymbols = Array.from(bankMap.keys());
+
+      // Create chart data points for each timestamp
+      const chartData = timestamps.map((timestamp) => {
+        const positions = portfolioData[timestamp];
+        const dataPoint: Record<string, any> = { timestamp };
+
+        // Initialize all active banks with zero values
+        activeBankSymbols.forEach((symbol) => {
+          dataPoint[symbol] = 0;
+        });
+
+        // Add values for banks that exist in this snapshot
+        positions.forEach((position) => {
+          if (variant === "deposits" && bankMap.has(position.bankSymbol)) {
+            dataPoint[position.bankSymbol] = position.depositValueUsd;
+          } else if (variant === "borrows" && bankMap.has(position.bankSymbol)) {
+            dataPoint[position.bankSymbol] = position.borrowValueUsd;
+          }
+        });
+
+        return dataPoint;
+      });
+
+      return { data: chartData, bankSymbols: activeBankSymbols };
+    }
+  }, [portfolioData, variant, isLoading]);
 
   return {
     data,

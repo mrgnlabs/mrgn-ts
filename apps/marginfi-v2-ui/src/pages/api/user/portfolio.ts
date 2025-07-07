@@ -30,11 +30,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Query the daily account balance view for last 30 days
     const { data: portfolioData, error } = await supabase
       .schema("application")
-      .from("fv_account_balance_daily")
-      .select("*")
+      .from("v_account_balance_with_empty_positions")
+      .select("asset_shares, liability_shares, last_seen_at, bank_address, snapshot_time, bank_asset_tag")
       .eq("account_address", accountAddress)
-      .gte("bucket_start", startDate)
-      .order("bucket_start", { ascending: true });
+      .or(`snapshot_time.gte.${startDate},last_seen_at.gte.${startDate}`)
+      .neq("bank_address", "")
+      .order("last_seen_at", { ascending: true });
 
     if (error) {
       console.error("Error fetching portfolio data from Supabase:", error);
@@ -44,93 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    let finalPortfolioData = portfolioData;
-
-    if (!portfolioData || portfolioData.length === 0) {
-      const { data: allPortfolioData, error: allDataError } = await supabase
-        .schema("application")
-        .from("fv_account_balance_daily")
-        .select("*")
-        .eq("account_address", accountAddress)
-        .order("bucket_start", { ascending: false });
-
-      if (allDataError) {
-        console.error("Error fetching all portfolio data from Supabase:", allDataError);
-        return res.status(STATUS_INTERNAL_ERROR).json({
-          error: "Error fetching all portfolio data",
-          details: allDataError.message,
-        });
-      }
-
-      if (!allPortfolioData || allPortfolioData.length === 0) {
-        return res.status(404).json({ error: "No portfolio data found for this wallet" });
-      }
-
-      let mostRecentDate = new Date(0);
-
-      allPortfolioData.forEach((entry: any) => {
-        const entryDate = new Date(entry.bucket_start);
-        if (entryDate > mostRecentDate) {
-          mostRecentDate = entryDate;
-        }
-      });
-
-      finalPortfolioData = allPortfolioData.filter((entry: any) => {
-        const entryDate = new Date(entry.bucket_start);
-        return (
-          entryDate.getFullYear() === mostRecentDate.getFullYear() &&
-          entryDate.getMonth() === mostRecentDate.getMonth() &&
-          entryDate.getDate() === mostRecentDate.getDate()
-        );
-      });
-    }
-
-    // Get unique bank addresses to fetch bank information
-    const bankAddresses = Array.from(new Set(finalPortfolioData.map((entry: any) => entry.bank_pk)));
-
-    // Fetch bank information separately
-    const { data: bankData, error: bankError } = await supabase
-      .schema("application")
-      .from("v_bank_map")
-      .select("address, mint, name, symbol, mint_decimals")
-      .in("address", bankAddresses);
-
-    if (bankError) {
-      console.error("Error fetching bank data from Supabase:", bankError);
-      return res.status(STATUS_INTERNAL_ERROR).json({
-        error: "Error fetching bank data",
-        details: bankError.message,
-      });
-    }
-
-    // Create a map of bank address to bank info
-    const bankMap = (bankData || []).reduce((map: any, bank: any) => {
-      map[bank.address] = bank;
-      return map;
-    }, {});
-
-    // Transform data to include bank information and USD values
-    const formattedData = finalPortfolioData.map((entry: any) => {
-      const bankInfo = bankMap[entry.bank_pk] || {};
-      return {
-        account_id: entry.account_id,
-        account_address: entry.account_address,
-        bank_address: entry.bank_pk,
-        bank_name: bankInfo.name || entry.bank_asset_tag || entry.bank_pk,
-        bank_symbol: bankInfo.symbol || entry.bank_asset_tag || "Unknown",
-        bucket_start: entry.bucket_start,
-        bucket_end: entry.bucket_end,
-        asset_shares: entry.asset_shares || 0,
-        liability_shares: entry.liability_shares || 0,
-        price: entry.price || 0,
-        // Calculate USD values
-        deposit_value_usd: (entry.asset_shares || 0) * (entry.price || 0),
-        borrow_value_usd: (entry.liability_shares || 0) * (entry.price || 0),
-        net_value_usd: ((entry.asset_shares || 0) - (entry.liability_shares || 0)) * (entry.price || 0),
-      };
-    });
-
-    return res.status(STATUS_OK).json(formattedData);
+    return res.status(STATUS_OK).json(portfolioData);
   } catch (error: any) {
     console.error("Error in portfolio endpoint:", error);
     return res.status(STATUS_INTERNAL_ERROR).json({ error: "Internal server error" });

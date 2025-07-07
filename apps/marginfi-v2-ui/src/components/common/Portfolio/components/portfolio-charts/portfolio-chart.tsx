@@ -39,15 +39,6 @@ const formatDate = (dateStr: string) => {
 const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps) => {
   const accountAddress = selectedAccount?.address.toBase58();
 
-  // Use the state layer's data hook directly
-  const {
-    data: portfolioData,
-    filledDailyTotals,
-    filledBankData,
-    error,
-    isLoading,
-  } = usePortfolioData(accountAddress, banks);
-
   const {
     data: chartData,
     bankSymbols,

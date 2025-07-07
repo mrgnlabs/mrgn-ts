@@ -103,9 +103,9 @@ export const LendingPortfolio = () => {
 
   // Fetch portfolio and interest data for user stats
   const {
-    supplied30d,
-    borrowed30d,
-    netValue30d,
+    supplied7d,
+    borrowed7d,
+    netValue7d,
     error: portfolioError,
     isLoading: portfolioLoading,
   } = usePortfolioData(selectedAccount?.address.toBase58() || null, sortedBanks);
@@ -487,11 +487,11 @@ export const LendingPortfolio = () => {
               borrowed={accountBorrowed}
               netValue={accountNetValue}
               points={numeralFormatter(userPointsData.totalPoints)}
-              supplied30d={supplied30d}
-              borrowed30d={borrowed30d}
-              netValue30d={netValue30d}
+              supplied7d={supplied7d}
+              borrowed7d={borrowed7d}
+              netValue7d={netValue7d}
               latestNetInterest={latestNetInterest}
-              netInterest30d={netInterest30d}
+              netInterest7d={netInterest30d}
               isLoading={isLoadingSelectedAccount}
               isLoadingPortfolio={portfolioLoading}
               isLoadingInterest={interestLoading}
@@ -732,7 +732,7 @@ export const LendingPortfolio = () => {
           </TabsContent>
           <TabsContent value="analytics" className="mt-6">
             <div className="space-y-8">
-              {/* <div className="space-y-4">
+              <div className="space-y-4">
                 <h3 className="text-lg font-medium">Portfolio Balance</h3>
                 <PortfolioChart variant="net" selectedAccount={selectedAccount} banks={sortedBanks} />
               </div>
@@ -743,7 +743,7 @@ export const LendingPortfolio = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Total Borrows by Bank</h3>
                 <PortfolioChart variant="borrows" selectedAccount={selectedAccount} banks={sortedBanks} />
-              </div> */}
+              </div>
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Interest Earned</h3>
                 <InterestChart selectedAccount={selectedAccount?.address.toBase58() || null} dataType="earned" />

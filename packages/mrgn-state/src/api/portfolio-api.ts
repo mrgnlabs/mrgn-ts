@@ -1,17 +1,11 @@
-import type { ExtendedBankInfo } from "../types/bank.types";
-import { EnrichedPortfolioDataPoint, PortfolioDataPoint } from "../types";
-import { enrichPortfolioData } from "../lib/portfolio.utils";
+import { PortfolioDataPoint } from "../types";
 
 /**
  * Fetch portfolio data from API
  * @param selectedAccount The wallet address to fetch portfolio data for
- * @param banks Array of ExtendedBankInfo objects for price data
- * @returns Enriched portfolio data array
+ * @returns Portfolio data array
  */
-export const fetchPortfolioData = async (
-  selectedAccount: string | null,
-  banks: ExtendedBankInfo[]
-): Promise<EnrichedPortfolioDataPoint[]> => {
+export const fetchPortfolioData = async (selectedAccount: string | null): Promise<PortfolioDataPoint[]> => {
   if (!selectedAccount) {
     throw new Error("No account selected");
   }
@@ -21,8 +15,14 @@ export const fetchPortfolioData = async (
     throw new Error(`Error fetching portfolio data: ${response.statusText}`);
   }
 
-  const result: PortfolioDataPoint[] = await response.json();
-  
-  // Use the utility function to enrich the data with oracle prices
-  return enrichPortfolioData(result, banks);
+  const result = await response.json();
+
+  return result.map((item: any) => ({
+    assetShares: item.asset_shares,
+    liabilityShares: item.liability_shares,
+    lastSeenAt: item.last_seen_at,
+    bankAddress: item.bank_address,
+    bankAssetTag: item.bank_asset_tag,
+    snapshotTime: item.snapshot_time,
+  }));
 };

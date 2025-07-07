@@ -1,34 +1,26 @@
 /**
- * Portfolio data types for user portfolio data
- */
-
-/**
  * Raw portfolio data point from API
  */
 export interface PortfolioDataPoint {
-  account_id: number;
-  account_address: string;
-  bank_address: string;
-  bank_name: string;
-  bank_symbol: string;
-  bucket_start: string;
-  bucket_end: string;
-  asset_shares: number;
-  liability_shares: number;
-  price: number;
-  deposit_value_usd: number;
-  borrow_value_usd: number;
-  net_value_usd: number;
+  assetShares: number;
+  liabilityShares: number;
+  lastSeenAt: string;
+  bankAddress: string;
+  bankAssetTag: number;
+  snapshotTime: string;
 }
+
+export type PositionType = "deposit" | "borrow";
 
 /**
  * Enriched portfolio data point with oracle prices
  */
 export interface EnrichedPortfolioDataPoint extends PortfolioDataPoint {
-  bank_symbol: string; // Ensure this uses oracle data
-  deposit_value_usd: number; // Recalculated with oracle prices
-  borrow_value_usd: number; // Recalculated with oracle prices
-  net_value_usd: number; // Recalculated with oracle prices
+  bankSymbol: string;
+  depositValueUsd: number;
+  borrowValueUsd: number;
+  netValueUsd: number;
+  positionType: PositionType;
 }
 
 /**
@@ -44,32 +36,20 @@ export interface PortfolioStatsData {
  * Return type for usePortfolioData hook
  */
 export interface PortfolioDataResult {
-  data: EnrichedPortfolioDataPoint[];
-  filledDailyTotals: Record<string, { deposits: number; borrows: number; net: number }>; // Gap-filled daily totals for chart consistency
-  filledBankData: Record<string, Record<string, { deposits: number; borrows: number; net: number }>>; // Gap-filled per-bank data
-  supplied30d: PortfolioStatsData; // Stats across actual data range
-  borrowed30d: PortfolioStatsData; // Stats across actual data range
-  netValue30d: PortfolioStatsData; // Stats across actual data range
+  data: Record<string, EnrichedPortfolioDataPoint[]>;
+  supplied7d: PortfolioStatsData; // Stats across actual data range
+  borrowed7d: PortfolioStatsData; // Stats across actual data range
+  netValue7d: PortfolioStatsData; // Stats across actual data range
   error: Error | null;
   isLoading: boolean;
   isError: boolean;
 }
 
 /**
- * Chart data point for portfolio chart
- */
-export interface PortfolioChartDataPoint {
-  timestamp: string;
-  deposits: number;
-  borrows: number;
-  net: number;
-}
-
-/**
  * Return type for usePortfolioChart hook
  */
 export interface PortfolioChartResult {
-  data: any[]; // Using any[] to support both standard and variant-specific data points
+  data: any; // Using any[] to support both standard and variant-specific data points
   bankSymbols: string[]; // Added to support variant-specific bank symbols
   error: Error | null;
   isLoading: boolean;
