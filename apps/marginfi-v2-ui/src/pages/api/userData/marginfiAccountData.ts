@@ -75,7 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       oraclePrices.set(bankPk, dtoToOraclePrice(oraclePrice));
     });
 
-    const marginfiAccountWithCache = await fetchMarginfiAccountData(
+    const { marginfiAccount: marginfiAccountWithCache, error } = await fetchMarginfiAccountData(
       program,
       marginfiAccountsPk,
       bankMap,
@@ -84,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
     const marginfiAccountDto = marginfiAccountToDto(marginfiAccountWithCache);
 
-    res.status(200).json({ marginfiAccountDto });
+    res.status(200).json({ marginfiAccountDto, error });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Error processing request" });

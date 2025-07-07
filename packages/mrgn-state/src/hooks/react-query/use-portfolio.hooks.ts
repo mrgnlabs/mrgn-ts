@@ -46,8 +46,11 @@ export function usePortfolioData(selectedAccount: string | null, banks: Extended
         const oraclePrice = bank?.info.oraclePrice.priceRealtime.price.toNumber() || 0;
         const mintDecimals = bank?.info.rawBank.mintDecimals || 0;
 
-        const assetTokens = point.assetShares / 10 ** mintDecimals;
-        const liabilityTokens = point.liabilityShares / 10 ** mintDecimals;
+        const assetShareValue = bank?.info.rawBank.assetShareValue?.toNumber() || 1;
+        const liabilityShareValue = bank?.info.rawBank.liabilityShareValue?.toNumber() || 1;
+
+        const assetTokens = (point.assetShares * assetShareValue) / 10 ** mintDecimals;
+        const liabilityTokens = (point.liabilityShares * liabilityShareValue) / 10 ** mintDecimals;
 
         const depositValueUsd = assetTokens * oraclePrice;
         const borrowValueUsd = liabilityTokens * oraclePrice;
@@ -74,20 +77,20 @@ export function usePortfolioData(selectedAccount: string | null, banks: Extended
     }, {});
   }, [data, bankMap]);
 
+  const normalizedPortfolioSnapshot = useMemo(() => {
+    if (!groupedByLastSeenAt) return {};
+    return normalizePortfolioSnapshots(groupedByLastSeenAt);
+  }, [groupedByLastSeenAt]);
+
   const stats = useMemo(() => {
-    if (!groupedByLastSeenAt)
+    if (!normalizedPortfolioSnapshot)
       return {
         supplied7d: { value: 0, change: 0, changePercent: 0 },
         borrowed7d: { value: 0, change: 0, changePercent: 0 },
         netValue7d: { value: 0, change: 0, changePercent: 0 },
       };
-    return calculate7dPortfolioStats(groupedByLastSeenAt);
-  }, [groupedByLastSeenAt]);
-
-  const normalizedPortfolioSnapshot = useMemo(() => {
-    if (!groupedByLastSeenAt) return {};
-    return normalizePortfolioSnapshots(groupedByLastSeenAt);
-  }, [groupedByLastSeenAt]);
+    return calculate7dPortfolioStats(normalizedPortfolioSnapshot);
+  }, [normalizedPortfolioSnapshot]);
 
   return {
     data: normalizedPortfolioSnapshot,

@@ -732,7 +732,7 @@ export const LendingPortfolio = () => {
           </TabsContent>
           <TabsContent value="analytics" className="mt-6">
             <div className="space-y-8">
-              {/* <div className="space-y-4">
+              <div className="space-y-4">
                 <h3 className="text-lg font-medium">Portfolio Balance</h3>
                 <PortfolioChart variant="net" selectedAccount={selectedAccount} banks={sortedBanks} />
               </div>
@@ -743,17 +743,62 @@ export const LendingPortfolio = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Total Borrows by Bank</h3>
                 <PortfolioChart variant="borrows" selectedAccount={selectedAccount} banks={sortedBanks} />
-              </div> */}
+              </div>
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Interest Earned</h3>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1 w-max">
+                        <h3 className="text-lg font-medium cursor-help">Interest Earned</h3>
+                        <IconInfoCircle size={14} className="" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="mb-2">
+                      <p>
+                        The amount of interest accrued from your lending positions over the lifetime of your account
+                        (since April 29, 2024).
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <InterestChart selectedAccount={selectedAccount?.address.toBase58() || null} dataType="earned" />
               </div>
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Interest Paid</h3>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1 w-max">
+                        <h3 className="text-lg font-medium cursor-help">Interest Paid</h3>
+                        <IconInfoCircle size={14} className="" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="mb-2">
+                      <p>
+                        The amount of interest accrued from your borrow positions over the lifetime of your account
+                        (since April 29, 2024).
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <InterestChart selectedAccount={selectedAccount?.address.toBase58() || null} dataType="paid" />
               </div>
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Total Interest</h3>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1 w-max">
+                        <h3 className="text-lg font-medium cursor-help">Total Interest</h3>
+                        <IconInfoCircle size={14} className="" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="mb-2">
+                      <p>
+                        The net amount of interest you&apos;ve earned over the lifetime of your account: total lending
+                        interest accrued minus total borrow interest accrued.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <InterestChart
                   selectedAccount={selectedAccount?.address.toBase58() || null}
                   dataType="total"

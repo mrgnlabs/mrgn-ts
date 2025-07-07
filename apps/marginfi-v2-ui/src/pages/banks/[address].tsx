@@ -43,6 +43,10 @@ export default function BankPage() {
 
   const { address } = React.useMemo(() => router.query, [router]);
 
+  React.useEffect(() => {
+    document.body.scrollTo(0, 0);
+  }, [address]);
+
   const { extendedBanks } = useExtendedBanks();
   const { emodePairs, activeEmodePairs } = useEmode();
   const { stakePoolMetadataMap } = useNativeStakeData();

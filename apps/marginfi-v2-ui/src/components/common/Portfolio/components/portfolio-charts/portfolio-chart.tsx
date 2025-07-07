@@ -1,24 +1,9 @@
 "use client";
 
-import {
-  dynamicNumeralFormatter,
-  numeralFormatter,
-  usdFormatter,
-} from "@mrgnlabs/mrgn-common/dist/utils/formatters.utils";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common/dist/utils/formatters.utils";
 import React from "react";
-import {
-  Scatter,
-  ScatterChart,
-  Line,
-  LineChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  ResponsiveContainer,
-  ZAxis,
-} from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
-import { Card, CardContent } from "~/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -28,8 +13,7 @@ import {
   ChartLegendContent,
 } from "~/components/ui/chart";
 import { Loader } from "~/components/ui/loader";
-import { usePortfolioData, usePortfolioChart } from "@mrgnlabs/mrgn-state";
-import { useMemo } from "react";
+import { usePortfolioChart } from "@mrgnlabs/mrgn-state";
 import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 type PortfolioChartProps = {
@@ -44,6 +28,18 @@ const formatDate = (dateStr: string) => {
     month: "short",
     day: "numeric",
   });
+};
+
+const formatDateTime = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return (
+    date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    }) +
+    ", " +
+    date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+  );
 };
 
 const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps) => {
@@ -73,9 +69,9 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
             label: symbol,
             color: "hsl(var(--mfi-chart-negative))",
           };
-        } else if (symbol === "Net Portfolio" || symbol === "net") {
+        } else if (symbol === "Portfolio Balance" || symbol === "net") {
           config[symbol] = {
-            label: symbol === "net" ? "Net Portfolio" : symbol,
+            label: symbol === "net" ? "Portfolio Balance" : symbol,
             color: "hsl(var(--mfi-chart-neutral))",
           };
         } else {
@@ -145,7 +141,8 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
     <div className="w-full h-[300px]">
       <ChartContainer config={dynamicChartConfig} className="h-full w-full -translate-x-3">
         <ResponsiveContainer width="100%" height="100%">
-          <ScatterChart
+          <AreaChart
+            data={chartData}
             margin={{
               top: 10,
               right: 10,
@@ -156,19 +153,16 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
             <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
             <XAxis
               dataKey="timestamp"
-              name="Date"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
               tickFormatter={formatDate}
-              type="category"
-              allowDuplicatedCategory={false}
+              interval="preserveStartEnd"
+              minTickGap={50}
               stroke="hsl(var(--muted-foreground))"
               fontSize={12}
             />
             <YAxis
-              dataKey="value"
-              name="Value"
               tickFormatter={(value: any) => `$${dynamicNumeralFormatter(value)}`}
               axisLine={false}
               tickLine={false}
@@ -177,64 +171,66 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
               stroke="hsl(var(--muted-foreground))"
               fontSize={12}
             />
-            <ZAxis range={[60, 60]} />
             <ChartTooltip
-              cursor={{ strokeDasharray: "3 3" }}
-              content={({ active, payload }) => {
-                if (active && payload && payload.length > 0) {
-                  const dataPoint = payload[0].payload;
-                  const date = formatDate(dataPoint.timestamp);
-                  const symbols = Object.keys(dataPoint).filter((key) => key !== "timestamp" && key !== "value");
-
-                  return (
-                    <div className="bg-background p-3 border rounded-lg shadow-md">
-                      <p className="font-medium mb-1">{date}</p>
-                      <div className="space-y-1">
-                        {symbols.map((symbol) => {
-                          const color = (dynamicChartConfig as any)[symbol]?.color || "hsl(var(--mfi-chart-1))";
-                          return (
-                            <div key={symbol} className="flex items-center gap-2">
-                              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
-                              <span className="text-sm font-medium">{symbol}</span>
-                              <span className="text-sm text-muted-foreground">
-                                ${numeralFormatter(dataPoint[symbol])}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              }}
+              cursor={false}
+              content={<ChartTooltipContent labelFormatter={(label) => formatDateTime(label as string)} />}
             />
             <ChartLegend content={<ChartLegendContent />} className="mt-2" />
-
-            {bankSymbols.map((symbol: string) => {
+            <defs>
+              {bankSymbols.map((symbol: string) => {
+                const color = (dynamicChartConfig as any)[symbol]?.color || "hsl(var(--mfi-chart-1))";
+                const uniqueId = `portfolio-${symbol.replace(/\s+/g, "")}-Fill`;
+                return (
+                  <linearGradient key={uniqueId} id={uniqueId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={color} stopOpacity={0.05} />
+                  </linearGradient>
+                );
+              })}
+            </defs>
+            {bankSymbols.map((symbol: string, index: number) => {
               const color = (dynamicChartConfig as any)[symbol]?.color || "hsl(var(--mfi-chart-1))";
-              const strokeWidth = symbol === "net" || symbol === "Net Portfolio" ? 2 : 1.5;
+              const strokeWidth =
+                symbol === "net" || symbol === "Net Portfolio" || symbol === "Portfolio Balance" ? 2 : 1.5;
+              const uniqueId = `portfolio-${symbol.replace(/\s+/g, "")}-Fill`;
 
-              const scatterData = chartData.map((point: Record<string, any>) => ({
-                timestamp: point.timestamp,
-                value: point[symbol] || 0,
-                [symbol]: point[symbol] || 0,
-              }));
+              if (symbol === "net" || symbol === "Net Portfolio" || symbol === "Portfolio Balance") {
+                return (
+                  <Area
+                    key={symbol}
+                    dataKey={symbol}
+                    type="monotone"
+                    fill={`url(#${uniqueId})`}
+                    fillOpacity={0.4}
+                    stroke={color}
+                    strokeWidth={strokeWidth}
+                    name={symbol === "net" ? "Portfolio Balance" : symbol}
+                    isAnimationActive={false}
+                    stackId={undefined}
+                    dot={{ fill: color, strokeWidth: 2, r: 3 }}
+                  />
+                );
+              }
 
               return (
-                <Scatter
+                <Area
                   key={symbol}
+                  dataKey={symbol}
+                  type="monotone"
+                  fill={`url(#${uniqueId})`}
+                  fillOpacity={1}
+                  stroke={color}
+                  strokeWidth={strokeWidth}
                   name={symbol}
-                  data={scatterData}
-                  fill={color}
-                  shape="circle"
                   isAnimationActive={false}
-                  line={{ stroke: color, strokeWidth }}
-                  lineType="joint"
+                  stackId={
+                    variant === "deposits" || variant === "borrows" ? (index > 0 ? "stack" : undefined) : undefined
+                  }
+                  dot={{ fill: color, strokeWidth: 2, r: 3 }}
                 />
               );
             })}
-          </ScatterChart>
+          </AreaChart>
         </ResponsiveContainer>
       </ChartContainer>
     </div>

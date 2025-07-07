@@ -46,6 +46,26 @@ import {
 } from "./utils";
 import { BalanceRaw, BalanceType, MarginfiAccountRaw } from "./types";
 
+/**
+ * Custom error class for health cache simulation failures
+ */
+export class HealthCacheSimulationError extends Error {
+  mrgnErr: number | null;
+  internalErr: number | null;
+
+  constructor(message: string, mrgnErr: number | null, internalErr: number | null) {
+    super(message);
+    this.name = "HealthCacheSimulationError";
+    this.mrgnErr = mrgnErr;
+    this.internalErr = internalErr;
+
+    // Maintains proper stack trace for where our error was thrown (only available on V8)
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, HealthCacheSimulationError);
+    }
+  }
+}
+
 export async function simulateAccountHealthCacheWithFallback(props: {
   program: Program<MarginfiIdlType>;
   bankMap: Map<string, Bank>;
@@ -53,7 +73,7 @@ export async function simulateAccountHealthCacheWithFallback(props: {
   marginfiAccount: MarginfiAccount;
   balances: Balance[];
   bankMetadataMap: BankMetadataMap;
-}): Promise<MarginfiAccount> {
+}): Promise<{ marginfiAccount: MarginfiAccount; error?: HealthCacheSimulationError }> {
   let marginfiAccount = props.marginfiAccount;
 
   const activeBalances = props.balances.filter((b) => b.active);
@@ -109,9 +129,14 @@ export async function simulateAccountHealthCacheWithFallback(props: {
         true
       )
     );
+
+    // Return the error if it's a HealthCacheSimulationError
+    if (e instanceof HealthCacheSimulationError) {
+      return { marginfiAccount, error: e };
+    }
   }
 
-  return marginfiAccount;
+  return { marginfiAccount };
 }
 
 export async function simulateAccountHealthCache(props: {
@@ -246,8 +271,15 @@ export async function simulateAccountHealthCache(props: {
         return marginfiAccountPost;
       }
     }
-    console.error("Account health cache simulation failed", marginfiAccountPost.healthCache.mrgnErr);
-    throw new Error("Account health cache simulation failed");
+    console.error("Account health cache simulation failed", {
+      mrgnErr: marginfiAccountPost.healthCache.mrgnErr,
+      internalErr: marginfiAccountPost.healthCache.internalErr,
+    });
+    throw new HealthCacheSimulationError(
+      "Account health cache simulation failed",
+      marginfiAccountPost.healthCache.mrgnErr,
+      marginfiAccountPost.healthCache.internalErr
+    );
   }
 
   return marginfiAccountPost;

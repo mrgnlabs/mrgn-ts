@@ -8,7 +8,7 @@ export function useBankChart(
   stakepoolMetadataMap?: Map<string, StakePoolMetadata>
 ) {
   return useQuery({
-    queryKey: ["bankChart"],
+    queryKey: ["bankChart", bankAddress],
     queryFn: () => fetchBankRates(bankAddress, bank, stakepoolMetadataMap),
     staleTime: 5 * 60_000, // 5 minutes
     retry: 2,

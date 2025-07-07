@@ -1,14 +1,9 @@
 "use client";
 
-import {
-  dynamicNumeralFormatter,
-  numeralFormatter,
-  usdFormatter,
-} from "@mrgnlabs/mrgn-common/dist/utils/formatters.utils";
+import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common/dist/utils/formatters.utils";
 import React from "react";
-import { Area, AreaChart, Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
-import { Card, CardContent } from "~/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -75,11 +70,19 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
     const config: ChartConfig = {};
     bankSymbols.forEach((symbol: string) => {
       // Fix label generation to use correct data type
-      const labelType = variant === "total" ? "Interest" : dataType === "earned" ? "Interest Earned" : "Interest Paid";
-      config[symbol] = {
-        label: `${symbol} ${labelType}`,
-        color: chartColors[symbol],
-      };
+      // Special case for Net Interest to avoid duplicate "Interest" word
+      if (symbol === "Net Interest" && variant === "total") {
+        config[symbol] = {
+          label: symbol,
+          color: chartColors[symbol],
+        };
+      } else {
+        const labelType = variant === "total" ? "Interest" : dataType === "earned" ? "Interest Earned" : "Interest Paid";
+        config[symbol] = {
+          label: `${symbol} ${labelType}`,
+          color: chartColors[symbol],
+        };
+      }
     });
     return config;
   }, [bankSymbols, chartColors, dataType, variant]);
@@ -235,7 +238,7 @@ const InterestChart = ({ selectedAccount, dataType, variant = "default" }: Inter
                       fillOpacity={0}
                       stroke={chartColors[bankSymbol]}
                       strokeWidth={2}
-                      name={`${bankSymbol} Interest`}
+                      name={`${bankSymbol}`}
                       isAnimationActive={false}
                       stackId={undefined}
                     />
