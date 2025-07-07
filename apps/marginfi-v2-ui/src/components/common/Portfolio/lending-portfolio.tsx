@@ -754,7 +754,10 @@ export const LendingPortfolio = () => {
                       </div>
                     </TooltipTrigger>
                     <TooltipContent className="mb-2">
-                      <p>Interest Earned</p>
+                      <p>
+                        The amount of interest accrued from your lending positions over the lifetime of your account
+                        (since April 29, 2024).
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -770,7 +773,10 @@ export const LendingPortfolio = () => {
                       </div>
                     </TooltipTrigger>
                     <TooltipContent className="mb-2">
-                      <p>Interest Paid</p>
+                      <p>
+                        The amount of interest accrued from your borrow positions over the lifetime of your account
+                        (since April 29, 2024).
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -786,7 +792,10 @@ export const LendingPortfolio = () => {
                       </div>
                     </TooltipTrigger>
                     <TooltipContent className="mb-2">
-                      <p>Total Interest</p>
+                      <p>
+                        The net amount of interest you&apos;ve earned over the lifetime of your account: total lending
+                        interest accrued minus total borrow interest accrued.
+                      </p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
