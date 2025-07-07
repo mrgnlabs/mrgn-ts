@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPortfolioData } from "../../api";
 import { calculate7dPortfolioStats, normalizePortfolioSnapshots } from "../../lib";
@@ -31,39 +31,44 @@ export function usePortfolioData(selectedAccount: string | null, banks: Extended
 
   const groupedByLastSeenAt = useMemo(() => {
     return data?.reduce<Record<string, EnrichedPortfolioDataPoint[]>>((acc, point) => {
-      if (!point.lastSeenAt || !point.bankAddress) {
+      const { lastSeenAt, bankAddress } = point;
+
+      if (!lastSeenAt) {
         return acc;
       }
 
-      if (!acc[point.lastSeenAt]) {
-        acc[point.lastSeenAt] = [];
+      if (!acc[lastSeenAt]) {
+        acc[lastSeenAt] = [];
       }
 
-      const bank = bankMap[point.bankAddress];
-      const oraclePrice = bank?.info.oraclePrice.priceRealtime.price.toNumber() || 0;
-      const mintDecimals = bank?.info.rawBank.mintDecimals || 0;
+      if (bankAddress) {
+        const bank = bankMap[bankAddress];
+        const oraclePrice = bank?.info.oraclePrice.priceRealtime.price.toNumber() || 0;
+        const mintDecimals = bank?.info.rawBank.mintDecimals || 0;
 
-      const assetTokens = point.assetShares / 10 ** mintDecimals;
-      const liabilityTokens = point.liabilityShares / 10 ** mintDecimals;
+        const assetTokens = point.assetShares / 10 ** mintDecimals;
+        const liabilityTokens = point.liabilityShares / 10 ** mintDecimals;
 
-      const depositValueUsd = assetTokens * oraclePrice;
-      const borrowValueUsd = liabilityTokens * oraclePrice;
-      const netValueUsd = depositValueUsd - borrowValueUsd;
+        const depositValueUsd = assetTokens * oraclePrice;
+        const borrowValueUsd = liabilityTokens * oraclePrice;
+        const netValueUsd = depositValueUsd - borrowValueUsd;
 
-      let positionType: PositionType;
-      if (point.assetShares > 0) {
-        positionType = "deposit";
-      } else {
-        positionType = "borrow";
+        let positionType: PositionType;
+        if (point.assetShares > 0) {
+          positionType = "deposit";
+        } else {
+          positionType = "borrow";
+        }
+
+        acc[lastSeenAt].push({
+          ...point,
+          bankSymbol: bank.meta.tokenSymbol,
+          depositValueUsd,
+          borrowValueUsd,
+          netValueUsd,
+          positionType,
+        });
       }
-      acc[point.lastSeenAt].push({
-        ...point,
-        bankSymbol: bank.meta.tokenSymbol,
-        depositValueUsd,
-        borrowValueUsd,
-        netValueUsd,
-        positionType,
-      });
 
       return acc;
     }, {});
