@@ -46,6 +46,18 @@ const formatDate = (dateStr: string) => {
   });
 };
 
+const formatDateTime = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return (
+    date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    }) +
+    ", " +
+    date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+  );
+};
+
 const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps) => {
   const accountAddress = selectedAccount?.address.toBase58();
 
@@ -183,7 +195,7 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
               content={({ active, payload }) => {
                 if (active && payload && payload.length > 0) {
                   const dataPoint = payload[0].payload;
-                  const date = formatDate(dataPoint.timestamp);
+                  const date = formatDateTime(dataPoint.timestamp);
                   const symbols = Object.keys(dataPoint).filter((key) => key !== "timestamp" && key !== "value");
 
                   return (
