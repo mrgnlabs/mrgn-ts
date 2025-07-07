@@ -221,8 +221,6 @@ const PortfolioChart = ({ variant, selectedAccount, banks }: PortfolioChartProps
                 [symbol]: point[symbol] || 0,
               }));
 
-              console.log({ scatterData });
-
               return (
                 <Scatter
                   key={symbol}

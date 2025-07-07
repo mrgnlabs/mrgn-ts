@@ -8,44 +8,54 @@ export function calculate7dPortfolioStats(data: Record<string, EnrichedPortfolio
   borrowed7d: PortfolioStatsData;
   netValue7d: PortfolioStatsData;
 } {
-  const dailyTotals: Record<string, { deposits: number; borrows: number }> = {};
+  const now = new Date();
+  const cutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  for (const [timestamp, entries] of Object.entries(data)) {
-    const dateKey = timestamp.slice(0, 10); // "YYYY-MM-DD"
-    if (!dailyTotals[dateKey]) {
-      dailyTotals[dateKey] = { deposits: 0, borrows: 0 };
-    }
+  type Snapshot = {
+    timestamp: string;
+    snapshotTime: string;
+    deposits: number;
+    borrows: number;
+  };
 
-    for (const item of entries) {
-      dailyTotals[dateKey].deposits += item.depositValueUsd;
-      dailyTotals[dateKey].borrows += item.borrowValueUsd;
-    }
-  }
+  const snapshots: Snapshot[] = Object.entries(data)
+    .flatMap(([lastSeenAt, entries]) => {
+      return entries.map((entry) => ({
+        timestamp: lastSeenAt,
+        snapshotTime: entry.snapshotTime,
+        deposits: entry.depositValueUsd,
+        borrows: entry.borrowValueUsd,
+      }));
+    })
+    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-  const sortedDates = Object.keys(dailyTotals).sort();
-  const recentDates = sortedDates.slice(-7);
+  const start = snapshots.find((s) => new Date(s.snapshotTime) <= cutoff && cutoff < new Date(s.timestamp));
 
-  if (recentDates.length < 2) {
+  const end = snapshots.at(-1);
+
+  if (!start || !end) {
     const emptyStats = { value: 0, change: 0, changePercent: 0 };
-    return { supplied7d: emptyStats, borrowed7d: emptyStats, netValue7d: emptyStats };
+    return {
+      supplied7d: emptyStats,
+      borrowed7d: emptyStats,
+      netValue7d: emptyStats,
+    };
   }
 
-  const deposits = recentDates.map((date) => dailyTotals[date].deposits);
-  const borrows = recentDates.map((date) => dailyTotals[date].borrows);
-  const net = deposits.map((d, i) => d - borrows[i]);
-
-  const buildStats = (values: number[]): PortfolioStatsData => {
-    const first = values[0];
-    const last = values[values.length - 1];
-    const change = last - first;
-    const changePercent = first !== 0 ? (change / Math.abs(first)) * 100 : 0;
-    return { value: last, change, changePercent };
+  const compute = (firstVal: number, lastVal: number): PortfolioStatsData => {
+    const change = lastVal - firstVal;
+    const changePercent = firstVal !== 0 ? (change / firstVal) * 100 : 0;
+    return {
+      value: lastVal,
+      change,
+      changePercent,
+    };
   };
 
   return {
-    supplied7d: buildStats(deposits),
-    borrowed7d: buildStats(borrows),
-    netValue7d: buildStats(net),
+    supplied7d: compute(start.deposits, end.deposits),
+    borrowed7d: compute(start.borrows, end.borrows),
+    netValue7d: compute(start.deposits - start.borrows, end.deposits - end.borrows),
   };
 }
 

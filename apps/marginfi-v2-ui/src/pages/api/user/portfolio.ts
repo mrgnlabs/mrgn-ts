@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .select("asset_shares, liability_shares, last_seen_at, bank_address, snapshot_time, bank_asset_tag")
       .eq("account_address", accountAddress)
       .or(`snapshot_time.gte.${startDate},last_seen_at.gte.${startDate}`)
-      .order("last_seen_at", { ascending: true });
+      .order("last_seen_at", { ascending: false });
 
     if (error) {
       console.error("Error fetching portfolio data from Supabase:", error);
