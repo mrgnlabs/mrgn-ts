@@ -61,6 +61,7 @@ export const AssetRow = (row: Row<AssetListModel>) => {
             const symbolDiv = assetLink.querySelector("div");
             if (symbolDiv) {
               symbolDiv.textContent = "Loading...";
+              symbolDiv.classList.add("group-hover:text-white");
               assetLink.classList.add("animate-pulsate");
             }
           }

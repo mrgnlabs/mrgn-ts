@@ -50,6 +50,7 @@ export const getAssetCell = (asset: AssetData) => {
         const symbolDiv = linkElement.querySelector("div");
         if (symbolDiv) {
           symbolDiv.textContent = "Loading...";
+          symbolDiv.classList.add("group-hover:text-white");
           linkElement.classList.add("animate-pulsate");
         }
       }}
