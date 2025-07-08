@@ -102,6 +102,11 @@ export const AssetsList = ({ data }: AssetListProps) => {
       });
     }
 
+    // filter out reduce only banks (unless user has open position)
+    filtered = filtered.filter((item) => {
+      return !(item.asset.isReduceOnly && !item.position.positionAmount);
+    });
+
     return filtered;
   }, [LST_SET, MEME_SET, STABLECOIN_SET, currentModeData, poolFilter, tokenFilter]);
 

@@ -10,6 +10,7 @@ import {
   PriceBias,
   getPrice,
   ValidatorStakeGroup,
+  OperationalState,
 } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, Emissions, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { aprToApy, nativeToUi, WSOL_MINT } from "@mrgnlabs/mrgn-common";
@@ -30,6 +31,7 @@ export interface AssetData {
   assetWeight: number;
   originalAssetWeight: number;
   emodeActive: boolean;
+  isReduceOnly: boolean;
   collateralBanks: {
     collateralBank: ExtendedBankInfo;
     emodePair: EmodePair;
@@ -147,6 +149,7 @@ export const getAssetData = (
     emodeActive: bank.isActive && bank.position.emodeActive,
     collateralBanks: collateralBanks ?? [],
     liabilityBanks: liabilityBanks ?? [],
+    isReduceOnly: bank?.info.rawBank.config.operationalState === OperationalState.ReduceOnly,
   };
 };
 
@@ -294,7 +297,7 @@ export const getDepositsData = (bank: ExtendedBankInfo, isInLendingMode: boolean
 
   const isBankHigh = (isInLendingMode ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) >= bankCap * 0.9;
 
-  const isReduceOnly = bank?.meta?.tokenSymbol ? REDUCE_ONLY_BANKS.includes(bank.meta.tokenSymbol) : false;
+  const isReduceOnly = bank?.info.rawBank.config.operationalState === OperationalState.ReduceOnly;
 
   const bankDeposits = isInLendingMode
     ? bank.info.state.totalDeposits

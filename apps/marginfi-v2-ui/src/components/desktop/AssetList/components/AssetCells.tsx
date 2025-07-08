@@ -57,6 +57,16 @@ export const getAssetCell = (asset: AssetData) => {
     >
       <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
       <div>{asset.symbol}</div>
+      {asset.isReduceOnly && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <IconAlertTriangle size={14} className="text-destructive-foreground shrink-0" />
+            </TooltipTrigger>
+            <TooltipContent>This bank is in reduce-only mode.</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
     </Link>
   );
 };
@@ -295,8 +305,8 @@ export const getDepositsCell = (depositsData: DepositsData) => {
     <div
       className={cn(
         "flex flex-col items-end text-foreground",
-        (depositsData.isReduceOnly || depositsData.isBankHigh) && "text-warning",
-        depositsData.isBankFilled && "text-destructive-foreground"
+        depositsData.isBankHigh && !depositsData.isReduceOnly && "text-warning",
+        depositsData.isBankFilled && !depositsData.isReduceOnly && "text-destructive-foreground"
       )}
     >
       <div className="flex items-center gap-0.5">
@@ -304,8 +314,21 @@ export const getDepositsCell = (depositsData: DepositsData) => {
           forceDecimals: true,
         })}
 
-        {(depositsData.isReduceOnly || depositsData.isBankHigh || depositsData.isBankFilled) && (
-          <IconAlertTriangle size={14} />
+        {(depositsData.isBankHigh || depositsData.isBankFilled) && !depositsData.isReduceOnly && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <IconAlertTriangle size={14} />
+              </TooltipTrigger>
+              <TooltipContent>
+                {depositsData.isBankHigh && !depositsData.isBankFilled
+                  ? "This bank is approaching maximum capacity."
+                  : depositsData.isBankFilled
+                    ? "This bank is at maximum capacity."
+                    : "This bank is at maximum capacity."}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
 
