@@ -2,7 +2,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { Connection } from "@solana/web3.js";
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
-import { MARGINFI_IDL, MarginfiIdlType } from "@mrgnlabs/marginfi-client-v2/src/idl";
+import { MARGINFI_IDL, MarginfiIdlType } from "../../marginfi-client-v2/src/idl";
 import { loadKeypairFromFile } from "./utils";
 import { Environment, Config } from "./types";
 
@@ -30,7 +30,7 @@ export const getMarginfiProgram = (env: Environment = "production") => {
   const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT, "confirmed");
   const wallet = loadKeypairFromFile(process.env.MARGINFI_WALLET);
 
-  MARGINFI_IDL.address = config.PROGRAM_ID;
+  MARGINFI_IDL.address = config.PROGRAM_ID as any;
 
   const provider = new AnchorProvider(connection, wallet as any, {
     preflightCommitment: "confirmed",
