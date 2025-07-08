@@ -348,9 +348,9 @@ class MarginfiAccount implements MarginfiAccountType {
 
     const balance = this.getBalance(bankAddress);
 
-    const useCache =
-      opts?.emodeImpactStatus === EmodeImpactStatus.InactiveEmode ||
-      opts?.emodeImpactStatus === EmodeImpactStatus.ExtendEmode;
+    const useCache = false;
+    // opts?.emodeImpactStatus === EmodeImpactStatus.InactiveEmode ||
+    // opts?.emodeImpactStatus === EmodeImpactStatus.ExtendEmode;
 
     let freeCollateral = useCache
       ? this.computeFreeCollateral().times(_volatilityFactor)
