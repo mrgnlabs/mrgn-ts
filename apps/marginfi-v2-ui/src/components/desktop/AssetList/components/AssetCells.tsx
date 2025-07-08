@@ -45,6 +45,14 @@ export const getAssetCell = (asset: AssetData) => {
     <Link
       href={`/banks/${asset.address.toBase58()}`}
       className="flex gap-2 justify-start items-center group-hover:text-chartreuse"
+      onClick={(e) => {
+        const linkElement = e.currentTarget;
+        const symbolDiv = linkElement.querySelector("div");
+        if (symbolDiv) {
+          symbolDiv.textContent = "Loading...";
+          linkElement.classList.add("animate-pulsate");
+        }
+      }}
     >
       <Image src={asset.image} alt={`${asset.symbol} logo`} height={25} width={25} className="rounded-full" />
       <div>{asset.symbol}</div>

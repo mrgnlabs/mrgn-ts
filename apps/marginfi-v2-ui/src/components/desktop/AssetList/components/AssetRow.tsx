@@ -12,6 +12,7 @@ import { AssetListModel } from "../utils";
 
 export const AssetRow = (row: Row<AssetListModel>) => {
   const router = useRouter();
+  const prefetchTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const isPosition = React.useMemo(
     () =>
       row.original.position.walletAmount || row.original.position.positionAmount || row.original.position.stakedAmount,
@@ -26,6 +27,18 @@ export const AssetRow = (row: Row<AssetListModel>) => {
       <TableRow
         key={row.id}
         className={cn("cursor-pointer group hover:bg-background-gray", isStakedActivating && "opacity-50")}
+        onMouseOver={() => {
+          prefetchTimeoutRef.current = setTimeout(() => {
+            console.log("prefetching", row.original.asset.address.toBase58());
+            router.prefetch(`/banks/${row.original.asset.address.toBase58()}`);
+          }, 500);
+        }}
+        onMouseOut={() => {
+          if (prefetchTimeoutRef.current) {
+            clearTimeout(prefetchTimeoutRef.current);
+            prefetchTimeoutRef.current = null;
+          }
+        }}
         onClick={(e) => {
           // disable asset row link for action box interaction
           if (
@@ -41,7 +54,24 @@ export const AssetRow = (row: Row<AssetListModel>) => {
             return;
           }
 
-          router.push(`/banks/${row.original.asset.address.toBase58()}`);
+          // Trigger loading style on the asset cell link
+          const rowElement = e.currentTarget;
+          const assetLink = rowElement.querySelector('a[href*="/banks/"]');
+          if (assetLink) {
+            const symbolDiv = assetLink.querySelector("div");
+            if (symbolDiv) {
+              symbolDiv.textContent = "Loading...";
+              assetLink.classList.add("animate-pulsate");
+            }
+          }
+
+          router.push(
+            `/banks/${row.original.asset.address.toBase58()}`,
+            `/banks/${row.original.asset.address.toBase58()}`,
+            {
+              shallow: true,
+            }
+          );
         }}
       >
         {visibleCells.map((cell, idx) => (
