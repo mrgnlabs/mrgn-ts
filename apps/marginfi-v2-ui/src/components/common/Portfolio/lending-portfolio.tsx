@@ -218,9 +218,10 @@ export const LendingPortfolio = () => {
     if (accountSummary.healthFactor) {
       let color: string;
 
-      if (accountSummary.healthSimFailed) {
-        color = "#a1a1aa";
-      } else if (accountSummary.healthFactor >= 0.5) {
+      // if (accountSummary.healthSimFailed) {
+      //   color = "#a1a1aa";
+      // } else
+      if (accountSummary.healthFactor >= 0.5) {
         color = "#75BA80"; // green color " : "#",
       } else if (accountSummary.healthFactor >= 0.25) {
         color = "#B8B45F"; // yellow color
@@ -232,7 +233,7 @@ export const LendingPortfolio = () => {
     } else {
       return "#fff";
     }
-  }, [accountSummary.healthFactor, accountSummary.healthSimFailed]);
+  }, [accountSummary.healthFactor]);
 
   // Create refs for each lending and borrowing card, keyed by address
   const lendingRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
@@ -450,7 +451,7 @@ export const LendingPortfolio = () => {
                   className="text-xl md:text-2xl font-medium flex flex-row items-center gap-1.5"
                   style={{ color: healthColor }}
                 >
-                  {accountSummary.healthSimFailed && (
+                  {/* {accountSummary.healthSimFailed && (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger className="inline-flex items-center gap-1">
@@ -464,7 +465,7 @@ export const LendingPortfolio = () => {
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                  )}
+                  )} */}
                   {numeralFormatter(accountSummary.healthFactor * 100)}%
                 </dd>
               )}
