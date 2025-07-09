@@ -146,9 +146,14 @@ export function composeExplorerUrl(signature?: string): string | undefined {
 
   const detectedBroadcastType = detectBroadcastType(signature);
 
-  return detectedBroadcastType === "BUNDLE"
-    ? `https://explorer.jito.wtf/bundle/${signature}`
-    : `https://solscan.io/tx/${signature}`;
+  switch (detectedBroadcastType) {
+    case "RPC":
+      return `https://solscan.io/tx/${signature}`;
+    case "BUNDLE":
+      return `https://explorer.jito.wtf/bundle/${signature}`;
+    default:
+      return signature;
+  }
 }
 
 export async function logActivity(

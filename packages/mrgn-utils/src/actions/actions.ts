@@ -2,7 +2,12 @@ import { PublicKey, SolanaJSONRPCError } from "@solana/web3.js";
 
 import { TransactionConfigMap, TransactionOptions, TransactionType } from "@mrgnlabs/mrgn-common";
 import { toastManager, MultiStepToastController } from "@mrgnlabs/mrgn-toasts";
-import { MarginfiClient, ProcessTransactionsClientOpts, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
+import {
+  MarginfiClient,
+  ProcessTransactionsClientOpts,
+  ProcessTransactionError,
+  ProcessTransactionErrorType,
+} from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, FEE_MARGIN } from "@mrgnlabs/mrgn-state";
 
 import { ActionTxns } from "./types";
@@ -91,18 +96,24 @@ export async function executeActionWrapper(props: {
     }
 
     if (error instanceof ProcessTransactionError) {
+      const isTuple = error.type === ProcessTransactionErrorType.TransactionTupleError;
+
       const message = extractErrorString(error);
 
-      if (error.failedTxs && txns) {
-        const updatedFailedTxns = {
-          ...txns,
-          transactions: error.failedTxs,
-        };
-        toast.setFailed(message, async () => {
-          await executeActionWrapper({ ...props, txns: updatedFailedTxns, existingToast: toast });
-        });
+      if (isTuple) {
+        toast.setWarning(message);
       } else {
-        toast.setFailed(message);
+        if (error.failedTxs && txns) {
+          const updatedFailedTxns = {
+            ...txns,
+            transactions: error.failedTxs,
+          };
+          toast.setFailed(message, async () => {
+            await executeActionWrapper({ ...props, txns: updatedFailedTxns, existingToast: toast });
+          });
+        } else {
+          toast.setFailed(message);
+        }
       }
     } else if (error instanceof SolanaJSONRPCError) {
       toast.setFailed(error.message);
@@ -110,6 +121,7 @@ export async function executeActionWrapper(props: {
       const message = extractErrorString(error);
       toast.setFailed(message ?? JSON.stringify(error));
     }
+    onComplete && onComplete("");
   }
 }
 

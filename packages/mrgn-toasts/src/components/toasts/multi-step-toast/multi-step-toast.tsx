@@ -4,7 +4,7 @@ import {
   IconExternalLink,
   IconX,
   IconCircleCheckFilled,
-  IconCircleXFilled,
+  IconAlertTriangle,
 } from "@tabler/icons-react";
 import { shortenAddress } from "@mrgnlabs/mrgn-common";
 import { MultiStepToastStep } from "~/utils";
@@ -79,6 +79,10 @@ function StepComponent({
       );
     case "error":
       return <ErrorStep label={step.label} message={step.message} onRetry={step.onRetry} isLastFailed={isLastFailed} />;
+    case "warning":
+      return (
+        <WarningStep label={step.label} message={step.message} onRetry={step.onRetry} isLastFailed={isLastFailed} />
+      );
     case "pending":
       return <PendingStep label={step.label} />;
     case "canceled":
@@ -103,38 +107,53 @@ const SuccessStep = ({
   signature?: string;
   explorerUrl?: string;
   isLastStep: boolean;
-}) => (
-  <div className="flex flex-col">
-    <div className="flex items-center space-x-2">
-      <IconCheck size={16} className="text-success flex-shrink-0" />
-      <span className="text-primary truncate">{label}</span>
-      {!isLastStep && signature && explorerUrl && (
-        <a
-          href={explorerUrl}
-          className="text-xs text-blue-500 flex items-center text-muted-foreground"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <IconExternalLink size={12} />
-          <span className="text-xs truncate"> {shortenAddress(signature)}</span>
-        </a>
-      )}
-    </div>
-    {isLastStep && signature && explorerUrl && (
-      <div className="flex justify-between space-x-2 w-full px-6 py-1">
-        <a
-          href={explorerUrl}
-          className="text-xs text-blue-500 flex items-center text-muted-foreground"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <IconExternalLink size={12} />
-          <span className="text-xs truncate"> {shortenAddress(signature)}</span>
-        </a>
+}) => {
+  const isUrl = explorerUrl && explorerUrl.startsWith("http");
+  return (
+    <div className="flex flex-col">
+      <div className="flex items-center space-x-2">
+        <IconCheck size={16} className="text-success flex-shrink-0" />
+        <span className="text-primary truncate">{label}</span>
+        {!isLastStep &&
+          signature &&
+          explorerUrl &&
+          (isUrl ? (
+            <a
+              href={explorerUrl}
+              className="text-xs text-blue-500 flex items-center text-muted-foreground"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <IconExternalLink size={12} />
+              <span className="text-xs truncate"> {shortenAddress(signature)}</span>
+            </a>
+          ) : (
+            <div className="flex items-center space-x-2 w-full pl-6">
+              <div className="py-1 text-xs text-muted-foreground flex-1 min-w-0">{signature}</div>
+            </div>
+          ))}
       </div>
-    )}
-  </div>
-);
+      {isLastStep &&
+        signature &&
+        explorerUrl &&
+        (isUrl ? (
+          <a
+            href={explorerUrl}
+            className="text-xs text-blue-500 flex items-center text-muted-foreground"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <IconExternalLink size={12} />
+            <span className="text-xs truncate"> {shortenAddress(signature)}</span>
+          </a>
+        ) : (
+          <div className="flex items-center space-x-2 w-full pl-6">
+            <div className="py-1 text-xs text-muted-foreground flex-1 min-w-0">{signature}</div>
+          </div>
+        ))}
+    </div>
+  );
+};
 
 const ErrorStep = ({
   label,
@@ -162,6 +181,28 @@ const ErrorStep = ({
           Retry
         </button>
       )}
+    </div>
+  </div>
+);
+
+const WarningStep = ({
+  label,
+  message,
+  onRetry,
+  isLastFailed,
+}: {
+  label: string;
+  message?: string;
+  onRetry?: () => void;
+  isLastFailed: boolean;
+}) => (
+  <div className="flex flex-col">
+    <div className="flex items-center space-x-2">
+      <IconAlertTriangle size={16} className="flex-shrink-0 text-warning" />
+      <span>{label}</span>
+    </div>
+    <div className="flex items-center space-x-2 w-full pl-6">
+      {isLastFailed && message && <div className="py-1 text-xs text-muted-foreground flex-1 min-w-0">{message}</div>}
     </div>
   </div>
 );

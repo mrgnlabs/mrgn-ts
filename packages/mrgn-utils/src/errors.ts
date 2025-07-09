@@ -343,6 +343,13 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     actionMethod: "WARNING",
     code: 158,
   },
+  SEND_TRANSACTION_TUPLE_CHECK: {
+    description:
+      "Transaction confirmation failed. The transaction may have landed on-chain but confirmation failed. Please check your wallet and try again.",
+    isEnabled: true,
+    actionMethod: "WARNING",
+    code: 159,
+  },
 };
 
 const createEmodeReduceCheck = (): ActionMessageType => ({
@@ -616,6 +623,10 @@ export const handleError = (
     if (error?.message) {
       if (error.message.includes("RangeError") || error.message.toLowerCase().includes("too large")) {
         return STATIC_SIMULATION_ERRORS.TX_SIZE;
+      }
+
+      if (error.message.includes("tuple")) {
+        return STATIC_SIMULATION_ERRORS.SEND_TRANSACTION_TUPLE_CHECK;
       }
 
       if (

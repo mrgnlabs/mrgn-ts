@@ -7,6 +7,7 @@ export enum ProcessTransactionErrorType {
   TransactionBuildingError,
   TransactionSendingError,
   SimulationError,
+  TransactionTupleError,
 
   FallthroughError,
   TimeoutError,

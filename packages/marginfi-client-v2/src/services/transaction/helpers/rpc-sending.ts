@@ -2,6 +2,7 @@ import { VersionedTransaction, TransactionSignature, Connection, Commitment } fr
 import { TransactionOptions } from "@mrgnlabs/mrgn-common";
 
 import { confirmTransaction } from "../transaction.service";
+import { ProcessTransactionError, ProcessTransactionErrorType } from "~/errors";
 
 type SendTransactionAsRpcProps = {
   versionedTransactions: VersionedTransaction[];
@@ -44,30 +45,36 @@ export async function sendTransactionAsBundleRpc({
           errorMessage.includes("satisfy a union")
         ) {
           console.warn("Transaction type validation error:", errorMessage);
-          onCallback?.(index, false, "");
+          // onCallback?.(index, true, "");
           hasValidationErrors = true;
           continue;
+        } else {
+          onCallback?.(index, false, "");
+          throw error;
         }
-        // Re-throw other errors
-        onCallback?.(index, false, "");
-        throw error;
       }
 
-      try {
-        await confirmTransaction(connection, signature, confirmCommitment);
-        onCallback?.(index, true, signature);
-      } catch (error) {
-        onCallback?.(index, false, signature);
-        throw error;
+      if (signature) {
+        try {
+          await confirmTransaction(connection, signature, confirmCommitment);
+          onCallback?.(index, true, signature);
+        } catch (error) {
+          onCallback?.(index, false, signature);
+          throw error;
+        }
+        signatures.push(signature);
       }
-      signatures.push(signature);
     }
 
     // Throw user-friendly error if validation errors occurred
     if (hasValidationErrors) {
-      throw new Error(
-        "Transaction failed to confirm. The transaction might have landed on-chain but confirmation failed. Please check your wallet and try again."
+      onCallback?.(
+        versionedTransactions.length,
+        true,
+        "The transaction may have landed on-chain but confirmation failed."
       );
+
+      signatures.push("The transaction may have landed on-chain but confirmation failed.");
     }
   } else {
     signatures = await Promise.all(
@@ -99,9 +106,11 @@ export async function sendTransactionAsBundleRpc({
 
     // Throw user-friendly error if validation errors occurred
     if (hasValidationErrors) {
-      throw new Error(
-        "Transaction failed to confirm. The transaction might have landed on-chain but confirmation failed. Please check your wallet and try again."
-      );
+      throw new ProcessTransactionError({
+        message:
+          "Transaction confirmation failed. The transaction may have landed on-chain but confirmation failed. Please check your wallet and try again.",
+        type: ProcessTransactionErrorType.TransactionTupleError,
+      });
     }
 
     await Promise.all(
