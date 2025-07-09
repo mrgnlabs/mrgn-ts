@@ -91,6 +91,9 @@ async function main() {
   const oracleKeys = acc.config.oracleKeys.filter((key) => !key.equals(PublicKey.default));
   const pythOracleAddresses = oracleKeys.map((key) => getPythPushOracleAddresses(key.toBuffer()));
 
+  const depositCap = acc.config.depositLimit.toNumber() / Math.pow(10, acc.mintDecimals);
+  const borrowCap = acc.config.borrowLimit.toNumber() / Math.pow(10, acc.mintDecimals);
+
   const eModeConfig = acc.emode;
 
   const eModeTag = eModeConfig.emodeTag;
@@ -133,6 +136,8 @@ async function main() {
     "Optimal Utilization Rate": optimalUtilizationRate.toNumber(),
     "Asset Share Value": assetShareValue.toNumber(),
     "Liability Share Value": liabilityShareValue.toNumber(),
+    "Deposit Cap": formatNumber(depositCap),
+    "Borrow Cap": formatNumber(borrowCap),
     "Asset Quantity": formatNumber(totalAssetQuantity),
     "Asset Value (USD)": `$${formatNumber(totalAssetQuantity.times(price))}`,
     "Liability Quantity": formatNumber(totalLiabilityQuantity),
