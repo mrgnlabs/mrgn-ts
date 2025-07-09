@@ -129,7 +129,7 @@ export const debounceFn = (fn: Function, ms = 300) => {
 };
 
 function detectBroadcastType(signature: string): "RPC" | "BUNDLE" | "UNKNOWN" {
-  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{88}$/;
   const hexRegex = /^[0-9a-fA-F]{64}$/;
 
   if (base58Regex.test(signature)) {

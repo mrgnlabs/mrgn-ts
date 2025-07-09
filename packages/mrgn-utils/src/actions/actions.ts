@@ -96,24 +96,18 @@ export async function executeActionWrapper(props: {
     }
 
     if (error instanceof ProcessTransactionError) {
-      const isTuple = error.type === ProcessTransactionErrorType.TransactionTupleError;
-
       const message = extractErrorString(error);
 
-      if (isTuple) {
-        toast.setWarning(message);
+      if (error.failedTxs && txns) {
+        const updatedFailedTxns = {
+          ...txns,
+          transactions: error.failedTxs,
+        };
+        toast.setFailed(message, async () => {
+          await executeActionWrapper({ ...props, txns: updatedFailedTxns, existingToast: toast });
+        });
       } else {
-        if (error.failedTxs && txns) {
-          const updatedFailedTxns = {
-            ...txns,
-            transactions: error.failedTxs,
-          };
-          toast.setFailed(message, async () => {
-            await executeActionWrapper({ ...props, txns: updatedFailedTxns, existingToast: toast });
-          });
-        } else {
-          toast.setFailed(message);
-        }
+        toast.setFailed(message);
       }
     } else if (error instanceof SolanaJSONRPCError) {
       toast.setFailed(error.message);
