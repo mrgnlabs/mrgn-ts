@@ -10,6 +10,7 @@ export enum ToastStatus {
   ERROR = "error",
   CANCELED = "canceled",
   PAUSED = "paused",
+  WARNING = "warning",
 }
 
 export interface MultiStepToastStep {
@@ -31,6 +32,7 @@ export interface MultiStepToastController {
   successAndNext: (stepsToAdvance?: number | undefined, explorerUrl?: string, signature?: string) => void;
   success: (explorerUrl?: string, signature?: string) => void;
   setFailed: (message?: string, onRetry?: () => void) => void;
+  setWarning: (message?: string, onRetry?: () => void) => void;
   pause: () => void;
   resume: () => void;
   resetAndStart: () => void;
@@ -164,6 +166,24 @@ const toastManager = {
             return {
               ...step,
               status: ToastStatus.ERROR,
+              message,
+              onRetry,
+            };
+          }
+          return step;
+        });
+
+        updateToast();
+      },
+
+      // Function to set all current steps in PENDING state to WARNING.
+      // If message && onRetry are provided, the message will be displayed in the toast & the onRetry function will be called.
+      setWarning: (message?: string, onRetry?: () => void) => {
+        stepsWithStatus = stepsWithStatus.map((step) => {
+          if (step.status === ToastStatus.PENDING) {
+            return {
+              ...step,
+              status: ToastStatus.WARNING,
               message,
               onRetry,
             };

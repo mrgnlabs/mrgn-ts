@@ -102,13 +102,8 @@ export default function BankPage() {
     return {
       totalDeposits: bank.info.state.totalDeposits,
       totalDepositsUsd: bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber(),
-      totalBorrows: Math.min(
-        bank.info.state.availableLiquidity,
-        bank.info.state.borrowCap - bank.info.state.totalBorrows
-      ),
-      totalBorrowsUsd:
-        Math.min(bank.info.state.availableLiquidity, bank.info.state.borrowCap - bank.info.state.totalBorrows) *
-        bank.info.oraclePrice.priceRealtime.price.toNumber(),
+      totalBorrows: bank.info.state.totalBorrows,
+      totalBorrowsUsd: bank.info.state.totalBorrows * bank.info.oraclePrice.priceRealtime.price.toNumber(),
       utilization: bank.info.state.utilizationRate / 100,
       weight: assetWeightInit <= 0 ? 0 : assetWeightInit,
       ltv: 1 / bank.info.rawBank.config.liabilityWeightInit.toNumber(),

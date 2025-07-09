@@ -2,7 +2,12 @@ import { PublicKey, SolanaJSONRPCError } from "@solana/web3.js";
 
 import { TransactionConfigMap, TransactionOptions, TransactionType } from "@mrgnlabs/mrgn-common";
 import { toastManager, MultiStepToastController } from "@mrgnlabs/mrgn-toasts";
-import { MarginfiClient, ProcessTransactionsClientOpts, ProcessTransactionError } from "@mrgnlabs/marginfi-client-v2";
+import {
+  MarginfiClient,
+  ProcessTransactionsClientOpts,
+  ProcessTransactionError,
+  ProcessTransactionErrorType,
+} from "@mrgnlabs/marginfi-client-v2";
 import { ActionType, FEE_MARGIN } from "@mrgnlabs/mrgn-state";
 
 import { ActionTxns } from "./types";
@@ -110,6 +115,7 @@ export async function executeActionWrapper(props: {
       const message = extractErrorString(error);
       toast.setFailed(message ?? JSON.stringify(error));
     }
+    onComplete && onComplete("");
   }
 }
 
