@@ -51,7 +51,11 @@ const formatChange = (change: number, changePercent: number, tooltipContent: str
 
   const formattedChange = (
     <span className={`text-sm font-light ${colorClass}`}>
-      {sign}${dynamicNumeralFormatter(change)} ({sign}
+      {sign}$
+      {dynamicNumeralFormatter(change, {
+        minDisplay: 0.001,
+      })}{" "}
+      ({sign}
       {changePercent.toFixed(1)}%)
     </span>
   );
