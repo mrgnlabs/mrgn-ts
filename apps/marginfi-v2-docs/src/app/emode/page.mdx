@@ -31,17 +31,17 @@ e-mode applies automatically based on asset pairings set by the e-mode admin (th
 
 When e-mode launches, marginfi will support borrowing and lending between SOL and various LSTs (liquid staking tokens) with up to 10x leverage. Assets are grouped into configuration bands for risk calibration:
 
-* **Risk Tier 1 Assets** (**LST_T1**): mSOL, bSOL, LST, jupSOL, jitoSOL
-* **Risk Tier 2 Assets** (**LST_T2**): INF, hSOL, bbSOL, bnSOL
+* **Tier 1 Assets**: mSOL, bSOL, LST, jupSOL, jitoSOL
+* **Tier 2 Assets**: hSOL, bbSOL, bnSOL
 
-| **Lending Asset** | **Borrowing Asset**  | **Normal Weight** | **Emode Weight** |
-|-------------------|----------------------|-------------------|------------------|
-| SOL               | LST_T1               | 0.80              | 0.90             |
-| SOL               | LST_T2               | 0.80              | 0.85             |
-| LST_T1            | SOL                  | 0.60              | 0.90             |
-| LST_T1            | LST_T2               | 0.60              | 0.85             |
-| LST_T2            | SOL                  | 0.60              | 0.85             |
-| LST_T2            | LST_T1               | 0.60              | 0.85             |
+| **Lending Asset** | **Borrowing Asset**  | **Normal Weight** | **e-mode Weight** |
+|-------------------|----------------------|-------------------|-------------------|
+| SOL               | Tier 1               | 80%              | 90%                |
+| SOL               | Tier 2               | 80%              | 85%                |
+| Tier 1            | SOL                  | 65%              | 90%                |
+| Tier 1            | Tier 2               | 65%              | 85%                |
+| Tier 2            | SOL                  | 65%              | 85%                |
+| Tier 2            | Tier 1               | 65%              | 80%                |
 
 <Note>
 Groupings like "Tier 1" and "Tier 2" reflect liquidity and market readiness—not necessarily stronger correlation.
