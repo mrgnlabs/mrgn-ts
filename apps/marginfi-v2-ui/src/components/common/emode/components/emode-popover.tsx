@@ -73,20 +73,32 @@ export const EmodePopover = ({
   }, []);
 
   const filteredLiabilityBanks = React.useMemo(() => {
-    if (!showActiveOnly || !liabilityBanks) return liabilityBanks;
-    return liabilityBanks.filter(
-      (item) =>
-        item.liabilityBank.isActive && item.liabilityBank.position.isLending && item.liabilityBank.position.emodeActive
+    if (!liabilityBanks) return [];
+    const filtered = !showActiveOnly
+      ? liabilityBanks
+      : liabilityBanks.filter(
+          (item) =>
+            item.liabilityBank.isActive &&
+            item.liabilityBank.position.isLending &&
+            item.liabilityBank.position.emodeActive
+        );
+    return [...filtered].sort(
+      (a, b) => b.emodePair.assetWeightInit.toNumber() - a.emodePair.assetWeightInit.toNumber()
     );
   }, [liabilityBanks, showActiveOnly]);
 
   const filteredCollateralBanks = React.useMemo(() => {
-    if (!showActiveOnly || !collateralBanks) return collateralBanks;
-    return collateralBanks.filter(
-      (item) =>
-        item.collateralBank.isActive &&
-        item.collateralBank.position.isLending &&
-        item.collateralBank.position.emodeActive
+    if (!collateralBanks) return [];
+    const filtered = !showActiveOnly
+      ? collateralBanks
+      : collateralBanks.filter(
+          (item) =>
+            item.collateralBank.isActive &&
+            item.collateralBank.position.isLending &&
+            item.collateralBank.position.emodeActive
+        );
+    return [...filtered].sort(
+      (a, b) => b.emodePair.assetWeightInit.toNumber() - a.emodePair.assetWeightInit.toNumber()
     );
   }, [collateralBanks, showActiveOnly]);
 
@@ -161,7 +173,7 @@ export const EmodePopover = ({
               <TableHeader>
                 <TableRow className="text-xs">
                   <TableHead className="h-6">Bank</TableHead>
-                  <TableHead className="h-6">Tag</TableHead>
+                  <TableHead className="h-6 hidden md:table-cell">Tag</TableHead>
                   <TableHead className="h-6">Weight</TableHead>
                   <TableHead className="h-6">
                     <div className="flex items-center gap-1">
@@ -187,8 +199,12 @@ export const EmodePopover = ({
                           {liabilityBankItem.liabilityBank.meta.tokenSymbol}
                         </div>
                       </TableCell>
-                      <TableCell className="py-1 lowercase">
-                        {EmodeTag[liabilityBankItem.emodePair.liabilityBankTag].replace("_", " ")}
+                      <TableCell className="py-1 hidden md:table-cell">
+                        {EmodeTag[liabilityBankItem.emodePair.liabilityBankTag]
+                          .replace("_", " ")
+                          .toUpperCase()
+                          .replace("T1", "Tier 1")
+                          .replace("T2", "Tier 2")}
                       </TableCell>
                       <TableCell className="py-1">
                         {percentFormatterMod(originalAssetWeight || 0, {
@@ -247,8 +263,8 @@ export const EmodePopover = ({
                           {collateralBankItem.collateralBank.meta.tokenSymbol}
                         </div>
                       </TableCell>
-                      <TableCell className="py-1 lowercase">
-                        {EmodeTag[collateralBankItem.emodePair.collateralBankTag].replace("_", " ")}
+                      <TableCell className="py-1 hidden md:table-cell">
+                        {EmodeTag[collateralBankItem.emodePair.collateralBankTag].replace("_", " ").toUpperCase()}
                       </TableCell>
                       <TableCell className="py-1">
                         {percentFormatterMod(collateralOriginalAssetWeight || 0, {

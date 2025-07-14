@@ -69,11 +69,7 @@ const EmodeTable = ({ initialBank, align = "center", className, showTag = true, 
       bank: "collateralBank" in bank ? bank.collateralBank : bank.liabilityBank,
       pair: bank.emodePair,
     }));
-    return banks.sort((a, b) => {
-      const aWeight = a.pair.assetWeightInit.toNumber();
-      const bWeight = b.pair.assetWeightInit.toNumber();
-      return bWeight - aWeight;
-    });
+    return [...banks].sort((a, b) => b.pair.assetWeightInit.toNumber() - a.pair.assetWeightInit.toNumber());
   }, [selectedBank, selectedSide, liabilityBanksByCollateralBank, collateralBanksByLiabilityBank]);
 
   return (
@@ -146,7 +142,7 @@ const EmodeTable = ({ initialBank, align = "center", className, showTag = true, 
           <TableHeader>
             <TableRow>
               <TableHead className="w-1/5">{selectedSide === "lend" ? "Borrow" : "Lend"}</TableHead>
-              {showTag && <TableHead className="w-1/5">Tag</TableHead>}
+              {showTag && <TableHead className="w-1/5 hidden md:table-cell">Tag</TableHead>}
               <TableHead className="w-1/5">Weight</TableHead>
               <TableHead className="w-1/5">
                 <div className="flex items-center gap-1">
@@ -186,8 +182,12 @@ const EmodeTable = ({ initialBank, align = "center", className, showTag = true, 
                     </div>
                   </TableCell>
                   {showTag && (
-                    <TableCell className="lowercase">
-                      {EmodeTag[bank.info.rawBank.emode.emodeTag].replace("_", " ")}
+                    <TableCell className="hidden md:table-cell">
+                      {EmodeTag[bank.info.rawBank.emode.emodeTag]
+                        .replace("_", " ")
+                        .toUpperCase()
+                        .replace("T1", "Tier 1")
+                        .replace("T2", "Tier 2")}
                     </TableCell>
                   )}
                   <TableCell>
