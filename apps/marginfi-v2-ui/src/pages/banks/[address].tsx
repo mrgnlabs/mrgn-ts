@@ -52,10 +52,14 @@ export default function BankPage() {
   const { stakePoolMetadataMap } = useNativeStakeData();
 
   const collateralBanksByLiabilityBank = React.useMemo(() => {
+    if (!extendedBanks.length || !emodePairs.length) return {};
+
     return groupCollateralBanksByLiabilityBank(extendedBanks, emodePairs);
   }, [extendedBanks, emodePairs]);
 
   const liabilityBanksByCollateralBank = React.useMemo(() => {
+    if (!extendedBanks.length || !emodePairs.length) return {};
+
     return groupLiabilityBanksByCollateralBank(extendedBanks, emodePairs);
   }, [extendedBanks, emodePairs]);
 
