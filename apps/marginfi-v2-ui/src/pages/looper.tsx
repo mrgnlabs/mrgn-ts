@@ -32,7 +32,7 @@ export default function LooperPage() {
               <div className="flex flex-col items-center -translate-y-1">
                 <p>
                   Leverage your deposits to maximize yield.
-                  {/* <br />
+                  <br />
                   <span className="text-mfi-emode mr-0.5">
                     <IconEmodeSimple size={24} className="inline-block translate-x-0.5" /> e-mode
                   </span>{" "}
@@ -43,7 +43,7 @@ export default function LooperPage() {
                         explore e-mode pairs
                       </button>
                     }
-                  /> */}
+                  />
                 </p>
               </div>
             }

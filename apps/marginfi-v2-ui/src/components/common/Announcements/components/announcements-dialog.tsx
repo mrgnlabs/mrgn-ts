@@ -6,8 +6,8 @@ import { AnnouncementEmode } from "./announcement-dialog-contents";
 import { Desktop, Mobile } from "~/mediaQueryUtils";
 import { Drawer, DrawerContent } from "~/components/ui/drawer";
 
-// const announcementLabel = "emode" as const;
-const announcementLabel = "" as const;
+const announcementLabel = "emode" as const;
+// const announcementLabel = "" as const;
 
 export const AnnouncementsDialog = () => {
   const [isOpen, setIsOpen] = React.useState(false);
