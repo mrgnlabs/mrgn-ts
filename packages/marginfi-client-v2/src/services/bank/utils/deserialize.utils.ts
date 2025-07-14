@@ -445,10 +445,10 @@ export function parseEmodeTag(emodeTagRaw: number): EmodeTag {
   switch (emodeTagRaw) {
     case 501:
       return EmodeTag.SOL;
-    case 157:
-      return EmodeTag.LST;
-    case 5748:
-      return EmodeTag.STABLE;
+    case 1571:
+      return EmodeTag.LST_T1;
+    case 1572:
+      return EmodeTag.LST_T2;
     case 0:
     default:
       return EmodeTag.UNSET;
