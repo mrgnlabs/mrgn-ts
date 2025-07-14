@@ -45,6 +45,7 @@ import {
   computeHealthComponentsWithoutBiasLegacy,
 } from "./utils";
 import { BalanceRaw, BalanceType, MarginfiAccountRaw } from "./types";
+import { InstructionWithEphemeralSigners } from "~/vendor/pyth_crank";
 
 /**
  * Custom error class for health cache simulation failures
@@ -162,7 +163,17 @@ export async function simulateAccountHealthCache(props: {
     lamports: 100_000_000, // 0.1 SOL
   });
 
-  const crankPythIxs = await crankPythOracleIx(stalePythFeeds, program.provider);
+  const crankPythIxs: {
+    postInstructions: InstructionWithEphemeralSigners[];
+    closeInstructions: InstructionWithEphemeralSigners[];
+    keys: never[];
+    lut: AddressLookupTableAccount | null;
+  } = {
+    postInstructions: [],
+    closeInstructions: [],
+    keys: [],
+    lut: null,
+  }; //await crankPythOracleIx(stalePythFeeds, program.provider);
   const crankSwbIxs =
     staleSwbOracles.length > 0
       ? await createUpdateFeedIx({

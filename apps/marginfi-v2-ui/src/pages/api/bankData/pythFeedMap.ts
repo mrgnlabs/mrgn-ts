@@ -1,4 +1,4 @@
-import { Connection, PublicKey } from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { NextApiRequest, NextApiResponse } from "next";
 
 import { PythPushFeedIdMap } from "@mrgnlabs/marginfi-client-v2";
@@ -14,11 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Invalid input: expected a feedIds string." });
     }
 
-    const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE || "");
-    const feedIdMap = await getPythFeedIdMap(
-      feedIds.split(",").map((feedId) => new PublicKey(feedId)),
-      connection
-    );
+    const feedIdMap = await getPythFeedIdMap(feedIds.split(",").map((feedId) => new PublicKey(feedId)));
 
     res.setHeader("Cache-Control", "s-maxage=600, stale-while-revalidate=600");
     return res.status(200).json(stringifyFeedIdMap(feedIdMap));
