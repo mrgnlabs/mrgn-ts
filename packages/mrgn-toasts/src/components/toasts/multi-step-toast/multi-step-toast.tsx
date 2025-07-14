@@ -120,7 +120,7 @@ const SuccessStep = ({
           (isUrl ? (
             <a
               href={explorerUrl}
-              className="text-xs text-blue-500 flex items-center text-muted-foreground"
+              className="text-xs text-blue-500 flex items-center text-muted-foreground pl-6"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -139,7 +139,7 @@ const SuccessStep = ({
         (isUrl ? (
           <a
             href={explorerUrl}
-            className="text-xs text-blue-500 flex items-center text-muted-foreground"
+            className="text-xs text-blue-500 flex items-center text-muted-foreground pl-6"
             target="_blank"
             rel="noopener noreferrer"
           >

@@ -85,7 +85,7 @@ export async function executeActionWrapper(props: {
   const accountCreationKey = getAccountCreationKey(txns.transactions);
   try {
     const txnSig = await action(txns, (stepsToAdvance, explorerUrl, signature) => {
-      toast.successAndNext(stepsToAdvance ?? 1, explorerUrl, signature);
+      toast.successAndNext(stepsToAdvance ?? 1, composeExplorerUrl(signature), signature);
     });
     toast.success(composeExplorerUrl(txnSig), txnSig);
     onComplete && onComplete(txnSig, accountCreationKey);
