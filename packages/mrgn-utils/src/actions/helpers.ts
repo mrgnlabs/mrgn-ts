@@ -1,6 +1,9 @@
 import { PublicKey, TransactionInstruction, Connection, AddressLookupTableAccount } from "@solana/web3.js";
+
 import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
 import { WalletContextState } from "@solana/wallet-adapter-react";
+import bs58 from "bs58";
+
 import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 
 import { WalletContextStateOverride } from "../wallet";
@@ -129,13 +132,15 @@ export const debounceFn = (fn: Function, ms = 300) => {
 };
 
 function detectBroadcastType(signature: string): "RPC" | "BUNDLE" | "UNKNOWN" {
-  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{88}$/;
-  const hexRegex = /^[0-9a-fA-F]{64}$/;
+  const isHex = /^[0-9a-fA-F]{64}$/.test(signature);
 
-  if (base58Regex.test(signature)) {
-    return "RPC";
-  } else if (hexRegex.test(signature)) {
-    return "BUNDLE";
+  if (isHex) return "BUNDLE";
+
+  try {
+    const decoded = bs58.decode(signature);
+    if (decoded.length === 64) return "RPC";
+  } catch (e) {
+    return "UNKNOWN";
   }
 
   return "UNKNOWN";
