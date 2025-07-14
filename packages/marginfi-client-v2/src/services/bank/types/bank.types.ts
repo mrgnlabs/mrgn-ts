@@ -163,6 +163,7 @@ export enum EmodeFlags {
 }
 
 export enum EmodeTag {
+  UNSET = 0,
   SOL = 501,
   LST_T1 = 1571,
   LST_T2 = 1572,
