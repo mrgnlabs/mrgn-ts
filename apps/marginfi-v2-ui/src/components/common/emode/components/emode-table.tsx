@@ -185,7 +185,11 @@ const EmodeTable = ({ initialBank, align = "center", className, showTag = true, 
                       {bank.meta.tokenSymbol}
                     </div>
                   </TableCell>
-                  {showTag && <TableCell className="lowercase">{EmodeTag[bank.info.rawBank.emode.emodeTag]}</TableCell>}
+                  {showTag && (
+                    <TableCell className="lowercase">
+                      {EmodeTag[bank.info.rawBank.emode.emodeTag].replace("_", " ")}
+                    </TableCell>
+                  )}
                   <TableCell>
                     {percentFormatterMod(originalAssetWeight || assetWeight, {
                       minFractionDigits: 0,

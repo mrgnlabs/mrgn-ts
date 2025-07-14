@@ -188,7 +188,7 @@ export const EmodePopover = ({
                         </div>
                       </TableCell>
                       <TableCell className="py-1 lowercase">
-                        {EmodeTag[liabilityBankItem.emodePair.liabilityBankTag]}
+                        {EmodeTag[liabilityBankItem.emodePair.liabilityBankTag].replace("_", " ")}
                       </TableCell>
                       <TableCell className="py-1">
                         {percentFormatterMod(originalAssetWeight || 0, {
@@ -248,7 +248,7 @@ export const EmodePopover = ({
                         </div>
                       </TableCell>
                       <TableCell className="py-1 lowercase">
-                        {EmodeTag[collateralBankItem.emodePair.collateralBankTag]}
+                        {EmodeTag[collateralBankItem.emodePair.collateralBankTag].replace("_", " ")}
                       </TableCell>
                       <TableCell className="py-1">
                         {percentFormatterMod(collateralOriginalAssetWeight || 0, {

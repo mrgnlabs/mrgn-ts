@@ -169,7 +169,7 @@ const EmodeExploreWrapper = ({ trigger, initialBank, emodeTag }: EmodeExploreWra
               <IconEmodeSimple size={32} />
               e-mode
             </div>
-            {emodeTag && <span className="lowercase"> {EmodeTag[emodeTag]}</span>}
+            {emodeTag && <span className="lowercase"> {EmodeTag[emodeTag].replace("_", " ")}</span>}
             pairs
           </>
         ),
