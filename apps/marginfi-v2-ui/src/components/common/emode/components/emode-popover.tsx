@@ -191,7 +191,6 @@ export const EmodePopover = ({
                         {EmodeTag[liabilityBankItem.emodePair.liabilityBankTag]}
                       </TableCell>
                       <TableCell className="py-1">
-                        asd
                         {percentFormatterMod(originalAssetWeight || 0, {
                           minFractionDigits: 0,
                           maxFractionDigits: 2,
@@ -252,7 +251,6 @@ export const EmodePopover = ({
                         {EmodeTag[collateralBankItem.emodePair.collateralBankTag]}
                       </TableCell>
                       <TableCell className="py-1">
-                        asd
                         {percentFormatterMod(collateralOriginalAssetWeight || 0, {
                           minFractionDigits: 0,
                           maxFractionDigits: 2,
