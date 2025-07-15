@@ -606,7 +606,7 @@ class MarginfiAccountWrapper {
     const cuRequestIxs =
       this.makeComputeBudgetIx().length > 0
         ? this.makeComputeBudgetIx()
-        : [ComputeBudgetProgram.setComputeUnitLimit({ units: 500_000 })];
+        : [ComputeBudgetProgram.setComputeUnitLimit({ units: 1_000_000 })];
     // tiny priority fee just in case bundle fails
     const [priorityFeeIx] = makePriorityFeeIx(0.00001);
     const withdrawIxs = await this.makeWithdrawIx(withdrawAmount, depositBankAddress, withdrawAll, {
