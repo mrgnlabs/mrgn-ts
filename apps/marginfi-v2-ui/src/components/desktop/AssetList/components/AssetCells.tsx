@@ -262,7 +262,9 @@ export const getRateCell = ({
         </div>
       )}
       <div className="flex flex-col gap-0.5 items-end">
-        {symbol === "SOL" || symbol === "JitoSOL" ? (
+        {isInLendingMode && symbol === "JitoSOL" ? (
+          <EmissionsPopover rateAPY={rateAPY} />
+        ) : !isInLendingMode && symbol === "SOL" ? (
           <EmissionsPopover rateAPY={rateAPY} />
         ) : (
           <p>{percentFormatter.format(rateAPY)}</p>
@@ -312,14 +314,16 @@ const EmissionsPopover = ({ rateAPY }: { rateAPY: number }) => {
     fetchRatesData();
   }, []);
 
-  console.log("ratesData", ratesData);
+  if (!ratesData) return null;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="outline-none">
         <p className="text-right">{percentFormatter.format(rateAPY)}</p>
         <div className="flex items-center gap-1 justify-end">
-          <p className="text-xs text-blue-400">+4.57%</p>
+          <p className="text-xs text-blue-400">
+            +{percentFormatter.format(ratesData?.annualized_rate_enhancement || 0)}
+          </p>
           <div className="flex items-center -space-x-1.5">
             <Image
               src={`${IMAGE_CDN_URL}/J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn.png`}
@@ -372,7 +376,9 @@ const EmissionsPopover = ({ rateAPY }: { rateAPY: number }) => {
               />{" "}
               JTO
             </div>
-            <p className="text-mrgn-success">~4.31% APY</p>
+            <p className="text-mrgn-success">
+              ~{percentFormatter.format(ratesData?.annualized_rate_enhancement || 0)} APY
+            </p>
           </div>
 
           <div className="border-t border-muted-foreground/20"></div>
