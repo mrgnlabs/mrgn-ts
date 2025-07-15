@@ -11,6 +11,7 @@ import { useActionBoxContext } from "~/components/action-box-v2/contexts";
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 import { BankItem, BankListCommand } from "~/components/action-box-v2/components";
 import { Button } from "~/components/ui/button";
+import { OperationalState } from "@mrgnlabs/marginfi-client-v2";
 
 type BankListProps = {
   selectedBank: ExtendedBankInfo | null;
@@ -242,6 +243,9 @@ export const BankList = ({
             {filteredBanksUserOwns
               .slice(0, searchQuery.length === 0 ? filteredBanksUserOwns.length : 3)
               .map((bank, index) => {
+                if (bank.info.rawBank.config.operationalState === OperationalState.ReduceOnly) {
+                  return null;
+                }
                 return (
                   <CommandItem
                     key={index}
