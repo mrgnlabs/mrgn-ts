@@ -7,12 +7,16 @@ import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { TableCell, TableRow } from "~/components/ui/table";
 
-import { getPositionCell } from "./AssetCells";
+import { useUiStore } from "~/store";
 import { AssetListModel } from "../utils";
+import { getPositionCell } from "./AssetCells";
 
 export const AssetRow = (row: Row<AssetListModel>) => {
   const router = useRouter();
   const prefetchTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const { assetListSearch } = useUiStore((state) => ({
+    assetListSearch: state.assetListSearch,
+  }));
   const isPosition = React.useMemo(
     () =>
       row.original.position.walletAmount || row.original.position.positionAmount || row.original.position.stakedAmount,
@@ -21,6 +25,14 @@ export const AssetRow = (row: Row<AssetListModel>) => {
   const isStakedActivating = row.original.asset.stakePool && !row.original.asset.stakePool?.isActive;
 
   const visibleCells = row.getVisibleCells();
+
+  if (
+    assetListSearch.length > 1 &&
+    !row.original.asset.name.toLowerCase().includes(assetListSearch.toLowerCase()) &&
+    !row.original.asset.symbol.toLowerCase().includes(assetListSearch.toLowerCase())
+  ) {
+    return null;
+  }
 
   return (
     <React.Fragment key={row.id}>
