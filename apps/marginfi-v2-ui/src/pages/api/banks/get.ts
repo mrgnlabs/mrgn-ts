@@ -47,6 +47,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: "No historical data found for this bank" });
     }
 
+    // cache for 24 hours
+    res.setHeader("Cache-Control", "s-maxage=86400, stale-while-revalidate=300");
     return res.status(STATUS_OK).json(bankMetrics);
   } catch (error: any) {
     console.error("Error in bank historic data endpoint:", error);

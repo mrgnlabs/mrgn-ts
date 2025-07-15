@@ -53,8 +53,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Use the service function to format the raw data
     const formattedData = formatRawBankMetrics(bankMetrics);
 
-    // cache for 1 hours
-    res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=300");
+    // cache for 24 hours
+    res.setHeader("Cache-Control", "s-maxage=86400, stale-while-revalidate=300");
     return res.status(STATUS_OK).json(formattedData);
   } catch (error: any) {
     console.error("Error in bank historic data endpoint:", error);
