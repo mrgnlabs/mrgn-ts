@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 import { getCoreRowModel, flexRender, useReactTable, SortingState, getSortedRowModel } from "@tanstack/react-table";
 import { IconExternalLink, IconPlus, IconSearch } from "@tabler/icons-react";
@@ -28,6 +29,7 @@ type AssetListProps = {
 
 export const AssetsList = ({ data }: AssetListProps) => {
   const { lendData, borrowData, emodeGroups, isReady } = data;
+  const router = useRouter();
 
   const [poolFilter, lendingMode, tokenFilter, setTokenFilter] = useUiStore((state) => [
     state.poolFilter,
@@ -102,13 +104,18 @@ export const AssetsList = ({ data }: AssetListProps) => {
       });
     }
 
-    // filter out reduce only banks (unless user has open position)
-    filtered = filtered.filter((item) => {
-      return !(item.asset.isReduceOnly && !item.position.positionAmount);
-    });
+    // Check if showReduceOnlyBanks query parameter is set
+    const showReduceOnlyBanks = router.query.showReduceOnlyBanks;
+
+    // filter out reduce only banks (unless user has open position or showReduceOnlyBanks is set)
+    if (!showReduceOnlyBanks) {
+      filtered = filtered.filter((item) => {
+        return !(item.asset.isReduceOnly && !item.position.positionAmount);
+      });
+    }
 
     return filtered;
-  }, [LST_SET, MEME_SET, STABLECOIN_SET, currentModeData, poolFilter, tokenFilter]);
+  }, [LST_SET, MEME_SET, STABLECOIN_SET, currentModeData, poolFilter, tokenFilter, router.query.showReduceOnlyBanks]);
 
   // Single optimized table instance
   const table = useReactTable<AssetListModel>({
