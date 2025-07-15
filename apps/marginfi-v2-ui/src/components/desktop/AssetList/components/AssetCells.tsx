@@ -39,6 +39,7 @@ import { IconEmode } from "~/components/ui/icons";
 import { BankChartDialog } from "~/components/common/bank/components/bank-chart-dialog";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
+import { useDebounce } from "~/hooks/useDebounce";
 
 export const getAssetCell = (asset: AssetData) => {
   return (
@@ -229,8 +230,8 @@ export const getRateCell = ({
                 <Image
                   src={`${IMAGE_CDN_URL}/MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey.png`}
                   alt="info"
-                  height={18}
-                  width={18}
+                  height={15}
+                  width={15}
                 />
               </TooltipTrigger>
               <TooltipContent>
@@ -239,8 +240,8 @@ export const getRateCell = ({
                     <Image
                       src={`${IMAGE_CDN_URL}/MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey.png`}
                       alt="info"
-                      height={18}
-                      width={18}
+                      height={15}
+                      width={15}
                     />
                     MNDE rewards
                   </h4>
@@ -259,9 +260,112 @@ export const getRateCell = ({
           </TooltipProvider>
         </div>
       )}
-
-      <div className="flex items-center gap-0.5">{percentFormatter.format(rateAPY)}</div>
+      <div className="flex flex-col gap-0.5 items-end">
+        {symbol === "SOL" || symbol === "JitoSOL" ? (
+          <EmissionsPopover rateAPY={rateAPY} />
+        ) : (
+          <p>{percentFormatter.format(rateAPY)}</p>
+        )}
+      </div>
     </div>
+  );
+};
+
+const EmissionsPopover = ({ rateAPY }: { rateAPY: number }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [shouldClose, setShouldClose] = React.useState(false);
+  const debouncedShouldClose = useDebounce(shouldClose, 300);
+
+  React.useEffect(() => {
+    if (debouncedShouldClose) {
+      setIsOpen(false);
+      setShouldClose(false);
+    }
+  }, [debouncedShouldClose]);
+
+  const handleMouseEnter = React.useCallback(() => {
+    setShouldClose(false);
+    setIsOpen(true);
+  }, []);
+
+  const handleMouseLeave = React.useCallback(() => {
+    setShouldClose(true);
+  }, []);
+
+  return (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="outline-none">
+        <p className="text-right">{percentFormatter.format(rateAPY)}</p>
+        <div className="flex items-center gap-1 justify-end">
+          <p className="text-xs text-blue-400">+4.57%</p>
+          <div className="flex items-center -space-x-1.5">
+            <Image
+              src={`${IMAGE_CDN_URL}/J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn.png`}
+              alt="info"
+              height={12}
+              width={12}
+              className="rounded-full"
+            />
+            <Image
+              src={`${IMAGE_CDN_URL}/SOL.png`}
+              alt="info"
+              height={13}
+              width={13}
+              className="rounded-full border border-muted-foreground/70"
+            />
+          </div>
+        </div>
+      </PopoverTrigger>
+      <PopoverContent side="top" className="w-80 p-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center -space-x-2">
+              <Image
+                src={`${IMAGE_CDN_URL}/J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn.png`}
+                alt="info"
+                height={20}
+                width={20}
+                className="rounded-full"
+              />
+              <Image
+                src={`${IMAGE_CDN_URL}/SOL.png`}
+                alt="info"
+                height={20}
+                width={20}
+                className="rounded-full border border-muted-foreground/70"
+              />
+            </div>
+            <h3 className="font-medium">JitoSOL / SOL Pair Incentives</h3>
+          </div>
+
+          <div className="flex justify-between items-start">
+            <div className="flex items-center gap-1">
+              100k{" "}
+              <Image
+                src={`${IMAGE_CDN_URL}/jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL.png`}
+                alt="JTO"
+                height={18}
+                width={18}
+                className="rounded-full"
+              />{" "}
+              JTO
+            </div>
+            <p className="text-mrgn-success">~4.31% APY</p>
+          </div>
+
+          <div className="border-t border-muted-foreground/20"></div>
+
+          <div className="text-sm space-y-2 text-muted-foreground">
+            <p className=" leading-relaxed">
+              JTO emissions are distributed weekly to users who are lending JitoSOL and borrowing SOL.
+            </p>
+            <Link href="https://docs.marginfi.com" target="_blank" rel="noreferrer" className="inline-block">
+              Read more <IconExternalLink size={14} className="inline -translate-y-[1px]" />
+            </Link>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 

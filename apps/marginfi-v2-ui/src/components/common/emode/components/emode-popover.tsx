@@ -126,14 +126,8 @@ export const EmodePopover = ({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {emodeActive ? (
-            <IconEmodeSimple size={iconSize === "base" ? 20 : 28} />
-          ) : isAvailableForEmode ? (
-            <IconEmodeSimpleInactive size={iconSize === "base" ? 18 : 26} />
-          ) : (
-            <></>
-          )}
-          <span className="min-w-[33px] text-right mr-1.5 ml-0.5">
+          {emodeActive ? <IconEmodeSimple size={iconSize === "base" ? 20 : 28} /> : <></>}
+          <span className="min-w-[33px] text-right mr-1.5">
             {percentFormatterMod(assetWeight, { minFractionDigits: 0, maxFractionDigits: 2 })}
           </span>
           <IconInfoCircle size={iconSize === "base" ? 13 : 20} className={cn(emodeActive && "text-mfi-emode")} />
