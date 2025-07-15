@@ -283,13 +283,6 @@ export function getPoolSizeStat(bankCap: number, bank: ExtendedBankInfo, isLendi
                 )}
               </h4>
 
-              <p>
-                {isReduceOnly
-                  ? "stSOL is being discontinued."
-                  : `${bank.meta.tokenSymbol} ${isLending ? "deposits" : "borrows"} are at ${percentFormatter.format(
-                      (isLending ? bank.info.state.totalDeposits : bank.info.state.totalBorrows) / bankCap
-                    )} capacity.`}
-              </p>
               <a href="https://docs.marginfi.com">
                 <u>Learn more.</u>
               </a>
