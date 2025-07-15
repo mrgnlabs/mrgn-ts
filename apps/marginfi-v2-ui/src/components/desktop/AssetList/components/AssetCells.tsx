@@ -314,7 +314,7 @@ const EmissionsPopover = ({ rateAPY }: { rateAPY: number }) => {
     fetchRatesData();
   }, []);
 
-  if (!ratesData) return null;
+  if (!ratesData) return <p>{percentFormatter.format(rateAPY)}</p>;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
