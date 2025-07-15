@@ -413,7 +413,7 @@ export default function BankPage() {
                   <TooltipTrigger asChild>
                     <div>
                       <CopyToClipboard
-                        text={bank.address.toBase58()}
+                        text={`${window.location.origin}/banks/${bank.address.toBase58()}`}
                         onCopy={() => {
                           setIsAddressCopied(true);
                           setTimeout(() => {

@@ -80,10 +80,10 @@ export const BankShare = ({ bank }: BankShareProps) => {
             <input
               ref={copyUrlRef}
               className="appearance-none text-xs bg-background border rounded-md w-full overflow-auto px-2 py-1 select-all outline-none"
-              value={`${window.location.origin}/bank/${bank.address.toBase58()}`}
+              value={`${window.location.origin}/banks/${bank.address.toBase58()}`}
               readOnly
             />
-            <CopyToClipboard text={`${window.location.origin}/bank/${bank.address.toBase58()}`}>
+            <CopyToClipboard text={`${window.location.origin}/banks/${bank.address.toBase58()}`}>
               <button
                 onClick={handleCopyUrl}
                 className="cursor-pointer rounded-md p-2 transition-colors hover:bg-accent"
@@ -96,7 +96,7 @@ export const BankShare = ({ bank }: BankShareProps) => {
             <span className="-translate-y-0.5 font-medium">Share to:</span>
             <ul className="flex items-center justify-center gap-1">
               {shareLinks.map((link, index) => {
-                const url = `${window.location.origin}/bank/${bank.address.toBase58()}`;
+                const url = `${window.location.origin}/banks/${bank.address.toBase58()}`;
                 const text = `Lend and borrow ${bank.meta.tokenSymbol} on marginfi`;
                 return (
                   <li key={index}>
