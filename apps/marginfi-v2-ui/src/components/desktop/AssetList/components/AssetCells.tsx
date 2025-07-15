@@ -40,6 +40,7 @@ import { BankChartDialog } from "~/components/common/bank/components/bank-chart-
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useDebounce } from "~/hooks/useDebounce";
+import { useQuery } from "@tanstack/react-query";
 
 export const getAssetCell = (asset: AssetData) => {
   return (
@@ -271,17 +272,25 @@ export const getRateCell = ({
   );
 };
 
+type EmissionsRateData = {
+  day: string;
+  jto_usd: number;
+  all_user_value: number;
+  rate_enhancement: number;
+  annualized_rate_enhancement: number;
+};
+
 const EmissionsPopover = ({ rateAPY }: { rateAPY: number }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [shouldClose, setShouldClose] = React.useState(false);
   const debouncedShouldClose = useDebounce(shouldClose, 300);
+  const [ratesData, setRatesData] = React.useState<EmissionsRateData | null>(null);
 
-  React.useEffect(() => {
-    if (debouncedShouldClose) {
-      setIsOpen(false);
-      setShouldClose(false);
-    }
-  }, [debouncedShouldClose]);
+  const fetchRatesData = async () => {
+    const res = await fetch("/api/emissions/rates");
+    const data = await res.json();
+    setRatesData(data);
+  };
 
   const handleMouseEnter = React.useCallback(() => {
     setShouldClose(false);
@@ -291,6 +300,19 @@ const EmissionsPopover = ({ rateAPY }: { rateAPY: number }) => {
   const handleMouseLeave = React.useCallback(() => {
     setShouldClose(true);
   }, []);
+
+  React.useEffect(() => {
+    if (debouncedShouldClose) {
+      setIsOpen(false);
+      setShouldClose(false);
+    }
+  }, [debouncedShouldClose]);
+
+  React.useEffect(() => {
+    fetchRatesData();
+  }, []);
+
+  console.log("ratesData", ratesData);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
