@@ -6,7 +6,8 @@ import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Navigation, EffectFade } from "swiper/modules";
 import { useSwiper } from "swiper/react";
-import { IconX, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
+import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { Button } from "~/components/ui/button";
 import { IconEmode, IconEmodeSimple, IconEmodeSimpleInactive } from "~/components/ui/icons";
@@ -251,7 +252,7 @@ const AnnouncementSlide = ({
         </div>
 
         {/* Navigation */}
-        <div className="flex justify-between items-center pt-4 lg:pt-8">
+        <div className={cn("flex justify-between items-center", !isTableSlide && "pt-4 lg:pt-8")}>
           <Button
             variant="ghost"
             onClick={() => swiper?.slidePrev()}
