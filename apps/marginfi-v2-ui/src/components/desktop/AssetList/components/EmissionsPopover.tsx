@@ -152,7 +152,7 @@ const EmissionsPopover = ({ rateAPY }: { rateAPY: number }) => {
               JTO emissions are distributed weekly to users who are lending JitoSOL and borrowing SOL.
             </p>
             <Link
-              href="https://docs.marginfi.com"
+              href="https://docs.marginfi.com/introduction#borrow-incentives-explained"
               target="_blank"
               rel="noreferrer"
               className="inline-block transition-colors hover:text-primary"
