@@ -10,8 +10,9 @@ import {
   useUserBalances,
   useUserStakeAccounts,
   useNativeStakeData,
-  useWrappedMarginfiAccount,
+  useLstRates,
   useMarginfiAccount,
+  LstRatesMap,
 } from "@mrgnlabs/mrgn-state";
 import { useMemo, useCallback } from "react";
 import { AssetListModel } from "~/components/desktop/AssetList/utils";
@@ -29,7 +30,6 @@ import { getAction } from "~/components/desktop/AssetList/utils";
 import { STABLECOINS, LSTS, MEMES } from "~/config/constants";
 import { useUiStore } from "~/store";
 import { TokenFilters } from "~/store/uiStore";
-import { LendingModes } from "@mrgnlabs/mrgn-utils";
 import { useWallet } from "~/components";
 import { determineBankCategories } from "~/components/desktop/AssetList/utils/tableHelperUtils";
 import React from "react";
@@ -43,6 +43,7 @@ export type AssetListData = {
   lendData: AssetListModel[];
   borrowData: AssetListModel[];
   emodeGroups: EmodePair[];
+  lstRates: LstRatesMap;
   isReady: boolean;
 };
 
@@ -59,6 +60,7 @@ export function useAssetData(): AssetListData {
   const { data: userBalances } = useUserBalances();
   const { data: stakeAccounts } = useUserStakeAccounts();
   const { stakePoolMetadataMap } = useNativeStakeData();
+  const { data: lstRates } = useLstRates();
 
   const stakeAccountsBankMap = useMemo(() => {
     if (!stakeAccounts || stakePoolMetadataMap.size === 0) {
@@ -192,7 +194,14 @@ export function useAssetData(): AssetListData {
       const stakePoolMetadata = stakePoolMetadataMap.get(bank.address.toBase58());
       // Pre-compute all expensive transformations for LEND mode
       const lendRowData = {
-        asset: getAssetData(bank, true, undefined, collateralBanks, liabilityBanks),
+        asset: getAssetData(
+          bank,
+          true,
+          undefined,
+          collateralBanks,
+          liabilityBanks,
+          lstRates?.get(bank.info.state.mint.toBase58())
+        ),
         validator: stakePoolMetadata?.validatorVoteAccount || "",
         "validator-rate": stakePoolMetadata?.validatorRewards || "",
         price: getAssetPriceData(bank),
@@ -309,6 +318,7 @@ export function useAssetData(): AssetListData {
     lendData,
     borrowData,
     emodeGroups,
+    lstRates: lstRates as LstRatesMap,
     isReady,
   };
 }

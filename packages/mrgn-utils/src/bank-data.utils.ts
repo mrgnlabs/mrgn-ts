@@ -32,6 +32,7 @@ export interface AssetData {
   originalAssetWeight: number;
   emodeActive: boolean;
   isReduceOnly: boolean;
+  lstRate?: number;
   collateralBanks: {
     collateralBank: ExtendedBankInfo;
     emodePair: EmodePair;
@@ -132,7 +133,8 @@ export const getAssetData = (
   liabilityBanks?: {
     liabilityBank: ExtendedBankInfo;
     emodePair: EmodePair;
-  }[]
+  }[],
+  lstRate?: number
 ): AssetData => {
   return {
     address: bank.address,
@@ -150,6 +152,7 @@ export const getAssetData = (
     collateralBanks: collateralBanks ?? [],
     liabilityBanks: liabilityBanks ?? [],
     isReduceOnly: bank?.info.rawBank.config.operationalState === OperationalState.ReduceOnly,
+    lstRate,
   };
 };
 

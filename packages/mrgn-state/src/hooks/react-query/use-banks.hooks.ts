@@ -1,8 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchRawBanks, BankRawDatas, fetchMintData, fetchOraclePrices, fetchEmissionPriceMap } from "../../api";
+import {
+  fetchRawBanks,
+  BankRawDatas,
+  fetchMintData,
+  fetchOraclePrices,
+  fetchEmissionPriceMap,
+  fetchLstRates,
+} from "../../api";
 import { OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import { useMetadata } from "./use-metadata.hooks";
-import { RawMintData, TokenPriceMap } from "../../types";
+import { RawMintData, TokenPriceMap, LstRatesMap } from "../../types";
 
 export function useRawBanks() {
   const metadata = useMetadata();
@@ -60,6 +67,15 @@ export function useEmissionPriceMap() {
     queryFn: () => fetchEmissionPriceMap(bankData.data ?? []),
     enabled: bankData.isSuccess,
     staleTime: 4 * 60_000, // 4 minutes
+    retry: 2,
+  });
+}
+
+export function useLstRates(bankAddress?: string) {
+  return useQuery<LstRatesMap, Error>({
+    queryKey: ["lstRates", bankAddress],
+    queryFn: () => fetchLstRates(bankAddress),
+    staleTime: 5 * 60_000, // 5 minutes
     retry: 2,
   });
 }

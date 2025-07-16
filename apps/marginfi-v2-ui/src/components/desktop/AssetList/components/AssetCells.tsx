@@ -61,6 +61,20 @@ export const getAssetCell = (asset: AssetData) => {
           </Tooltip>
         </TooltipProvider>
       )}
+      {asset.lstRate && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="text-xs text-blue-400 bg-blue-900/30 px-2 py-0.5 rounded-md">
+                {percentFormatter.format(asset.lstRate)} APY
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Liquid staking APY</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
     </Link>
   );
 };

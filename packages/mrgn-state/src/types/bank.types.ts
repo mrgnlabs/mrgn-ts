@@ -78,3 +78,5 @@ export enum Emissions {
 }
 
 export type ExtendedBankInfo = ActiveBankInfo | InactiveBankInfo;
+
+export type LstRatesMap = Map<string, number>; // When no bank address, return mint -> APY map

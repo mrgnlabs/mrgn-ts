@@ -19,6 +19,7 @@ import {
   RawMintData,
   StakePoolMetadata,
   TokenPriceMap,
+  LstRatesMap,
 } from "../types";
 import { fillDataGaps, filterDailyRates } from "../lib";
 
@@ -177,4 +178,33 @@ export const fetchBankRates = async (
   const filledData = fillDataGaps(dailyRates, 30);
 
   return filledData;
+};
+
+export const fetchLstRates = async (bankAddress?: string): Promise<LstRatesMap> => {
+  const url = bankAddress ? `/api/banks/lst-rates?address=${bankAddress}` : `/api/banks/lst-rates`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error fetching LST rates: ${response.statusText}`);
+  }
+
+  const result = await response.json();
+
+  // Always return a map, even if it's just one entry
+  const ratesArray = Array.isArray(result) ? result : [result];
+  const ratesMap = new Map<string, number>();
+
+  ratesArray.forEach((item: { mint: string; lst_apy: number }) => {
+    if (item?.mint && typeof item.lst_apy === "number") {
+      ratesMap.set(item.mint, item.lst_apy);
+    }
+  });
+
+  return ratesMap;
 };
