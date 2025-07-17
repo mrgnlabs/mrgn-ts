@@ -138,7 +138,7 @@ export const EmodePopover = ({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          <div className="min-w-[33px] text-right mr-1.5">
+          <div className="text-right">
             {emodeActive ? (
               <IconEmodeSimple size={iconSize === "base" ? 18 : 26} />
             ) : (

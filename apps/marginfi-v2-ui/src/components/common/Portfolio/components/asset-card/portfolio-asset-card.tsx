@@ -21,6 +21,7 @@ import {
   ActionType,
   ExtendedBankInfo,
   groupLiabilityBanksByCollateralBank,
+  useLstRates,
 } from "@mrgnlabs/mrgn-state";
 import { AssetTag, EmodeTag, vendor } from "@mrgnlabs/marginfi-client-v2";
 import { capture, cn, composeExplorerUrl, executeActionWrapper, getAssetWeightData } from "@mrgnlabs/mrgn-utils";
@@ -72,7 +73,10 @@ export const PortfolioAssetCard = ({
   variant = "accordion",
   onCardClick,
 }: PortfolioAssetCardProps) => {
-  const { rateAP } = useAssetItemData({ bank, isInLendingMode });
+  const { data: lstRates } = useLstRates();
+  const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
+  const { rateAPY } = useAssetItemData({ bank, isInLendingMode });
+  const finalRate = isInLendingMode ? (lstRate ? rateAPY + lstRate : rateAPY) : lstRate ? lstRate - rateAPY : rateAPY;
   const { wallet } = useWallet();
   const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(wallet);
   const { data: marginfiAccounts } = useMarginfiAccountAddresses();
@@ -167,7 +171,9 @@ export const PortfolioAssetCard = ({
               {bank.meta.tokenSymbol} {isEmodeActive && <IconEmodeSimple size={18} />}{" "}
             </div>
             <div className="flex items-center gap-4 text-sm">
-              <span className={isInLendingMode ? "text-success" : "text-warning"}>{rateAP} APY</span>
+              <span className={isInLendingMode ? "text-success" : "text-warning"}>
+                {percentFormatter.format(finalRate)} APY
+              </span>
             </div>
           </div>
           <div className="text-right pr-2 leading-none space-y-0 -translate-y-0.5">
@@ -239,7 +245,7 @@ export const PortfolioAssetCard = ({
                         triggerType="tag"
                         showActiveOnly={!isInLendingMode}
                       />
-                    )}{" "}
+                    )}
                   </Link>
                   <div className="font-medium text-lg text-right">
                     {dynamicNumeralFormatter(bank.position.amount, {
@@ -275,7 +281,7 @@ export const PortfolioAssetCard = ({
                       </div>
                     ) : (
                       <div className={cn("text-sm font-light", isInLendingMode ? "text-success" : "text-warning")}>
-                        {rateAP.concat(...[" ", "APY"])}
+                        {percentFormatter.format(rateAPY)} APY
                       </div>
                     )}
                   </div>
@@ -343,7 +349,7 @@ export const PortfolioAssetCard = ({
               )}
               {isEmodeActive ? (
                 <>
-                  <dt className="text-muted-foreground">{isInLendingMode ? "Weight" : "e-mode boost"}</dt>
+                  <dt className="text-muted-foreground">{isInLendingMode ? "Weight" : "E-mode boost"}</dt>
                   <dd className="text-right text-white">
                     {bank.position || collateralBanks.length > 0 ? (
                       <div
@@ -401,6 +407,20 @@ export const PortfolioAssetCard = ({
                         maxFractionDigits: 2,
                       })
                     )}
+                  </dd>
+                </>
+              )}
+              <dt className="text-muted-foreground">{isInLendingMode ? "Supply" : "Borrow"} APY</dt>
+              <dd className={cn("text-right", isInLendingMode ? "text-success" : "text-warning")}>
+                {percentFormatter.format(rateAPY)}
+              </dd>
+              {lstRate && (
+                <>
+                  <dt className="text-muted-foreground">LST APY</dt>
+                  <dd className="text-right text-success">{percentFormatter.format(lstRate)}</dd>
+                  <dt className="text-muted-foreground">Net APY</dt>
+                  <dd className={cn("text-right", finalRate > 0 ? "text-success" : "text-warning")}>
+                    {percentFormatter.format(finalRate)}
                   </dd>
                 </>
               )}
