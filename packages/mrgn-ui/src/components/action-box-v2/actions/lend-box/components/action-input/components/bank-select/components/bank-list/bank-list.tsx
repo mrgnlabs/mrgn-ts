@@ -77,14 +77,14 @@ export const BankList = ({
         return (
           <div className="space-x-2">
             <span>{percentFormatter.format(aprToApy(bank.info.state.lendingRate))}</span>
-            <span className="text-xs font-light text-blue-400">(+{percentFormatter.format(lstRate)} stake yield)</span>
+            <span className="text-xs font-light text-blue-400">+{percentFormatter.format(lstRate)} stake yield</span>
           </div>
         );
       } else if (lstRate && lendingMode === LendingModes.BORROW) {
         return (
           <div className="space-x-2">
             <span>{percentFormatter.format(aprToApy(bank.info.state.borrowingRate))}</span>
-            <span className="text-xs font-light text-blue-400">(+{percentFormatter.format(lstRate)} stake yield)</span>
+            <span className="text-xs font-light text-blue-400">+{percentFormatter.format(lstRate)} stake yield</span>
           </div>
         );
       }

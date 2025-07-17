@@ -14,6 +14,8 @@ import {
   getBankTypeStat,
   getOracleStat,
   ActionSummary,
+  getRateStat,
+  getLstRateStat,
 } from "~/components/action-box-v2/utils";
 
 interface PreviewProps {
@@ -22,9 +24,10 @@ interface PreviewProps {
   lendMode: ActionType;
   actionSummary?: ActionSummary;
   hidePoolStats?: HidePoolStats;
+  lstRate?: number;
 }
 
-export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode, hidePoolStats }: PreviewProps) => {
+export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode, hidePoolStats, lstRate }: PreviewProps) => {
   const isLending = React.useMemo(
     () => lendMode === ActionType.Deposit || lendMode === ActionType.Withdraw,
     [lendMode]
@@ -33,9 +36,9 @@ export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode, hide
   const stats = React.useMemo(
     () =>
       actionSummary && selectedBank
-        ? generateLendingStats(actionSummary, selectedBank, isLending, isLoading, hidePoolStats)
+        ? generateLendingStats(actionSummary, selectedBank, isLending, isLoading, hidePoolStats, lstRate)
         : null,
-    [actionSummary, selectedBank, isLending, isLoading, hidePoolStats]
+    [actionSummary, selectedBank, isLending, isLoading, hidePoolStats, lstRate]
   );
 
   return (
@@ -69,7 +72,8 @@ function generateLendingStats(
   bank: ExtendedBankInfo,
   isLending: boolean,
   isLoading: boolean,
-  hidePoolStats?: HidePoolStats
+  hidePoolStats?: HidePoolStats,
+  lstRate?: number
 ) {
   const stats = [];
 
@@ -87,6 +91,11 @@ function generateLendingStats(
         summary.simulationPreview?.positionAmount
       )
     );
+  }
+
+  stats.push(getRateStat(bank, isLending));
+  if (lstRate) {
+    stats.push(getLstRateStat(lstRate, isLending));
   }
 
   if (!hidePoolStats?.includes("health")) {

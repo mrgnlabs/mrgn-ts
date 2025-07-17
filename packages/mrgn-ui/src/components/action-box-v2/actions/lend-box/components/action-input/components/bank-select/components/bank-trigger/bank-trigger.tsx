@@ -13,10 +13,11 @@ type BankTriggerProps = {
   lendingMode: LendingModes;
   rate: string;
   isOpen?: boolean;
+  lstRate?: number;
 };
 
 export const BankTrigger = React.forwardRef<HTMLButtonElement, BankTriggerProps>(
-  ({ selectedBank, lendingMode, rate, isOpen }, ref) => {
+  ({ selectedBank, lendingMode, rate, isOpen, lstRate }, ref) => {
     return (
       <Button
         ref={ref}

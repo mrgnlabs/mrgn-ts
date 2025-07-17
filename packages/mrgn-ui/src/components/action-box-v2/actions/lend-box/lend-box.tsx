@@ -167,6 +167,7 @@ export const LendBox = ({
   const stakeAccounts = contextProps?.stakeAccounts;
   const stakePoolMetadataMap = contextProps?.stakePoolMetadataMap;
   const stakePoolMetadata = stakePoolMetadataMap?.get(selectedBank?.address.toBase58() ?? "");
+  const lstRate = lstRates?.get(selectedBank?.info.state.mint.toBase58() ?? "");
 
   const accountSummary = React.useMemo(() => {
     return accountSummaryArg ?? (selectedAccount ? computeAccountSummary(selectedAccount) : DEFAULT_ACCOUNT_SUMMARY);
@@ -551,6 +552,7 @@ export const LendBox = ({
         isLoading={isLoading}
         lendMode={lendMode}
         hidePoolStats={hidePoolStats}
+        lstRate={lstRate}
       />
 
       <LSTDialog

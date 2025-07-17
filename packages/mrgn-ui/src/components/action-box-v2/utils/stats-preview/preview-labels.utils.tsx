@@ -10,6 +10,7 @@ import {
   percentFormatterDyn,
   tokenPriceFormatter,
   usdFormatter,
+  aprToApy,
 } from "@mrgnlabs/mrgn-common";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
@@ -409,5 +410,23 @@ export function getCommissionStat(commission: number): PreviewStat {
   return {
     label: "Commission",
     value: () => <>{commission}%</>,
+  };
+}
+
+export function getRateStat(bank: ExtendedBankInfo, isLending: boolean): PreviewStat {
+  return {
+    label: isLending ? "Lending Rate" : "Borrowing Rate",
+    value: () => (
+      <span className={cn(isLending ? "text-success" : "text-warning")}>
+        {percentFormatter.format(aprToApy(bank.info.state.lendingRate))}
+      </span>
+    ),
+  };
+}
+
+export function getLstRateStat(lstRate: number, isLending: boolean): PreviewStat {
+  return {
+    label: "LST Yield",
+    value: () => <span className="text-blue-400">+{percentFormatter.format(lstRate)}</span>,
   };
 }
