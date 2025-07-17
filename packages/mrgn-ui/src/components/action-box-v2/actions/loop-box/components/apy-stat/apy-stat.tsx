@@ -1,9 +1,11 @@
 import React from "react";
-import { IconChevronDown } from "@tabler/icons-react";
+import { IconInfoCircle } from "@tabler/icons-react";
 
 import { calcNetLoopingApy, cn } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
+
+import { useDebounce } from "@uidotdev/usehooks";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 
@@ -22,6 +24,8 @@ export const ApyStat = ({
   depositLstApy,
   borrowLstApy,
 }: ApyStatProps) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const debouncedIsOpen = useDebounce(isOpen, 100);
   const [apyOverview, setApyOverview] = React.useState<{
     totalDepositApy: number;
     totalBorrowApy: number;
@@ -67,15 +71,27 @@ export const ApyStat = ({
     [selectedBank, selectedSecondaryBank]
   );
 
+  const onMouseEnter = React.useCallback(() => {
+    setIsOpen(true);
+  }, []);
+
+  const onMouseLeave = React.useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
   return (
     <>
       {bothBanksSelected && apyOverview && (
         <div className="flex items-center justify-between">
-          <Popover>
-            <PopoverTrigger className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
-              Net APY <IconChevronDown size={16} />
+          <Popover open={debouncedIsOpen} onOpenChange={setIsOpen}>
+            <PopoverTrigger
+              className="flex items-center gap-1 text-xs font-normal text-muted-foreground"
+              onMouseEnter={onMouseEnter}
+              onMouseLeave={onMouseLeave}
+            >
+              Net APY <IconInfoCircle size={14} />
             </PopoverTrigger>
-            <PopoverContent align="center" className="w-auto min-w-52">
+            <PopoverContent align="center" className="w-auto min-w-52" onMouseEnter={onMouseEnter}>
               {bothBanksSelected && selectedBank && selectedSecondaryBank && (
                 <>
                   <ul className="text-xs space-y-2.5">
@@ -93,7 +109,8 @@ export const ApyStat = ({
                                 alt={bank.meta.tokenName}
                                 className="rounded-full"
                               />
-                              <strong className="font-medium">{bank.meta.tokenSymbol}</strong>
+                              <strong className="font-medium">{bank.meta.tokenSymbol}</strong>{" "}
+                              {isDepositBank ? "lending" : "borrowing"} rate
                             </div>
                             <span className={cn("ml-auto", isDepositBank ? "text-success" : "text-warning")}>
                               {percentFormatter.format(
@@ -114,7 +131,7 @@ export const ApyStat = ({
                                   className="rounded-full"
                                 />
                                 <div>
-                                  <strong className="font-medium">{bank.meta.tokenSymbol}</strong> stake yield
+                                  <strong className="font-medium">{bank.meta.tokenSymbol}</strong> staking rate
                                 </div>
                               </div>
                               <span className="text-success text-right">
@@ -135,7 +152,7 @@ export const ApyStat = ({
                                   className="rounded-full"
                                 />
                                 <div>
-                                  <strong className="font-medium">{bank.meta.tokenSymbol}</strong> stake yield
+                                  <strong className="font-medium">{bank.meta.tokenSymbol}</strong> staking rate
                                 </div>
                               </div>
                               <span className="text-warning text-right">

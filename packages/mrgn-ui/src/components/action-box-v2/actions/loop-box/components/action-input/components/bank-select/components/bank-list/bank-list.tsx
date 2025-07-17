@@ -43,7 +43,15 @@ export const BankList = ({
     (bank: ExtendedBankInfo) => {
       const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
       if (lstRate && actionMode === ActionType.Deposit) {
-        return percentFormatter.format(aprToApy(bank.info.state.lendingRate) + lstRate);
+        return (
+          <div className="space-x-2">
+            <span>{percentFormatter.format(aprToApy(bank.info.state.lendingRate) + lstRate)}</span>
+            <span className="text-xs text-muted-foreground font-light">
+              (lend {percentFormatter.format(aprToApy(bank.info.state.lendingRate))} / stake{" "}
+              {percentFormatter.format(lstRate)})
+            </span>
+          </div>
+        );
       } else if (lstRate && actionMode === ActionType.Borrow) {
         return percentFormatter.format(aprToApy(bank.info.state.borrowingRate) + lstRate);
       }

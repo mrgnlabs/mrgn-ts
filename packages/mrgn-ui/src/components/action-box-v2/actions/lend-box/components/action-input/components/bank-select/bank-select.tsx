@@ -48,10 +48,6 @@ export const BankSelect = ({
         return stakePoolMetadata?.validatorRewards
           ? percentFormatter.format(stakePoolMetadata?.validatorRewards / 100)
           : "0%";
-      } else if (lstRate && lendingMode === LendingModes.LEND) {
-        return percentFormatter.format(aprToApy(bank.info.state.lendingRate) + lstRate);
-      } else if (lstRate && lendingMode === LendingModes.BORROW) {
-        return percentFormatter.format(aprToApy(bank.info.state.borrowingRate) + lstRate);
       }
 
       return computeBankRate(bank, lendingMode);

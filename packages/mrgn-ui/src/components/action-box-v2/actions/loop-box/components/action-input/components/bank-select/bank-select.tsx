@@ -45,16 +45,9 @@ export const BankSelect = ({
 
   const calculateRate = React.useCallback(
     (bank: ExtendedBankInfo) => {
-      const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
-      if (lstRate && lendingMode === LendingModes.LEND) {
-        return percentFormatter.format(aprToApy(bank.info.state.lendingRate) + lstRate);
-      } else if (lstRate && lendingMode === LendingModes.BORROW) {
-        return percentFormatter.format(aprToApy(bank.info.state.borrowingRate) + lstRate);
-      }
-
       return computeBankRate(bank, lendingMode);
     },
-    [lendingMode, lstRates]
+    [lendingMode]
   );
 
   const rate = React.useMemo(() => {

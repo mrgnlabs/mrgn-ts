@@ -14,7 +14,7 @@ type BankItemProps = {
   showBalanceOverride: boolean;
   solPrice?: number;
   nativeSolBalance?: number;
-  rate?: string;
+  rate?: string | React.ReactNode;
   lendingMode?: LendingModes;
   isRepay?: boolean;
   showStakedAssetLabel?: boolean;
