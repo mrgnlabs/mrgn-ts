@@ -336,7 +336,7 @@ const AnnouncementEmode = ({ onClose }: AnnouncementEmodeProps) => {
     },
     {
       title: "Get started!",
-      video: "https://storage.googleapis.com/mrgn-public/e-mode-videos/3",
+      video: "https://storage.googleapis.com/mrgn-public/e-mode-videos/1",
       prevSlideTitle: "Benefits",
       description: "Maximize your capital efficiency — start using e-mode today.",
     },
