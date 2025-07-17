@@ -46,14 +46,16 @@ export const BankList = ({
         return (
           <div className="space-x-2">
             <span>{percentFormatter.format(aprToApy(bank.info.state.lendingRate) + lstRate)}</span>
-            <span className="text-xs text-muted-foreground font-light">
-              (lend {percentFormatter.format(aprToApy(bank.info.state.lendingRate))} / stake{" "}
-              {percentFormatter.format(lstRate)})
-            </span>
+            <span className="text-xs font-light text-blue-400">+{percentFormatter.format(lstRate)} stake yield</span>
           </div>
         );
       } else if (lstRate && actionMode === ActionType.Borrow) {
-        return percentFormatter.format(aprToApy(bank.info.state.borrowingRate) + lstRate);
+        return (
+          <div className="space-x-2">
+            <span>{percentFormatter.format(aprToApy(bank.info.state.borrowingRate) + lstRate)}</span>
+            <span className="text-xs font-light text-blue-400">+{percentFormatter.format(lstRate)} stake yield</span>
+          </div>
+        );
       }
 
       return computeBankRate(bank, actionMode === ActionType.Borrow ? LendingModes.BORROW : LendingModes.LEND);

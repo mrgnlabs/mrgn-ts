@@ -74,9 +74,19 @@ export const BankList = ({
       const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
 
       if (lstRate && lendingMode === LendingModes.LEND) {
-        return percentFormatter.format(aprToApy(bank.info.state.lendingRate) + lstRate);
+        return (
+          <div className="space-x-2">
+            <span>{percentFormatter.format(aprToApy(bank.info.state.lendingRate))}</span>
+            <span className="text-xs font-light text-blue-400">(+{percentFormatter.format(lstRate)} stake yield)</span>
+          </div>
+        );
       } else if (lstRate && lendingMode === LendingModes.BORROW) {
-        return percentFormatter.format(aprToApy(bank.info.state.borrowingRate) + lstRate);
+        return (
+          <div className="space-x-2">
+            <span>{percentFormatter.format(aprToApy(bank.info.state.borrowingRate))}</span>
+            <span className="text-xs font-light text-blue-400">(+{percentFormatter.format(lstRate)} stake yield)</span>
+          </div>
+        );
       }
 
       return baseRate;

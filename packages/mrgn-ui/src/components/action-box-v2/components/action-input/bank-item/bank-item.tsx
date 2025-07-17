@@ -79,12 +79,12 @@ export const BankItem = ({
             {highlightEmodeLabel && bank.info.state.hasEmode ? (
               <div className="flex items-center gap-0.5 ml-2 text-mfi-emode">
                 <IconEmodeSimple size={14} className="translate-y-px" />
-                <span className="text-xs font-light">e-mode active</span>
+                <span className="text-xs font-light">e-mode</span>
               </div>
             ) : bank.info.state.hasEmode ? (
               <div className="flex items-center gap-0.5 ml-2 text-muted-foreground">
                 <IconEmodeSimpleInactive size={14} className="translate-y-px" />
-                <span className="text-xs font-light">e-mode available</span>
+                <span className="text-xs font-light">e-mode</span>
               </div>
             ) : bank.info.rawBank.config.assetTag === 2 && !isLoading ? (
               <p className="text-xs font-light text-muted-foreground ml-2">
