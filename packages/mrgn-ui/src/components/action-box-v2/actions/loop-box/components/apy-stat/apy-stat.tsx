@@ -102,7 +102,7 @@ export const ApyStat = ({
                             </span>
                           </li>
 
-                          {isDepositBank && depositLstApy && (
+                          {isDepositBank && depositLstApy !== null && depositLstApy > 0 && (
                             <li className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -123,7 +123,7 @@ export const ApyStat = ({
                             </li>
                           )}
 
-                          {!isDepositBank && borrowLstApy && (
+                          {!isDepositBank && borrowLstApy !== null && borrowLstApy > 0 && (
                             <li className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}

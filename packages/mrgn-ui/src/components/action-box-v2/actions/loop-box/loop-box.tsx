@@ -85,8 +85,6 @@ export const LoopBox = ({
     errorMessage,
     simulationResult,
     actionTxns,
-    depositLstApy,
-    borrowLstApy,
     refreshState,
     setSimulationResult,
     setActionTxns,
@@ -107,8 +105,6 @@ export const LoopBox = ({
     state.errorMessage,
     state.simulationResult,
     state.actionTxns,
-    state.depositLstApy,
-    state.borrowLstApy,
     state.refreshState,
     state.setSimulationResult,
     state.setActionTxns,
@@ -124,6 +120,8 @@ export const LoopBox = ({
 
   const contextProps = useActionBoxContext();
   const lstRates = contextProps?.lstRates;
+  const depositLstApy = lstRates?.get(selectedBank?.info.state.mint.toBase58() ?? "") ?? 0;
+  const borrowLstApy = lstRates?.get(selectedSecondaryBank?.info.state.mint.toBase58() ?? "") ?? 0;
 
   const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
     transactionSettings: null,

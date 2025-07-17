@@ -10,8 +10,6 @@ interface LoopBoxState {
 
   leverage: number;
   maxLeverage: number;
-  depositLstApy: number | null;
-  borrowLstApy: number | null;
 
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
@@ -35,8 +33,6 @@ interface LoopBoxState {
   setErrorMessage: (errorMessage: ActionMessageType | null) => void;
   setSelectedBank: (bank: ExtendedBankInfo | null) => void;
   setSelectedSecondaryBank: (bank: ExtendedBankInfo | null) => void;
-  setDepositLstApy: (bank: ExtendedBankInfo) => void;
-  setBorrowLstApy: (bank: ExtendedBankInfo) => void;
 }
 
 function createLoopBoxStore() {
@@ -162,9 +158,6 @@ const stateCreator: StateCreator<LoopBoxState, [], []> = (set, get) => ({
     const hasBankChanged = !tokenBank || !selectedBank || !tokenBank.address.equals(selectedBank.address);
 
     if (hasBankChanged) {
-      if (tokenBank) {
-        get().setDepositLstApy(tokenBank);
-      }
       set({
         selectedBank: tokenBank,
         amountRaw: "",
@@ -182,9 +175,6 @@ const stateCreator: StateCreator<LoopBoxState, [], []> = (set, get) => ({
       !secondaryBank || !selectedSecondaryBank || !secondaryBank.address.equals(selectedSecondaryBank.address);
 
     if (hasBankChanged) {
-      if (secondaryBank) {
-        get().setBorrowLstApy(secondaryBank);
-      }
       set({
         selectedSecondaryBank: secondaryBank,
         amountRaw: "",
@@ -194,28 +184,6 @@ const stateCreator: StateCreator<LoopBoxState, [], []> = (set, get) => ({
       });
     } else {
       set({ selectedSecondaryBank: secondaryBank });
-    }
-  },
-
-  async setDepositLstApy(bank: ExtendedBankInfo) {
-    const lstsArr = Object.keys(LSTS_SOLANA_COMPASS_MAP);
-    if (!lstsArr.includes(bank.meta.tokenSymbol)) {
-      set({ depositLstApy: null });
-      return;
-    } else {
-      const depositLstApy = await calculateLstYield(bank);
-      set({ depositLstApy });
-    }
-  },
-
-  async setBorrowLstApy(bank: ExtendedBankInfo) {
-    const lstsArr = Object.keys(LSTS_SOLANA_COMPASS_MAP);
-    if (!lstsArr.includes(bank.meta.tokenSymbol)) {
-      set({ borrowLstApy: null });
-      return;
-    } else {
-      const borrowLstApy = await calculateLstYield(bank);
-      set({ borrowLstApy });
     }
   },
 });
