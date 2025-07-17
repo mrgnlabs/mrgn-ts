@@ -8,7 +8,7 @@ import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command
 
 import { BankItem, BankListCommand } from "~/components/action-box-v2/components";
 import { MarginRequirementType, OperationalState } from "@mrgnlabs/marginfi-client-v2";
-import { percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { aprToApy, percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 type BankListProps = {
   selectedBank: ExtendedBankInfo | null;
@@ -43,7 +43,9 @@ export const BankList = ({
     (bank: ExtendedBankInfo) => {
       const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
       if (lstRate && actionMode === ActionType.Deposit) {
-        return percentFormatter.format(bank.info.state.lendingRate + lstRate);
+        return percentFormatter.format(aprToApy(bank.info.state.lendingRate) + lstRate);
+      } else if (lstRate && actionMode === ActionType.Borrow) {
+        return percentFormatter.format(aprToApy(bank.info.state.borrowingRate) + lstRate);
       }
 
       return computeBankRate(bank, actionMode === ActionType.Borrow ? LendingModes.BORROW : LendingModes.LEND);

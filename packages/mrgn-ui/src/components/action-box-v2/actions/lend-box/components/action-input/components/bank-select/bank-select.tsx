@@ -6,7 +6,7 @@ import { computeBankRate, LendingModes, LendSelectionGroups } from "@mrgnlabs/mr
 import { SelectedBankItem, BankListWrapper } from "~/components/action-box-v2/components";
 
 import { BankTrigger, BankList } from "./components";
-import { percentFormatter } from "@mrgnlabs/mrgn-common";
+import { aprToApy, percentFormatter } from "@mrgnlabs/mrgn-common";
 
 type BankSelectProps = {
   selectedBank: ExtendedBankInfo | null;
@@ -49,7 +49,9 @@ export const BankSelect = ({
           ? percentFormatter.format(stakePoolMetadata?.validatorRewards / 100)
           : "0%";
       } else if (lstRate && lendingMode === LendingModes.LEND) {
-        return percentFormatter.format(bank.info.state.lendingRate + lstRate);
+        return percentFormatter.format(aprToApy(bank.info.state.lendingRate) + lstRate);
+      } else if (lstRate && lendingMode === LendingModes.BORROW) {
+        return percentFormatter.format(aprToApy(bank.info.state.borrowingRate) + lstRate);
       }
 
       return computeBankRate(bank, lendingMode);

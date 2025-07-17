@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, ActionType, StakePoolMetadata, LstRatesMap } from "@mrgnlabs/mrgn-state";
 import { LendSelectionGroups, LendingModes, cn, computeBankRate, getEmodeStrategies } from "@mrgnlabs/mrgn-utils";
+import { aprToApy } from "@mrgnlabs/mrgn-common";
 
 import { useActionBoxContext } from "~/components/action-box-v2/contexts";
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
@@ -73,7 +74,9 @@ export const BankList = ({
       const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
 
       if (lstRate && lendingMode === LendingModes.LEND) {
-        return percentFormatter.format(bank.info.state.lendingRate + lstRate);
+        return percentFormatter.format(aprToApy(bank.info.state.lendingRate) + lstRate);
+      } else if (lstRate && lendingMode === LendingModes.BORROW) {
+        return percentFormatter.format(aprToApy(bank.info.state.borrowingRate) + lstRate);
       }
 
       return baseRate;
@@ -256,7 +259,6 @@ export const BankList = ({
                   return null;
                 }
                 const rate = calculateRate(bank);
-                console.log("rate", rate, bank.meta.tokenSymbol);
                 return (
                   <CommandItem
                     key={index}

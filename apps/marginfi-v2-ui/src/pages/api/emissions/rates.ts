@@ -7,7 +7,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { data: rates, error } = await supabase
     .schema("application")
-    .from("fv_emissions_jito_202507_campaign_rates")
+    .from("fv_emissions_jito_202507_campaign_rates_v_1_0_0")
     .select("*")
     .order("day", { ascending: false })
     .limit(1);
