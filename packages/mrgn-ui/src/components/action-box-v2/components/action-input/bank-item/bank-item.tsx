@@ -1,6 +1,6 @@
 import React from "react";
 
-import { shortenAddress, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { percentFormatter, shortenAddress, usdFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 import { ExtendedBankInfo, useNativeStakeData } from "@mrgnlabs/mrgn-state";
 import { cn, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";

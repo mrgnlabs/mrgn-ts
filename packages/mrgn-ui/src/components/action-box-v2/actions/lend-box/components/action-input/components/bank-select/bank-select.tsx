@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ExtendedBankInfo, ActionType, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
+import { ExtendedBankInfo, ActionType, StakePoolMetadata, LstRatesMap } from "@mrgnlabs/mrgn-state";
 import { computeBankRate, LendingModes, LendSelectionGroups } from "@mrgnlabs/mrgn-utils";
 
 import { SelectedBankItem, BankListWrapper } from "~/components/action-box-v2/components";
@@ -10,6 +10,7 @@ import { BankTrigger, BankList } from "./components";
 type BankSelectProps = {
   selectedBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
+  lstRates?: LstRatesMap;
   nativeSolBalance: number;
   lendMode: ActionType;
   connected: boolean;
@@ -22,6 +23,7 @@ type BankSelectProps = {
 export const BankSelect = ({
   selectedBank,
   banks,
+  lstRates,
   nativeSolBalance,
   lendMode,
   connected,
@@ -77,6 +79,7 @@ export const BankSelect = ({
               onSetSelectedBank={setSelectedBank}
               actionType={lendMode}
               banks={banks}
+              lstRates={lstRates}
               nativeSolBalance={nativeSolBalance}
               connected={connected}
               selectionGroups={selectionGroups}

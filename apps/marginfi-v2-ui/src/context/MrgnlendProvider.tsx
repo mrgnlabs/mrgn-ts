@@ -6,6 +6,7 @@ import { ActionBoxProvider, AuthDialog, useWallet } from "@mrgnlabs/mrgn-ui";
 import { useUiStore } from "~/store";
 import {
   useExtendedBanks,
+  useLstRates,
   useMarginfiAccountAddresses,
   useMarginfiClient,
   useNativeStakeData,
@@ -28,6 +29,7 @@ export const MrgnlendProvider: React.FC<{
   const { data: userBalances } = useUserBalances();
   const { data: stakeAccounts } = useUserStakeAccounts();
   const { marginfiClient } = useMarginfiClient(wallet);
+  const { data: lstRates } = useLstRates();
 
   const [fetchPriorityFee, fetchAccountLabels, accountLabels, setDisplaySettings] = useUiStore((state) => [
     state.fetchPriorityFee,
@@ -71,6 +73,7 @@ export const MrgnlendProvider: React.FC<{
     <WalletStateProvider walletAddress={walletAddress}>
       <ActionBoxProvider
         banks={extendedBanks}
+        lstRates={lstRates}
         nativeSolBalance={userBalances?.nativeSolBalance ?? 0}
         marginfiClient={marginfiClient ?? null}
         selectedAccount={selectedAccount}

@@ -59,7 +59,6 @@ export type LendBoxProps = {
 
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
-  banks: ExtendedBankInfo[];
   requestedLendType: ActionType;
   requestedBank?: ExtendedBankInfo;
   initialAmount?: number;
@@ -84,7 +83,6 @@ export const LendBox = ({
   walletContextState,
   connected,
   marginfiClient,
-  banks,
   selectedAccount,
   accountSummaryArg,
   isDialog,
@@ -162,6 +160,8 @@ export const LendBox = ({
   const { transactionSettings, priorityFees } = useActionContext() || { transactionSettings: null, priorityFees: null };
 
   const contextProps = useActionBoxContext();
+  const banks = contextProps?.banks;
+  const lstRates = contextProps?.lstRates;
   const stakeAccounts = contextProps?.stakeAccounts;
   const stakePoolMetadataMap = contextProps?.stakePoolMetadataMap;
   const stakePoolMetadata = stakePoolMetadataMap?.get(selectedBank?.address.toBase58() ?? "");
@@ -171,7 +171,7 @@ export const LendBox = ({
   }, [accountSummaryArg, selectedAccount]);
 
   const actionEmodeImpact: ActionEmodeImpact | undefined = React.useMemo(() => {
-    if (selectedBank && selectedAccount) {
+    if (selectedBank && selectedAccount && banks) {
       const rawBanks = banks.map((bank) => bank.info.rawBank);
       const emodePairs = getEmodePairs(rawBanks);
       const emodeImpacts = selectedAccount.computeEmodeImpacts(emodePairs);
@@ -274,6 +274,8 @@ export const LendBox = ({
   );
 
   const actionMessages = React.useMemo(() => {
+    if (!banks) return [];
+
     return checkLendActionAvailable({
       amount,
       connected,
@@ -414,7 +416,7 @@ export const LendBox = ({
   }, [selectedBank, stakeAccounts, setSelectedStakeAccount, stakePoolMetadataMap]);
 
   React.useEffect(() => {
-    if (marginfiClient) {
+    if (marginfiClient && banks) {
       refreshSelectedBanks(banks);
     }
   }, [marginfiClient, banks, refreshSelectedBanks]);
@@ -442,7 +444,8 @@ export const LendBox = ({
     <ActionBoxContentWrapper>
       <div className="mb-4">
         <ActionInput
-          banks={banks}
+          banks={banks ?? []}
+          lstRates={lstRates}
           nativeSolBalance={nativeSolBalance}
           walletAmount={walletAmount}
           amountRaw={amountRaw}
@@ -557,7 +560,7 @@ export const LendBox = ({
             setLSTDialogCallback(null);
           }
         }}
-        banks={banks}
+        banks={banks ?? []}
       />
     </ActionBoxContentWrapper>
   );

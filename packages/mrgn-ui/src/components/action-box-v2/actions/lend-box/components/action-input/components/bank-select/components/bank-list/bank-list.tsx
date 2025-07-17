@@ -4,7 +4,7 @@ import { IconExternalLink } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 
 import { percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, ActionType, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
+import { ExtendedBankInfo, ActionType, StakePoolMetadata, LstRatesMap } from "@mrgnlabs/mrgn-state";
 import { LendSelectionGroups, LendingModes, cn, computeBankRate, getEmodeStrategies } from "@mrgnlabs/mrgn-utils";
 
 import { useActionBoxContext } from "~/components/action-box-v2/contexts";
@@ -16,6 +16,7 @@ import { OperationalState } from "@mrgnlabs/marginfi-client-v2";
 type BankListProps = {
   selectedBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
+  lstRates?: LstRatesMap;
   nativeSolBalance: number;
   isOpen: boolean;
   actionType: ActionType;
@@ -38,6 +39,7 @@ const ALL_GROUPS = [
 export const BankList = ({
   selectedBank,
   banks,
+  lstRates,
   nativeSolBalance,
   actionType,
   connected,
@@ -67,9 +69,16 @@ export const BankList = ({
           ? percentFormatter.format(stakePoolMetadata?.validatorRewards / 100)
           : "0%";
       }
-      return computeBankRate(bank, lendingMode);
+      const baseRate = computeBankRate(bank, lendingMode);
+      const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
+
+      if (lstRate && lendingMode === LendingModes.LEND) {
+        return percentFormatter.format(bank.info.state.lendingRate + lstRate);
+      }
+
+      return baseRate;
     },
-    [lendingMode, stakePoolMetadataMap]
+    [lendingMode, stakePoolMetadataMap, lstRates]
   );
 
   const hasTokens = React.useMemo(() => {
@@ -226,6 +235,8 @@ export const BankList = ({
     lendingMode,
     selectionGroups,
   ]);
+
+  console.log("lstRates 123", lstRates);
 
   return (
     <>

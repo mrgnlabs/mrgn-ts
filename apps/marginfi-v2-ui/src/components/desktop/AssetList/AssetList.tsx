@@ -31,8 +31,6 @@ export const AssetsList = ({ data }: AssetListProps) => {
   const { lendData, borrowData, emodeGroups, lstRates, isReady } = data;
   const router = useRouter();
 
-  console.log("lstRates", lstRates);
-
   const [poolFilter, lendingMode, tokenFilter, setTokenFilter] = useUiStore((state) => [
     state.poolFilter,
     state.lendingMode,
