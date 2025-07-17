@@ -9,7 +9,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import { ActionBox, useWallet, AddressActions } from "@mrgnlabs/mrgn-ui";
 import { Skeleton } from "~/components/ui/skeleton";
 import { LendingModes, getAssetPriceData, getAssetWeightData, cn } from "@mrgnlabs/mrgn-utils";
-import { ActionType, Emissions, useNativeStakeData, useValidatorRates } from "@mrgnlabs/mrgn-state";
+import { ActionType, Emissions, useLstRates, useNativeStakeData, useValidatorRates } from "@mrgnlabs/mrgn-state";
 import { MarginRequirementType, AssetTag, OperationalState } from "@mrgnlabs/marginfi-client-v2";
 import {
   aprToApy,
@@ -48,6 +48,7 @@ export default function BankPage() {
   }, [address]);
 
   const { extendedBanks } = useExtendedBanks();
+  const { data: lstRates } = useLstRates();
   const { emodePairs, activeEmodePairs } = useEmode();
   const { stakePoolMetadataMap } = useNativeStakeData();
 
@@ -128,6 +129,8 @@ export default function BankPage() {
 
     return getAssetWeightData(bank, true, extendedBanks, undefined, collateralBanks, liabilityBanks, activeEmodePairs);
   }, [bank, extendedBanks, collateralBanksByLiabilityBank, liabilityBanksByCollateralBank, activeEmodePairs]);
+
+  const lstRate = lstRates?.get(bank?.info.state.mint.toBase58() ?? "");
 
   const stats = React.useMemo(
     () => [
@@ -263,17 +266,24 @@ export default function BankPage() {
           ? "Green shows what you'll earn on deposits over a year. Compounding included."
           : "Green shows what you'll earn on deposits over a year. Yellow shows what you'll pay for borrows over a year. Both include compounding.",
         value: (
-          <div className={`flex items-center justify-center gap-2 ${!isNativeStakeBank ? "text-2xl" : ""}`}>
-            <span className="text-mrgn-success">
-              {numeralFormatter(
-                isNativeStakeBank ? stakePoolMetadata?.validatorRewards || 0 : bankData?.lendingRate || 0
+          <div className="gap-2 flex flex-col items-center">
+            <div className={`flex items-center justify-center gap-2 ${!isNativeStakeBank ? "text-2xl" : ""}`}>
+              <span className="text-mrgn-success">
+                {numeralFormatter(
+                  isNativeStakeBank ? stakePoolMetadata?.validatorRewards || 0 : bankData?.lendingRate || 0
+                )}
+                %
+              </span>
+              {!isNativeStakeBank && (
+                <>
+                  /<span className="text-mrgn-warning">{numeralFormatter(bankData?.borrowingRate || 0)}%</span>
+                </>
               )}
-              %
-            </span>
-            {!isNativeStakeBank && (
-              <>
-                /<span className="text-mrgn-warning">{numeralFormatter(bankData?.borrowingRate || 0)}%</span>
-              </>
+            </div>
+            {lstRate && (
+              <div className="text-xs text-blue-400 bg-blue-900/30 px-2 py-0.5 rounded-md">
+                +{percentFormatter.format(lstRate)} Staking APY
+              </div>
             )}
           </div>
         ),
@@ -506,7 +516,7 @@ type StatProps = {
 
 const Stat = ({ title, description, tooltip, value }: StatProps) => {
   return (
-    <Card className="w-full bg-background-gray rounded-md h-full md:h-32">
+    <Card className="w-full bg-background-gray rounded-md h-full">
       <CardHeader className="items-center text-muted-foreground">
         <div className="flex items-center gap-1">
           <CardTitle className="font-normal text-center">{title}</CardTitle>
