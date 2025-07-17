@@ -6,6 +6,7 @@ import { computeBankRate, LendingModes, LendSelectionGroups } from "@mrgnlabs/mr
 import { SelectedBankItem, BankListWrapper } from "~/components/action-box-v2/components";
 
 import { BankTrigger, BankList } from "./components";
+import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
 type BankSelectProps = {
   selectedBank: ExtendedBankInfo | null;
@@ -42,23 +43,32 @@ export const BankSelect = ({
 
   const calculateRate = React.useCallback(
     (bank: ExtendedBankInfo) => {
+      const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
+      if (bank.info.rawBank.config.assetTag === 2) {
+        return stakePoolMetadata?.validatorRewards
+          ? percentFormatter.format(stakePoolMetadata?.validatorRewards / 100)
+          : "0%";
+      } else if (lstRate && lendingMode === LendingModes.LEND) {
+        return percentFormatter.format(bank.info.state.lendingRate + lstRate);
+      }
+
       return computeBankRate(bank, lendingMode);
     },
-    [lendingMode]
+    [lendingMode, stakePoolMetadata, lstRates]
   );
+
+  const rate = React.useMemo(() => {
+    if (selectedBank) {
+      return calculateRate(selectedBank);
+    }
+    return "";
+  }, [selectedBank, calculateRate]);
 
   return (
     <>
       {!isSelectable && (
         <div className="flex gap-3 w-full items-center">
-          {selectedBank && (
-            <SelectedBankItem
-              bank={selectedBank}
-              lendingMode={lendingMode}
-              rate={calculateRate(selectedBank)}
-              stakePoolMetadata={stakePoolMetadata}
-            />
-          )}
+          {selectedBank && <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={rate} />}
         </div>
       )}
 
@@ -68,7 +78,7 @@ export const BankSelect = ({
           setIsOpen={(open) => {
             setIsOpen(open);
           }}
-          Trigger={<BankTrigger selectedBank={selectedBank} lendingMode={lendingMode} isOpen={isOpen} />}
+          Trigger={<BankTrigger selectedBank={selectedBank} lendingMode={lendingMode} isOpen={isOpen} rate={rate} />}
           Content={
             <BankList
               isOpen={isOpen}

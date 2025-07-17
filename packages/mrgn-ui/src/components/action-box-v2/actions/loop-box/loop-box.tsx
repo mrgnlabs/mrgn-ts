@@ -34,7 +34,7 @@ import { ActionMessage } from "~/components";
 
 import { SimulationStatus } from "../../utils/simulation.utils";
 import { ActionSimulationStatus } from "../../components";
-import { useActionContext } from "../../contexts";
+import { useActionBoxContext, useActionContext } from "../../contexts";
 
 import { ActionInput, Preview } from "./components";
 import { useLoopBoxStore } from "./store";
@@ -122,11 +122,15 @@ export const LoopBox = ({
     state.refreshSelectedBanks,
   ]);
 
+  const contextProps = useActionBoxContext();
+  const lstRates = contextProps?.lstRates;
+
   const { transactionSettings, priorityFees, jupiterOptions } = useActionContext() || {
     transactionSettings: null,
     priorityFees: null,
     jupiterOptions: null,
   };
+
   const emodePairs = React.useMemo(() => {
     return getEmodePairs(allBanks?.map((bank) => bank.info.rawBank) ?? []);
   }, [allBanks]);
@@ -446,6 +450,7 @@ export const LoopBox = ({
       <div className="mb-4 border">
         <ActionInput
           banks={banks}
+          lstRates={lstRates}
           nativeSolBalance={nativeSolBalance}
           amount={amount}
           amountRaw={amountRaw}

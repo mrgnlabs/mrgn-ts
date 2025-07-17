@@ -12,17 +12,11 @@ type BankTriggerProps = {
   actionMode: ActionType;
   bank: ExtendedBankInfo | null;
   isOpen?: boolean;
+  rate: string;
 };
 
 export const BankTrigger = React.forwardRef<HTMLButtonElement, BankTriggerProps>(
-  ({ actionMode, bank, isOpen }, ref) => {
-    const calculateRate = React.useCallback(
-      (bank: ExtendedBankInfo) => {
-        return computeBankRate(bank, actionMode === ActionType.Borrow ? LendingModes.BORROW : LendingModes.LEND);
-      },
-      [actionMode]
-    );
-
+  ({ actionMode, bank, isOpen, rate }, ref) => {
     return (
       <Button
         ref={ref}
@@ -36,7 +30,7 @@ export const BankTrigger = React.forwardRef<HTMLButtonElement, BankTriggerProps>
           <SelectedBankItem
             bank={bank}
             lendingMode={actionMode === ActionType.Borrow ? LendingModes.BORROW : LendingModes.LEND}
-            rate={calculateRate(bank)}
+            rate={rate}
           />
         )}
         {!bank && <>Select token</>}

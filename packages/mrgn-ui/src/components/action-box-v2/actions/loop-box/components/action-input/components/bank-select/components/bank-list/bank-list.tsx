@@ -1,19 +1,20 @@
 import React from "react";
 import { PublicKey } from "@solana/web3.js";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
+import { ActionType, ExtendedBankInfo, LstRatesMap } from "@mrgnlabs/mrgn-state";
 import { cn, computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 
 import { BankItem, BankListCommand } from "~/components/action-box-v2/components";
 import { MarginRequirementType, OperationalState } from "@mrgnlabs/marginfi-client-v2";
-import { WSOL_MINT } from "@mrgnlabs/mrgn-common";
+import { percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 type BankListProps = {
   selectedBank: ExtendedBankInfo | null;
   otherBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
+  lstRates?: LstRatesMap;
   nativeSolBalance: number;
   isOpen: boolean;
   actionMode: ActionType;
@@ -28,6 +29,7 @@ export const BankList = ({
   otherBank,
   banks,
   highlightEmodeBanks,
+  lstRates,
   nativeSolBalance,
   isOpen,
   actionMode,
@@ -39,9 +41,14 @@ export const BankList = ({
 
   const calculateRate = React.useCallback(
     (bank: ExtendedBankInfo) => {
+      const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
+      if (lstRate && actionMode === ActionType.Deposit) {
+        return percentFormatter.format(bank.info.state.lendingRate + lstRate);
+      }
+
       return computeBankRate(bank, actionMode === ActionType.Borrow ? LendingModes.BORROW : LendingModes.LEND);
     },
-    [actionMode]
+    [actionMode, lstRates]
   );
 
   const loopingBanks = React.useMemo(() => {

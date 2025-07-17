@@ -7,7 +7,6 @@ import { AssetTag } from "@mrgnlabs/marginfi-client-v2";
 
 type SelectedBankItemProps = {
   bank: ExtendedBankInfo | WalletToken;
-  stakePoolMetadata?: StakePoolMetadata;
   lendingMode?: LendingModes;
   rate?: string;
 };
@@ -17,19 +16,14 @@ const isExtendedBankInfo = (bank: ExtendedBankInfo | WalletToken): bank is Exten
   return "info" in bank;
 };
 
-export const SelectedBankItem = ({ rate, bank, lendingMode, stakePoolMetadata }: SelectedBankItemProps) => {
+export const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemProps) => {
   // Extract common properties based on bank type
-  const { tokenName, tokenSymbol, tokenLogoUri, calculatedApy } = React.useMemo(() => {
+  const { tokenName, tokenSymbol, tokenLogoUri } = React.useMemo(() => {
     if (isExtendedBankInfo(bank)) {
-      // Handle ExtendedBankInfo
-      const isStaked = bank.info.rawBank.config.assetTag === AssetTag.STAKED;
-      const calculatedApy = isStaked ? stakePoolMetadata?.validatorRewards.toString() : rate;
-
       return {
         tokenName: bank.meta.tokenName,
         tokenSymbol: bank.meta.tokenSymbol,
         tokenLogoUri: bank.meta.tokenLogoUri,
-        calculatedApy,
       };
     } else {
       // Handle WalletToken
@@ -37,10 +31,9 @@ export const SelectedBankItem = ({ rate, bank, lendingMode, stakePoolMetadata }:
         tokenName: bank.name,
         tokenSymbol: bank.symbol,
         tokenLogoUri: bank.logoUri,
-        calculatedApy: rate,
       };
     }
-  }, [bank, rate]);
+  }, [bank]);
 
   return (
     <>
@@ -48,7 +41,7 @@ export const SelectedBankItem = ({ rate, bank, lendingMode, stakePoolMetadata }:
       <img src={tokenLogoUri} alt={tokenName} width={30} height={30} className="rounded-full w-6 h-6" />
       <div className="flex flex-col gap-1 mr-auto xs:mr-0 min-w-14">
         <p className="leading-none text-sm">{tokenSymbol}</p>
-        {lendingMode && calculatedApy && (
+        {lendingMode && rate && (
           <p
             className={cn(
               "text-xs font-normal leading-none",
@@ -56,7 +49,7 @@ export const SelectedBankItem = ({ rate, bank, lendingMode, stakePoolMetadata }:
               lendingMode === LendingModes.BORROW && "text-warning"
             )}
           >
-            {`${calculatedApy} APY`}
+            {`${rate} APY`}
           </p>
         )}
       </div>

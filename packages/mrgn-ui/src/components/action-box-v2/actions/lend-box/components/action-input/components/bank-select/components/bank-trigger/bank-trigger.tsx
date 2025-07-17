@@ -11,16 +11,12 @@ import { SelectedBankItem } from "~/components/action-box-v2/components";
 type BankTriggerProps = {
   selectedBank: ExtendedBankInfo | null;
   lendingMode: LendingModes;
+  rate: string;
   isOpen?: boolean;
 };
 
 export const BankTrigger = React.forwardRef<HTMLButtonElement, BankTriggerProps>(
-  ({ selectedBank, lendingMode, isOpen }, ref) => {
-    const calculateRate = React.useCallback(
-      (bank: ExtendedBankInfo) => computeBankRate(bank, lendingMode),
-      [lendingMode]
-    );
-
+  ({ selectedBank, lendingMode, rate, isOpen }, ref) => {
     return (
       <Button
         ref={ref}
@@ -30,9 +26,7 @@ export const BankTrigger = React.forwardRef<HTMLButtonElement, BankTriggerProps>
           isOpen && "bg-mfi-action-box-accent"
         )}
       >
-        {selectedBank && (
-          <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={calculateRate(selectedBank)} />
-        )}
+        {selectedBank && <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={rate} />}
         {!selectedBank && <>Select token</>}
         <IconChevronDown className="shrink-0" size={20} />
       </Button>

@@ -1,7 +1,7 @@
 import React from "react";
 import { PublicKey } from "@solana/web3.js";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
+import { ActionType, ExtendedBankInfo, LstRatesMap } from "@mrgnlabs/mrgn-state";
 import { cn, formatAmount, getEmodeStrategies, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
 import { tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 
@@ -18,6 +18,7 @@ type ActionInputProps = {
   isLoading: boolean;
   walletAmount: number | undefined;
   banks: ExtendedBankInfo[];
+  lstRates?: LstRatesMap;
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
   actionTxns: LoopActionTxns;
@@ -34,6 +35,7 @@ type ActionInputProps = {
 
 export const ActionInput = ({
   banks,
+  lstRates,
   nativeSolBalance,
   amount,
   amountRaw,
@@ -121,6 +123,8 @@ export const ActionInput = ({
                 nativeSolBalance={nativeSolBalance}
                 setTokenBank={(bank) => setSelectedBank(bank)}
                 highlightEmodeBanks={highlightEmodeBySupplyBank}
+                lstRates={lstRates}
+                lendMode={ActionType.Deposit}
               />
             </div>
             <div className="flex-auto flex flex-col gap-0 items-end">
@@ -170,6 +174,8 @@ export const ActionInput = ({
                 nativeSolBalance={nativeSolBalance}
                 setTokenBank={(bank) => setSelectedSecondaryBank(bank)}
                 highlightEmodeBanks={highlightEmodeByBorrowBank}
+                lstRates={lstRates}
+                lendMode={ActionType.Borrow}
               />
             </div>
             <div className="flex-auto flex flex-col gap-0 items-end">

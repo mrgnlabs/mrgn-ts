@@ -236,8 +236,6 @@ export const BankList = ({
     selectionGroups,
   ]);
 
-  console.log("lstRates 123", lstRates);
-
   return (
     <>
       <BankListCommand selectedBank={selectedBank} onClose={() => onClose(false)} onSetSearchQuery={setSearchQuery}>
@@ -257,6 +255,8 @@ export const BankList = ({
                 if (bank.info.rawBank.config.operationalState === OperationalState.ReduceOnly) {
                   return null;
                 }
+                const rate = calculateRate(bank);
+                console.log("rate", rate, bank.meta.tokenSymbol);
                 return (
                   <CommandItem
                     key={index}
@@ -270,7 +270,7 @@ export const BankList = ({
                     className="cursor-pointer h-[55px] px-3 font-medium flex items-center justify-between gap-2 data-[selected=true]:bg-mfi-action-box-accent data-[selected=true]:text-mfi-action-box-accent-foreground"
                   >
                     <BankItem
-                      rate={calculateRate(bank)}
+                      rate={rate}
                       lendingMode={lendingMode}
                       bank={bank}
                       showBalanceOverride={true}

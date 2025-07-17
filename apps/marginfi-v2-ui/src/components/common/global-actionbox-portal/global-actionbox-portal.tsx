@@ -6,7 +6,13 @@ import * as RadixPortal from "@radix-ui/react-portal";
 
 import { ActionBox, useWallet } from "@mrgnlabs/mrgn-ui";
 import { capture } from "@mrgnlabs/mrgn-utils";
-import { ExtendedBankInfo, useExtendedBanks, useRefreshUserData, useUserBalances } from "@mrgnlabs/mrgn-state";
+import {
+  ExtendedBankInfo,
+  useExtendedBanks,
+  useLstRates,
+  useRefreshUserData,
+  useUserBalances,
+} from "@mrgnlabs/mrgn-state";
 
 import { useUiStore } from "~/store";
 import { BankListWrapper } from "~/components/action-box-v2/components";
@@ -19,6 +25,7 @@ export const GlobalActionBoxPortal = () => {
   const refreshUserData = useRefreshUserData();
   const { extendedBanks } = useExtendedBanks();
   const { data: balances } = useUserBalances();
+  const { data: lstRates } = useLstRates();
   const [globalActionBoxProps, setGlobalActionBoxProps] = useUiStore((state) => [
     state.globalActionBoxProps,
     state.setGlobalActionBoxProps,
@@ -73,6 +80,7 @@ export const GlobalActionBoxPortal = () => {
                     banks={extendedBanks}
                     nativeSolBalance={balances?.nativeSolBalance ?? 0}
                     connected={connected}
+                    lstRates={lstRates}
                   />
                 }
               />

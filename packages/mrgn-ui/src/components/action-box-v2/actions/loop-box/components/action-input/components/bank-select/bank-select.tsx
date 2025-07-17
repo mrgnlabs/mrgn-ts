@@ -1,12 +1,13 @@
 import React from "react";
 import { PublicKey } from "@solana/web3.js";
 
-import { ActionType, ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
+import { ActionType, ExtendedBankInfo, LstRatesMap, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { SelectedBankItem, BankListWrapper } from "~/components/action-box-v2/components";
 
 import { BankList, BankTrigger } from "./components";
+import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
 interface BankSelectProps {
   selectedBank: ExtendedBankInfo | null;
@@ -15,6 +16,8 @@ interface BankSelectProps {
   nativeSolBalance: number;
   actionMode: ActionType;
   highlightEmodeBanks: Record<string, boolean>;
+  lstRates?: LstRatesMap;
+  lendMode: ActionType;
 
   setTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
 }
@@ -26,30 +29,44 @@ export const BankSelect = ({
   nativeSolBalance,
   actionMode,
   highlightEmodeBanks,
+  lstRates,
+  lendMode,
   setTokenBank,
 }: BankSelectProps) => {
   // idea check list if banks[] == 1 make it unselectable
   const isSelectable = React.useMemo(() => true, []);
   const [isOpen, setIsOpen] = React.useState(false);
 
+  const lendingMode = React.useMemo(
+    () =>
+      lendMode === ActionType.Deposit || lendMode === ActionType.Withdraw ? LendingModes.LEND : LendingModes.BORROW,
+    [lendMode]
+  );
+
   const calculateRate = React.useCallback(
     (bank: ExtendedBankInfo) => {
-      return computeBankRate(bank, actionMode === ActionType.Borrow ? LendingModes.BORROW : LendingModes.LEND);
+      const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
+      if (lstRate && lendingMode === LendingModes.LEND) {
+        return percentFormatter.format(bank.info.state.lendingRate + lstRate);
+      }
+
+      return computeBankRate(bank, lendingMode);
     },
-    [actionMode]
+    [lendingMode, lstRates]
   );
+
+  const rate = React.useMemo(() => {
+    if (selectedBank) {
+      return calculateRate(selectedBank);
+    }
+    return "";
+  }, [selectedBank, calculateRate]);
 
   return (
     <>
       {!isSelectable && (
         <div className="flex gap-3 w-full items-center">
-          {selectedBank && (
-            <SelectedBankItem
-              bank={selectedBank}
-              lendingMode={LendingModes.BORROW}
-              rate={calculateRate(selectedBank)}
-            />
-          )}
+          {selectedBank && <SelectedBankItem bank={selectedBank} lendingMode={LendingModes.BORROW} rate={rate} />}
         </div>
       )}
 
@@ -57,10 +74,11 @@ export const BankSelect = ({
         <BankListWrapper
           isOpen={isOpen}
           setIsOpen={setIsOpen}
-          Trigger={<BankTrigger bank={selectedBank} isOpen={isOpen} actionMode={actionMode} />}
+          Trigger={<BankTrigger bank={selectedBank} isOpen={isOpen} actionMode={actionMode} rate={rate} />}
           Content={
             <BankList
               banks={banks}
+              lstRates={lstRates}
               nativeSolBalance={nativeSolBalance}
               actionMode={actionMode}
               isOpen={isOpen}
