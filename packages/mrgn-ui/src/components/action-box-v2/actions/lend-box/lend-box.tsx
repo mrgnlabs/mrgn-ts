@@ -56,6 +56,7 @@ export type LendBoxProps = {
   // tokenAccountMap: TokenAccountMap;
   walletContextState?: WalletContextStateOverride | WalletContextState;
   connected: boolean;
+  banks?: ExtendedBankInfo[];
 
   marginfiClient: MarginfiClient | null;
   selectedAccount: MarginfiAccountWrapper | null;
@@ -79,6 +80,7 @@ export type LendBoxProps = {
 
 export const LendBox = ({
   nativeSolBalance,
+  banks: banksProp,
   // tokenAccountMap,
   walletContextState,
   connected,
@@ -160,7 +162,7 @@ export const LendBox = ({
   const { transactionSettings, priorityFees } = useActionContext() || { transactionSettings: null, priorityFees: null };
 
   const contextProps = useActionBoxContext();
-  const banks = contextProps?.banks;
+  const banks = banksProp ?? contextProps?.banks;
   const lstRates = contextProps?.lstRates;
   const stakeAccounts = contextProps?.stakeAccounts;
   const stakePoolMetadataMap = contextProps?.stakePoolMetadataMap;
