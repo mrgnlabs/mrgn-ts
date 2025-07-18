@@ -73,6 +73,9 @@ function createUiStore() {
     persist(stateCreator, {
       name: "uiStore",
       onRehydrateStorage: () => (state) => {
+        if (state?.broadcastType === "BUNDLE") {
+          state.broadcastType = "DYNAMIC";
+        }
         if (
           state?.jupiterOptions.slippageBps &&
           (state.jupiterOptions.slippageBps < 0 || state.jupiterOptions.slippageBps > 500)

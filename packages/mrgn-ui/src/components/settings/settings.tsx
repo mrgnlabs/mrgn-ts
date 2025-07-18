@@ -22,6 +22,7 @@ import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 
 export const defaultJupiterOptions: JupiterOptions = {
   slippageMode: "DYNAMIC",
@@ -29,10 +30,20 @@ export const defaultJupiterOptions: JupiterOptions = {
   directRoutesOnly: false,
 };
 
-const broadcastTypes: { type: TransactionBroadcastType; label: string; isDisabled: boolean }[] = [
+const broadcastTypes: {
+  type: TransactionBroadcastType;
+  label: string;
+  isDisabled: boolean;
+  disabledReason?: string;
+}[] = [
   { type: "DYNAMIC", label: "Dynamic", isDisabled: false },
-  { type: "BUNDLE", label: "Bundles", isDisabled: false },
   { type: "RPC", label: "RPC", isDisabled: false },
+  {
+    type: "BUNDLE",
+    label: "Bundles",
+    isDisabled: true,
+    disabledReason: "Bundles are temporarily unavailable.",
+  },
 ];
 
 const maxCapTypes: { type: MaxCapType; label: string }[] = [
@@ -153,35 +164,53 @@ export const Settings = ({
                         defaultValue={field.value.toString()}
                         className="flex justify-between"
                       >
-                        {broadcastTypes.map((option) => (
-                          <div
-                            key={option.type}
-                            className={cn(
-                              "relative w-full font-light border border-transparent rounded bg-mfi-action-box-accent transition-colors hover:bg-mfi-action-box-accent/80",
-                              field.value === option.type && "border-mfi-action-box-highlight"
-                            )}
-                          >
-                            <RadioGroupItem
-                              value={option.type}
-                              id={`broadcastType_ ${option.type}`}
-                              className="hidden"
-                            />
-                            <Label
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                field.onChange(option.type);
-                              }}
+                        {broadcastTypes.map((option) => {
+                          const labelElement = (
+                            <div
+                              key={option.type}
                               className={cn(
-                                "flex flex-col p-3 gap-2 h-auto w-full text-center cursor-pointer",
-                                option.isDisabled && "cursor-not-allowed opacity-50"
+                                "relative w-full font-light border border-transparent rounded bg-mfi-action-box-accent transition-colors hover:bg-mfi-action-box-accent/80",
+                                field.value === option.type && "border-mfi-action-box-highlight"
                               )}
-                              htmlFor={`broadcastType_${option.type}`}
                             >
-                              {option.label}
-                            </Label>
-                          </div>
-                        ))}
+                              <RadioGroupItem
+                                value={option.type}
+                                id={`broadcastType_ ${option.type}`}
+                                className="hidden"
+                              />
+                              <Label
+                                onClick={(e) => {
+                                  if (option.isDisabled) return;
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  field.onChange(option.type);
+                                }}
+                                className={cn(
+                                  "flex flex-col p-3 gap-2 h-auto w-full text-center cursor-pointer",
+                                  option.isDisabled && "cursor-not-allowed opacity-50"
+                                )}
+                                htmlFor={`broadcastType_${option.type}`}
+                              >
+                                {option.label}
+                              </Label>
+                            </div>
+                          );
+
+                          if (option.isDisabled && option.disabledReason) {
+                            return (
+                              <TooltipProvider key={option.type}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>{labelElement}</TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{option.disabledReason}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            );
+                          }
+
+                          return labelElement;
+                        })}
                       </RadioGroup>
                     </FormControl>
                   </FormItem>
