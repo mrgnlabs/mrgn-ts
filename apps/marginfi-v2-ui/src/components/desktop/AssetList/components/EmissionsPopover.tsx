@@ -45,9 +45,13 @@ const EmissionsPopover = ({ rateAPY }: { rateAPY: number }) => {
       : null;
 
   const fetchRatesData = async () => {
-    const res = await fetch("/api/emissions/rates");
-    const data = await res.json();
-    setRatesData(data);
+    try {
+      const res = await fetch("/api/emissions/rates");
+      const data = await res.json();
+      setRatesData(data);
+    } catch (error) {
+      console.error("Failed to fetch emissions rates:", error);
+    }
   };
 
   const handleMouseEnter = React.useCallback(() => {
