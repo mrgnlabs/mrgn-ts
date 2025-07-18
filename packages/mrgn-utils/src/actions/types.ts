@@ -130,6 +130,7 @@ export interface CalculateLoopingProps
   slippageMode: "DYNAMIC" | "FIXED";
   platformFeeBps: number;
   setupBankAddresses?: PublicKey[];
+  emodeImpact?: { activePair?: { assetWeightInit: BigNumber } };
 }
 
 export interface CalculateRepayCollateralProps

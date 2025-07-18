@@ -30,10 +30,11 @@ export function computeLoopingParams(
   depositBank: BankType,
   borrowBank: BankType,
   depositOracleInfo: OraclePrice,
-  borrowOracleInfo: OraclePrice
+  borrowOracleInfo: OraclePrice,
+  opts?: { assetWeightInit?: BigNumber; liabilityWeightInit?: BigNumber }
 ): { borrowAmount: BigNumber; totalDepositAmount: BigNumber } {
   const initialCollateral = toBigNumber(principal);
-  const { maxLeverage } = computeMaxLeverage(depositBank, borrowBank);
+  const { maxLeverage } = computeMaxLeverage(depositBank, borrowBank, opts);
 
   if (targetLeverage < 1) {
     throw Error(`Target leverage ${targetLeverage} needs to be greater than 1`);

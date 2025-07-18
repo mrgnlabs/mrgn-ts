@@ -1,4 +1,5 @@
 import { QuoteGetRequest } from "@jup-ag/api";
+import BigNumber from "bignumber.js";
 
 import { computeLoopingParams, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
 import { bpsToPercentile, SolanaTransaction, uiToNative } from "@mrgnlabs/mrgn-common";
@@ -172,7 +173,8 @@ export function getLoopingParamsForClient(
   borrowBank: ExtendedBankInfo,
   targetLeverage: number,
   amount: number,
-  slippageBps: number
+  slippageBps: number,
+  emodeImpact?: { activePair?: { assetWeightInit: BigNumber } }
 ) {
   const principalBufferAmountUi = amount * targetLeverage * (slippageBps / 10000);
   const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
@@ -189,7 +191,12 @@ export function getLoopingParamsForClient(
     depositBank.info.rawBank,
     borrowBank.info.rawBank,
     depositPriceInfo,
-    borrowPriceInfo
+    borrowPriceInfo,
+    {
+      assetWeightInit: emodeImpact?.activePair?.assetWeightInit
+        ? BigNumber.max(emodeImpact.activePair.assetWeightInit, depositBank.info.rawBank.config.assetWeightInit)
+        : undefined,
+    }
   );
 
   const borrowAmountNative = uiToNative(borrowAmount, borrowBank.info.state.mintDecimals).toNumber();
@@ -203,7 +210,8 @@ export function getLoopingParamsForAccount(
   borrowBank: ExtendedBankInfo,
   targetLeverage: number,
   amount: number,
-  slippageBps: number
+  slippageBps: number,
+  emodeImpact?: { activePair?: { assetWeightInit: BigNumber } }
 ) {
   const principalBufferAmountUi = amount * targetLeverage * ((slippageBps + 30) / 10000);
   const adjustedPrincipalAmountUi = amount - principalBufferAmountUi;
@@ -212,7 +220,12 @@ export function getLoopingParamsForAccount(
     adjustedPrincipalAmountUi,
     targetLeverage,
     depositBank.address,
-    borrowBank.address
+    borrowBank.address,
+    {
+      assetWeightInit: emodeImpact?.activePair?.assetWeightInit
+        ? BigNumber.max(emodeImpact.activePair.assetWeightInit, depositBank.info.rawBank.config.assetWeightInit)
+        : undefined,
+    }
   );
 
   const borrowAmountNative = uiToNative(borrowAmount, borrowBank.info.state.mintDecimals).toNumber();

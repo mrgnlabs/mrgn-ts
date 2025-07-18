@@ -203,7 +203,8 @@ export async function calculateLoopingParams({
       loopingProps.borrowBank,
       targetLeverage,
       loopingProps.depositAmount,
-      slippageBps
+      slippageBps,
+      loopingProps.emodeImpact
     );
     borrowAmount = params.borrowAmount;
     depositAmount = params.depositAmount;
@@ -216,7 +217,8 @@ export async function calculateLoopingParams({
       loopingProps.borrowBank,
       targetLeverage,
       loopingProps.depositAmount,
-      slippageBps
+      slippageBps,
+      loopingProps.emodeImpact
     );
 
     borrowAmount = params.borrowAmount;

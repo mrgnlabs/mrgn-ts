@@ -353,7 +353,8 @@ class MarginfiAccountWrapper {
     principal: Amount,
     targetLeverage: number,
     depositBankAddress: PublicKey,
-    borrowBankAddress: PublicKey
+    borrowBankAddress: PublicKey,
+    opts?: { assetWeightInit?: BigNumber; liabilityWeightInit?: BigNumber }
   ): { borrowAmount: BigNumber; totalDepositAmount: BigNumber } {
     const depositBank = this.client.banks.get(depositBankAddress.toBase58());
     if (!depositBank) throw Error(`Bank ${depositBankAddress.toBase58()} not found`);
@@ -365,7 +366,15 @@ class MarginfiAccountWrapper {
     const borrowPriceInfo = this.client.oraclePrices.get(borrowBankAddress.toBase58());
     if (!borrowPriceInfo) throw Error(`Price info for ${borrowBankAddress.toBase58()} not found`);
 
-    return computeLoopingParams(principal, targetLeverage, depositBank, borrowBank, depositPriceInfo, borrowPriceInfo);
+    return computeLoopingParams(
+      principal,
+      targetLeverage,
+      depositBank,
+      borrowBank,
+      depositPriceInfo,
+      borrowPriceInfo,
+      opts
+    );
   }
 
   makeComputeBudgetIx(): TransactionInstruction[] {

@@ -115,6 +115,7 @@ export function useLoopSimulation({
     depositAmount: number;
     jupiterOptions: JupiterOptions;
     platformFeeBps: number;
+    emodeImpact: EmodeImpact | null;
   }): Promise<{ actionTxns: LoopActionTxns }> => {
     const loopingResult = await calculateLooping({
       marginfiClient: props.marginfiClient,
@@ -127,6 +128,7 @@ export function useLoopSimulation({
       slippageMode: props.jupiterOptions?.slippageMode,
       connection: props.marginfiClient.provider.connection,
       platformFeeBps: props.platformFeeBps,
+      emodeImpact: props.emodeImpact || undefined,
     });
     return {
       actionTxns: loopingResult,
@@ -166,6 +168,7 @@ export function useLoopSimulation({
           depositAmount: amount,
           jupiterOptions: jupiterOptions,
           platformFeeBps: platformFeeBps,
+          emodeImpact: emodeImpact,
         };
 
         const loopActionTxns = await fetchLoopingTxn(props);
@@ -212,6 +215,7 @@ export function useLoopSimulation({
       setErrorMessage,
       setIsLoading,
       setSimulationResult,
+      emodeImpact,
     ]
   );
 
