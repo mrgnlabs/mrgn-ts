@@ -335,6 +335,32 @@ export const StakeBox = ({
       <div className="mb-5">
         <AmountPreview actionMode={actionMode} amount={receiveAmount} isLoading={simulationStatus.isLoading} />
       </div>
+
+      {/* if action type is requestedActionType.InstantUnstakeLST show an action message explaining that instant unstake swaps LST into SOL, if action type is requestedActionType.UnstakeLST show an action message explaining that unstake withdraws and deactivates a stake account which will be accessible at the end of the epoch from users wallet */}
+      {requestedActionType === ActionType.InstantUnstakeLST && (
+        <div className="pb-6">
+          <ActionMessage
+            actionMessage={{
+              actionMethod: "INFO",
+              description: "This will swap LST directly for SOL, with the SOL available in your wallet immediately.",
+              isEnabled: true,
+            }}
+          />
+        </div>
+      )}
+      {requestedActionType === ActionType.UnstakeLST && (
+        <div className="pb-6">
+          <ActionMessage
+            actionMessage={{
+              actionMethod: "INFO",
+              description:
+                "This will withdraw and deactivate stake which will be available in your wallet and accessible at the end of the epoch.",
+              isEnabled: true,
+            }}
+          />
+        </div>
+      )}
+
       {additionalActionMessages.concat(actionMessages).map(
         (actionMessage, idx) =>
           actionMessage.description && (
