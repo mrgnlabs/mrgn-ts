@@ -44,6 +44,7 @@ export default function LooperPage() {
                       </button>
                     }
                   />
+                  .
                 </p>
               </div>
             }

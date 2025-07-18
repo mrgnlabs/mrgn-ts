@@ -179,7 +179,7 @@ export const ApyStat = ({
                 className="rounded-full"
               />
             </div>
-            Net {selectedBank.meta.tokenSymbol} / {selectedSecondaryBank.meta.tokenSymbol} APY
+            {selectedBank.meta.tokenSymbol} / {selectedSecondaryBank.meta.tokenSymbol} APY
           </div>
           <span className={cn("text-xs", apyOverview.netApyRaw < 0 ? "text-warning" : "text-success")}>
             {apyOverview.netApy}
