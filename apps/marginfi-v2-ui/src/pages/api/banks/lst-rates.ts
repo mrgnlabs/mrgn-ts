@@ -55,8 +55,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: "Error fetching LST rates" });
     }
 
-    // cache for 24 hours
-    // res.setHeader("Cache-Control", "s-maxage=86400, stale-while-revalidate=300");
+    // cache for 12 hours
+    res.setHeader("Cache-Control", "s-maxage=43200, stale-while-revalidate=86400");
     return res.status(STATUS_OK).json(lstRates);
   } catch (error: any) {
     console.error("Error in bank historic data endpoint:", error);

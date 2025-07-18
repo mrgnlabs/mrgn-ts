@@ -24,6 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ error: "No emissions rates found" });
   }
 
-  // res.setHeader("Cache-Control", "s-maxage=30, stale-while-revalidate=59");
+  // 12 hours
+  res.setHeader("Cache-Control", "s-maxage=43200, stale-while-revalidate=86400");
   res.status(200).json(rates[0]);
 }
