@@ -3,7 +3,7 @@ import {
   fetchRawBanks,
   BankRawDatas,
   fetchMintData,
-  fetchOraclePrices,
+  fetchOraclePricesWithBirdeyeFallback,
   fetchEmissionPriceMap,
   fetchLstRates,
 } from "../../api";
@@ -43,7 +43,7 @@ export function useMintData() {
   });
 }
 
-export type OracleData = Awaited<ReturnType<typeof fetchOraclePrices>>;
+export type OracleData = Awaited<ReturnType<typeof fetchOraclePricesWithBirdeyeFallback>>;
 
 export function useOracleData() {
   const metadata = useMetadata();
@@ -51,7 +51,9 @@ export function useOracleData() {
 
   return useQuery<OracleData, Error>({
     queryKey: ["oracleData"],
-    queryFn: () => fetchOraclePrices(bankData.data ?? [], metadata.data?.bankMetadataMap ?? {}),
+    queryFn: async () => {
+      return await fetchOraclePricesWithBirdeyeFallback(bankData.data ?? [], metadata.data?.bankMetadataMap ?? {});
+    },
     enabled: bankData.isSuccess && metadata.isSuccess,
     staleTime: 0.5 * 60_000, // 1 minutes
     refetchInterval: 30_000, // Temporarily disabled for performance

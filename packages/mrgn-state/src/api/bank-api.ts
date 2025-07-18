@@ -104,6 +104,117 @@ export const fetchOraclePrices = async (
   return { oracleMap: oracleData.bankOraclePriceMap, pythFeedIdMap: oracleData.pythFeedMap };
 };
 
+// Static Switchboard oracle feeds that should use Birdeye prices
+const STATIC_SWITCHBOARD_FEEDS = [
+  "Ct5RHK1ZBJni58mTai45k5ucSRhYY1h6gesWpQPwbRSY", // zero price
+  "9U47fk7i47aZkJq6LEGu8mjnQevWvgDZJjjXuhwYfJWu", // 1e-6 price
+  "DMhGWtLAKE5d56WdyHQxqeFncwUeqMEnuC2RvvZfbuur", // 1e-8 price
+];
+
+/**
+ * Fetches Birdeye prices for specific mint addresses using the existing /api/tokens/multi endpoint.
+ *
+ * @param mintAddresses - Array of mint addresses to fetch prices for
+ * @returns Promise resolving to a record mapping mint addresses to their price values
+ *
+ * @internal This function is used internally for static Switchboard feed price replacement
+ */
+async function fetchBirdeyePricesForMints(mintAddresses: string[]): Promise<Record<string, number>> {
+  if (mintAddresses.length === 0) {
+    return {};
+  }
+
+  try {
+    const url = `/api/tokens/multi?mintList=${mintAddresses.join(",")}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      return {};
+    }
+
+    const data = await response.json();
+    const rawPrices = data.data || {};
+
+    const extractedPrices: Record<string, number> = {};
+    Object.entries(rawPrices).forEach(([mint, priceData]: [string, any]) => {
+      if (priceData && typeof priceData === "object" && "value" in priceData) {
+        extractedPrices[mint] = priceData.value;
+      }
+    });
+
+    return extractedPrices;
+  } catch (error) {
+    console.warn("Error fetching Birdeye prices for static feeds:", error);
+    return {};
+  }
+}
+
+/**
+ * Fetches oracle prices with automatic Birdeye price fallback for static Switchboard feeds.
+ *
+ * This function provides a backward-compatible solution for handling static
+ * Switchboard oracle feeds that return incorrect prices (zero, 1e-6, or 1e-8). When such
+ * feeds are detected, their prices are automatically replaced with live Birdeye prices.
+ *
+ * @param banks - Array of bank raw data containing oracle configuration
+ * @param bankMetadataMap - Map of bank metadata indexed by bank address
+ * @returns Promise resolving to oracle data with enhanced prices for static feeds
+ *  */
+export async function fetchOraclePricesWithBirdeyeFallback(
+  banks: BankRawDatas[],
+  bankMetadataMap: { [address: string]: BankMetadata }
+): Promise<{ oracleMap: Map<string, OraclePrice>; pythFeedIdMap: PythPushFeedIdMap }> {
+  const oracleData = await fetchOraclePrices(banks, bankMetadataMap);
+
+  const staticFeedBanks = banks.filter((bank) => {
+    const oracleKey = bank.data.config.oracleKeys[0]?.toBase58();
+    return oracleKey && STATIC_SWITCHBOARD_FEEDS.includes(oracleKey);
+  });
+
+  if (staticFeedBanks.length === 0) {
+    return oracleData;
+  }
+
+  const staticFeedMints = staticFeedBanks.map((bank) => bank.data.mint.toBase58());
+  const birdeyePrices = await fetchBirdeyePricesForMints(staticFeedMints);
+
+  const enhancedOracleMap = new Map(oracleData.oracleMap);
+
+  staticFeedBanks.forEach((bank) => {
+    const mintAddress = bank.data.mint.toBase58();
+    const bankAddress = bank.address.toBase58();
+    const birdeyePrice = birdeyePrices[mintAddress];
+
+    if (birdeyePrice && birdeyePrice > 0) {
+      const oldPrice = enhancedOracleMap.get(bankAddress);
+
+      const price = BigNumber(birdeyePrice);
+      const newOraclePrice = {
+        priceRealtime: {
+          price,
+          confidence: oldPrice?.priceRealtime?.confidence || BigNumber(0),
+          lowestPrice: price,
+          highestPrice: price,
+        },
+        priceWeighted: {
+          price,
+          confidence: oldPrice?.priceWeighted?.confidence || BigNumber(0),
+          lowestPrice: price,
+          highestPrice: price,
+        },
+        timestamp: oldPrice?.timestamp || BigNumber(Date.now()),
+      };
+
+      enhancedOracleMap.set(bankAddress, newOraclePrice);
+    }
+  });
+
+  return {
+    oracleMap: enhancedOracleMap,
+    pythFeedIdMap: oracleData.pythFeedIdMap,
+  };
+}
+
 export const fetchEmissionPriceMap = async (banks: BankRawDatas[]): Promise<TokenPriceMap> => {
   const banksWithEmissions = banks.filter((bank) => !bank.data.emissionsMint.equals(PublicKey.default));
   const emissionsMints = banksWithEmissions.map((bank) => bank.data.emissionsMint);
