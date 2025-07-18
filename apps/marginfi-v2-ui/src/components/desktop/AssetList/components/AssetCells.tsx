@@ -65,7 +65,7 @@ export const getAssetCell = (asset: AssetData) => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="text-xs text-blue-400 bg-blue-900/30 px-2 py-0.5 rounded-md">
+              <div className="text-xs text-blue-400 bg-blue-900/30 px-2 py-0.5 rounded-md min-w-fit">
                 {percentFormatter.format(asset.lstRate)} APY
               </div>
             </TooltipTrigger>
