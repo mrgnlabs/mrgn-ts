@@ -417,10 +417,8 @@ export const PortfolioAssetCard = ({
               {lstRate && (
                 <>
                   <dt className="text-muted-foreground">LST APY</dt>
-                  <dd className="text-right text-success">{percentFormatter.format(lstRate)}</dd>
-                  <dt className="text-muted-foreground">Net APY</dt>
-                  <dd className={cn("text-right", finalRate > 0 ? "text-success" : "text-warning")}>
-                    {percentFormatter.format(finalRate)}
+                  <dd className={cn("text-right", isInLendingMode ? "text-success" : "text-warning")}>
+                    {percentFormatter.format(lstRate)}
                   </dd>
                 </>
               )}
