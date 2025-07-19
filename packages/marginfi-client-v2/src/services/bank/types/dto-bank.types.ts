@@ -1,5 +1,14 @@
 import { WrappedI80F48 } from "@mrgnlabs/mrgn-common";
-import { AssetTag, EmodeEntryFlags, EmodeFlags, EmodeTag, OperationalState, OracleSetup, RiskTier } from "./bank.types";
+import {
+  AssetTag,
+  BankConfigFlag,
+  EmodeEntryFlags,
+  EmodeFlags,
+  EmodeTag,
+  OperationalState,
+  OracleSetup,
+  RiskTier,
+} from "./bank.types";
 import { InterestRateConfigRaw, OperationalStateRaw, OracleSetupRaw, RiskTierRaw } from "./raw-bank.types";
 
 /*
@@ -32,6 +41,7 @@ export interface BankConfigDto {
   riskTier: RiskTier;
   totalAssetValueInitLimit: string;
   assetTag: AssetTag;
+  configFlags: BankConfigFlag;
 
   interestRateConfig: InterestRateConfigDto;
   operationalState: OperationalState;
@@ -95,6 +105,9 @@ export interface BankTypeDto {
   oracleKey: string;
   pythShardId?: number;
   emode: EmodeSettingsDto;
+  feesDestinationAccount: string;
+  lendingPositionCount: string;
+  borrowingPositionCount: string;
 }
 
 /*
@@ -134,6 +147,9 @@ export interface BankRawDto {
   emissionsRate: string;
   emissionsRemaining: WrappedI80F48;
   emissionsMint: string;
+  feesDestinationAccount: string;
+  lendingPositionCount: string;
+  borrowingPositionCount: string;
 
   emode: EmodeSettingsRawDto;
 }
@@ -155,6 +171,7 @@ export interface BankConfigRawDto {
   borrowLimit: string;
   riskTier: RiskTierRaw;
   assetTag: number;
+  configFlags: number;
 
   totalAssetValueInitLimit: string;
   oracleMaxAge: number;

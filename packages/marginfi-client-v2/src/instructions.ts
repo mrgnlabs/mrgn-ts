@@ -220,54 +220,6 @@ function makelendingAccountWithdrawEmissionIx(
     .instruction();
 }
 
-function makeSetAccountFlagIx(
-  mfiProgram: MarginfiProgram,
-  accounts: {
-    // Required accounts
-    marginfiAccount: PublicKey;
-    // Optional accounts - to override inference
-    group?: PublicKey;
-    admin?: PublicKey;
-  },
-  args: {
-    flag: BN;
-  }
-) {
-  const { marginfiAccount, ...optionalAccounts } = accounts;
-
-  return mfiProgram.methods
-    .setAccountFlag(args.flag)
-    .accounts({
-      marginfiAccount,
-    })
-    .accountsPartial(optionalAccounts)
-    .instruction();
-}
-
-function makeUnsetAccountFlagIx(
-  mfiProgram: MarginfiProgram,
-  accounts: {
-    // Required accounts
-    marginfiAccount: PublicKey;
-    // Optional accounts - to override inference
-    group?: PublicKey;
-    admin?: PublicKey;
-  },
-  args: {
-    flag: BN;
-  }
-) {
-  const { marginfiAccount, ...optionalAccounts } = accounts;
-
-  return mfiProgram.methods
-    .unsetAccountFlag(args.flag)
-    .accounts({
-      marginfiAccount,
-    })
-    .accountsPartial(optionalAccounts)
-    .instruction();
-}
-
 function makePoolConfigureBankIx(
   mfiProgram: MarginfiProgram,
   accounts: {
@@ -588,8 +540,6 @@ const instructions = {
   makeInitMarginfiAccountIx,
   makeLendingAccountLiquidateIx,
   makelendingAccountWithdrawEmissionIx,
-  makeSetAccountFlagIx,
-  makeUnsetAccountFlagIx,
   makePoolAddBankIx,
   makePoolConfigureBankIx,
   makeBeginFlashLoanIx,

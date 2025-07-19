@@ -42,6 +42,17 @@ interface BankRaw {
   emissionsMint: PublicKey;
 
   emode: EmodeSettingsRaw;
+  feesDestinationAccount: PublicKey;
+  cache?: BankCacheRaw;
+  lendingPositionCount: BN;
+  borrowingPositionCount: BN;
+}
+
+interface BankCacheRaw {
+  baseRate: BN;
+  lendingRate: BN;
+  borrowingRate: BN;
+  accumulatedSinceLastUpdate: WrappedI80F48;
 }
 
 interface BankConfigRaw {
@@ -61,6 +72,7 @@ interface BankConfigRaw {
   borrowLimit: BN;
   riskTier: RiskTierRaw;
   assetTag: number;
+  configFlags: number;
 
   totalAssetValueInitLimit: BN;
   oracleMaxAge: number;

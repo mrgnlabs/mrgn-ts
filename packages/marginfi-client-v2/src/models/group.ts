@@ -9,10 +9,6 @@ import {
   BankConfigOpt,
   BankConfigOptRaw,
   makeAddPermissionlessStakedBankIx,
-  makeDisableAccountTransferForAccountIx,
-  makeDisableFlashLoanForAccountIx,
-  makeEnableAccountTransferForAccountIx,
-  makeEnableFlashLoanForAccountIx,
   makePoolAddBankIx,
   makePoolConfigureBankIx,
   MarginfiGroupRaw,
@@ -61,37 +57,6 @@ class MarginfiGroup implements MarginfiGroupType {
   // ----------------------------------------------------------------------------
   // Admin actions
   // ----------------------------------------------------------------------------
-
-  // ------------------------------------------------------------------------
-  // (TODO: move to MarginfiAccountWrapper class)
-  // ------------------------------------------------------------------------
-  public async makeEnableFlashLoanForAccountIx(
-    program: MarginfiProgram,
-    marginfiAccountAddress: PublicKey
-  ): Promise<InstructionsWrapper> {
-    return makeEnableFlashLoanForAccountIx(program, marginfiAccountAddress);
-  }
-
-  public async makeDisableFlashLoanForAccountIx(
-    program: MarginfiProgram,
-    marginfiAccountAddress: PublicKey
-  ): Promise<InstructionsWrapper> {
-    return makeDisableFlashLoanForAccountIx(program, marginfiAccountAddress);
-  }
-
-  public async makeEnableAccountTransferForAccountIx(
-    program: MarginfiProgram,
-    marginfiAccountAddress: PublicKey
-  ): Promise<InstructionsWrapper> {
-    return makeEnableAccountTransferForAccountIx(program, marginfiAccountAddress);
-  }
-
-  public async makeDisableAccountTransferForAccountIx(
-    program: MarginfiProgram,
-    marginfiAccountAddress: PublicKey
-  ): Promise<InstructionsWrapper> {
-    return makeDisableAccountTransferForAccountIx(program, marginfiAccountAddress);
-  }
 
   // ------------------------------------------------------------------------
   // (TODO: move to Bank class)

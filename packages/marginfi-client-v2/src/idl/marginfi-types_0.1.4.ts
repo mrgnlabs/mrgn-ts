@@ -8,7 +8,7 @@ export type Marginfi = {
   address: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA";
   metadata: {
     name: "marginfi";
-    version: "0.1.3";
+    version: "0.1.4";
     spec: "0.1.0";
     description: "Created with Anchor";
   };
@@ -1411,6 +1411,28 @@ export type Marginfi = {
       ];
     },
     {
+      name: "lendingPoolCloseBank";
+      discriminator: [22, 115, 7, 130, 227, 85, 0, 47];
+      accounts: [
+        {
+          name: "group";
+          writable: true;
+          relations: ["bank"];
+        },
+        {
+          name: "bank";
+          writable: true;
+        },
+        {
+          name: "admin";
+          writable: true;
+          signer: true;
+          relations: ["group"];
+        },
+      ];
+      args: [];
+    },
+    {
       name: "lendingPoolCollectBankFees";
       discriminator: [201, 5, 215, 116, 230, 92, 75, 150];
       accounts: [
@@ -1512,6 +1534,7 @@ export type Marginfi = {
     },
     {
       name: "lendingPoolConfigureBank";
+      docs: ["(admin only)"];
       discriminator: [121, 173, 156, 40, 93, 148, 56, 237];
       accounts: [
         {
@@ -1542,6 +1565,7 @@ export type Marginfi = {
     },
     {
       name: "lendingPoolConfigureBankEmode";
+      docs: ["(emode_admin only)"];
       discriminator: [17, 175, 91, 57, 239, 86, 49, 71];
       accounts: [
         {
@@ -1579,7 +1603,80 @@ export type Marginfi = {
       ];
     },
     {
+      name: "lendingPoolConfigureBankInterestOnly";
+      docs: ["(delegate_curve_admin only)"];
+      discriminator: [245, 107, 83, 38, 103, 219, 163, 241];
+      accounts: [
+        {
+          name: "group";
+          writable: true;
+          relations: ["bank"];
+        },
+        {
+          name: "delegateCurveAdmin";
+          signer: true;
+          relations: ["group"];
+        },
+        {
+          name: "bank";
+          writable: true;
+        },
+      ];
+      args: [
+        {
+          name: "interestRateConfig";
+          type: {
+            defined: {
+              name: "interestRateConfigOpt";
+            };
+          };
+        },
+      ];
+    },
+    {
+      name: "lendingPoolConfigureBankLimitsOnly";
+      docs: ["(delegate_limits_admin only)"];
+      discriminator: [157, 196, 221, 200, 202, 62, 84, 21];
+      accounts: [
+        {
+          name: "group";
+          writable: true;
+          relations: ["bank"];
+        },
+        {
+          name: "delegateLimitAdmin";
+          signer: true;
+          relations: ["group"];
+        },
+        {
+          name: "bank";
+          writable: true;
+        },
+      ];
+      args: [
+        {
+          name: "depositLimit";
+          type: {
+            option: "u64";
+          };
+        },
+        {
+          name: "borrowLimit";
+          type: {
+            option: "u64";
+          };
+        },
+        {
+          name: "totalAssetValueInitLimit";
+          type: {
+            option: "u64";
+          };
+        },
+      ];
+    },
+    {
       name: "lendingPoolConfigureBankOracle";
+      docs: ["(admin only)"];
       discriminator: [209, 82, 255, 171, 124, 21, 71, 81];
       accounts: [
         {
@@ -1684,6 +1781,7 @@ export type Marginfi = {
     },
     {
       name: "lendingPoolSetupEmissions";
+      docs: ["(delegate_emissions_admin only)"];
       discriminator: [206, 97, 120, 172, 113, 204, 169, 70];
       accounts: [
         {
@@ -1692,7 +1790,7 @@ export type Marginfi = {
           relations: ["bank"];
         },
         {
-          name: "admin";
+          name: "delegateEmissionsAdmin";
           writable: true;
           signer: true;
           relations: ["group"];
@@ -1802,6 +1900,7 @@ export type Marginfi = {
     },
     {
       name: "lendingPoolUpdateEmissionsParameters";
+      docs: ["(delegate_emissions_admin only)"];
       discriminator: [55, 213, 224, 168, 153, 53, 197, 40];
       accounts: [
         {
@@ -1810,7 +1909,7 @@ export type Marginfi = {
           relations: ["bank"];
         },
         {
-          name: "admin";
+          name: "delegateEmissionsAdmin";
           writable: true;
           signer: true;
           relations: ["group"];
@@ -1901,6 +2000,30 @@ export type Marginfi = {
       ];
     },
     {
+      name: "lendingPoolUpdateFeesDestinationAccount";
+      discriminator: [102, 4, 121, 243, 237, 110, 95, 13];
+      accounts: [
+        {
+          name: "group";
+          relations: ["bank"];
+        },
+        {
+          name: "bank";
+          writable: true;
+        },
+        {
+          name: "admin";
+          signer: true;
+          relations: ["group"];
+        },
+        {
+          name: "destinationAccount";
+          docs: ["Bank fees will be sent to this account which must be an ATA of the bank's mint."];
+        },
+      ];
+      args: [];
+    },
+    {
       name: "lendingPoolWithdrawFees";
       discriminator: [92, 140, 215, 254, 170, 0, 83, 174];
       accounts: [
@@ -1950,6 +2073,64 @@ export type Marginfi = {
         {
           name: "dstTokenAccount";
           writable: true;
+        },
+        {
+          name: "tokenProgram";
+        },
+      ];
+      args: [
+        {
+          name: "amount";
+          type: "u64";
+        },
+      ];
+    },
+    {
+      name: "lendingPoolWithdrawFeesPermissionless";
+      discriminator: [57, 245, 1, 208, 130, 18, 145, 113];
+      accounts: [
+        {
+          name: "group";
+          relations: ["bank"];
+        },
+        {
+          name: "bank";
+        },
+        {
+          name: "feeVault";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [102, 101, 101, 95, 118, 97, 117, 108, 116];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              },
+            ];
+          };
+        },
+        {
+          name: "feeVaultAuthority";
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              },
+            ];
+          };
+        },
+        {
+          name: "feesDestinationAccount";
+          writable: true;
+          relations: ["bank"];
         },
         {
           name: "tokenProgram";
@@ -2089,7 +2270,7 @@ export type Marginfi = {
         },
         {
           name: "destinationAccount";
-          docs: ["User's earned emissions will be sent to the cannonical ATA of this wallet.", ""];
+          docs: ["User's earned emissions will be sent to the canonical ATA of this wallet.", ""];
         },
       ];
       args: [];
@@ -2115,6 +2296,18 @@ export type Marginfi = {
         },
         {
           name: "newEmodeAdmin";
+          type: "pubkey";
+        },
+        {
+          name: "newCurveAdmin";
+          type: "pubkey";
+        },
+        {
+          name: "newLimitAdmin";
+          type: "pubkey";
+        },
+        {
+          name: "newEmissionsAdmin";
           type: "pubkey";
         },
         {
@@ -2161,6 +2354,25 @@ export type Marginfi = {
       ];
     },
     {
+      name: "migratePythPushOracle";
+      discriminator: [139, 58, 192, 167, 217, 110, 247, 152];
+      accounts: [
+        {
+          name: "group";
+          relations: ["bank"];
+        },
+        {
+          name: "bank";
+          writable: true;
+        },
+        {
+          name: "oracle";
+          docs: ["Must use the Pyth Sponsored shard ID (0) or mrgn's (3301)", ""];
+        },
+      ];
+      args: [];
+    },
+    {
       name: "propagateFeeState";
       docs: ["(Permissionless) Force any group to adopt the current FeeState settings"];
       discriminator: [64, 3, 166, 194, 129, 21, 101, 155];
@@ -2203,82 +2415,41 @@ export type Marginfi = {
       args: [];
     },
     {
-      name: "setAccountFlag";
-      discriminator: [56, 238, 18, 207, 193, 82, 138, 174];
+      name: "transferToNewAccount";
+      discriminator: [28, 79, 129, 231, 169, 69, 69, 65];
       accounts: [
         {
           name: "group";
-          relations: ["marginfiAccount"];
+          relations: ["oldMarginfiAccount"];
         },
         {
-          name: "marginfiAccount";
+          name: "oldMarginfiAccount";
           writable: true;
         },
         {
-          name: "admin";
+          name: "newMarginfiAccount";
+          writable: true;
           signer: true;
-          relations: ["group"];
-        },
-      ];
-      args: [
-        {
-          name: "flag";
-          type: "u64";
-        },
-      ];
-    },
-    {
-      name: "setNewAccountAuthority";
-      discriminator: [153, 162, 50, 84, 182, 201, 74, 179];
-      accounts: [
-        {
-          name: "marginfiAccount";
-          writable: true;
-        },
-        {
-          name: "group";
-          relations: ["marginfiAccount"];
         },
         {
           name: "authority";
+          writable: true;
           signer: true;
-          relations: ["marginfiAccount"];
+          relations: ["oldMarginfiAccount"];
         },
         {
           name: "newAuthority";
         },
         {
-          name: "feePayer";
+          name: "globalFeeWallet";
           writable: true;
-          signer: true;
+        },
+        {
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
         },
       ];
       args: [];
-    },
-    {
-      name: "unsetAccountFlag";
-      discriminator: [56, 81, 56, 85, 92, 49, 255, 70];
-      accounts: [
-        {
-          name: "group";
-          relations: ["marginfiAccount"];
-        },
-        {
-          name: "marginfiAccount";
-          writable: true;
-        },
-        {
-          name: "admin";
-          signer: true;
-          relations: ["group"];
-        },
-      ];
-      args: [
-        {
-          name: "flag";
-          type: "u64";
-        },
-      ];
     },
   ];
   accounts: [
@@ -2365,8 +2536,8 @@ export type Marginfi = {
       discriminator: [183, 5, 117, 104, 122, 199, 68, 51];
     },
     {
-      name: "marginfiAccountTransferAccountAuthorityEvent";
-      discriminator: [112, 61, 140, 132, 251, 92, 90, 202];
+      name: "marginfiAccountTransferToNewAccount";
+      discriminator: [59, 105, 171, 110, 223, 136, 80, 89];
     },
     {
       name: "marginfiGroupConfigureEvent";
@@ -2763,6 +2934,31 @@ export type Marginfi = {
       name: "pythPushInvalidWindowSize";
       msg: "TWAP window size does not match expected duration";
     },
+    {
+      code: 6077;
+      name: "invalidFeesDestinationAccount";
+      msg: "Invalid fees destination account";
+    },
+    {
+      code: 6078;
+      name: "zeroAssetPrice";
+      msg: "Zero asset price";
+    },
+    {
+      code: 6079;
+      name: "zeroLiabilityPrice";
+      msg: "Zero liability price";
+    },
+    {
+      code: 6080;
+      name: "oracleMaxConfidenceExceeded";
+      msg: "Oracle max confidence exceeded: try again later";
+    },
+    {
+      code: 6081;
+      name: "bankCannotClose";
+      msg: "Banks cannot close when they have open positions or emissions outstanding";
+    },
   ];
   types: [
     {
@@ -3003,7 +3199,9 @@ export type Marginfi = {
               "- EMISSIONS_FLAG_BORROW_ACTIVE: 1",
               "- EMISSIONS_FLAG_LENDING_ACTIVE: 2",
               "- PERMISSIONLESS_BAD_DEBT_SETTLEMENT: 4",
-              "- FREEZE_SETTINGS: 8",
+              "- FREEZE_SETTINGS: 8 - banks with this flag enabled can only update deposit/borrow caps",
+              "- CLOSE_ENABLED_FLAG - banks with this flag were created after 0.1.4 and can be closed.",
+              "Banks without this flag can never be closed.",
               "",
             ];
             type: "u64";
@@ -3031,7 +3229,7 @@ export type Marginfi = {
           {
             name: "collectedProgramFeesOutstanding";
             docs: [
-              "Fees collected and pending withdraw for the `FeeState.global_fee_wallet`'s cannonical ATA for `mint`",
+              "Fees collected and pending withdraw for the `FeeState.global_fee_wallet`'s canonical ATA for `mint`",
             ];
             type: {
               defined: {
@@ -3052,9 +3250,48 @@ export type Marginfi = {
             };
           },
           {
+            name: "feesDestinationAccount";
+            docs: [
+              "Set with `update_fees_destination_account`. This should be an ATA for the bank's mint. If",
+              "pubkey default, the bank doesn't support this feature, and the fees must be collected",
+              "manually (withdraw_fees).",
+            ];
+            type: "pubkey";
+          },
+          {
+            name: "cache";
+            type: {
+              defined: {
+                name: "bankCache";
+              };
+            };
+          },
+          {
+            name: "lendingPositionCount";
+            docs: [
+              "Number of user lending positions currently open in this bank",
+              "* For banks created prior to 0.1.4, this is the number of positions opened/closed after",
+              "0.1.4 goes live, and may be negative.",
+              "* For banks created in 0.1.4 or later, this is the number of positions open in total, and",
+              "the bank may safely be closed if this is zero. Will never go negative.",
+            ];
+            type: "i32";
+          },
+          {
+            name: "borrowingPositionCount";
+            docs: [
+              "Number of user borrowing positions currently open in this bank",
+              "* For banks created prior to 0.1.4, this is the number of positions opened/closed after",
+              "0.1.4 goes live, and may be negative.",
+              "* For banks created in 0.1.4 or later, this is the number of positions open in total, and",
+              "the bank may safely be closed if this is zero. Will never go negative.",
+            ];
+            type: "i32";
+          },
+          {
             name: "padding0";
             type: {
-              array: ["u8", 8];
+              array: ["u8", 16];
             };
           },
           {
@@ -3064,8 +3301,72 @@ export type Marginfi = {
                 {
                   array: ["u64", 2];
                 },
-                32,
+                19,
               ];
+            };
+          },
+        ];
+      };
+    },
+    {
+      name: "bankCache";
+      docs: ["A read-only cache of the bank's key metrics, e.g. spot interest/fee rates."];
+      repr: {
+        kind: "c";
+      };
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "baseRate";
+            docs: [
+              "Actual (spot) interest/fee rates of the bank, based on utilization",
+              "* APR (annual percentage rate) values",
+              "* From 0-1000%, as u32, e.g. u32::MAX = 1000%, u:32::MAX/2 = 500%, etc",
+            ];
+            type: "u32";
+          },
+          {
+            name: "lendingRate";
+            docs: [
+              "Equivalent to `base_rate` * utilization",
+              "* From 0-1000%, as u32, e.g. u32::MAX = 1000%, u:32::MAX/2 = 500%, etc",
+            ];
+            type: "u32";
+          },
+          {
+            name: "borrowingRate";
+            docs: [
+              "Equivalent to `base_rate` * (1 + ir_fees) + fixed_fees",
+              "* From 0-1000%, as u32, e.g. u32::MAX = 1000%, u:32::MAX/2 = 500%, etc",
+            ];
+            type: "u32";
+          },
+          {
+            name: "interestAccumulatedFor";
+            docs: ["* in seconds"];
+            type: "u32";
+          },
+          {
+            name: "accumulatedSinceLastUpdate";
+            docs: [
+              "equivalent to (share value increase in the last `interest_accumulated_for` seconds *",
+              "shares), i.e. the delta in `asset_share_value`, in token.",
+              "* Note: if the tx that triggered this cache update increased or decreased the net shares,",
+              "this value still reports using the PRE-CHANGE share amount, since interest is always",
+              "earned on that amount.",
+              "* in token, in native decimals, as I80F48",
+            ];
+            type: {
+              defined: {
+                name: "wrappedI80f48";
+              };
+            };
+          },
+          {
+            name: "reserved0";
+            type: {
+              array: ["u8", 128];
             };
           },
         ];
@@ -3179,9 +3480,20 @@ export type Marginfi = {
             type: "u8";
           },
           {
+            name: "configFlags";
+            docs: [
+              "Flags for various config options",
+              "* 1 - Always set if bank created in 0.1.4 or later, or if migrated to the new pyth",
+              "oracle setup from a prior version. Not set in 0.1.3 or earlier banks using pyth that have",
+              "not yet migrated. Does nothing for banks that use switchboard.",
+              "* 2, 4, 8, 16, etc - reserved for future use.",
+            ];
+            type: "u8";
+          },
+          {
             name: "pad1";
             type: {
-              array: ["u8", 6];
+              array: ["u8", 5];
             };
           },
           {
@@ -3206,8 +3518,18 @@ export type Marginfi = {
           {
             name: "padding0";
             type: {
-              array: ["u8", 6];
+              array: ["u8", 2];
             };
+          },
+          {
+            name: "oracleMaxConfidence";
+            docs: [
+              "From 0-100%, if the confidence exceeds this value, the oracle is considered invalid. Note:",
+              "the confidence adjustment is capped at 5% regardless of this value.",
+              "* 0 falls back to using the default 10% instead, i.e., U32_MAX_DIV_10",
+              "* A %, as u32, e.g. 100% = u32::MAX, 50% = u32::MAX/2, etc.",
+            ];
+            type: "u32";
           },
           {
             name: "padding1";
@@ -3306,9 +3628,19 @@ export type Marginfi = {
             type: "u8";
           },
           {
+            name: "configFlags";
+            docs: [
+              "Flags for various config options",
+              "* 1 - Always set if bank created in 0.1.4 or later, or if migrated to the new oracle",
+              "setup from a prior version. Not set in 0.1.3 or earlier banks that have not yet migrated.",
+              "* 2, 4, 8, 16, etc - reserved for future use.",
+            ];
+            type: "u8";
+          },
+          {
             name: "pad0";
             type: {
-              array: ["u8", 6];
+              array: ["u8", 5];
             };
           },
           {
@@ -3329,6 +3661,16 @@ export type Marginfi = {
             name: "oracleMaxAge";
             docs: ["Time window in seconds for the oracle price feed to be considered live."];
             type: "u16";
+          },
+          {
+            name: "oracleMaxConfidence";
+            docs: [
+              "From 0-100%, if the confidence exceeds this value, the oracle is considered invalid. Note:",
+              "the confidence adjustment is capped at 5% regardless of this value.",
+              "* 0% = use the default (10%)",
+              "* A %, as u32, e.g. 100% = u32::MAX, 50% = u32::MAX/2, etc.",
+            ];
+            type: "u32";
           },
         ];
       };
@@ -3430,6 +3772,12 @@ export type Marginfi = {
             name: "totalAssetValueInitLimit";
             type: {
               option: "u64";
+            };
+          },
+          {
+            name: "oracleMaxConfidence";
+            type: {
+              option: "u32";
             };
           },
           {
@@ -3614,7 +3962,11 @@ export type Marginfi = {
           },
           {
             name: "flags";
-            docs: ["EMODE_ON (1) - If set, at least one entry is configured", "2, 4, 8, etc, Reserved for future use"];
+            docs: [
+              "* EMODE_ON (1) - If set, at least one entry is configured. Never update this flag manually,",
+              "it should always be equivalent to `EmodeConfig.has_entries`",
+              "* 2, 4, 8, etc, Reserved for future use",
+            ];
             type: "u64";
           },
           {
@@ -3652,7 +4004,7 @@ export type Marginfi = {
             name: "globalFeeWallet";
             docs: [
               "The base wallet for all protocol fees. All SOL fees go to this wallet. All non-SOL fees go",
-              "to the cannonical ATA of this wallet for that asset.",
+              "to the canonical ATA of this wallet for that asset.",
             ];
             type: "pubkey";
           },
@@ -3742,6 +4094,10 @@ export type Marginfi = {
               };
             };
           },
+          {
+            name: "lastUpdate";
+            type: "i64";
+          },
         ];
       };
     },
@@ -3769,8 +4125,6 @@ export type Marginfi = {
         "A read-only cache of the internal risk engine's information. Only valid in borrow/withdraw if",
         "the tx does not fail. To see the state in any context, e.g. to figure out if the risk engine is",
         "failing due to some bad price information, use `pulse_health`.",
-        "",
-        "Note:",
       ];
       repr: {
         kind: "c";
@@ -4754,10 +5108,15 @@ export type Marginfi = {
             name: "emissionsDestinationAccount";
             docs: [
               "Set with `update_emissions_destination_account`. Emissions rewards can be withdrawn to the",
-              "cannonical ATA of this wallet without the user's input (withdraw_emissions_permissionless).",
+              "canonical ATA of this wallet without the user's input (withdraw_emissions_permissionless).",
               "If pubkey default, the user has not opted into this feature, and must claim emissions",
               "manually (withdraw_emissions).",
             ];
+            type: "pubkey";
+          },
+          {
+            name: "migratedFrom";
+            docs: ["If this account was migrated from another one, store the original account key"];
             type: "pubkey";
           },
           {
@@ -4771,7 +5130,7 @@ export type Marginfi = {
           {
             name: "padding0";
             type: {
-              array: ["u64", 21];
+              array: ["u64", 17];
             };
           },
         ];
@@ -4794,7 +5153,7 @@ export type Marginfi = {
       };
     },
     {
-      name: "marginfiAccountTransferAccountAuthorityEvent";
+      name: "marginfiAccountTransferToNewAccount";
       type: {
         kind: "struct";
         fields: [
@@ -4805,6 +5164,10 @@ export type Marginfi = {
                 name: "accountEventHeader";
               };
             };
+          },
+          {
+            name: "oldAccount";
+            type: "pubkey";
           },
           {
             name: "oldAccountAuthority";
@@ -4828,6 +5191,7 @@ export type Marginfi = {
         fields: [
           {
             name: "admin";
+            docs: ["Broadly able to modify anything, and can set/remove other admins at will."];
             type: "pubkey";
           },
           {
@@ -4869,13 +5233,37 @@ export type Marginfi = {
             type: "pubkey";
           },
           {
+            name: "delegateCurveAdmin";
+            docs: [
+              "Can modify the fields in `config.interest_rate_config` but nothing else, for every bank under",
+              "this group",
+            ];
+            type: "pubkey";
+          },
+          {
+            name: "delegateLimitAdmin";
+            docs: [
+              "Can modify the `deposit_limit`, `borrow_limit`, `total_asset_value_init_limit` but nothing",
+              "else, for every bank under this group",
+            ];
+            type: "pubkey";
+          },
+          {
+            name: "delegateEmissionsAdmin";
+            docs: [
+              "Can modify the emissions `flags`, `emissions_rate` and `emissions_mint`, but nothing else,",
+              "for every bank under this group",
+            ];
+            type: "pubkey";
+          },
+          {
             name: "padding0";
             type: {
               array: [
                 {
                   array: ["u64", 2];
                 },
-                24,
+                18,
               ];
             };
           },
@@ -4889,10 +5277,6 @@ export type Marginfi = {
                 32,
               ];
             };
-          },
-          {
-            name: "padding3";
-            type: "u64";
           },
           {
             name: "padding4";

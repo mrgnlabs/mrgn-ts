@@ -28,17 +28,24 @@ type PythFeedMapResponse = Record<
  * Categorizes banks by their oracle setup type
  */
 const categorizePythBanks = (banks: { address: PublicKey; data: BankRaw }[]) => {
-  const pythLegacyBanks = banks.filter(
-    (bank) => bank.data.config.oracleSetup && "pythLegacy" in bank.data.config.oracleSetup
+  const pythMigratedBanks = banks.filter(
+    (bank) =>
+      (bank.data.config.oracleSetup && "pythLegacy" in bank.data.config.oracleSetup) ||
+      (bank.data.config.oracleSetup &&
+        "pythPushOracle" in bank.data.config.oracleSetup &&
+        bank.data.config.configFlags === 1)
   );
   const pythPushBanks = banks.filter(
-    (bank) => bank.data.config.oracleSetup && "pythPushOracle" in bank.data.config.oracleSetup
+    (bank) =>
+      bank.data.config.oracleSetup &&
+      "pythPushOracle" in bank.data.config.oracleSetup &&
+      bank.data.config.configFlags !== 1
   );
   const pythStakedCollateralBanks = banks.filter(
     (bank) => bank.data.config.oracleSetup && "stakedWithPythPush" in bank.data.config.oracleSetup
   );
 
-  return { pythLegacyBanks, pythPushBanks, pythStakedCollateralBanks };
+  return { pythMigratedBanks, pythPushBanks, pythStakedCollateralBanks };
 };
 
 /**
@@ -47,7 +54,10 @@ const categorizePythBanks = (banks: { address: PublicKey; data: BankRaw }[]) => 
 const fetchPythDataViaAPI = async (
   pythPushBanks: { address: PublicKey; data: BankRaw }[],
   voteAccMintTuples: [string, string][]
-): Promise<{ pythFeedMap: PythPushFeedIdMap; priceCoeffByBank: Record<string, number> }> => {
+): Promise<{
+  pythFeedMap: PythPushFeedIdMap;
+  priceCoeffByBank: Record<string, number>;
+}> => {
   const pythFeedMapPromise = fetch(
     "/api/bankData/pythFeedMap?feedIds=" +
       pythPushBanks.map((bank) => bank.data.config.oracleKeys[0].toBase58()).join(",")
@@ -174,7 +184,7 @@ const fetchPythOraclePricesViaAPI = async (pythOracleKeys: string[]): Promise<Re
  * Maps banks to their corresponding oracle prices
  */
 const mapPythBanksToOraclePrices = (
-  pythLegacyBanks: { address: PublicKey; data: BankRaw }[],
+  pythMigratedBanks: { address: PublicKey; data: BankRaw }[],
   pythPushBanks: { address: PublicKey; data: BankRaw }[],
   pythStakedCollateralBanks: { address: PublicKey; data: BankRaw }[],
   pythFeedMap: PythPushFeedIdMap,
@@ -184,7 +194,7 @@ const mapPythBanksToOraclePrices = (
   const bankOraclePriceMap = new Map<string, OraclePrice>();
 
   // Map legacy banks
-  pythLegacyBanks.forEach((bank) => {
+  pythMigratedBanks.forEach((bank) => {
     const oracleKey = bank.data.config.oracleKeys[0].toBase58();
     const oraclePrice = oraclePrices[oracleKey];
     if (oraclePrice) {
@@ -235,7 +245,7 @@ export const fetchPythOracleData = async (
   bankOraclePriceMap: Map<string, OraclePrice>;
 }> => {
   // Step 1: Categorize banks by oracle type
-  const { pythLegacyBanks, pythPushBanks, pythStakedCollateralBanks } = categorizePythBanks(banks);
+  const { pythMigratedBanks, pythPushBanks, pythStakedCollateralBanks } = categorizePythBanks(banks);
 
   // Step 2: Prepare vote account mint tuples for staked collateral
   const voteAccMintTuples: [string, string][] = pythStakedCollateralBanks.map((bank) => [
@@ -261,7 +271,7 @@ export const fetchPythOracleData = async (
   }
 
   // Step 4: Extract oracle keys for price fetching
-  const pythOracleKeys = extractPythOracleKeys(pythLegacyBanks, pythPushBanks, pythFeedMap);
+  const pythOracleKeys = extractPythOracleKeys(pythMigratedBanks, pythPushBanks, pythFeedMap);
 
   // Step 5: Fetch oracle prices
   let oraclePrices: Record<string, OraclePrice>;
@@ -274,7 +284,7 @@ export const fetchPythOracleData = async (
 
   // Step 6: Map banks to oracle prices
   const bankOraclePriceMap = mapPythBanksToOraclePrices(
-    pythLegacyBanks,
+    pythMigratedBanks,
     pythPushBanks,
     pythStakedCollateralBanks,
     pythFeedMap,
@@ -441,6 +451,9 @@ export const fetchOracleData = async (
     fetchPythOracleData(banks, bankMetadataMap, connection, opts),
     fetchSwbOracleData(banks, opts),
   ]);
+
+  console.log("pythData", pythData);
+  console.log("swbData", swbData);
 
   const bankOraclePriceMap = new Map<string, OraclePrice>();
 
