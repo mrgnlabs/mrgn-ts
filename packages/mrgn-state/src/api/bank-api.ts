@@ -217,6 +217,10 @@ export async function fetchOraclePricesWithBirdeyeFallback(
     }
   });
 
+  console.warn(
+    `[Oracle Fallback] Used Birdeye prices for banks: ${banksNeedingFallback.map((bank) => bank.address.toBase58()).join(", ")}`
+  );
+
   return {
     oracleMap: enhancedOracleMap,
     pythFeedIdMap: oracleData.pythFeedIdMap,
