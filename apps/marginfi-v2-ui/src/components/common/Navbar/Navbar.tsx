@@ -105,7 +105,7 @@ export const Navbar: FC = () => {
 
   const height =
     process.env.NEXT_PUBLIC_OUTAGE_BANNER && process.env.NEXT_PUBLIC_OUTAGE_BANNER !== "false"
-      ? "h-[96px]"
+      ? "h-[130px] md:h-[96px]"
       : "h-[64px]";
 
   return (
