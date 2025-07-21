@@ -3,7 +3,7 @@ import React, { FC, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { IconBell, IconBrandTelegram, IconSearch, IconSettings } from "@tabler/icons-react";
+import { IconAlertCircle, IconBell, IconBrandTelegram, IconSearch, IconSettings } from "@tabler/icons-react";
 
 import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { ResponsiveSettingsWrapper, Settings, useWallet, Wallet } from "@mrgnlabs/mrgn-ui";
@@ -104,9 +104,19 @@ export const Navbar: FC = () => {
   }, []);
 
   return (
-    <header className="h-[64px] mb-4 md:mb-8 lg:mb-14">
-      <nav className="fixed w-full top-0 h-[64px] z-50 bg-background">
-        <div className="w-full flex justify-between items-center h-16 text-sm font-[500] text-[#868E95] z-10 border-b-[0.5px] border-[#1C2125] px-4">
+    <header className="h-[96px] mb-4 md:mb-8 lg:mb-14 bg-green-400">
+      <nav className="fixed w-full top-0 h-[96px] z-50">
+        {process.env.NEXT_PUBLIC_OUTAGE_BANNER && process.env.NEXT_PUBLIC_OUTAGE_BANNER !== "false" && (
+          <div className="w-full py-2 px-6 lg:px-0 bg-background-gray-light flex items-center gap-1 text-xs justify-center text-center">
+            <IconAlertCircle size={16} className="hidden lg:block" />
+            <span>
+              {process.env.NEXT_PUBLIC_OUTAGE_BANNER !== "true"
+                ? process.env.NEXT_PUBLIC_OUTAGE_BANNER
+                : "We are currently experiencing technical issues, certain actions may not be available."}
+            </span>
+          </div>
+        )}
+        <div className="w-full flex justify-between items-center h-16 text-sm font-[500] text-[#868E95] z-10 border-b-[0.5px] border-[#1C2125] px-4 bg-background">
           <div className="h-full w-1/2 z-10 flex items-center gap-8">
             <Link
               href="/"
