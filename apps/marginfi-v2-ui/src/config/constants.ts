@@ -1,7 +1,7 @@
 export const CDN_URL = "https://storage.googleapis.com/mrgn-public";
 export const IMAGE_CDN_URL = `${CDN_URL}/mrgn-token-icons`;
 
-export const STABLECOINS = ["USDC", "USDT", "UXD", "USDY", "PYUSD", "USDS", "sUSD"];
+export const STABLECOINS = ["USDC", "USDT", "UXD", "USDY", "PYUSD", "USDS", "sUSD", "USDG"];
 
 export const LSTS = [
   "SOL",
