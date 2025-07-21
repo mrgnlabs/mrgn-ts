@@ -103,9 +103,14 @@ export const Navbar: FC = () => {
     };
   }, []);
 
+  const height =
+    process.env.NEXT_PUBLIC_OUTAGE_BANNER && process.env.NEXT_PUBLIC_OUTAGE_BANNER !== "false"
+      ? "h-[96px]"
+      : "h-[64px]";
+
   return (
-    <header className="h-[96px] mb-4 md:mb-8 lg:mb-14 bg-green-400">
-      <nav className="fixed w-full top-0 h-[96px] z-50">
+    <header className={cn("mb-4 md:mb-8 lg:mb-14", height)}>
+      <nav className={cn("fixed w-full top-0 z-50", height)}>
         {process.env.NEXT_PUBLIC_OUTAGE_BANNER && process.env.NEXT_PUBLIC_OUTAGE_BANNER !== "false" && (
           <div className="w-full py-2 px-6 lg:px-0 bg-background-gray-light flex items-center gap-1 text-xs justify-center text-center">
             <IconAlertCircle size={16} className="hidden lg:block" />
