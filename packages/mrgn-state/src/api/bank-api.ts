@@ -166,21 +166,29 @@ export async function fetchOraclePricesWithBirdeyeFallback(
 ): Promise<{ oracleMap: Map<string, OraclePrice>; pythFeedIdMap: PythPushFeedIdMap }> {
   const oracleData = await fetchOraclePrices(banks, bankMetadataMap);
 
-  const staticFeedBanks = banks.filter((bank) => {
+  const banksNeedingFallback = banks.filter((bank) => {
+    const bankAddress = bank.address.toBase58();
     const oracleKey = bank.data.config.oracleKeys[0]?.toBase58();
-    return oracleKey && STATIC_SWITCHBOARD_FEEDS.includes(oracleKey);
+    const oraclePrice = oracleData.oracleMap.get(bankAddress);
+
+    const isStaticFeed = oracleKey && STATIC_SWITCHBOARD_FEEDS.includes(oracleKey);
+    const isMissingPrice = !oraclePrice;
+    const isZeroPrice =
+      oraclePrice && (oraclePrice.priceRealtime.price.isZero() || oraclePrice.priceWeighted.price.isZero());
+
+    return isStaticFeed || isMissingPrice || isZeroPrice;
   });
 
-  if (staticFeedBanks.length === 0) {
+  if (banksNeedingFallback.length === 0) {
     return oracleData;
   }
 
-  const staticFeedMints = staticFeedBanks.map((bank) => bank.data.mint.toBase58());
-  const birdeyePrices = await fetchBirdeyePricesForMints(staticFeedMints);
+  const fallbackMints = banksNeedingFallback.map((bank) => bank.data.mint.toBase58());
+  const birdeyePrices = await fetchBirdeyePricesForMints(fallbackMints);
 
   const enhancedOracleMap = new Map(oracleData.oracleMap);
 
-  staticFeedBanks.forEach((bank) => {
+  banksNeedingFallback.forEach((bank) => {
     const mintAddress = bank.data.mint.toBase58();
     const bankAddress = bank.address.toBase58();
     const birdeyePrice = birdeyePrices[mintAddress];
