@@ -21,8 +21,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (bankAddress && typeof bankAddress === "string") {
       const result = await supabase
         .schema("application")
-        .from("v_bank_home_page_v_1_0_0")
+        .from("fv_mfi_bank_home_page_v_1_0_0")
         .select("symbol, mint, lst_apy")
+        .eq("group_address", "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8")
         .eq("bank_address", bankAddress)
         .not("lst_apy", "is", null)
         .gt("lst_apy", 0);
@@ -32,8 +33,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else {
       const result = await supabase
         .schema("application")
-        .from("v_bank_home_page_v_1_0_0")
+        .from("fv_mfi_bank_home_page_v_1_0_0")
         .select("symbol, mint, lst_apy")
+        .eq("group_address", "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8")
         .not("lst_apy", "is", null)
         .gt("lst_apy", 0);
 
@@ -43,23 +45,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (error) {
       console.error("Error fetching bank metrics from Supabase:", error);
+      // Cache error responses for 5 minutes to prevent DB hammering
+      res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
       return res.status(STATUS_INTERNAL_ERROR).json({
         error: "Error fetching bank data",
         details: error.message,
       });
     }
 
-    if (!lstRates) {
-      console.log(lstRates);
-      console.log(error);
-      return res.status(404).json({ error: "Error fetching LST rates" });
+    // Return empty array instead of 404 when no data found
+    // This ensures the response is cached and doesn't trigger retries
+    if (!lstRates || lstRates.length === 0) {
+      console.log("No LST rates found for bank:", bankAddress);
+      // Cache empty responses for 4 hours
+      res.setHeader("Cache-Control", "s-maxage=14400, stale-while-revalidate=28800");
+      return res.status(STATUS_OK).json([]);
     }
 
-    // cache for 12 hours
-    res.setHeader("Cache-Control", "s-maxage=43200, stale-while-revalidate=86400");
+    // Cache successful responses for 4 hours
+    res.setHeader("Cache-Control", "s-maxage=14400, stale-while-revalidate=28800");
     return res.status(STATUS_OK).json(lstRates);
   } catch (error: any) {
     console.error("Error in bank historic data endpoint:", error);
+    // Cache error responses for 5 minutes to prevent DB hammering
+    res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
     return res.status(STATUS_INTERNAL_ERROR).json({ error: "Internal server error" });
   }
 }

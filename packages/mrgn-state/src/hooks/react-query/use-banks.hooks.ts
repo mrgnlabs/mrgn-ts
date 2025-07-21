@@ -77,7 +77,9 @@ export function useLstRates(bankAddress?: string) {
   return useQuery<LstRatesMap, Error>({
     queryKey: ["lstRates", bankAddress],
     queryFn: () => fetchLstRates(bankAddress),
-    staleTime: 5 * 60_000, // 5 minutes
+    staleTime: 4 * 60 * 60 * 1000, // 4 hours (match API cache)
     retry: 2,
+    retryOnMount: false, // Prevent retry cycles on component mount
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
   });
 }
