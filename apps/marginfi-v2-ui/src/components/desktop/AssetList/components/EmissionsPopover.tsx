@@ -7,7 +7,7 @@ import { IconExternalLink } from "@tabler/icons-react";
 import { PublicKey } from "@solana/web3.js";
 
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
-import { useExtendedBanks, useLstRates } from "@mrgnlabs/mrgn-state";
+import { useExtendedBanks, useLstRates, useEmissionsRates } from "@mrgnlabs/mrgn-state";
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { IMAGE_CDN_URL } from "~/config/constants";
@@ -16,14 +16,6 @@ import { getRateData } from "~/bank-data.utils";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 
-type EmissionsRateData = {
-  day: string;
-  jto_usd: number;
-  all_user_value: number;
-  rate_enhancement: number;
-  annualized_rate_enhancement: number;
-};
-
 const SOL_MINT = "So11111111111111111111111111111111111111112";
 const JTO_MINT = "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn";
 
@@ -31,9 +23,10 @@ const EmissionsPopover = ({ rateAPY }: { rateAPY: number }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [shouldClose, setShouldClose] = React.useState(false);
   const debouncedShouldClose = useDebounce(shouldClose, 300);
-  const [ratesData, setRatesData] = React.useState<EmissionsRateData | null>(null);
   const { extendedBanks, isLoading: isExtendedBanksLoading } = useExtendedBanks();
   const { data: lstRates } = useLstRates();
+  const { data: ratesData } = useEmissionsRates();
+
   const solBank = extendedBanks?.find((bank) => bank.info.state.mint.equals(new PublicKey(SOL_MINT)));
   const jitoSolBank = extendedBanks?.find((bank) => bank.info.state.mint.equals(new PublicKey(JTO_MINT)));
   const solRateData = solBank ? getRateData(solBank, false) : null;
@@ -43,16 +36,6 @@ const EmissionsPopover = ({ rateAPY }: { rateAPY: number }) => {
     jitoSolRateData && solRateData && ratesData
       ? jitoSolRateData?.rateAPY - solRateData?.rateAPY + ratesData?.annualized_rate_enhancement + jitoSolLstRate
       : null;
-
-  const fetchRatesData = async () => {
-    try {
-      const res = await fetch("/api/emissions/rates");
-      const data = await res.json();
-      setRatesData(data);
-    } catch (error) {
-      console.error("Failed to fetch emissions rates:", error);
-    }
-  };
 
   const handleMouseEnter = React.useCallback(() => {
     setShouldClose(false);
@@ -69,10 +52,6 @@ const EmissionsPopover = ({ rateAPY }: { rateAPY: number }) => {
       setShouldClose(false);
     }
   }, [debouncedShouldClose]);
-
-  React.useEffect(() => {
-    fetchRatesData();
-  }, []);
 
   if (!ratesData) return <p>{percentFormatter.format(rateAPY)}</p>;
 

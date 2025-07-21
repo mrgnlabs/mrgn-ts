@@ -331,3 +331,18 @@ export const fetchLstRates = async (bankAddress?: string): Promise<LstRatesMap> 
 
   return ratesMap;
 };
+
+export const fetchEmissionsRates = async () => {
+  const response = await fetch("/api/emissions/rates", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error fetching emissions rates: ${response.statusText}`);
+  }
+
+  return response.json();
+};

@@ -6,6 +6,7 @@ import {
   fetchOraclePricesWithBirdeyeFallback,
   fetchEmissionPriceMap,
   fetchLstRates,
+  fetchEmissionsRates,
 } from "../../api";
 import { OraclePrice } from "@mrgnlabs/marginfi-client-v2";
 import { useMetadata } from "./use-metadata.hooks";
@@ -78,6 +79,19 @@ export function useLstRates(bankAddress?: string) {
     queryKey: ["lstRates", bankAddress],
     queryFn: () => fetchLstRates(bankAddress),
     staleTime: 4 * 60 * 60 * 1000, // 4 hours (match API cache)
+    retry: 2,
+    retryOnMount: false, // Prevent retry cycles on component mount
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
+  });
+}
+
+export type EmissionsRateData = Awaited<ReturnType<typeof fetchEmissionsRates>>;
+
+export function useEmissionsRates() {
+  return useQuery<EmissionsRateData, Error>({
+    queryKey: ["emissionsRates"],
+    queryFn: () => fetchEmissionsRates(),
+    staleTime: 12 * 60 * 60 * 1000, // 12 hours (match API cache)
     retry: 2,
     retryOnMount: false, // Prevent retry cycles on component mount
     refetchOnWindowFocus: false, // Don't refetch when window regains focus
