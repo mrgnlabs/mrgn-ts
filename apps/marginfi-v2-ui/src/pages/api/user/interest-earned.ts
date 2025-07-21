@@ -33,6 +33,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (error) {
       console.error("Error fetching interest earned from Supabase:", error);
+      // Cache error responses for 5 minutes to prevent DB hammering
+      res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
       return res.status(STATUS_INTERNAL_ERROR).json({
         error: "Error fetching interest earned data",
         details: error.message,
@@ -40,6 +42,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (!interestData) {
+      // Cache 404 responses for 5 minutes to prevent DB hammering
+      res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
       return res.status(404).json({ error: "No interest earned data found for this wallet" });
     }
 
@@ -52,6 +56,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(STATUS_OK).json(filteredData);
   } catch (error: any) {
     console.error("Error in interest earned endpoint:", error);
+    // Cache error responses for 5 minutes to prevent DB hammering
+    res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
     return res.status(STATUS_INTERNAL_ERROR).json({ error: "Internal server error" });
   }
 }

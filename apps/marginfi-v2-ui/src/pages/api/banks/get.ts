@@ -35,6 +35,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (error) {
       console.error("Error fetching bank metrics from Supabase:", error);
+      // Cache error responses for 5 minutes to prevent DB hammering
+      res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
       return res.status(STATUS_INTERNAL_ERROR).json({
         error: "Error fetching bank data",
         details: error.message,
@@ -44,6 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!bankMetrics) {
       console.log(bankMetrics);
       console.log(error);
+      // Cache 404 responses for 5 minutes to prevent DB hammering
+      res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
       return res.status(404).json({ error: "No historical data found for this bank" });
     }
 
@@ -52,6 +56,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(STATUS_OK).json(bankMetrics);
   } catch (error: any) {
     console.error("Error in bank historic data endpoint:", error);
+    // Cache error responses for 5 minutes to prevent DB hammering
+    res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
     return res.status(STATUS_INTERNAL_ERROR).json({ error: "Internal server error" });
   }
 }
