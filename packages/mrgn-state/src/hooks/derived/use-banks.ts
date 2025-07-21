@@ -13,8 +13,8 @@ export function useBanks() {
   const { data: lstRates, isLoading: isLoadingLstRates, isError: isErrorLstRates } = useLstRates();
   const { activeEmodePairs } = useEmode();
 
-  const isLoading = isLoadingRawBanks || isLoadingOracleData || isLoadingMetadata || isLoadingLstRates;
-  const isError = isErrorRawBanks || isErrorOracleData || isErrorLstRates;
+  const isLoading = isLoadingRawBanks || isLoadingOracleData || isLoadingMetadata;
+  const isError = isErrorRawBanks || isErrorOracleData;
 
   const [banks, banksMap, originalWeights] = React.useMemo(() => {
     if (!rawBanks || !oracleData) return [];
