@@ -269,9 +269,11 @@ export const getRateCell = ({
       )}
       <div className="flex flex-col gap-0.5 items-end">
         {isInLendingMode && symbol === "JitoSOL" ? (
-          <EmissionsPopover rateAPY={rateAPY} />
+          <EmissionsPopover rateAPY={rateAPY} campaign="jito" />
         ) : !isInLendingMode && symbol === "SOL" ? (
-          <EmissionsPopover rateAPY={rateAPY} />
+          <EmissionsPopover rateAPY={rateAPY} campaign="jito" />
+        ) : isInLendingMode && symbol === "USDS" ? (
+          <EmissionsPopover rateAPY={rateAPY} campaign="usds" />
         ) : (
           <p>{percentFormatter.format(rateAPY)}</p>
         )}

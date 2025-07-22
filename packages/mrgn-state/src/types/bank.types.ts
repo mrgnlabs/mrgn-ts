@@ -80,3 +80,25 @@ export enum Emissions {
 export type ExtendedBankInfo = ActiveBankInfo | InactiveBankInfo;
 
 export type LstRatesMap = Map<string, number>; // When no bank address, return mint -> APY map
+
+// TODO: work with backend to find a more dynamic / flexible approach to campaigns
+export interface JitoEmissionsData {
+  day: string;
+  jto_usd: number;
+  all_user_value: number;
+  rate_enhancement: number;
+  annualized_rate_enhancement: number;
+}
+
+export interface UsdsEmissionsData {
+  day: string;
+  usds_usd: number;
+  all_user_value: number;
+  rate_enhancement: number;
+  annualized_rate_enhancement: number;
+}
+
+export interface EmissionsRatesResponse {
+  jito: JitoEmissionsData | null;
+  usds: UsdsEmissionsData | null;
+}

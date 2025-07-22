@@ -74,6 +74,17 @@ export function useEmissionPriceMap() {
   });
 }
 
+export type EmissionsRatesData = Awaited<ReturnType<typeof fetchEmissionsRates>>;
+
+export function useEmissionsRates() {
+  return useQuery<EmissionsRatesData, Error>({
+    queryKey: ["emissionsRates"],
+    queryFn: () => fetchEmissionsRates(),
+    staleTime: 4 * 60_000, // 4 minutes
+    retry: 2,
+  });
+}
+
 export function useLstRates(bankAddress?: string) {
   return useQuery<LstRatesMap, Error>({
     queryKey: ["lstRates", bankAddress],
