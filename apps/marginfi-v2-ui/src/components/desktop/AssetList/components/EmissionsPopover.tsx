@@ -35,9 +35,12 @@ const EmissionsPopover = ({ rateAPY, campaign }: { rateAPY: number; campaign: Ca
   const solRateData = solBank ? getRateData(solBank, false) : null;
   const jitoSolRateData = jitoSolBank ? getRateData(jitoSolBank, true) : null;
   const jitoSolLstRate = lstRates?.get(jitoSolBank?.info.state.mint.toBase58() ?? "") || 0;
+  const usdsBank = extendedBanks?.find((bank) => bank.info.state.mint.equals(new PublicKey(USDS_MINT)));
+
+  const usdsRate = usdsBank?.info.state.totalDeposits ? (365 * 1500) / 7 / usdsBank?.info.state.totalDeposits : 0;
 
   // Get campaign-specific data
-  const campaignData = campaign === "jito" ? ratesData?.jito : ratesData?.usds;
+  const campaignData = campaign === "jito" ? ratesData?.jito : { annualized_rate_enhancement: usdsRate };
 
   const netAPY =
     campaign === "jito" && jitoSolRateData && solRateData && campaignData
