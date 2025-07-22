@@ -457,7 +457,7 @@ export const fetchOracleData = async (
   // check if any bank is missing an oracle price
   banks.forEach((bank) => {
     if (!bankOraclePriceMap.has(bank.address.toBase58())) {
-      console.error(`Bank ${bank.address.toBase58()} is missing an oracle price`);
+      // console.error(`Bank ${bank.address.toBase58()} is missing an oracle price`);
 
       bankOraclePriceMap.set(bank.address.toBase58(), {
         priceRealtime: {
