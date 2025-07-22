@@ -121,19 +121,23 @@ Here's an example:
 
 ## Incentives Mechanism Explained {{ tag: '', label: '' }}
 
-### Borrow-Side Incentives
+## Lend-Side Incentives
+To grow available liquidity, asset issuers may partner with marginfi to offer rewards to users who deposit specific assets.
 
-To deepen lending liquidity for as asset, issuers often partner with marginfi to incentivize their marginfi listings with borrow-side rewards. Below, we'll walk through **how APYs are determined** and how **borrow-side incentives work**.
+<Note>For example, users who lend during an incentives campaign may earn bonus rewards in addition to base yield.</Note>
 
-<Note>
-We will use a jitoSOL/SOL rewards example, where users are awarded incentives based on the amount of SOL they have borrowed against jitoSOL in their borrow positions.
-</Note>
+**Qualifying Criteria**
+* Deposit the incentivized asset into marginfi
+* Rewards are based on the USD value of your deposit
 
-In this scenario, borrow incentives are allocated according to the amount of SOL borrowed against jitoSOL. Reward amounts will scale as the total amount of SOL debt taken against jitoSOL collateral increases.
+## Borrow-Side Incentives
+To encourage borrowing against certain collateral, issuers may offer borrow-side rewards through marginfi.
 
-### Qualifying Criteria
-* A position must contain jitoSOL collateral and SOL debt
-* We simply use the smaller of your JitoSOL deposit or SOL borrow as your participation amount
+<Note>For example, users who borrow an asset against a specific collateral type may earn additional rewards based on their position size.</Note>
 
-### Distribution Mechanism
-The user can expect to receive their rewards as an airdrop directly to their wallets at the end of each week during the given incentives campaign. There is nothing you need to do manually to receive your airdrop (no claiming process) except hold your qualifying positions to automatically earn your share. (e.g., hold your jitoSOL deposit and SOL borrow in order to earn JTO borrow-side emissions, per the example above.)
+**Qualifying Criteria**
+* Hold a borrow position with the specified collateral and borrow asset
+* Participation amount is the smaller of your collateral deposit or borrow amount (USD value)
+
+## Distribution
+Rewards are airdropped weekly to eligible users; no manual action required. Just hold your qualifying positions to earn during the campaign.
