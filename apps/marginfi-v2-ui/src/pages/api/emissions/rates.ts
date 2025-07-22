@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .limit(1),
     supabase
       .schema("application")
-      .from("fv_emissions_usds_202507_campaign_rates_v_1_0_0")
+      .from("fv_emissions_usds_202507_campaign_rates_v_1_0_1")
       .select("*")
       .order("day", { ascending: false })
       .limit(1),
