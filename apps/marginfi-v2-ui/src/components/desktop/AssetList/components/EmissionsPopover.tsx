@@ -16,9 +16,9 @@ import { getRateData } from "~/bank-data.utils";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
 
-const SOL_MINT = "So11111111111111111111111111111111111111112";
-const JTO_MINT = "J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn";
-const USDS_MINT = "USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA";
+const SOL_BANK = "CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh";
+const USDS_BANK = "FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV";
+const JITO_BANK = "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8";
 
 type CampaignType = "jito" | "usds";
 
@@ -30,17 +30,15 @@ const EmissionsPopover = ({ rateAPY, campaign }: { rateAPY: number; campaign: Ca
   const { extendedBanks, isLoading: isExtendedBanksLoading } = useExtendedBanks();
   const { data: lstRates } = useLstRates();
 
-  const solBank = extendedBanks?.find((bank) => bank.info.state.mint.equals(new PublicKey(SOL_MINT)));
-  const jitoSolBank = extendedBanks?.find((bank) => bank.info.state.mint.equals(new PublicKey(JTO_MINT)));
+  const solBank = extendedBanks?.find((bank) => bank.address.equals(new PublicKey(SOL_BANK)));
+  const jitoSolBank = extendedBanks?.find((bank) => bank.address.equals(new PublicKey(JITO_BANK)));
+  const usdsBank = extendedBanks?.find((bank) => bank.address.equals(new PublicKey(USDS_BANK)));
   const solRateData = solBank ? getRateData(solBank, false) : null;
   const jitoSolRateData = jitoSolBank ? getRateData(jitoSolBank, true) : null;
   const jitoSolLstRate = lstRates?.get(jitoSolBank?.info.state.mint.toBase58() ?? "") || 0;
-  const usdsBank = extendedBanks?.find((bank) => bank.info.state.mint.equals(new PublicKey(USDS_MINT)));
 
-  const usdsRate = usdsBank?.info.state.totalDeposits ? (365 * 1500) / 7 / usdsBank?.info.state.totalDeposits : 0;
-
-  // Get campaign-specific data
-  const campaignData = campaign === "jito" ? ratesData?.jito : { annualized_rate_enhancement: usdsRate };
+  // Get campaign-specific data from API
+  const campaignData = campaign === "jito" ? ratesData?.jito : ratesData?.[USDS_BANK];
 
   const netAPY =
     campaign === "jito" && jitoSolRateData && solRateData && campaignData
@@ -77,7 +75,7 @@ const EmissionsPopover = ({ rateAPY, campaign }: { rateAPY: number; campaign: Ca
             {campaign === "jito" ? (
               <>
                 <Image
-                  src={`${IMAGE_CDN_URL}/${JTO_MINT}.png`}
+                  src={`${IMAGE_CDN_URL}/${jitoSolBank?.info.state.mint.toBase58()}.png`}
                   alt="info"
                   height={12}
                   width={12}
@@ -93,7 +91,7 @@ const EmissionsPopover = ({ rateAPY, campaign }: { rateAPY: number; campaign: Ca
               </>
             ) : (
               <Image
-                src={`${IMAGE_CDN_URL}/${USDS_MINT}.png`}
+                src={`${IMAGE_CDN_URL}/${usdsBank?.info.state.mint.toBase58()}.png`}
                 alt="info"
                 height={12}
                 width={12}
@@ -110,7 +108,7 @@ const EmissionsPopover = ({ rateAPY, campaign }: { rateAPY: number; campaign: Ca
               {campaign === "jito" ? (
                 <>
                   <Image
-                    src={`${IMAGE_CDN_URL}/${JTO_MINT}.png`}
+                    src={`${IMAGE_CDN_URL}/${jitoSolBank?.info.state.mint.toBase58()}.png`}
                     alt="info"
                     height={20}
                     width={20}
@@ -126,7 +124,7 @@ const EmissionsPopover = ({ rateAPY, campaign }: { rateAPY: number; campaign: Ca
                 </>
               ) : (
                 <Image
-                  src={`${IMAGE_CDN_URL}/${USDS_MINT}.png`}
+                  src={`${IMAGE_CDN_URL}/${usdsBank?.info.state.mint.toBase58()}.png`}
                   alt="info"
                   height={20}
                   width={20}

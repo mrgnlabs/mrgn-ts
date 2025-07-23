@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ActionType, ExtendedBankInfo, LstRatesMap, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
+import { ActionType, EmissionsRateData, ExtendedBankInfo, LstRatesMap, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
 import { cn, formatAmount, LendSelectionGroups, useIsMobile } from "@mrgnlabs/mrgn-utils";
 import { tokenPriceFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
@@ -17,6 +17,7 @@ type ActionInputProps = {
   maxAmount: number;
   banks: ExtendedBankInfo[];
   lstRates?: LstRatesMap;
+  emissionsRates?: EmissionsRateData;
   selectedBank: ExtendedBankInfo | null;
   lendMode: ActionType;
   connected: boolean;
@@ -35,6 +36,7 @@ type ActionInputProps = {
 export const ActionInput = ({
   banks,
   lstRates,
+  emissionsRates,
   nativeSolBalance,
   walletAmount,
   maxAmount,
@@ -111,6 +113,7 @@ export const ActionInput = ({
             selectionGroups={selectionGroups}
             banks={banks}
             lstRates={lstRates}
+            emissionsRates={emissionsRates}
             nativeSolBalance={nativeSolBalance}
             lendMode={lendMode}
             connected={connected}

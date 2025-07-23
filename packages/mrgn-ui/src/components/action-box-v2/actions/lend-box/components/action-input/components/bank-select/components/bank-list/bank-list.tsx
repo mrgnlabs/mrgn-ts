@@ -4,8 +4,8 @@ import { IconExternalLink } from "@tabler/icons-react";
 import { useRouter } from "next/router";
 
 import { percentFormatter, WSOL_MINT } from "@mrgnlabs/mrgn-common";
-import { ExtendedBankInfo, ActionType, StakePoolMetadata, LstRatesMap } from "@mrgnlabs/mrgn-state";
-import { LendSelectionGroups, LendingModes, cn, computeBankRate, getEmodeStrategies } from "@mrgnlabs/mrgn-utils";
+import { ExtendedBankInfo, ActionType, StakePoolMetadata, LstRatesMap, EmissionsRateData } from "@mrgnlabs/mrgn-state";
+import { LendSelectionGroups, LendingModes, cn, computeBankRateRaw, getEmodeStrategies } from "@mrgnlabs/mrgn-utils";
 import { aprToApy } from "@mrgnlabs/mrgn-common";
 
 import { useActionBoxContext } from "~/components/action-box-v2/contexts";
@@ -18,6 +18,7 @@ type BankListProps = {
   selectedBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
   lstRates?: LstRatesMap;
+  emissionsRates?: EmissionsRateData;
   nativeSolBalance: number;
   isOpen: boolean;
   actionType: ActionType;
@@ -41,6 +42,7 @@ export const BankList = ({
   selectedBank,
   banks,
   lstRates,
+  emissionsRates,
   nativeSolBalance,
   actionType,
   connected,
@@ -70,28 +72,43 @@ export const BankList = ({
           ? percentFormatter.format(stakePoolMetadata?.validatorRewards / 100)
           : "0%";
       }
-      const baseRate = computeBankRate(bank, lendingMode);
+      const emissionsRate = emissionsRates?.[bank.address.toBase58()];
+      const baseRate = percentFormatter.format(
+        computeBankRateRaw(bank, lendingMode) + (emissionsRate?.annualized_rate_enhancement || 0)
+      );
       const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
 
       if (lstRate && lendingMode === LendingModes.LEND) {
         return (
           <div className="space-x-2">
-            <span>{percentFormatter.format(aprToApy(bank.info.state.lendingRate))}</span>
+            <span
+              className={cn(emissionsRate?.annualized_rate_enhancement && "border-b border-dashed border-blue-400")}
+            >
+              {baseRate}
+            </span>
             <span className="text-xs font-light text-blue-400">+{percentFormatter.format(lstRate)} stake yield</span>
           </div>
         );
       } else if (lstRate && lendingMode === LendingModes.BORROW) {
         return (
           <div className="space-x-2">
-            <span>{percentFormatter.format(aprToApy(bank.info.state.borrowingRate))}</span>
+            <span
+              className={cn(emissionsRate?.annualized_rate_enhancement && "border-b border-dashed border-blue-400")}
+            >
+              {baseRate}
+            </span>
             <span className="text-xs font-light text-blue-400">+{percentFormatter.format(lstRate)} stake yield</span>
           </div>
         );
       }
 
-      return baseRate;
+      return (
+        <span className={cn(emissionsRate?.annualized_rate_enhancement && "border-b border-dashed border-blue-400")}>
+          {baseRate}
+        </span>
+      );
     },
-    [lendingMode, stakePoolMetadataMap, lstRates]
+    [lendingMode, stakePoolMetadataMap, lstRates, emissionsRates]
   );
 
   const hasTokens = React.useMemo(() => {

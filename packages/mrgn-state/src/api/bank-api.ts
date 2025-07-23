@@ -333,7 +333,11 @@ export const fetchLstRates = async (bankAddress?: string): Promise<LstRatesMap> 
   return ratesMap;
 };
 
-export const fetchEmissionsRates = async () => {
+export const fetchEmissionsRates = async (): Promise<{
+  [key: string]: {
+    annualized_rate_enhancement: number;
+  };
+}> => {
   const response = await fetch("/api/emissions/rates", {
     method: "GET",
     headers: {

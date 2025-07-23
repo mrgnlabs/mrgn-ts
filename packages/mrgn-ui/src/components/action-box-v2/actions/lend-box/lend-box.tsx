@@ -164,6 +164,7 @@ export const LendBox = ({
   const contextProps = useActionBoxContext();
   const banks = banksProp ?? contextProps?.banks;
   const lstRates = contextProps?.lstRates;
+  const emissionsRates = contextProps?.emissionsRates;
   const stakeAccounts = contextProps?.stakeAccounts;
   const stakePoolMetadataMap = contextProps?.stakePoolMetadataMap;
   const stakePoolMetadata = stakePoolMetadataMap?.get(selectedBank?.address.toBase58() ?? "");
@@ -449,6 +450,7 @@ export const LendBox = ({
         <ActionInput
           banks={banks ?? []}
           lstRates={lstRates}
+          emissionsRates={emissionsRates}
           nativeSolBalance={nativeSolBalance}
           walletAmount={walletAmount}
           amountRaw={amountRaw}

@@ -1,17 +1,18 @@
 import React from "react";
 
-import { ExtendedBankInfo, ActionType, StakePoolMetadata, LstRatesMap } from "@mrgnlabs/mrgn-state";
-import { computeBankRate, LendingModes, LendSelectionGroups } from "@mrgnlabs/mrgn-utils";
+import { ExtendedBankInfo, ActionType, StakePoolMetadata, LstRatesMap, EmissionsRateData } from "@mrgnlabs/mrgn-state";
+import { computeBankRateRaw, LendingModes, LendSelectionGroups } from "@mrgnlabs/mrgn-utils";
 
 import { SelectedBankItem, BankListWrapper } from "~/components/action-box-v2/components";
 
 import { BankTrigger, BankList } from "./components";
-import { aprToApy, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { percentFormatter } from "@mrgnlabs/mrgn-common";
 
 type BankSelectProps = {
   selectedBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
   lstRates?: LstRatesMap;
+  emissionsRates?: EmissionsRateData;
   nativeSolBalance: number;
   lendMode: ActionType;
   connected: boolean;
@@ -25,6 +26,7 @@ export const BankSelect = ({
   selectedBank,
   banks,
   lstRates,
+  emissionsRates,
   nativeSolBalance,
   lendMode,
   connected,
@@ -41,26 +43,14 @@ export const BankSelect = ({
     [lendMode]
   );
 
-  const calculateRate = React.useCallback(
-    (bank: ExtendedBankInfo) => {
-      const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
-      if (bank.info.rawBank.config.assetTag === 2) {
-        return stakePoolMetadata?.validatorRewards
-          ? percentFormatter.format(stakePoolMetadata?.validatorRewards / 100)
-          : "0%";
-      }
-
-      return computeBankRate(bank, lendingMode);
-    },
-    [lendingMode, stakePoolMetadata, lstRates]
-  );
-
   const rate = React.useMemo(() => {
     if (selectedBank) {
-      return calculateRate(selectedBank);
+      const emissionsRate = emissionsRates?.[selectedBank.address.toBase58()];
+      const apyRate = computeBankRateRaw(selectedBank, lendingMode);
+      return percentFormatter.format(apyRate + (emissionsRate?.annualized_rate_enhancement || 0));
     }
     return "";
-  }, [selectedBank, calculateRate]);
+  }, [selectedBank, lendingMode, emissionsRates]);
 
   return (
     <>
@@ -88,6 +78,7 @@ export const BankSelect = ({
               actionType={lendMode}
               banks={banks}
               lstRates={lstRates}
+              emissionsRates={emissionsRates}
               nativeSolBalance={nativeSolBalance}
               connected={connected}
               selectionGroups={selectionGroups}

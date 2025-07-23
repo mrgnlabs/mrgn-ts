@@ -1,7 +1,13 @@
 import React from "react";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 
-import { ExtendedBankInfo, AccountSummary, StakePoolMetadata, LstRatesMap } from "@mrgnlabs/mrgn-state";
+import {
+  ExtendedBankInfo,
+  AccountSummary,
+  StakePoolMetadata,
+  LstRatesMap,
+  EmissionsRateData,
+} from "@mrgnlabs/mrgn-state";
 import { MarginfiAccountWrapper, MarginfiClient, ValidatorStakeGroup } from "@mrgnlabs/marginfi-client-v2";
 
 import { WalletContextStateOverride } from "~/components/wallet-v2";
@@ -11,6 +17,7 @@ export type HidePoolStats = Array<"amount" | "health" | "size" | "type" | "oracl
 type ActionBoxContextType = {
   banks: ExtendedBankInfo[];
   lstRates?: LstRatesMap;
+  emissionsRates?: EmissionsRateData;
   nativeSolBalance: number;
   connected: boolean;
   marginfiClient: MarginfiClient | null;

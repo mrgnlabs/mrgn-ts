@@ -7,6 +7,7 @@ import { useUiStore } from "~/store";
 import {
   useExtendedBanks,
   useLstRates,
+  useEmissionsRates,
   useMarginfiAccountAddresses,
   useMarginfiClient,
   useNativeStakeData,
@@ -30,6 +31,7 @@ export const MrgnlendProvider: React.FC<{
   const { data: stakeAccounts } = useUserStakeAccounts();
   const { marginfiClient } = useMarginfiClient(wallet);
   const { data: lstRates } = useLstRates();
+  const { data: emissionsRates } = useEmissionsRates();
 
   const [fetchPriorityFee, fetchAccountLabels, accountLabels, setDisplaySettings] = useUiStore((state) => [
     state.fetchPriorityFee,
@@ -74,6 +76,7 @@ export const MrgnlendProvider: React.FC<{
       <ActionBoxProvider
         banks={extendedBanks}
         lstRates={lstRates}
+        emissionsRates={emissionsRates}
         nativeSolBalance={userBalances?.nativeSolBalance ?? 0}
         marginfiClient={marginfiClient ?? null}
         selectedAccount={selectedAccount}
