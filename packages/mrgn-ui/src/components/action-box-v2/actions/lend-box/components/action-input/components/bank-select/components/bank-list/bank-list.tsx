@@ -73,9 +73,8 @@ export const BankList = ({
           : "0%";
       }
       const emissionsRate = emissionsRates?.[bank.address.toBase58()];
-      const baseRate = percentFormatter.format(
-        computeBankRateRaw(bank, lendingMode) + (emissionsRate?.annualized_rate_enhancement || 0)
-      );
+      const rawBaseRate = computeBankRateRaw(bank, lendingMode);
+      const baseRate = percentFormatter.format(rawBaseRate + (emissionsRate?.annualized_rate_enhancement || 0));
       const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
 
       if (lstRate && lendingMode === LendingModes.LEND) {
@@ -100,13 +99,15 @@ export const BankList = ({
             <span className="text-xs font-light text-blue-400">+{percentFormatter.format(lstRate)} stake yield</span>
           </div>
         );
+      } else if (lendingMode === LendingModes.LEND) {
+        return (
+          <span className={cn(emissionsRate?.annualized_rate_enhancement && "border-b border-dashed border-blue-400")}>
+            {baseRate}
+          </span>
+        );
+      } else {
+        return <span>{percentFormatter.format(rawBaseRate)}</span>;
       }
-
-      return (
-        <span className={cn(emissionsRate?.annualized_rate_enhancement && "border-b border-dashed border-blue-400")}>
-          {baseRate}
-        </span>
-      );
     },
     [lendingMode, stakePoolMetadataMap, lstRates, emissionsRates]
   );

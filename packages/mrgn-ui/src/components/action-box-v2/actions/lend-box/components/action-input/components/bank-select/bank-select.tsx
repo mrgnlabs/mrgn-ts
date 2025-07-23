@@ -47,7 +47,9 @@ export const BankSelect = ({
     if (selectedBank) {
       const emissionsRate = emissionsRates?.[selectedBank.address.toBase58()];
       const apyRate = computeBankRateRaw(selectedBank, lendingMode);
-      return percentFormatter.format(apyRate + (emissionsRate?.annualized_rate_enhancement || 0));
+      return percentFormatter.format(
+        apyRate + (lendingMode === LendingModes.LEND ? emissionsRate?.annualized_rate_enhancement || 0 : 0)
+      );
     }
     return "";
   }, [selectedBank, lendingMode, emissionsRates]);

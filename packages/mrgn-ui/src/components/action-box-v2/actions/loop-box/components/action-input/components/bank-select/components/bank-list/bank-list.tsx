@@ -1,8 +1,8 @@
 import React from "react";
 import { PublicKey } from "@solana/web3.js";
 
-import { ActionType, ExtendedBankInfo, LstRatesMap } from "@mrgnlabs/mrgn-state";
-import { cn, computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { ActionType, EmissionsRateData, ExtendedBankInfo, LstRatesMap } from "@mrgnlabs/mrgn-state";
+import { cn, computeBankRate, computeBankRateRaw, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { CommandEmpty, CommandGroup, CommandItem } from "~/components/ui/command";
 
@@ -15,10 +15,12 @@ type BankListProps = {
   otherBank: ExtendedBankInfo | null;
   banks: ExtendedBankInfo[];
   lstRates?: LstRatesMap;
+  emissionsRates?: EmissionsRateData;
   nativeSolBalance: number;
   isOpen: boolean;
   actionMode: ActionType;
   highlightEmodeBanks: Record<string, boolean>;
+  lendingMode: LendingModes;
 
   onSetSelectedBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
   onClose: () => void;
@@ -30,9 +32,11 @@ export const BankList = ({
   banks,
   highlightEmodeBanks,
   lstRates,
+  emissionsRates,
   nativeSolBalance,
   isOpen,
   actionMode,
+  lendingMode,
 
   onSetSelectedBank,
   onClose,
@@ -41,26 +45,44 @@ export const BankList = ({
 
   const calculateRate = React.useCallback(
     (bank: ExtendedBankInfo) => {
+      const emissionsRate = emissionsRates?.[bank.address.toBase58()];
+      const rawBaseRate = computeBankRateRaw(bank, lendingMode);
+      const baseRate = percentFormatter.format(rawBaseRate + (emissionsRate?.annualized_rate_enhancement || 0));
       const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
-      if (lstRate && actionMode === ActionType.Deposit) {
-        return (
-          <div className="space-x-2">
-            <span>{percentFormatter.format(aprToApy(bank.info.state.lendingRate) + lstRate)}</span>
-            <span className="text-xs font-light text-blue-400">+{percentFormatter.format(lstRate)} stake yield</span>
-          </div>
-        );
-      } else if (lstRate && actionMode === ActionType.Borrow) {
-        return (
-          <div className="space-x-2">
-            <span>{percentFormatter.format(aprToApy(bank.info.state.borrowingRate) + lstRate)}</span>
-            <span className="text-xs font-light text-blue-400">+{percentFormatter.format(lstRate)} stake yield</span>
-          </div>
-        );
-      }
 
-      return computeBankRate(bank, actionMode === ActionType.Borrow ? LendingModes.BORROW : LendingModes.LEND);
+      if (lstRate && lendingMode === LendingModes.LEND) {
+        return (
+          <div className="space-x-2">
+            <span
+              className={cn(emissionsRate?.annualized_rate_enhancement && "border-b border-dashed border-blue-400")}
+            >
+              {baseRate}
+            </span>
+            <span className="text-xs font-light text-blue-400">+{percentFormatter.format(lstRate)} stake yield</span>
+          </div>
+        );
+      } else if (lstRate && lendingMode === LendingModes.BORROW) {
+        return (
+          <div className="space-x-2">
+            <span
+              className={cn(emissionsRate?.annualized_rate_enhancement && "border-b border-dashed border-blue-400")}
+            >
+              {baseRate}
+            </span>
+            <span className="text-xs font-light text-blue-400">+{percentFormatter.format(lstRate)} stake yield</span>
+          </div>
+        );
+      } else if (lendingMode === LendingModes.LEND) {
+        return (
+          <span className={cn(emissionsRate?.annualized_rate_enhancement && "border-b border-dashed border-blue-400")}>
+            {baseRate}
+          </span>
+        );
+      } else {
+        return <span>{percentFormatter.format(rawBaseRate)}</span>;
+      }
     },
-    [actionMode, lstRates]
+    [lendingMode, lstRates, emissionsRates]
   );
 
   const loopingBanks = React.useMemo(() => {

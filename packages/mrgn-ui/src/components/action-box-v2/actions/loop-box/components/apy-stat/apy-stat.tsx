@@ -4,6 +4,7 @@ import Image from "next/image";
 import { calcNetLoopingApy, cn, computeBankRateRaw, LendingModes } from "@mrgnlabs/mrgn-utils";
 import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import { percentFormatter } from "@mrgnlabs/mrgn-common";
+import { PublicKey } from "@solana/web3.js";
 
 type ApyStatProps = {
   selectedBank: ExtendedBankInfo | null;
@@ -11,7 +12,12 @@ type ApyStatProps = {
   leverageAmount: number;
   depositLstApy: number | null;
   borrowLstApy: number | null;
+  depositEmissionsRate: number | null;
 };
+
+const JITO_BANK = new PublicKey("Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8");
+const SOL_BANK = new PublicKey("CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh");
+const JTO_MINT = "jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL";
 
 export const ApyStat = ({
   selectedBank,
@@ -19,6 +25,7 @@ export const ApyStat = ({
   leverageAmount,
   depositLstApy,
   borrowLstApy,
+  depositEmissionsRate,
 }: ApyStatProps) => {
   const [apyOverview, setApyOverview] = React.useState<{
     totalDepositApy: number;
@@ -39,16 +46,22 @@ export const ApyStat = ({
         netApy,
       } = calcNetLoopingApy(bank, secondaryBank, depositLstApy ?? 0, borrowLstApy ?? 0, leverageAmount);
 
+      // Scale emissions rate by leverage amount (similar to how deposit APY is scaled)
+      const scaledEmissionsRate = (depositEmissionsRate ?? 0) * leverageAmount;
+
+      // Add emissions rate to the net APY
+      const netApyWithEmissions = netApy + scaledEmissionsRate;
+
       setApyOverview({
         totalDepositApy,
         totalBorrowApy,
         totalDepositLstApy,
         totalBorrowLstApy,
-        netApyRaw: netApy,
-        netApy: percentFormatter.format(Math.abs(netApy)),
+        netApyRaw: netApyWithEmissions,
+        netApy: percentFormatter.format(Math.abs(netApyWithEmissions)),
       });
     },
-    [borrowLstApy, depositLstApy, leverageAmount]
+    [borrowLstApy, depositLstApy, leverageAmount, depositEmissionsRate]
   );
 
   React.useEffect(() => {
@@ -113,6 +126,51 @@ export const ApyStat = ({
                   {percentFormatter.format(getDisplayRate(isDepositBank))}
                 </span>
               </div>
+
+              {isDepositBank &&
+                depositEmissionsRate &&
+                selectedBank.address.equals(JITO_BANK) &&
+                selectedSecondaryBank.address.equals(SOL_BANK) && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <Image
+                        src={`https://storage.googleapis.com/mrgn-public/mrgn-token-icons/${JTO_MINT}.png`}
+                        width={16}
+                        height={16}
+                        alt={"JTO"}
+                        className="rounded-full"
+                      />
+                      <div className="text-muted-foreground">
+                        <span>JTO</span> emissions rate
+                      </div>
+                    </div>
+                    <span className="text-success text-right">
+                      {percentFormatter.format(depositEmissionsRate * (leverageAmount <= 1 ? 1 : leverageAmount))}
+                    </span>
+                  </div>
+                )}
+
+              {isDepositBank && depositEmissionsRate && !selectedBank.address.equals(JITO_BANK) && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <Image
+                      src={bank.meta.tokenLogoUri}
+                      width={16}
+                      height={16}
+                      alt={bank.meta.tokenName}
+                      className="rounded-full"
+                    />
+                    <div className="text-muted-foreground">
+                      <span>{bank.meta.tokenSymbol}</span> emissions rate
+                    </div>
+                  </div>
+                  <span className="text-success text-right">
+                    {percentFormatter.format(depositEmissionsRate * (leverageAmount <= 1 ? 1 : leverageAmount))}
+                  </span>
+                </div>
+              )}
 
               {isDepositBank && depositLstApy !== null && depositLstApy > 0 && (
                 <div className="flex items-center justify-between">

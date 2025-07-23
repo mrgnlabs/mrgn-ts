@@ -1,8 +1,8 @@
 import React from "react";
 import { PublicKey } from "@solana/web3.js";
 
-import { ActionType, ExtendedBankInfo, LstRatesMap, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
-import { computeBankRate, LendingModes } from "@mrgnlabs/mrgn-utils";
+import { ActionType, EmissionsRateData, ExtendedBankInfo, LstRatesMap, StakePoolMetadata } from "@mrgnlabs/mrgn-state";
+import { computeBankRate, computeBankRateRaw, LendingModes } from "@mrgnlabs/mrgn-utils";
 
 import { SelectedBankItem, BankListWrapper } from "~/components/action-box-v2/components";
 
@@ -17,6 +17,7 @@ interface BankSelectProps {
   actionMode: ActionType;
   highlightEmodeBanks: Record<string, boolean>;
   lstRates?: LstRatesMap;
+  emissionsRates?: EmissionsRateData;
   lendMode: ActionType;
 
   setTokenBank: (selectedTokenBank: ExtendedBankInfo | null) => void;
@@ -30,6 +31,7 @@ export const BankSelect = ({
   actionMode,
   highlightEmodeBanks,
   lstRates,
+  emissionsRates,
   lendMode,
   setTokenBank,
 }: BankSelectProps) => {
@@ -43,25 +45,35 @@ export const BankSelect = ({
     [lendMode]
   );
 
-  const calculateRate = React.useCallback(
-    (bank: ExtendedBankInfo) => {
-      return computeBankRate(bank, lendingMode);
-    },
-    [lendingMode]
-  );
-
   const rate = React.useMemo(() => {
     if (selectedBank) {
-      return calculateRate(selectedBank);
+      const emissionsRate = emissionsRates?.[selectedBank.address.toBase58()];
+      const apyRate = computeBankRateRaw(selectedBank, lendingMode);
+      return percentFormatter.format(
+        apyRate + (lendingMode === LendingModes.LEND ? emissionsRate?.annualized_rate_enhancement || 0 : 0)
+      );
     }
     return "";
-  }, [selectedBank, calculateRate]);
+  }, [selectedBank, lendingMode, emissionsRates]);
+
+  console.log(
+    "includesEmissionsRate",
+    selectedBank?.meta.tokenSymbol,
+    !!emissionsRates?.[selectedBank?.address.toBase58() ?? ""]
+  );
 
   return (
     <>
       {!isSelectable && (
         <div className="flex gap-3 w-full items-center">
-          {selectedBank && <SelectedBankItem bank={selectedBank} lendingMode={LendingModes.BORROW} rate={rate} />}
+          {selectedBank && (
+            <SelectedBankItem
+              bank={selectedBank}
+              lendingMode={LendingModes.BORROW}
+              rate={rate}
+              includesEmissionsRate={!!emissionsRates?.[selectedBank?.address.toBase58() ?? ""]}
+            />
+          )}
         </div>
       )}
 
@@ -69,7 +81,15 @@ export const BankSelect = ({
         <BankListWrapper
           isOpen={isOpen}
           setIsOpen={setIsOpen}
-          Trigger={<BankTrigger bank={selectedBank} isOpen={isOpen} actionMode={actionMode} rate={rate} />}
+          Trigger={
+            <BankTrigger
+              bank={selectedBank}
+              isOpen={isOpen}
+              actionMode={actionMode}
+              rate={rate}
+              includesEmissionsRate={!!emissionsRates?.[selectedBank?.address.toBase58() ?? ""]}
+            />
+          }
           Content={
             <BankList
               banks={banks}
@@ -82,6 +102,8 @@ export const BankSelect = ({
               selectedBank={selectedBank}
               otherBank={otherBank}
               highlightEmodeBanks={highlightEmodeBanks}
+              lendingMode={lendingMode}
+              emissionsRates={emissionsRates}
             />
           }
         />

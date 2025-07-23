@@ -14,10 +14,11 @@ type BankTriggerProps = {
   rate: string;
   isOpen?: boolean;
   lstRate?: number;
+  includesEmissionsRate?: boolean;
 };
 
 export const BankTrigger = React.forwardRef<HTMLButtonElement, BankTriggerProps>(
-  ({ selectedBank, lendingMode, rate, isOpen, lstRate }, ref) => {
+  ({ selectedBank, lendingMode, rate, isOpen, lstRate, includesEmissionsRate }, ref) => {
     return (
       <Button
         ref={ref}
@@ -27,7 +28,14 @@ export const BankTrigger = React.forwardRef<HTMLButtonElement, BankTriggerProps>
           isOpen && "bg-mfi-action-box-accent"
         )}
       >
-        {selectedBank && <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={rate} />}
+        {selectedBank && (
+          <SelectedBankItem
+            bank={selectedBank}
+            lendingMode={lendingMode}
+            rate={rate}
+            includesEmissionsRate={includesEmissionsRate}
+          />
+        )}
         {!selectedBank && <>Select token</>}
         <IconChevronDown className="shrink-0" size={20} />
       </Button>

@@ -120,6 +120,8 @@ export const LoopBox = ({
 
   const contextProps = useActionBoxContext();
   const lstRates = contextProps?.lstRates;
+  const emissionsRates = contextProps?.emissionsRates;
+  const depositEmissionsRate = emissionsRates?.[selectedBank?.address.toBase58() ?? ""];
   const depositLstApy = lstRates?.get(selectedBank?.info.state.mint.toBase58() ?? "") ?? 0;
   const borrowLstApy = lstRates?.get(selectedSecondaryBank?.info.state.mint.toBase58() ?? "") ?? 0;
 
@@ -449,6 +451,7 @@ export const LoopBox = ({
         <ActionInput
           banks={banks}
           lstRates={lstRates}
+          emissionsRates={emissionsRates}
           nativeSolBalance={nativeSolBalance}
           amount={amount}
           amountRaw={amountRaw}
@@ -492,6 +495,7 @@ export const LoopBox = ({
           leverageAmount={leverage}
           depositLstApy={depositLstApy}
           borrowLstApy={borrowLstApy}
+          depositEmissionsRate={depositEmissionsRate?.annualized_rate_enhancement ?? null}
         />
       </div>
       {additionalActionMessages

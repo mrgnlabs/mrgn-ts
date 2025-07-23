@@ -9,6 +9,7 @@ type SelectedBankItemProps = {
   bank: ExtendedBankInfo | WalletToken;
   lendingMode?: LendingModes;
   rate?: string;
+  includesEmissionsRate?: boolean;
 };
 
 // Type guard function to check if bank is ExtendedBankInfo
@@ -16,7 +17,7 @@ const isExtendedBankInfo = (bank: ExtendedBankInfo | WalletToken): bank is Exten
   return "info" in bank;
 };
 
-export const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemProps) => {
+export const SelectedBankItem = ({ rate, bank, lendingMode, includesEmissionsRate }: SelectedBankItemProps) => {
   // Extract common properties based on bank type
   const { tokenName, tokenSymbol, tokenLogoUri } = React.useMemo(() => {
     if (isExtendedBankInfo(bank)) {
@@ -46,7 +47,8 @@ export const SelectedBankItem = ({ rate, bank, lendingMode }: SelectedBankItemPr
             className={cn(
               "text-xs font-normal leading-none",
               lendingMode === LendingModes.LEND && "text-success",
-              lendingMode === LendingModes.BORROW && "text-warning"
+              lendingMode === LendingModes.BORROW && "text-warning",
+              includesEmissionsRate && "border-b border-dashed border-blue-400"
             )}
           >
             {`${rate} APY`}

@@ -1,7 +1,7 @@
 import React from "react";
 import { PublicKey } from "@solana/web3.js";
 
-import { ActionType, ExtendedBankInfo, LstRatesMap } from "@mrgnlabs/mrgn-state";
+import { ActionType, EmissionsRateData, ExtendedBankInfo, LstRatesMap } from "@mrgnlabs/mrgn-state";
 import { cn, formatAmount, getEmodeStrategies, LoopActionTxns } from "@mrgnlabs/mrgn-utils";
 import { tokenPriceFormatter } from "@mrgnlabs/mrgn-common";
 
@@ -19,6 +19,7 @@ type ActionInputProps = {
   walletAmount: number | undefined;
   banks: ExtendedBankInfo[];
   lstRates?: LstRatesMap;
+  emissionsRates?: EmissionsRateData;
   selectedBank: ExtendedBankInfo | null;
   selectedSecondaryBank: ExtendedBankInfo | null;
   actionTxns: LoopActionTxns;
@@ -36,6 +37,7 @@ type ActionInputProps = {
 export const ActionInput = ({
   banks,
   lstRates,
+  emissionsRates,
   nativeSolBalance,
   amount,
   amountRaw,
@@ -124,6 +126,7 @@ export const ActionInput = ({
                 setTokenBank={(bank) => setSelectedBank(bank)}
                 highlightEmodeBanks={highlightEmodeBySupplyBank}
                 lstRates={lstRates}
+                emissionsRates={emissionsRates}
                 lendMode={ActionType.Deposit}
               />
             </div>
@@ -175,6 +178,7 @@ export const ActionInput = ({
                 setTokenBank={(bank) => setSelectedSecondaryBank(bank)}
                 highlightEmodeBanks={highlightEmodeByBorrowBank}
                 lstRates={lstRates}
+                emissionsRates={emissionsRates}
                 lendMode={ActionType.Borrow}
               />
             </div>
