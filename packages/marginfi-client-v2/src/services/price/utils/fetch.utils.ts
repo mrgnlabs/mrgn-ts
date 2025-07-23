@@ -452,9 +452,6 @@ export const fetchOracleData = async (
     fetchSwbOracleData(banks, opts),
   ]);
 
-  console.log("pythData", pythData);
-  console.log("swbData", swbData);
-
   const bankOraclePriceMap = new Map<string, OraclePrice>();
 
   // Map pyth data
