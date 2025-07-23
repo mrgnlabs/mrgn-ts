@@ -38,7 +38,7 @@ const EmissionsPopover = ({ rateAPY, campaign }: { rateAPY: number; campaign: Ca
   const jitoSolLstRate = lstRates?.get(jitoSolBank?.info.state.mint.toBase58() ?? "") || 0;
 
   // Get campaign-specific data from API
-  const campaignData = campaign === "jito" ? ratesData?.jito : ratesData?.[USDS_BANK];
+  const campaignData = campaign === "jito" ? ratesData?.[JITO_BANK] : ratesData?.[USDS_BANK];
 
   const netAPY =
     campaign === "jito" && jitoSolRateData && solRateData && campaignData
