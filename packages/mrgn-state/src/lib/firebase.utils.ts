@@ -116,31 +116,6 @@ async function getUser(walletAddress: string): Promise<UserData | undefined> {
   }
 }
 
-async function migratePoints(
-  signingMethod: SigningMethod,
-  blockhash: BlockhashWithExpiryBlockHeight,
-  wallet: Wallet,
-  toWalletAddress: string
-) {
-  const authData: MigratePayload = {
-    fromWalletAddress: wallet.publicKey!.toBase58(),
-    toWalletAddress,
-  };
-  const signedDataRaw =
-    signingMethod === "tx" ? await signMigrateTx(wallet, authData, blockhash) : await signMigrateMemo(wallet, authData);
-
-  const response = await fetch("/api/user/migrate-points", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ method: signingMethod, signedDataRaw }),
-  });
-  const data = await response.json();
-
-  return data;
-}
-
 async function setAccountLabel(
   signingMethod: SigningMethod,
   blockhash: BlockhashWithExpiryBlockHeight,
@@ -171,7 +146,6 @@ export {
   loginOrSignup,
   signup,
   login,
-  migratePoints,
   setAccountLabel,
   LoginPayloadStruct,
   SignupPayloadStruct,
