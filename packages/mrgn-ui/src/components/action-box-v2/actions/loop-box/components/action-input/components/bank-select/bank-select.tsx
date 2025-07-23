@@ -56,12 +56,6 @@ export const BankSelect = ({
     return "";
   }, [selectedBank, lendingMode, emissionsRates]);
 
-  console.log(
-    "includesEmissionsRate",
-    selectedBank?.meta.tokenSymbol,
-    !!emissionsRates?.[selectedBank?.address.toBase58() ?? ""]
-  );
-
   return (
     <>
       {!isSelectable && (
