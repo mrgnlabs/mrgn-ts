@@ -16,6 +16,7 @@ import {
   ActionSummary,
   getRateStat,
   getLstRateStat,
+  getEmissionRateStat,
 } from "~/components/action-box-v2/utils";
 
 interface PreviewProps {
@@ -25,9 +26,18 @@ interface PreviewProps {
   actionSummary?: ActionSummary;
   hidePoolStats?: HidePoolStats;
   lstRate?: number;
+  emissionRate?: string;
 }
 
-export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode, hidePoolStats, lstRate }: PreviewProps) => {
+export const Preview = ({
+  actionSummary,
+  selectedBank,
+  isLoading,
+  lendMode,
+  hidePoolStats,
+  lstRate,
+  emissionRate,
+}: PreviewProps) => {
   const isLending = React.useMemo(
     () => lendMode === ActionType.Deposit || lendMode === ActionType.Withdraw,
     [lendMode]
@@ -36,9 +46,9 @@ export const Preview = ({ actionSummary, selectedBank, isLoading, lendMode, hide
   const stats = React.useMemo(
     () =>
       actionSummary && selectedBank
-        ? generateLendingStats(actionSummary, selectedBank, isLending, isLoading, hidePoolStats, lstRate)
+        ? generateLendingStats(actionSummary, selectedBank, isLending, isLoading, hidePoolStats, lstRate, emissionRate)
         : null,
-    [actionSummary, selectedBank, isLending, isLoading, hidePoolStats, lstRate]
+    [actionSummary, selectedBank, isLending, isLoading, hidePoolStats, lstRate, emissionRate]
   );
 
   return (
@@ -73,7 +83,8 @@ function generateLendingStats(
   isLending: boolean,
   isLoading: boolean,
   hidePoolStats?: HidePoolStats,
-  lstRate?: number
+  lstRate?: number,
+  emissionRate?: string
 ) {
   const stats = [];
 
@@ -96,6 +107,10 @@ function generateLendingStats(
   stats.push(getRateStat(bank, isLending));
   if (lstRate) {
     stats.push(getLstRateStat(lstRate, isLending));
+  }
+
+  if (emissionRate && isLending) {
+    stats.push(getEmissionRateStat(emissionRate));
   }
 
   if (!hidePoolStats?.includes("health")) {

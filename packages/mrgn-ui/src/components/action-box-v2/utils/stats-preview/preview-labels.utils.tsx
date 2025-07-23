@@ -430,3 +430,10 @@ export function getLstRateStat(lstRate: number, isLending: boolean): PreviewStat
     value: () => <span className="text-blue-400">+{percentFormatter.format(lstRate)}</span>,
   };
 }
+
+export function getEmissionRateStat(emissionRate: string): PreviewStat {
+  return {
+    label: "Emission Rate",
+    value: () => <span className="text-blue-400">+{emissionRate}</span>,
+  };
+}

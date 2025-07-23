@@ -5,7 +5,12 @@ import Link from "next/link";
 
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/web3.js";
-import { addTransactionMetadata, dynamicNumeralFormatter, TransactionType } from "@mrgnlabs/mrgn-common";
+import {
+  addTransactionMetadata,
+  dynamicNumeralFormatter,
+  TransactionType,
+  percentFormatter,
+} from "@mrgnlabs/mrgn-common";
 
 import {
   ExtendedBankInfo,
@@ -555,6 +560,13 @@ export const LendBox = ({
         lendMode={lendMode}
         hidePoolStats={hidePoolStats}
         lstRate={lstRate}
+        emissionRate={
+          emissionsRates?.[selectedBank?.address.toBase58() ?? ""]?.annualized_rate_enhancement
+            ? percentFormatter.format(
+                emissionsRates?.[selectedBank?.address.toBase58() ?? ""]?.annualized_rate_enhancement
+              )
+            : undefined
+        }
       />
 
       <LSTDialog

@@ -58,7 +58,14 @@ export const BankSelect = ({
     <>
       {!isSelectable && (
         <div className="flex gap-3 w-full items-center">
-          {selectedBank && <SelectedBankItem bank={selectedBank} lendingMode={lendingMode} rate={rate} />}
+          {selectedBank && (
+            <SelectedBankItem
+              bank={selectedBank}
+              lendingMode={lendingMode}
+              rate={rate}
+              includesEmissionsRate={!!emissionsRates?.[selectedBank?.address.toBase58() ?? ""]}
+            />
+          )}
         </div>
       )}
 
@@ -68,7 +75,15 @@ export const BankSelect = ({
           setIsOpen={(open) => {
             setIsOpen(open);
           }}
-          Trigger={<BankTrigger selectedBank={selectedBank} lendingMode={lendingMode} isOpen={isOpen} rate={rate} />}
+          Trigger={
+            <BankTrigger
+              selectedBank={selectedBank}
+              lendingMode={lendingMode}
+              isOpen={isOpen}
+              rate={rate}
+              includesEmissionsRate={!!emissionsRates?.[selectedBank?.address.toBase58() ?? ""]}
+            />
+          }
           Content={
             <BankList
               isOpen={isOpen}
