@@ -155,9 +155,9 @@ function toBankDto(bank: BankType): BankTypeDto {
     pythShardId: bank.pythShardId,
     emode: toEmodeSettingsDto(bank.emode),
     tokenSymbol: bank.tokenSymbol,
-    feesDestinationAccount: bank.feesDestinationAccount.toBase58(),
-    lendingPositionCount: bank.lendingPositionCount.toString(),
-    borrowingPositionCount: bank.borrowingPositionCount.toString(),
+    feesDestinationAccount: bank.feesDestinationAccount?.toBase58(),
+    lendingPositionCount: bank.lendingPositionCount?.toString(),
+    borrowingPositionCount: bank.borrowingPositionCount?.toString(),
   };
 }
 
@@ -244,9 +244,9 @@ export function bankRawToDto(bankRaw: BankRaw): BankRawDto {
     emissionsRate: bankRaw.emissionsRate.toString(),
     emissionsRemaining: bankRaw.emissionsRemaining,
     emissionsMint: bankRaw.emissionsMint.toBase58(),
-    feesDestinationAccount: bankRaw.feesDestinationAccount.toBase58(),
-    lendingPositionCount: bankRaw.lendingPositionCount.toString(),
-    borrowingPositionCount: bankRaw.borrowingPositionCount.toString(),
+    feesDestinationAccount: bankRaw?.feesDestinationAccount?.toBase58(),
+    lendingPositionCount: bankRaw?.lendingPositionCount?.toString(),
+    borrowingPositionCount: bankRaw?.borrowingPositionCount?.toString(),
 
     emode: emodeSettingsRawToDto(bankRaw.emode),
   };

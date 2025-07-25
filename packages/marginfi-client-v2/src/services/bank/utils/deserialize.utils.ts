@@ -103,8 +103,12 @@ export function parseBankRaw(
   const tokenSymbol = bankMetadata?.tokenSymbol;
 
   const feesDestinationAccount = accountParsed.feesDestinationAccount;
-  const lendingPositionCount = new BigNumber(accountParsed.lendingPositionCount.toString());
-  const borrowingPositionCount = new BigNumber(accountParsed.borrowingPositionCount.toString());
+  const lendingPositionCount = accountParsed.lendingPositionCount
+    ? new BigNumber(accountParsed.lendingPositionCount.toString())
+    : new BigNumber(0);
+  const borrowingPositionCount = accountParsed.borrowingPositionCount
+    ? new BigNumber(accountParsed.borrowingPositionCount.toString())
+    : new BigNumber(0);
 
   return {
     address,
@@ -179,9 +183,9 @@ export function dtoToBank(bankDto: BankTypeDto): BankType {
     pythShardId: bankDto.pythShardId,
     emode: dtoToEmodeSettings(bankDto.emode),
     tokenSymbol: bankDto.tokenSymbol,
-    feesDestinationAccount: new PublicKey(bankDto.feesDestinationAccount),
-    lendingPositionCount: new BigNumber(bankDto.lendingPositionCount),
-    borrowingPositionCount: new BigNumber(bankDto.borrowingPositionCount),
+    feesDestinationAccount: bankDto.feesDestinationAccount ? new PublicKey(bankDto.feesDestinationAccount) : undefined,
+    lendingPositionCount: bankDto.lendingPositionCount ? new BigNumber(bankDto.lendingPositionCount) : undefined,
+    borrowingPositionCount: bankDto.borrowingPositionCount ? new BigNumber(bankDto.borrowingPositionCount) : undefined,
   };
 }
 
@@ -268,9 +272,9 @@ export function dtoToBankRaw(bankDto: BankRawDto): BankRaw {
     emissionsRate: new BN(bankDto.emissionsRate),
     emissionsRemaining: bankDto.emissionsRemaining,
     emissionsMint: new PublicKey(bankDto.emissionsMint),
-    feesDestinationAccount: new PublicKey(bankDto.feesDestinationAccount),
-    lendingPositionCount: new BN(bankDto.lendingPositionCount),
-    borrowingPositionCount: new BN(bankDto.borrowingPositionCount),
+    feesDestinationAccount: bankDto.feesDestinationAccount ? new PublicKey(bankDto.feesDestinationAccount) : undefined,
+    lendingPositionCount: bankDto.lendingPositionCount ? new BN(bankDto.lendingPositionCount) : undefined,
+    borrowingPositionCount: bankDto.borrowingPositionCount ? new BN(bankDto.borrowingPositionCount) : undefined,
 
     emode: dtoToEmodeSettingsRaw(bankDto.emode),
   };

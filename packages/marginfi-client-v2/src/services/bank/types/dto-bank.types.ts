@@ -105,9 +105,9 @@ export interface BankTypeDto {
   oracleKey: string;
   pythShardId?: number;
   emode: EmodeSettingsDto;
-  feesDestinationAccount: string;
-  lendingPositionCount: string;
-  borrowingPositionCount: string;
+  feesDestinationAccount?: string;
+  lendingPositionCount?: string;
+  borrowingPositionCount?: string;
 }
 
 /*
@@ -147,9 +147,9 @@ export interface BankRawDto {
   emissionsRate: string;
   emissionsRemaining: WrappedI80F48;
   emissionsMint: string;
-  feesDestinationAccount: string;
-  lendingPositionCount: string;
-  borrowingPositionCount: string;
+  feesDestinationAccount?: string;
+  lendingPositionCount?: string;
+  borrowingPositionCount?: string;
 
   emode: EmodeSettingsRawDto;
 }

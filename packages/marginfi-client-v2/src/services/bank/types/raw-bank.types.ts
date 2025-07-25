@@ -42,10 +42,10 @@ interface BankRaw {
   emissionsMint: PublicKey;
 
   emode: EmodeSettingsRaw;
-  feesDestinationAccount: PublicKey;
+  feesDestinationAccount?: PublicKey;
   cache?: BankCacheRaw;
-  lendingPositionCount: BN;
-  borrowingPositionCount: BN;
+  lendingPositionCount?: BN;
+  borrowingPositionCount?: BN;
 }
 
 interface BankCacheRaw {

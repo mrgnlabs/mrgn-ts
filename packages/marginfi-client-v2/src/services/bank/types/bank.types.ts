@@ -128,9 +128,9 @@ export interface BankType {
   oracleKey: PublicKey;
   pythShardId?: number;
   emode: EmodeSettingsType;
-  feesDestinationAccount: PublicKey;
-  lendingPositionCount: BigNumber;
-  borrowingPositionCount: BigNumber;
+  feesDestinationAccount?: PublicKey;
+  lendingPositionCount?: BigNumber;
+  borrowingPositionCount?: BigNumber;
 }
 
 /**
