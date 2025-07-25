@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useMemo } from "react";
 import { Area, AreaChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from "recharts";
 import { IconLoader2 } from "@tabler/icons-react";
 
-import { dynamicNumeralFormatter } from "@mrgnlabs/mrgn-common";
-import { useExtendedBanks, useBankChart } from "@mrgnlabs/mrgn-state";
+import { dynamicNumeralFormatter, percentFormatter } from "@mrgnlabs/mrgn-common";
+import { useExtendedBanks, useBankChart, historicBankChartData } from "@mrgnlabs/mrgn-state";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartLegend, ChartLegendContent } from "~/components/ui/chart";
@@ -13,8 +13,8 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { Switch } from "~/components/ui/switch";
 
-import { formatDate, formatChartData, generateInterestCurveData } from "../utils/bank-chart.utils";
 import { chartConfigs, chartColors } from "../types";
+import { formatChartData, generateInterestCurveData } from "../utils";
 
 type Tabs = "rates" | "tvl" | "interest-curve";
 
@@ -60,7 +60,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
     return bank.info.state.utilizationRate / 100; // Convert from percentage to decimal
   }, [bank]);
 
-  const { data, error, isLoading } = useBankChart(bankAddress, bank);
+  const { data: rawData, error, isLoading } = useBankChart(bankAddress, bank);
   const chartConfig = (() => {
     switch (activeTab) {
       case "tvl":
@@ -102,42 +102,41 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
     }
   })();
 
-  const hasError = Boolean(error) || !data || data.length === 0;
+  const hasError = Boolean(error) || !rawData || rawData.length === 0;
   const errorMessage = error ? error.message : "No data available";
 
-  const formattedData = React.useMemo(() => {
-    return formatChartData(hasError ? null : data, showUSD);
-  }, [data, hasError, showUSD]);
+  const formattedData = useMemo(() => {
+    return formatChartData(rawData || null, showUSD);
+  }, [rawData, showUSD]);
 
-  const interestCurveData = React.useMemo(() => {
-    const latestDataPoint = formattedData[formattedData.length - 1];
-    return generateInterestCurveData(latestDataPoint);
+  const interestCurveData = useMemo(() => {
+    return generateInterestCurveData(formattedData);
   }, [formattedData]);
 
   const CustomTooltipContent = ({ active, payload, label }: any) => {
     if (active && payload && payload.length && !hasError) {
+      const formatValue = (value: number, dataKey: string) => {
+        if (activeTab === "rates") {
+          return `${value.toFixed(2)}%`;
+        } else if (activeTab === "interest-curve") {
+          return `${value.toFixed(2)}%`;
+        } else {
+          return dynamicNumeralFormatter(value);
+        }
+      };
+
       return (
         <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
-          <p className="text-foreground font-medium">{formatDate(label)}</p>
+          <p className="font-medium text-foreground">
+            {activeTab === "interest-curve" ? `${(label * 100).toFixed(1)}% Utilization` : label}
+          </p>
           {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center gap-2 mt-1">
-              <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: entry.color }} />
-              <span className="text-sm text-muted-foreground">{entry.name}:</span>
-              <span className="text-sm font-medium text-foreground">
-                {(() => {
-                  switch (activeTab) {
-                    case "tvl":
-                      return showUSD
-                        ? `$${dynamicNumeralFormatter(entry.value)}`
-                        : `${dynamicNumeralFormatter(entry.value)} ${bank?.meta.tokenSymbol || ""}`;
-                    case "rates":
-                    case "interest-curve":
-                      return `${entry.value.toFixed(2)}%`;
-                    default:
-                      return entry.value;
-                  }
-                })()}
-              </span>
+            <div key={index} className="flex items-center justify-between gap-4 mt-1">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+                <span className="text-sm text-muted-foreground">{entry.name}:</span>
+              </div>
+              <span className="text-sm font-medium text-foreground">{formatValue(entry.value, entry.dataKey)}</span>
             </div>
           ))}
         </div>
@@ -145,6 +144,7 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
     }
     return null;
   };
+
   if (isLoading) {
     return (
       <Card className="w-full bg-background-gray h-[520px] flex flex-col items-center justify-center">
@@ -224,56 +224,60 @@ const BankChart = ({ bankAddress, tab = "tvl" }: BankChartProps) => {
           </div>
         )}
 
-        <ChartContainer config={chartConfig} className="lg:h-[420px] w-full">
+        <ChartContainer config={chartConfig} className="h-[300px] w-full">
           <AreaChart
-            key={activeTab}
             data={activeTab === "interest-curve" ? interestCurveData : formattedData}
             margin={{
-              top: 24,
-              right: 24,
-              bottom: 6,
-              left: 0,
+              top: 20,
+              right: 30,
+              left: 20,
+              bottom: 5,
             }}
           >
-            <CartesianGrid vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis
-              dataKey={activeTab === "interest-curve" ? "utilization" : "timestamp"}
-              type={activeTab === "interest-curve" ? "number" : undefined}
+              dataKey={activeTab === "interest-curve" ? "utilization" : "date"}
+              type={activeTab === "interest-curve" ? "number" : "category"}
               domain={activeTab === "interest-curve" ? [0, 1] : undefined}
-              tickFormatter={
-                activeTab === "interest-curve" ? (value: number) => `${(value * 100).toFixed(0)}%` : formatDate
-              }
               ticks={activeTab === "interest-curve" ? [0, 0.2, 0.4, 0.6, 0.8, 1.0] : undefined}
-              interval={activeTab === "interest-curve" ? 0 : "preserveStartEnd"}
-              axisLine={false}
-              tickLine={false}
-              tickMargin={12}
-              minTickGap={50}
-              padding={{ left: 0, right: 0 }}
+              interval={(() => {
+                if (activeTab === "interest-curve") return 0;
+                const dataLength = formattedData.length;
+                if (dataLength <= 10) return 0;
+                if (dataLength <= 20) return 1;
+                if (dataLength <= 40) return 2;
+                return Math.floor(dataLength / 8);
+              })()}
+              minTickGap={activeTab === "interest-curve" ? undefined : 20}
+              tickFormatter={(value) => {
+                if (activeTab === "interest-curve") {
+                  return `${(value * 100).toFixed(0)}%`;
+                }
+                return value;
+              }}
+              className="stroke-muted-foreground"
+              fontSize={12}
             />
             <YAxis
               tickFormatter={(value) => {
-                if (activeTab === "tvl" && showUSD) {
-                  return `$${dynamicNumeralFormatter(value)}`;
-                } else if (activeTab === "rates" || activeTab === "interest-curve") {
-                  return `${value.toFixed(2)}%`;
-                } else {
-                  return dynamicNumeralFormatter(value);
+                if (activeTab === "rates" || activeTab === "interest-curve") {
+                  return `${value.toFixed(1)}%`;
                 }
+                return dynamicNumeralFormatter(value);
               }}
-              width={60}
-              axisLine={false}
-              tickLine={false}
-              domain={chartOptions.domain}
+              className="stroke-muted-foreground"
+              fontSize={12}
               label={{
                 value: chartOptions.yAxisLabel,
                 angle: -90,
                 position: "insideLeft",
-                style: { fill: "var(#fffff)" },
+                style: { textAnchor: "middle" },
               }}
+              domain={chartOptions.domain}
             />
-            <ChartTooltip cursor={false} content={<CustomTooltipContent />} />
-            <ChartLegend content={<ChartLegendContent />} className="mt-6" />
+            <ChartTooltip content={<CustomTooltipContent />} cursor={false} />
+            <ChartLegend content={<ChartLegendContent />} />
+
             <defs>
               <linearGradient id="fillPrimary" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={chartColors.primary} stopOpacity={0.2} />
