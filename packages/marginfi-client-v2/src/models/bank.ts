@@ -80,9 +80,9 @@ class Bank implements BankType {
     public readonly emissionsRemaining: BigNumber,
     public readonly oracleKey: PublicKey,
     public readonly emode: EmodeSettings,
-    public readonly feesDestinationAccount: PublicKey,
-    public readonly lendingPositionCount: BigNumber,
-    public readonly borrowingPositionCount: BigNumber,
+    public readonly feesDestinationAccount?: PublicKey,
+    public readonly lendingPositionCount?: BigNumber,
+    public readonly borrowingPositionCount?: BigNumber,
     public readonly pythShardId?: number,
     public readonly tokenSymbol?: string
   ) {}
