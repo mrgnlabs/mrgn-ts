@@ -1,5 +1,5 @@
 import React from "react";
-
+import Script from "next/script";
 import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 
 import { useWallet } from "~/components/wallet-v2";
@@ -70,10 +70,13 @@ const Debridge = () => {
   }, [isMounted, loadDeBridgeWidget]);
 
   return (
-    <div
-      id="debridgeWidget"
-      className={cn("max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity font-aeonik")}
-    ></div>
+    <>
+      <Script src="https://app.debridge.finance/assets/scripts/widget.js" />
+      <div
+        id="debridgeWidget"
+        className={cn("max-w-[420px] mx-auto w-full px-[1.35rem] max-h-[500px] transition-opacity font-aeonik")}
+      ></div>
+    </>
   );
 };
 

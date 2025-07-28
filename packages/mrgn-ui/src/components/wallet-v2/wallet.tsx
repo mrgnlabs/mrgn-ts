@@ -402,13 +402,13 @@ const Wallet = ({
                         <WalletReceive address={walletData.address} />
                       </TabWrapper>
                     )}
-                    {walletTokenState === WalletState.BUY && (
+                    {/* {walletTokenState === WalletState.BUY && (
                       <TabWrapper resetWalletState={resetWalletState}>
                         <div className="px-4">
                           <WalletOnramp showAmountBackButton={false} />
                         </div>
                       </TabWrapper>
-                    )}
+                    )} */}
                     {walletTokenState === WalletState.SELECT && (
                       <TabWrapper resetWalletState={resetWalletState}>
                         <WalletTokens
@@ -627,14 +627,6 @@ function TokenOptions({ setState, setToken }: TokenOptionsProps) {
       state: WalletState.BRIDGE,
       onClick: () => {
         setState(WalletState.BRIDGE);
-      },
-    },
-    {
-      label: "Buy",
-      icon: IconCreditCardPay,
-      state: WalletState.BUY,
-      onClick: () => {
-        setState(WalletState.BUY);
       },
     },
   ];
