@@ -9,7 +9,14 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import { ActionBox, useWallet, AddressActions } from "@mrgnlabs/mrgn-ui";
 import { Skeleton } from "~/components/ui/skeleton";
 import { LendingModes, getAssetPriceData, getAssetWeightData, cn } from "@mrgnlabs/mrgn-utils";
-import { ActionType, Emissions, useLstRates, useNativeStakeData, useValidatorRates } from "@mrgnlabs/mrgn-state";
+import {
+  ActionType,
+  Emissions,
+  useEmissionsRates,
+  useLstRates,
+  useNativeStakeData,
+  useValidatorRates,
+} from "@mrgnlabs/mrgn-state";
 import { MarginRequirementType, AssetTag, OperationalState } from "@mrgnlabs/marginfi-client-v2";
 import {
   aprToApy,
@@ -51,6 +58,7 @@ export default function BankPage() {
   const { data: lstRates } = useLstRates();
   const { emodePairs, activeEmodePairs } = useEmode();
   const { stakePoolMetadataMap } = useNativeStakeData();
+  const { data: emissionsRates } = useEmissionsRates();
 
   const collateralBanksByLiabilityBank = React.useMemo(() => {
     if (!extendedBanks.length || !emodePairs.length) return {};
@@ -104,6 +112,13 @@ export default function BankPage() {
       borrowingRate += bank.info.state.emissionsRate;
     }
 
+    if (emissionsRates) {
+      const bankEmissionsRate = emissionsRates[bank.address.toBase58()];
+      if (bankEmissionsRate) {
+        lendingRate += bankEmissionsRate.annualized_rate_enhancement;
+      }
+    }
+
     return {
       totalDeposits: bank.info.state.totalDeposits,
       totalDepositsUsd: bank.info.state.totalDeposits * bank.info.oraclePrice.priceRealtime.price.toNumber(),
@@ -115,10 +130,10 @@ export default function BankPage() {
       lendingRate:
         bank.info.rawBank.config.assetTag === AssetTag.STAKED
           ? 0 //bank.meta.stakePool?.validatorRewards TODO migrate this
-          : aprToApy(lendingRate) * 100,
-      borrowingRate: bank.info.rawBank.config.assetTag === AssetTag.STAKED ? 0 : aprToApy(borrowingRate) * 100,
+          : lendingRate,
+      borrowingRate: bank.info.rawBank.config.assetTag === AssetTag.STAKED ? 0 : borrowingRate,
     };
-  }, [bank]);
+  }, [bank, emissionsRates]);
 
   const assetWeightData = React.useMemo(() => {
     if (!bank) {
@@ -269,14 +284,13 @@ export default function BankPage() {
           <div className="gap-2 flex flex-col items-center">
             <div className={`flex items-center justify-center gap-2 ${!isNativeStakeBank ? "text-2xl" : ""}`}>
               <span className="text-mrgn-success">
-                {numeralFormatter(
+                {percentFormatter.format(
                   isNativeStakeBank ? stakePoolMetadata?.validatorRewards || 0 : bankData?.lendingRate || 0
                 )}
-                %
               </span>
               {!isNativeStakeBank && (
                 <>
-                  /<span className="text-mrgn-warning">{numeralFormatter(bankData?.borrowingRate || 0)}%</span>
+                  /<span className="text-mrgn-warning">{percentFormatter.format(bankData?.borrowingRate || 0)}</span>
                 </>
               )}
             </div>
