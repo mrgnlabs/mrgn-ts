@@ -9,6 +9,7 @@ import {
   ActionEmodeImpact,
   MarginfiAccountWrapper,
   MarginRequirementType,
+  AssetTag,
 } from "@mrgnlabs/marginfi-client-v2";
 import { TokenMetadata, nativeToUi, WSOL_MINT, floor, ceil, uiToNative } from "@mrgnlabs/mrgn-common";
 
@@ -27,6 +28,9 @@ import {
   UserDataWrappedProps,
   LendingPosition,
   MakeLendingPositionProps,
+  rawHistoricBankData,
+  historicBankChartData,
+  StakePoolMetadata,
 } from "../types";
 import { FEE_MARGIN } from "./firebase.utils";
 
@@ -326,4 +330,51 @@ function makeLendingPosition(props: MakeLendingPositionProps): LendingPosition {
     isDust,
     emodeActive: props.emodeActive,
   };
+}
+
+/**
+ * Converts raw historic bank data array to a map of bank addresses to chart data
+ * @param rawBankData - Array of raw historic bank data from database
+ * @returns Map<string, historicBankChartData[]> - A map of bank addresses to their formatted chart data
+ */
+export function convertRawHistoricBankDataToChartData(
+  rawBankData: rawHistoricBankData[],
+  bank?: ExtendedBankInfo,
+  stakepoolMetadataMap?: Map<string, StakePoolMetadata>
+): historicBankChartData[] {
+  const bankData: historicBankChartData[] = [];
+
+  if (Array.isArray(rawBankData)) {
+    rawBankData.forEach((entry: rawHistoricBankData) => {
+      const bankAddress = entry.address;
+
+      const price = bank?.info.oraclePrice.priceRealtime.price.toNumber() || 0;
+      const isStaked = bank?.info.rawBank.config.assetTag === AssetTag.STAKED;
+      const stakepoolMetadata = stakepoolMetadataMap?.get(bankAddress);
+
+      const formattedEntry: historicBankChartData = {
+        timestamp: entry.start_time,
+        totalDeposits: entry.total_deposits,
+        totalBorrows: entry.total_borrows,
+        depositRate: entry.deposit_rate_pct,
+        borrowRate: entry.borrow_rate_pct,
+        utilization: entry.utilization,
+        usdPrice: entry.usd_price || price,
+        optimalUtilizationRate: parseFloat(entry.ts_optimal_utilization_rate),
+        baseRate: entry.base_rate,
+        plateauInterestRate: parseFloat(entry.ts_plateau_interest_rate),
+        maxInterestRate: parseFloat(entry.ts_max_interest_rate),
+        insuranceIrFee: parseFloat(entry.ts_insurance_ir_fee),
+        protocolIrFee: parseFloat(entry.ts_protocol_ir_fee),
+        programFeeRate: parseFloat(entry.program_fee_rate),
+        insuranceFeeFixedApr: parseFloat(entry.ts_insurance_fee_fixed_apr),
+        protocolFixedFeeApr: parseFloat(entry.ts_protocol_fixed_fee_apr),
+        ...(isStaked && { borrowRate: 0, depositRate: stakepoolMetadata?.validatorRewards }),
+      };
+
+      bankData.push(formattedEntry);
+    });
+  }
+
+  return bankData;
 }
