@@ -18,6 +18,7 @@ import {
   LstRatesMap,
   rawHistoricBankData,
   historicBankChartData,
+  ExtendedBankInfo,
 } from "../types";
 import { convertRawHistoricBankDataToChartData } from "../lib";
 
@@ -282,7 +283,7 @@ export const fetchBankRates = async (
 
   const rawBankData: rawHistoricBankData[] = await response.json();
 
-  const historicBankDataMap = convertRawHistoricBankDataToChartData(rawBankData);
+  const historicBankDataMap = convertRawHistoricBankDataToChartData(rawBankData, bank, stakepoolMetadataMap);
 
   return historicBankDataMap;
 };
