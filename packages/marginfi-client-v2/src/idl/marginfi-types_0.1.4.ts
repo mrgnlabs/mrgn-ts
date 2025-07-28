@@ -5115,11 +5115,6 @@ export type Marginfi = {
             type: "pubkey";
           },
           {
-            name: "migratedFrom";
-            docs: ["If this account was migrated from another one, store the original account key"];
-            type: "pubkey";
-          },
-          {
             name: "healthCache";
             type: {
               defined: {

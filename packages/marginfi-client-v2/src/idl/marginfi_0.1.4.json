@@ -5021,11 +5021,6 @@
             "type": "pubkey"
           },
           {
-            "name": "migrated_from",
-            "docs": ["If this account was migrated from another one, store the original account key"],
-            "type": "pubkey"
-          },
-          {
             "name": "health_cache",
             "type": {
               "defined": {
