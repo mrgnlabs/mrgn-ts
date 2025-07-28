@@ -17,9 +17,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Fetch Jito emissions data from Supabase
     const jitoResult = await supabase
       .schema("application")
-      .from("fv_emissions_jito_202507_campaign_rates_v_1_0_0")
+      .from("fv_emissions_jito_202507_campaign_rates_v_2_0_0")
       .select("*")
-      .order("day", { ascending: false })
+      .order("hour", { ascending: false })
       .limit(1);
 
     // Log errors but don't fail the request - return partial results
@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const totalDeposits = totalAssetShares.toNumber() / Math.pow(10, usdsBank.mintDecimals);
 
         if (totalDeposits > 0) {
-          usdsRate = (365 * 1500) / 7 / totalDeposits;
+          usdsRate = (365 * 2000) / 7 / totalDeposits;
         }
       } catch (error) {
         console.error("Error fetching USDS bank data:", error);
@@ -61,8 +61,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: "No emissions rates found" });
     }
 
-    // 12 hours
-    res.setHeader("Cache-Control", "s-maxage=43200, stale-while-revalidate=86400");
+    // 1 hour
+    res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=7200");
     res.status(200).json(result);
   } catch (error) {
     console.error("Error in emissions rates API:", error);
