@@ -5128,6 +5128,11 @@ export type Marginfi = {
             };
           },
           {
+            name: "migratedFrom";
+            docs: ["If this account was migrated from another one, store the original account key"];
+            type: "pubkey";
+          },
+          {
             name: "padding0";
             type: {
               array: ["u64", 17];

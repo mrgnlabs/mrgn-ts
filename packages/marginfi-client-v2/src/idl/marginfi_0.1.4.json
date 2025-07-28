@@ -5034,6 +5034,11 @@
             }
           },
           {
+            "name": "migrated_from",
+            "docs": ["If this account was migrated from another one, store the original account key"],
+            "type": "pubkey"
+          },
+          {
             "name": "_padding0",
             "type": {
               "array": ["u64", 17]
