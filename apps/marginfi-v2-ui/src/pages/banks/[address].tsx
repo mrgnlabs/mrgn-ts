@@ -103,6 +103,7 @@ export default function BankPage() {
 
     let lendingRate = bank.info.state.lendingRate;
     let borrowingRate = bank.info.state.borrowingRate;
+    let emissionsRate = 0;
 
     if (bank.info.state.emissions == Emissions.Lending) {
       lendingRate += bank.info.state.emissionsRate;
@@ -115,7 +116,7 @@ export default function BankPage() {
     if (emissionsRates) {
       const bankEmissionsRate = emissionsRates[bank.address.toBase58()];
       if (bankEmissionsRate) {
-        lendingRate += bankEmissionsRate.annualized_rate_enhancement;
+        emissionsRate = bankEmissionsRate.annualized_rate_enhancement;
       }
     }
 
@@ -130,8 +131,8 @@ export default function BankPage() {
       lendingRate:
         bank.info.rawBank.config.assetTag === AssetTag.STAKED
           ? 0 //bank.meta.stakePool?.validatorRewards TODO migrate this
-          : lendingRate,
-      borrowingRate: bank.info.rawBank.config.assetTag === AssetTag.STAKED ? 0 : borrowingRate,
+          : aprToApy(lendingRate) + emissionsRate,
+      borrowingRate: bank.info.rawBank.config.assetTag === AssetTag.STAKED ? 0 : aprToApy(borrowingRate),
     };
   }, [bank, emissionsRates]);
 
