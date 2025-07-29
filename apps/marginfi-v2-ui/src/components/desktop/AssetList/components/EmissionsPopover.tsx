@@ -135,7 +135,7 @@ const EmissionsPopover = ({ rateAPY, campaign }: { rateAPY: number; campaign: Ca
             <h3 className="font-medium">{campaign === "jito" ? "JitoSOL / SOL Pair Incentives" : "USDS Incentives"}</h3>
           </div>
 
-          <dl className="grid grid-cols-2 gap-4 text-sm w-full">
+          <dl className="grid grid-cols-2 gap-2 text-xs w-full text-muted-foreground">
             <dt className="flex items-center gap-1">
               {campaign === "jito" ? (
                 <>
@@ -155,36 +155,38 @@ const EmissionsPopover = ({ rateAPY, campaign }: { rateAPY: number; campaign: Ca
             <dd className="text-right text-mrgn-success">
               +{percentFormatter.format(campaignData?.annualized_rate_enhancement || 0)}
             </dd>
-          </dl>
 
-          {campaign === "jito" ? (
-            <dl className="grid grid-cols-2 gap-y-2 text-xs w-full text-muted-foreground">
-              <dt>JitoSOL Lending Rate</dt>
-              <dd className="text-mrgn-success text-right">{percentFormatter.format(jitoSolRateData?.rateAPY || 0)}</dd>
-              <dt>JitoSOL Staking Rate</dt>
-              <dd className="text-mrgn-success text-right">{percentFormatter.format(jitoSolLstRate || 0)}</dd>
-              <dt>SOL Borrowing Rate</dt>
-              <dd className="text-mrgn-warning text-right">{percentFormatter.format(solRateData?.rateAPY || 0)}</dd>
-              <dt className="border-y border-muted-foreground/20 py-2 text-primary">Net JitoSOL / SOL APY</dt>
-              <dd
-                className={cn(
-                  "text-right border-y border-muted-foreground/20 py-2",
-                  netAPY && netAPY > 0 ? "text-mrgn-success" : "text-mrgn-warning"
-                )}
-              >
-                {percentFormatter.format(netAPY || 0)}
-              </dd>
-            </dl>
-          ) : (
-            <dl className="grid grid-cols-2 gap-y-2 text-xs w-full text-muted-foreground">
-              <dt>USDS Lending Rate</dt>
-              <dd className="text-mrgn-success text-right">{percentFormatter.format(rateAPY || 0)}</dd>
-              <dt className="border-y border-muted-foreground/20 py-2 text-primary">USDS APY</dt>
-              <dd className="text-right border-y border-muted-foreground/20 py-2 text-mrgn-success">
-                {percentFormatter.format((rateAPY || 0) + (campaignData?.annualized_rate_enhancement || 0))}
-              </dd>
-            </dl>
-          )}
+            {campaign === "jito" ? (
+              <>
+                <dt>JitoSOL Lending Rate</dt>
+                <dd className="text-mrgn-success text-right">
+                  {percentFormatter.format(jitoSolRateData?.rateAPY || 0)}
+                </dd>
+                <dt>JitoSOL Staking Rate</dt>
+                <dd className="text-mrgn-success text-right">{percentFormatter.format(jitoSolLstRate || 0)}</dd>
+                <dt>SOL Borrowing Rate</dt>
+                <dd className="text-mrgn-warning text-right">{percentFormatter.format(solRateData?.rateAPY || 0)}</dd>
+                <dt className="border-y border-muted-foreground/20 py-2 text-primary text-sm">Net JitoSOL / SOL APY</dt>
+                <dd
+                  className={cn(
+                    "text-right border-y border-muted-foreground/20 py-2 text-sm",
+                    netAPY && netAPY > 0 ? "text-mrgn-success" : "text-mrgn-warning"
+                  )}
+                >
+                  {percentFormatter.format(netAPY || 0)}
+                </dd>
+              </>
+            ) : (
+              <>
+                <dt>USDS Lending Rate</dt>
+                <dd className="text-mrgn-success text-right">{percentFormatter.format(rateAPY || 0)}</dd>
+                <dt className="border-y border-muted-foreground/20 py-2 text-primary text-sm">USDS APY</dt>
+                <dd className="text-right border-y border-muted-foreground/20 py-2 text-mrgn-success text-sm">
+                  {percentFormatter.format((rateAPY || 0) + (campaignData?.annualized_rate_enhancement || 0))}
+                </dd>
+              </>
+            )}
+          </dl>
 
           <div className="text-xs space-y-2 mt-2">
             <p className="leading-relaxed text-muted-foreground">
