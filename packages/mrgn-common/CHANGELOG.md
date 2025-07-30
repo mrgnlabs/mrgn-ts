@@ -1,5 +1,11 @@
 # @mrgnlabs/mrgn-common
 
+## 2.0.4
+
+### Patch Changes
+
+- 20cc5b7: program 0.1.4 upgrade
+
 ## 2.0.3
 
 ### Patch Changes
