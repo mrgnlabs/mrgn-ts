@@ -58,10 +58,13 @@ const fetchPythDataViaAPI = async (
   pythFeedMap: PythPushFeedIdMap;
   priceCoeffByBank: Record<string, number>;
 }> => {
-  const pythFeedMapPromise = fetch(
-    "/api/bankData/pythFeedMap?feedIds=" +
-      pythPushBanks.map((bank) => bank.data.config.oracleKeys[0].toBase58()).join(",")
-  );
+  const pythFeedMapPromise =
+    pythPushBanks.length > 0
+      ? fetch(
+          "/api/bankData/pythFeedMap?feedIds=" +
+            pythPushBanks.map((bank) => bank.data.config.oracleKeys[0].toBase58()).join(",")
+        )
+      : undefined;
   const encodedQuery = encodeURIComponent(JSON.stringify(voteAccMintTuples));
   const stakedCollatDataPromise = fetch(`/api/stakeData/stakedCollatData?voteAccMintTuple=${encodedQuery}`);
 
@@ -70,14 +73,14 @@ const fetchPythDataViaAPI = async (
     stakedCollatDataPromise,
   ]);
 
-  if (!pythFeedMapResponse.ok) {
+  if (pythFeedMapResponse && !pythFeedMapResponse?.ok) {
     throw new Error("Failed to fetch pyth feed map");
   }
   if (!stakedCollatDataResponse.ok) {
     throw new Error("Failed to fetch staked collateral data");
   }
 
-  const pythFeedMapJson: PythFeedMapResponse = await pythFeedMapResponse.json();
+  const pythFeedMapJson: PythFeedMapResponse = (await pythFeedMapResponse?.json()) ?? {};
   const stakedCollatDataJson: Record<string, number> = await stakedCollatDataResponse.json();
 
   // Build pythFeedMap
