@@ -1,8 +1,4 @@
-import {
-  BankMetadata,
-  nativeToUi,
-  wrappedI80F48toBigNumber,
-} from "@mrgnlabs/mrgn-common";
+import { BankMetadata, nativeToUi, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { MarginRequirementType } from "./account";
@@ -10,6 +6,7 @@ import { MarginfiIdlType } from "../idl";
 import { PythPushFeedIdMap } from "../utils";
 import {
   AssetTag,
+  BankConfigFlag,
   BankConfigRaw,
   BankConfigType,
   BankRaw,
@@ -83,9 +80,12 @@ class Bank implements BankType {
     public readonly emissionsRemaining: BigNumber,
     public readonly oracleKey: PublicKey,
     public readonly emode: EmodeSettings,
+    public readonly feesDestinationAccount?: PublicKey,
+    public readonly lendingPositionCount?: BigNumber,
+    public readonly borrowingPositionCount?: BigNumber,
     public readonly pythShardId?: number,
     public readonly tokenSymbol?: string
-  ) { }
+  ) {}
 
   static decodeBankRaw(encoded: Buffer, idl: MarginfiIdlType): BankRaw {
     return decodeBankRaw(encoded, idl);
@@ -107,6 +107,7 @@ class Bank implements BankType {
       bankType.config.riskTier,
       bankType.config.totalAssetValueInitLimit,
       bankType.config.assetTag,
+      bankType.config.configFlags,
       bankType.config.oracleSetup,
       bankType.config.oracleKeys,
       bankType.config.oracleMaxAge,
@@ -142,6 +143,9 @@ class Bank implements BankType {
       bankType.emissionsRemaining,
       bankType.oracleKey,
       bankType.emode,
+      bankType.feesDestinationAccount,
+      bankType.lendingPositionCount,
+      bankType.borrowingPositionCount,
       bankType.pythShardId,
       bankType.tokenSymbol
     );
@@ -183,6 +187,9 @@ class Bank implements BankType {
       props.emissionsRemaining,
       props.oracleKey,
       props.emode,
+      props.feesDestinationAccount,
+      props.lendingPositionCount,
+      props.borrowingPositionCount,
       props.pythShardId,
       props.tokenSymbol
     );
@@ -364,12 +371,13 @@ class BankConfig implements BankConfigType {
     public readonly riskTier: RiskTier,
     public readonly totalAssetValueInitLimit: BigNumber,
     public readonly assetTag: AssetTag,
+    public readonly configFlags: BankConfigFlag,
     public readonly oracleSetup: OracleSetup,
     public readonly oracleKeys: PublicKey[],
     public readonly oracleMaxAge: number,
     public readonly interestRateConfig: InterestRateConfig,
     public readonly operationalState: OperationalState
-  ) { }
+  ) {}
 
   static fromAccountParsed(bankConfigRaw: BankConfigRaw): BankConfig {
     const bankConfig = parseBankConfigRaw(bankConfigRaw);
@@ -383,6 +391,7 @@ class BankConfig implements BankConfigType {
       bankConfig.riskTier,
       bankConfig.totalAssetValueInitLimit,
       bankConfig.assetTag,
+      bankConfig.configFlags,
       bankConfig.oracleSetup,
       bankConfig.oracleKeys,
       bankConfig.oracleMaxAge,

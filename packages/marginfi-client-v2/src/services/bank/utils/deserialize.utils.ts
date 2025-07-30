@@ -102,6 +102,14 @@ export function parseBankRaw(
 
   const tokenSymbol = bankMetadata?.tokenSymbol;
 
+  const feesDestinationAccount = accountParsed.feesDestinationAccount;
+  const lendingPositionCount = accountParsed.lendingPositionCount
+    ? new BigNumber(accountParsed.lendingPositionCount.toString())
+    : new BigNumber(0);
+  const borrowingPositionCount = accountParsed.borrowingPositionCount
+    ? new BigNumber(accountParsed.borrowingPositionCount.toString())
+    : new BigNumber(0);
+
   return {
     address,
     group,
@@ -130,6 +138,9 @@ export function parseBankRaw(
     emissionsMint,
     emissionsRemaining,
     oracleKey,
+    feesDestinationAccount,
+    lendingPositionCount,
+    borrowingPositionCount,
     pythShardId,
     emode,
     tokenSymbol,
@@ -172,6 +183,9 @@ export function dtoToBank(bankDto: BankTypeDto): BankType {
     pythShardId: bankDto.pythShardId,
     emode: dtoToEmodeSettings(bankDto.emode),
     tokenSymbol: bankDto.tokenSymbol,
+    feesDestinationAccount: bankDto.feesDestinationAccount ? new PublicKey(bankDto.feesDestinationAccount) : undefined,
+    lendingPositionCount: bankDto.lendingPositionCount ? new BigNumber(bankDto.lendingPositionCount) : undefined,
+    borrowingPositionCount: bankDto.borrowingPositionCount ? new BigNumber(bankDto.borrowingPositionCount) : undefined,
   };
 }
 
@@ -203,6 +217,7 @@ export function dtoToBankConfig(bankConfigDto: BankConfigDto): BankConfigType {
     operationalState: bankConfigDto.operationalState,
     totalAssetValueInitLimit: new BigNumber(bankConfigDto.totalAssetValueInitLimit),
     assetTag: bankConfigDto.assetTag,
+    configFlags: bankConfigDto.configFlags,
     oracleSetup: bankConfigDto.oracleSetup,
     oracleKeys: bankConfigDto.oracleKeys.map((key) => new PublicKey(key)),
     oracleMaxAge: bankConfigDto.oracleMaxAge,
@@ -257,6 +272,9 @@ export function dtoToBankRaw(bankDto: BankRawDto): BankRaw {
     emissionsRate: new BN(bankDto.emissionsRate),
     emissionsRemaining: bankDto.emissionsRemaining,
     emissionsMint: new PublicKey(bankDto.emissionsMint),
+    feesDestinationAccount: bankDto.feesDestinationAccount ? new PublicKey(bankDto.feesDestinationAccount) : undefined,
+    lendingPositionCount: bankDto.lendingPositionCount ? new BN(bankDto.lendingPositionCount) : undefined,
+    borrowingPositionCount: bankDto.borrowingPositionCount ? new BN(bankDto.borrowingPositionCount) : undefined,
 
     emode: dtoToEmodeSettingsRaw(bankDto.emode),
   };
@@ -292,6 +310,7 @@ export function dtoToBankConfigRaw(bankConfigDto: BankConfigRawDto): BankConfigR
     operationalState: bankConfigDto.operationalState,
     totalAssetValueInitLimit: new BN(bankConfigDto.totalAssetValueInitLimit),
     assetTag: bankConfigDto.assetTag,
+    configFlags: bankConfigDto.configFlags,
     oracleSetup: bankConfigDto.oracleSetup,
     oracleKeys: bankConfigDto.oracleKeys.map((key: string) => new PublicKey(key)),
     oracleMaxAge: bankConfigDto.oracleMaxAge,
@@ -314,6 +333,7 @@ export function parseBankConfigRaw(bankConfigRaw: BankConfigRaw): BankConfigType
   const operationalState = parseOperationalState(bankConfigRaw.operationalState);
   const totalAssetValueInitLimit = BigNumber(bankConfigRaw.totalAssetValueInitLimit.toString());
   const assetTag = bankConfigRaw.assetTag as AssetTag;
+  const configFlags = bankConfigRaw.configFlags;
   const oracleSetup = parseOracleSetup(bankConfigRaw.oracleSetup);
   const oracleKeys = bankConfigRaw.oracleKeys;
   const oracleMaxAge = bankConfigRaw.oracleMaxAge === 0 ? DEFAULT_ORACLE_MAX_AGE : bankConfigRaw.oracleMaxAge;
@@ -339,6 +359,7 @@ export function parseBankConfigRaw(bankConfigRaw: BankConfigRaw): BankConfigType
     operationalState,
     totalAssetValueInitLimit,
     assetTag,
+    configFlags,
     oracleSetup,
     oracleKeys,
     oracleMaxAge,

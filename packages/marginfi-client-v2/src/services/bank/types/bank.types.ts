@@ -40,6 +40,10 @@ export enum AssetTag {
   STAKED = 2,
 }
 
+export enum BankConfigFlag {
+  PYTH_MIGRATED = 1 << 0, // 1
+}
+
 // BankConfigOpt Args
 export interface BankConfigOpt {
   assetWeightInit: BigNumber | null;
@@ -74,6 +78,7 @@ export interface BankConfigType {
   riskTier: RiskTier;
   totalAssetValueInitLimit: BigNumber;
   assetTag: AssetTag;
+  configFlags: BankConfigFlag;
 
   interestRateConfig: InterestRateConfig;
   operationalState: OperationalState;
@@ -123,6 +128,9 @@ export interface BankType {
   oracleKey: PublicKey;
   pythShardId?: number;
   emode: EmodeSettingsType;
+  feesDestinationAccount?: PublicKey;
+  lendingPositionCount?: BigNumber;
+  borrowingPositionCount?: BigNumber;
 }
 
 /**

@@ -230,11 +230,10 @@ export function findOracleKey(
     if (oracleSetup == OracleSetup.PythPushOracle || oracleSetup == OracleSetup.StakedWithPythPush) {
       const feedId = feedIdToString(oracleKey);
       const maybeOracleKey = feedMap.get(feedId);
-      if (!maybeOracleKey) {
-        throw new Error(`No oracle key found for feedId: ${feedId}`);
+      if (maybeOracleKey) {
+        oracleKey = maybeOracleKey.feedId;
+        shardId = maybeOracleKey.shardId;
       }
-      oracleKey = maybeOracleKey.feedId;
-      shardId = maybeOracleKey.shardId;
     }
 
     return { oracleKey, shardId };
