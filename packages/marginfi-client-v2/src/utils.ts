@@ -218,25 +218,12 @@ export async function buildFeedIdMap(bankConfigs: BankConfigRaw[], connection: C
   return feedIdMap;
 }
 
-export function findOracleKey(
-  bankConfig: BankConfig,
-  feedMap: PythPushFeedIdMap
-): { oracleKey: PublicKey; shardId?: number } {
+export function findOracleKey(bankConfig: BankConfig): { oracleKey: PublicKey; shardId?: number } {
   try {
     const oracleSetup = bankConfig.oracleSetup;
-    let oracleKey: PublicKey = bankConfig.oracleKeys[0];
-    let shardId: number | undefined = undefined;
+    const oracleKey: PublicKey = bankConfig.oracleKeys[0];
 
-    if (oracleSetup == OracleSetup.PythPushOracle || oracleSetup == OracleSetup.StakedWithPythPush) {
-      const feedId = feedIdToString(oracleKey);
-      const maybeOracleKey = feedMap.get(feedId);
-      if (maybeOracleKey) {
-        oracleKey = maybeOracleKey.feedId;
-        shardId = maybeOracleKey.shardId;
-      }
-    }
-
-    return { oracleKey, shardId };
+    return { oracleKey };
   } catch (error) {
     console.error("Error finding oracle key", error);
     console.log("oracleSetup", bankConfig.oracleSetup);
