@@ -219,10 +219,10 @@ const mapPythBanksToOraclePrices = (
   // Map staked collateral banks with price coefficient adjustment
   pythStakedCollateralBanks.forEach((bank) => {
     const priceCoeff = priceCoeffByBank[bank.address.toBase58()];
-    const feed = pythFeedMap.get(bank.data.config.oracleKeys[0].toBuffer().toString("hex"));
+    const oracleKey = bank.data.config.oracleKeys[0].toBase58();
 
-    if (feed && priceCoeff !== undefined) {
-      const oraclePrice = oraclePrices[feed?.feedId.toBase58()];
+    if (oracleKey && priceCoeff !== undefined) {
+      const oraclePrice = oraclePrices[oracleKey];
       if (oraclePrice) {
         bankOraclePriceMap.set(bank.address.toBase58(), {
           timestamp: oraclePrice.timestamp,
