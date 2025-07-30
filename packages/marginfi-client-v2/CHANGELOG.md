@@ -1,5 +1,11 @@
 # @mrgnlabs/marginfi-client-v2
 
+## 6.1.1
+
+### Patch Changes
+
+- 1738ad6: program 0.1.4
+
 ## 6.1.0
 
 ### Minor Changes
