@@ -1,5 +1,11 @@
 # @mrgnlabs/marginfi-client-v2
 
+## 6.1.2
+
+### Patch Changes
+
+- bb0bf28: bugfix: added types to export
+
 ## 6.1.1
 
 ### Patch Changes
