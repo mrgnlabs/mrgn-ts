@@ -3,7 +3,9 @@ import { PublicKey } from "@solana/web3.js";
 
 import { aprToApy, BankMetadataMap, composeRemainingAccounts, nativeToUi, shortenAddress } from "@mrgnlabs/mrgn-common";
 
-import { MarginRequirementType } from "~/models/account";
+import { MarginfiAccountType, BalanceType } from "../types";
+import { MarginRequirementType } from "../../../models/account";
+import { findPoolAddress, findPoolStakeAddress, findPoolMintAddress } from "../../../vendor";
 import {
   BankType,
   computeInterestRates,
@@ -11,11 +13,8 @@ import {
   computeLiabilityUsdValue,
   getAssetQuantity,
   getLiabilityQuantity,
-} from "~/services/bank";
-import { OraclePrice, PriceBias } from "~/services/price";
-import { findPoolAddress, findPoolStakeAddress, findPoolMintAddress } from "~/vendor/single-spl-pool";
-
-import { MarginfiAccountType, BalanceType } from "../types";
+} from "../../bank";
+import { OraclePrice, PriceBias } from "../../price";
 
 /**
  * Marginfi Account Computes

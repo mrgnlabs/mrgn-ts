@@ -2,7 +2,7 @@ import { VersionedTransaction, TransactionSignature, Connection, Commitment } fr
 import { TransactionOptions } from "@mrgnlabs/mrgn-common";
 
 import { confirmTransaction } from "../transaction.service";
-import { ProcessTransactionError, ProcessTransactionErrorType } from "~/errors";
+import { ProcessTransactionError, ProcessTransactionErrorType } from "../../../errors";
 
 type SendTransactionAsRpcProps = {
   versionedTransactions: VersionedTransaction[];

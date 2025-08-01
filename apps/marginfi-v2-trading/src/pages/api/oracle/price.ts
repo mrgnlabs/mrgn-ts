@@ -87,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const feedHashMintMap = new Map<string, PublicKey>();
 
     const requestedOraclesData = banksMap.map((b) => {
-      const oracleKey = findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap).oracleKey.toBase58();
+      const oracleKey = findOracleKey(BankConfig.fromAccountParsed(b.data.config)).oracleKey.toBase58();
       oracleMintMap.set(oracleKey, b.data.mint);
 
       return {

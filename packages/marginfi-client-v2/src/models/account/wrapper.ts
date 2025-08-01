@@ -1031,8 +1031,8 @@ class MarginfiAccountWrapper {
             authorizedPubkey: this.authority,
             splitStakePubkey: splitStakeAccount.publicKey,
             lamports: amountLamports,
-          },
-          rentExemptReserve
+          }
+          // rentExemptReserve
         ).instructions
       );
     } else {
@@ -1947,22 +1947,29 @@ class MarginfiAccountWrapper {
     return tx;
   }
 
-  public async makeTransferAccountAuthorityIx(newAccountAuthority: PublicKey): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeAccountAuthorityTransferIx(this._program, newAccountAuthority);
+  public async makeAccountTransferToNewAccountIx(
+    newMarginfiAccount: PublicKey,
+    newAccountAuthority: PublicKey
+  ): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeAccountTransferToNewAccountIx(
+      this._program,
+      newMarginfiAccount,
+      newAccountAuthority
+    );
   }
 
-  async transferAccountAuthority(
+  async makeAccountTransferToNewAccount(
+    newMarginfiAccount: PublicKey,
     newAccountAuthority: PublicKey,
     processOpts?: ProcessTransactionsClientOpts,
     txOpts?: TransactionOptions
   ): Promise<string> {
-    const debug = require("debug")(`mfi:margin-account:${this.address.toString()}:transfer-authority`);
-    debug("Transferring account %s to %s", this.address.toBase58(), newAccountAuthority.toBase58());
-    const ixs = await this.makeTransferAccountAuthorityIx(newAccountAuthority);
+    const ixs = await this.makeAccountTransferToNewAccountIx(newMarginfiAccount, newAccountAuthority);
     const tx = new Transaction().add(...ixs.instructions);
-    const solanaTx = addTransactionMetadata(tx, { type: TransactionType.TRANSFER_AUTH });
+    const solanaTx = addTransactionMetadata(tx, {
+      type: TransactionType.TRANSFER_AUTH,
+    });
     const sig = await this.client.processTransaction(solanaTx, processOpts, txOpts);
-    debug("Transfer successful %s", sig);
     return sig;
   }
 

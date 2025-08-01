@@ -1,9 +1,8 @@
 import { PublicKey } from "@solana/web3.js";
 import { Address } from "@coral-xyz/anchor";
 
-import { MarginfiProgram } from "~/types";
-
 import { BankRaw } from "../types";
+import { MarginfiProgram } from "../../../types";
 
 export const fetchMultipleBanks = async (
   program: MarginfiProgram,

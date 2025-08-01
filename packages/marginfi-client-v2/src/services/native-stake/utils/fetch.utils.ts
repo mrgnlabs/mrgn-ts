@@ -7,7 +7,7 @@ import {
   findPoolStakeAddress,
   findPoolMintAddress,
   findPoolOnRampAddress,
-} from "~/vendor/single-spl-pool";
+} from "../../../vendor/single-spl-pool";
 
 import { ValidatorStakeGroup, StakeAccount, StakePoolMevMap } from "../types";
 

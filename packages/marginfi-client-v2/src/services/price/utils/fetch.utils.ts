@@ -3,8 +3,8 @@ import BigNumber from "bignumber.js";
 
 import { BankMetadata } from "@mrgnlabs/mrgn-common";
 
-import { BankRaw } from "~/services/bank";
-import { PythPushFeedIdMap, buildFeedIdMap } from "~/utils";
+import { BankRaw } from "../../bank";
+import { PythPushFeedIdMap, buildFeedIdMap } from "../../../utils";
 
 import { OraclePrice, PriceWithConfidence } from "../types";
 

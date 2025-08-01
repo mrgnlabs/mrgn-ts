@@ -21,9 +21,9 @@ import {
   TransactionArenaKeyMap,
 } from "@mrgnlabs/mrgn-common";
 
-import { MARGINFI_IDL, MarginfiIdlType } from "~/idl";
-import { makeTxPriorityIx } from "~/models/account";
-import { makePriorityFeeMicroIx } from "~/utils";
+import { MARGINFI_IDL, MarginfiIdlType } from "../../../idl";
+import { makeTxPriorityIx } from "../../../models/account";
+import { makePriorityFeeMicroIx } from "../../../utils";
 
 // Temporary imports
 export const MAX_TX_SIZE = 1232;

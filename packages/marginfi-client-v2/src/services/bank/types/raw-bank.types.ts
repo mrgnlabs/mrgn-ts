@@ -44,14 +44,14 @@ interface BankRaw {
   emode: EmodeSettingsRaw;
   feesDestinationAccount?: PublicKey;
   cache?: BankCacheRaw;
-  lendingPositionCount?: BN;
-  borrowingPositionCount?: BN;
+  lendingPositionCount?: number;
+  borrowingPositionCount?: number;
 }
 
 interface BankCacheRaw {
-  baseRate: BN;
-  lendingRate: BN;
-  borrowingRate: BN;
+  baseRate: number;
+  lendingRate: number;
+  borrowingRate: number;
   accumulatedSinceLastUpdate: WrappedI80F48;
 }
 
@@ -76,6 +76,7 @@ interface BankConfigRaw {
 
   totalAssetValueInitLimit: BN;
   oracleMaxAge: number;
+  oracleMaxConfidence: number;
 }
 
 interface BankConfigOptRaw {
@@ -97,6 +98,7 @@ interface BankConfigOptRaw {
   oracleMaxAge: number | null;
   permissionlessBadDebtSettlement: boolean | null;
   freezeSettings: boolean | null;
+  oracleMaxConfidence: number | null;
 }
 
 interface BankConfigCompactRaw extends Omit<BankConfigRaw, "oracleKeys" | "oracle" | "oracleSetup"> {

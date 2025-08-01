@@ -5,12 +5,6 @@ import BN from "bn.js";
 
 import { BankMetadata, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 
-import { DEFAULT_ORACLE_MAX_AGE } from "~/constants";
-import { MarginfiIdlType } from "~/idl";
-import { EmodeSettings } from "~/models/emode-settings";
-import { AccountType } from "~/types";
-import { PythPushFeedIdMap, findOracleKey } from "~/utils";
-
 import {
   AssetTag,
   BankConfigRaw,
@@ -37,6 +31,8 @@ import {
   EmodeSettingsRawDto,
   BankConfigRawDto,
 } from "../types";
+import { findOracleKey } from "../../../utils";
+import { AccountType, DEFAULT_ORACLE_MAX_AGE, EmodeSettings, MarginfiIdlType, PythPushFeedIdMap } from "../../..";
 
 /*
  * Bank deserialization
@@ -95,9 +91,7 @@ export function parseBankRaw(
     ? wrappedI80F48toBigNumber(accountParsed.emissionsRemaining)
     : new BigNumber(0);
 
-  const { oracleKey, shardId: pythShardId } = feedIdMap
-    ? findOracleKey(config, feedIdMap)
-    : { oracleKey: config.oracleKeys[0] };
+  const { oracleKey, shardId: pythShardId } = feedIdMap ? findOracleKey(config) : { oracleKey: config.oracleKeys[0] };
   const emode = EmodeSettings.from(accountParsed.emode);
 
   const tokenSymbol = bankMetadata?.tokenSymbol;
@@ -273,8 +267,8 @@ export function dtoToBankRaw(bankDto: BankRawDto): BankRaw {
     emissionsRemaining: bankDto.emissionsRemaining,
     emissionsMint: new PublicKey(bankDto.emissionsMint),
     feesDestinationAccount: bankDto.feesDestinationAccount ? new PublicKey(bankDto.feesDestinationAccount) : undefined,
-    lendingPositionCount: bankDto.lendingPositionCount ? new BN(bankDto.lendingPositionCount) : undefined,
-    borrowingPositionCount: bankDto.borrowingPositionCount ? new BN(bankDto.borrowingPositionCount) : undefined,
+    lendingPositionCount: bankDto.lendingPositionCount ? Number(bankDto.lendingPositionCount) : undefined,
+    borrowingPositionCount: bankDto.borrowingPositionCount ? Number(bankDto.borrowingPositionCount) : undefined,
 
     emode: dtoToEmodeSettingsRaw(bankDto.emode),
   };
@@ -315,6 +309,7 @@ export function dtoToBankConfigRaw(bankConfigDto: BankConfigRawDto): BankConfigR
     oracleKeys: bankConfigDto.oracleKeys.map((key: string) => new PublicKey(key)),
     oracleMaxAge: bankConfigDto.oracleMaxAge,
     interestRateConfig: bankConfigDto.interestRateConfig,
+    oracleMaxConfidence: bankConfigDto.oracleMaxConfidence,
   };
 }
 

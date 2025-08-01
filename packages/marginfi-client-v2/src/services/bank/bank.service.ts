@@ -3,8 +3,6 @@ import { Program, Provider } from "@coral-xyz/anchor";
 
 import { InstructionsWrapper, SYSTEM_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
-import instructions from "~/instructions";
-import { MarginfiProgram } from "~/types";
 import {
   DEFAULT_PUSH_ORACLE_PROGRAM_ID,
   PYTH_WORMHOLE_IDL,
@@ -15,10 +13,12 @@ import {
   parsePriceFeedMessage,
   UPDATE_PRICE_FEED_COMPUTE_BUDGET,
   InstructionWithEphemeralSigners,
-} from "~/vendor/pyth_crank";
+} from "../../vendor/pyth_crank";
 
 import { BankConfigOpt, BankConfigOptRaw, OracleSetup } from "./types";
 import { serializeBankConfigOpt, serializeOracleSetupToIndex } from "./utils";
+import instructions from "../../instructions";
+import { MarginfiProgram } from "../../types";
 
 export async function freezeBankConfigIx(
   program: MarginfiProgram,
@@ -57,6 +57,7 @@ export async function freezeBankConfigIx(
         oracleMaxAge: null,
         permissionlessBadDebtSettlement: null,
         freezeSettings: true,
+        oracleMaxConfidence: null,
       },
     }
   );

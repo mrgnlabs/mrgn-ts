@@ -55,6 +55,7 @@ function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw 
     operationalState: bankConfigOpt.operationalState && serializeOperationalState(bankConfigOpt.operationalState),
     oracleMaxAge: bankConfigOpt.oracleMaxAge,
     permissionlessBadDebtSettlement: bankConfigOpt.permissionlessBadDebtSettlement,
+    oracleMaxConfidence: bankConfigOpt.oracleMaxConfidence,
     freezeSettings: null,
   };
 }
@@ -287,6 +288,7 @@ export function bankConfigRawToDto(bankConfigRaw: BankConfigRaw): BankConfigRawD
     oracleMaxAge: bankConfigRaw.oracleMaxAge,
     interestRateConfig: bankConfigRaw.interestRateConfig,
     configFlags: bankConfigRaw.configFlags,
+    oracleMaxConfidence: bankConfigRaw.oracleMaxConfidence,
   };
 }
 

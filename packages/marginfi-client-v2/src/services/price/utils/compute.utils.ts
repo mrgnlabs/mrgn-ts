@@ -1,12 +1,12 @@
 import BigNumber from "bignumber.js";
 
-import { PYTH_PRICE_CONF_INTERVALS, MAX_CONFIDENCE_INTERVAL_RATIO, SWB_PRICE_CONF_INTERVALS } from "~/constants";
-import { OracleSetup } from "~/services/bank";
+import { PYTH_PRICE_CONF_INTERVALS, MAX_CONFIDENCE_INTERVAL_RATIO, SWB_PRICE_CONF_INTERVALS } from "../../../constants";
+import { OracleSetup } from "../../bank";
 
-import { parsePriceData } from "~/vendor/pyth_legacy";
-import { parsePriceInfo } from "~/vendor/pyth_push_oracle";
-import { AggregatorAccountData, AggregatorAccount } from "~/vendor/switchboard_legacy";
-import { decodeSwitchboardPullFeedData, SWITCHBOARD_ONDEMANDE_PRICE_PRECISION } from "~/vendor/switchboard_pull";
+import { parsePriceData } from "../../../vendor/pyth_legacy";
+import { parsePriceInfo } from "../../../vendor/pyth_push_oracle";
+import { AggregatorAccountData, AggregatorAccount } from "../../../vendor/switchboard_legacy";
+import { decodeSwitchboardPullFeedData, SWITCHBOARD_ONDEMANDE_PRICE_PRECISION } from "../../../vendor/switchboard_pull";
 
 import { OraclePrice, PriceWithConfidence, PriceBias } from "../types";
 

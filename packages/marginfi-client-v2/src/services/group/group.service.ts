@@ -2,17 +2,17 @@ import { PublicKey, StakeProgram, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction
 import BN from "bn.js";
 
 import { InstructionsWrapper, SINGLE_POOL_PROGRAM_ID, TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
-import { FLASHLOAN_ENABLED_FLAG, TRANSFER_ACCOUNT_AUTHORITY_FLAG } from "~/constants";
-import instructions from "~/instructions";
-import { MarginfiProgram } from "~/types";
+
 import {
   findPoolAddress,
   findPoolStakeAddress,
   findPoolMintAddress,
   findPoolOnRampAddress,
-} from "~/vendor/single-spl-pool";
+} from "../../vendor/single-spl-pool";
 
 import { BankConfigOptRaw, BankConfigOpt, serializeBankConfigOpt, BankConfigCompactRaw } from "../bank";
+import { MarginfiProgram } from "../../types";
+import instructions from "../../instructions";
 
 export async function makePoolConfigureBankIx(
   program: MarginfiProgram,
@@ -108,7 +108,7 @@ export async function makePoolAddBankIx(
     oracleMaxAge: bankConfig.oracleMaxAge,
     auto_padding_0: [0],
     auto_padding_1: [0],
-  } as BankConfigCompactRaw;
+  } as unknown as BankConfigCompactRaw;
 
   const ix = await instructions.makePoolAddBankIx(
     program,

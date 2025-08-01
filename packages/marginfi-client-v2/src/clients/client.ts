@@ -1,5 +1,4 @@
 import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@coral-xyz/anchor";
-import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import {
   AddressLookupTableAccount,
   Commitment,
@@ -14,6 +13,7 @@ import {
   TransactionSignature,
   VersionedTransaction,
 } from "@solana/web3.js";
+import bs58 from "bs58";
 import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "../types";
 import { getConfig } from "../config";
 import instructions from "../instructions";

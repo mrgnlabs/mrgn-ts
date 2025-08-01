@@ -63,6 +63,7 @@ export interface BankConfigOpt {
 
   oracleMaxAge: number | null;
   permissionlessBadDebtSettlement: boolean | null;
+  oracleMaxConfidence: number | null;
 }
 
 export interface BankConfigType {
