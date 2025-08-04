@@ -195,7 +195,7 @@ const EmissionsPopover = ({ rateAPY, campaign }: { rateAPY: number; campaign: Ca
                 : "USDS emissions are distributed to users who are lending USDS. Emissions rates are approximations."}
             </p>
             <Link
-              href="https://docs.marginfi.com/introduction#borrow-incentives-explained"
+              href="https://docs.marginfi.com/introduction#incentives-mechanism-explained"
               target="_blank"
               rel="noreferrer"
               className="inline-block transition-colors hover:text-primary"

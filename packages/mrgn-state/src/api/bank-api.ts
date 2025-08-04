@@ -158,34 +158,86 @@ async function fetchBirdeyePricesForMints(mintAddresses: string[]): Promise<Reco
  * @param banks - Array of bank raw data containing oracle configuration
  * @param bankMetadataMap - Map of bank metadata indexed by bank address
  * @returns Promise resolving to oracle data with enhanced prices for static feeds
- *  */
+ */
 export async function fetchOraclePricesWithBirdeyeFallback(
   banks: BankRawDatas[],
   bankMetadataMap: { [address: string]: BankMetadata }
-): Promise<{ oracleMap: Map<string, OraclePrice>; pythFeedIdMap: PythPushFeedIdMap }> {
-  const oracleData = await fetchOraclePrices(banks, bankMetadataMap);
+): Promise<{
+  oracleMap: Map<string, OraclePrice>;
+  oracleMapByMint: Map<string, OraclePrice>;
+  pythFeedIdMap: PythPushFeedIdMap;
+}> {
+  // Pre-identify static feeds before fetching oracle data
+  const staticFeedBanks: BankRawDatas[] = [];
+  const nonStaticBanks: BankRawDatas[] = [];
 
-  const banksNeedingFallback = banks.filter((bank) => {
-    const bankAddress = bank.address.toBase58();
+  banks.forEach((bank) => {
     const oracleKey = bank.data.config.oracleKeys[0]?.toBase58();
-    const oraclePrice = oracleData.oracleMap.get(bankAddress);
-
     const isStaticFeed = oracleKey && STATIC_SWITCHBOARD_FEEDS.includes(oracleKey);
+
+    if (isStaticFeed) {
+      staticFeedBanks.push(bank);
+    } else {
+      nonStaticBanks.push(bank);
+    }
+  });
+
+  // Fetch oracle data only for non-static feeds
+  const connection = getConfig().connection;
+  const oracleData = await fetchOracleData(nonStaticBanks, bankMetadataMap, connection, { useApiEndpoint: true });
+
+  // Identify failed feeds from the non-static banks that were fetched
+  const failedFeedBanks: BankRawDatas[] = [];
+
+  nonStaticBanks.forEach((bank) => {
+    const bankAddress = bank.address.toBase58();
+    const oraclePrice = oracleData.bankOraclePriceMap.get(bankAddress);
+
     const isMissingPrice = !oraclePrice;
     const isZeroPrice =
       oraclePrice && (oraclePrice.priceRealtime.price.isZero() || oraclePrice.priceWeighted.price.isZero());
 
-    return isStaticFeed || isMissingPrice || isZeroPrice;
+    if (isMissingPrice || isZeroPrice) {
+      failedFeedBanks.push(bank);
+    }
   });
 
+  const banksNeedingFallback = [...staticFeedBanks, ...failedFeedBanks];
+
   if (banksNeedingFallback.length === 0) {
-    return oracleData;
+    // Create mint-based oracle map for convenience
+    const mintOracleMap = new Map<string, OraclePrice>();
+    banks.forEach((bank) => {
+      const bankAddress = bank.address.toBase58();
+      const mintAddress = bank.data.mint.toBase58();
+      const oraclePrice = oracleData.bankOraclePriceMap.get(bankAddress);
+      if (oraclePrice) {
+        mintOracleMap.set(mintAddress, oraclePrice);
+      }
+    });
+
+    return {
+      oracleMap: oracleData.bankOraclePriceMap,
+      oracleMapByMint: mintOracleMap,
+      pythFeedIdMap: oracleData.pythFeedMap,
+    };
   }
 
   const fallbackMints = banksNeedingFallback.map((bank) => bank.data.mint.toBase58());
   const birdeyePrices = await fetchBirdeyePricesForMints(fallbackMints);
 
-  const enhancedOracleMap = new Map(oracleData.oracleMap);
+  const enhancedOracleMap = new Map(oracleData.bankOraclePriceMap);
+
+  // Create enhanced mint-based oracle map
+  const enhancedMintOracleMap = new Map<string, OraclePrice>();
+  banks.forEach((bank) => {
+    const bankAddress = bank.address.toBase58();
+    const mintAddress = bank.data.mint.toBase58();
+    const oraclePrice = enhancedOracleMap.get(bankAddress);
+    if (oraclePrice) {
+      enhancedMintOracleMap.set(mintAddress, oraclePrice);
+    }
+  });
 
   banksNeedingFallback.forEach((bank) => {
     const mintAddress = bank.data.mint.toBase58();
@@ -195,34 +247,62 @@ export async function fetchOraclePricesWithBirdeyeFallback(
     if (birdeyePrice && birdeyePrice > 0) {
       const oldPrice = enhancedOracleMap.get(bankAddress);
 
-      const price = BigNumber(birdeyePrice);
+      const price = new BigNumber(birdeyePrice);
       const newOraclePrice = {
         priceRealtime: {
           price,
-          confidence: oldPrice?.priceRealtime?.confidence || BigNumber(0),
+          confidence: oldPrice?.priceRealtime?.confidence || new BigNumber(0),
           lowestPrice: price,
           highestPrice: price,
         },
         priceWeighted: {
           price,
-          confidence: oldPrice?.priceWeighted?.confidence || BigNumber(0),
+          confidence: oldPrice?.priceWeighted?.confidence || new BigNumber(0),
           lowestPrice: price,
           highestPrice: price,
         },
-        timestamp: oldPrice?.timestamp || BigNumber(Date.now()),
+        timestamp: oldPrice?.timestamp || new BigNumber(Date.now()),
       };
 
       enhancedOracleMap.set(bankAddress, newOraclePrice);
+      enhancedMintOracleMap.set(mintAddress, newOraclePrice);
     }
   });
 
-  console.warn(
-    `[Oracle Fallback] Used Birdeye prices for banks: ${banksNeedingFallback.map((bank) => bank.address.toBase58()).join(", ")}`
-  );
+  // Log static feeds (expected behavior)
+  if (staticFeedBanks.length > 0) {
+    console.log(
+      `[Oracle Fallback] Used Birdeye prices for static feeds (always switchboard): ${staticFeedBanks.map((bank) => bank.address.toBase58()).join(", ")}`
+    );
+  }
+
+  // Warn about failed feeds (unexpected behavior)
+  if (failedFeedBanks.length > 0) {
+    const failedFeedDetails = failedFeedBanks.map((bank) => {
+      const oracleSetup = bank.data.config.oracleSetup;
+      const oracleKey = Object.keys(oracleSetup)[0].toLowerCase();
+      let oracleType = "Unknown";
+
+      // Check if it's a Pyth oracle
+      if (oracleKey === "pythlegacy" || oracleKey === "pythpushoracle" || oracleKey === "stakedwithpythpush") {
+        oracleType = "Pyth";
+      }
+
+      // Check if it's a Switchboard oracle
+      if (oracleKey === "switchboardv2" || oracleKey === "switchboardpull") {
+        oracleType = "Switchboard";
+      }
+
+      return `${bank.address.toBase58()} (${oracleType})`;
+    });
+
+    console.warn(`[Oracle Fallback] Used Birdeye prices for failed oracle feeds: ${failedFeedDetails.join(", ")}`);
+  }
 
   return {
     oracleMap: enhancedOracleMap,
-    pythFeedIdMap: oracleData.pythFeedIdMap,
+    oracleMapByMint: enhancedMintOracleMap,
+    pythFeedIdMap: oracleData.pythFeedMap,
   };
 }
 
