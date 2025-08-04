@@ -6,16 +6,19 @@ type MrgnProps = {
 };
 
 export const Meta = ({ path, title }: MrgnProps) => {
-  const customPages: Record<string, { description: string }> = {
+  const customPages: Record<string, { title?: string; description?: string }> = {
     "/": {
       description: "Liquidity, Yield, Leverage.",
+    },
+    "/banks/[address]": {
+      title: "bank details",
     },
   };
   const finalTitle = (title || `${path !== "/" ? `${path.substring(1)}` : "lend"}`) + " - marginfi";
   const description = customPages[path] ? customPages[path].description : null;
   return (
     <Head>
-      <title>{finalTitle}</title>
+      <title>{customPages[path]?.title ? customPages[path].title : finalTitle}</title>
       <meta property="og:title" content={finalTitle} />
       {description && <meta name="description" content={description} />}
       {description && <meta property="og:description" content={description} />}
