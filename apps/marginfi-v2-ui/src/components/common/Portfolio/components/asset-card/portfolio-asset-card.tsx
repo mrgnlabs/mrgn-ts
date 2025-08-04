@@ -53,6 +53,7 @@ import {
   useUserBalances,
   useUserStakeAccounts,
   useWrappedMarginfiAccount,
+  useEmissionsRates,
 } from "@mrgnlabs/mrgn-state";
 
 interface PortfolioAssetCardProps {
@@ -74,9 +75,10 @@ export const PortfolioAssetCard = ({
   onCardClick,
 }: PortfolioAssetCardProps) => {
   const { data: lstRates } = useLstRates();
+  const { data: ratesData } = useEmissionsRates();
   const lstRate = lstRates?.get(bank.info.state.mint.toBase58());
+  const emissionRate = ratesData?.[bank.address.toBase58()]?.annualized_rate_enhancement;
   const { rateAPY } = useAssetItemData({ bank, isInLendingMode });
-  const finalRate = isInLendingMode ? (lstRate ? rateAPY + lstRate : rateAPY) : lstRate ? lstRate - rateAPY : rateAPY;
   const { wallet } = useWallet();
   const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(wallet);
   const { data: marginfiAccounts } = useMarginfiAccountAddresses();
@@ -88,6 +90,8 @@ export const PortfolioAssetCard = ({
   const { stakePoolMetadataMap } = useNativeStakeData();
   const accountSummary = useAccountSummary();
   const stakePoolMetadata = stakePoolMetadataMap?.get(bank.address.toBase58());
+
+  const finalRate = isInLendingMode ? (emissionRate ? rateAPY + emissionRate : rateAPY) : rateAPY;
 
   const [collateralBanksByLiabilityBank, liabilityBanksByCollateralBank] = React.useMemo(() => {
     return [
@@ -171,7 +175,12 @@ export const PortfolioAssetCard = ({
               {bank.meta.tokenSymbol} {isEmodeActive && <IconEmodeSimple size={18} />}{" "}
             </div>
             <div className="flex items-center gap-4 text-sm">
-              <span className={isInLendingMode ? "text-success" : "text-warning"}>
+              <span
+                className={cn(
+                  isInLendingMode ? "text-success" : "text-warning",
+                  (lstRate || emissionRate) && "border-b border-blue-400 border-dashed"
+                )}
+              >
                 {percentFormatter.format(finalRate)} APY
               </span>
             </div>
@@ -280,8 +289,14 @@ export const PortfolioAssetCard = ({
                         )}
                       </div>
                     ) : (
-                      <div className={cn("text-sm font-light", isInLendingMode ? "text-success" : "text-warning")}>
-                        {percentFormatter.format(rateAPY)} APY
+                      <div
+                        className={cn(
+                          "text-sm font-light",
+                          isInLendingMode ? "text-success" : "text-warning",
+                          (lstRate || emissionRate) && "border-b border-blue-400 border-dashed"
+                        )}
+                      >
+                        {percentFormatter.format(finalRate)} APY
                       </div>
                     )}
                   </div>
@@ -414,6 +429,14 @@ export const PortfolioAssetCard = ({
               <dd className={cn("text-right", isInLendingMode ? "text-success" : "text-warning")}>
                 {percentFormatter.format(rateAPY)}
               </dd>
+              {emissionRate && (
+                <>
+                  <dt className="text-muted-foreground">Emission APY</dt>
+                  <dd className={cn("text-right", isInLendingMode ? "text-success" : "text-warning")}>
+                    {percentFormatter.format(emissionRate)}
+                  </dd>
+                </>
+              )}
               {lstRate && (
                 <>
                   <dt className="text-muted-foreground">LST APY</dt>
