@@ -5,6 +5,7 @@ import {
   useWrappedMarginfiAccount,
   useMarginfiClient,
   useSetSelectedAccountKey,
+  useRefreshUserData,
 } from "@mrgnlabs/mrgn-state";
 import { Keypair, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
@@ -26,6 +27,7 @@ export default function AccountTransferPage() {
   const { wrappedAccount: selectedAccount, isLoading: isLoadingSelectedAccount } = useWrappedMarginfiAccount(wallet);
   const { data: marginfiAccounts, isLoading: isLoadingMarginfiAccounts } = useMarginfiAccountAddresses();
   const { marginfiClient, isLoading: isLoadingMarginfiClient } = useMarginfiClient(wallet);
+  const refreshUserData = useRefreshUserData();
   const [priorityFees, broadcastType, accountLabels] = useUiStore((state) => [
     state.priorityFees,
     state.broadcastType,
@@ -92,16 +94,18 @@ export default function AccountTransferPage() {
           skipPreflight: true,
         });
 
-        // Wait for confirmation
-        await connection.confirmTransaction(signature, "confirmed");
         setIsSuccess(true);
+
+        setTimeout(() => {
+          refreshUserData();
+        }, 1000);
       } catch (error) {
         setHasError(error instanceof Error ? error.message : "Error transferring account");
       } finally {
         setIsLoading(false);
       }
     },
-    [selectedAccount, wallet, connection]
+    [selectedAccount, wallet, connection, refreshUserData]
   );
 
   if (!connected) {
