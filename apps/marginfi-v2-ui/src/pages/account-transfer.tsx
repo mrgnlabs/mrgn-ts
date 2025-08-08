@@ -1,14 +1,21 @@
 import React from "react";
 
-import { useWrappedMarginfiAccount } from "@mrgnlabs/mrgn-state";
+import {
+  useMarginfiAccountAddresses,
+  useWrappedMarginfiAccount,
+  useMarginfiClient,
+  useSetSelectedAccountKey,
+} from "@mrgnlabs/mrgn-state";
 import { Keypair, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
 import { useWallet } from "~/components";
-import { useUiStore } from "~/store";
 import { useConnection } from "~/hooks/use-connection";
+import { useUiStore } from "~/store";
 
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
+import { WalletAuthAccounts } from "~/components/wallet-v2";
+import { Loader } from "~/components/ui/loader";
 
 export default function AccountTransferPage() {
   const [hasError, setHasError] = React.useState("");
@@ -17,10 +24,22 @@ export default function AccountTransferPage() {
   const { connected, wallet } = useWallet();
   const { connection } = useConnection();
   const { wrappedAccount: selectedAccount, isLoading: isLoadingSelectedAccount } = useWrappedMarginfiAccount(wallet);
-  const { priorityFees, broadcastType } = useUiStore((state) => ({
-    priorityFees: state.priorityFees,
-    broadcastType: state.broadcastType,
-  }));
+  const { data: marginfiAccounts, isLoading: isLoadingMarginfiAccounts } = useMarginfiAccountAddresses();
+  const { marginfiClient, isLoading: isLoadingMarginfiClient } = useMarginfiClient(wallet);
+  const [priorityFees, broadcastType, accountLabels] = useUiStore((state) => [
+    state.priorityFees,
+    state.broadcastType,
+    state.accountLabels,
+  ]);
+
+  const setSelectedKey = useSetSelectedAccountKey();
+
+  const setSelectedAccount = React.useCallback(
+    (account: PublicKey) => {
+      setSelectedKey(account.toBase58());
+    },
+    [setSelectedKey]
+  );
 
   const handleSubmit = React.useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -74,9 +93,7 @@ export default function AccountTransferPage() {
         });
 
         // Wait for confirmation
-        // await connection.confirmTransaction(signature, "confirmed");
-
-        console.log("Transfer signature:", signature);
+        await connection.confirmTransaction(signature, "confirmed");
         setIsSuccess(true);
       } catch (error) {
         setHasError(error instanceof Error ? error.message : "Error transferring account");
@@ -92,7 +109,7 @@ export default function AccountTransferPage() {
   }
 
   if (isLoadingSelectedAccount) {
-    return <div>Loading account...</div>;
+    return <Loader label="Loading account..." />;
   }
 
   return (
@@ -103,11 +120,36 @@ export default function AccountTransferPage() {
           Transfer your marginfi account to a new authority.
           <br /> <strong className="font-medium">This action is irreversible, proceed with caution.</strong>
         </p>
-        {isSuccess && <p className="text-green-500">Account transferred successfully</p>}
+        {isSuccess && <p className="text-mrgn-success">Account transferred successfully</p>}
       </div>
       <form className="w-full max-w-md mx-auto flex flex-col gap-4" onSubmit={handleSubmit}>
-        {hasError && <p className="text-destructive-foreground text-sm">{hasError}</p>}
-        <Input type="text" placeholder="New authority wallet address" required name="newAuthority" />
+        {hasError && <p className="text-mrgn-error text-sm">{hasError}</p>}
+
+        <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Select Account</label>
+            <WalletAuthAccounts
+              mfiClient={marginfiClient}
+              connection={marginfiClient?.provider.connection ?? null}
+              marginfiAccounts={marginfiAccounts ?? []}
+              selectedAccount={selectedAccount}
+              setSelectedAccount={setSelectedAccount}
+              closeOnSwitch={true}
+              popoverContentAlign="start"
+              processOpts={{
+                ...priorityFees,
+                broadcastType,
+              }}
+              accountLabels={accountLabels}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">New Authority Address</label>
+            <Input type="text" placeholder="New authority wallet address" required name="newAuthority" />
+          </div>
+        </div>
+
         <Button type="submit" disabled={isLoading}>
           {isLoading ? "Transferring..." : "Transfer Account"}
         </Button>
