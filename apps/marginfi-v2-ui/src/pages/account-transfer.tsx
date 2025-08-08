@@ -1,10 +1,11 @@
 import React from "react";
 
 import { useWrappedMarginfiAccount } from "@mrgnlabs/mrgn-state";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
 import { useWallet } from "~/components";
 import { useUiStore } from "~/store";
+import { useConnection } from "~/hooks/use-connection";
 
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
@@ -14,6 +15,7 @@ export default function AccountTransferPage() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSuccess, setIsSuccess] = React.useState(false);
   const { connected, wallet } = useWallet();
+  const { connection } = useConnection();
   const { wrappedAccount: selectedAccount, isLoading: isLoadingSelectedAccount } = useWrappedMarginfiAccount(wallet);
   const { priorityFees, broadcastType } = useUiStore((state) => ({
     priorityFees: state.priorityFees,
@@ -45,11 +47,36 @@ export default function AccountTransferPage() {
 
       try {
         setIsLoading(true);
-        const transfer = await selectedAccount.makeAccountTransferToNewAccount(newAccountPk, newAuthorityPk, {
-          ...priorityFees,
-          broadcastType,
+
+        // Create the transaction
+        const transaction = await selectedAccount.makeAccountTransferToNewAccountTx(newAccountPk, newAuthorityPk);
+
+        // Get the latest blockhash
+        const { blockhash } = await connection.getLatestBlockhash();
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = wallet.publicKey;
+
+        // Convert to versioned transaction
+        const message = new TransactionMessage({
+          payerKey: wallet.publicKey,
+          recentBlockhash: blockhash,
+          instructions: transaction.instructions,
         });
-        console.log(transfer);
+        const versionedTransaction = new VersionedTransaction(message.compileToV0Message([]));
+
+        // Sign the transaction with both the wallet and the new account keypair
+        versionedTransaction.sign([newAccount]);
+        const signedTransaction = await wallet.signTransaction(versionedTransaction);
+
+        // Send the transaction
+        const signature = await connection.sendTransaction(signedTransaction, {
+          skipPreflight: true,
+        });
+
+        // Wait for confirmation
+        // await connection.confirmTransaction(signature, "confirmed");
+
+        console.log("Transfer signature:", signature);
         setIsSuccess(true);
       } catch (error) {
         setHasError(error instanceof Error ? error.message : "Error transferring account");
@@ -57,7 +84,7 @@ export default function AccountTransferPage() {
         setIsLoading(false);
       }
     },
-    [selectedAccount, priorityFees, broadcastType]
+    [selectedAccount, wallet, connection]
   );
 
   if (!connected) {

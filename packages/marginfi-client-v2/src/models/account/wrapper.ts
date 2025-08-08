@@ -1960,12 +1960,10 @@ class MarginfiAccountWrapper {
     );
   }
 
-  async makeAccountTransferToNewAccount(
+  async makeAccountTransferToNewAccountTx(
     newMarginfiAccount: PublicKey,
-    newAccountAuthority: PublicKey,
-    processOpts?: ProcessTransactionsClientOpts,
-    txOpts?: TransactionOptions
-  ): Promise<string> {
+    newAccountAuthority: PublicKey
+  ): Promise<Transaction> {
     const [feeStateKey] = PublicKey.findProgramAddressSync([Buffer.from("feestate", "utf-8")], this._program.programId);
     const feeState = await this._program.account.feeState.fetch(feeStateKey);
 
@@ -1975,11 +1973,7 @@ class MarginfiAccountWrapper {
       feeState.globalFeeWallet
     );
     const tx = new Transaction().add(...ixs.instructions);
-    const solanaTx = addTransactionMetadata(tx, {
-      type: TransactionType.TRANSFER_AUTH,
-    });
-    const sig = await this.client.processTransaction(solanaTx, processOpts, txOpts);
-    return sig;
+    return tx;
   }
 
   async makeUpdateFeedIx(
