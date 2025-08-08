@@ -1949,12 +1949,14 @@ class MarginfiAccountWrapper {
 
   public async makeAccountTransferToNewAccountIx(
     newMarginfiAccount: PublicKey,
-    newAccountAuthority: PublicKey
+    newAccountAuthority: PublicKey,
+    globalFeeWallet: PublicKey
   ): Promise<InstructionsWrapper> {
     return this._marginfiAccount.makeAccountTransferToNewAccountIx(
       this._program,
       newMarginfiAccount,
-      newAccountAuthority
+      newAccountAuthority,
+      globalFeeWallet
     );
   }
 
@@ -1964,7 +1966,14 @@ class MarginfiAccountWrapper {
     processOpts?: ProcessTransactionsClientOpts,
     txOpts?: TransactionOptions
   ): Promise<string> {
-    const ixs = await this.makeAccountTransferToNewAccountIx(newMarginfiAccount, newAccountAuthority);
+    const [feeStateKey] = PublicKey.findProgramAddressSync([Buffer.from("feestate", "utf-8")], this._program.programId);
+    const feeState = await this._program.account.feeState.fetch(feeStateKey);
+
+    const ixs = await this.makeAccountTransferToNewAccountIx(
+      newMarginfiAccount,
+      newAccountAuthority,
+      feeState.globalFeeWallet
+    );
     const tx = new Transaction().add(...ixs.instructions);
     const solanaTx = addTransactionMetadata(tx, {
       type: TransactionType.TRANSFER_AUTH,

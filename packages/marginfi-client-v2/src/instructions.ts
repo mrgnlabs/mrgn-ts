@@ -297,13 +297,13 @@ async function makeAccountTransferToNewAccountIx(
     oldMarginfiAccount: PublicKey;
     newMarginfiAccount: PublicKey;
     newAuthority: PublicKey;
-    feePayer: PublicKey;
+    globalFeeWallet: PublicKey;
     // Optional accounts - to override inference
     group?: PublicKey;
     authority?: PublicKey;
   }
 ) {
-  const { oldMarginfiAccount, newMarginfiAccount, newAuthority, feePayer, ...optionalAccounts } = accounts;
+  const { oldMarginfiAccount, newMarginfiAccount, newAuthority, globalFeeWallet, ...optionalAccounts } = accounts;
 
   return mfProgram.methods
     .transferToNewAccount()
@@ -311,7 +311,7 @@ async function makeAccountTransferToNewAccountIx(
       oldMarginfiAccount,
       newMarginfiAccount,
       newAuthority,
-      globalFeeWallet: feePayer,
+      globalFeeWallet,
     })
     .accountsPartial(optionalAccounts)
     .instruction();
