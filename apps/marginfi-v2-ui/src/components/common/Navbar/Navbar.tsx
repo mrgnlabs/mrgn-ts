@@ -24,6 +24,7 @@ import {
   useWrappedMarginfiAccount,
   useAccountSummary,
   useSetSelectedAccountKey,
+  useMarginfiAccount,
 } from "@mrgnlabs/mrgn-state";
 import { useWalletData } from "~/hooks/use-wallet-data.hooks";
 import { PublicKey } from "@solana/web3.js";
@@ -39,6 +40,7 @@ export const Navbar: FC = () => {
   const { tokenBalances, nativeStakeBalances, isLoading: isLoadingUserBalances } = useWalletData();
   const { marginfiClient } = useMarginfiClient(wallet);
   const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(wallet);
+  const { data: selectedAccountData } = useMarginfiAccount();
   const { data: marginfiAccounts } = useMarginfiAccountAddresses();
 
   const { extendedBanks } = useExtendedBanks();
@@ -108,15 +110,21 @@ export const Navbar: FC = () => {
       ? "h-[130px] md:h-[96px]"
       : "h-[64px]";
 
+  let outageBanner = process.env.NEXT_PUBLIC_OUTAGE_BANNER;
+
+  if (selectedAccountData?.accountFlags.includes(1)) {
+    outageBanner = "This account has been disabled, please change your account form your wallet or portfolio";
+  }
+
   return (
     <header className={cn("mb-4 md:mb-8 lg:mb-14", height)}>
       <nav className={cn("fixed w-full top-0 z-50", height)}>
-        {process.env.NEXT_PUBLIC_OUTAGE_BANNER && process.env.NEXT_PUBLIC_OUTAGE_BANNER !== "false" && (
+        {outageBanner && outageBanner !== "false" && (
           <div className="w-full py-2 px-6 lg:px-0 bg-background-gray-light flex items-center gap-1 text-xs justify-center text-center">
             <IconAlertCircle size={16} className="hidden lg:block" />
             <span>
-              {process.env.NEXT_PUBLIC_OUTAGE_BANNER !== "true"
-                ? process.env.NEXT_PUBLIC_OUTAGE_BANNER
+              {outageBanner !== "true"
+                ? outageBanner
                 : "We are currently experiencing technical issues, certain actions may not be available."}
             </span>
           </div>
