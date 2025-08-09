@@ -124,7 +124,7 @@ export default function AccountTransferPage() {
           Transfer your marginfi account to a new authority.
           <br /> <strong className="font-medium">This action is irreversible, proceed with caution.</strong>
         </p>
-        {isSuccess && <p className="text-mrgn-success">Account transferred successfully</p>}
+        {isSuccess && <p className="text-mrgn-success">Account transferred successfully!</p>}
       </div>
       <form className="w-full max-w-md mx-auto flex flex-col gap-4" onSubmit={handleSubmit}>
         {hasError && <p className="text-mrgn-error text-sm">{hasError}</p>}
