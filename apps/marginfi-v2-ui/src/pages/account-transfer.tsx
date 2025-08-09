@@ -98,7 +98,7 @@ export default function AccountTransferPage() {
 
         setTimeout(() => {
           refreshUserData();
-        }, 1000);
+        }, 2000);
       } catch (error) {
         setHasError(error instanceof Error ? error.message : "Error transferring account");
       } finally {
