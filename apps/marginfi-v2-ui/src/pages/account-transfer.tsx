@@ -94,6 +94,8 @@ export default function AccountTransferPage() {
           skipPreflight: true,
         });
 
+        console.log(signature);
+
         setIsSuccess(true);
 
         setTimeout(() => {
