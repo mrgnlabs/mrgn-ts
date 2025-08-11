@@ -1,5 +1,4 @@
 import { Address, AnchorProvider, BorshAccountsCoder, Program, translateAddress } from "@coral-xyz/anchor";
-import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import {
   AddressLookupTableAccount,
   Commitment,
@@ -14,6 +13,7 @@ import {
   TransactionSignature,
   VersionedTransaction,
 } from "@solana/web3.js";
+import bs58 from "bs58";
 import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "../types";
 import { getConfig } from "../config";
 import instructions from "../instructions";
@@ -340,19 +340,12 @@ class MarginfiClient {
       }));
     }
 
-    const feedIdMap = await buildFeedIdMap(
-      bankDatasKeyed.map((b) => b.data.config),
-      program.provider.connection
-    );
-
     // const oracleKeys = bankDatasKeyed.map((b) => b.data.config.oracleKeys[0]);
     const mintKeys = bankDatasKeyed.map((b) => b.data.mint);
     const emissionMintKeys = bankDatasKeyed
       .map((b) => b.data.emissionsMint)
       .filter((pk) => !pk.equals(PublicKey.default)) as PublicKey[];
-    const oracleKeys = bankDatasKeyed.map(
-      (b) => findOracleKey(BankConfig.fromAccountParsed(b.data.config), feedIdMap).oracleKey
-    );
+    const oracleKeys = bankDatasKeyed.map((b) => findOracleKey(BankConfig.fromAccountParsed(b.data.config)).oracleKey);
     // Batch-fetch the group account and all the oracle accounts as per the banks retrieved above
     const allAis = await chunkedGetRawMultipleAccountInfoOrdered(program.provider.connection, [
       groupAddress.toBase58(),
@@ -373,7 +366,7 @@ class MarginfiClient {
     const banks = new Map(
       bankDatasKeyed.map(({ address, data }) => {
         const bankMetadata = bankMetadataMap ? bankMetadataMap[address.toBase58()] : undefined;
-        const bank = Bank.fromAccountParsed(address, data, feedIdMap, bankMetadata);
+        const bank = Bank.fromAccountParsed(address, data, undefined, bankMetadata);
 
         return [address.toBase58(), bank];
       })
@@ -499,7 +492,7 @@ class MarginfiClient {
       banks,
       priceInfos,
       tokenDatas,
-      feedIdMap,
+      feedIdMap: new Map(),
     };
   }
 

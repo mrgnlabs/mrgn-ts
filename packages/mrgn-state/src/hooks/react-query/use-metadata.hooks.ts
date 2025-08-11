@@ -1,10 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { fetchMarginfiLuts, fetchMetaData } from "../../api/metadata-api";
 import { AddressLookupTableAccount } from "@solana/web3.js";
 
 export type AppMetadata = Awaited<ReturnType<typeof fetchMetaData>>;
 
-export function useMetadata() {
+export function useMetadata(): UseQueryResult<AppMetadata, Error> {
   return useQuery<AppMetadata, Error>({
     queryKey: ["metadata"],
     queryFn: () => fetchMetaData(),

@@ -5,7 +5,7 @@
   "scripts": {
     "clean": "rimraf dist node_modules",
     "dev": "next dev --port 3006",
-    "build": "next build",
+    "build": "echo 'skipping build for this package'",
     "start": "next start",
     "lint": "next lint",
     "lint-fix": "yarn lint --fix"

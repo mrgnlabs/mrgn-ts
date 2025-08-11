@@ -14,9 +14,8 @@ import {
 
 import BigNumber from "bignumber.js";
 
-import instructions from "~/instructions";
-import { MarginfiProgram } from "~/types";
-import { makeWrapSolIxs, makeUnwrapSolIx } from "~/utils";
+import { MarginfiProgram } from "../../types";
+import { makeWrapSolIxs, makeUnwrapSolIx } from "../../utils";
 
 import { Bank } from "../bank";
 import { Balance } from "../balance";
@@ -53,6 +52,7 @@ import {
   computeFreeCollateralLegacy,
   EmodeImpactStatus,
   OracleSetup,
+  instructions,
 } from "../..";
 import BN from "bn.js";
 import { BorshInstructionCoder } from "@coral-xyz/anchor";
@@ -1113,16 +1113,19 @@ class MarginfiAccount implements MarginfiAccountType {
     return { instructions: [ix], keys: [] };
   }
 
-  async makeAccountAuthorityTransferIx(
+  async makeAccountTransferToNewAccountIx(
     program: MarginfiProgram,
-    newAccountAuthority: PublicKey
+    newMarginfiAccount: PublicKey,
+    newAuthority: PublicKey,
+    globalFeeWallet: PublicKey
   ): Promise<InstructionsWrapper> {
-    const accountAuthorityTransferIx = await instructions.makeAccountAuthorityTransferIx(program, {
-      marginfiAccount: this.address,
-      newAuthority: newAccountAuthority,
-      feePayer: this.authority,
+    const accountTransferToNewAccountIx = await instructions.makeAccountTransferToNewAccountIx(program, {
+      oldMarginfiAccount: this.address,
+      newMarginfiAccount,
+      newAuthority,
+      globalFeeWallet,
     });
-    return { instructions: [accountAuthorityTransferIx], keys: [] };
+    return { instructions: [accountTransferToNewAccountIx], keys: [] };
   }
 
   async makeCloseAccountIx(program: MarginfiProgram): Promise<InstructionsWrapper> {

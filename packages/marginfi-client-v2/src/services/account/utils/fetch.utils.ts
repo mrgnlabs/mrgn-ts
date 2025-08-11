@@ -2,10 +2,10 @@ import { PublicKey } from "@solana/web3.js";
 
 import { BankMetadataMap } from "@mrgnlabs/mrgn-common";
 
-import { MarginfiAccount } from "~/models/account";
-import { Bank } from "~/models/bank";
-import { OraclePrice } from "~/services/price";
-import { MarginfiProgram } from "~/types";
+import { MarginfiAccount } from "../../../models/account";
+import { Bank } from "../../../models/bank";
+import { OraclePrice } from "../../../services/price";
+import { MarginfiProgram } from "../../../types";
 
 import { HealthCacheSimulationError, simulateAccountHealthCacheWithFallback } from "../account.service";
 import { MarginfiAccountType, MarginfiAccountRaw } from "../types";

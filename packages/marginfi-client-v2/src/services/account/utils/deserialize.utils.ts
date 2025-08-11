@@ -6,11 +6,6 @@ import { PublicKey } from "@solana/web3.js";
 
 import { wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 
-import { Balance } from "~/models/balance";
-import { HealthCache } from "~/models/health-cache";
-import { AccountType } from "~/types";
-import { MarginfiIdlType } from "~/idl";
-
 import {
   MarginfiAccountRaw,
   BalanceRaw,
@@ -23,6 +18,10 @@ import {
   HealthCacheTypeDto,
   HealthCacheType,
 } from "../types";
+import { MarginfiIdlType } from "../../../idl";
+import { Balance } from "../../../models/balance";
+import { HealthCache } from "../../../models/health-cache";
+import { AccountType } from "../../../types";
 
 export function decodeAccountRaw(encoded: Buffer, idl: MarginfiIdlType): MarginfiAccountRaw {
   const coder = new BorshCoder(idl);

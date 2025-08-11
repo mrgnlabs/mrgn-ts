@@ -1,5 +1,29 @@
 # @mrgnlabs/marginfi-client-v2
 
+## 6.1.3
+
+### Patch Changes
+
+- fed2ae5: fix: reverted back to tsc compiler
+
+## 6.1.3-beta.0
+
+### Patch Changes
+
+- fed2ae5: fix: reverted back to tsc compiler
+
+## 6.1.2
+
+### Patch Changes
+
+- bb0bf28: bugfix: added types to export
+
+## 6.1.1
+
+### Patch Changes
+
+- 1738ad6: program 0.1.4
+
 ## 6.1.0
 
 ### Minor Changes

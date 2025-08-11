@@ -175,6 +175,7 @@ export interface BankConfigRawDto {
 
   totalAssetValueInitLimit: string;
   oracleMaxAge: number;
+  oracleMaxConfidence: number;
 }
 
 export interface EmodeSettingsRawDto {
