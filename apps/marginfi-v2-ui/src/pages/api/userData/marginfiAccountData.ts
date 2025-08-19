@@ -18,6 +18,7 @@ import {
 import { BankMetadataMap, Wallet } from "@mrgnlabs/mrgn-common";
 
 import config from "~/config/marginfi";
+import { getEmodePairs } from "@mrgnlabs/mrgn-state";
 
 interface MarginfiAccountDataRequest {
   bankMap: Record<string, BankTypeDto>;
@@ -66,10 +67,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const bankMap = new Map<string, Bank>();
     const oraclePrices = new Map<string, OraclePrice>();
+    const banks: Bank[] = [];
 
     Object.entries(body.bankMap).forEach(([bankPk, bank]) => {
+      banks.push(Bank.fromBankType(dtoToBank(bank)));
       bankMap.set(bankPk, Bank.fromBankType(dtoToBank(bank)));
     });
+
+    const emodePairs = getEmodePairs(banks);
 
     Object.entries(body.oraclePrices).forEach(([bankPk, oraclePrice]) => {
       oraclePrices.set(bankPk, dtoToOraclePrice(oraclePrice));
@@ -80,7 +85,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       marginfiAccountsPk,
       bankMap,
       oraclePrices,
-      body.bankMetadataMap
+      body.bankMetadataMap,
+      emodePairs
     );
     const marginfiAccountDto = marginfiAccountToDto(marginfiAccountWithCache);
 
