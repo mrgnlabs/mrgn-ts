@@ -1,6 +1,5 @@
 import { STATUS_INTERNAL_ERROR } from "@mrgnlabs/mrgn-state";
 import { NextApiRequest, NextApiResponse } from "next";
-import { createServerSupabaseClient } from "~/auth/server";
 import { Connection } from "@solana/web3.js";
 import { Wallet, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 import { MARGINFI_IDL, MarginfiIdlType, MarginfiProgram } from "@mrgnlabs/marginfi-client-v2";
@@ -8,25 +7,9 @@ import config from "~/config/marginfi";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 
 const USDS_BANK = "FDsf8sj6SoV313qrA91yms3u5b3P4hBxEPvanVs8LtJV";
-const JITO_BANK = "Bohoc1ikHLD7xKJuzTyiTyCwzaL5N7ggJQu75A8mKYM8";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const supabase = createServerSupabaseClient(req, res);
-
   try {
-    // Fetch Jito emissions data from Supabase
-    const jitoResult = await supabase
-      .schema("application")
-      .from("fv_emissions_jito_202507_campaign_rates_v_2_0_0")
-      .select("*")
-      .order("hour", { ascending: false })
-      .limit(1);
-
-    // Log errors but don't fail the request - return partial results
-    if (jitoResult.error) {
-      console.error("Error fetching Jito emissions rates:", jitoResult.error);
-    }
-
     // Fetch USDS bank data and calculate APY
     let usdsRate = 0;
     if (process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE) {
@@ -53,11 +36,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const result = {
       [USDS_BANK]: { annualized_rate_enhancement: usdsRate },
-      [JITO_BANK]: jitoResult.data?.[0] || null,
     };
 
     // Only return error if both campaigns failed
-    if (!jitoResult.data?.length && usdsRate === 0) {
+    if (usdsRate === 0) {
       return res.status(404).json({ error: "No emissions rates found" });
     }
 
