@@ -185,9 +185,7 @@ export default function BankPage() {
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                <p>
-                  You cannot take out native stake borrows. Deposit your native stake to increase your borrow capacity.
-                </p>
+                <p>You cannot borrow from native stake banks.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -273,7 +271,25 @@ export default function BankPage() {
         description: "Loan-to-Value of the bank",
         tooltip:
           "Loan-to-Value ratio (LTV) shows how much you can borrow relative to your available collateral. A higher LTV means you can borrow more, but it also increases liquidation risk.",
-        value: bankData?.ltv ? `${percentFormatter.format(bankData.ltv)}` : 0,
+        value: isNativeStakeBank ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-muted-foreground">—</span>
+                  <IconInfoCircle size={14} className="cursor-help" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>You cannot borrow from native stake banks.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : bankData?.ltv ? (
+          `${percentFormatter.format(bankData.ltv)}`
+        ) : (
+          0
+        ),
       },
       {
         title: "Interest Rates (APY)",
@@ -286,7 +302,11 @@ export default function BankPage() {
             <div className={`flex items-center justify-center gap-2 ${!isNativeStakeBank ? "text-2xl" : ""}`}>
               <span className="text-mrgn-success">
                 {percentFormatter.format(
-                  isNativeStakeBank ? stakePoolMetadata?.validatorRewards || 0 : bankData?.lendingRate || 0
+                  isNativeStakeBank
+                    ? stakePoolMetadata?.validatorRewards
+                      ? stakePoolMetadata?.validatorRewards / 100
+                      : 0
+                    : bankData?.lendingRate || 0
                 )}
               </span>
               {!isNativeStakeBank && (
