@@ -47,9 +47,6 @@ export function calculate7dPortfolioStats(data: Record<string, EnrichedPortfolio
   const startEntries = data[startTimestamp] || [];
   const endEntries = data[endTimestamp] || [];
 
-  console.log(startEntries);
-  console.log(endEntries);
-
   const startDeposits = startEntries.reduce((sum, entry) => sum + entry.depositValueUsd, 0);
   const startBorrows = startEntries.reduce((sum, entry) => sum + entry.borrowValueUsd, 0);
   const endDeposits = endEntries.reduce((sum, entry) => sum + entry.depositValueUsd, 0);
