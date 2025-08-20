@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (bankAddress && typeof bankAddress === "string") {
       const result = await supabase
         .schema("application")
-        .from("fv_mfi_bank_home_page_v_1_0_0")
+        .from("f_mfi_bank_home_page_v100")
         .select("symbol, mint, lst_apy")
         .eq("group_address", "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8")
         .eq("bank_address", bankAddress)
@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else {
       const result = await supabase
         .schema("application")
-        .from("fv_mfi_bank_home_page_v_1_0_0")
+        .from("f_mfi_bank_home_page_v100")
         .select("symbol, mint, lst_apy")
         .eq("group_address", "4qp6Fx6tnZkY5Wropq9wUYgtFxXKwE6viZxFHg3rdAG8")
         .not("lst_apy", "is", null)
