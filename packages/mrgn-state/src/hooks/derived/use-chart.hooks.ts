@@ -74,25 +74,31 @@ export function usePortfolioChart(
   banks: ExtendedBankInfo[],
   variant: "deposits" | "borrows" | "net" = "net"
 ): PortfolioChartResult {
-  const { data: portfolioData, error, isLoading, isError } = usePortfolioData(selectedAccount, banks);
+  const { data: portfolioData, error, isLoading, isError } = usePortfolioData(selectedAccount);
 
-  // Transform data based on variant
+  // Transform data based on variant using P0's transformation logic
   const { data, bankSymbols } = useMemo(() => {
     if (isLoading || !portfolioData || Object.keys(portfolioData).length === 0) {
       return { data: [], bankSymbols: [] };
     }
 
-    // Get all timestamps (sorted chronologically)
-    const timestamps = Object.keys(portfolioData).sort();
-
-    if (timestamps.length === 0) {
-      return { data: [], bankSymbols: [] };
-    }
-
     if (variant === "net") {
-      // For net view, we aggregate the total net value across all assets at each timestamp
+      // For net view, aggregate total net value across all assets at each timestamp
+      // Adapted from P0's transformPortfolioDataToChart
+      const timestamps = Object.keys(portfolioData).sort();
+
       const chartData = timestamps.map((timestamp) => {
-        const positions = portfolioData[timestamp];
+        const timestampData = portfolioData[timestamp];
+        const positions: Array<{ netValueUsd: number }> = [];
+
+        if (Array.isArray(timestampData)) {
+          for (const mintData of timestampData) {
+            if (mintData && typeof mintData.netValueUsd === "number") {
+              positions.push({ netValueUsd: mintData.netValueUsd });
+            }
+          }
+        }
+
         const netValue = positions.reduce((sum, position) => sum + position.netValueUsd, 0);
 
         return {
@@ -104,46 +110,41 @@ export function usePortfolioChart(
 
       return { data: chartData, bankSymbols: ["Portfolio Balance"] };
     } else {
-      // For deposits or borrows view, we need to track each bank separately
-      const bankMap = new Map<string, boolean>(); // Track active banks
+      // For deposits or borrows view, use P0's transformPortfolioDataToMultiLine logic
+      const valueKey = variant === "deposits" ? "depositValueUsd" : "borrowValueUsd";
 
       // First pass - identify all active banks that have deposits or borrows
-      timestamps.forEach((timestamp) => {
-        portfolioData[timestamp].forEach((position) => {
-          if (variant === "deposits" && position.depositValueUsd > 0) {
-            bankMap.set(position.bankSymbol, true);
-          } else if (variant === "borrows" && position.borrowValueUsd > 0) {
-            bankMap.set(position.bankSymbol, true);
+      const activeBankMap = new Map<string, boolean>();
+      Object.values(portfolioData).forEach((positions) => {
+        positions.forEach((position) => {
+          if ((position[valueKey] || 0) > 0) {
+            activeBankMap.set(position.bank_symbol, true);
           }
         });
       });
 
-      // Get all active bank symbols
-      const activeBankSymbols = Array.from(bankMap.keys());
+      const bankSymbols = Array.from(activeBankMap.keys()).sort();
 
       // Create chart data points for each timestamp
-      const chartData = timestamps.map((timestamp) => {
-        const positions = portfolioData[timestamp];
-        const dataPoint: Record<string, any> = { timestamp };
+      const chartData = Object.entries(portfolioData)
+        .map(([timestamp, positions]) => {
+          const dataPoint: Record<string, any> = { timestamp };
 
-        // Initialize all active banks with zero values
-        activeBankSymbols.forEach((symbol) => {
-          dataPoint[symbol] = 0;
-        });
+          // Initialize all active banks with zero values
+          bankSymbols.forEach((bank) => {
+            dataPoint[bank] = 0;
+          });
 
-        // Add values for banks that exist in this snapshot
-        positions.forEach((position) => {
-          if (variant === "deposits" && bankMap.has(position.bankSymbol)) {
-            dataPoint[position.bankSymbol] = position.depositValueUsd;
-          } else if (variant === "borrows" && bankMap.has(position.bankSymbol)) {
-            dataPoint[position.bankSymbol] = position.borrowValueUsd;
-          }
-        });
+          // Add values for banks that exist in this snapshot
+          positions.forEach((position) => {
+            dataPoint[position.bank_symbol] = position[valueKey] || 0;
+          });
 
-        return dataPoint;
-      });
+          return dataPoint;
+        })
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-      return { data: chartData, bankSymbols: activeBankSymbols };
+      return { data: chartData, bankSymbols };
     }
   }, [portfolioData, variant, isLoading]);
 

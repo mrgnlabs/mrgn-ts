@@ -27,10 +27,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Query v_bank_metrics_daily table for last 30 days
     const { data: bankMetrics, error } = await supabase
       .schema("application")
-      .from("v_bank_enriched_1d_v_1_0_0")
+      .from("f_bank_history_30d_v100")
       .select("*")
-      .eq("address", bankAddress)
-      .gte("start_time", startDate)
+      .eq("bank_address", bankAddress)
       .order("start_time", { ascending: true });
 
     if (error) {
