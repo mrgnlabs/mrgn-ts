@@ -2,43 +2,31 @@
  * Interest earned data types
  */
 export interface InterestEarnedDataPoint {
-  account_id: number;
+  start_time: string;
+  end_time: string;
   account_address: string;
-  bank_id: number;
   bank_address: string;
-  bank_mint: string;
-  mint_decimals: number;
-  bank_snapshot_time: string;
-  account_balance_snapshot_time: string;
-  account_balance_id: number;
-  bank_name: string;
+  balance_id: number;
   bank_symbol: string;
-  asset_shares_normalized: number;
-  liability_shares_normalized: number;
-  current_deposit_value: number;
-  current_debt_value: number;
-  initial_asset_share_value: number;
-  initial_liability_share_value: number;
-  current_price_usd_close: number;
-  current_price_timestamp_close: string;
-  initial_deposit_value: number;
-  initial_debt_value: number;
-  interest_earned: number;
-  interest_paid: number;
-  current_deposit_value_usd_close: number;
-  current_debt_value_usd_close: number;
-  initial_deposit_value_usd_close: number;
-  initial_debt_value_usd_close: number;
-  interest_earned_usd_close: number;
-  interest_paid_usd_close: number;
-  past_positions_interest_earned: number;
-  past_positions_interest_paid: number;
-  past_positions_interest_earned_usd_close: number;
-  past_positions_interest_paid_usd_close: number;
-  cumulative_interest_earned: number;
-  cumulative_interest_paid: number;
-  cumulative_interest_earned_usd_close: number;
-  cumulative_interest_paid_usd_close: number;
+  bank_name: string;
+  bank_mint: string;
+  current_usd_price: number;
+  asset_value_native: number;
+  liability_value_native: number;
+  asset_value_usd: number;
+  liability_value_usd: number;
+  initial_asset_value_native: number;
+  initial_liability_value_native: number;
+  initial_asset_value_usd: number;
+  initial_liability_value_usd: number;
+  incremental_interest_earned_native: number;
+  incremental_interest_paid_native: number;
+  incremental_interest_earned_usd: number;
+  incremental_interest_paid_usd: number;
+  cumulative_interest_earned_native: number;
+  cumulative_interest_paid_native: number;
+  cumulative_interest_earned_usd: number;
+  cumulative_interest_paid_usd: number;
 }
 
 /**

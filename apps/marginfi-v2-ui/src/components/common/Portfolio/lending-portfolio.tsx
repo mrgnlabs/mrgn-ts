@@ -108,7 +108,7 @@ export const LendingPortfolio = () => {
     netValue7d,
     error: portfolioError,
     isLoading: portfolioLoading,
-  } = usePortfolioData(selectedAccount?.address.toBase58() || null, sortedBanks);
+  } = usePortfolioData(selectedAccount?.address.toBase58() || null);
 
   const {
     latestNetInterest,

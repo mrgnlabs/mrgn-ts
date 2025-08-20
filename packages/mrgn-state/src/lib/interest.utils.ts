@@ -11,18 +11,15 @@ export const calculateLatestNetInterest = (data: InterestEarnedDataPoint[]): num
 
   data.forEach((item) => {
     const key = item.bank_address;
-    if (!latestByBank[key] || new Date(item.bank_snapshot_time) > new Date(latestByBank[key].bank_snapshot_time)) {
+    if (!latestByBank[key] || new Date(item.start_time) > new Date(latestByBank[key].start_time)) {
       latestByBank[key] = item;
     }
   });
 
   // Sum across banks
-  const totalEarned = Object.values(latestByBank).reduce(
-    (sum, item) => sum + item.cumulative_interest_earned_usd_close,
-    0
-  );
-  const totalPaid = Object.values(latestByBank).reduce((sum, item) => sum + item.cumulative_interest_paid_usd_close, 0);
-  
+  const totalEarned = Object.values(latestByBank).reduce((sum, item) => sum + item.cumulative_interest_earned_usd, 0);
+  const totalPaid = Object.values(latestByBank).reduce((sum, item) => sum + item.cumulative_interest_paid_usd, 0);
+
   // Handle floating-point precision issues by treating very small values as zero
   const netInterest = totalEarned - totalPaid;
   const result = Math.abs(netInterest) < 1e-10 ? 0 : netInterest;
@@ -88,7 +85,7 @@ export const calculateNetInterest30dStats = (data: InterestEarnedDataPoint[]): S
   const dailyTotalsByBank: Record<string, Record<string, InterestEarnedDataPoint>> = {};
 
   data.forEach((item) => {
-    const date = item.bank_snapshot_time.split("T")[0]; // Get YYYY-MM-DD
+    const date = item.start_time.split("T")[0]; // Get YYYY-MM-DD
     const bankKey = item.bank_address;
 
     if (!dailyTotalsByBank[date]) {
@@ -98,7 +95,7 @@ export const calculateNetInterest30dStats = (data: InterestEarnedDataPoint[]): S
     // Keep only the latest entry per bank per day
     if (
       !dailyTotalsByBank[date][bankKey] ||
-      new Date(item.bank_snapshot_time) > new Date(dailyTotalsByBank[date][bankKey].bank_snapshot_time)
+      new Date(item.start_time) > new Date(dailyTotalsByBank[date][bankKey].start_time)
     ) {
       dailyTotalsByBank[date][bankKey] = item;
     }
@@ -113,8 +110,8 @@ export const calculateNetInterest30dStats = (data: InterestEarnedDataPoint[]): S
     let totalPaid = 0;
 
     Object.values(banksForDate).forEach((item) => {
-      totalEarned += item.cumulative_interest_earned_usd_close;
-      totalPaid += item.cumulative_interest_paid_usd_close;
+      totalEarned += item.cumulative_interest_earned_usd;
+      totalPaid += item.cumulative_interest_paid_usd;
     });
 
     // Handle floating-point precision issues
@@ -145,7 +142,7 @@ export const calculateNetInterest30dStats = (data: InterestEarnedDataPoint[]): S
   // Only calculate percentage if both values aren't effectively zero
   if (Math.abs(firstValue) >= 1e-10) {
     if (Math.abs(firstValue) < 0.01) {
-      changePercent = change > 0 ? 100 : (change < 0 ? -100 : 0);
+      changePercent = change > 0 ? 100 : change < 0 ? -100 : 0;
     } else {
       changePercent = (change / Math.abs(firstValue)) * 100;
     }

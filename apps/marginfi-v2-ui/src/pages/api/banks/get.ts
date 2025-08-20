@@ -27,9 +27,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Query v_bank_metrics_daily table for last 30 days
     const { data: bankMetrics, error } = await supabase
       .schema("application")
-      .from("fv_mfi_bank_home_page_v_1_0_0")
+      .from("f_mfi_bank_home_page_v100")
       .select("symbol, mint")
-      .eq("address", bankAddress)
+      .eq("bank_address", bankAddress)
       .limit(1)
       .single();
 

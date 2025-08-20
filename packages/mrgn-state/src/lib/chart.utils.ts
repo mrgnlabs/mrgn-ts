@@ -12,8 +12,7 @@ export function transformInterestData(
 ): { chartData: InterestChartDataPoint[]; bankSymbols: string[] } {
   if (!data.length) return { chartData: [], bankSymbols: [] };
 
-  const fieldName =
-    dataType === "earned" ? "cumulative_interest_earned_usd_close" : "cumulative_interest_paid_usd_close";
+  const fieldName = dataType === "earned" ? "cumulative_interest_earned_usd" : "cumulative_interest_paid_usd";
 
   // Get unique bank symbols
   const allBankSymbols = Array.from(new Set(data.map((item) => item.bank_symbol)));
@@ -24,7 +23,7 @@ export function transformInterestData(
   }
 
   // Use actual data date range (same approach as portfolio charts)
-  const allDataDates = Array.from(new Set(data.map((item) => item.bank_snapshot_time.split("T")[0]))).sort();
+  const allDataDates = Array.from(new Set(data.map((item) => item.start_time.split("T")[0]))).sort();
 
   if (allDataDates.length === 0) {
     return { chartData: [], bankSymbols: [] };
@@ -49,7 +48,7 @@ export function transformInterestData(
   allBankSymbols.forEach((symbol) => {
     dataByBank[symbol] = data
       .filter((item) => item.bank_symbol === symbol)
-      .sort((a, b) => new Date(a.bank_snapshot_time).getTime() - new Date(b.bank_snapshot_time).getTime());
+      .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
   });
 
   // Fill gaps for each active bank symbol (within actual date range only)
@@ -65,7 +64,7 @@ export function transformInterestData(
     allDates.forEach((dateStr) => {
       // Check if we have data for this date
       const existingData = bankData.find((item) => {
-        const itemDate = new Date(item.bank_snapshot_time).toISOString().split("T")[0];
+        const itemDate = new Date(item.start_time).toISOString().split("T")[0];
         return itemDate === dateStr;
       });
 
@@ -139,9 +138,7 @@ export function transformTotalInterestData(data: InterestEarnedDataPoint[]): {
   const allActiveBankData = data.filter((item) => allActiveBanks.includes(item.bank_symbol));
 
   // Use actual data date range (same approach as portfolio charts)
-  const allDataDates = Array.from(
-    new Set(allActiveBankData.map((item) => item.bank_snapshot_time.split("T")[0]))
-  ).sort();
+  const allDataDates = Array.from(new Set(allActiveBankData.map((item) => item.start_time.split("T")[0]))).sort();
 
   if (allDataDates.length === 0) {
     return { chartData: [], bankSymbols: [] };
@@ -168,19 +165,19 @@ export function transformTotalInterestData(data: InterestEarnedDataPoint[]): {
   earnedActiveBanks.forEach((bankSymbol) => {
     const bankData = data
       .filter((item) => item.bank_symbol === bankSymbol)
-      .sort((a, b) => new Date(a.bank_snapshot_time).getTime() - new Date(b.bank_snapshot_time).getTime());
+      .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
 
     earnedByBankByDate[bankSymbol] = {};
     let lastKnownValue = 0;
 
     allDates.forEach((dateStr) => {
       const existingData = bankData.find((item) => {
-        const itemDate = new Date(item.bank_snapshot_time).toISOString().split("T")[0];
+        const itemDate = new Date(item.start_time).toISOString().split("T")[0];
         return itemDate === dateStr;
       });
 
       if (existingData) {
-        lastKnownValue = existingData.cumulative_interest_earned_usd_close;
+        lastKnownValue = existingData.cumulative_interest_earned_usd;
         earnedByBankByDate[bankSymbol][dateStr] = lastKnownValue;
       } else {
         earnedByBankByDate[bankSymbol][dateStr] = lastKnownValue;
@@ -189,7 +186,7 @@ export function transformTotalInterestData(data: InterestEarnedDataPoint[]): {
 
     // Backfill if we never found data
     if (lastKnownValue === 0 && bankData.length > 0) {
-      const firstDataValue = bankData[0].cumulative_interest_earned_usd_close;
+      const firstDataValue = bankData[0].cumulative_interest_earned_usd;
       allDates.forEach((dateStr) => {
         if (earnedByBankByDate[bankSymbol][dateStr] === 0) {
           earnedByBankByDate[bankSymbol][dateStr] = firstDataValue;
@@ -204,19 +201,19 @@ export function transformTotalInterestData(data: InterestEarnedDataPoint[]): {
   paidActiveBanks.forEach((bankSymbol) => {
     const bankData = data
       .filter((item) => item.bank_symbol === bankSymbol)
-      .sort((a, b) => new Date(a.bank_snapshot_time).getTime() - new Date(b.bank_snapshot_time).getTime());
+      .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
 
     paidByBankByDate[bankSymbol] = {};
     let lastKnownValue = 0;
 
     allDates.forEach((dateStr) => {
       const existingData = bankData.find((item) => {
-        const itemDate = new Date(item.bank_snapshot_time).toISOString().split("T")[0];
+        const itemDate = new Date(item.start_time).toISOString().split("T")[0];
         return itemDate === dateStr;
       });
 
       if (existingData) {
-        lastKnownValue = existingData.cumulative_interest_paid_usd_close;
+        lastKnownValue = existingData.cumulative_interest_paid_usd;
         paidByBankByDate[bankSymbol][dateStr] = lastKnownValue;
       } else {
         paidByBankByDate[bankSymbol][dateStr] = lastKnownValue;
@@ -225,7 +222,7 @@ export function transformTotalInterestData(data: InterestEarnedDataPoint[]): {
 
     // Backfill if we never found data
     if (lastKnownValue === 0 && bankData.length > 0) {
-      const firstDataValue = bankData[0].cumulative_interest_paid_usd_close;
+      const firstDataValue = bankData[0].cumulative_interest_paid_usd;
       allDates.forEach((dateStr) => {
         if (paidByBankByDate[bankSymbol][dateStr] === 0) {
           paidByBankByDate[bankSymbol][dateStr] = firstDataValue;

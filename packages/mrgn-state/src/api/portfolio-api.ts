@@ -1,11 +1,14 @@
-import { PortfolioDataPoint } from "../types";
+import { groupPortfolioData, normalizePortfolioSnapshots } from "../lib";
+import { EnrichedPortfolioDataPoint, PortfolioDataPoint } from "../types";
 
 /**
  * Fetch portfolio data from API
  * @param selectedAccount The wallet address to fetch portfolio data for
  * @returns Portfolio data array
  */
-export const fetchPortfolioData = async (selectedAccount: string | null): Promise<PortfolioDataPoint[]> => {
+export const fetchPortfolioData = async (
+  selectedAccount: string | null
+): Promise<Record<string, EnrichedPortfolioDataPoint[]>> => {
   if (!selectedAccount) {
     throw new Error("No account selected");
   }
@@ -17,12 +20,9 @@ export const fetchPortfolioData = async (selectedAccount: string | null): Promis
 
   const result = await response.json();
 
-  return result.map((item: any) => ({
-    assetShares: item.asset_shares,
-    liabilityShares: item.liability_shares,
-    lastSeenAt: item.last_seen_at,
-    bankAddress: item.bank_address,
-    bankAssetTag: item.bank_asset_tag,
-    snapshotTime: item.snapshot_time,
-  }));
+  const groupedData = result ? groupPortfolioData(result) : {};
+
+  const normalizedData = Object.keys(groupedData).length > 0 ? normalizePortfolioSnapshots(groupedData) : {};
+
+  return normalizedData;
 };
