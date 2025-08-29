@@ -1,5 +1,11 @@
 # @mrgnlabs/marginfi-client-v2
 
+## 6.1.4
+
+### Patch Changes
+
+- bd93013: fix: bumped switchboard packages to improve cranking
+
 ## 6.1.3
 
 ### Patch Changes
