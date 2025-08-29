@@ -1,5 +1,11 @@
 # @mrgnlabs/mrgn-common
 
+## 2.0.5
+
+### Patch Changes
+
+- cd529fa: feat: handle new switchboard transactions
+
 ## 2.0.4
 
 ### Patch Changes
