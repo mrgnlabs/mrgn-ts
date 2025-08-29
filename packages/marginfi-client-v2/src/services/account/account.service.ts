@@ -10,7 +10,6 @@ import {
 } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
-import * as sb from "@switchboard-xyz/on-demand";
 import { AnchorProvider } from "@coral-xyz/anchor";
 
 import {
@@ -39,10 +38,10 @@ import { Bank } from "../../models/bank";
 import { HealthCache } from "../../models/health-cache";
 import { MarginfiProgram } from "../../types";
 import { feedIdToString } from "../../utils";
-import { getSwitchboardProgram } from "../../vendor";
 import { BankType, OracleSetup } from "../bank";
 import { OraclePrice } from "../price";
 import { simulateBundle } from "../transaction/helpers";
+import { AnchorUtils, PullFeed } from "@switchboard-xyz/on-demand";
 
 /**
  * Custom error class for health cache simulation failures
@@ -323,13 +322,18 @@ export async function createUpdateFeedIx(props: {
   swbPullOracles: PublicKey[];
   provider: AnchorProvider;
 }): Promise<{ instructions: TransactionInstruction[]; luts: AddressLookupTableAccount[] }> {
-  const sbProgram = getSwitchboardProgram(props.provider);
-  const [pullIx, luts] = await sb.PullFeed.fetchUpdateManyIx(sbProgram, {
-    feeds: props.swbPullOracles,
+  const swbProgram = await AnchorUtils.loadProgramFromConnection(props.provider.connection);
+  const pullFeedInstances: PullFeed[] = props.swbPullOracles.map((pubkey) => new PullFeed(swbProgram, pubkey));
+  const gateway = await pullFeedInstances[0].fetchGatewayUrl();
+
+  const [pullIx, luts] = await PullFeed.fetchUpdateManyIx(swbProgram, {
+    feeds: pullFeedInstances,
+    gateway,
     numSignatures: 1,
     payer: props.provider.publicKey,
   });
-  return { instructions: [pullIx], luts };
+
+  return { instructions: pullIx, luts };
 }
 
 /**

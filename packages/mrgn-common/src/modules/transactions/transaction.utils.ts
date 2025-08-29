@@ -106,6 +106,7 @@ type UpdateTxOptions = {
   addressLookupTables?: AddressLookupTableAccount[];
   additionalIxs?: TransactionInstruction[];
   replaceOnly?: boolean;
+  indexOffset?: number;
 };
 
 /**
@@ -157,7 +158,7 @@ export function updateV0Tx(transaction: VersionedTransaction, opts?: UpdateTxOpt
   const blockhash = opts?.blockhash ?? message.recentBlockhash;
 
   if (additionalIxs.length > 0) {
-    instructions = replaceV0TxInstructions(additionalIxs, message.instructions, opts?.replaceOnly);
+    instructions = replaceV0TxInstructions(additionalIxs, message.instructions, opts?.replaceOnly, opts?.indexOffset);
   } else {
     instructions = message.instructions;
   }
@@ -194,7 +195,8 @@ export function compareInstructions(ix1: TransactionInstruction, ix2: Transactio
 export function replaceV0TxInstructions(
   additionalInstructions: TransactionInstruction[],
   instructions: TransactionInstruction[],
-  replaceOnly?: boolean
+  replaceOnly?: boolean,
+  indexOffset?: number
 ): TransactionInstruction[] {
   let updatedAdditionalIxs: TransactionInstruction[] = additionalInstructions;
 
@@ -231,7 +233,20 @@ export function replaceV0TxInstructions(
     return ix;
   });
 
-  return [...(replaceOnly ? [] : updatedAdditionalIxs), ...updatedInstructions];
+  // Handle indexOffset for positioning additional instructions
+  if (replaceOnly) {
+    return updatedInstructions;
+  }
+
+  if (indexOffset === undefined) {
+    // Default behavior: [additional, instructions]
+    return [...updatedAdditionalIxs, ...updatedInstructions];
+  }
+
+  // Insert additional instructions at the specified offset
+  const result = [...updatedInstructions];
+  result.splice(indexOffset, 0, ...updatedAdditionalIxs);
+  return result;
 }
 
 export function replaceV0TxBlockhash(transaction: VersionedTransaction, blockhash: string): VersionedTransaction {

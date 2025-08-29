@@ -42,9 +42,31 @@ export function isFlashloan(tx: SolanaTransaction): boolean {
   return false;
 }
 
+export function isSecp256k1(tx: SolanaTransaction): boolean {
+  if (isV0Tx(tx)) {
+    const addressLookupTableAccounts = tx.addressLookupTables ?? [];
+    const message = decompileV0Transaction(tx, addressLookupTableAccounts);
+    const decoded = message.instructions.some((ix) =>
+      ix.programId.equals(new PublicKey("KeccakSecp256k11111111111111111111111111111"))
+    );
+    return decoded;
+  }
+  //TODO: add legacy tx check
+  return false;
+}
+
 function getFlashloanIndex(transactions: SolanaTransaction[]): number | null {
   for (const [index, transaction] of transactions.entries()) {
     if (isFlashloan(transaction)) {
+      return index;
+    }
+  }
+  return null;
+}
+
+function getSecp256k1Index(transactions: SolanaTransaction[]): number | null {
+  for (const [index, transaction] of transactions.entries()) {
+    if (isSecp256k1(transaction)) {
       return index;
     }
   }
@@ -80,6 +102,8 @@ export function formatTransactions(
   const { priorityFeeMicro, bundleTipUi, feePayer, maxCapUi } = feeSettings;
 
   const flashloanIndex = getFlashloanIndex(transactionsArg);
+  const secp256k1Index = getSecp256k1Index(transactionsArg);
+
   transactionsArg.forEach((tx) => {
     if (!isV0Tx(tx)) {
       tx.recentBlockhash = blockhash;
@@ -149,6 +173,7 @@ export function formatTransactions(
   for (const [index, transaction] of transactions.entries()) {
     const hasFlashloan = flashloanIndex !== null; // check if there is a flashloan
     const isTxFlashloan = hasFlashloan && flashloanIndex === index; // check if the tx is the flashloan tx
+    const isTxSecp256k1 = secp256k1Index === index;
 
     const signers = transaction.signers ?? [];
     const addressLookupTables = transaction.addressLookupTables ?? [];
@@ -167,6 +192,7 @@ export function formatTransactions(
         additionalIxs: requiredIxs,
         blockhash,
         replaceOnly: isTxFlashloan,
+        indexOffset: isTxSecp256k1 ? 1 : undefined,
       });
     } else {
       newTransaction = legacyTxToV0Tx(transaction, {
@@ -174,6 +200,7 @@ export function formatTransactions(
         additionalIxs: requiredIxs,
         blockhash,
         replaceOnly: isTxFlashloan,
+        indexOffset: isTxSecp256k1 ? 1 : undefined,
       });
     }
 

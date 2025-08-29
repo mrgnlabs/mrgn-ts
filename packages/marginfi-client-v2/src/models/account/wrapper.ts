@@ -22,7 +22,6 @@ import {
   BankMetadataMap,
   TransactionType,
 } from "@mrgnlabs/mrgn-common";
-import * as sb from "@switchboard-xyz/on-demand";
 import { Address, BorshCoder, Idl, translateAddress } from "@coral-xyz/anchor";
 import {
   AccountMeta,
@@ -84,6 +83,7 @@ import {
   SinglePoolInstruction,
 } from "../../vendor";
 import instructions from "../../instructions";
+import { AnchorUtils, PullFeed } from "@switchboard-xyz/on-demand";
 
 // Temporary imports
 export const MAX_TX_SIZE = 1232;
@@ -1190,13 +1190,22 @@ class MarginfiAccountWrapper {
 
       const tx = new VersionedTransaction(
         new TransactionMessage({
-          instructions: [computeIx, ...updateFeedIx.instructions, ...healthPulseIx.instructions],
+          instructions: [...updateFeedIx.instructions, ...healthPulseIx.instructions],
           payerKey: this.client.provider.publicKey,
           recentBlockhash: blockhash,
-        }).compileToV0Message([...this.client.addressLookupTables, ...updateFeedIx.luts])
+        }).compileToV0Message([...updateFeedIx.luts])
+      );
+
+      const healthCache = new VersionedTransaction(
+        new TransactionMessage({
+          instructions: [computeIx, ...healthPulseIx.instructions],
+          payerKey: this.client.provider.publicKey,
+          recentBlockhash: blockhash,
+        }).compileToV0Message([...this.client.addressLookupTables])
       );
 
       additionalTxs.push(tx);
+      additionalTxs.push(healthCache);
     }
 
     const [mfiAccountData, ...bankData] = await this.client.simulateTransactions(
@@ -2015,12 +2024,17 @@ class MarginfiAccountWrapper {
         .map((bank) => bank.oracleKey);
 
       if (staleOracles.length > 0) {
-        const sbProgram = getSwitchboardProgram(this._program.provider);
-        const [pullIx, luts] = await sb.PullFeed.fetchUpdateManyIx(sbProgram, {
-          feeds: staleOracles,
+        const swbProgram = await AnchorUtils.loadProgramFromConnection(this.client.provider.connection);
+        const pullFeedInstances: PullFeed[] = staleOracles.map((pubkey) => new PullFeed(swbProgram, pubkey));
+        const gateway = await pullFeedInstances[0].fetchGatewayUrl();
+
+        const [pullIx, luts] = await PullFeed.fetchUpdateManyIx(swbProgram, {
+          feeds: pullFeedInstances,
+          gateway,
           numSignatures: 1,
+          payer: this.authority,
         });
-        return { instructions: [pullIx], luts };
+        return { instructions: pullIx, luts };
       }
 
       return { instructions: [], luts: [] };
