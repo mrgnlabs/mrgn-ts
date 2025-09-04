@@ -1,12 +1,14 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
-import { BankMetadata } from "@mrgnlabs/mrgn-common";
+import { BankMetadata, WSOL_MINT } from "@mrgnlabs/mrgn-common";
 
 import { BankRaw } from "../../bank";
 import { PythPushFeedIdMap, buildFeedIdMap } from "../../../utils";
 
 import { OraclePrice, PriceWithConfidence } from "../types";
+import BN from "bn.js";
+import { parseSwbOraclePriceData, vendor } from "../../..";
 
 /**
  * =============================================================================
@@ -133,18 +135,10 @@ const convertVoteAccCoeffsToBankCoeffs = (
  */
 const extractPythOracleKeys = (
   pythLegacyBanks: { address: PublicKey; data: BankRaw }[],
-  pythPushBanks: { address: PublicKey; data: BankRaw }[],
-  pythFeedMap: PythPushFeedIdMap
+  pythPushBanks: { address: PublicKey; data: BankRaw }[]
 ): string[] => {
   const legacyKeys = pythLegacyBanks.map((bank) => bank.data.config.oracleKeys[0].toBase58());
-
-  const pushKeys = pythPushBanks.map((bank) => {
-    const feed = pythFeedMap.get(bank.data.config.oracleKeys[0].toBuffer().toString("hex"));
-    if (!feed) {
-      throw new Error("Feed not found");
-    }
-    return feed.feedId.toBase58();
-  });
+  const pushKeys = pythPushBanks.map((bank) => bank.data.config.oracleKeys[0].toBase58());
 
   return [...legacyKeys, ...pushKeys];
 };
@@ -189,10 +183,7 @@ const fetchPythOraclePricesViaAPI = async (pythOracleKeys: string[]): Promise<Re
 const mapPythBanksToOraclePrices = (
   pythMigratedBanks: { address: PublicKey; data: BankRaw }[],
   pythPushBanks: { address: PublicKey; data: BankRaw }[],
-  pythStakedCollateralBanks: { address: PublicKey; data: BankRaw }[],
-  pythFeedMap: PythPushFeedIdMap,
-  oraclePrices: Record<string, OraclePrice>,
-  priceCoeffByBank: Record<string, number>
+  oraclePrices: Record<string, OraclePrice>
 ): Map<string, OraclePrice> => {
   const bankOraclePriceMap = new Map<string, OraclePrice>();
 
@@ -207,29 +198,10 @@ const mapPythBanksToOraclePrices = (
 
   // Map push oracle banks
   pythPushBanks.forEach((bank) => {
-    const feed = pythFeedMap.get(bank.data.config.oracleKeys[0].toBuffer().toString("hex"));
-    if (feed) {
-      const oraclePrice = oraclePrices[feed.feedId.toBase58()];
-      if (oraclePrice) {
-        bankOraclePriceMap.set(bank.address.toBase58(), oraclePrice);
-      }
-    }
-  });
-
-  // Map staked collateral banks with price coefficient adjustment
-  pythStakedCollateralBanks.forEach((bank) => {
-    const priceCoeff = priceCoeffByBank[bank.address.toBase58()];
     const oracleKey = bank.data.config.oracleKeys[0].toBase58();
-
-    if (oracleKey && priceCoeff !== undefined) {
-      const oraclePrice = oraclePrices[oracleKey];
-      if (oraclePrice) {
-        bankOraclePriceMap.set(bank.address.toBase58(), {
-          timestamp: oraclePrice.timestamp,
-          priceRealtime: adjustPriceComponent(oraclePrice.priceRealtime, priceCoeff),
-          priceWeighted: adjustPriceComponent(oraclePrice.priceWeighted, priceCoeff),
-        });
-      }
+    const oraclePrice = oraclePrices[oracleKey];
+    if (oraclePrice) {
+      bankOraclePriceMap.set(bank.address.toBase58(), oraclePrice);
     }
   });
 
@@ -246,6 +218,10 @@ export const fetchPythOracleData = async (
 ): Promise<{
   pythFeedMap: PythPushFeedIdMap;
   bankOraclePriceMap: Map<string, OraclePrice>;
+  stakedCollateralData: {
+    pythStakedCollateralBanks: { address: PublicKey; data: BankRaw }[];
+    priceCoeffByStakedBank: Record<string, number>;
+  };
 }> => {
   // Step 1: Categorize banks by oracle type
   const { pythMigratedBanks, pythPushBanks, pythStakedCollateralBanks } = categorizePythBanks(banks);
@@ -258,23 +234,27 @@ export const fetchPythOracleData = async (
 
   // Step 3: Fetch Pyth feed map and price coefficients
   let pythFeedMap: PythPushFeedIdMap;
-  let priceCoeffByBank: Record<string, number>;
+  let priceCoeffByStakedBank: Record<string, number>;
 
   if (opts?.useApiEndpoint || !connection) {
-    const { pythFeedMap: feedMap, priceCoeffByBank: voteAccCoeffs } = await fetchPythDataViaAPI(
+    const { priceCoeffByBank: voteAccCoeffs, pythFeedMap: feedIdMap } = await fetchPythDataViaAPI(
       pythPushBanks,
       voteAccMintTuples
     );
-    pythFeedMap = feedMap;
-    priceCoeffByBank = convertVoteAccCoeffsToBankCoeffs(pythStakedCollateralBanks, bankMetadataMap, voteAccCoeffs);
+    priceCoeffByStakedBank = convertVoteAccCoeffsToBankCoeffs(
+      pythStakedCollateralBanks,
+      bankMetadataMap,
+      voteAccCoeffs
+    );
+    pythFeedMap = feedIdMap;
   } else {
     const result = await fetchPythDataDirect(banks, connection);
     pythFeedMap = result.pythFeedMap;
-    priceCoeffByBank = result.priceCoeffByBank;
+    priceCoeffByStakedBank = result.priceCoeffByBank;
   }
 
   // Step 4: Extract oracle keys for price fetching
-  const pythOracleKeys = extractPythOracleKeys(pythMigratedBanks, pythPushBanks, pythFeedMap);
+  const pythOracleKeys = extractPythOracleKeys(pythMigratedBanks, pythPushBanks);
 
   // Step 5: Fetch oracle prices
   let oraclePrices: Record<string, OraclePrice>;
@@ -286,18 +266,15 @@ export const fetchPythOracleData = async (
   }
 
   // Step 6: Map banks to oracle prices
-  const bankOraclePriceMap = mapPythBanksToOraclePrices(
-    pythMigratedBanks,
-    pythPushBanks,
-    pythStakedCollateralBanks,
-    pythFeedMap,
-    oraclePrices,
-    priceCoeffByBank
-  );
+  const bankOraclePriceMap = mapPythBanksToOraclePrices(pythMigratedBanks, pythPushBanks, oraclePrices);
 
   return {
     pythFeedMap,
     bankOraclePriceMap,
+    stakedCollateralData: {
+      pythStakedCollateralBanks,
+      priceCoeffByStakedBank,
+    },
   };
 };
 
@@ -329,7 +306,7 @@ export const fetchSwbOracleData = async (
       ("switchboardPull" in bank.data.config.oracleSetup || "switchboardV2" in bank.data.config.oracleSetup)
   );
 
-  let oracleKeyMap: Record<string, { feedId: string }>;
+  let oracleKeyMap: Record<string, { feedId: string; stdev: string; rawPrice: string }>;
 
   if (opts?.useApiEndpoint) {
     const { oracleKeyMap: swbOracleKeyMap } = await fetchSwbDataViaAPI(switchboardBanks);
@@ -339,22 +316,63 @@ export const fetchSwbOracleData = async (
   }
 
   // Step 4: Extract oracle keys for price fetching
-  const swbFeedIds = Object.values(oracleKeyMap).map((oracleKey) => oracleKey.feedId);
+  const swbFeedIds: string[] = [];
+  const brokenSwbFeeds: { feedId: string; mintAddress: string }[] = [];
+
+  Object.keys(oracleKeyMap).forEach((oracleKey) => {
+    const oracleAiData = oracleKeyMap[oracleKey]!;
+
+    const rawPriceBN = new BN(oracleAiData.rawPrice);
+
+    const isFeedBroken = rawPriceBN.isZero() || rawPriceBN.eq(new BN(0.000001)) || rawPriceBN.eq(new BN(0.00000001));
+
+    if (isFeedBroken) {
+      const bank = switchboardBanks.find((bank) => bank.data.config.oracleKeys[0]!.toBase58() === oracleKey);
+      if (bank) {
+        brokenSwbFeeds.push({
+          feedId: oracleAiData.feedId,
+          mintAddress: bank.data.mint.toBase58(),
+        });
+      } else {
+        console.warn(`Bank not found for oracle key ${oracleKey} - feed id ${oracleAiData.feedId}`);
+      }
+    } else {
+      swbFeedIds.push(oracleAiData.feedId);
+    }
+  });
 
   // Step 5: Fetch oracle prices
-  let oraclePrices: Record<string, OraclePrice>;
+  let crossbarResponse: Record<string, vendor.FeedResponse | undefined>;
+  let birdeyeResponse: Record<string, number> = {};
+
   if (opts?.useApiEndpoint) {
-    oraclePrices = await fetchSwbOraclePricesViaAPI(swbFeedIds);
+    crossbarResponse = await fetchSwbOraclePricesViaAPI(swbFeedIds);
+    if (brokenSwbFeeds.length > 0) {
+      birdeyeResponse = await getBirdeyeFallbackPricesByFeedId(brokenSwbFeeds);
+    }
   } else {
     // Handle non-API endpoint case - placeholder for now
-    oraclePrices = {};
+    crossbarResponse = {};
+    birdeyeResponse = {};
   }
 
   // Step 6: Map switchboardBanks to oracle prices
-  const bankOraclePriceMap = mapSwbBanksToOraclePrices(switchboardBanks, oraclePrices, oracleKeyMap);
+  const bankOraclePriceMap = mapSwbBanksToOraclePrices(switchboardBanks, oracleKeyMap, crossbarResponse);
+
+  // Step 7: Map broken feeds to oracle prices
+  const brokenFeedOraclePriceMap = mapBrokenFeedsToOraclePrices(switchboardBanks, oracleKeyMap, birdeyeResponse);
+
+  // Step 8: Combine bank oracle prices and broken feed oracle prices
+  const combinedOraclePriceMap = new Map<string, OraclePrice>();
+  bankOraclePriceMap.forEach((oraclePrice, bankAddress) => {
+    combinedOraclePriceMap.set(bankAddress, oraclePrice);
+  });
+  brokenFeedOraclePriceMap.forEach((oraclePrice, bankAddress) => {
+    combinedOraclePriceMap.set(bankAddress, oraclePrice);
+  });
 
   return {
-    bankOraclePriceMap,
+    bankOraclePriceMap: combinedOraclePriceMap,
   };
 };
 
@@ -363,7 +381,7 @@ export const fetchSwbOracleData = async (
  */
 const fetchSwbDataViaAPI = async (
   swbPullBanks: { address: PublicKey; data: BankRaw }[]
-): Promise<{ oracleKeyMap: Record<string, { feedId: string }> }> => {
+): Promise<{ oracleKeyMap: Record<string, { feedId: string; stdev: string; rawPrice: string }> }> => {
   const swbOracleKeyMapResponse = await fetch(
     "/api/bankData/swbOracleMap?oracleKeys=" +
       swbPullBanks.map((bank) => bank.data.config.oracleKeys[0].toBase58()).join(",")
@@ -373,63 +391,164 @@ const fetchSwbDataViaAPI = async (
     throw new Error("Failed to fetch swb oracle key map");
   }
 
-  const swbOracleKeyMapJson: Record<string, { feedId: string }> = await swbOracleKeyMapResponse.json();
+  const swbOracleKeyMapJson: Record<string, { feedId: string; stdev: string; rawPrice: string }> =
+    await swbOracleKeyMapResponse.json();
 
   return { oracleKeyMap: swbOracleKeyMapJson };
 };
 
-const fetchSwbOraclePricesViaAPI = async (swbFeedIds: string[]): Promise<Record<string, OraclePrice>> => {
+const fetchSwbOraclePricesViaAPI = async (
+  swbFeedIds: string[]
+): Promise<Record<string, vendor.FeedResponse | undefined>> => {
   const response = await fetch("/api/bankData/swbOracleData?feedIds=" + swbFeedIds.join(","));
 
   if (!response.ok) {
     throw new Error("Failed to fetch swb oracle data");
   }
 
-  const responseBody: Record<string, any> = await response.json();
-  return Object.fromEntries(
-    Object.entries(responseBody).map(([key, oraclePrice]) => [
-      key,
-      {
-        priceRealtime: {
-          price: BigNumber(oraclePrice.priceRealtime.price),
-          confidence: BigNumber(oraclePrice.priceRealtime.confidence),
-          lowestPrice: BigNumber(oraclePrice.priceRealtime.lowestPrice),
-          highestPrice: BigNumber(oraclePrice.priceRealtime.highestPrice),
-        },
-        priceWeighted: {
-          price: BigNumber(oraclePrice.priceWeighted.price),
-          confidence: BigNumber(oraclePrice.priceWeighted.confidence),
-          lowestPrice: BigNumber(oraclePrice.priceWeighted.lowestPrice),
-          highestPrice: BigNumber(oraclePrice.priceWeighted.highestPrice),
-        },
-        timestamp: oraclePrice.timestamp ? BigNumber(oraclePrice.timestamp) : null,
-      },
-    ])
-  ) as Record<string, OraclePrice>;
+  return await response.json();
 };
 
+export type SwbOracleAiDataByKey = Record<string, { feedId: string; stdev: string; rawPrice: string }>;
+
 /**
- * Maps banks to their corresponding oracle prices
+ * Maps Switchboard banks to their corresponding oracle prices using feed data and crossbar responses
+ * @param banks - Array of bank objects with address and raw bank data
+ * @param swbOracleAiDataByKey - Oracle account information indexed by oracle key
+ * @param crossbarResponse - Crossbar feed response data indexed by feed ID
+ * @returns Map of bank addresses to their corresponding oracle prices
  */
-const mapSwbBanksToOraclePrices = (
+export const mapSwbBanksToOraclePrices = (
   banks: { address: PublicKey; data: BankRaw }[],
-  oraclePrices: Record<string, OraclePrice>,
-  oracleKeyMap: Record<string, { feedId: string }>
+  swbOracleAiDataByKey: SwbOracleAiDataByKey,
+  crossbarResponse: Record<string, vendor.FeedResponse | undefined>
 ): Map<string, OraclePrice> => {
   const bankOraclePriceMap = new Map<string, OraclePrice>();
 
-  // Map legacy banks
   banks.forEach((bank) => {
-    const oracleKey = bank.data.config.oracleKeys[0].toBase58();
-    const oracleFeed = oracleKeyMap[oracleKey];
-    const oraclePrice = oracleFeed?.feedId ? oraclePrices[oracleFeed.feedId] : null;
-    if (oraclePrice) {
-      bankOraclePriceMap.set(bank.address.toBase58(), oraclePrice);
+    const oracleKey = bank.data.config.oracleKeys[0]!.toBase58();
+    const oracleData = swbOracleAiDataByKey[oracleKey];
+    const oracleFeed = oracleData?.feedId;
+    if (oracleFeed && oracleData && crossbarResponse) {
+      const crossbarData = crossbarResponse[oracleFeed]?.results;
+      const timestamp = new Date().getTime().toString();
+
+      const oraclePrice = parseSwbOraclePriceData(
+        crossbarData ?? new BN(oracleData.rawPrice),
+        new BN(oracleData.stdev),
+        timestamp
+      );
+      if (oraclePrice) {
+        bankOraclePriceMap.set(bank.address.toBase58(), oraclePrice);
+      }
+    } else {
+      console.warn(`No oracle feed found for bank ${bank.address.toBase58()} oracleKey ${oracleKey}`);
     }
   });
 
   return bankOraclePriceMap;
 };
+
+/**
+ * Maps broken Switchboard feeds to oracle prices using Birdeye fallback data
+ * @param banks - Array of bank objects with address and raw bank data
+ * @param swbOracleAiDataByKey - Oracle account information indexed by oracle key
+ * @param birdeyeResponse - Birdeye price data indexed by feed ID
+ * @returns Map of bank addresses to their corresponding oracle prices from Birdeye fallback
+ */
+const mapBrokenFeedsToOraclePrices = (
+  banks: { address: PublicKey; data: BankRaw }[],
+  swbOracleAiDataByKey: SwbOracleAiDataByKey,
+  birdeyeResponse: Record<string, number>
+): Map<string, OraclePrice> => {
+  const bankOraclePriceMap = new Map<string, OraclePrice>();
+
+  banks.forEach((bank) => {
+    const oracleKey = bank.data.config.oracleKeys[0]!.toBase58();
+    const oracleData = swbOracleAiDataByKey[oracleKey];
+    const oracleFeed = oracleData?.feedId;
+    const birdeyeData = oracleFeed ? birdeyeResponse[oracleFeed] : undefined;
+    if (oracleFeed && oracleData && birdeyeData) {
+      const timestamp = new Date().getTime().toString();
+
+      const oraclePrice = parseSwbOraclePriceData([birdeyeData], new BN(oracleData.stdev), timestamp);
+      if (oraclePrice) {
+        bankOraclePriceMap.set(bank.address.toBase58(), oraclePrice);
+      }
+    } else {
+      // Bank not found in birdeye fallback skipping
+    }
+  });
+
+  return bankOraclePriceMap;
+};
+
+/**
+ * Fetches Birdeye fallback prices and maps them by feed ID
+ * @param feedMint - Array of objects containing feedId and mintAddress pairs
+ * @returns Promise resolving to record of prices indexed by feed ID
+ */
+const getBirdeyeFallbackPricesByFeedId = async (
+  feedMint: {
+    feedId: string;
+    mintAddress: string;
+  }[]
+): Promise<Record<string, number>> => {
+  const mintAddresses = feedMint.map((feedMint) => feedMint.mintAddress);
+  const prices = await getBirdeyePricesForMints(mintAddresses);
+
+  const priceByFeedId: Record<string, number> = {};
+  feedMint.forEach((feedMint) => {
+    const feedId = feedMint.feedId;
+    const mintAddress = feedMint.mintAddress;
+    const price = prices[mintAddress];
+
+    if (price) {
+      priceByFeedId[feedId] = price;
+    }
+  });
+
+  return priceByFeedId;
+};
+
+interface BirdeyeTokenPriceResponse {
+  success: boolean;
+  data: Record<string, { value: number; updateUnixTime: number; updateHumanTime: string }>;
+}
+
+/**
+ * Fetches Birdeye prices for specific mint addresses using the existing /api/tokens/multi endpoint.
+ *
+ * @param mintAddresses - Array of mint addresses to fetch prices for
+ * @returns Promise resolving to a record mapping mint addresses to their price values
+ */
+async function getBirdeyePricesForMints(mintAddresses: string[]): Promise<Record<string, number>> {
+  try {
+    const url = `/api/tokens/multi?mintList=${mintAddresses.join(",")}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("Response is not ok");
+    }
+
+    const data: BirdeyeTokenPriceResponse = await response.json();
+    if (!data.success) {
+      throw new Error("Success field is false");
+    }
+    const rawPrices = data.data || {};
+
+    const extractedPrices: Record<string, number> = {};
+    Object.entries(rawPrices).forEach(([mint, priceData]) => {
+      extractedPrices[mint] = priceData.value;
+    });
+
+    return extractedPrices;
+  } catch (error) {
+    // TODO: add sentry logging
+    console.warn("Error fetching Birdeye prices for static feeds:", error);
+    return {};
+  }
+}
 
 /**
  * =============================================================================
@@ -467,6 +586,20 @@ export const fetchOracleData = async (
     bankOraclePriceMap.set(bankAddress, oraclePrice);
   });
 
+  // Get SOL bank
+  const solBank = banks.find((bank) => bank.data.mint?.equals(WSOL_MINT));
+  const oraclePriceSol = bankOraclePriceMap.get(solBank?.address.toBase58() ?? "");
+
+  if (!solBank || !oraclePriceSol) {
+    console.error("SOL BANK NOT FOUND!");
+  } else {
+    const stakedBankOraclePriceMap = adjustPricesStakedCollateral(pythData.stakedCollateralData, oraclePriceSol);
+
+    stakedBankOraclePriceMap.forEach((oraclePrice, bankAddress) => {
+      bankOraclePriceMap.set(bankAddress, oraclePrice);
+    });
+  }
+
   // check if any bank is missing an oracle price
   banks.forEach((bank) => {
     if (!bankOraclePriceMap.has(bank.address.toBase58())) {
@@ -494,4 +627,34 @@ export const fetchOracleData = async (
     bankOraclePriceMap,
     pythFeedMap: pythData.pythFeedMap,
   };
+};
+
+export const adjustPricesStakedCollateral = (
+  stakedCollateralData: {
+    pythStakedCollateralBanks: { address: PublicKey; data: BankRaw }[];
+    priceCoeffByStakedBank: Record<string, number>;
+  },
+  solOraclePrice: OraclePrice
+) => {
+  const { pythStakedCollateralBanks, priceCoeffByStakedBank } = stakedCollateralData;
+
+  console.log("stakedCollateralData", stakedCollateralData);
+
+  const stakedBankOraclePriceMap = new Map<string, OraclePrice>();
+  // Map staked collateral banks with price coefficient adjustment
+  pythStakedCollateralBanks.forEach((bank) => {
+    const priceCoeff = priceCoeffByStakedBank[bank.address.toBase58()];
+    const oracleKey = bank.data.config.oracleKeys[0].toBase58();
+
+    if (oracleKey && priceCoeff !== undefined) {
+      const oraclePrice = solOraclePrice;
+      stakedBankOraclePriceMap.set(bank.address.toBase58(), {
+        timestamp: oraclePrice.timestamp,
+        priceRealtime: adjustPriceComponent(oraclePrice.priceRealtime, priceCoeff),
+        priceWeighted: adjustPriceComponent(oraclePrice.priceWeighted, priceCoeff),
+      });
+    }
+  });
+
+  return stakedBankOraclePriceMap;
 };

@@ -1,114 +1,165 @@
-import BigNumber from "bignumber.js";
 import { NextApiRequest, NextApiResponse } from "next";
+import { vendor } from "@mrgnlabs/marginfi-client-v2";
 
-import { OraclePrice, OraclePriceDto, vendor } from "@mrgnlabs/marginfi-client-v2";
-import { median } from "@mrgnlabs/mrgn-common";
+const PRIMARY_CROSSBAR_API = process.env.PRIMARY_CROSSBAR_API || "https://crossbar.switchboard.xyz";
+const FALLBACK_CROSSBAR_API = "https://crossbar.switchboard.xyz";
 
-const SWITCHBOARD_CROSSSBAR_API = process.env.SWITCHBOARD_CROSSSBAR_API || "https://crossbar.switchboard.xyz";
-
+/**
+ * Cache control constants (in seconds)
+ */
 const S_MAXAGE_TIME = 10;
 const STALE_WHILE_REVALIDATE_TIME = 15;
 
+/**
+ * API handler for fetching Switchboard oracle data
+ * @param req - Next.js API request object
+ * @param res - Next.js API response object
+ * @returns Oracle price data for the specified feed IDs
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Only allow GET requests
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
   const feedIdsRaw = req.query.feedIds;
 
   if (!feedIdsRaw || typeof feedIdsRaw !== "string") {
-    return res.status(400).json({ error: "Invalid input: expected an array of feed base58-encoded addresses." });
+    return res.status(400).json({
+      success: false,
+      error: "Bad Request",
+      message: "Invalid input: expected 'feedIds' parameter with comma-separated feed hashes",
+    });
   }
 
-  const feedHashes = feedIdsRaw.split(",").map((feedId) => feedId.trim());
-
   try {
-    const crossbarPrices = await handleFetchCrossbarPrices(feedHashes);
+    // Parse and clean the feed hash inputs
+    const feedHashes = feedIdsRaw
+      .split(",")
+      .map((feedId) => feedId.trim())
+      .filter((feedId) => feedId.length > 0);
 
-    res.setHeader("Cache-Control", `s-maxage=${S_MAXAGE_TIME}, stale-while-revalidate=${STALE_WHILE_REVALIDATE_TIME}`);
-    return res.status(200).json(crossbarPrices);
-  } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({ error: "Error fetching data" });
-  }
-}
+    // Check if we have any valid feed hashes
+    if (feedHashes.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Bad Request",
+        message: "No valid feed hashes provided",
+      });
+    }
 
-async function handleFetchCrossbarPrices(feedHashes: string[]): Promise<Record<string, OraclePriceDto>> {
-  try {
-    // main crossbar
-    const payload: vendor.CrossbarSimulatePayload = [];
-    let brokenFeeds: string[] = [];
+    // Fetch raw crossbar response
+    const crossbarResponse = await fetchCrossbarData(feedHashes);
 
-    const { payload: mainPayload, brokenFeeds: mainBrokenFeeds } = await fetchCrossbarPrices(
-      feedHashes,
-      SWITCHBOARD_CROSSSBAR_API
+    // Set cache headers and return the response
+    res.setHeader(
+      "Cache-Control",
+      `public, max-age=${S_MAXAGE_TIME}, stale-while-revalidate=${STALE_WHILE_REVALIDATE_TIME}`
     );
+    res.setHeader("Content-Type", "application/json");
+    return res.status(200).json(crossbarResponse);
+  } catch (error: unknown) {
+    console.error("Error fetching Switchboard oracle data:", error);
 
-    payload.push(...mainPayload);
-    brokenFeeds = mainBrokenFeeds;
-
-    if (!mainBrokenFeeds.length) {
-      return crossbarPayloadToOraclePricePerFeedHash(payload);
-    }
-
-    if (process.env.SWITCHBOARD_CROSSSBAR_API_FALLBACK) {
-      // fallback crossbar
-      const { payload: fallbackPayload, brokenFeeds: fallbackBrokenFeeds } = await fetchCrossbarPrices(
-        brokenFeeds,
-        process.env.SWITCHBOARD_CROSSSBAR_API_FALLBACK,
-        process.env.SWITCHBOARD_CROSSSBAR_API_FALLBACK_USERNAME,
-        process.env.SWITCHBOARD_CROSSSBAR_API_FALLBACK_BEARER
-      );
-      payload.push(...fallbackPayload);
-      brokenFeeds = fallbackBrokenFeeds;
-      if (!fallbackBrokenFeeds.length) {
-        return crossbarPayloadToOraclePricePerFeedHash(payload);
-      }
-    }
-
-    if (brokenFeeds.length) {
-      const formattedFeeds = brokenFeeds.map((feed) => `\`${feed}\``).join(", ");
-      console.log(`Couldn't fetch from crossbar feeds: ${formattedFeeds}`);
-    }
-
-    return crossbarPayloadToOraclePricePerFeedHash(payload);
-  } catch (error) {
-    console.error("Error:", error);
-    throw new Error("Couldn't fetch from crossbar");
+    return res.status(500).json({
+      success: false,
+      error: "Internal Server Error",
+      message: error instanceof Error ? error.message : "Error processing request",
+    });
   }
 }
 
-async function fetchCrossbarPrices(
-  feedHashes: string[],
-  endpoint: string,
-  username?: string,
-  bearer?: string
-): Promise<{ payload: vendor.CrossbarSimulatePayload; brokenFeeds: string[] }> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, 8000);
+/**
+ * Fetch raw crossbar data with chunking and fallback retry
+ */
+async function fetchCrossbarData(feedHashes: string[]): Promise<Record<string, vendor.FeedResponse | undefined>> {
+  // Split feed hashes into chunks of 5 (crossbar limit)
+  const chunks = chunkArray(feedHashes, 5);
 
-  const isAuth = username && bearer;
+  // Create requests that try primary first, then fallback on failure
+  const requests = chunks.map((chunk) => {
+    const feedHashesString = chunk.join(",");
+    return fetchChunkWithFallback(feedHashesString, chunk);
+  });
 
-  const isCrossbarMain = endpoint.includes("switchboard.xyz");
+  // Execute all requests in parallel
+  const results = await Promise.allSettled(requests);
 
-  const basicAuth = isAuth ? Buffer.from(`${username}:${bearer}`).toString("base64") : undefined;
+  // Create map with all feeds initialized to undefined
+  const feedMap: Record<string, vendor.FeedResponse | undefined> = {};
+  feedHashes.forEach((feedHash) => {
+    feedMap[feedHash] = undefined;
+  });
 
+  // Process successful responses
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      const { validFeeds } = result.value;
+
+      // Set valid feeds in the map
+      validFeeds.forEach((feed) => {
+        feedMap[feed.feedHash] = feed;
+      });
+
+      // Broken feeds remain undefined (already set above)
+    } else if (result.status === "rejected") {
+      console.error("Chunk request failed:", result.reason);
+    }
+  }
+
+  return feedMap;
+}
+
+/**
+ * Fetch a single chunk with fallback retry logic
+ */
+async function fetchChunkWithFallback(
+  feedHashesString: string,
+  requestedFeeds: string[]
+): Promise<{ validFeeds: vendor.FeedResponse[]; requestedFeeds: string[] }> {
+  // Try primary endpoint first
   try {
-    const feedHashesString = feedHashes.join(",");
+    return await fetchSingleChunk(PRIMARY_CROSSBAR_API, feedHashesString, true, requestedFeeds);
+  } catch (primaryError) {
+    console.warn("Primary endpoint failed, trying fallback:", primaryError);
+
+    // If primary fails, try fallback endpoint
+    try {
+      return await fetchSingleChunk(FALLBACK_CROSSBAR_API, feedHashesString, false, requestedFeeds);
+    } catch (fallbackError) {
+      console.error("Both primary and fallback endpoints failed:", {
+        primary: primaryError,
+        fallback: fallbackError,
+      });
+      throw fallbackError;
+    }
+  }
+}
+
+/**
+ * Fetch a single chunk from crossbar
+ */
+async function fetchSingleChunk(
+  endpoint: string,
+  feedHashesString: string,
+  isPrimary: boolean,
+  requestedFeeds: string[]
+): Promise<{ validFeeds: vendor.FeedResponse[]; requestedFeeds: string[] }> {
+  try {
     const response = await fetch(`${endpoint}/simulate/${feedHashesString}`, {
       headers: {
-        Authorization: basicAuth ? `Basic ${basicAuth}` : "",
         Accept: "application/json",
       },
-      signal: controller.signal,
+      signal: AbortSignal.timeout(8000),
     });
 
-    clearTimeout(timeoutId);
-
     if (!response.ok) {
-      throw new Error("Network response was not ok");
+      throw new Error(`${isPrimary ? "Primary" : "Fallback"} endpoint failed: ${response.status}`);
     }
 
     const payload = (await response.json()) as vendor.CrossbarSimulatePayload;
 
+    // Check validity of crossbar response
     const brokenFeeds = payload
       .filter((feed) => {
         const result = feed.results[0];
@@ -116,65 +167,26 @@ async function fetchCrossbarPrices(
       })
       .map((feed) => feed.feedHash);
 
-    const finalPayload = payload.filter((feed) => !brokenFeeds.includes(feed.feedHash));
+    const validFeeds = payload.filter((feed) => !brokenFeeds.includes(feed.feedHash));
 
-    return { payload: finalPayload, brokenFeeds: brokenFeeds };
+    if (brokenFeeds.length > 0) {
+      console.log(`Broken feeds from ${isPrimary ? "primary" : "fallback"} endpoint:`, brokenFeeds);
+    }
+
+    return { validFeeds, requestedFeeds };
   } catch (error) {
-    const errorMessage = isCrossbarMain ? "Couldn't fetch from crossbar" : "Couldn't fetch from fallback crossbar";
-    console.log("Error:", errorMessage);
-    return { payload: [], brokenFeeds: feedHashes };
+    console.error(`${isPrimary ? "Primary" : "Fallback"} crossbar chunk failed:`, error);
+    throw error;
   }
 }
 
-function crossbarPayloadToOraclePricePerFeedHash(
-  payload: vendor.CrossbarSimulatePayload
-): Record<string, OraclePriceDto> {
-  const oraclePrices: Record<string, OraclePriceDto> = {};
-  for (const feedResponse of payload) {
-    const oraclePrice = crossbarFeedResultToOraclePrice(feedResponse);
-    oraclePrices[feedResponse.feedHash] = stringifyOraclePrice(oraclePrice);
+/**
+ * Split array into chunks of specified size
+ */
+function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize));
   }
-  return oraclePrices;
-}
-
-function crossbarFeedResultToOraclePrice(feedResponse: vendor.FeedResponse): OraclePrice {
-  let medianPrice = new BigNumber(median(feedResponse.results));
-
-  const priceRealtime = {
-    price: medianPrice,
-    confidence: new BigNumber(0),
-    lowestPrice: medianPrice,
-    highestPrice: medianPrice,
-  };
-
-  const priceWeighted = {
-    price: medianPrice,
-    confidence: new BigNumber(0),
-    lowestPrice: medianPrice,
-    highestPrice: medianPrice,
-  };
-
-  return {
-    priceRealtime,
-    priceWeighted,
-    timestamp: new BigNumber(Math.floor(new Date().getTime() / 1000)),
-  };
-}
-
-function stringifyOraclePrice(oraclePrice: OraclePrice): OraclePriceDto {
-  return {
-    priceRealtime: {
-      price: oraclePrice.priceRealtime.price.toString(),
-      confidence: oraclePrice.priceRealtime.confidence.toString(),
-      lowestPrice: oraclePrice.priceRealtime.lowestPrice.toString(),
-      highestPrice: oraclePrice.priceRealtime.highestPrice.toString(),
-    },
-    priceWeighted: {
-      price: oraclePrice.priceWeighted.price.toString(),
-      confidence: oraclePrice.priceWeighted.confidence.toString(),
-      lowestPrice: oraclePrice.priceWeighted.lowestPrice.toString(),
-      highestPrice: oraclePrice.priceWeighted.highestPrice.toString(),
-    },
-    timestamp: oraclePrice.timestamp.toString(),
-  };
+  return chunks;
 }

@@ -1,10 +1,8 @@
 import React from "react";
 import { Bank } from "@mrgnlabs/marginfi-client-v2";
 import { useMetadata, useOracleData, useRawBanks, useLstRates } from "../react-query";
-import { PublicKey } from "@solana/web3.js";
 import { useEmode } from "./use-emode";
 import { adjustBankWeightsWithEmodePairs } from "../../lib";
-import { LstRatesMap } from "../../types";
 
 export function useBanks() {
   const { data: rawBanks, isLoading: isLoadingRawBanks, isError: isErrorRawBanks } = useRawBanks();

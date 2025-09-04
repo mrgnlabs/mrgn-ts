@@ -339,8 +339,8 @@ export function getOracleStat(bank: ExtendedBankInfo): PreviewStat {
       oracleIcon = <IconPyth size={14} />;
       break;
     case "StakedWithPythPush":
-      oracle = "Pyth";
-      oracleIcon = <IconPyth size={14} />;
+      oracle = "Switchboard";
+      oracleIcon = <IconSwitchboard size={14} />;
       break;
     case "SwitchboardV2":
       oracle = "Switchboard";

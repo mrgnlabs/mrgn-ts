@@ -9,6 +9,8 @@ import { AggregatorAccountData, AggregatorAccount } from "../../../vendor/switch
 import { decodeSwitchboardPullFeedData, SWITCHBOARD_ONDEMANDE_PRICE_PRECISION } from "../../../vendor/switchboard_pull";
 
 import { OraclePrice, PriceWithConfidence, PriceBias } from "../types";
+import BN, { isBN } from "bn.js";
+import { median } from "@mrgnlabs/mrgn-common";
 
 export function getPriceWithConfidence(oraclePrice: OraclePrice, weighted: boolean): PriceWithConfidence {
   return weighted ? oraclePrice.priceWeighted : oraclePrice.priceRealtime;
@@ -221,6 +223,32 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, shardId
       console.error("Invalid oracle setup", oracleSetup);
       throw new Error(`Invalid oracle setup "${oracleSetup}"`);
   }
+}
+
+export function parseSwbOraclePriceData(price: number[] | BN, stdDev: BN, timestamp: string): OraclePrice {
+  const swbPrice = isBN(price)
+    ? new BigNumber(price.toString()).div(10 ** SWITCHBOARD_ONDEMANDE_PRICE_PRECISION)
+    : new BigNumber(median(price));
+  const swbConfidence = new BigNumber(stdDev.toString()).times(SWB_PRICE_CONF_INTERVALS);
+  const swbConfidenceCapped = capConfidenceInterval(swbPrice, swbConfidence, MAX_CONFIDENCE_INTERVAL_RATIO);
+  const swbLowestPrice = swbPrice.minus(swbConfidenceCapped);
+  const swbHighestPrice = swbPrice.plus(swbConfidenceCapped);
+
+  return {
+    priceRealtime: {
+      price: swbPrice,
+      confidence: swbConfidenceCapped,
+      lowestPrice: swbLowestPrice,
+      highestPrice: swbHighestPrice,
+    },
+    priceWeighted: {
+      price: swbPrice,
+      confidence: swbConfidenceCapped,
+      lowestPrice: swbLowestPrice,
+      highestPrice: swbHighestPrice,
+    },
+    timestamp: new BigNumber(timestamp),
+  };
 }
 
 export { parseOraclePriceData as parsePriceInfo };

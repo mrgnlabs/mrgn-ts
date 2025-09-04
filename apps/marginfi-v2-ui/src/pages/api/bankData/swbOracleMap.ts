@@ -18,23 +18,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Invalid input: expected a private rpc endpoint." });
     }
 
-    const feedIdMap: Record<string, { feedId: string }> = {};
+    const swbOracleAiDataByKey: Record<string, { feedId: string; stdev: string; rawPrice: string }> = {};
+
+    // Parse the comma-separated list of oracle keys
+    const oracleKeys = oracleKeysRaw
+      .split(",")
+      .map((key: string) => key.trim())
+      .filter((key: string) => key.length > 0);
+
+    // Check if we have any valid oracle keys
+    if (oracleKeys.length === 0) {
+      return res.status(400).json({ error: "No valid oracle keys provided." });
+    }
 
     const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE);
-
-    const oracleKeys = oracleKeysRaw.split(",");
 
     const oracleAis = await chunkedGetRawMultipleAccountInfoOrdered(connection, oracleKeys);
 
     oracleAis.forEach((oracleAi, idx) => {
-      const feedHash = Buffer.from(vendor.decodeSwitchboardPullFeedData(oracleAi.data).feed_hash).toString("hex");
-      const oracleKey = oracleKeys[idx];
+      if (!oracleAi?.data || idx >= oracleKeys.length) return;
 
-      feedIdMap[oracleKey] = { feedId: feedHash };
+      const oracleKey = oracleKeys[idx];
+      if (!oracleKey) return;
+
+      const { feed_hash, result } = vendor.decodeSwitchboardPullFeedData(oracleAi.data);
+
+      const feedHash = Buffer.from(feed_hash).toString("hex");
+
+      swbOracleAiDataByKey[oracleKey] = {
+        feedId: feedHash,
+        stdev: result.std_dev.toString(),
+        rawPrice: result.value.toString(),
+      };
     });
 
-    res.setHeader("Cache-Control", "s-maxage=600, stale-while-revalidate=599");
-    return res.status(200).json(feedIdMap);
+    res.setHeader("Cache-Control", "max-age=120, stale-while-revalidate=119");
+    return res.status(200).json(swbOracleAiDataByKey);
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ error: "Error fetching data" });
