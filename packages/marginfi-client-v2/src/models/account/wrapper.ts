@@ -84,6 +84,7 @@ import {
 } from "../../vendor";
 import instructions from "../../instructions";
 import { AnchorUtils, PullFeed } from "@switchboard-xyz/on-demand";
+import { CrossbarClient } from "@switchboard-xyz/common";
 
 // Temporary imports
 export const MAX_TX_SIZE = 1232;
@@ -2027,12 +2028,14 @@ class MarginfiAccountWrapper {
         const swbProgram = await AnchorUtils.loadProgramFromConnection(this.client.provider.connection);
         const pullFeedInstances: PullFeed[] = staleOracles.map((pubkey) => new PullFeed(swbProgram, pubkey));
         const gateway = await pullFeedInstances[0].fetchGatewayUrl();
+        const crossbarClient = new CrossbarClient("https://our_crossbar"); // or perhaps use env var and default to integrator crossbar
 
         const [pullIx, luts] = await PullFeed.fetchUpdateManyIx(swbProgram, {
           feeds: pullFeedInstances,
           gateway,
           numSignatures: 1,
           payer: this.authority,
+          crossbarClient,
         });
         return { instructions: pullIx, luts };
       }

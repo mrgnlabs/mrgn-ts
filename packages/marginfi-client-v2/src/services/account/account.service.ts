@@ -42,6 +42,7 @@ import { BankType, OracleSetup } from "../bank";
 import { OraclePrice } from "../price";
 import { simulateBundle } from "../transaction/helpers";
 import { AnchorUtils, PullFeed } from "@switchboard-xyz/on-demand";
+import { CrossbarClient } from "@switchboard-xyz/common";
 
 /**
  * Custom error class for health cache simulation failures
@@ -325,12 +326,14 @@ export async function createUpdateFeedIx(props: {
   const swbProgram = await AnchorUtils.loadProgramFromConnection(props.provider.connection);
   const pullFeedInstances: PullFeed[] = props.swbPullOracles.map((pubkey) => new PullFeed(swbProgram, pubkey));
   const gateway = await pullFeedInstances[0].fetchGatewayUrl();
+  const crossbarClient = new CrossbarClient("https://our_crossbar"); // or perhaps use env var and default to integrator crossbar
 
   const [pullIx, luts] = await PullFeed.fetchUpdateManyIx(swbProgram, {
     feeds: pullFeedInstances,
     gateway,
     numSignatures: 1,
     payer: props.provider.publicKey,
+    crossbarClient,
   });
 
   return { instructions: pullIx, luts };
