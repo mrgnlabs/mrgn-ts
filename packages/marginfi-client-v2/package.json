@@ -17,7 +17,7 @@
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",
     "@coral-xyz/borsh": "^0.30.1",
-    "@mrgnlabs/mrgn-common": "2.0.5",
+    "@mrgnlabs/mrgn-common": "workspace:*",
     "@pythnetwork/pyth-solana-receiver": "^0.8.0",
     "@solana/spl-token": "^0.1.8",
     "@solana/wallet-adapter-base": "^0.9.23",
