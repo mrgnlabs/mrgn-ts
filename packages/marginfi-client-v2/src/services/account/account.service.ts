@@ -325,8 +325,10 @@ export async function createUpdateFeedIx(props: {
 }): Promise<{ instructions: TransactionInstruction[]; luts: AddressLookupTableAccount[] }> {
   const swbProgram = await AnchorUtils.loadProgramFromConnection(props.provider.connection);
   const pullFeedInstances: PullFeed[] = props.swbPullOracles.map((pubkey) => new PullFeed(swbProgram, pubkey));
-  const gateway = await pullFeedInstances[0].fetchGatewayUrl();
-  const crossbarClient = new CrossbarClient("https://our_crossbar"); // or perhaps use env var and default to integrator crossbar
+  const crossbarClient = new CrossbarClient(
+    process.env.NEXT_PUBLIC_SWITCHBOARD_CROSSSBAR_API || "https://integrator-crossbar.prod.mrgn.app"
+  );
+  const gateway = await pullFeedInstances[0].fetchGatewayUrl(crossbarClient);
 
   const [pullIx, luts] = await PullFeed.fetchUpdateManyIx(swbProgram, {
     feeds: pullFeedInstances,

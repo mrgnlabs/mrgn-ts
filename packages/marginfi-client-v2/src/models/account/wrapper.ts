@@ -2027,8 +2027,10 @@ class MarginfiAccountWrapper {
       if (staleOracles.length > 0) {
         const swbProgram = await AnchorUtils.loadProgramFromConnection(this.client.provider.connection);
         const pullFeedInstances: PullFeed[] = staleOracles.map((pubkey) => new PullFeed(swbProgram, pubkey));
-        const gateway = await pullFeedInstances[0].fetchGatewayUrl();
-        const crossbarClient = new CrossbarClient("https://our_crossbar"); // or perhaps use env var and default to integrator crossbar
+        const crossbarClient = new CrossbarClient(
+          process.env.NEXT_PUBLIC_SWITCHBOARD_CROSSSBAR_API || "https://integrator-crossbar.prod.mrgn.app"
+        );
+        const gateway = await pullFeedInstances[0].fetchGatewayUrl(crossbarClient);
 
         const [pullIx, luts] = await PullFeed.fetchUpdateManyIx(swbProgram, {
           feeds: pullFeedInstances,
