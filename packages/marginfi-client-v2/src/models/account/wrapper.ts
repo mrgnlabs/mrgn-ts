@@ -1189,15 +1189,15 @@ class MarginfiAccountWrapper {
 
       const blockhash = (await this.client.provider.connection.getLatestBlockhash("confirmed")).blockhash;
 
-      const tx = new VersionedTransaction(
+      const updateFeedTx = new VersionedTransaction(
         new TransactionMessage({
-          instructions: [...updateFeedIx.instructions, ...healthPulseIx.instructions],
+          instructions: [...updateFeedIx.instructions],
           payerKey: this.client.provider.publicKey,
           recentBlockhash: blockhash,
         }).compileToV0Message([...updateFeedIx.luts])
       );
 
-      const healthCache = new VersionedTransaction(
+      const healthCacheTx = new VersionedTransaction(
         new TransactionMessage({
           instructions: [computeIx, ...healthPulseIx.instructions],
           payerKey: this.client.provider.publicKey,
@@ -1205,8 +1205,8 @@ class MarginfiAccountWrapper {
         }).compileToV0Message([...this.client.addressLookupTables])
       );
 
-      additionalTxs.push(tx);
-      additionalTxs.push(healthCache);
+      additionalTxs.push(updateFeedTx);
+      additionalTxs.push(healthCacheTx);
     }
 
     const [mfiAccountData, ...bankData] = await this.client.simulateTransactions(

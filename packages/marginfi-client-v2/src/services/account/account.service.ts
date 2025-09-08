@@ -43,6 +43,7 @@ import { OraclePrice } from "../price";
 import { simulateBundle } from "../transaction/helpers";
 import { AnchorUtils, PullFeed } from "@switchboard-xyz/on-demand";
 import { CrossbarClient } from "@switchboard-xyz/common";
+import { ADDRESS_LOOKUP_TABLE_FOR_GROUP } from "../../constants";
 
 /**
  * Custom error class for health cache simulation failures
@@ -91,6 +92,7 @@ export async function simulateAccountHealthCacheWithFallback(props: {
       marginfiAccountPk: props.marginfiAccount.address,
       balances: props.balances,
       bankMetadataMap: props.bankMetadataMap,
+      groupPk: props.marginfiAccount.group,
     });
 
     simulatedAccount.healthCache.assetValueEquity = bigNumberToWrappedI80F48(assetValueEquity);
@@ -144,8 +146,9 @@ export async function simulateAccountHealthCache(props: {
   marginfiAccountPk: PublicKey;
   balances: Balance[];
   bankMetadataMap: BankMetadataMap;
+  groupPk?: PublicKey;
 }): Promise<MarginfiAccountRaw> {
-  const { program, bankMap, oraclePrices, marginfiAccountPk, balances, bankMetadataMap } = props;
+  const { program, bankMap, oraclePrices, marginfiAccountPk, balances, bankMetadataMap, groupPk } = props;
 
   const activeBalances = balances.filter((b) => b.active);
 
@@ -193,42 +196,39 @@ export async function simulateAccountHealthCache(props: {
 
   const txs = [];
 
-  if (crankPythIxs.postInstructions.length > 0) {
-    txs.push(
-      ...splitInstructionsToFitTransactions(
-        [computeIx],
-        [
-          fundAccountIx,
-          ...crankPythIxs.postInstructions.map((ix) => ix.instruction),
-          ...crankPythIxs.closeInstructions.map((ix) => ix.instruction),
-        ],
-        {
-          blockhash,
-          payerKey: program.provider.publicKey,
-          luts: [...crankSwbIxs.luts, ...pythLut],
-        }
-      )
-    );
-  }
+  const fundAccountMessageV0 = new TransactionMessage({
+    payerKey: program.provider.publicKey,
+    recentBlockhash: blockhash,
+    instructions: [fundAccountIx],
+  }).compileToV0Message([]);
 
-  const messageV0 = new TransactionMessage({
+  const fundAccountTx = new VersionedTransaction(fundAccountMessageV0);
+  txs.push(fundAccountTx);
+
+  const swbMessageV0 = new TransactionMessage({
     payerKey: program.provider.publicKey,
     recentBlockhash: blockhash,
     instructions: [...crankSwbIxs.instructions],
   }).compileToV0Message([...crankSwbIxs.luts]);
 
-  const swbTx = new VersionedTransaction(messageV0);
-
+  const swbTx = new VersionedTransaction(swbMessageV0);
   txs.push(swbTx);
 
-  const healthTx = new TransactionMessage({
+  let marginfiLutAddresses = groupPk ? ADDRESS_LOOKUP_TABLE_FOR_GROUP[groupPk.toBase58()] : [];
+  const marginfiLuts = (
+    await Promise.all(marginfiLutAddresses.map((address) => program.provider.connection.getAddressLookupTable(address)))
+  )
+    .map((lut) => lut.value)
+    .filter((lut) => lut !== null);
+
+  const healthMessageV0 = new TransactionMessage({
     payerKey: program.provider.publicKey,
     recentBlockhash: blockhash,
-    instructions: [...healthPulseIxs.instructions],
-  }).compileToV0Message([]);
+    instructions: [computeIx, ...healthPulseIxs.instructions],
+  }).compileToV0Message([...marginfiLuts]);
 
-  const healthTxV0 = new VersionedTransaction(healthTx);
-  txs.push(healthTxV0);
+  const healthTx = new VersionedTransaction(healthMessageV0);
+  txs.push(healthTx);
 
   if (txs.length > 5) {
     console.error("Too many transactions", txs.length);
