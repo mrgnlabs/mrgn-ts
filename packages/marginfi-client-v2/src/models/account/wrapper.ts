@@ -68,6 +68,7 @@ import {
   EmodeTag,
   EmodePair,
   ActionEmodeImpact,
+  RiskTier,
 } from "../..";
 import { AccountType, MarginfiConfig, MarginfiProgram } from "../../types";
 import { MarginfiAccount, MarginRequirementType } from "./pure";
@@ -2004,29 +2005,26 @@ class MarginfiAccountWrapper {
       (bank) => bank.config.oracleSetup === OracleSetup.SwitchboardPull
     );
 
-    console.log("swbPullBanks", swbPullBanks);
-
     if (swbPullBanks.length > 0) {
-      const staleOracles = swbPullBanks
+      const filteredSwbPullBanks = swbPullBanks
         .filter((bank) => {
-          // always crank swb feeds
-          return true;
-          // const oraclePrice = this.client.oraclePrices.get(bank.address.toBase58());
-          // const maxAge = bank.config.oracleMaxAge;
-          // const currentTime = Math.round(Date.now() / 1000);
-          // const oracleTime = Math.round(
-          //   oraclePrice?.timestamp ? oraclePrice.timestamp.toNumber() : new Date().getTime()
-          // );
-          // const adjustedMaxAge = Math.max(maxAge - txLandingBuffer, 0);
-          // const isStale = currentTime - oracleTime > adjustedMaxAge;
+          // filter if isolated and collateral
+          const activeBalance = this._marginfiAccount.balances.find((balance) => balance.bankPk.equals(bank.address));
 
-          // return isStale;
+          if (activeBalance?.assetShares.gt(new BigNumber(0)) && bank.config.riskTier === RiskTier.Isolated) {
+            return false;
+          }
+          return true;
+        })
+        .filter((bank) => {
+          // filter 0 feeds
+          return !bank.oracleKey.equals(new PublicKey("DMhGWtLAKE5d56WdyHQxqeFncwUeqMEnuC2RvvZfbuur"));
         })
         .map((bank) => bank.oracleKey);
 
-      if (staleOracles.length > 0) {
+      if (filteredSwbPullBanks.length > 0) {
         const swbProgram = await AnchorUtils.loadProgramFromConnection(this.client.provider.connection);
-        const pullFeedInstances: PullFeed[] = staleOracles.map((pubkey) => new PullFeed(swbProgram, pubkey));
+        const pullFeedInstances: PullFeed[] = filteredSwbPullBanks.map((pubkey) => new PullFeed(swbProgram, pubkey));
         const crossbarClient = new CrossbarClient(
           process.env.NEXT_PUBLIC_SWITCHBOARD_CROSSSBAR_API || "https://integrator-crossbar.prod.mrgn.app"
         );
