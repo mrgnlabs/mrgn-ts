@@ -324,7 +324,10 @@ export async function createUpdateFeedIx(props: {
   provider: AnchorProvider;
 }): Promise<{ instructions: TransactionInstruction[]; luts: AddressLookupTableAccount[] }> {
   const swbProgram = await AnchorUtils.loadProgramFromConnection(props.provider.connection);
-  const pullFeedInstances: PullFeed[] = props.swbPullOracles.map((pubkey) => new PullFeed(swbProgram, pubkey));
+  const pullFeedInstances: PullFeed[] = props.swbPullOracles
+    // filter 0 feeds
+    .filter((pubkey) => !pubkey.equals(new PublicKey("DMhGWtLAKE5d56WdyHQxqeFncwUeqMEnuC2RvvZfbuur")))
+    .map((pubkey) => new PullFeed(swbProgram, pubkey));
   const crossbarClient = new CrossbarClient(
     process.env.NEXT_PUBLIC_SWITCHBOARD_CROSSSBAR_API || "https://integrator-crossbar.prod.mrgn.app"
   );
