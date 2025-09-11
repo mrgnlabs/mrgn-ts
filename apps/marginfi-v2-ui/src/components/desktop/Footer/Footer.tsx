@@ -46,12 +46,12 @@ export const Footer = () => {
     <footer className="bg-background-gray text-muted-foreground fixed bottom-0 w-full px-4 py-2">
       <nav className="flex items-center justify-between">
         <Link
-          href="https://support.marginfi.com/"
+          href="https://www.0.xyz"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 text-sm font-medium"
         >
-          <IconMessage size={18} /> help &amp; support
+          Powered by Project 0
         </Link>
         <ul className="flex items-center gap-3.5 justify-end">
           {footerLinks.map((link, index) => (

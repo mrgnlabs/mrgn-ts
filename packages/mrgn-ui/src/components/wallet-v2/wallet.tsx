@@ -1,6 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import Link from "next/link";
 
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { Connection, PublicKey } from "@solana/web3.js";
@@ -18,6 +19,7 @@ import {
   IconCreditCardPay,
   IconInfoCircleFilled,
   IconArrowDown,
+  IconExternalLink,
 } from "@tabler/icons-react";
 
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
@@ -499,51 +501,27 @@ const Wallet = ({
                   {userPointsData && (
                     <TabsContent value="points">
                       <div className="flex flex-col items-center pt-8">
-                        <p className="font-medium text-4xl flex flex-col justify-center items-center text-center">
-                          <span className="text-sm font-normal text-chartreuse text-center">Your points</span>
-                          {groupedNumberFormatterDyn.format(Math.round(userPointsData.totalPoints))}
-                        </p>
-                        {userPointsData.userRank && (
-                          <div className="flex flex-col items-center justify-center text-xl p-4 bg-background-gray-dark/40 rounded-lg font-medium leading-tight">
-                            <span className="text-sm font-normal text-chartreuse">Your rank</span> #
-                            {groupedNumberFormatterDyn.format(userPointsData.userRank)}
-                          </div>
-                        )}
-                        <ul className="space-y-2 mt-4">
-                          <li>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start"
-                              onClick={() => {
-                                setIsWalletOpen(false);
-                                router.push("/points");
-                              }}
-                            >
-                              <IconTrophy size={16} /> Points Leaderboard
-                            </Button>
-                          </li>
-                          <li>
-                            <CopyToClipboard
-                              text={`https://app.marginfi.com/refer/${userPointsData.referralLink}`}
-                              onCopy={() => {
-                                if (userPointsData.referralLink && userPointsData.referralLink.length > 0) {
-                                  setIsReferralCopied(true);
-                                  setTimeout(() => setIsReferralCopied(false), 2000);
-                                }
-                              }}
-                            >
-                              <Button variant="outline" className="w-full justify-start">
-                                {isReferralCopied ? (
-                                  <div className="text-center w-full">Link copied!</div>
-                                ) : (
-                                  <>
-                                    <IconCopy size={16} /> Copy referral code
-                                  </>
-                                )}
-                              </Button>
-                            </CopyToClipboard>
-                          </li>
-                        </ul>
+                        <p>View your mrgn points on </p>
+                        <Link
+                          href="https://app.0.xyz"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-chartreuse flex items-center gap-1"
+                        >
+                          <IconExternalLink size={16} />
+                          Project 0
+                        </Link>
+                        <Link
+                          href="https://blog.0.xyz/blog/introducing-project-0"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-4"
+                        >
+                          <Button variant="secondary">
+                            <IconExternalLink size={16} />
+                            Read more about Project 0
+                          </Button>
+                        </Link>
                       </div>
                     </TabsContent>
                   )}
