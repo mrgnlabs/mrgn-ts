@@ -39,16 +39,6 @@ const projects = shuffle([
     },
   },
   {
-    title: "Mantis SVM",
-    description: "The first Solana L2, using marginfi to giver users lending yield + staking yield + re-staking yield.",
-    url: "https://www.mantis.app/",
-    author: {
-      name: "Mantis",
-      avatar: "https://storage.googleapis.com/mrgn-public/ecosystem-images/mantis.png",
-      url: "https://www.mantis.app/",
-    },
-  },
-  {
     title: "The Arena",
     description: "Memecoin trading, with leverage",
     url: "https://www.thearena.trade",
