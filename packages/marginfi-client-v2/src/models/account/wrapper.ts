@@ -1394,6 +1394,10 @@ class MarginfiAccountWrapper {
     // get bank and metadata
     const bank = this.client.getBankByPk(bankAddress);
     const solBank = this.client.getBankByMint(WSOL_MINT);
+    const { instructions: updateFeedIxs, luts: feedLuts } = await this.makeUpdateFeedIx(
+      solBank?.address ? [solBank.address] : []
+    );
+
     const bankMetadata = this.client.bankMetadataMap![bankAddress.toBase58()];
 
     if (!bank || !solBank) {
@@ -1455,6 +1459,16 @@ class MarginfiAccountWrapper {
       value: { blockhash },
     } = await this._program.provider.connection.getLatestBlockhashAndContext("confirmed");
 
+    const crankMessage = new TransactionMessage({
+      payerKey: this.client.wallet.publicKey,
+      recentBlockhash: blockhash,
+      instructions: updateFeedIxs,
+    }).compileToV0Message(feedLuts);
+    const crankTxn = addTransactionMetadata(new VersionedTransaction(crankMessage), {
+      addressLookupTables: feedLuts,
+      type: TransactionType.CRANK,
+    });
+
     const withdrawMessage = new TransactionMessage({
       payerKey: this.client.wallet.publicKey,
       recentBlockhash: blockhash,
@@ -1477,7 +1491,7 @@ class MarginfiAccountWrapper {
       type: TransactionType.WITHDRAW_STAKE,
     });
 
-    return { transactions: [withdrawTxn, stakeTxn], actionTxIndex: 1 };
+    return { transactions: [crankTxn, withdrawTxn, stakeTxn], actionTxIndex: 2 };
   }
 
   /**
