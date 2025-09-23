@@ -48,9 +48,6 @@ export const MrgnlendProvider: React.FC<{
     });
   }, [wallet.publicKey]);
 
-  React.useEffect(() => {
-    setDisplaySettings(false);
-  }, [wallet.publicKey, setDisplaySettings]);
 
   // if account set in query param then store inn local storage and remove from url
   React.useEffect(() => {

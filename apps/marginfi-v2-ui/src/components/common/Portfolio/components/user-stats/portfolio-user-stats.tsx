@@ -13,7 +13,6 @@ interface PortfolioUserStatsProps {
   supplied: string;
   borrowed: string;
   netValue: string;
-  points: string;
   supplied7d?: StatsData;
   borrowed7d?: StatsData;
   netValue7d?: StatsData;

@@ -496,7 +496,6 @@ export const LendingPortfolio = () => {
               supplied={accountSupplied}
               borrowed={accountBorrowed}
               netValue={accountNetValue}
-              points="0"
               supplied7d={supplied7d}
               borrowed7d={borrowed7d}
               netValue7d={netValue7d}

@@ -73,7 +73,6 @@ export const Navbar: FC = () => {
     globalActionBoxProps: state.globalActionBoxProps,
   }));
 
-  const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
   const setSelectedKey = useSetSelectedAccountKey();
 
@@ -291,7 +290,6 @@ export const Navbar: FC = () => {
               isLoadingUserBalances={isLoadingUserBalances}
               walletTokens={[...tokenBalances, ...nativeStakeBalances]}
               accountSummary={accountSummary}
-              userPointsData={userPointsData}
               setSelectedAccount={setSelectedAccount}
               refreshState={refreshUserData}
               processOpts={{

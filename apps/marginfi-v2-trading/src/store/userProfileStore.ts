@@ -1,4 +1,3 @@
-import { DEFAULT_USER_POINTS_DATA, UserPointsData } from "@mrgnlabs/mrgn-state";
 import { create } from "zustand";
 
 type ZoomLevel = 1 | 2 | 3;
@@ -7,7 +6,6 @@ interface UserProfileState {
   // State
   lendZoomLevel: ZoomLevel;
   showBadges: boolean;
-  userPointsData: UserPointsData;
 
   // Actions
   setLendZoomLevel: (level: ZoomLevel) => void;
@@ -19,7 +17,6 @@ function createUserProfileStore() {
     // State
     lendZoomLevel: 3,
     showBadges: false,
-    userPointsData: DEFAULT_USER_POINTS_DATA,
 
     // Actions
     setLendZoomLevel: (level: ZoomLevel) => set(() => ({ lendZoomLevel: level })),

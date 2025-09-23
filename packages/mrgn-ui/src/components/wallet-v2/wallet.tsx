@@ -23,7 +23,7 @@ import {
 } from "@tabler/icons-react";
 
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, AccountSummary, UserPointsData } from "@mrgnlabs/mrgn-state";
+import { ExtendedBankInfo, AccountSummary } from "@mrgnlabs/mrgn-state";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 
@@ -69,7 +69,6 @@ type WalletProps = {
   isLoadingUserBalances: boolean;
   walletTokens: TokenWalletData[];
   accountSummary?: AccountSummary;
-  userPointsData?: UserPointsData;
   setSelectedAccount: (account: PublicKey) => void;
   refreshState: () => void;
   headerComponent?: JSX.Element;
@@ -97,7 +96,6 @@ const Wallet = ({
   isLoadingUserBalances,
   walletTokens,
   accountSummary,
-  userPointsData,
   setSelectedAccount,
   refreshState,
   headerComponent,
@@ -255,7 +253,7 @@ const Wallet = ({
                           Tokens
                         </span>
                       </TabsTrigger>
-                      {userPointsData && (
+                      {true && (
                         <TabsTrigger
                           value="points"
                           className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
@@ -480,7 +478,7 @@ const Wallet = ({
                       </TabWrapper>
                     )}
                   </TabsContent>
-                  {userPointsData && (
+                  {true && (
                     <TabsContent value="points">
                       <div className="flex flex-col items-center pt-8">
                         <p>View your mrgn points on </p>

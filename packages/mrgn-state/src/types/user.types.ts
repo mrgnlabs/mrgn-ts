@@ -9,15 +9,8 @@ import {
 import { TokenAccount } from "./token.types";
 import { BankState } from "./bank.types";
 
-export interface UserPointsData {
-  totalPoints: number;
-}
 
-export const DEFAULT_USER_POINTS_DATA: UserPointsData = {
-  totalPoints: 0,
-};
-
-export interface UserDataProps {
+export interface UserInfo {
   tokenAccount: TokenAccount;
   maxDeposit: number;
   maxRepay: number;
