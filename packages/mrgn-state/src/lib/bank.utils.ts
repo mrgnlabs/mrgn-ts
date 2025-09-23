@@ -32,7 +32,6 @@ import {
   historicBankChartData,
   StakePoolMetadata,
 } from "../types";
-// Fee margin for wrapped SOL transactions (previously from firebase.utils)
 export const FEE_MARGIN = 0.01;
 
 export function makeExtendedBankMetadata(

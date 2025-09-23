@@ -8,5 +8,4 @@ export * from "./action.utils";
 export * from "./bank.utils";
 export * from "./constants";
 
-// Export specific constants that were previously in firebase.utils
 export { FEE_MARGIN } from "./bank.utils";

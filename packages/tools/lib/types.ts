@@ -1,5 +1,4 @@
 export type Environment = "production" | "staging";
-import * as admin from "firebase-admin";
 
 export interface Config {
   PROGRAM_ID: string;
