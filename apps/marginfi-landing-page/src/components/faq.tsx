@@ -10,17 +10,12 @@ const CONTENT = {
       answer: (
         <>
           Yes, you can find the{" "}
-          <Link
-            href="https://docs.marginfi.com/mrgnlend"
-            className="mrgn-link"
-            target="_blank"
-            rel="noreferrer"
-          >
+          <Link href="https://docs.marginfi.com/mrgnlend" className="mrgn-link" target="_blank" rel="noreferrer">
             mrgnlend user guide
           </Link>{" "}
           on GitHub. . We are currently working on overhauling our documentation so expect this to be improved soon. Any
           further questions please{" "}
-          <Link href="https://discord.gg/pJ3U7gHJFe" className="mrgn-link" target="_blank" rel="noreferrer">
+          <Link href="https://discord.com/invite/c2kNj7y9w8" className="mrgn-link" target="_blank" rel="noreferrer">
             join our Discord server
           </Link>
           .
@@ -92,7 +87,7 @@ export const FAQ = () => {
         <h2 className="text-4xl font-medium lg:text-5xl">{CONTENT.heading}</h2>
         <p className="text-muted-foreground">
           Below are some some common questions, please{" "}
-          <Link href="https://discord.gg/pJ3U7gHJFe" target="_blank" rel="noreferrer">
+          <Link href="https://discord.com/invite/c2kNj7y9w8" target="_blank" rel="noreferrer">
             join our Discord
           </Link>{" "}
           for more information.

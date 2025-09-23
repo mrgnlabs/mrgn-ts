@@ -29,10 +29,9 @@ export default function AccountTransferPage() {
   const { data: marginfiAccounts, isLoading: isLoadingMarginfiAccounts } = useMarginfiAccountAddresses();
   const { marginfiClient, isLoading: isLoadingMarginfiClient } = useMarginfiClient(wallet);
   const refreshUserData = useRefreshUserData();
-  const [priorityFees, broadcastType, accountLabels] = useUiStore((state) => [
+  const [priorityFees, broadcastType] = useUiStore((state) => [
     state.priorityFees,
     state.broadcastType,
-    state.accountLabels,
   ]);
 
   const setSelectedKey = useSetSelectedAccountKey();
@@ -195,7 +194,6 @@ export default function AccountTransferPage() {
                 ...priorityFees,
                 broadcastType,
               }}
-              accountLabels={accountLabels}
             />
           </div>
 

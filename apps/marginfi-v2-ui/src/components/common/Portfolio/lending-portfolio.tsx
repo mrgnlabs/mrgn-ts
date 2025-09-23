@@ -77,16 +77,14 @@ export const LendingPortfolio = () => {
     [setSelectedKey]
   );
 
-  const [priorityFees, broadcastType, accountLabels, setGlobalActionBoxProps, globalActionBoxProps] = useUiStore(
+  const [priorityFees, broadcastType, setGlobalActionBoxProps, globalActionBoxProps] = useUiStore(
     (state) => [
       state.priorityFees,
       state.broadcastType,
-      state.accountLabels,
       state.setGlobalActionBoxProps,
       state.globalActionBoxProps,
     ]
   );
-  const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
   const [filterEmode, setFilterEmode] = React.useState(false);
   const [openAccordions, setOpenAccordions] = React.useState<Record<string, boolean>>({});
@@ -372,7 +370,6 @@ export const LendingPortfolio = () => {
                     ...priorityFees,
                     broadcastType,
                   }}
-                  accountLabels={accountLabels}
                 />
               )}
             </div>
@@ -499,7 +496,7 @@ export const LendingPortfolio = () => {
               supplied={accountSupplied}
               borrowed={accountBorrowed}
               netValue={accountNetValue}
-              points={numeralFormatter(userPointsData.totalPoints)}
+              points="0"
               supplied7d={supplied7d}
               borrowed7d={borrowed7d}
               netValue7d={netValue7d}
@@ -610,8 +607,7 @@ export const LendingPortfolio = () => {
                                 bank={bank}
                                 isInLendingMode={true}
                                 isBorrower={borrowingBanks.length > 0}
-                                accountLabels={accountLabels}
-                                variant={filterEmode ? "simple" : "accordion"}
+                                              variant={filterEmode ? "simple" : "accordion"}
                                 {...(!filterEmode && {
                                   disabled: filterEmode,
                                   open: !!openAccordions[bank.meta.tokenSymbol],
@@ -690,8 +686,7 @@ export const LendingPortfolio = () => {
                                 bank={bank}
                                 isInLendingMode={false}
                                 isBorrower={borrowingBanks.length > 0}
-                                accountLabels={accountLabels}
-                                variant={filterEmode ? "simple" : "accordion"}
+                                              variant={filterEmode ? "simple" : "accordion"}
                                 {...(!filterEmode && {
                                   disabled: filterEmode,
                                   open: !!openAccordions[bank.meta.tokenSymbol],

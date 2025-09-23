@@ -82,7 +82,7 @@ const CONTENT = {
       },
       // {
       //   icon: <IconBrandDiscordFilled />,
-      //   href: "https://discord.gg/pJ3U7gHJFe",
+      //   href: "https://discord.com/invite/c2kNj7y9w8",
       //   label: "Discord",
       // },
       {
@@ -245,7 +245,7 @@ export const Header = () => {
                       <span
                         className={cn(
                           debouncedLaunchPopoverOpen &&
-                          "bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse text-transparent bg-clip-text"
+                            "bg-gradient-to-r from-mrgn-gold to-mrgn-chartreuse text-transparent bg-clip-text"
                         )}
                       >
                         Launch App

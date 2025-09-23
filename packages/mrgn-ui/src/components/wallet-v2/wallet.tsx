@@ -1,10 +1,10 @@
 import React from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import Link from "next/link";
+import { PublicKey, Connection } from "@solana/web3.js";
 
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { Connection, PublicKey } from "@solana/web3.js";
 import {
   IconChevronDown,
   IconCopy,
@@ -23,7 +23,7 @@ import {
 } from "@tabler/icons-react";
 
 import { MarginfiAccountWrapper, MarginfiClient, ProcessTransactionsClientOpts } from "@mrgnlabs/marginfi-client-v2";
-import { ExtendedBankInfo, UserPointsData, AccountSummary } from "@mrgnlabs/mrgn-state";
+import { ExtendedBankInfo, AccountSummary, UserPointsData } from "@mrgnlabs/mrgn-state";
 import { shortenAddress, usdFormatter, numeralFormatter, groupedNumberFormatterDyn } from "@mrgnlabs/mrgn-common";
 import { useIsMobile, cn } from "@mrgnlabs/mrgn-utils";
 
@@ -47,7 +47,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Button } from "~/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { WalletActivity } from "./components/wallet-activity/wallet-activity";
 
 export type TokenWalletData = {
   mint: PublicKey;
@@ -69,15 +68,12 @@ type WalletProps = {
   extendedBankInfos: ExtendedBankInfo[];
   isLoadingUserBalances: boolean;
   walletTokens: TokenWalletData[];
-  userPointsData?: UserPointsData;
   accountSummary?: AccountSummary;
-  hideActivity?: boolean;
+  userPointsData?: UserPointsData;
   setSelectedAccount: (account: PublicKey) => void;
   refreshState: () => void;
   headerComponent?: JSX.Element;
   processOpts?: ProcessTransactionsClientOpts;
-  accountLabels?: Record<string, string>;
-  fetchAccountLabels?: (accounts: PublicKey[]) => Promise<void>;
 };
 
 enum WalletState {
@@ -89,7 +85,6 @@ enum WalletState {
   SWAP = "swap",
   BUY = "bug",
   BRIDGE = "bridge",
-  POINTS = "points",
   NOTIS = "notis",
 }
 
@@ -101,15 +96,12 @@ const Wallet = ({
   extendedBankInfos,
   isLoadingUserBalances,
   walletTokens,
-  userPointsData,
-  hideActivity,
   accountSummary,
+  userPointsData,
   setSelectedAccount,
   refreshState,
   headerComponent,
   processOpts,
-  accountLabels,
-  fetchAccountLabels,
 }: WalletProps) => {
   const router = useRouter();
   const [isWalletOpen, setIsWalletOpen] = useWalletStore((state) => [state.isWalletOpen, state.setIsWalletOpen]);
@@ -181,7 +173,9 @@ const Wallet = ({
               <div className="flex flex-col items-start">
                 {shortenAddress(wallet?.publicKey)}
                 <div className="text-muted-foreground/70 text-xs">
-                  {accountLabels?.[selectedAccount?.address.toBase58() ?? "Account"]}
+                  {selectedAccount && marginfiAccounts
+                    ? `Account ${marginfiAccounts.findIndex((acc) => acc.equals(selectedAccount.address)) + 1}`
+                    : "Account"}
                 </div>
               </div>
 
@@ -209,8 +203,6 @@ const Wallet = ({
                         selectedAccount={selectedAccount}
                         setSelectedAccount={setSelectedAccount}
                         processOpts={processOpts}
-                        accountLabels={accountLabels}
-                        fetchAccountLabels={fetchAccountLabels}
                         fullHeight={true}
                       />
                     </div>
@@ -270,16 +262,6 @@ const Wallet = ({
                         >
                           <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
                             Points
-                          </span>
-                        </TabsTrigger>
-                      )}
-                      {!hideActivity && (
-                        <TabsTrigger
-                          value="activity"
-                          className="group w-1/3 bg-transparent data-[state=active]:bg-transparent"
-                        >
-                          <span className="group-data-[state=active]:bg-background-gray-light hover:bg-background-gray-light/75 py-1.5 px-3 rounded-md">
-                            Activity
                           </span>
                         </TabsTrigger>
                       )}
@@ -525,15 +507,6 @@ const Wallet = ({
                       </div>
                     </TabsContent>
                   )}
-                  <TabsContent value="activity">
-                    <div className="py-8">
-                      <WalletActivity
-                        extendedBankInfos={extendedBankInfos}
-                        onRerun={refreshState}
-                        closeWallet={() => setIsWalletOpen(false)}
-                      />
-                    </div>
-                  </TabsContent>
                 </Tabs>
               </div>
             ) : (

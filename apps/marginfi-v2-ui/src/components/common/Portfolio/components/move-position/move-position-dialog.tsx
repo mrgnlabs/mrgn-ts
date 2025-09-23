@@ -42,7 +42,6 @@ interface MovePositionDialogProps {
   extendedBankInfos: ExtendedBankInfo[];
   nativeSolBalance: number;
   accountSummary: AccountSummary | null;
-  accountLabels?: Record<string, string>;
 }
 
 export const MovePositionDialog = ({
@@ -56,7 +55,6 @@ export const MovePositionDialog = ({
   extendedBankInfos,
   nativeSolBalance,
   accountSummary,
-  accountLabels,
 }: MovePositionDialogProps) => {
   const [accountToMoveTo, setAccountToMoveTo] = React.useState<PublicKey | null>(null);
   const [actionTxns, setActionTxns] = React.useState<SolanaTransaction[]>([]);
@@ -219,9 +217,7 @@ export const MovePositionDialog = ({
               >
                 <SelectTrigger className="w-max">
                   {accountToMoveTo
-                    ? accountLabels?.[accountToMoveTo?.toBase58()]
-                      ? accountLabels[accountToMoveTo?.toBase58()]
-                      : `Account ${
+                      ? `Account ${
                           marginfiAccounts.findIndex((acc) => acc.toBase58() === accountToMoveTo?.toBase58()) + 1
                         }`
                     : "Select account"}
@@ -231,9 +227,7 @@ export const MovePositionDialog = ({
                     ?.filter((acc) => acc.toBase58() !== selectedAccount?.address.toBase58())
                     .map((account, i) => (
                       <SelectItem key={i} value={account.toBase58()}>
-                        {accountLabels?.[account.toBase58()]
-                          ? accountLabels[account.toBase58()]
-                          : `Account ${
+                        {`Account ${
                               marginfiAccounts.findIndex((_acc) => _acc.toBase58() === account?.toBase58()) + 1
                             }`}
                       </SelectItem>
