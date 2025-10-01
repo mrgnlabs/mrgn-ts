@@ -334,7 +334,9 @@ export const createSwapToSolTx = async ({
   jupiterOptions,
   platformFeeBps,
 }: CreateSwapToSolTxProps): Promise<{ quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType }> => {
-  const jupiterQuoteApi = createJupiterApiClient();
+  const jupiterQuoteApi = createJupiterApiClient({
+    basePath: "https://lite-api.jup.ag/swap/v1",
+  });
 
   const swapQuote = await getSwapQuoteWithRetry({
     amount: uiToNative(inputMintOpts.amount, inputMintOpts.mintDecimals).toNumber(),

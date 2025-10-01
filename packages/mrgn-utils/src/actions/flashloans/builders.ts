@@ -314,7 +314,9 @@ export async function loopingBuilder({
 }: LoopingProps): Promise<FlashloanBuilderResponse> {
   if (!marginfiAccount) throw new Error("not initialized");
 
-  const jupiterQuoteApi = createJupiterApiClient();
+  const jupiterQuoteApi = createJupiterApiClient({
+    basePath: "https://lite-api.jup.ag/swap/v1",
+  });
   let feeAccountInfo: AccountInfo<any> | null = null;
 
   const feeMint = quote.swapMode === "ExactIn" ? quote.outputMint : quote.inputMint;
@@ -387,7 +389,9 @@ export async function repayWithCollatBuilder({
   quote,
   connection,
 }: RepayWithCollatProps): Promise<FlashloanBuilderResponse> {
-  const jupiterQuoteApi = createJupiterApiClient();
+  const jupiterQuoteApi = createJupiterApiClient({
+    basePath: "https://lite-api.jup.ag/swap/v1",
+  });
   let feeAccountInfo: AccountInfo<any> | null = null;
 
   const feeMint = quote.swapMode === "ExactIn" ? quote.outputMint : quote.inputMint;
@@ -440,7 +444,9 @@ export async function closePositionBuilder({
   quote,
   connection,
 }: ClosePositionProps) {
-  const jupiterQuoteApi = createJupiterApiClient();
+  const jupiterQuoteApi = createJupiterApiClient({
+    basePath: "https://lite-api.jup.ag/swap/v1",
+  });
   let feeAccountInfo: AccountInfo<any> | null = null;
 
   const feeMint = quote.swapMode === "ExactIn" ? quote.outputMint : quote.inputMint;

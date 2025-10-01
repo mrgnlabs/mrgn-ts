@@ -100,7 +100,9 @@ export async function createSwapTx(props: GenerateDepositSwapTxnsProps) {
     throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.BANK_NOT_PROVIDED_CHECK);
   }
 
-  const jupiterQuoteApi = createJupiterApiClient();
+  const jupiterQuoteApi = createJupiterApiClient({
+    basePath: "https://lite-api.jup.ag/swap/v1",
+  });
   const mintDecimals = isExtendedBankInfo(props.swapBank)
     ? props.swapBank.info.state.mintDecimals
     : props.swapBank.mintDecimals;

@@ -104,7 +104,9 @@ export async function getSwapQuoteWithRetry(
   maxRetries = 5,
   timeout = 1500
 ): Promise<QuoteResponse> {
-  const jupiterQuoteApi = createJupiterApiClient();
+  const jupiterQuoteApi = createJupiterApiClient({
+    basePath: "https://lite-api.jup.ag/swap/v1",
+  });
   let attempt = 0;
   while (attempt < maxRetries) {
     try {

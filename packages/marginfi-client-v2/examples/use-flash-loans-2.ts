@@ -1,16 +1,13 @@
-import {
-  AddressLookupTableAccount,
-  Connection,
-  PublicKey,
-  TransactionInstruction,
-} from "@solana/web3.js";
-import {  getMarginfiClient } from "./utils";
+import { AddressLookupTableAccount, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { getMarginfiClient } from "./utils";
 import { createJupiterApiClient } from "@jup-ag/api";
 import { nativeToUi } from "@mrgnlabs/mrgn-common";
 
 async function main() {
   const client = await getMarginfiClient({ readonly: true });
-  const jupiterQuoteApi = createJupiterApiClient();
+  const jupiterQuoteApi = createJupiterApiClient({
+    basePath: "https://lite-api.jup.ag/swap/v1",
+  });
 
   const marginfiAccounts = await client.getMarginfiAccountsForAuthority();
   if (marginfiAccounts.length === 0) throw Error("No marginfi account found");
@@ -47,7 +44,7 @@ async function main() {
   });
   const swapIx = deserializeInstruction(swapInstruction);
   const depositIx = await marginfiAccount.makeRepayIx(usdtAmountToRepay, usdtBank.address, true);
- 
+
   const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
   addressLookupTableAccounts.push(
     ...(await getAdressLookupTableAccounts(client.provider.connection, addressLookupTableAddresses))

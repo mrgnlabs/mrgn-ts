@@ -54,7 +54,9 @@ export async function createSwapTx({
   jupiterOptions,
   platformFeeBps,
 }: CreateSwapTxProps): Promise<CreateSwapTxResponse> {
-  const jupiterQuoteApi = createJupiterApiClient();
+  const jupiterQuoteApi = createJupiterApiClient({
+    basePath: "https://lite-api.jup.ag/swap/v1",
+  });
 
   const swapQuote = await getSwapQuoteWithRetry({
     swapMode: "ExactIn",

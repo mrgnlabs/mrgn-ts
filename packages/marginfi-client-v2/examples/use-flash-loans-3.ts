@@ -1,9 +1,4 @@
-import {
-  AddressLookupTableAccount,
-  Connection,
-  PublicKey,
-  TransactionInstruction,
-} from "@solana/web3.js";
+import { AddressLookupTableAccount, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import { getMarginfiClient } from "./utils";
 import { QuoteGetRequest, createJupiterApiClient } from "@jup-ag/api";
 import { LUT_PROGRAM_AUTHORITY_INDEX, nativeToUi, uiToNative } from "@mrgnlabs/mrgn-common";
@@ -12,7 +7,9 @@ import { computeMaxLeverage } from "../src";
 async function main() {
   const client = await getMarginfiClient({ readonly: true });
   console.log("signer:", client.wallet.publicKey.toBase58());
-  const jupiterQuoteApi = createJupiterApiClient();
+  const jupiterQuoteApi = createJupiterApiClient({
+    basePath: "https://lite-api.jup.ag/swap/v1",
+  });
 
   const marginfiAccounts = await client.getMarginfiAccountsForAuthority();
   if (marginfiAccounts.length === 0) throw Error("No marginfi account found");
@@ -21,8 +18,8 @@ async function main() {
 
   // Inputs
 
-  const depositToken = "USDC"
-  const borrowToken = "USDT"
+  const depositToken = "USDC";
+  const borrowToken = "USDT";
   const targetLeverage = 2;
   const principalAmountUi = 2;
   const maxSlippage = 0.01;
@@ -35,10 +32,7 @@ async function main() {
   const borrowBank = client.getBankByTokenSymbol(borrowToken);
   if (!borrowBank) throw Error(`${borrowToken} bank not found`);
 
-  const { maxLeverage, ltv } = computeMaxLeverage(
-    depositBank,
-    borrowBank,
-  );
+  const { maxLeverage, ltv } = computeMaxLeverage(depositBank, borrowBank);
 
   // Constraints
 
@@ -57,7 +51,7 @@ async function main() {
     adjustedPrincipalAmountUi,
     targetLeverage,
     depositBank.address,
-    borrowBank.address,
+    borrowBank.address
   );
 
   const borrowAmountNative = uiToNative(borrowAmount, borrowBank.mintDecimals).toNumber();
@@ -80,10 +74,7 @@ async function main() {
   console.log("minSwapAmountOutUi:", minSwapAmountOutUi);
   console.log("priceImpact:", swapQuote.priceImpactPct);
 
-  const {
-    swapInstruction,
-    addressLookupTableAddresses,
-  } = await jupiterQuoteApi.swapInstructionsPost({
+  const { swapInstruction, addressLookupTableAddresses } = await jupiterQuoteApi.swapInstructionsPost({
     swapRequest: {
       quoteResponse: swapQuote,
       userPublicKey: marginfiAccount.authority.toBase58(),
@@ -94,9 +85,7 @@ async function main() {
   const swapIx = deserializeInstruction(swapInstruction);
 
   const swapLUTs: AddressLookupTableAccount[] = [];
-  swapLUTs.push(
-    ...(await getAdressLookupTableAccounts(client.provider.connection, addressLookupTableAddresses))
-  );
+  swapLUTs.push(...(await getAdressLookupTableAccounts(client.provider.connection, addressLookupTableAddresses)));
 
   const actualDepositAmountUi = minSwapAmountOutUi + principalAmountUi;
   console.log("actualDepositAmountUi:", actualDepositAmountUi);
@@ -107,7 +96,7 @@ async function main() {
     depositBank.address,
     borrowBank.address,
     [swapIx],
-    swapLUTs,
+    swapLUTs
   );
 
   console.log("pre:", marginfiAccount.describe());
