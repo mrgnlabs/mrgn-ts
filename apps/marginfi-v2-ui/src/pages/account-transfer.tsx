@@ -59,6 +59,7 @@ export default function AccountTransferPage() {
 
       // Parse JSON array string (e.g. "[231,222,...]") into Uint8Array and create Keypair
       let payerPubkey: PublicKey;
+      let payerKeypair: Keypair;
       try {
         const keyArray = JSON.parse(privateKey);
         if (!Array.isArray(keyArray) || !keyArray.every((n: unknown) => typeof n === "number")) {
@@ -66,7 +67,7 @@ export default function AccountTransferPage() {
         }
 
         const secretKey = new Uint8Array(keyArray);
-        const payerKeypair = Keypair.fromSecretKey(secretKey);
+        payerKeypair = Keypair.fromSecretKey(secretKey);
         payerPubkey = payerKeypair.publicKey;
       } catch (err) {
         setHasError(
