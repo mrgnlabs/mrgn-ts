@@ -54,7 +54,26 @@ export default function AccountTransferPage() {
 
       const formData = new FormData(e.target as HTMLFormElement);
       const newAuthority = formData.get("newAuthority") as string;
+      const privateKey = formData.get("privateKey") as string;
       let newAuthorityPk: PublicKey;
+
+      // Parse JSON array string (e.g. "[231,222,...]") into Uint8Array and create Keypair
+      let payerPubkey: PublicKey;
+      try {
+        const keyArray = JSON.parse(privateKey);
+        if (!Array.isArray(keyArray) || !keyArray.every((n: unknown) => typeof n === "number")) {
+          throw new Error("Private key must be a JSON array of numbers");
+        }
+
+        const secretKey = new Uint8Array(keyArray);
+        const payerKeypair = Keypair.fromSecretKey(secretKey);
+        payerPubkey = payerKeypair.publicKey;
+      } catch (err) {
+        setHasError(
+          "Invalid private key format. Paste the full JSON array (e.g. [231, 222, ...]) from your keypair file."
+        );
+        return;
+      }
 
       try {
         newAuthorityPk = new PublicKey(newAuthority);
@@ -70,16 +89,20 @@ export default function AccountTransferPage() {
         setIsLoading(true);
 
         // Create the transaction
-        const transaction = await selectedAccount.makeAccountTransferToNewAccountTx(newAccountPk, newAuthorityPk);
+        const transaction = await selectedAccount.makeAccountTransferToNewAccountTx(
+          newAccountPk,
+          newAuthorityPk,
+          payerPubkey
+        );
 
         // Get the latest blockhash
         const { blockhash } = await connection.getLatestBlockhash();
         transaction.recentBlockhash = blockhash;
-        transaction.feePayer = wallet.publicKey;
+        transaction.feePayer = payerPubkey;
 
         // Convert to versioned transaction
         const message = new TransactionMessage({
-          payerKey: wallet.publicKey,
+          payerKey: payerPubkey,
           recentBlockhash: blockhash,
           instructions: transaction.instructions,
         });
@@ -87,6 +110,9 @@ export default function AccountTransferPage() {
 
         // Sign the transaction with both the wallet and the new account keypair
         versionedTransaction.sign([newAccount]);
+
+        const simulateResult = await connection.simulateTransaction(versionedTransaction, { sigVerify: false });
+        console.log("simulateResult: ", simulateResult);
         const signedTransaction = await wallet.signTransaction(versionedTransaction);
 
         // Send the transaction
@@ -153,6 +179,16 @@ export default function AccountTransferPage() {
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">New Authority Address</label>
             <Input type="text" placeholder="New authority wallet address" required name="newAuthority" />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Fee Payer</label>
+            <Input
+              type="text"
+              placeholder="Paste fee payer private key JSON array (e.g. [231, 222, ...])"
+              required
+              name="privateKey"
+            />
           </div>
         </div>
 

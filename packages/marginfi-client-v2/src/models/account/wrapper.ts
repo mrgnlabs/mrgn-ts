@@ -1986,19 +1986,22 @@ class MarginfiAccountWrapper {
   public async makeAccountTransferToNewAccountIx(
     newMarginfiAccount: PublicKey,
     newAccountAuthority: PublicKey,
-    globalFeeWallet: PublicKey
+    globalFeeWallet: PublicKey,
+    feePayer: PublicKey
   ): Promise<InstructionsWrapper> {
     return this._marginfiAccount.makeAccountTransferToNewAccountIx(
       this._program,
       newMarginfiAccount,
       newAccountAuthority,
-      globalFeeWallet
+      globalFeeWallet,
+      feePayer
     );
   }
 
   async makeAccountTransferToNewAccountTx(
     newMarginfiAccount: PublicKey,
-    newAccountAuthority: PublicKey
+    newAccountAuthority: PublicKey,
+    feePayer: PublicKey
   ): Promise<Transaction> {
     const [feeStateKey] = PublicKey.findProgramAddressSync([Buffer.from("feestate", "utf-8")], this._program.programId);
     const feeState = await this._program.account.feeState.fetch(feeStateKey);
@@ -2006,7 +2009,8 @@ class MarginfiAccountWrapper {
     const ixs = await this.makeAccountTransferToNewAccountIx(
       newMarginfiAccount,
       newAccountAuthority,
-      feeState.globalFeeWallet
+      feeState.globalFeeWallet,
+      feePayer
     );
     const tx = new Transaction().add(...ixs.instructions);
     return tx;
