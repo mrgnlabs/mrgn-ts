@@ -110,6 +110,7 @@ export default function AccountTransferPage() {
 
         // Sign the transaction with both the wallet and the new account keypair
         versionedTransaction.sign([newAccount]);
+        versionedTransaction.sign([payerKeypair]);
 
         const simulateResult = await connection.simulateTransaction(versionedTransaction, { sigVerify: false });
         console.log("simulateResult: ", simulateResult);
