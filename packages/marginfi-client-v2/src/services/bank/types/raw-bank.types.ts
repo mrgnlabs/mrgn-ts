@@ -109,7 +109,7 @@ interface BankConfigCompactRaw extends Omit<BankConfigRaw, "oracleKeys" | "oracl
 
 type RiskTierRaw = { collateral: {} } | { isolated: {} };
 
-type OperationalStateRaw = { paused: {} } | { operational: {} } | { reduceOnly: {} };
+type OperationalStateRaw = { paused: {} } | { operational: {} } | { reduceOnly: {} } | { killedByBankruptcy: {} };
 
 interface InterestRateConfigRaw {
   // Curve Params
@@ -132,7 +132,9 @@ type OracleSetupRaw =
   | { switchboardV2: {} }
   | { pythPushOracle: {} }
   | { switchboardPull: {} }
-  | { stakedWithPythPush: {} };
+  | { stakedWithPythPush: {} }
+  | { kaminoPythPush: {} }
+  | { kaminoSwitchboardPull: {} };
 
 interface OracleConfigOptRaw {
   setup: OracleSetupRaw;
