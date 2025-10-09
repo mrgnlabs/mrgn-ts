@@ -1,5 +1,5 @@
 {
-  "address": "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA",
+  "address": "2jGhuVUuy3umdzByFx8sNWUAaf5vaeuDm78RDPEnhrMr",
   "metadata": {
     "name": "marginfi",
     "version": "0.1.5",
@@ -106,7 +106,6 @@
         {
           "name": "global_fee_admin",
           "docs": ["Admin of the global FeeState"],
-          "writable": true,
           "signer": true,
           "relations": ["fee_state"]
         },
@@ -798,8 +797,8 @@
       "name": "kamino_withdraw",
       "docs": [
         "(user) Withdraw from a Kamino pool through a marginfi account",
-        "* amount - in the liquidity token (e.g. if there is a Kamino USDC bank, pass the amount of",
-        "USDC desired), in native decimals.",
+        "* amount - in the collateral token (NOT liquidity token), in native decimals. Must convert",
+        "from collateral to liquidity token amounts using the current exchange rate.",
         "* withdraw_all - if true, withdraw the entire mrgn balance (Note: due to rounding down, a",
         "deposit and withdraw back to back may result in several lamports less)"
       ],
@@ -978,7 +977,6 @@
         },
         {
           "name": "bank_liquidity_vault_authority",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1129,7 +1127,6 @@
         },
         {
           "name": "bank_liquidity_vault_authority",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -1559,7 +1556,6 @@
         },
         {
           "name": "admin",
-          "writable": true,
           "signer": true,
           "relations": ["marginfi_group"]
         },
@@ -2078,7 +2074,6 @@
         },
         {
           "name": "admin",
-          "writable": true,
           "signer": true,
           "relations": ["marginfi_group"]
         },
@@ -2376,7 +2371,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": ["bank"]
         },
         {
@@ -2446,7 +2440,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": ["bank"]
         },
         {
@@ -2477,7 +2470,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": ["bank"]
         },
         {
@@ -2623,7 +2615,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": ["bank"]
         },
         {
@@ -2716,7 +2707,6 @@
       "accounts": [
         {
           "name": "group",
-          "writable": true,
           "relations": ["bank"]
         },
         {
@@ -3420,9 +3410,13 @@
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true,
           "relations": ["old_marginfi_account"]
+        },
+        {
+          "name": "fee_payer",
+          "writable": true,
+          "signer": true
         },
         {
           "name": "new_authority"
@@ -3490,9 +3484,13 @@
         },
         {
           "name": "authority",
-          "writable": true,
           "signer": true,
           "relations": ["old_marginfi_account"]
+        },
+        {
+          "name": "fee_payer",
+          "writable": true,
+          "signer": true
         },
         {
           "name": "new_authority"

@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/marginfi.json`.
  */
 export type Marginfi = {
-  address: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA";
+  address: "";
   metadata: {
     name: "marginfi";
     version: "0.1.5";
@@ -110,7 +110,6 @@ export type Marginfi = {
         {
           name: "globalFeeAdmin";
           docs: ["Admin of the global FeeState"];
-          writable: true;
           signer: true;
           relations: ["feeState"];
         },
@@ -826,8 +825,8 @@ export type Marginfi = {
       name: "kaminoWithdraw";
       docs: [
         "(user) Withdraw from a Kamino pool through a marginfi account",
-        "* amount - in the liquidity token (e.g. if there is a Kamino USDC bank, pass the amount of",
-        "USDC desired), in native decimals.",
+        "* amount - in the collateral token (NOT liquidity token), in native decimals. Must convert",
+        "from collateral to liquidity token amounts using the current exchange rate.",
         "* withdraw_all - if true, withdraw the entire mrgn balance (Note: due to rounding down, a",
         "deposit and withdraw back to back may result in several lamports less)",
       ];
@@ -1001,7 +1000,6 @@ export type Marginfi = {
         },
         {
           name: "bankLiquidityVaultAuthority";
-          writable: true;
           pda: {
             seeds: [
               {
@@ -1150,7 +1148,6 @@ export type Marginfi = {
         },
         {
           name: "bankLiquidityVaultAuthority";
-          writable: true;
           pda: {
             seeds: [
               {
@@ -1628,7 +1625,6 @@ export type Marginfi = {
         },
         {
           name: "admin";
-          writable: true;
           signer: true;
           relations: ["marginfiGroup"];
         },
@@ -2141,7 +2137,6 @@ export type Marginfi = {
         },
         {
           name: "admin";
-          writable: true;
           signer: true;
           relations: ["marginfiGroup"];
         },
@@ -2435,7 +2430,6 @@ export type Marginfi = {
       accounts: [
         {
           name: "group";
-          writable: true;
           relations: ["bank"];
         },
         {
@@ -2505,7 +2499,6 @@ export type Marginfi = {
       accounts: [
         {
           name: "group";
-          writable: true;
           relations: ["bank"];
         },
         {
@@ -2536,7 +2529,6 @@ export type Marginfi = {
       accounts: [
         {
           name: "group";
-          writable: true;
           relations: ["bank"];
         },
         {
@@ -2682,7 +2674,6 @@ export type Marginfi = {
       accounts: [
         {
           name: "group";
-          writable: true;
           relations: ["bank"];
         },
         {
@@ -2801,7 +2792,6 @@ export type Marginfi = {
       accounts: [
         {
           name: "group";
-          writable: true;
           relations: ["bank"];
         },
         {
@@ -3531,9 +3521,13 @@ export type Marginfi = {
         },
         {
           name: "authority";
-          writable: true;
           signer: true;
           relations: ["oldMarginfiAccount"];
+        },
+        {
+          name: "feePayer";
+          writable: true;
+          signer: true;
         },
         {
           name: "newAuthority";
@@ -3601,9 +3595,13 @@ export type Marginfi = {
         },
         {
           name: "authority";
-          writable: true;
           signer: true;
           relations: ["oldMarginfiAccount"];
+        },
+        {
+          name: "feePayer";
+          writable: true;
+          signer: true;
         },
         {
           name: "newAuthority";
