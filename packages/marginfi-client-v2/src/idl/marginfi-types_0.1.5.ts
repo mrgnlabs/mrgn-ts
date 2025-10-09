@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/marginfi.json`.
  */
 export type Marginfi = {
-  address: "";
+  address: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA";
   metadata: {
     name: "marginfi";
     version: "0.1.5";
