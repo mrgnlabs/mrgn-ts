@@ -2040,7 +2040,7 @@ class MarginfiAccountWrapper {
         const swbProgram = await AnchorUtils.loadProgramFromConnection(this.client.provider.connection);
         const pullFeedInstances: PullFeed[] = filteredSwbPullBanks.map((pubkey) => new PullFeed(swbProgram, pubkey));
         const crossbarClient = new CrossbarClient(
-          process.env.NEXT_PUBLIC_SWITCHBOARD_CROSSSBAR_API || "https://integrator-crossbar.prod.mrgn.app"
+          process.env.NEXT_PUBLIC_SWITCHBOARD_CROSSSBAR_API || "https://34.97.218.183.sslip.io"
         );
         const gateway = await pullFeedInstances[0].fetchGatewayUrl(crossbarClient);
 
