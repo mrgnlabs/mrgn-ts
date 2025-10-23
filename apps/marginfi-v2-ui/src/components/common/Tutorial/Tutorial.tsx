@@ -231,7 +231,7 @@ export const Tutorial = () => {
                     </p>
                     <ul className="flex items-center justify-center gap-4 pb-4 md:pb-0">
                       <li className="p-3 rounded-full bg-accent">
-                        <a href="https://discord.gg/pJ3U7gHJFe" target="_blank" rel="noreferrer">
+                        <a href="https://discord.com/invite/c2kNj7y9w8" target="_blank" rel="noreferrer">
                           <IconBrandDiscordFilled />
                         </a>
                       </li>
