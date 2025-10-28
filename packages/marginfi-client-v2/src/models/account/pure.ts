@@ -284,7 +284,7 @@ class MarginfiAccount implements MarginfiAccountType {
       this.activeBalances.filter((b) => b.liabilityShares.gt(0) || !b.bankPk.equals(bankAddress)).length > 0;
 
     const attemptingToBorrowIsolatedAssetWithActiveDebt =
-      bank.config.riskTier === RiskTier.Isolated && hasLiabilitiesAlready;
+      bank.config.riskTier === RiskTier.Isolated || hasLiabilitiesAlready;
 
     debug("attemptingToBorrowIsolatedAssetWithActiveDebt: %s", attemptingToBorrowIsolatedAssetWithActiveDebt);
 

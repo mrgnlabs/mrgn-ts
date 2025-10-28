@@ -383,14 +383,18 @@ function canBeBorrowed(
 
   const existingIsolatedBorrow = activeBorrowBanks.find((bankInfo) => {
     const hasBankIsolatedBorrow = bankInfo.info.rawBank.config.riskTier === RiskTier.Isolated;
-    return hasBankIsolatedBorrow;
+    const isDifferentBank = !bankInfo.address.equals(targetBankInfo.address);
+    return hasBankIsolatedBorrow && isDifferentBank;
   });
   if (existingIsolatedBorrow) {
     checks.push(DYNAMIC_SIMULATION_ERRORS.EXISTING_ISO_BORROW_CHECK(existingIsolatedBorrow.meta.tokenSymbol));
   }
 
+  // Check if attempting to borrow an isolated asset when OTHER borrows exist
+  const hasOtherBorrows = activeBorrowBanks.some((bankInfo) => !bankInfo.address.equals(targetBankInfo.address));
+
   const attemptingToBorrowIsolatedAssetWithActiveDebt =
-    targetBankInfo.info.rawBank.config.riskTier === RiskTier.Isolated && activeBorrowBanks.length > 0;
+    targetBankInfo.info.rawBank.config.riskTier === RiskTier.Isolated && hasOtherBorrows;
   if (attemptingToBorrowIsolatedAssetWithActiveDebt) {
     checks.push(STATIC_SIMULATION_ERRORS.EXISTING_BORROW);
   }
