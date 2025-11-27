@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Query the daily account balance view for last 30 days
     const { data: portfolioData, error } = await supabase.schema("application").rpc(
-      "func_account_positions_1d_v100",
+      "func_account_positions_1d_v140",
       {
         p_address: accountAddress,
         p_start: startDate,
