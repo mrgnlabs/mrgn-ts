@@ -5,7 +5,12 @@ import {
   loadTokenMetadatas,
   TokenMetadata,
 } from "@mrgnlabs/mrgn-common";
-import { stagingStaticBankMetadata, stagingStaticTokenMetadata } from "../consts";
+import {
+  staging2StaticBankMetadata,
+  staging2StaticTokenMetadata,
+  stagingStaticBankMetadata,
+  stagingStaticTokenMetadata,
+} from "../consts";
 import { getConfig } from "../config";
 import { AddressLookupTableAccountArgsDto } from "../types";
 import { dtoToLutAccount } from "../lib";
@@ -55,8 +60,8 @@ export async function fetchMetaData() {
       bankMetadataMap = results[0];
       tokenMetadataMap = results[1];
     } else {
-      bankMetadataMap = stagingStaticBankMetadata;
-      tokenMetadataMap = stagingStaticTokenMetadata;
+      bankMetadataMap = staging2StaticBankMetadata;
+      tokenMetadataMap = staging2StaticTokenMetadata;
     }
   } else {
     throw new Error("Unknown environment");

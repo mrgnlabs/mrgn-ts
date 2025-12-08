@@ -203,12 +203,12 @@ function getGeneralChecks(
 ): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
-  if (marginfiAccount) {
-    if (marginfiAccount.data.healthCache.simulationFailed) {
-      checks.push(STATIC_SIMULATION_ERRORS.HEALTH_SIMULATION_CHECK);
-      return checks;
-    }
-  }
+  // if (marginfiAccount) {
+  //   if (marginfiAccount.data.healthCache.simulationFailed) {
+  //     checks.push(STATIC_SIMULATION_ERRORS.HEALTH_SIMULATION_CHECK);
+  //     return checks;
+  //   }
+  // }
 
   if (showCloseBalance) {
     checks.push({ actionMethod: "INFO", description: "Close lending balance.", isEnabled: true });

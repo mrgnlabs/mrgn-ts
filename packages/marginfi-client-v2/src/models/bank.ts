@@ -56,6 +56,8 @@ class Bank implements BankType {
     public readonly mint: PublicKey,
     public readonly mintDecimals: number,
     public readonly group: PublicKey,
+    public readonly mintRate: number | null,
+    public readonly mintPrice: number,
     public readonly assetShareValue: BigNumber,
     public readonly liabilityShareValue: BigNumber,
     public readonly liquidityVault: PublicKey,
@@ -80,10 +82,11 @@ class Bank implements BankType {
     public readonly emissionsRemaining: BigNumber,
     public readonly oracleKey: PublicKey,
     public readonly emode: EmodeSettings,
+    public readonly kaminoReserve: PublicKey,
+    public readonly kaminoObligation: PublicKey,
     public readonly feesDestinationAccount?: PublicKey,
     public readonly lendingPositionCount?: BigNumber,
     public readonly borrowingPositionCount?: BigNumber,
-    public readonly pythShardId?: number,
     public readonly tokenSymbol?: string
   ) {}
 
@@ -107,18 +110,22 @@ class Bank implements BankType {
       bankType.config.riskTier,
       bankType.config.totalAssetValueInitLimit,
       bankType.config.assetTag,
-      bankType.config.configFlags,
       bankType.config.oracleSetup,
       bankType.config.oracleKeys,
       bankType.config.oracleMaxAge,
       bankType.config.interestRateConfig,
-      bankType.config.operationalState
+      bankType.config.operationalState,
+      bankType.config.oracleMaxConfidence,
+      bankType.config.fixedPrice,
+      bankType.config.configFlags
     );
     return new Bank(
       bankType.address,
       bankType.mint,
       bankType.mintDecimals,
       bankType.group,
+      bankType.mintRate,
+      bankType.mintPrice,
       bankType.assetShareValue,
       bankType.liabilityShareValue,
       bankType.liquidityVault,
@@ -143,10 +150,11 @@ class Bank implements BankType {
       bankType.emissionsRemaining,
       bankType.oracleKey,
       bankType.emode,
+      bankType.kaminoReserve,
+      bankType.kaminoObligation,
       bankType.feesDestinationAccount,
       bankType.lendingPositionCount,
       bankType.borrowingPositionCount,
-      bankType.pythShardId,
       bankType.tokenSymbol
     );
   }
@@ -163,6 +171,8 @@ class Bank implements BankType {
       props.mint,
       props.mintDecimals,
       props.group,
+      props.mintRate,
+      props.mintPrice,
       props.assetShareValue,
       props.liabilityShareValue,
       props.liquidityVault,
@@ -187,10 +197,11 @@ class Bank implements BankType {
       props.emissionsRemaining,
       props.oracleKey,
       props.emode,
+      props.kaminoReserve,
+      props.kaminoObligation,
       props.feesDestinationAccount,
       props.lendingPositionCount,
       props.borrowingPositionCount,
-      props.pythShardId,
       props.tokenSymbol
     );
   }
@@ -371,12 +382,14 @@ class BankConfig implements BankConfigType {
     public readonly riskTier: RiskTier,
     public readonly totalAssetValueInitLimit: BigNumber,
     public readonly assetTag: AssetTag,
-    public readonly configFlags: BankConfigFlag,
     public readonly oracleSetup: OracleSetup,
     public readonly oracleKeys: PublicKey[],
     public readonly oracleMaxAge: number,
     public readonly interestRateConfig: InterestRateConfig,
-    public readonly operationalState: OperationalState
+    public readonly operationalState: OperationalState,
+    public readonly oracleMaxConfidence: number,
+    public readonly fixedPrice: BigNumber,
+    public readonly configFlags?: BankConfigFlag
   ) {}
 
   static fromAccountParsed(bankConfigRaw: BankConfigRaw): BankConfig {
@@ -391,12 +404,14 @@ class BankConfig implements BankConfigType {
       bankConfig.riskTier,
       bankConfig.totalAssetValueInitLimit,
       bankConfig.assetTag,
-      bankConfig.configFlags,
       bankConfig.oracleSetup,
       bankConfig.oracleKeys,
       bankConfig.oracleMaxAge,
       bankConfig.interestRateConfig,
-      bankConfig.operationalState
+      bankConfig.operationalState,
+      bankConfig.oracleMaxConfidence,
+      bankConfig.fixedPrice,
+      bankConfig.configFlags
     );
   }
 }

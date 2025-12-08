@@ -38,7 +38,7 @@ export async function freezeBankConfigIx(
     },
     {
       bankConfigOpt: {
-        // ...bankConfigRaw,
+        ...bankConfigRaw,
         assetWeightInit: null,
         assetWeightMaint: null,
 
@@ -58,6 +58,7 @@ export async function freezeBankConfigIx(
         permissionlessBadDebtSettlement: null,
         freezeSettings: true,
         oracleMaxConfidence: null,
+        tokenlessRepaymentsAllowed: null,
       },
     }
   );

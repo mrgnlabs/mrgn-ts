@@ -10,6 +10,12 @@ export enum OperationalState {
   Paused = "Paused",
   Operational = "Operational",
   ReduceOnly = "ReduceOnly",
+  KilledByBankruptcy = "KilledByBankruptcy",
+}
+
+export interface RatePoint {
+  util: number;
+  rate: number;
 }
 
 export interface InterestRateConfig {
@@ -24,7 +30,18 @@ export interface InterestRateConfig {
   protocolFixedFeeApr: BigNumber;
   protocolIrFee: BigNumber;
   protocolOriginationFee: BigNumber;
+
+  zeroUtilRate: number;
+  hundredUtilRate: number;
+  points: RatePoint[];
+  curveType: number;
 }
+
+export interface InterestRateConfigOpt
+  extends Omit<
+    InterestRateConfig,
+    "optimalUtilizationRate" | "plateauInterestRate" | "maxInterestRate" | "curveType"
+  > {}
 
 export enum OracleSetup {
   None = "None",
@@ -33,11 +50,15 @@ export enum OracleSetup {
   PythPushOracle = "PythPushOracle",
   SwitchboardPull = "SwitchboardPull",
   StakedWithPythPush = "StakedWithPythPush",
+  KaminoPythPush = "KaminoPythPush",
+  KaminoSwitchboardPull = "KaminoSwitchboardPull",
+  Fixed = "Fixed",
 }
 export enum AssetTag {
   DEFAULT = 0,
   SOL = 1,
   STAKED = 2,
+  KAMINO = 3,
 }
 
 export enum BankConfigFlag {
@@ -54,16 +75,18 @@ export interface BankConfigOpt {
 
   depositLimit: BigNumber | null;
   borrowLimit: BigNumber | null;
-  riskTier: RiskTier | null;
-  totalAssetValueInitLimit: BigNumber | null;
-  assetTag: AssetTag | null;
-
-  interestRateConfig: InterestRateConfig | null;
   operationalState: OperationalState | null;
+  interestRateConfig: InterestRateConfigOpt | null;
 
+  riskTier: RiskTier | null;
+  assetTag: AssetTag | null;
+  totalAssetValueInitLimit: BigNumber | null;
+
+  oracleMaxConfidence: number | null;
   oracleMaxAge: number | null;
   permissionlessBadDebtSettlement: boolean | null;
-  oracleMaxConfidence: number | null;
+  freezeSettings: boolean | null;
+  tokenlessRepaymentsAllowed: boolean | null;
 }
 
 export interface BankConfigType {
@@ -79,7 +102,7 @@ export interface BankConfigType {
   riskTier: RiskTier;
   totalAssetValueInitLimit: BigNumber;
   assetTag: AssetTag;
-  configFlags: BankConfigFlag;
+  configFlags?: BankConfigFlag;
 
   interestRateConfig: InterestRateConfig;
   operationalState: OperationalState;
@@ -87,6 +110,8 @@ export interface BankConfigType {
   oracleSetup: OracleSetup;
   oracleKeys: PublicKey[];
   oracleMaxAge: number;
+  oracleMaxConfidence: number;
+  fixedPrice: BigNumber;
 }
 
 export interface BankType {
@@ -95,6 +120,8 @@ export interface BankType {
   group: PublicKey;
   mint: PublicKey;
   mintDecimals: number;
+  mintRate: number | null;
+  mintPrice: number;
 
   assetShareValue: BigNumber;
   liabilityShareValue: BigNumber;
@@ -127,11 +154,13 @@ export interface BankType {
   emissionsRemaining: BigNumber;
 
   oracleKey: PublicKey;
-  pythShardId?: number;
   emode: EmodeSettingsType;
   feesDestinationAccount?: PublicKey;
   lendingPositionCount?: BigNumber;
   borrowingPositionCount?: BigNumber;
+
+  kaminoReserve: PublicKey;
+  kaminoObligation: PublicKey;
 }
 
 /**
@@ -176,6 +205,11 @@ export enum EmodeTag {
   SOL = 501,
   LST_T1 = 1571,
   LST_T2 = 1572,
+  JLP = 619,
+  STABLE_T1 = 57481,
+  STABLE_T2 = 57482,
+  BTC_T1 = 871,
+  BTC_T2 = 872,
 }
 
 export interface EmodeSettingsType {
@@ -199,6 +233,15 @@ export type EmodePair = {
   assetWeightInit: BigNumber;
 };
 
+export type ActiveEmodePair = {
+  collateralBanks: PublicKey[];
+  collateralBankTags: EmodeTag[];
+  liabilityBanks: PublicKey[];
+  liabilityBankTags: EmodeTag[];
+  assetWeightMaint: BigNumber;
+  assetWeightInit: BigNumber;
+};
+
 export enum EmodeImpactStatus {
   ActivateEmode,
   ExtendEmode,
@@ -211,7 +254,7 @@ export enum EmodeImpactStatus {
 export interface EmodeImpact {
   status: EmodeImpactStatus;
   resultingPairs: EmodePair[];
-  activePair?: EmodePair;
+  activePair?: ActiveEmodePair;
 }
 
 export interface ActionEmodeImpact {

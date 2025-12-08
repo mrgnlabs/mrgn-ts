@@ -10,7 +10,7 @@ import { decodeSwitchboardPullFeedData, SWITCHBOARD_ONDEMANDE_PRICE_PRECISION } 
 
 import { OraclePrice, PriceWithConfidence, PriceBias } from "../types";
 import BN, { isBN } from "bn.js";
-import { median } from "@mrgnlabs/mrgn-common";
+import { median, wrappedI80F48toBigNumber } from "@mrgnlabs/mrgn-common";
 
 export function getPriceWithConfidence(oraclePrice: OraclePrice, weighted: boolean): PriceWithConfidence {
   return weighted ? oraclePrice.priceWeighted : oraclePrice.priceRealtime;
@@ -38,7 +38,7 @@ function capConfidenceInterval(price: BigNumber, confidence: BigNumber, maxConfi
   return BigNumber.min(confidence, maxConfidenceInterval);
 }
 
-function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, shardId?: number): OraclePrice {
+function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, fixedPrice?: BigNumber): OraclePrice {
   const debug = require("debug")("mfi:oracle-loader");
   switch (oracleSetup) {
     case OracleSetup.PythLegacy: {
@@ -98,11 +98,11 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, shardId
           highestPrice: pythHighestPrice,
         },
         timestamp: new BigNumber(Number(pythPriceData.timestamp)),
-        pythShardId: shardId,
       };
     }
     case OracleSetup.PythPushOracle:
-    case OracleSetup.StakedWithPythPush: {
+    case OracleSetup.StakedWithPythPush:
+    case OracleSetup.KaminoPythPush: {
       let bytesWithoutDiscriminator = rawData.slice(8);
       let data = parsePriceInfo(bytesWithoutDiscriminator);
 
@@ -146,7 +146,6 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, shardId
           highestPrice: highestPriceWeighted,
         },
         timestamp: new BigNumber(Number(data.priceMessage.publishTime)),
-        pythShardId: shardId,
       };
     }
 
@@ -186,6 +185,7 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, shardId
       };
     }
     case OracleSetup.SwitchboardPull:
+    case OracleSetup.KaminoSwitchboardPull: {
       const pullFeedDAta = decodeSwitchboardPullFeedData(rawData);
 
       const swbPrice = new BigNumber(pullFeedDAta.result.value.toString()).div(
@@ -219,6 +219,27 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, shardId
         },
         timestamp: new BigNumber(pullFeedDAta.last_update_timestamp.toString()),
       };
+    }
+    case OracleSetup.Fixed: {
+      const price = fixedPrice ?? BigNumber(0);
+
+      const fixedOraclePrice: OraclePrice = {
+        priceRealtime: {
+          price: price,
+          confidence: BigNumber(0),
+          lowestPrice: price,
+          highestPrice: price,
+        },
+        priceWeighted: {
+          price: price,
+          confidence: BigNumber(0),
+          lowestPrice: price,
+          highestPrice: price,
+        },
+        timestamp: BigNumber(Date.now()),
+      };
+      return fixedOraclePrice;
+    }
     default:
       console.error("Invalid oracle setup", oracleSetup);
       throw new Error(`Invalid oracle setup "${oracleSetup}"`);

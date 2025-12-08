@@ -27,27 +27,40 @@ type PythFeedMapResponse = Record<
 >;
 
 /**
- * Categorizes banks by their oracle setup type
+ * Categorizes banks by their oracle setup type into legacy, push, and staked collateral banks
+ * @param banks - Array of bank objects with address and raw bank data
+ * @returns Object containing categorized banks by oracle type
+ *   - pythLegacyBanks: Banks using deprecated Pyth legacy oracles
+ *   - pythPushBanks: Banks using Pyth push oracles
+ *   - pythStakedCollateralBanks: Banks using staked collateral with Pyth push oracles
  */
-const categorizePythBanks = (banks: { address: PublicKey; data: BankRaw }[]) => {
-  const pythMigratedBanks = banks.filter(
-    (bank) =>
-      (bank.data.config.oracleSetup && "pythLegacy" in bank.data.config.oracleSetup) ||
-      (bank.data.config.oracleSetup &&
-        "pythPushOracle" in bank.data.config.oracleSetup &&
-        bank.data.config.configFlags === 1)
+export const categorizePythBanks = (banks: { address: PublicKey; data: BankRaw }[]) => {
+  // Depracated
+  const pythLegacyBanks = banks.filter(
+    (bank) => bank.data.config.oracleSetup && "pythLegacy" in bank.data.config.oracleSetup
   );
+
+  // Pyth push oracle banks
   const pythPushBanks = banks.filter(
-    (bank) =>
-      bank.data.config.oracleSetup &&
-      "pythPushOracle" in bank.data.config.oracleSetup &&
-      bank.data.config.configFlags !== 1
+    (bank) => bank.data.config.oracleSetup && "pythPushOracle" in bank.data.config.oracleSetup
   );
+
+  // Staked collateral pyth banks (all have sol oracle)
   const pythStakedCollateralBanks = banks.filter(
     (bank) => bank.data.config.oracleSetup && "stakedWithPythPush" in bank.data.config.oracleSetup
   );
 
-  return { pythMigratedBanks, pythPushBanks, pythStakedCollateralBanks };
+  // Pyth push kaminos banks
+  const pythPushKaminosBanks = banks.filter(
+    (bank) => bank.data.config.oracleSetup && "kaminoPythPush" in bank.data.config.oracleSetup
+  );
+
+  return {
+    pythLegacyBanks,
+    pythPushBanks,
+    pythStakedCollateralBanks,
+    pythPushKaminosBanks,
+  };
 };
 
 /**
@@ -133,14 +146,10 @@ const convertVoteAccCoeffsToBankCoeffs = (
 /**
  * Extracts oracle keys for Pyth price fetching
  */
-const extractPythOracleKeys = (
-  pythLegacyBanks: { address: PublicKey; data: BankRaw }[],
-  pythPushBanks: { address: PublicKey; data: BankRaw }[]
-): string[] => {
-  const legacyKeys = pythLegacyBanks.map((bank) => bank.data.config.oracleKeys[0].toBase58());
-  const pushKeys = pythPushBanks.map((bank) => bank.data.config.oracleKeys[0].toBase58());
+export const extractPythOracleKeys = (pythBanks: { address: PublicKey; data: BankRaw }[]): string[] => {
+  const keys = pythBanks.map((bank) => bank.data.config.oracleKeys[0]!.toBase58());
 
-  return [...legacyKeys, ...pushKeys];
+  return [...keys];
 };
 
 /**
@@ -181,20 +190,10 @@ const fetchPythOraclePricesViaAPI = async (pythOracleKeys: string[]): Promise<Re
  * Maps banks to their corresponding oracle prices
  */
 const mapPythBanksToOraclePrices = (
-  pythMigratedBanks: { address: PublicKey; data: BankRaw }[],
   pythPushBanks: { address: PublicKey; data: BankRaw }[],
   oraclePrices: Record<string, OraclePrice>
 ): Map<string, OraclePrice> => {
   const bankOraclePriceMap = new Map<string, OraclePrice>();
-
-  // Map legacy banks
-  pythMigratedBanks.forEach((bank) => {
-    const oracleKey = bank.data.config.oracleKeys[0].toBase58();
-    const oraclePrice = oraclePrices[oracleKey];
-    if (oraclePrice) {
-      bankOraclePriceMap.set(bank.address.toBase58(), oraclePrice);
-    }
-  });
 
   // Map push oracle banks
   pythPushBanks.forEach((bank) => {
@@ -224,7 +223,19 @@ export const fetchPythOracleData = async (
   };
 }> => {
   // Step 1: Categorize banks by oracle type
-  const { pythMigratedBanks, pythPushBanks, pythStakedCollateralBanks } = categorizePythBanks(banks);
+  const { pythPushBanks, pythStakedCollateralBanks, pythPushKaminosBanks } = categorizePythBanks(banks);
+
+  if (!pythPushBanks.length && !pythStakedCollateralBanks.length && !pythPushKaminosBanks.length) {
+    // Return empty structures when there are no banks to process
+    return {
+      pythFeedMap: new Map<string, { feedId: PublicKey; shardId?: number }>(),
+      bankOraclePriceMap: new Map<string, OraclePrice>(),
+      stakedCollateralData: {
+        pythStakedCollateralBanks: [],
+        priceCoeffByStakedBank: {},
+      },
+    };
+  }
 
   // Step 2: Prepare vote account mint tuples for staked collateral
   const voteAccMintTuples: [string, string][] = pythStakedCollateralBanks.map((bank) => [
@@ -254,7 +265,8 @@ export const fetchPythOracleData = async (
   }
 
   // Step 4: Extract oracle keys for price fetching
-  const pythOracleKeys = extractPythOracleKeys(pythMigratedBanks, pythPushBanks);
+  const combinedPythBanks = [...pythPushBanks, ...pythPushKaminosBanks];
+  const pythOracleKeys = extractPythOracleKeys(combinedPythBanks);
 
   // Step 5: Fetch oracle prices
   let oraclePrices: Record<string, OraclePrice>;
@@ -266,7 +278,7 @@ export const fetchPythOracleData = async (
   }
 
   // Step 6: Map banks to oracle prices
-  const bankOraclePriceMap = mapPythBanksToOraclePrices(pythMigratedBanks, pythPushBanks, oraclePrices);
+  const bankOraclePriceMap = mapPythBanksToOraclePrices(pythPushBanks, oraclePrices);
 
   return {
     pythFeedMap,
@@ -303,7 +315,9 @@ export const fetchSwbOracleData = async (
   const switchboardBanks = banks.filter(
     (bank) =>
       bank.data.config.oracleSetup &&
-      ("switchboardPull" in bank.data.config.oracleSetup || "switchboardV2" in bank.data.config.oracleSetup)
+      ("switchboardPull" in bank.data.config.oracleSetup ||
+        "switchboardV2" in bank.data.config.oracleSetup ||
+        "kaminoSwitchboardPull" in bank.data.config.oracleSetup)
   );
 
   let oracleKeyMap: Record<string, { feedId: string; stdev: string; rawPrice: string }>;

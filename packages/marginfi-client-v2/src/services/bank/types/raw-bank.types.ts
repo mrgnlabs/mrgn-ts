@@ -41,6 +41,9 @@ interface BankRaw {
   emissionsRemaining: WrappedI80F48;
   emissionsMint: PublicKey;
 
+  kaminoReserve: PublicKey;
+  kaminoObligation: PublicKey;
+
   emode: EmodeSettingsRaw;
   feesDestinationAccount?: PublicKey;
   cache?: BankCacheRaw;
@@ -52,6 +55,7 @@ interface BankCacheRaw {
   baseRate: number;
   lendingRate: number;
   borrowingRate: number;
+  interestAccumulatedFor: number;
   accumulatedSinceLastUpdate: WrappedI80F48;
 }
 
@@ -72,11 +76,12 @@ interface BankConfigRaw {
   borrowLimit: BN;
   riskTier: RiskTierRaw;
   assetTag: number;
-  configFlags: number;
+  configFlags?: number;
 
   totalAssetValueInitLimit: BN;
   oracleMaxAge: number;
   oracleMaxConfidence: number;
+  fixedPrice: WrappedI80F48;
 }
 
 interface BankConfigOptRaw {
@@ -88,28 +93,33 @@ interface BankConfigOptRaw {
 
   depositLimit: BN | null;
   borrowLimit: BN | null;
-  riskTier: { collateral: {} } | { isolated: {} } | null;
+  operationalState: OperationalStateRaw | null;
+  interestRateConfig: InterestRateConfigOptRaw | null;
+
+  riskTier: RiskTierRaw | null;
   assetTag: number | null;
   totalAssetValueInitLimit: BN | null;
 
-  interestRateConfig: InterestRateConfigRaw | null;
-  operationalState: { paused: {} } | { operational: {} } | { reduceOnly: {} } | null;
-
+  oracleMaxConfidence: number | null;
   oracleMaxAge: number | null;
   permissionlessBadDebtSettlement: boolean | null;
   freezeSettings: boolean | null;
-  oracleMaxConfidence: number | null;
+  tokenlessRepaymentsAllowed: boolean | null;
 }
 
-interface BankConfigCompactRaw extends Omit<BankConfigRaw, "oracleKeys" | "oracle" | "oracleSetup"> {
-  oracleMaxAge: number;
-  padding0?: BN[];
-  padding1?: BN[];
+interface BankConfigCompactRaw
+  extends Omit<BankConfigRaw, "oracleKeys" | "oracleSetup" | "fixedPrice" | "interestRateConfig"> {
+  interestRateConfig: InterestRateConfigCompactRaw;
 }
 
 type RiskTierRaw = { collateral: {} } | { isolated: {} };
 
 type OperationalStateRaw = { paused: {} } | { operational: {} } | { reduceOnly: {} } | { killedByBankruptcy: {} };
+
+interface RatePointRaw {
+  util: number;
+  rate: number;
+}
 
 interface InterestRateConfigRaw {
   // Curve Params
@@ -122,9 +132,21 @@ interface InterestRateConfigRaw {
   insuranceIrFee: WrappedI80F48;
   protocolFixedFeeApr: WrappedI80F48;
   protocolIrFee: WrappedI80F48;
-
   protocolOriginationFee: WrappedI80F48;
+
+  zeroUtilRate: number;
+  hundredUtilRate: number;
+  points: RatePointRaw[];
+  curveType: number;
 }
+
+interface InterestRateConfigCompactRaw
+  extends Omit<
+    InterestRateConfigRaw,
+    "optimalUtilizationRate" | "plateauInterestRate" | "maxInterestRate" | "curveType"
+  > {}
+
+interface InterestRateConfigOptRaw extends InterestRateConfigCompactRaw {}
 
 type OracleSetupRaw =
   | { none: {} }
@@ -134,11 +156,25 @@ type OracleSetupRaw =
   | { switchboardPull: {} }
   | { stakedWithPythPush: {} }
   | { kaminoPythPush: {} }
-  | { kaminoSwitchboardPull: {} };
+  | { kaminoSwitchboardPull: {} }
+  | { fixed: {} };
 
 interface OracleConfigOptRaw {
   setup: OracleSetupRaw;
   keys: PublicKey[];
+}
+
+interface BankMetadataRaw {
+  bank: PublicKey;
+  placeholder: BN;
+  ticker: number[];
+  description: number[];
+  dataBlob: number[];
+  endDescriptionByte: number;
+  endDataBlob: number;
+  endTickerByte: number;
+  bump: number;
+  pad0: number[];
 }
 
 interface EmodeEntryRaw {
@@ -163,8 +199,12 @@ export type {
   BankRaw,
   BankConfigRaw,
   BankConfigCompactRaw,
+  BankMetadataRaw,
   RiskTierRaw,
+  RatePointRaw,
   InterestRateConfigRaw,
+  InterestRateConfigCompactRaw,
+  InterestRateConfigOptRaw,
   OracleSetupRaw,
   OperationalStateRaw,
   OracleConfigOptRaw,
