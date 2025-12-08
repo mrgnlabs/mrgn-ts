@@ -218,8 +218,8 @@ export const LendingPortfolio = () => {
 
   const hasUnsupportedPositions = React.useMemo(() => {
     if (!selectedAccount || !rawBanks) return false;
-    const banks = selectedAccount.balances.map((balance) => balance.bankPk);
-    const missingBanks = banks.filter((bank) => !rawBanks.some((rawBank) => rawBank.address === bank));
+    const banks = selectedAccount.balances.filter((balance) => balance.active).map((balance) => balance.bankPk);
+    const missingBanks = banks.filter((bank) => !rawBanks.some((rawBank) => rawBank.address.equals(bank)));
     return missingBanks.length > 0;
   }, [selectedAccount, rawBanks]);
 

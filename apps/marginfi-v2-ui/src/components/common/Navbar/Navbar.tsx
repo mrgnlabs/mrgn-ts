@@ -120,8 +120,8 @@ export const Navbar: FC = () => {
       return "This account has been disabled, please change your account form your wallet or portfolio";
     }
     if (selectedAccountData && rawBanks) {
-      const banks = selectedAccountData.balances.map((balance) => balance.bankPk);
-      const missingBanks = banks.filter((bank) => !rawBanks.some((rawBank) => rawBank.address === bank));
+      const banks = selectedAccountData.balances.filter((balance) => balance.active).map((balance) => balance.bankPk);
+      const missingBanks = banks.filter((bank) => !rawBanks.some((rawBank) => rawBank.address.equals(bank)));
       if (missingBanks.length > 0) {
         return "This account contains unsupported positions. Please continue on Project 0 to manage your account.";
       }

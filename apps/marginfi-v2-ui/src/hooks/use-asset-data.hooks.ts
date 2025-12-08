@@ -187,7 +187,7 @@ export function useAssetData(): AssetListData {
 
     const calculateMissingBanks = () => {
       if (!selectedAccount || !extendedBanks) return false;
-      const banks = selectedAccount.balances.map((balance) => balance.bankPk);
+      const banks = selectedAccount.balances.filter((balance) => balance.active).map((balance) => balance.bankPk);
       const missingBanks = banks.filter(
         (bank) => !extendedBanks.some((extendedBank) => extendedBank.address.equals(bank))
       );
