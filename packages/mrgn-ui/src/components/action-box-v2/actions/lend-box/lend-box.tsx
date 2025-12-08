@@ -74,6 +74,7 @@ export type LendBoxProps = {
   showTokenSelection?: boolean;
   selectionGroups?: LendSelectionGroups[];
   hidePoolStats?: HidePoolStats;
+  hasUnsupportedPositions?: boolean;
 
   onCloseDialog?: () => void;
   setShouldBeHidden?: (hidden: boolean) => void;
@@ -105,6 +106,7 @@ export const LendBox = ({
   onCloseDialog,
   setShouldBeHidden,
   initialAmount,
+  hasUnsupportedPositions,
 }: LendBoxProps) => {
   const [
     amountRaw,
@@ -295,6 +297,7 @@ export const LendBox = ({
       nativeSolBalance,
       lendMode,
       selectedStakeAccount,
+      hasUnsupportedPositions,
     });
   }, [
     amount,

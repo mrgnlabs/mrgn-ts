@@ -25,6 +25,7 @@ import { EmodePortfolio } from "~/components/common/emode/components";
 import { useBanks, useEmode, useExtendedBanks, useMarginfiAccount, useRefreshUserData } from "@mrgnlabs/mrgn-state";
 import { useAssetData } from "~/hooks/use-asset-data.hooks";
 import { PublicKey } from "@solana/web3.js";
+import { CongestionBanner } from "~/components/common/CongestionBanner";
 
 const AssetsList = dynamic(async () => (await import("~/components/desktop/AssetList")).AssetsList, {
   ssr: false,

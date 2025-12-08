@@ -58,6 +58,7 @@ export type RepayBoxProps = {
   accountSummaryArg?: AccountSummary;
   isDialog?: boolean;
   additionalSettings?: AdditionalSettings;
+  hasUnsupportedPositions?: boolean;
 
   onComplete?: () => void;
   captureEvent?: (event: string, properties?: Record<string, any>) => void;
@@ -76,6 +77,7 @@ export const RepayBox = ({
   accountSummaryArg,
   isDialog,
   additionalSettings,
+  hasUnsupportedPositions,
   onComplete,
   captureEvent,
   setDisplaySettings,
@@ -252,6 +254,7 @@ export const RepayBox = ({
       marginfiAccount: selectedAccount,
       actionQuote: actionTxns?.actionQuote ?? null,
       maxOverflowHit,
+      hasUnsupportedPositions,
     });
   }, [amount, connected, selectedBank, selectedSecondaryBank, actionTxns.actionQuote, maxOverflowHit, selectedAccount]);
 

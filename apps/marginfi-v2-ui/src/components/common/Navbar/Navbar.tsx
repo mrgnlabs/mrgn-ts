@@ -25,6 +25,7 @@ import {
   useAccountSummary,
   useSetSelectedAccountKey,
   useMarginfiAccount,
+  useRawBanks,
 } from "@mrgnlabs/mrgn-state";
 import { useWalletData } from "~/hooks/use-wallet-data.hooks";
 import { PublicKey } from "@solana/web3.js";
@@ -42,6 +43,7 @@ export const Navbar: FC = () => {
   const { wrappedAccount: selectedAccount } = useWrappedMarginfiAccount(wallet);
   const { data: selectedAccountData } = useMarginfiAccount();
   const { data: marginfiAccounts } = useMarginfiAccountAddresses();
+  const { data: rawBanks } = useRawBanks();
 
   const { extendedBanks } = useExtendedBanks();
   const accountSummary = useAccountSummary();
@@ -110,11 +112,23 @@ export const Navbar: FC = () => {
       ? "h-[130px] md:h-[96px]"
       : "h-[64px]";
 
-  let outageBanner = process.env.NEXT_PUBLIC_OUTAGE_BANNER;
+  const outageBanner = React.useMemo(() => {
+    if (process.env.NEXT_PUBLIC_OUTAGE_BANNER && process.env.NEXT_PUBLIC_OUTAGE_BANNER !== "false") {
+      return process.env.NEXT_PUBLIC_OUTAGE_BANNER;
+    }
+    if (selectedAccountData?.accountFlags.includes(1)) {
+      return "This account has been disabled, please change your account form your wallet or portfolio";
+    }
+    if (selectedAccountData && rawBanks) {
+      const banks = selectedAccountData.balances.map((balance) => balance.bankPk);
+      const missingBanks = banks.filter((bank) => !rawBanks.some((rawBank) => rawBank.address === bank));
+      if (missingBanks.length > 0) {
+        return "This account contains unsupported positions. Please continue on Project 0 to manage your account.";
+      }
+    }
 
-  if (selectedAccountData?.accountFlags.includes(1)) {
-    outageBanner = "This account has been disabled, please change your account form your wallet or portfolio";
-  }
+    return "";
+  }, [rawBanks, selectedAccountData]);
 
   return (
     <header className={cn("mb-4 md:mb-8 lg:mb-14", height)}>

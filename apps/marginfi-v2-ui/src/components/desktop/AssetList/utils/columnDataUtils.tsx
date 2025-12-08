@@ -16,12 +16,14 @@ const ActionBoxCell = ({
   isInLendingMode,
   connected,
   walletContextState,
+  hasUnsupportedPositions,
   refreshUserData,
 }: {
   bank: ExtendedBankInfo;
   isInLendingMode: boolean;
   connected: boolean;
   walletContextState: WalletContextStateOverride | WalletContextState;
+  hasUnsupportedPositions: boolean;
   refreshUserData: (options?: { clearStakeAccountsCache?: boolean; newAccountKey?: PublicKey }) => void;
 }) => {
   const { stakePoolMetadataMap } = useNativeStakeData();
@@ -39,6 +41,7 @@ const ActionBoxCell = ({
           connected: connected,
           requestedBank: bank,
           requestedSecondaryBank: undefined,
+          hasUnsupportedPositions,
           onComplete: () => {
             refreshUserData();
           },
@@ -66,6 +69,7 @@ const ActionBoxCell = ({
           requestedLendType: currentAction,
           connected: connected,
           walletContextState,
+          hasUnsupportedPositions,
           onComplete: (newAccountKey?: PublicKey) => {
             refreshUserData({ newAccountKey });
           },
@@ -92,6 +96,7 @@ export const getAction = (
   isInLendingMode: boolean,
   connected: boolean,
   walletContextState: WalletContextStateOverride | WalletContextState,
+  hasUnsupportedPositions: boolean,
   refreshUserData: (options?: { clearStakeAccountsCache?: boolean; newAccountKey?: PublicKey }) => void,
   marginfiAccount?: MarginfiAccountType | null
 ) => {
@@ -114,6 +119,7 @@ export const getAction = (
                   isInLendingMode={isInLendingMode}
                   connected={connected}
                   walletContextState={walletContextState}
+                  hasUnsupportedPositions={hasUnsupportedPositions}
                   refreshUserData={refreshUserData}
                 />
               </div>
@@ -129,6 +135,7 @@ export const getAction = (
             bank={bank}
             isInLendingMode={isInLendingMode}
             connected={connected}
+            hasUnsupportedPositions={hasUnsupportedPositions}
             walletContextState={walletContextState}
             refreshUserData={refreshUserData}
           />

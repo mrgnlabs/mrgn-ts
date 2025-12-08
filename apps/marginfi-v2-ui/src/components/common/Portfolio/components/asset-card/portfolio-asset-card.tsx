@@ -22,6 +22,7 @@ import {
   ExtendedBankInfo,
   groupLiabilityBanksByCollateralBank,
   useLstRates,
+  useRawBanks,
 } from "@mrgnlabs/mrgn-state";
 import { AssetTag, EmodeTag, vendor } from "@mrgnlabs/marginfi-client-v2";
 import { capture, cn, composeExplorerUrl, executeActionWrapper, getAssetWeightData } from "@mrgnlabs/mrgn-utils";
@@ -88,10 +89,19 @@ export const PortfolioAssetCard = ({
   const { data: userBalances } = useUserBalances();
   const { emodePairs, activeEmodePairs } = useEmode();
   const { stakePoolMetadataMap } = useNativeStakeData();
+  const { data: rawBanks } = useRawBanks();
   const accountSummary = useAccountSummary();
+
   const stakePoolMetadata = stakePoolMetadataMap?.get(bank.address.toBase58());
 
   const finalRate = isInLendingMode ? (emissionRate ? rateAPY + emissionRate : rateAPY) : rateAPY;
+
+  const hasUnsupportedPositions = React.useMemo(() => {
+    if (!selectedAccount || !rawBanks) return false;
+    const banks = selectedAccount.balances.map((balance) => balance.bankPk);
+    const missingBanks = banks.filter((bank) => !rawBanks.some((rawBank) => rawBank.address === bank));
+    return missingBanks.length > 0;
+  }, [selectedAccount, rawBanks]);
 
   const [collateralBanksByLiabilityBank, liabilityBanksByCollateralBank] = React.useMemo(() => {
     return [
@@ -524,17 +534,20 @@ export const PortfolioAssetCard = ({
           <div className="flex w-full gap-3">
             <PortfolioAction
               requestedBank={bank}
+              hasUnsupportedPositions={hasUnsupportedPositions}
               buttonVariant="secondary"
               requestedAction={isInLendingMode ? ActionType.Withdraw : ActionType.Repay}
             />
             <PortfolioAction
               requestedBank={bank}
+              hasUnsupportedPositions={hasUnsupportedPositions}
               requestedAction={isInLendingMode ? ActionType.Deposit : ActionType.Borrow}
             />
           </div>
 
           {postionMovingPossible && (
             <button
+              disabled={hasUnsupportedPositions}
               onClick={() => {
                 setIsMovePositionDialogOpen(true);
               }}
@@ -567,10 +580,12 @@ const PortfolioAction = ({
   requestedBank,
   requestedAction,
   buttonVariant = "default",
+  hasUnsupportedPositions,
 }: {
   requestedBank: ExtendedBankInfo;
   requestedAction: ActionType;
   buttonVariant?: "default" | "outline" | "outline-dark" | "secondary";
+  hasUnsupportedPositions?: boolean;
 }) => {
   const { walletContextState, connected } = useWallet();
 
@@ -602,6 +617,7 @@ const PortfolioAction = ({
           requestedBank: requestedBank ?? undefined,
           walletContextState: walletContextState,
           connected: connected,
+          hasUnsupportedPositions,
           captureEvent: (event, properties) => {
             capture(event, properties);
           },
@@ -628,6 +644,7 @@ const PortfolioAction = ({
           requestedBank: requestedBank,
           requestedSecondaryBank: undefined,
           connected: connected,
+          hasUnsupportedPositions,
           captureEvent: (event, properties) => {
             capture(event, properties);
           },

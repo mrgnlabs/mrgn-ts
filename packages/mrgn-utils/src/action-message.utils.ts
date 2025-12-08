@@ -38,6 +38,7 @@ interface CheckActionAvailableProps {
   selectedSecondaryBank: ExtendedBankInfo | null;
   actionQuote: QuoteResponse | null;
   maxOverflowHit?: boolean;
+  hasUnsupportedPositions?: boolean;
 }
 
 interface CheckLendActionAvailableProps {
@@ -53,6 +54,7 @@ interface CheckLendActionAvailableProps {
     address: PublicKey;
     balance: number;
   } | null;
+  hasUnsupportedPositions?: boolean;
 }
 
 export function checkLendActionAvailable({
@@ -65,13 +67,20 @@ export function checkLendActionAvailable({
   marginfiAccount,
   lendMode,
   selectedStakeAccount,
+  hasUnsupportedPositions,
 }: CheckLendActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
   const requiredCheck = getRequiredCheck(connected, selectedBank);
   if (requiredCheck) return [requiredCheck];
 
-  const generalChecks = getGeneralChecks(amount ?? 0, showCloseBalance, undefined, marginfiAccount ?? undefined);
+  const generalChecks = getGeneralChecks(
+    amount ?? 0,
+    showCloseBalance,
+    undefined,
+    marginfiAccount ?? undefined,
+    hasUnsupportedPositions
+  );
   if (generalChecks) checks.push(...generalChecks);
 
   // allert checks
@@ -155,13 +164,20 @@ export function checkRepayActionAvailable({
   selectedSecondaryBank,
   actionQuote,
   maxOverflowHit,
+  hasUnsupportedPositions,
 }: CheckActionAvailableProps): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
   const requiredCheck = getRequiredCheck(connected, selectedBank);
   if (requiredCheck) return [requiredCheck];
 
-  const generalChecks = getGeneralChecks(amount ?? 0, undefined, undefined, marginfiAccount ?? undefined);
+  const generalChecks = getGeneralChecks(
+    amount ?? 0,
+    undefined,
+    undefined,
+    marginfiAccount ?? undefined,
+    hasUnsupportedPositions
+  );
   if (generalChecks) checks.push(...generalChecks);
 
   let repayChecks: ActionMessageType[] = [];
@@ -199,16 +215,22 @@ function getGeneralChecks(
   amount: number = 0,
   showCloseBalance?: boolean,
   leverage?: number,
-  marginfiAccount?: MarginfiAccountWrapper
+  marginfiAccount?: MarginfiAccountWrapper,
+  hasUnsupportedPositions?: boolean
 ): ActionMessageType[] {
   let checks: ActionMessageType[] = [];
 
-  // if (marginfiAccount) {
-  //   if (marginfiAccount.data.healthCache.simulationFailed) {
-  //     checks.push(STATIC_SIMULATION_ERRORS.HEALTH_SIMULATION_CHECK);
-  //     return checks;
-  //   }
-  // }
+  if (hasUnsupportedPositions) {
+    checks.push(STATIC_SIMULATION_ERRORS.UNSUPPORTED_PLATFORM_CHECK);
+    return checks;
+  }
+
+  if (marginfiAccount) {
+    if (marginfiAccount.data.healthCache.simulationFailed) {
+      checks.push(STATIC_SIMULATION_ERRORS.HEALTH_SIMULATION_CHECK);
+      return checks;
+    }
+  }
 
   if (showCloseBalance) {
     checks.push({ actionMethod: "INFO", description: "Close lending balance.", isEnabled: true });
