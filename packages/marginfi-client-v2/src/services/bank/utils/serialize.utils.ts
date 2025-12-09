@@ -25,6 +25,8 @@ import {
   BankConfigRawDto,
   EmodeSettingsRaw,
   EmodeSettingsRawDto,
+  InterestRateConfigRaw,
+  InterestRateConfigOptRaw,
 } from "../types";
 
 function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw {
@@ -45,21 +47,40 @@ function serializeBankConfigOpt(bankConfigOpt: BankConfigOpt): BankConfigOptRaw 
       bankConfigOpt.interestRateConfig &&
       ({
         insuranceFeeFixedApr: toWrappedI80F48(bankConfigOpt.interestRateConfig.insuranceFeeFixedApr),
-        maxInterestRate: toWrappedI80F48(bankConfigOpt.interestRateConfig.maxInterestRate),
         insuranceIrFee: toWrappedI80F48(bankConfigOpt.interestRateConfig.insuranceIrFee),
-        optimalUtilizationRate: toWrappedI80F48(bankConfigOpt.interestRateConfig.optimalUtilizationRate),
-        plateauInterestRate: toWrappedI80F48(bankConfigOpt.interestRateConfig.plateauInterestRate),
         protocolFixedFeeApr: toWrappedI80F48(bankConfigOpt.interestRateConfig.protocolFixedFeeApr),
         protocolIrFee: toWrappedI80F48(bankConfigOpt.interestRateConfig.protocolIrFee),
-      } as any),
+        protocolOriginationFee: toWrappedI80F48(bankConfigOpt.interestRateConfig.protocolOriginationFee),
+        zeroUtilRate: bankConfigOpt.interestRateConfig.zeroUtilRate,
+        hundredUtilRate: bankConfigOpt.interestRateConfig.hundredUtilRate,
+        points: bankConfigOpt.interestRateConfig.points,
+      } as InterestRateConfigOptRaw),
     operationalState: bankConfigOpt.operationalState && serializeOperationalState(bankConfigOpt.operationalState),
     oracleMaxAge: bankConfigOpt.oracleMaxAge,
     permissionlessBadDebtSettlement: bankConfigOpt.permissionlessBadDebtSettlement,
+    freezeSettings: bankConfigOpt.freezeSettings,
+    tokenlessRepaymentsAllowed: bankConfigOpt.tokenlessRepaymentsAllowed,
     oracleMaxConfidence: bankConfigOpt.oracleMaxConfidence,
-    freezeSettings: null,
   };
 }
 
+function serializeInterestRateConfig(interestRateConfig: InterestRateConfig): InterestRateConfigRaw {
+  return {
+    optimalUtilizationRate: bigNumberToWrappedI80F48(interestRateConfig.optimalUtilizationRate),
+    plateauInterestRate: bigNumberToWrappedI80F48(interestRateConfig.plateauInterestRate),
+    maxInterestRate: bigNumberToWrappedI80F48(interestRateConfig.maxInterestRate),
+
+    insuranceFeeFixedApr: bigNumberToWrappedI80F48(interestRateConfig.insuranceFeeFixedApr),
+    insuranceIrFee: bigNumberToWrappedI80F48(interestRateConfig.insuranceIrFee),
+    protocolFixedFeeApr: bigNumberToWrappedI80F48(interestRateConfig.protocolFixedFeeApr),
+    protocolIrFee: bigNumberToWrappedI80F48(interestRateConfig.protocolIrFee),
+    protocolOriginationFee: bigNumberToWrappedI80F48(interestRateConfig.protocolOriginationFee),
+    zeroUtilRate: interestRateConfig.zeroUtilRate,
+    hundredUtilRate: interestRateConfig.hundredUtilRate,
+    points: interestRateConfig.points,
+    curveType: interestRateConfig.curveType,
+  };
+}
 function serializeRiskTier(riskTier: RiskTier): RiskTierRaw {
   switch (riskTier) {
     case RiskTier.Collateral:
@@ -100,6 +121,12 @@ function serializeOracleSetupToIndex(oracleSetup: OracleSetup): number {
       return 4;
     case OracleSetup.StakedWithPythPush:
       return 5;
+    case OracleSetup.KaminoPythPush:
+      return 6;
+    case OracleSetup.KaminoSwitchboardPull:
+      return 7;
+    case OracleSetup.Fixed:
+      return 8;
     default:
       return 0;
   }
@@ -119,6 +146,12 @@ function serializeOracleSetup(oracleSetup: OracleSetup): OracleSetupRaw {
       return { switchboardPull: {} };
     case OracleSetup.StakedWithPythPush:
       return { stakedWithPythPush: {} };
+    case OracleSetup.KaminoPythPush:
+      return { kaminoPythPush: {} };
+    case OracleSetup.KaminoSwitchboardPull:
+      return { kaminoSwitchboardPull: {} };
+    case OracleSetup.Fixed:
+      return { fixed: {} };
     default:
       throw new Error(`Invalid oracle setup "${oracleSetup}"`);
   }
@@ -153,12 +186,13 @@ function toBankDto(bank: BankType): BankTypeDto {
     emissionsMint: bank.emissionsMint.toBase58(),
     emissionsRemaining: bank.emissionsRemaining.toString(),
     oracleKey: bank.oracleKey.toBase58(),
-    pythShardId: bank.pythShardId,
     emode: toEmodeSettingsDto(bank.emode),
     tokenSymbol: bank.tokenSymbol,
     feesDestinationAccount: bank.feesDestinationAccount?.toBase58(),
     lendingPositionCount: bank.lendingPositionCount?.toString(),
     borrowingPositionCount: bank.borrowingPositionCount?.toString(),
+    kaminoReserve: bank.kaminoReserve.toBase58(),
+    kaminoObligation: bank.kaminoObligation.toBase58(),
   };
 }
 
@@ -195,6 +229,8 @@ function toBankConfigDto(bankConfig: BankConfigType): BankConfigDto {
     oracleMaxAge: bankConfig.oracleMaxAge,
     interestRateConfig: toInterestRateConfigDto(bankConfig.interestRateConfig),
     configFlags: bankConfig.configFlags,
+    oracleMaxConfidence: bankConfig.oracleMaxConfidence,
+    fixedPrice: bankConfig.fixedPrice.toString(),
   };
 }
 
@@ -208,10 +244,14 @@ function toInterestRateConfigDto(interestRateConfig: InterestRateConfig): Intere
     protocolFixedFeeApr: interestRateConfig.protocolFixedFeeApr.toString(),
     protocolIrFee: interestRateConfig.protocolIrFee.toString(),
     protocolOriginationFee: interestRateConfig.protocolOriginationFee.toString(),
+    zeroUtilRate: interestRateConfig.zeroUtilRate,
+    hundredUtilRate: interestRateConfig.hundredUtilRate,
+    points: interestRateConfig.points,
+    curveType: interestRateConfig.curveType,
   };
 }
 
-export function bankRawToDto(bankRaw: BankRaw): BankRawDto {
+function bankRawToDto(bankRaw: BankRaw): BankRawDto {
   return {
     group: bankRaw.group.toBase58(),
     mint: bankRaw.mint.toBase58(),
@@ -250,10 +290,12 @@ export function bankRawToDto(bankRaw: BankRaw): BankRawDto {
     borrowingPositionCount: bankRaw?.borrowingPositionCount?.toString(),
 
     emode: emodeSettingsRawToDto(bankRaw.emode),
+    kaminoReserve: bankRaw.kaminoReserve.toBase58(),
+    kaminoObligation: bankRaw.kaminoObligation.toBase58(),
   };
 }
 
-export function emodeSettingsRawToDto(emodeSettingsRaw: EmodeSettingsRaw): EmodeSettingsRawDto {
+function emodeSettingsRawToDto(emodeSettingsRaw: EmodeSettingsRaw): EmodeSettingsRawDto {
   return {
     emodeTag: emodeSettingsRaw.emodeTag,
     timestamp: emodeSettingsRaw.timestamp.toString(),
@@ -271,7 +313,29 @@ export function emodeSettingsRawToDto(emodeSettingsRaw: EmodeSettingsRaw): Emode
   };
 }
 
-export function bankConfigRawToDto(bankConfigRaw: BankConfigRaw): BankConfigRawDto {
+function bankConfigToBankConfigRaw(config: BankConfigType): BankConfigRaw {
+  return {
+    assetWeightInit: bigNumberToWrappedI80F48(config.assetWeightInit),
+    assetWeightMaint: bigNumberToWrappedI80F48(config.assetWeightMaint),
+    liabilityWeightInit: bigNumberToWrappedI80F48(config.liabilityWeightInit),
+    liabilityWeightMaint: bigNumberToWrappedI80F48(config.liabilityWeightMaint),
+    depositLimit: new BN(config.depositLimit.toString()),
+    interestRateConfig: serializeInterestRateConfig(config.interestRateConfig),
+    operationalState: serializeOperationalState(config.operationalState),
+    oracleSetup: serializeOracleSetup(config.oracleSetup),
+    oracleKeys: config.oracleKeys,
+    configFlags: config.configFlags,
+    borrowLimit: new BN(config.borrowLimit.toString()),
+    riskTier: serializeRiskTier(config.riskTier),
+    assetTag: config.assetTag,
+    totalAssetValueInitLimit: new BN(config.totalAssetValueInitLimit.toString()),
+    oracleMaxAge: config.oracleMaxAge,
+    oracleMaxConfidence: config.oracleMaxConfidence,
+    fixedPrice: bigNumberToWrappedI80F48(config.fixedPrice),
+  };
+}
+
+function bankConfigRawToDto(bankConfigRaw: BankConfigRaw): BankConfigRawDto {
   return {
     assetWeightInit: bankConfigRaw.assetWeightInit,
     assetWeightMaint: bankConfigRaw.assetWeightMaint,
@@ -289,17 +353,23 @@ export function bankConfigRawToDto(bankConfigRaw: BankConfigRaw): BankConfigRawD
     interestRateConfig: bankConfigRaw.interestRateConfig,
     configFlags: bankConfigRaw.configFlags,
     oracleMaxConfidence: bankConfigRaw.oracleMaxConfidence,
+    fixedPrice: bankConfigRaw.fixedPrice,
   };
 }
 
 export {
+  serializeInterestRateConfig,
   serializeOracleSetupToIndex,
+  bankConfigToBankConfigRaw,
   serializeBankConfigOpt,
   serializeRiskTier,
   serializeOperationalState,
   serializeOracleSetup,
+  bankRawToDto,
   toBankDto,
   toEmodeSettingsDto,
   toBankConfigDto,
+  emodeSettingsRawToDto,
   toInterestRateConfigDto,
+  bankConfigRawToDto,
 };

@@ -350,6 +350,14 @@ export const STATIC_SIMULATION_ERRORS: { [key: string]: ActionMessageType } = {
     actionMethod: "WARNING",
     code: 159,
   },
+  UNSUPPORTED_PLATFORM_CHECK: {
+    isEnabled: false,
+    actionMethod: "WARNING",
+    description: "This account contains unsupported positions. Please continue on Project 0 to manage your account.",
+    link: "https://app.0.xyz/",
+    linkText: "Project 0",
+    code: 160,
+  },
 };
 
 const createEmodeReduceCheck = (): ActionMessageType => ({

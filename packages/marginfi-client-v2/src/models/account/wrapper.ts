@@ -295,7 +295,7 @@ class MarginfiAccountWrapper {
     bankAddress: PublicKey,
     opts?: {
       volatilityFactor?: number;
-      emodeWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber; collateralTag: EmodeTag };
+      emodeWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber; collateralTags: EmodeTag[] };
     }
   ): BigNumber {
     return this._marginfiAccount.computeMaxBorrowForBank(

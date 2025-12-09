@@ -5,65 +5,14 @@
  * IDL can be found at `target/idl/marginfi.json`.
  */
 export type Marginfi = {
-  address: "MFv2hWf31Z9kbCa1snEPYctwafyhdvnV7FZnsebVacA";
+  address: "";
   metadata: {
     name: "marginfi";
-    version: "0.1.5";
+    version: "0.1.6";
     spec: "0.1.0";
-    description: "Created with Anchor";
+    description: "Borrow Lending Prime Broker";
   };
   instructions: [
-    {
-      name: "adminSuperWithdraw";
-      docs: [
-        "(Arena admin) used to withdraw funds from arena liquidity pools to sunset them. Only",
-        "hard-coded arena banks can call this function.",
-      ];
-      discriminator: [252, 21, 98, 115, 66, 189, 134, 13];
-      accounts: [
-        {
-          name: "group";
-          relations: ["bank"];
-        },
-        {
-          name: "admin";
-          signer: true;
-          relations: ["group"];
-        },
-        {
-          name: "bank";
-          writable: true;
-        },
-        {
-          name: "destinationTokenAccount";
-          writable: true;
-        },
-        {
-          name: "bankLiquidityVaultAuthority";
-          pda: {
-            seeds: [
-              {
-                kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
-              },
-              {
-                kind: "account";
-                path: "bank";
-              },
-            ];
-          };
-        },
-        {
-          name: "liquidityVault";
-          writable: true;
-          relations: ["bank"];
-        },
-        {
-          name: "tokenProgram";
-        },
-      ];
-      args: [];
-    },
     {
       name: "configGroupFee";
       docs: [
@@ -103,8 +52,34 @@ export type Marginfi = {
       ];
     },
     {
+      name: "configureDeleverageWithdrawalLimit";
+      docs: [
+        "(group admin only) Set the daily withdrawal limit for deleverages per group.",
+      ];
+      discriminator: [28, 132, 205, 158, 67, 77, 177, 63];
+      accounts: [
+        {
+          name: "marginfiGroup";
+          writable: true;
+        },
+        {
+          name: "admin";
+          signer: true;
+          relations: ["marginfiGroup"];
+        },
+      ];
+      args: [
+        {
+          name: "limit";
+          type: "u32";
+        },
+      ];
+    },
+    {
       name: "editGlobalFeeState";
-      docs: ["(global fee admin only) Adjust fees, admin, or the destination wallet"];
+      docs: [
+        "(global fee admin only) Adjust fees, admin, or the destination wallet",
+      ];
       discriminator: [52, 62, 35, 129, 93, 69, 165, 202];
       accounts: [
         {
@@ -199,6 +174,31 @@ export type Marginfi = {
       ];
     },
     {
+      name: "endDeleverage";
+      discriminator: [114, 14, 250, 143, 252, 104, 214, 209];
+      accounts: [
+        {
+          name: "marginfiAccount";
+          writable: true;
+        },
+        {
+          name: "liquidationRecord";
+          writable: true;
+          relations: ["marginfiAccount"];
+        },
+        {
+          name: "group";
+          relations: ["marginfiAccount"];
+        },
+        {
+          name: "riskAdmin";
+          signer: true;
+          relations: ["group"];
+        },
+      ];
+      args: [];
+    },
+    {
       name: "endLiquidation";
       discriminator: [110, 11, 244, 54, 229, 181, 22, 184];
       accounts: [
@@ -209,7 +209,9 @@ export type Marginfi = {
         },
         {
           name: "liquidationRecord";
-          docs: ["The associated liquidation record PDA for the given `marginfi_account`"];
+          docs: [
+            "The associated liquidation record PDA for the given `marginfi_account`",
+          ];
           writable: true;
           relations: ["marginfiAccount"];
         },
@@ -234,6 +236,44 @@ export type Marginfi = {
           name: "globalFeeWallet";
           writable: true;
           relations: ["feeState"];
+        },
+        {
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
+        },
+      ];
+      args: [];
+    },
+    {
+      name: "initBankMetadata";
+      docs: ["(permissionless) pay the rent to open a bank's metadata."];
+      discriminator: [94, 239, 50, 136, 137, 204, 254, 213];
+      accounts: [
+        {
+          name: "bank";
+        },
+        {
+          name: "feePayer";
+          docs: ["Pays the init fee"];
+          writable: true;
+          signer: true;
+        },
+        {
+          name: "metadata";
+          docs: ["Note: unique per-bank."];
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [109, 101, 116, 97, 100, 97, 116, 97];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              },
+            ];
+          };
         },
         {
           name: "systemProgram";
@@ -347,7 +387,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [115, 116, 97, 107, 101, 100, 95, 115, 101, 116, 116, 105, 110, 103, 115];
+                value: [
+                  115,
+                  116,
+                  97,
+                  107,
+                  101,
+                  100,
+                  95,
+                  115,
+                  101,
+                  116,
+                  116,
+                  105,
+                  110,
+                  103,
+                  115,
+                ];
               },
               {
                 kind: "account";
@@ -400,7 +456,9 @@ export type Marginfi = {
         },
         {
           name: "signerTokenAccount";
-          docs: ["Owned by authority, the source account for the token deposit."];
+          docs: [
+            "Owned by authority, the source account for the token deposit.",
+          ];
           writable: true;
         },
         {
@@ -414,7 +472,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -448,7 +527,9 @@ export type Marginfi = {
         },
         {
           name: "mint";
-          docs: ["Bank's liquidity token mint (e.g., USDC). Kamino calls this the `reserve_liquidity_mint`"];
+          docs: [
+            "Bank's liquidity token mint (e.g., USDC). Kamino calls this the `reserve_liquidity_mint`",
+          ];
           relations: ["bank"];
         },
         {
@@ -457,7 +538,9 @@ export type Marginfi = {
         },
         {
           name: "reserveCollateralMint";
-          docs: ["The reserve's mint for tokenized representations of Kamino deposits."];
+          docs: [
+            "The reserve's mint for tokenized representations of Kamino deposits.",
+          ];
           writable: true;
         },
         {
@@ -526,7 +609,9 @@ export type Marginfi = {
         },
         {
           name: "destinationTokenAccount";
-          docs: ["Destination token account must be owned by the global fee admin"];
+          docs: [
+            "Destination token account must be owned by the global fee admin",
+          ];
           writable: true;
           pda: {
             seeds: [
@@ -584,13 +669,36 @@ export type Marginfi = {
         },
         {
           name: "liquidityVaultAuthority";
-          docs: ["The bank's liquidity vault authority, which owns the Kamino obligation."];
+          docs: [
+            "The bank's liquidity vault authority, which owns the Kamino obligation.",
+          ];
           writable: true;
           pda: {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -615,7 +723,9 @@ export type Marginfi = {
         },
         {
           name: "userRewardAta";
-          docs: ["An initialized ATA of type reward mint owned by liquidity vault"];
+          docs: [
+            "An initialized ATA of type reward mint owned by liquidity vault",
+          ];
           writable: true;
         },
         {
@@ -690,7 +800,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -701,7 +832,9 @@ export type Marginfi = {
         },
         {
           name: "liquidityVault";
-          docs: ["Used as an intermediary to deposit a nominal amount of token into the obligation."];
+          docs: [
+            "Used as an intermediary to deposit a nominal amount of token into the obligation.",
+          ];
           writable: true;
           relations: ["bank"];
         },
@@ -731,7 +864,9 @@ export type Marginfi = {
         },
         {
           name: "mint";
-          docs: ["Bank's liquidity token mint (e.g., USDC). Kamino calls this the `reserve_liquidity_mint`"];
+          docs: [
+            "Bank's liquidity token mint (e.g., USDC). Kamino calls this the `reserve_liquidity_mint`",
+          ];
           writable: true;
           relations: ["bank"];
         },
@@ -741,7 +876,9 @@ export type Marginfi = {
         },
         {
           name: "reserveCollateralMint";
-          docs: ["The reserve's mint for tokenized representations of Kamino deposits."];
+          docs: [
+            "The reserve's mint for tokenized representations of Kamino deposits.",
+          ];
           writable: true;
         },
         {
@@ -791,7 +928,9 @@ export type Marginfi = {
         },
         {
           name: "collateralTokenProgram";
-          docs: ["Note: the collateral token always uses Token classic, never Token22."];
+          docs: [
+            "Note: the collateral token always uses Token classic, never Token22.",
+          ];
           address: "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
         },
         {
@@ -834,6 +973,7 @@ export type Marginfi = {
       accounts: [
         {
           name: "group";
+          writable: true;
           relations: ["marginfiAccount", "bank"];
         },
         {
@@ -850,7 +990,10 @@ export type Marginfi = {
         },
         {
           name: "destinationTokenAccount";
-          docs: ["Token account that will get tokens back", "WARN: Completely unchecked!"];
+          docs: [
+            "Token account that will get tokens back",
+            "WARN: Completely unchecked!",
+          ];
           writable: true;
         },
         {
@@ -860,7 +1003,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -876,7 +1040,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -907,7 +1087,10 @@ export type Marginfi = {
         },
         {
           name: "reserveLiquidityMint";
-          docs: ["The liquidity token mint (e.g., USDC)", "Needs serde to get the mint decimals for transfer checked"];
+          docs: [
+            "The liquidity token mint (e.g., USDC)",
+            "Needs serde to get the mint decimals for transfer checked",
+          ];
           writable: true;
         },
         {
@@ -1004,7 +1187,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -1118,12 +1322,19 @@ export type Marginfi = {
     },
     {
       name: "lendingAccountLiquidate";
-      docs: ["Liquidate a lending account balance of an unhealthy marginfi account"];
+      docs: [
+        "Liquidate a lending account balance of an unhealthy marginfi account",
+      ];
       discriminator: [214, 169, 151, 213, 251, 167, 86, 219];
       accounts: [
         {
           name: "group";
-          relations: ["assetBank", "liabBank", "liquidatorMarginfiAccount", "liquidateeMarginfiAccount"];
+          relations: [
+            "assetBank",
+            "liabBank",
+            "liquidatorMarginfiAccount",
+            "liquidateeMarginfiAccount",
+          ];
         },
         {
           name: "assetBank";
@@ -1152,7 +1363,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -1168,7 +1400,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -1184,7 +1432,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116];
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -1201,6 +1465,14 @@ export type Marginfi = {
         {
           name: "assetAmount";
           type: "u64";
+        },
+        {
+          name: "liquidateeAccounts";
+          type: "u8";
+        },
+        {
+          name: "liquidatorAccounts";
+          type: "u8";
         },
       ];
     },
@@ -1237,10 +1509,10 @@ export type Marginfi = {
         {
           name: "authority";
           docs: [
-            "Must be marginfi_account's authority, unless in liquidation receivership",
+            "Must be marginfi_account's authority, unless in liquidation/deleverage receivership",
             "",
-            "Note: during liquidation, there are no signer checks whatsoever: any key can repay as",
-            "long as the invariants checked at the end of liquidation are met.",
+            "Note: during receivership, there are no signer checks whatsoever: any key can repay as",
+            "long as the invariants checked at the end of receivership are met.",
           ];
           signer: true;
         },
@@ -1290,23 +1562,6 @@ export type Marginfi = {
       args: [];
     },
     {
-      name: "lendingAccountSortBalances";
-      docs: [
-        '(Permissionless) Sorts the lending account balances in descending order and removes the "gaps"',
-        "(i.e. inactive balances in between the active ones), if any.",
-        "This is necessary to ensure any legacy marginfi accounts are compliant with the",
-        '"gapless and sorted" requirements we now have.',
-      ];
-      discriminator: [187, 194, 110, 84, 82, 170, 204, 9];
-      accounts: [
-        {
-          name: "marginfiAccount";
-          writable: true;
-        },
-      ];
-      args: [];
-    },
-    {
       name: "lendingAccountStartFlashloan";
       discriminator: [14, 131, 33, 220, 81, 186, 180, 107];
       accounts: [
@@ -1337,6 +1592,7 @@ export type Marginfi = {
       accounts: [
         {
           name: "group";
+          writable: true;
           relations: ["marginfiAccount", "bank"];
         },
         {
@@ -1346,10 +1602,10 @@ export type Marginfi = {
         {
           name: "authority";
           docs: [
-            "Must be marginfi_account's authority, unless in liquidation receivership",
+            "Must be marginfi_account's authority, unless in liquidation/deleverage receivership",
             "",
-            "Note: during liquidation, there are no signer checks whatsoever: any key can repay as",
-            "long as the invariants checked at the end of liquidation are met.",
+            "Note: during receivership, there are no signer checks whatsoever: any key can repay as",
+            "long as the invariants checked at the end of receivership are met.",
           ];
           signer: true;
         },
@@ -1367,7 +1623,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -1429,7 +1706,27 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 97, 117, 116, 104, 95, 115, 101, 101, 100];
+                value: [
+                  101,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  115,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  95,
+                  115,
+                  101,
+                  101,
+                  100,
+                ];
               },
               {
                 kind: "account";
@@ -1527,7 +1824,27 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 97, 117, 116, 104, 95, 115, 101, 101, 100];
+                value: [
+                  101,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  115,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  95,
+                  115,
+                  101,
+                  101,
+                  100,
+                ];
               },
               {
                 kind: "account";
@@ -1630,7 +1947,9 @@ export type Marginfi = {
         },
         {
           name: "feePayer";
-          docs: ["Pays to init accounts and pays `fee_state.bank_init_flat_sol_fee` lamports to the protocol"];
+          docs: [
+            "Pays to init accounts and pays `fee_state.bank_init_flat_sol_fee` lamports to the protocol",
+          ];
           writable: true;
           signer: true;
         },
@@ -1664,7 +1983,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -1680,7 +2020,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -1695,7 +2051,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -1711,7 +2088,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116];
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -1726,7 +2119,22 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  102,
+                  101,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -1824,7 +2232,9 @@ export type Marginfi = {
         },
         {
           name: "kaminoObligation";
-          docs: ["Note: not yet initialized in this instruction, run `init_obligation` after."];
+          docs: [
+            "Note: not yet initialized in this instruction, run `init_obligation` after.",
+          ];
         },
         {
           name: "liquidityVaultAuthority";
@@ -1837,7 +2247,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -1858,7 +2289,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -1874,7 +2321,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -1891,7 +2359,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116];
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -1907,7 +2391,22 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  102,
+                  101,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -2020,7 +2519,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -2036,7 +2556,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -2051,7 +2587,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -2067,7 +2624,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116];
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -2082,7 +2655,22 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  102,
+                  101,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -2142,7 +2730,9 @@ export type Marginfi = {
         },
         {
           name: "feePayer";
-          docs: ["Pays to init accounts and pays `fee_state.bank_init_flat_sol_fee` lamports to the protocol"];
+          docs: [
+            "Pays to init accounts and pays `fee_state.bank_init_flat_sol_fee` lamports to the protocol",
+          ];
           writable: true;
           signer: true;
         },
@@ -2191,7 +2781,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -2207,7 +2818,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -2222,7 +2849,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -2238,7 +2886,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116];
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -2253,7 +2917,22 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  102,
+                  101,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -2302,6 +2981,250 @@ export type Marginfi = {
       ];
     },
     {
+      name: "lendingPoolCloneBank";
+      docs: ["Staging or localnet only, panics on mainnet"];
+      discriminator: [214, 93, 17, 236, 177, 228, 78, 17];
+      accounts: [
+        {
+          name: "marginfiGroup";
+          writable: true;
+        },
+        {
+          name: "admin";
+          writable: true;
+          signer: true;
+          relations: ["marginfiGroup"];
+        },
+        {
+          name: "feePayer";
+          writable: true;
+          signer: true;
+        },
+        {
+          name: "bankMint";
+        },
+        {
+          name: "sourceBank";
+          docs: ["Source bank to clone from mainnet program", ""];
+        },
+        {
+          name: "bank";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "account";
+                path: "marginfiGroup";
+              },
+              {
+                kind: "account";
+                path: "bankMint";
+              },
+              {
+                kind: "arg";
+                path: "bankSeed";
+              },
+            ];
+          };
+        },
+        {
+          name: "liquidityVaultAuthority";
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              },
+            ];
+          };
+        },
+        {
+          name: "liquidityVault";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              },
+            ];
+          };
+        },
+        {
+          name: "insuranceVaultAuthority";
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              },
+            ];
+          };
+        },
+        {
+          name: "insuranceVault";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              },
+            ];
+          };
+        },
+        {
+          name: "feeVaultAuthority";
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [
+                  102,
+                  101,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              },
+            ];
+          };
+        },
+        {
+          name: "feeVault";
+          writable: true;
+          pda: {
+            seeds: [
+              {
+                kind: "const";
+                value: [102, 101, 101, 95, 118, 97, 117, 108, 116];
+              },
+              {
+                kind: "account";
+                path: "bank";
+              },
+            ];
+          };
+        },
+        {
+          name: "tokenProgram";
+        },
+        {
+          name: "systemProgram";
+          address: "11111111111111111111111111111111";
+        },
+      ];
+      args: [
+        {
+          name: "bankSeed";
+          type: "u64";
+        },
+      ];
+    },
+    {
       name: "lendingPoolCloseBank";
       discriminator: [22, 115, 7, 130, 227, 85, 0, 47];
       accounts: [
@@ -2341,7 +3264,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -2357,7 +3301,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -2373,7 +3333,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116];
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -2594,7 +3570,9 @@ export type Marginfi = {
     },
     {
       name: "lendingPoolHandleBankruptcy";
-      docs: ["Handle bad debt of a bankrupt marginfi account for a given bank."];
+      docs: [
+        "Handle bad debt of a bankrupt marginfi account for a given bank.",
+      ];
       discriminator: [162, 11, 56, 139, 90, 128, 70, 173];
       accounts: [
         {
@@ -2621,7 +3599,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [108, 105, 113, 117, 105, 100, 105, 116, 121, 95, 118, 97, 117, 108, 116];
+                value: [
+                  108,
+                  105,
+                  113,
+                  117,
+                  105,
+                  100,
+                  105,
+                  116,
+                  121,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -2637,7 +3631,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116];
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -2652,7 +3662,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -2666,6 +3697,36 @@ export type Marginfi = {
         },
       ];
       args: [];
+    },
+    {
+      name: "lendingPoolSetFixedOraclePrice";
+      docs: ["(admin only)"];
+      discriminator: [28, 126, 127, 127, 60, 37, 211, 125];
+      accounts: [
+        {
+          name: "group";
+          relations: ["bank"];
+        },
+        {
+          name: "admin";
+          signer: true;
+          relations: ["group"];
+        },
+        {
+          name: "bank";
+          writable: true;
+        },
+      ];
+      args: [
+        {
+          name: "price";
+          type: {
+            defined: {
+              name: "wrappedI80f48";
+            };
+          };
+        },
+      ];
     },
     {
       name: "lendingPoolSetupEmissions";
@@ -2695,7 +3756,27 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [101, 109, 105, 115, 115, 105, 111, 110, 115, 95, 97, 117, 116, 104, 95, 115, 101, 101, 100];
+                value: [
+                  101,
+                  109,
+                  105,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110,
+                  115,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                  95,
+                  115,
+                  101,
+                  101,
+                  100,
+                ];
               },
               {
                 kind: "account";
@@ -2759,7 +3840,10 @@ export type Marginfi = {
         },
         {
           name: "emissionsFundingAccount";
-          docs: ["NOTE: This is a TokenAccount, spl transfer will validate it.", ""];
+          docs: [
+            "NOTE: This is a TokenAccount, spl transfer will validate it.",
+            "",
+          ];
           writable: true;
         },
         {
@@ -2904,7 +3988,9 @@ export type Marginfi = {
         },
         {
           name: "destinationAccount";
-          docs: ["Bank fees will be sent to this account which must be an ATA of the bank's mint."];
+          docs: [
+            "Bank fees will be sent to this account which must be an ATA of the bank's mint.",
+          ];
         },
       ];
       args: [];
@@ -2947,7 +4033,22 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  102,
+                  101,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -3004,7 +4105,22 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [102, 101, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  102,
+                  101,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -3052,7 +4168,23 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116];
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -3067,7 +4199,28 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [105, 110, 115, 117, 114, 97, 110, 99, 101, 95, 118, 97, 117, 108, 116, 95, 97, 117, 116, 104];
+                value: [
+                  105,
+                  110,
+                  115,
+                  117,
+                  114,
+                  97,
+                  110,
+                  99,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  95,
+                  97,
+                  117,
+                  116,
+                  104,
+                ];
               },
               {
                 kind: "account";
@@ -3207,7 +4360,24 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [109, 97, 114, 103, 105, 110, 102, 105, 95, 97, 99, 99, 111, 117, 110, 116];
+                value: [
+                  109,
+                  97,
+                  114,
+                  103,
+                  105,
+                  110,
+                  102,
+                  105,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -3275,7 +4445,10 @@ export type Marginfi = {
         },
         {
           name: "destinationAccount";
-          docs: ["User's earned emissions will be sent to the canonical ATA of this wallet.", ""];
+          docs: [
+            "User's earned emissions will be sent to the canonical ATA of this wallet.",
+            "",
+          ];
         },
       ];
       args: [];
@@ -3313,6 +4486,14 @@ export type Marginfi = {
         },
         {
           name: "newEmissionsAdmin";
+          type: "pubkey";
+        },
+        {
+          name: "newMetadataAdmin";
+          type: "pubkey";
+        },
+        {
+          name: "newRiskAdmin";
           type: "pubkey";
         },
         {
@@ -3357,6 +4538,21 @@ export type Marginfi = {
           type: "bool";
         },
       ];
+    },
+    {
+      name: "migrateCurve";
+      docs: [
+        "(Permissionless) Convert a bank from the legacy curve setup to the new setup, with no effect",
+        "on how interest accrues.",
+      ];
+      discriminator: [151, 254, 50, 13, 112, 235, 152, 72];
+      accounts: [
+        {
+          name: "bank";
+          writable: true;
+        },
+      ];
+      args: [];
     },
     {
       name: "panicPause";
@@ -3412,7 +4608,9 @@ export type Marginfi = {
     },
     {
       name: "panicUnpausePermissionless";
-      docs: ["(permissionless) Unpause the protocol when pause time has expired"];
+      docs: [
+        "(permissionless) Unpause the protocol when pause time has expired",
+      ];
       discriminator: [245, 139, 50, 159, 213, 62, 91, 248];
       accounts: [
         {
@@ -3432,7 +4630,9 @@ export type Marginfi = {
     },
     {
       name: "propagateFeeState";
-      docs: ["(Permissionless) Force any group to adopt the current FeeState settings"];
+      docs: [
+        "(Permissionless) Force any group to adopt the current FeeState settings",
+      ];
       discriminator: [64, 3, 166, 194, 129, 21, 101, 155];
       accounts: [
         {
@@ -3448,7 +4648,9 @@ export type Marginfi = {
         },
         {
           name: "marginfiGroup";
-          docs: ["Any group, this ix is permisionless and can propagate the fee to any group"];
+          docs: [
+            "Any group, this ix is permisionless and can propagate the fee to any group",
+          ];
           writable: true;
         },
       ];
@@ -3473,6 +4675,73 @@ export type Marginfi = {
       args: [];
     },
     {
+      name: "purgeDeleverageBalance";
+      docs: [
+        "(risk admin only) Purge a user's lending balance without withdrawing anything. Only usable",
+        "after all the debt has been settled on a bank in deleveraging mode, e.g. when",
+        "`TOKENLESS_REPAYMENTS_ALLOWED` and `TOKENLESS_REPAYMENTS_COMPLETE`. used to purge remaining",
+        "lending assets in a now-worthless bank before it is fully sunset.",
+      ];
+      discriminator: [132, 187, 25, 149, 181, 59, 253, 136];
+      accounts: [
+        {
+          name: "group";
+          relations: ["marginfiAccount", "bank"];
+        },
+        {
+          name: "marginfiAccount";
+          writable: true;
+        },
+        {
+          name: "riskAdmin";
+          signer: true;
+          relations: ["group"];
+        },
+        {
+          name: "bank";
+          writable: true;
+        },
+      ];
+      args: [];
+    },
+    {
+      name: "startDeleverage";
+      discriminator: [10, 138, 10, 57, 40, 232, 182, 193];
+      accounts: [
+        {
+          name: "marginfiAccount";
+          docs: ["Account to deleverage"];
+          writable: true;
+        },
+        {
+          name: "liquidationRecord";
+          docs: [
+            "The associated liquidation record PDA for the given `marginfi_account`",
+          ];
+          writable: true;
+          relations: ["marginfiAccount"];
+        },
+        {
+          name: "group";
+          relations: ["marginfiAccount"];
+        },
+        {
+          name: "riskAdmin";
+          docs: [
+            "The risk admin will have the authority to withdraw/repay as if they are the user authority",
+            "until the end of the tx.",
+          ];
+          signer: true;
+          relations: ["group"];
+        },
+        {
+          name: "instructionSysvar";
+          address: "Sysvar1nstructions1111111111111111111111111";
+        },
+      ];
+      args: [];
+    },
+    {
       name: "startLiquidation";
       discriminator: [244, 93, 90, 214, 192, 166, 191, 21];
       accounts: [
@@ -3483,7 +4752,9 @@ export type Marginfi = {
         },
         {
           name: "liquidationRecord";
-          docs: ["The associated liquidation record PDA for the given `marginfi_account`"];
+          docs: [
+            "The associated liquidation record PDA for the given `marginfi_account`",
+          ];
           writable: true;
           relations: ["marginfiAccount"];
         },
@@ -3572,7 +4843,24 @@ export type Marginfi = {
             seeds: [
               {
                 kind: "const";
-                value: [109, 97, 114, 103, 105, 110, 102, 105, 95, 97, 99, 99, 111, 117, 110, 116];
+                value: [
+                  109,
+                  97,
+                  114,
+                  103,
+                  105,
+                  110,
+                  102,
+                  105,
+                  95,
+                  97,
+                  99,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116,
+                ];
               },
               {
                 kind: "account";
@@ -3633,11 +4921,57 @@ export type Marginfi = {
         },
       ];
     },
+    {
+      name: "writeBankMetadata";
+      docs: [
+        "(metadata admin only) Write ticker/descrption information for a bank on-chain. Optional, not",
+        "all Banks are guranteed to have metadata.",
+      ];
+      discriminator: [147, 78, 81, 133, 129, 138, 233, 59];
+      accounts: [
+        {
+          name: "group";
+          relations: ["bank"];
+        },
+        {
+          name: "bank";
+          relations: ["metadata"];
+        },
+        {
+          name: "metadataAdmin";
+          writable: true;
+          signer: true;
+          relations: ["group"];
+        },
+        {
+          name: "metadata";
+          writable: true;
+        },
+      ];
+      args: [
+        {
+          name: "ticker";
+          type: {
+            option: "bytes";
+          };
+        },
+        {
+          name: "description";
+          type: {
+            option: "bytes";
+          };
+        },
+      ];
+    },
   ];
   accounts: [
     {
       name: "bank";
       discriminator: [142, 49, 166, 242, 50, 66, 97, 188];
+    },
+    {
+      name: "bankMetadata";
+      discriminator: [49, 207, 31, 34, 67, 225, 169, 186];
     },
     {
       name: "feeState";
@@ -3669,6 +5003,10 @@ export type Marginfi = {
     },
   ];
   events: [
+    {
+      name: "deleverageEvent";
+      discriminator: [161, 8, 108, 204, 209, 198, 12, 30];
+    },
     {
       name: "editStakedSettingsEvent";
       discriminator: [29, 58, 155, 191, 75, 220, 145, 206];
@@ -3724,6 +5062,10 @@ export type Marginfi = {
     {
       name: "lendingPoolBankHandleBankruptcyEvent";
       discriminator: [166, 77, 41, 140, 36, 94, 10, 57];
+    },
+    {
+      name: "lendingPoolBankSetFixedOraclePriceEvent";
+      discriminator: [65, 72, 8, 85, 229, 20, 90, 26];
     },
     {
       name: "liquidationReceiverEvent";
@@ -4154,8 +5496,8 @@ export type Marginfi = {
     },
     {
       code: 6081;
-      name: "placeholder81";
-      msg: "Reserved for future use";
+      name: "metadataTooLong";
+      msg: "Metadata is too long";
     },
     {
       code: 6082;
@@ -4206,6 +5548,61 @@ export type Marginfi = {
       code: 6091;
       name: "notAllowedInCpi";
       msg: "Start and end liquidation and flashloan must be top-level instructions";
+    },
+    {
+      code: 6092;
+      name: "zeroSupplyInStakePool";
+      msg: "Stake pool supply is zero: cannot compute price";
+    },
+    {
+      code: 6093;
+      name: "invalidGroup";
+      msg: "Invalid group: account constraint violated";
+    },
+    {
+      code: 6094;
+      name: "invalidLiquidityVault";
+      msg: "Invalid liquidity vault: account constraint violated";
+    },
+    {
+      code: 6095;
+      name: "invalidLiquidationRecord";
+      msg: "Invalid liquidation record: account constraint violated";
+    },
+    {
+      code: 6096;
+      name: "invalidLiquidationReceiver";
+      msg: "Invalid liquidation receiver: account constraint violated";
+    },
+    {
+      code: 6097;
+      name: "invalidEmissionsMint";
+      msg: "Invalid emissions mint: account constraint violated";
+    },
+    {
+      code: 6098;
+      name: "invalidMint";
+      msg: "Invalid mint: account constraint violated";
+    },
+    {
+      code: 6099;
+      name: "invalidFeeWallet";
+      msg: "Invalid fee wallet: account constraint violated";
+    },
+    {
+      code: 6100;
+      name: "fixedOraclePriceNegative";
+      msg: "Fixed oracle price must be zero or greater";
+    },
+    {
+      code: 6101;
+      name: "dailyWithdrawalLimitExceeded";
+      msg: "Daily withdrawal limit exceeded: try again later";
+    },
+    {
+      code: 6102;
+      name: "zeroWithdrawalLimit";
+      msg: "Cannot set daily withdrawal limit to zero";
     },
     {
       code: 6200;
@@ -4266,6 +5663,21 @@ export type Marginfi = {
       code: 6211;
       name: "kaminoInvalidOracleSetup";
       msg: "Invalid oracle setup: only KaminoPythPush and KaminoSwitchboardPull are supported";
+    },
+    {
+      code: 6212;
+      name: "kaminoPositionLimitExceeded";
+      msg: "Maximum Kamino positions limit exceeded (max 8 positions per account)";
+    },
+    {
+      code: 6213;
+      name: "invalidKaminoReserve";
+      msg: "Invalid Kamino reserve: account constraint violated";
+    },
+    {
+      code: 6214;
+      name: "invalidKaminoObligation";
+      msg: "Invalid Kamino obligation: account constraint violated";
     },
   ];
   types: [
@@ -4449,7 +5861,9 @@ export type Marginfi = {
           },
           {
             name: "collectedInsuranceFeesOutstanding";
-            docs: ["Fees collected and pending withdraw for the `insurance_vault`"];
+            docs: [
+              "Fees collected and pending withdraw for the `insurance_vault`",
+            ];
             type: {
               defined: {
                 name: "wrappedI80f48";
@@ -4485,7 +5899,10 @@ export type Marginfi = {
           },
           {
             name: "totalLiabilityShares";
-            docs: ["Sum of all liability shares held by all borrowers in this bank.", "* Uses `mint_decimals`"];
+            docs: [
+              "Sum of all liability shares held by all borrowers in this bank.",
+              "* Uses `mint_decimals`",
+            ];
             type: {
               defined: {
                 name: "wrappedI80f48";
@@ -4528,6 +5945,8 @@ export type Marginfi = {
               "- EMISSIONS_FLAG_LENDING_ACTIVE: 2",
               "- PERMISSIONLESS_BAD_DEBT_SETTLEMENT: 4",
               "- FREEZE_SETTINGS: 8",
+              "- CLOSE_ENABLED_FLAG: 16",
+              "- TOKENLESS_REPAYMENTS_ACTIVE: 32",
               "",
             ];
             type: "u64";
@@ -4646,7 +6065,9 @@ export type Marginfi = {
     },
     {
       name: "bankCache";
-      docs: ["A read-only cache of the bank's key metrics, e.g. spot interest/fee rates."];
+      docs: [
+        "A read-only cache of the bank's key metrics, e.g. spot interest/fee rates.",
+      ];
       repr: {
         kind: "c";
       };
@@ -4718,7 +6139,9 @@ export type Marginfi = {
         fields: [
           {
             name: "assetWeightInit";
-            docs: ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"];
+            docs: [
+              "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)",
+            ];
             type: {
               defined: {
                 name: "wrappedI80f48";
@@ -4848,7 +6271,9 @@ export type Marginfi = {
           },
           {
             name: "oracleMaxAge";
-            docs: ["Time window in seconds for the oracle price feed to be considered live."];
+            docs: [
+              "Time window in seconds for the oracle price feed to be considered live.",
+            ];
             type: "u16";
           },
           {
@@ -4868,9 +6293,20 @@ export type Marginfi = {
             type: "u32";
           },
           {
+            name: "fixedPrice";
+            docs: [
+              "Stored oracle price for `OracleSetup::Fixed`, otherwise does nothing",
+            ];
+            type: {
+              defined: {
+                name: "wrappedI80f48";
+              };
+            };
+          },
+          {
             name: "padding1";
             type: {
-              array: ["u8", 32];
+              array: ["u8", 16];
             };
           },
         ];
@@ -4878,7 +6314,9 @@ export type Marginfi = {
     },
     {
       name: "bankConfigCompact";
-      docs: ["TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)"];
+      docs: [
+        "TODO: Convert weights to (u64, u64) to avoid precision loss (maybe?)",
+      ];
       repr: {
         kind: "c";
       };
@@ -4995,7 +6433,9 @@ export type Marginfi = {
           },
           {
             name: "oracleMaxAge";
-            docs: ["Time window in seconds for the oracle price feed to be considered live."];
+            docs: [
+              "Time window in seconds for the oracle price feed to be considered live.",
+            ];
             type: "u16";
           },
           {
@@ -5134,6 +6574,84 @@ export type Marginfi = {
               option: "bool";
             };
           },
+          {
+            name: "tokenlessRepaymentsAllowed";
+            type: {
+              option: "bool";
+            };
+          },
+        ];
+      };
+    },
+    {
+      name: "bankMetadata";
+      serialization: "bytemuck";
+      repr: {
+        kind: "c";
+      };
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "bank";
+            docs: ["Bank this metadata corresponds to"];
+            type: "pubkey";
+          },
+          {
+            name: "placeholder";
+            type: "u64";
+          },
+          {
+            name: "ticker";
+            docs: ["The token's ticker name, e.g. USDC", "* utf-8"];
+            type: {
+              array: ["u8", 64];
+            };
+          },
+          {
+            name: "description";
+            docs: [
+              "The token's plain english descripion, e.g US Dollar Coin",
+              "* utf-8",
+            ];
+            type: {
+              array: ["u8", 128];
+            };
+          },
+          {
+            name: "dataBlob";
+            docs: [
+              "Reserved for future use. Room for a very small icon or something else cool",
+            ];
+            type: {
+              array: ["u8", 256];
+            };
+          },
+          {
+            name: "endDescriptionByte";
+            docs: ["The last data byte in description (padding follows)"];
+            type: "u16";
+          },
+          {
+            name: "endDataBlob";
+            docs: ["The last data byte in data_blob (padding follows)"];
+            type: "u16";
+          },
+          {
+            name: "endTickerByte";
+            docs: ["The last data byte in ticker (padding follows)"];
+            type: "u8";
+          },
+          {
+            name: "bump";
+            type: "u8";
+          },
+          {
+            name: "pad0";
+            type: {
+              array: ["u8", 2];
+            };
+          },
         ];
       };
     },
@@ -5156,6 +6674,30 @@ export type Marginfi = {
           },
           {
             name: "killedByBankruptcy";
+          },
+        ];
+      };
+    },
+    {
+      name: "deleverageEvent";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "marginfiAccount";
+            type: "pubkey";
+          },
+          {
+            name: "riskAdmin";
+            type: "pubkey";
+          },
+          {
+            name: "deleverageeAssetsSeized";
+            type: "f64";
+          },
+          {
+            name: "deleverageeLiabilityRepaid";
+            type: "f64";
           },
         ];
       };
@@ -5220,7 +6762,9 @@ export type Marginfi = {
         fields: [
           {
             name: "collateralBankEmodeTag";
-            docs: ["emode_tag of the bank(s) whose collateral you wish to treat preferentially."];
+            docs: [
+              "emode_tag of the bank(s) whose collateral you wish to treat preferentially.",
+            ];
             type: "u16";
           },
           {
@@ -5241,7 +6785,9 @@ export type Marginfi = {
           },
           {
             name: "assetWeightInit";
-            docs: ["Note: If set below the collateral bank's weight, does nothing."];
+            docs: [
+              "Note: If set below the collateral bank's weight, does nothing.",
+            ];
             type: {
               defined: {
                 name: "wrappedI80f48";
@@ -5250,7 +6796,9 @@ export type Marginfi = {
           },
           {
             name: "assetWeightMaint";
-            docs: ["Note: If set below the collateral bank's weight, does nothing."];
+            docs: [
+              "Note: If set below the collateral bank's weight, does nothing.",
+            ];
             type: {
               defined: {
                 name: "wrappedI80f48";
@@ -5296,12 +6844,17 @@ export type Marginfi = {
           },
           {
             name: "timestamp";
-            docs: ["Unix timestamp from the system clock when emode state was last updated"];
+            docs: [
+              "Unix timestamp from the system clock when emode state was last updated",
+            ];
             type: "i64";
           },
           {
             name: "flags";
-            docs: ["EMODE_ON (1) - If set, at least one entry is configured", "2, 4, 8, etc, Reserved for future use"];
+            docs: [
+              "EMODE_ON (1) - If set, at least one entry is configured",
+              "2, 4, 8, etc, Reserved for future use",
+            ];
             type: "u64";
           },
           {
@@ -5317,7 +6870,9 @@ export type Marginfi = {
     },
     {
       name: "feeState";
-      docs: ["Unique per-program. The Program Owner uses this account to administrate fees collected by the protocol"];
+      docs: [
+        "Unique per-program. The Program Owner uses this account to administrate fees collected by the protocol",
+      ];
       serialization: "bytemuck";
       repr: {
         kind: "c";
@@ -5327,7 +6882,9 @@ export type Marginfi = {
         fields: [
           {
             name: "key";
-            docs: ['The fee state\'s own key. A PDA derived from just `b"feestate"`'];
+            docs: [
+              'The fee state\'s own key. A PDA derived from just `b"feestate"`',
+            ];
             type: "pubkey";
           },
           {
@@ -5349,7 +6906,10 @@ export type Marginfi = {
           },
           {
             name: "bankInitFlatSolFee";
-            docs: ["Flat fee assessed when a new bank is initialized, in lamports.", "* In SOL, in native decimals."];
+            docs: [
+              "Flat fee assessed when a new bank is initialized, in lamports.",
+              "* In SOL, in native decimals.",
+            ];
             type: "u32";
           },
           {
@@ -5377,7 +6937,10 @@ export type Marginfi = {
           },
           {
             name: "programFeeFixed";
-            docs: ["Fee collected by the program owner from all groups", "* A percentage"];
+            docs: [
+              "Fee collected by the program owner from all groups",
+              "* A percentage",
+            ];
             type: {
               defined: {
                 name: "wrappedI80f48";
@@ -5386,7 +6949,10 @@ export type Marginfi = {
           },
           {
             name: "programFeeRate";
-            docs: ["Fee collected by the program owner from all groups", "* A percentage"];
+            docs: [
+              "Fee collected by the program owner from all groups",
+              "* A percentage",
+            ];
             type: {
               defined: {
                 name: "wrappedI80f48";
@@ -5588,7 +7154,9 @@ export type Marginfi = {
           },
           {
             name: "timestamp";
-            docs: ["Unix timestamp from the system clock when this cache was last updated"];
+            docs: [
+              "Unix timestamp from the system clock when this cache was last updated",
+            ];
             type: "i64";
           },
           {
@@ -5651,7 +7219,9 @@ export type Marginfi = {
           },
           {
             name: "programVersion";
-            docs: ["Since 0.1.3, the version will be encoded here. See PROGRAM_VERSION."];
+            docs: [
+              "Since 0.1.3, the version will be encoded here. See PROGRAM_VERSION.",
+            ];
             type: "u8";
           },
           {
@@ -5737,7 +7307,9 @@ export type Marginfi = {
           },
           {
             name: "insuranceFeeFixedApr";
-            docs: ["Goes to insurance, funds `collected_insurance_fees_outstanding`"];
+            docs: [
+              "Goes to insurance, funds `collected_insurance_fees_outstanding`",
+            ];
             type: {
               defined: {
                 name: "wrappedI80f48";
@@ -5746,7 +7318,9 @@ export type Marginfi = {
           },
           {
             name: "insuranceIrFee";
-            docs: ["Goes to insurance, funds `collected_insurance_fees_outstanding`"];
+            docs: [
+              "Goes to insurance, funds `collected_insurance_fees_outstanding`",
+            ];
             type: {
               defined: {
                 name: "wrappedI80f48";
@@ -5755,7 +7329,9 @@ export type Marginfi = {
           },
           {
             name: "protocolFixedFeeApr";
-            docs: ["Earned by the group, goes to `collected_group_fees_outstanding`"];
+            docs: [
+              "Earned by the group, goes to `collected_group_fees_outstanding`",
+            ];
             type: {
               defined: {
                 name: "wrappedI80f48";
@@ -5764,7 +7340,9 @@ export type Marginfi = {
           },
           {
             name: "protocolIrFee";
-            docs: ["Earned by the group, goes to `collected_group_fees_outstanding`"];
+            docs: [
+              "Earned by the group, goes to `collected_group_fees_outstanding`",
+            ];
             type: {
               defined: {
                 name: "wrappedI80f48";
@@ -5780,20 +7358,71 @@ export type Marginfi = {
             };
           },
           {
-            name: "padding0";
+            name: "zeroUtilRate";
+            docs: [
+              "The base rate at utilization = 0",
+              "* a %, as u32, out of 1000%, e.g. 100% = 0.1 * u32::MAX",
+            ];
+            type: "u32";
+          },
+          {
+            name: "hundredUtilRate";
+            docs: [
+              "The base rate at utilization = 100",
+              "* a %, as u32, out of 1000%, e.g. 100% = 0.1 * u32::MAX",
+            ];
+            type: "u32";
+          },
+          {
+            name: "points";
+            docs: [
+              "The base rate at various points between 0 and 100%, exclusive. Essentially a piece-wise",
+              "linear curve.",
+              "* always in ascending order, e.g. points[0] = first kink point, points[1] = second kink",
+              "point, and so forth.",
+              "* points where util = 0 are unused",
+            ];
             type: {
-              array: ["u8", 16];
+              array: [
+                {
+                  defined: {
+                    name: "ratePoint";
+                  };
+                },
+                5,
+              ];
+            };
+          },
+          {
+            name: "curveType";
+            docs: [
+              "Determines which interest rate curve implementation is active. 0 (INTEREST_CURVE_LEGACY) =",
+              "legacy three point curve, 1 (INTEREST_CURVE_SEVEN_POINT) = multi-point curve.",
+            ];
+            type: "u8";
+          },
+          {
+            name: "pad0";
+            type: {
+              array: ["u8", 7];
             };
           },
           {
             name: "padding1";
             type: {
-              array: [
-                {
-                  array: ["u8", 32];
-                },
-                3,
-              ];
+              array: ["u8", 32];
+            };
+          },
+          {
+            name: "padding2";
+            type: {
+              array: ["u8", 16];
+            };
+          },
+          {
+            name: "padding3";
+            type: {
+              array: ["u8", 8];
             };
           },
         ];
@@ -5808,30 +7437,6 @@ export type Marginfi = {
         kind: "struct";
         fields: [
           {
-            name: "optimalUtilizationRate";
-            type: {
-              defined: {
-                name: "wrappedI80f48";
-              };
-            };
-          },
-          {
-            name: "plateauInterestRate";
-            type: {
-              defined: {
-                name: "wrappedI80f48";
-              };
-            };
-          },
-          {
-            name: "maxInterestRate";
-            type: {
-              defined: {
-                name: "wrappedI80f48";
-              };
-            };
-          },
-          {
             name: "insuranceFeeFixedApr";
             type: {
               defined: {
@@ -5869,6 +7474,42 @@ export type Marginfi = {
               defined: {
                 name: "wrappedI80f48";
               };
+            };
+          },
+          {
+            name: "zeroUtilRate";
+            docs: [
+              "The base rate at utilization = 0",
+              "* a %, as u32, out of 1000%, e.g. 100% = 0.1 * u32::MAX",
+            ];
+            type: "u32";
+          },
+          {
+            name: "hundredUtilRate";
+            docs: [
+              "The base rate at utilization = 100",
+              "* a %, as u32, out of 1000%, e.g. 100% = 0.1 * u32::MAX",
+            ];
+            type: "u32";
+          },
+          {
+            name: "points";
+            docs: [
+              "The base rate at various points between 0 and 100%, exclusive. Essentially a piece-wise",
+              "linear curve.",
+              "* always in ascending order, e.g. points[0] = first kink point, points[1] = second kink",
+              "point, and so forth.",
+              "* points where util = 0 are unused",
+            ];
+            type: {
+              array: [
+                {
+                  defined: {
+                    name: "ratePoint";
+                  };
+                },
+                5,
+              ];
             };
           },
         ];
@@ -5880,36 +7521,6 @@ export type Marginfi = {
         kind: "struct";
         fields: [
           {
-            name: "optimalUtilizationRate";
-            type: {
-              option: {
-                defined: {
-                  name: "wrappedI80f48";
-                };
-              };
-            };
-          },
-          {
-            name: "plateauInterestRate";
-            type: {
-              option: {
-                defined: {
-                  name: "wrappedI80f48";
-                };
-              };
-            };
-          },
-          {
-            name: "maxInterestRate";
-            type: {
-              option: {
-                defined: {
-                  name: "wrappedI80f48";
-                };
-              };
-            };
-          },
-          {
             name: "insuranceFeeFixedApr";
             type: {
               option: {
@@ -5956,6 +7567,48 @@ export type Marginfi = {
                 defined: {
                   name: "wrappedI80f48";
                 };
+              };
+            };
+          },
+          {
+            name: "zeroUtilRate";
+            docs: [
+              "The base rate at utilization = 0",
+              "* a %, as u32, out of 1000%, e.g. 100% = 0.1 * u32::MAX",
+            ];
+            type: {
+              option: "u32";
+            };
+          },
+          {
+            name: "hundredUtilRate";
+            docs: [
+              "The base rate at utilization = 100",
+              "* a %, as u32, out of 1000%, e.g. 100% = 0.1 * u32::MAX",
+            ];
+            type: {
+              option: "u32";
+            };
+          },
+          {
+            name: "points";
+            docs: [
+              "The base rate at various points between 0 and 100%, exclusive. Essentially a piece-wise",
+              "linear curve.",
+              "* always in ascending order, e.g. points[0] = first kink point, points[1] = second kink",
+              "point, and so forth.",
+              "* points where util = 0 are unused",
+            ];
+            type: {
+              option: {
+                array: [
+                  {
+                    defined: {
+                      name: "ratePoint";
+                    };
+                  },
+                  5,
+                ];
               };
             };
           },
@@ -6006,7 +7659,9 @@ export type Marginfi = {
           },
           {
             name: "operationalState";
-            docs: ["Bank operational state - allows starting banks in paused state"];
+            docs: [
+              "Bank operational state - allows starting banks in paused state",
+            ];
             type: {
               defined: {
                 name: "bankOperationalState";
@@ -6015,7 +7670,9 @@ export type Marginfi = {
           },
           {
             name: "riskTier";
-            docs: ["Risk tier - determines if assets can be borrowed in isolation"];
+            docs: [
+              "Risk tier - determines if assets can be borrowed in isolation",
+            ];
             type: {
               defined: {
                 name: "riskTier";
@@ -6033,7 +7690,9 @@ export type Marginfi = {
           },
           {
             name: "oracleMaxAge";
-            docs: ["Currently unused: Kamino's oracle age applies to kamino banks."];
+            docs: [
+              "Currently unused: Kamino's oracle age applies to kamino banks.",
+            ];
             type: "u16";
           },
           {
@@ -6487,6 +8146,34 @@ export type Marginfi = {
       };
     },
     {
+      name: "lendingPoolBankSetFixedOraclePriceEvent";
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "header";
+            type: {
+              defined: {
+                name: "groupEventHeader";
+              };
+            };
+          },
+          {
+            name: "bank";
+            type: "pubkey";
+          },
+          {
+            name: "price";
+            type: {
+              defined: {
+                name: "wrappedI80f48";
+              };
+            };
+          },
+        ];
+      };
+    },
+    {
       name: "liquidationBalances";
       type: {
         kind: "struct";
@@ -6592,7 +8279,9 @@ export type Marginfi = {
     },
     {
       name: "liquidationEntry";
-      docs: ["Used to record key details of the last few liquidation events on the account"];
+      docs: [
+        "Used to record key details of the last few liquidation events on the account",
+      ];
       serialization: "bytemuck";
       repr: {
         kind: "c";
@@ -6670,7 +8359,9 @@ export type Marginfi = {
         fields: [
           {
             name: "key";
-            docs: ["This account's own key. A PDA derived from `marginfi_account`"];
+            docs: [
+              "This account's own key. A PDA derived from `marginfi_account`",
+            ];
             type: "pubkey";
           },
           {
@@ -6697,7 +8388,9 @@ export type Marginfi = {
           },
           {
             name: "entries";
-            docs: ["Basic historical data for the last few liquidation events on this account"];
+            docs: [
+              "Basic historical data for the last few liquidation events on this account",
+            ];
             type: {
               array: [
                 {
@@ -6803,12 +8496,16 @@ export type Marginfi = {
           },
           {
             name: "migratedFrom";
-            docs: ["If this account was migrated from another one, store the original account key"];
+            docs: [
+              "If this account was migrated from another one, store the original account key",
+            ];
             type: "pubkey";
           },
           {
             name: "migratedTo";
-            docs: ["If this account has been migrated to another one, store the destination account key"];
+            docs: [
+              "If this account has been migrated to another one, store the destination account key",
+            ];
             type: "pubkey";
           },
           {
@@ -6838,7 +8535,9 @@ export type Marginfi = {
           },
           {
             name: "bump";
-            docs: ["This account's bump, if a PDA-based account (0.1.5 or later). Otherwise, does nothing."];
+            docs: [
+              "This account's bump, if a PDA-based account (0.1.5 or later). Otherwise, does nothing.",
+            ];
             type: "u8";
           },
           {
@@ -6922,7 +8621,9 @@ export type Marginfi = {
         fields: [
           {
             name: "admin";
-            docs: ["Broadly able to modify anything, and can set/remove other admins at will."];
+            docs: [
+              "Broadly able to modify anything, and can set/remove other admins at will.",
+            ];
             type: "pubkey";
           },
           {
@@ -6937,7 +8638,9 @@ export type Marginfi = {
           },
           {
             name: "feeStateCache";
-            docs: ["Caches information from the global `FeeState` so the FeeState can be omitted on certain ixes"];
+            docs: [
+              "Caches information from the global `FeeState` so the FeeState can be omitted on certain ixes",
+            ];
             type: {
               defined: {
                 name: "feeStateCache";
@@ -6996,13 +8699,38 @@ export type Marginfi = {
             };
           },
           {
+            name: "deleverageWithdrawWindowCache";
+            docs: [
+              "Keeps track of the liquidity withdrawn from the group over the day as a result of",
+              "deleverages. Used as a protection mechanism against too big (and unwanted) withdrawals (e.g.",
+              "when the risk admin is compromised).",
+            ];
+            type: {
+              defined: {
+                name: "withdrawWindowCache";
+              };
+            };
+          },
+          {
+            name: "riskAdmin";
+            docs: [
+              "Can run bankruptcy and forced deleverage ixes to e.g. sunset risky/illiquid assets",
+            ];
+            type: "pubkey";
+          },
+          {
+            name: "metadataAdmin";
+            docs: ["Can modify a Bank's metadata, and nothing else."];
+            type: "pubkey";
+          },
+          {
             name: "padding0";
             type: {
               array: [
                 {
                   array: ["u64", 2];
                 },
-                17,
+                12,
               ];
             };
           },
@@ -7062,7 +8790,9 @@ export type Marginfi = {
     },
     {
       name: "minimalObligation";
-      docs: ["A minimal copy of Kamino's Obligation for zero-copy deserialization"];
+      docs: [
+        "A minimal copy of Kamino's Obligation for zero-copy deserialization",
+      ];
       serialization: "bytemuck";
       repr: {
         kind: "c";
@@ -7323,14 +9053,19 @@ export type Marginfi = {
           },
           {
             name: "borrowedAmountSf";
-            docs: ["* In token, with `mint_decimals`", "* Actually an I68F60, stored as a u128 (i.e. BN) in Kamino."];
+            docs: [
+              "* In token, with `mint_decimals`",
+              "* Actually an I68F60, stored as a u128 (i.e. BN) in Kamino.",
+            ];
             type: {
               array: ["u8", 16];
             };
           },
           {
             name: "marketPriceSf";
-            docs: ["* Actually an I68F60, stored as a u128 (i.e. BN) in Kamino."];
+            docs: [
+              "* Actually an I68F60, stored as a u128 (i.e. BN) in Kamino.",
+            ];
             type: {
               array: ["u8", 16];
             };
@@ -7359,35 +9094,49 @@ export type Marginfi = {
           },
           {
             name: "accumulatedProtocolFeesSf";
-            docs: ["* In token, with `mint_decimals`", "* Actually an I68F60, stored as a u128 (i.e. BN) in Kamino."];
+            docs: [
+              "* In token, with `mint_decimals`",
+              "* Actually an I68F60, stored as a u128 (i.e. BN) in Kamino.",
+            ];
             type: {
               array: ["u8", 16];
             };
           },
           {
             name: "accumulatedReferrerFeesSf";
-            docs: ["* In token, with `mint_decimals`", "* Actually an I68F60, stored as a u128 (i.e. BN) in Kamino."];
+            docs: [
+              "* In token, with `mint_decimals`",
+              "* Actually an I68F60, stored as a u128 (i.e. BN) in Kamino.",
+            ];
             type: {
               array: ["u8", 16];
             };
           },
           {
             name: "pendingReferrerFeesSf";
-            docs: ["* In token, with `mint_decimals`", "* Actually an I68F60, stored as a u128 (i.e. BN) in Kamino."];
+            docs: [
+              "* In token, with `mint_decimals`",
+              "* Actually an I68F60, stored as a u128 (i.e. BN) in Kamino.",
+            ];
             type: {
               array: ["u8", 16];
             };
           },
           {
             name: "absoluteReferralRateSf";
-            docs: ["* In token, with `mint_decimals`", "* Actually an I68F60, stored as a u128 (i.e. BN) in Kamino."];
+            docs: [
+              "* In token, with `mint_decimals`",
+              "* Actually an I68F60, stored as a u128 (i.e. BN) in Kamino.",
+            ];
             type: {
               array: ["u8", 16];
             };
           },
           {
             name: "tokenProgram";
-            docs: ["Token or Token22. If token22, note that Kamino does not support all Token22 extensions."];
+            docs: [
+              "Token or Token22. If token22, note that Kamino does not support all Token22 extensions.",
+            ];
             type: "pubkey";
           },
           {
@@ -7544,6 +9293,9 @@ export type Marginfi = {
           {
             name: "kaminoSwitchboardPull";
           },
+          {
+            name: "fixed";
+          },
         ];
       };
     },
@@ -7558,7 +9310,9 @@ export type Marginfi = {
         fields: [
           {
             name: "pauseFlags";
-            docs: ["Whether the protocol is currently paused (1 = paused, 0 = not paused)"];
+            docs: [
+              "Whether the protocol is currently paused (1 = paused, 0 = not paused)",
+            ];
             type: "u8";
           },
           {
@@ -7568,7 +9322,9 @@ export type Marginfi = {
           },
           {
             name: "consecutivePauseCount";
-            docs: ["Number of consecutive pauses (resets when unpause happens)"];
+            docs: [
+              "Number of consecutive pauses (resets when unpause happens)",
+            ];
             type: "u8";
           },
           {
@@ -7587,7 +9343,9 @@ export type Marginfi = {
           },
           {
             name: "lastDailyResetTimestamp";
-            docs: ["Timestamp of the last daily reset (for tracking daily pause count)"];
+            docs: [
+              "Timestamp of the last daily reset (for tracking daily pause count)",
+            ];
             type: "i64";
           },
           {
@@ -7602,7 +9360,9 @@ export type Marginfi = {
     },
     {
       name: "panicStateCache";
-      docs: ["Cached panic state information for fast checking during user operations"];
+      docs: [
+        "Cached panic state information for fast checking during user operations",
+      ];
       repr: {
         kind: "c";
       };
@@ -7611,7 +9371,9 @@ export type Marginfi = {
         fields: [
           {
             name: "pauseFlags";
-            docs: ["Whether the protocol is currently paused (1 = paused, 0 = not paused)"];
+            docs: [
+              "Whether the protocol is currently paused (1 = paused, 0 = not paused)",
+            ];
             type: "u8";
           },
           {
@@ -7622,13 +9384,42 @@ export type Marginfi = {
           },
           {
             name: "pauseStartTimestamp";
-            docs: ["Timestamp when the current pause started (0 if not paused)"];
+            docs: [
+              "Timestamp when the current pause started (0 if not paused)",
+            ];
             type: "i64";
           },
           {
             name: "lastCacheUpdate";
             docs: ["Timestamp when this cache was last updated"];
             type: "i64";
+          },
+        ];
+      };
+    },
+    {
+      name: "ratePoint";
+      repr: {
+        kind: "c";
+      };
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "util";
+            docs: [
+              "The utilization rate where `rate` applies",
+              "* a %, as u32, out of 100%, e.g. 50% = .5 * u32::MAX",
+            ];
+            type: "u32";
+          },
+          {
+            name: "rate";
+            docs: [
+              "The base rate that applies",
+              "* a %, as u32, out of 1000%, e.g. 100% = 0.1 * u32::MAX",
+            ];
+            type: "u32";
           },
         ];
       };
@@ -7668,7 +9459,9 @@ export type Marginfi = {
         fields: [
           {
             name: "key";
-            docs: ["This account's own key. A PDA derived from `marginfi_group` and `STAKED_SETTINGS_SEED`"];
+            docs: [
+              "This account's own key. A PDA derived from `marginfi_group` and `STAKED_SETTINGS_SEED`",
+            ];
             type: "pubkey";
           },
           {
@@ -7864,6 +9657,29 @@ export type Marginfi = {
                 };
               };
             };
+          },
+        ];
+      };
+    },
+    {
+      name: "withdrawWindowCache";
+      repr: {
+        kind: "c";
+      };
+      type: {
+        kind: "struct";
+        fields: [
+          {
+            name: "dailyLimit";
+            type: "u32";
+          },
+          {
+            name: "withdrawnToday";
+            type: "u32";
+          },
+          {
+            name: "lastDailyResetTimestamp";
+            type: "i64";
           },
         ];
       };

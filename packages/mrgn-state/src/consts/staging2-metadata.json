@@ -1,0 +1,61 @@
+{
+  "bankMetadata": {
+    "43UdT1HipqqC5DQoGKbKMzsCFQs6oUm12PFS1TYWZfJS": {
+      "tokenAddress": "orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE",
+      "tokenName": "Orca",
+      "tokenSymbol": "ORCA"
+    },
+    "GeGesgruPoU5BpfDismYiZGYLiF2Mi194QpS76aSspbi": {
+      "tokenAddress": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+      "tokenName": "PayPal USD",
+      "tokenSymbol": "PYUSD"
+    },
+    "GM98Qmzdoc7PSD64t7bG5Gqt4XEcZV9RKGcgsFCxTY4e": {
+      "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "tokenName": "USD Coin",
+      "tokenSymbol": "USDC"
+    },
+    "4VruFgvunJcU1C23tAXWQbfuXT4P97vDm9fXzTvMrFLG": {
+      "tokenAddress": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+      "tokenName": "Bonk",
+      "tokenSymbol": "Bonk"
+    },
+    "9rhsPZVrya9aqdFRUi9RoSNZTqsmYuU1fdPWLreS4fNo": {
+      "tokenAddress": "So11111111111111111111111111111111111111112",
+      "tokenName": "Wrapped SOL",
+      "tokenSymbol": "SOL"
+    }
+  },
+  "tokenMetadata": {
+    "ORCA": {
+      "name": "Orca",
+      "symbol": "ORCA",
+      "address": "orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE",
+      "decimals": 6
+    },
+    "PYUSD": {
+      "name": "PayPal USD",
+      "symbol": "PYUSD",
+      "address": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+      "decimals": 6
+    },
+    "USDC": {
+      "name": "USD Coin",
+      "symbol": "USDC",
+      "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "decimals": 6
+    },
+    "Bonk": {
+      "name": "Bonk",
+      "symbol": "Bonk",
+      "address": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+      "decimals": 5
+    },
+    "SOL": {
+      "name": "Wrapped SOL",
+      "symbol": "SOL",
+      "address": "So11111111111111111111111111111111111111112",
+      "decimals": 9
+    }
+  }
+}

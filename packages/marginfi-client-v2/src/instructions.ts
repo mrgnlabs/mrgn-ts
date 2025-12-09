@@ -1,10 +1,10 @@
-import { AccountMeta, PublicKey, SYSVAR_INSTRUCTIONS_PUBKEY } from "@solana/web3.js";
+import { AccountMeta, PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 
 import { TOKEN_PROGRAM_ID } from "@mrgnlabs/mrgn-common";
 
 import { MarginfiProgram } from "./types";
-import { BankConfigCompactRaw, BankConfigOptRaw } from "./services";
+import type { BankConfigCompactRaw, BankConfigOptRaw } from "./services";
 
 async function makeInitMarginfiAccountIx(
   mfProgram: MarginfiProgram,
@@ -16,6 +16,85 @@ async function makeInitMarginfiAccountIx(
   }
 ) {
   return mfProgram.methods.marginfiAccountInitialize().accounts(accounts).instruction();
+}
+
+async function makeInitMarginfiAccountPdaIx(
+  mfProgram: MarginfiProgram,
+  accounts: {
+    marginfiGroup: PublicKey;
+    marginfiAccount: PublicKey;
+    authority: PublicKey;
+    feePayer: PublicKey;
+  },
+  args: {
+    accountIndex: number;
+    thirdPartyId?: number;
+  }
+) {
+  return mfProgram.methods
+    .marginfiAccountInitializePda(args.accountIndex, args.thirdPartyId ?? null)
+    .accountsPartial({
+      marginfiGroup: accounts.marginfiGroup,
+      marginfiAccount: accounts.marginfiAccount,
+      authority: accounts.authority,
+      feePayer: accounts.feePayer,
+    })
+    .instruction();
+}
+
+async function makeKaminoDepositIx(
+  mfProgram: MarginfiProgram,
+  accounts: {
+    marginfiAccount: PublicKey;
+    bank: PublicKey;
+    signerTokenAccount: PublicKey;
+    lendingMarket: PublicKey;
+    reserveLiquidityMint: PublicKey;
+
+    lendingMarketAuthority: PublicKey;
+    reserveLiquiditySupply: PublicKey;
+    reserveCollateralMint: PublicKey;
+    reserveDestinationDepositCollateral: PublicKey;
+    liquidityTokenProgram: PublicKey;
+
+    obligationFarmUserState: PublicKey | null;
+    reserveFarmState: PublicKey | null;
+
+    // Optional accounts - to override inference
+    group?: PublicKey;
+    authority?: PublicKey;
+    liquidityVault?: PublicKey;
+    kaminoObligation?: PublicKey;
+    kaminoReserve?: PublicKey;
+    mint?: PublicKey;
+  },
+  args: {
+    amount: BN;
+  },
+  remainingAccounts: AccountMeta[] = []
+) {
+  const {
+    marginfiAccount,
+    bank,
+    signerTokenAccount,
+    lendingMarket,
+    reserveLiquidityMint,
+    lendingMarketAuthority,
+    reserveLiquiditySupply,
+    reserveCollateralMint,
+    reserveDestinationDepositCollateral,
+    liquidityTokenProgram,
+    obligationFarmUserState,
+    reserveFarmState,
+    ...optionalAccounts
+  } = accounts;
+
+  return mfProgram.methods
+    .kaminoDeposit(args.amount)
+    .accounts(accounts)
+    .accountsPartial(optionalAccounts)
+    .remainingAccounts(remainingAccounts)
+    .instruction();
 }
 
 async function makeDepositIx(
@@ -80,6 +159,71 @@ async function makeRepayIx(
       signerTokenAccount,
       bank,
       tokenProgram,
+    })
+    .accountsPartial(optionalAccounts)
+    .remainingAccounts(remainingAccounts)
+    .instruction();
+}
+
+async function makeKaminoWithdrawIx(
+  mfProgram: MarginfiProgram,
+  accounts: {
+    marginfiAccount: PublicKey;
+    bank: PublicKey;
+    destinationTokenAccount: PublicKey;
+    lendingMarket: PublicKey;
+    reserveLiquidityMint: PublicKey;
+
+    lendingMarketAuthority: PublicKey;
+    reserveLiquiditySupply: PublicKey;
+    reserveCollateralMint: PublicKey;
+    reserveSourceCollateral: PublicKey;
+    liquidityTokenProgram: PublicKey;
+
+    obligationFarmUserState: PublicKey | null;
+    reserveFarmState: PublicKey | null;
+
+    // Optional accounts - to override inference
+    group?: PublicKey;
+    authority?: PublicKey;
+  },
+  args: {
+    amount: BN;
+    isFinalWithdrawal: boolean;
+  },
+  remainingAccounts: AccountMeta[] = []
+) {
+  const {
+    marginfiAccount,
+    bank,
+    destinationTokenAccount,
+    lendingMarket,
+    reserveLiquidityMint,
+    lendingMarketAuthority,
+    reserveLiquiditySupply,
+    reserveCollateralMint,
+    reserveSourceCollateral,
+    liquidityTokenProgram,
+    obligationFarmUserState,
+    reserveFarmState,
+    ...optionalAccounts
+  } = accounts;
+
+  return mfProgram.methods
+    .kaminoWithdraw(args.amount, args.isFinalWithdrawal)
+    .accounts({
+      marginfiAccount,
+      bank,
+      destinationTokenAccount,
+      lendingMarket,
+      reserveLiquidityMint,
+      lendingMarketAuthority,
+      reserveLiquiditySupply,
+      reserveCollateralMint,
+      reserveSourceCollateral,
+      liquidityTokenProgram,
+      obligationFarmUserState,
+      reserveFarmState,
     })
     .accountsPartial(optionalAccounts)
     .remainingAccounts(remainingAccounts)
@@ -166,6 +310,8 @@ function makeLendingAccountLiquidateIx(
   },
   args: {
     assetAmount: BN;
+    liquidateeAccounts: number;
+    liquidatorAccounts: number;
   },
   remainingAccounts: AccountMeta[] = []
 ) {
@@ -179,7 +325,7 @@ function makeLendingAccountLiquidateIx(
   } = accounts;
 
   return mfiProgram.methods
-    .lendingAccountLiquidate(args.assetAmount)
+    .lendingAccountLiquidate(args.assetAmount, args.liquidateeAccounts, args.liquidatorAccounts)
     .accounts({
       assetBank,
       liabBank,
@@ -297,13 +443,13 @@ async function makeAccountTransferToNewAccountIx(
     oldMarginfiAccount: PublicKey;
     newMarginfiAccount: PublicKey;
     newAuthority: PublicKey;
-    globalFeeWallet: PublicKey;
+    feePayer: PublicKey;
     // Optional accounts - to override inference
     group?: PublicKey;
     authority?: PublicKey;
   }
 ) {
-  const { oldMarginfiAccount, newMarginfiAccount, newAuthority, globalFeeWallet, ...optionalAccounts } = accounts;
+  const { oldMarginfiAccount, newMarginfiAccount, newAuthority, feePayer, ...optionalAccounts } = accounts;
 
   return mfProgram.methods
     .transferToNewAccount()
@@ -311,7 +457,7 @@ async function makeAccountTransferToNewAccountIx(
       oldMarginfiAccount,
       newMarginfiAccount,
       newAuthority,
-      globalFeeWallet,
+      globalFeeWallet: feePayer,
     })
     .accountsPartial(optionalAccounts)
     .instruction();
@@ -466,6 +612,7 @@ async function makePoolAddBankIx(
   return mfProgram.methods
     .lendingPoolAddBank({
       ...args.bankConfig,
+      configFlags: 0,
       pad0: [0, 0, 0, 0, 0, 0, 0, 0],
     })
     .accounts({
@@ -500,19 +647,20 @@ async function makeCloseAccountIx(
     .instruction();
 }
 
-async function makeLendingAccountSortBalancesIx(
-  mfProgram: MarginfiProgram,
-  accounts: {
-    marginfiAccount: PublicKey;
-  }
-) {
-  return mfProgram.methods
-    .lendingAccountSortBalances()
-    .accounts({
-      marginfiAccount: accounts.marginfiAccount,
-    })
-    .instruction();
-}
+// Deprecated
+// async function makeLendingAccountSortBalancesIx(
+//   mfProgram: MarginfiProgram,
+//   accounts: {
+//     marginfiAccount: PublicKey;
+//   }
+// ) {
+//   return mfProgram.methods
+//     .lendingAccountSortBalances()
+//     .accounts({
+//       marginfiAccount: accounts.marginfiAccount,
+//     })
+//     .instruction();
+// }
 
 async function makePulseHealthIx(
   mfProgram: MarginfiProgram,
@@ -536,10 +684,13 @@ async function makePulseHealthIx(
 
 const instructions = {
   makeDepositIx,
+  makeKaminoDepositIx,
   makeRepayIx,
   makeWithdrawIx,
+  makeKaminoWithdrawIx,
   makeBorrowIx,
   makeInitMarginfiAccountIx,
+  makeInitMarginfiAccountPdaIx,
   makeLendingAccountLiquidateIx,
   makelendingAccountWithdrawEmissionIx,
   makePoolAddBankIx,
@@ -552,7 +703,6 @@ const instructions = {
   makePoolAddPermissionlessStakedBankIx,
   makeLendingPoolConfigureBankOracleIx,
   makePulseHealthIx,
-  makeLendingAccountSortBalancesIx,
 };
 
 export default instructions;

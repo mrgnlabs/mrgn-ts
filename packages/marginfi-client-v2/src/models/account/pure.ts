@@ -242,23 +242,24 @@ class MarginfiAccount implements MarginfiAccountType {
     opts?: {
       emodeImpactStatus?: EmodeImpactStatus;
       volatilityFactor?: number;
-      emodeWeights?: { assetWeightMaint: BigNumber; assetWeightInit: BigNumber; collateralTag: EmodeTag };
+      emodeWeights?: {
+        assetWeightMaint: BigNumber;
+        assetWeightInit: BigNumber;
+        // should be array
+        collateralTags: EmodeTag[];
+      };
     }
   ): BigNumber {
-    const debug = require("debug")("mfi:computeMaxBorrowForBank");
-    const bank = banks.get(bankAddress.toBase58());
-
-    if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
+    let modifiedBanks = new Map(banks);
 
     if (opts?.emodeWeights) {
       const emodeWeights = opts.emodeWeights; // Create a local reference to avoid null checks
-      const collateralTag = emodeWeights.collateralTag;
-      const modifiedBanks = new Map(banks);
+      const collateralTags = emodeWeights.collateralTags;
 
       // Go through each bank and update the ones with matching tag
       banks.forEach((existingBank, bankKey) => {
         // Only apply to banks with matching tag
-        if (existingBank.emode?.emodeTag === collateralTag) {
+        if (existingBank.emode?.emodeTag && collateralTags.includes(existingBank.emode.emodeTag)) {
           modifiedBanks.set(
             bankKey,
             Bank.withEmodeWeights(existingBank, {
@@ -268,10 +269,11 @@ class MarginfiAccount implements MarginfiAccountType {
           );
         }
       });
-
-      // Use the modified banks map for computation
-      banks = modifiedBanks;
     }
+
+    const bank = modifiedBanks.get(bankAddress.toBase58());
+
+    if (!bank) throw Error(`Bank ${bankAddress.toBase58()} not found`);
 
     const priceInfo = oraclePrices.get(bankAddress.toBase58());
     if (!priceInfo) throw Error(`Price info for ${bankAddress.toBase58()} not found`);
@@ -280,27 +282,23 @@ class MarginfiAccount implements MarginfiAccountType {
     // isolated asset constraints //
     // -------------------------- //
 
-    const hasOtherLiabilities =
+    const hasLiabilitiesAlready =
       this.activeBalances.filter((b) => b.liabilityShares.gt(0) && !b.bankPk.equals(bankAddress)).length > 0;
 
     const attemptingToBorrowIsolatedAssetWithActiveDebt =
-      bank.config.riskTier === RiskTier.Isolated && hasOtherLiabilities;
-
-    debug("attemptingToBorrowIsolatedAssetWithActiveDebt: %s", attemptingToBorrowIsolatedAssetWithActiveDebt);
+      bank.config.riskTier === RiskTier.Isolated && hasLiabilitiesAlready;
 
     const existingLiabilityBanks = this.activeBalances
       .filter((b) => b.liabilityShares.gt(0))
-      .map((b) => banks.get(b.bankPk.toBase58())!);
+      .map((b) => modifiedBanks.get(b.bankPk.toBase58()));
 
     const attemptingToBorrowNewAssetWithExistingIsolatedDebt = existingLiabilityBanks.some(
-      (b) => b.config.riskTier === RiskTier.Isolated && !b.address.equals(bankAddress)
+      (b) => b?.config.riskTier === RiskTier.Isolated && !b?.address.equals(bankAddress)
     );
-
-    debug("attemptingToBorrowNewAssetWithExistingIsolatedDebt: %s", attemptingToBorrowNewAssetWithExistingIsolatedDebt);
 
     if (attemptingToBorrowIsolatedAssetWithActiveDebt || attemptingToBorrowNewAssetWithExistingIsolatedDebt) {
       // User can only withdraw
-      return this.computeMaxWithdrawForBank(banks, oraclePrices, bankAddress, opts);
+      return this.computeMaxWithdrawForBank(modifiedBanks, oraclePrices, bankAddress, opts);
     }
 
     // ------------- //
@@ -317,9 +315,7 @@ class MarginfiAccount implements MarginfiAccountType {
 
     let freeCollateral = useCache
       ? this.computeFreeCollateral().times(_volatilityFactor)
-      : this.computeFreeCollateralLegacy(banks, oraclePrices);
-
-    debug("Free collateral: %d", freeCollateral.toFixed(6));
+      : this.computeFreeCollateralLegacy(modifiedBanks, oraclePrices).times(_volatilityFactor);
 
     const untiedCollateralForBank = BigNumber.min(
       bank.computeAssetUsdValue(priceInfo, balance.assetShares, MarginRequirementType.Initial, PriceBias.Lowest),
@@ -1048,10 +1044,10 @@ class MarginfiAccount implements MarginfiAccountType {
 
     let ixs = [];
 
-    const healthAccounts = [
-      ...this.getHealthCheckAccounts(bankMap, [liabilityBankAddress, assetBankAddress], []),
-      ...liquidateeMarginfiAccount.getHealthCheckAccounts(bankMap, [], []),
-    ];
+    const liquidatorHealthAccounts = this.getHealthCheckAccounts(bankMap, [liabilityBankAddress, assetBankAddress], []);
+    const liquidateeHealthAccounts = liquidateeMarginfiAccount.getHealthCheckAccounts(bankMap, [], []);
+
+    const healthAccounts = [...liquidatorHealthAccounts, ...liquidateeHealthAccounts];
 
     let remainingAccounts: PublicKey[] = [];
 
@@ -1072,7 +1068,11 @@ class MarginfiAccount implements MarginfiAccountType {
         liquidateeMarginfiAccount: liquidateeMarginfiAccount.address,
         tokenProgram: liabilityMintData.tokenProgram,
       },
-      { assetAmount: uiToNative(assetQuantityUi, assetBank.mintDecimals) },
+      {
+        assetAmount: uiToNative(assetQuantityUi, assetBank.mintDecimals),
+        liquidateeAccounts: liquidateeHealthAccounts.length,
+        liquidatorAccounts: liquidatorHealthAccounts.length,
+      },
       remainingAccounts.map((account) => ({ pubkey: account, isSigner: false, isWritable: false }))
     );
     ixs.push(liquidateIx);
@@ -1117,13 +1117,13 @@ class MarginfiAccount implements MarginfiAccountType {
     program: MarginfiProgram,
     newMarginfiAccount: PublicKey,
     newAuthority: PublicKey,
-    globalFeeWallet: PublicKey
+    feePayer: PublicKey
   ): Promise<InstructionsWrapper> {
     const accountTransferToNewAccountIx = await instructions.makeAccountTransferToNewAccountIx(program, {
       oldMarginfiAccount: this.address,
       newMarginfiAccount,
       newAuthority,
-      globalFeeWallet,
+      feePayer,
     });
     return { instructions: [accountTransferToNewAccountIx], keys: [] };
   }

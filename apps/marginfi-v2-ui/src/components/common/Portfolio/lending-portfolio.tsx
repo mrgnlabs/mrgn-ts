@@ -7,7 +7,7 @@ import { IconAlertCircle, IconChartAreaLine, IconInfoCircle } from "@tabler/icon
 
 import { numeralFormatter, SolanaTransaction } from "@mrgnlabs/mrgn-common";
 import { usdFormatter, usdFormatterDyn } from "@mrgnlabs/mrgn-common";
-import { ActionType, ActiveBankInfo } from "@mrgnlabs/mrgn-state";
+import { ActionType, ActiveBankInfo, useRawBanks } from "@mrgnlabs/mrgn-state";
 import { cn, ExecuteActionProps, ExecuteCollectRewardsAction, usePrevious, useConnection } from "@mrgnlabs/mrgn-utils";
 import { CustomToastType, toastManager } from "@mrgnlabs/mrgn-toasts";
 import { useWallet } from "@mrgnlabs/mrgn-ui";
@@ -64,6 +64,8 @@ export const LendingPortfolio = () => {
   const { wrappedAccount: selectedAccount, isLoading: isLoadingSelectedAccount } = useWrappedMarginfiAccount(wallet);
   const { data: marginfiAccounts, isLoading: isLoadingMarginfiAccounts } = useMarginfiAccountAddresses();
   const { activeEmodePairs, emodePairs } = useEmode();
+  const { data: rawBanks } = useRawBanks();
+
   const refreshUserData = useRefreshUserData();
 
   const setSelectedKey = useSetSelectedAccountKey();
@@ -214,14 +216,20 @@ export const LendingPortfolio = () => {
     [accountSummary]
   );
 
+  const hasUnsupportedPositions = React.useMemo(() => {
+    if (!selectedAccount || !rawBanks) return false;
+    const banks = selectedAccount.balances.filter((balance) => balance.active).map((balance) => balance.bankPk);
+    const missingBanks = banks.filter((bank) => !rawBanks.some((rawBank) => rawBank.address.equals(bank)));
+    return missingBanks.length > 0;
+  }, [selectedAccount, rawBanks]);
+
   const healthColor = React.useMemo(() => {
     if (accountSummary.healthFactor) {
       let color: string;
 
-      // if (accountSummary.healthSimFailed) {
-      //   color = "#a1a1aa";
-      // } else
-      if (accountSummary.healthFactor >= 0.5) {
+      if (accountSummary.healthSimFailed || hasUnsupportedPositions) {
+        color = "#a1a1aa";
+      } else if (accountSummary.healthFactor >= 0.5) {
         color = "#75BA80"; // green color " : "#",
       } else if (accountSummary.healthFactor >= 0.25) {
         color = "#B8B45F"; // yellow color
@@ -233,7 +241,7 @@ export const LendingPortfolio = () => {
     } else {
       return "#fff";
     }
-  }, [accountSummary.healthFactor]);
+  }, [accountSummary.healthFactor, accountSummary.healthSimFailed, hasUnsupportedPositions]);
 
   // Create refs for each lending and borrowing card, keyed by address
   const lendingRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
@@ -451,7 +459,7 @@ export const LendingPortfolio = () => {
                   className="text-xl md:text-2xl font-medium flex flex-row items-center gap-1.5"
                   style={{ color: healthColor }}
                 >
-                  {/* {accountSummary.healthSimFailed && (
+                  {hasUnsupportedPositions && (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger className="inline-flex items-center gap-1">
@@ -459,13 +467,17 @@ export const LendingPortfolio = () => {
                         </TooltipTrigger>
                         <TooltipContent>
                           <span>
-                            Health simulation failed. The displayed health factor is estimated and may not reflect
-                            real-time accuracy. Refresh the page to try again.
+                            Health calculation failed because this account contains unsupported positions. The displayed
+                            health factor may be inaccurate. Continue managing your portfolio on{" "}
+                            <a href="https://app.0.xyz" target="_blank" rel="noopener noreferrer">
+                              Project 0
+                            </a>
+                            .
                           </span>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                  )} */}
+                  )}
                   {numeralFormatter(accountSummary.healthFactor * 100)}%
                 </dd>
               )}

@@ -14,6 +14,11 @@ import { InterestRateConfigRaw, OperationalStateRaw, OracleSetupRaw, RiskTierRaw
 /*
  * Bank types Dto
  */
+export interface RatePointDto {
+  util: number;
+  rate: number;
+}
+
 export interface InterestRateConfigDto {
   // Curve Params
   optimalUtilizationRate: string;
@@ -26,6 +31,11 @@ export interface InterestRateConfigDto {
   protocolFixedFeeApr: string;
   protocolIrFee: string;
   protocolOriginationFee: string;
+
+  zeroUtilRate: number;
+  hundredUtilRate: number;
+  points: RatePointDto[];
+  curveType: number;
 }
 
 export interface BankConfigDto {
@@ -41,7 +51,7 @@ export interface BankConfigDto {
   riskTier: RiskTier;
   totalAssetValueInitLimit: string;
   assetTag: AssetTag;
-  configFlags: BankConfigFlag;
+  configFlags?: BankConfigFlag;
 
   interestRateConfig: InterestRateConfigDto;
   operationalState: OperationalState;
@@ -49,6 +59,8 @@ export interface BankConfigDto {
   oracleSetup: OracleSetup;
   oracleKeys: string[];
   oracleMaxAge: number;
+  oracleMaxConfidence: number;
+  fixedPrice: string;
 }
 
 export interface EmodeEntryDto {
@@ -108,6 +120,8 @@ export interface BankTypeDto {
   feesDestinationAccount?: string;
   lendingPositionCount?: string;
   borrowingPositionCount?: string;
+  kaminoReserve: string;
+  kaminoObligation: string;
 }
 
 /*
@@ -143,6 +157,9 @@ export interface BankRawDto {
   totalLiabilityShares: WrappedI80F48;
   totalAssetShares: WrappedI80F48;
 
+  kaminoReserve: string;
+  kaminoObligation: string;
+
   flags: string;
   emissionsRate: string;
   emissionsRemaining: WrappedI80F48;
@@ -171,11 +188,12 @@ export interface BankConfigRawDto {
   borrowLimit: string;
   riskTier: RiskTierRaw;
   assetTag: number;
-  configFlags: number;
+  configFlags?: number;
 
   totalAssetValueInitLimit: string;
   oracleMaxAge: number;
   oracleMaxConfidence: number;
+  fixedPrice: WrappedI80F48;
 }
 
 export interface EmodeSettingsRawDto {

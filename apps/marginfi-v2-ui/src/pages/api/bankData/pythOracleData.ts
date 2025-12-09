@@ -17,10 +17,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "PRIVATE_RPC_ENDPOINT_OVERRIDE is not set" });
   }
 
-  if (!process.env.STEP_API_KEY) {
-    return res.status(400).json({ error: "STEP_API_KEY is not set" });
-  }
-
   const requestedPythOracleKeys = requestedPythOracleKeysRaw.split(",").map((bankAddress) => bankAddress.trim());
 
   const connection = new Connection(process.env.PRIVATE_RPC_ENDPOINT_OVERRIDE);

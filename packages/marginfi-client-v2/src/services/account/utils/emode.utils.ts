@@ -1,7 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-
-import { ActionEmodeImpact, EmodeImpact, EmodeImpactStatus, EmodePair, EmodeTag } from "../../../services/bank";
+import { EmodePair, ActionEmodeImpact, EmodeImpactStatus, EmodeImpact, ActiveEmodePair, EmodeTag } from "../../bank";
 
 export function computeEmodeImpacts(
   emodePairs: EmodePair[],
@@ -26,7 +25,8 @@ export function computeEmodeImpacts(
 
   // Helper for min initial weight (used in diffState only)
   function minWeight(ps: EmodePair[]): BigNumber {
-    let m = ps[0].assetWeightInit;
+    // TODO: handle empty array
+    let m = ps[0]!.assetWeightInit;
     for (const x of ps) if (x.assetWeightInit.lt(m)) m = x.assetWeightInit;
     return m;
   }
@@ -48,6 +48,8 @@ export function computeEmodeImpacts(
 
   // Simulation of each action
   function simulate(bank: PublicKey, action: "borrow" | "repay" | "supply" | "withdraw"): EmodeImpact {
+    const isSolBank = bank.equals(new PublicKey("CCKtUs6Cgwo4aaQUmBPmyoApH2gUDErxNZCAntD6LYGh"));
+
     let L = [...activeLiabilities],
       C = [...activeCollateral];
     switch (action) {
@@ -116,7 +118,7 @@ export function computeEmodeImpacts(
     // Find the pair with lowest assetWeightInit and grab its maint weight
     let bestPair: EmodePair | undefined;
     if (after.length > 0) {
-      bestPair = after[0];
+      bestPair = after[0]!;
       for (const p of after) {
         if (p.assetWeightInit.lt(bestPair.assetWeightInit)) {
           bestPair = p;
@@ -124,10 +126,35 @@ export function computeEmodeImpacts(
       }
     }
 
+    const activeEmodePair: ActiveEmodePair | undefined = bestPair
+      ? {
+          collateralBanks: Array.from(
+            new Map(
+              after
+                .map((p) => p.collateralBanks)
+                .flat()
+                .map((bank) => [bank.toBase58(), bank])
+            ).values()
+          ),
+          collateralBankTags: Array.from(new Set(after.map((p) => p.collateralBankTag).flat())),
+          liabilityBanks: Array.from(
+            new Map(
+              after
+                .map((p) => p.liabilityBank)
+                .flat()
+                .map((bank) => [bank.toBase58(), bank])
+            ).values()
+          ),
+          liabilityBankTags: Array.from(new Set(after.map((p) => p.liabilityBankTag).flat())),
+          assetWeightMaint: bestPair.assetWeightMaint,
+          assetWeightInit: bestPair.assetWeightInit,
+        }
+      : undefined;
+
     return {
       status,
       resultingPairs: after,
-      activePair: bestPair,
+      activePair: activeEmodePair,
     };
   }
 
@@ -206,9 +233,11 @@ export function computeActiveEmodePairs(
     (byCollTag[ct] ||= []).push(p);
   }
 
-  // 5) Return the group whose liability-tags cover _every_ requiredTag
+  // 5) Find all groups whose liability-tags cover _every_ requiredTag
+  const validGroups: EmodePair[][] = [];
   for (const group of Object.values(byCollTag)) {
     const supports = new Set(group.map((p) => p.liabilityBankTag.toString()));
+
     let coversAll = true;
     for (const rt of requiredTags) {
       if (!supports.has(rt)) {
@@ -217,10 +246,13 @@ export function computeActiveEmodePairs(
       }
     }
     if (coversAll) {
-      return group;
+      validGroups.push(group);
     }
   }
 
-  // 6) Nothing can cover all liabilities → EMODE off
-  return [];
+  // 6) Return all valid groups flattened (selection happens elsewhere)
+  if (validGroups.length === 0) return [];
+
+  // Flatten all valid groups into a single array
+  return validGroups.flat();
 }

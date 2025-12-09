@@ -185,6 +185,17 @@ export function useAssetData(): AssetListData {
       (a, b) => b.info.state.totalDeposits * b.info.state.price - a.info.state.totalDeposits * a.info.state.price
     );
 
+    const calculateMissingBanks = () => {
+      if (!selectedAccount || !extendedBanks) return false;
+      const banks = selectedAccount.balances.filter((balance) => balance.active).map((balance) => balance.bankPk);
+      const missingBanks = banks.filter(
+        (bank) => !extendedBanks.some((extendedBank) => extendedBank.address.equals(bank))
+      );
+      return missingBanks.length > 0;
+    };
+
+    const hasUnsupportedPositions = calculateMissingBanks();
+
     const lendBankMap = new Map();
     const borrowBankMap = new Map();
 
@@ -225,7 +236,15 @@ export function useAssetData(): AssetListData {
           categorizedBanks.solPrice,
           stakeAccountsBankMap.get(bank.address.toBase58())
         ),
-        action: getAction(bank, true, connected, walletContextState, refreshUserData, selectedAccount),
+        action: getAction(
+          bank,
+          true,
+          connected,
+          walletContextState,
+          hasUnsupportedPositions,
+          refreshUserData,
+          selectedAccount
+        ),
         assetCategory: determineBankCategories(bank),
       };
 
@@ -255,7 +274,15 @@ export function useAssetData(): AssetListData {
           categorizedBanks.solPrice,
           stakeAccountsBankMap.get(bank.address.toBase58())
         ),
-        action: getAction(bank, false, connected, walletContextState, refreshUserData, selectedAccount),
+        action: getAction(
+          bank,
+          false,
+          connected,
+          walletContextState,
+          hasUnsupportedPositions,
+          refreshUserData,
+          selectedAccount
+        ),
         assetCategory: determineBankCategories(bank),
       };
 
@@ -266,9 +293,11 @@ export function useAssetData(): AssetListData {
     return { lend: lendBankMap, borrow: borrowBankMap, sortedBanks };
   }, [
     extendedBanks,
+    selectedAccount,
     emodeBankGroups.collateral,
     emodeBankGroups.liability,
     stakePoolMetadataMap,
+    lstRates,
     activeEmodePairs,
     userBalances?.nativeSolBalance,
     categorizedBanks.solPrice,
@@ -276,7 +305,6 @@ export function useAssetData(): AssetListData {
     connected,
     walletContextState,
     refreshUserData,
-    selectedAccount,
   ]);
 
   // Lightweight filtering functions that just map categorized banks to pre-computed data

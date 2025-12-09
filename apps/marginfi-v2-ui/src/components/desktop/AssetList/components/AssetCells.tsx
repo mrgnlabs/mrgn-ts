@@ -129,42 +129,14 @@ export const getAssetPriceCell = ({
         </div>
       )}
     </div>
-    {oracle && (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div>{oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}</div>
-          </TooltipTrigger>
-          <TooltipContent>Powered by {oracle}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    )}
-    {isOracleStale && (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <IconAlertTriangle size={14} className="text-warning shrink-0" />
-          </TooltipTrigger>
-          <TooltipContent className="space-y-3 max-w-[17rem]">
-            <p>
-              {isInLendingMode ? "Withdrawals from" : "Borrows from"} this bank may fail due to network congestion
-              preventing oracles from updating price data.
-            </p>
-            <p>
-              <Link
-                href="https://docs.marginfi.com/faqs#what-does-the-stale-oracles-error-mean"
-                target="_blank"
-                rel="noreferrer"
-                className="border-b leading-normal border-primary/50 hover:border-transparent transition-colors"
-              >
-                <IconExternalLink size={12} className="inline mr-1 -translate-y-[1px]" />
-                Learn more about marginfi&apos;s decentralized oracle strategy.
-              </Link>
-            </p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    )}
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div>{oracle === "Pyth" ? <IconPyth size={14} /> : <IconSwitchboard size={14} />}</div>
+        </TooltipTrigger>
+        <TooltipContent> {oracle ? "Powered by " + oracle : "Fixed price"}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   </div>
 );
 

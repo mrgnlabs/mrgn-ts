@@ -36,6 +36,7 @@ import {
   TransactionType,
   Wallet,
   loadStakedBankMetadatas,
+  wrappedI80F48toBigNumber,
 } from "@mrgnlabs/mrgn-common";
 import { MarginfiGroup } from "../models/group";
 import {
@@ -400,7 +401,8 @@ class MarginfiClient {
         if (oracleSetup === OracleSetup.StakedWithPythPush) {
           pythStakedCollateralBanks.push(bankAddress);
         }
-        return [bankAddress.toBase58(), parsePriceInfo(oracleSetup, priceDataRaw.data)];
+        const fixedPrice = wrappedI80F48toBigNumber(bankData.config.fixedPrice);
+        return [bankAddress.toBase58(), parsePriceInfo(oracleSetup, priceDataRaw.data, fixedPrice)];
       })
     );
 

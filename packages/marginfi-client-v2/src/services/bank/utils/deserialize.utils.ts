@@ -43,11 +43,40 @@ export function decodeBankRaw(encoded: Buffer, idl: MarginfiIdlType): BankRaw {
   return coder.accounts.decode(AccountType.Bank, encoded);
 }
 
+export function parseEmodeSettingsRaw(emodeSettingsRaw: EmodeSettingsRaw): EmodeSettingsType {
+  const emodeTag = parseEmodeTag(emodeSettingsRaw.emodeTag);
+  const timestamp = emodeSettingsRaw.timestamp.toNumber();
+  const flags = getActiveEmodeFlags(emodeSettingsRaw.flags);
+  const emodeEntries = emodeSettingsRaw.emodeConfig.entries
+    .filter((entry) => entry.collateralBankEmodeTag !== 0)
+    .map((entry) => {
+      return {
+        collateralBankEmodeTag: parseEmodeTag(entry.collateralBankEmodeTag),
+        flags: getActiveEmodeEntryFlags(entry.flags),
+        assetWeightInit: wrappedI80F48toBigNumber(entry.assetWeightInit),
+        assetWeightMaint: wrappedI80F48toBigNumber(entry.assetWeightMaint),
+      };
+    });
+
+  const emodeSettings: EmodeSettingsType = {
+    emodeTag,
+    timestamp,
+    flags,
+    emodeEntries,
+  };
+
+  return emodeSettings;
+}
+
 export function parseBankRaw(
   address: PublicKey,
   accountParsed: BankRaw,
   feedIdMap?: PythPushFeedIdMap,
-  bankMetadata?: BankMetadata
+  bankMetadata?: BankMetadata,
+  mintData?: {
+    mintRate: number | null;
+    mintPrice: number;
+  }
 ): BankType {
   const flags = accountParsed.flags.toNumber();
 
@@ -91,8 +120,8 @@ export function parseBankRaw(
     ? wrappedI80F48toBigNumber(accountParsed.emissionsRemaining)
     : new BigNumber(0);
 
-  const { oracleKey, shardId: pythShardId } = feedIdMap ? findOracleKey(config) : { oracleKey: config.oracleKeys[0] };
-  const emode = EmodeSettings.from(accountParsed.emode);
+  const { oracleKey } = { oracleKey: config.oracleKeys[0]! };
+  const emode = parseEmodeSettingsRaw(accountParsed.emode);
 
   const tokenSymbol = bankMetadata?.tokenSymbol;
 
@@ -103,6 +132,9 @@ export function parseBankRaw(
   const borrowingPositionCount = accountParsed.borrowingPositionCount
     ? new BigNumber(accountParsed.borrowingPositionCount.toString())
     : new BigNumber(0);
+
+  const kaminoReserve = accountParsed.kaminoReserve;
+  const kaminoObligation = accountParsed.kaminoObligation;
 
   return {
     address,
@@ -135,9 +167,12 @@ export function parseBankRaw(
     feesDestinationAccount,
     lendingPositionCount,
     borrowingPositionCount,
-    pythShardId,
     emode,
     tokenSymbol,
+    mintRate: mintData?.mintRate ?? null,
+    mintPrice: mintData?.mintPrice ?? 0,
+    kaminoReserve,
+    kaminoObligation,
   };
 }
 
@@ -174,12 +209,15 @@ export function dtoToBank(bankDto: BankTypeDto): BankType {
     emissionsMint: new PublicKey(bankDto.emissionsMint),
     emissionsRemaining: new BigNumber(bankDto.emissionsRemaining),
     oracleKey: new PublicKey(bankDto.oracleKey),
-    pythShardId: bankDto.pythShardId,
     emode: dtoToEmodeSettings(bankDto.emode),
     tokenSymbol: bankDto.tokenSymbol,
     feesDestinationAccount: bankDto.feesDestinationAccount ? new PublicKey(bankDto.feesDestinationAccount) : undefined,
     lendingPositionCount: bankDto.lendingPositionCount ? new BigNumber(bankDto.lendingPositionCount) : undefined,
     borrowingPositionCount: bankDto.borrowingPositionCount ? new BigNumber(bankDto.borrowingPositionCount) : undefined,
+    mintRate: null, // TODO: move these out
+    mintPrice: 0,
+    kaminoReserve: new PublicKey(bankDto.kaminoReserve),
+    kaminoObligation: new PublicKey(bankDto.kaminoObligation),
   };
 }
 
@@ -216,6 +254,8 @@ export function dtoToBankConfig(bankConfigDto: BankConfigDto): BankConfigType {
     oracleKeys: bankConfigDto.oracleKeys.map((key) => new PublicKey(key)),
     oracleMaxAge: bankConfigDto.oracleMaxAge,
     interestRateConfig: dtoToInterestRateConfig(bankConfigDto.interestRateConfig),
+    oracleMaxConfidence: bankConfigDto.oracleMaxConfidence,
+    fixedPrice: new BigNumber(bankConfigDto.fixedPrice),
   };
 }
 
@@ -229,6 +269,10 @@ export function dtoToInterestRateConfig(interestRateConfigDto: InterestRateConfi
     protocolFixedFeeApr: new BigNumber(interestRateConfigDto.protocolFixedFeeApr),
     protocolIrFee: new BigNumber(interestRateConfigDto.protocolIrFee),
     protocolOriginationFee: new BigNumber(interestRateConfigDto.protocolOriginationFee),
+    zeroUtilRate: interestRateConfigDto.zeroUtilRate,
+    hundredUtilRate: interestRateConfigDto.hundredUtilRate,
+    points: interestRateConfigDto.points,
+    curveType: interestRateConfigDto.curveType,
   };
 }
 
@@ -271,6 +315,8 @@ export function dtoToBankRaw(bankDto: BankRawDto): BankRaw {
     borrowingPositionCount: bankDto.borrowingPositionCount ? Number(bankDto.borrowingPositionCount) : undefined,
 
     emode: dtoToEmodeSettingsRaw(bankDto.emode),
+    kaminoReserve: new PublicKey(bankDto.kaminoReserve),
+    kaminoObligation: new PublicKey(bankDto.kaminoObligation),
   };
 }
 
@@ -310,6 +356,7 @@ export function dtoToBankConfigRaw(bankConfigDto: BankConfigRawDto): BankConfigR
     oracleMaxAge: bankConfigDto.oracleMaxAge,
     interestRateConfig: bankConfigDto.interestRateConfig,
     oracleMaxConfidence: bankConfigDto.oracleMaxConfidence,
+    fixedPrice: bankConfigDto.fixedPrice,
   };
 }
 
@@ -341,7 +388,13 @@ export function parseBankConfigRaw(bankConfigRaw: BankConfigRaw): BankConfigType
     protocolFixedFeeApr: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolFixedFeeApr),
     protocolIrFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolIrFee),
     protocolOriginationFee: wrappedI80F48toBigNumber(bankConfigRaw.interestRateConfig.protocolOriginationFee),
+    zeroUtilRate: bankConfigRaw.interestRateConfig.zeroUtilRate,
+    hundredUtilRate: bankConfigRaw.interestRateConfig.hundredUtilRate,
+    points: bankConfigRaw.interestRateConfig.points,
+    curveType: bankConfigRaw.interestRateConfig.curveType,
   };
+  const oracleMaxConfidence = bankConfigRaw.oracleMaxConfidence;
+  const fixedPrice = wrappedI80F48toBigNumber(bankConfigRaw.fixedPrice);
 
   return {
     assetWeightInit,
@@ -359,6 +412,8 @@ export function parseBankConfigRaw(bankConfigRaw: BankConfigRaw): BankConfigType
     oracleKeys,
     oracleMaxAge,
     interestRateConfig,
+    oracleMaxConfidence,
+    fixedPrice,
   };
 }
 
@@ -387,7 +442,7 @@ export function parseOperationalState(operationalStateRaw: OperationalStateRaw):
 }
 
 export function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
-  const oracleKey = Object.keys(oracleSetupRaw)[0].toLowerCase();
+  const oracleKey = Object.keys(oracleSetupRaw)[0]!.toLowerCase();
   switch (oracleKey) {
     case "none":
       return OracleSetup.None;
@@ -401,6 +456,12 @@ export function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
       return OracleSetup.SwitchboardPull;
     case "stakedwithpythpush":
       return OracleSetup.StakedWithPythPush;
+    case "kaminopythpush":
+      return OracleSetup.KaminoPythPush;
+    case "kaminoswitchboardpull":
+      return OracleSetup.KaminoSwitchboardPull;
+    case "fixed":
+      return OracleSetup.Fixed;
     default:
       return OracleSetup.None;
   }
@@ -465,6 +526,16 @@ export function parseEmodeTag(emodeTagRaw: number): EmodeTag {
       return EmodeTag.LST_T1;
     case 1572:
       return EmodeTag.LST_T2;
+    case 619:
+      return EmodeTag.JLP;
+    case 57481:
+      return EmodeTag.STABLE_T1;
+    case 57482:
+      return EmodeTag.STABLE_T2;
+    case 871:
+      return EmodeTag.BTC_T1;
+    case 872:
+      return EmodeTag.BTC_T2;
     case 0:
     default:
       return EmodeTag.UNSET;

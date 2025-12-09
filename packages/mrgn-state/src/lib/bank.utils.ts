@@ -177,7 +177,7 @@ export function makeExtendedBankInfo(
             ? {
                 assetWeightMaint: borrowImpact.activePair.assetWeightMaint,
                 assetWeightInit: borrowImpact.activePair.assetWeightInit,
-                collateralTag: borrowImpact.activePair.collateralBankTag,
+                collateralTags: borrowImpact.activePair.collateralBankTags,
               }
             : undefined,
         })
@@ -190,7 +190,7 @@ export function makeExtendedBankInfo(
             ? {
                 assetWeightMaint: borrowImpact.activePair.assetWeightMaint,
                 assetWeightInit: borrowImpact.activePair.assetWeightInit,
-                collateralTag: borrowImpact.activePair.collateralBankTag,
+                collateralTags: borrowImpact.activePair.collateralBankTags,
               }
             : undefined,
         })
