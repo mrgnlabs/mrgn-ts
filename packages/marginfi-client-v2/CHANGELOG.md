@@ -1,5 +1,119 @@
 # @mrgnlabs/marginfi-client-v2
 
+## 6.3.0
+
+### Minor Changes
+
+- 3ac8ffa: ## Summary
+
+  Version **1.6** introduces a major upgrade to interest rate modeling, oracle configuration, and risk management. The legacy three-point interest rate model is replaced with a flexible seven-point curve, enabling fine-grained control over rates across utilization levels. This release also adds a fixed-price oracle type, improves administrative risk controls (including controlled deleveraging of sunset banks), and introduces on-chain bank metadata for improved transparency.
+
+  ***
+
+  ## ✨ New Features & Improvements
+
+  ### Seven-Point Interest Rate Curve
+
+  - Deprecates the legacy three-point plateau / max-rate model.
+  - Introduces a **seven-point utilization-based interest curve**:
+    - Fixed endpoints at **0% utilization** and **100% utilization**
+    - **Five configurable intermediate points**
+  - Each point defines:
+    - A utilization percentage
+    - A base interest rate
+  - Points must be ordered with:
+    - Increasing utilization
+    - Non-decreasing interest rates
+  - Interest rates are determined via **linear interpolation** between the two nearest points.
+  - Enables precise shaping of borrow/lend incentives at different utilization levels.
+
+  ### Fixed-Price Oracle Type
+
+  - Adds a new `OracleSetup::Fixed` oracle type.
+  - Banks using this oracle:
+    - Store a declared price at `bank.config.fixed_price`
+    - Do **not** rely on external oracle feeds
+    - Never become stale
+  - Intended use cases:
+    - Stablecoins
+    - Sunset or defunct assets
+    - Assets with extremely stable pricing
+  - Banks may switch away from `Fixed`; if so, `fixed_price` may contain junk data.
+
+  ### Risk Management Enhancements
+
+  - Adds **admin-only deleveraging** for defunct or sunset banks.
+    - Functions similarly to a liquidation of a healthy account
+    - Executed with **no dollar profit**
+    - Enables orderly unwinding of risky or deprecated assets
+  - Adds safeguards to limit the impact of a compromised admin.
+  - Banks at risk of deleveraging are expected to receive significant advance warning.
+
+  ### Bank Metadata
+
+  - Introduces a new on-chain metadata account per bank.
+  - Stores:
+    - Plain-English token name
+    - Token description
+  - Improves protocol transparency and UX.
+
+  ***
+
+  ## 🆕 New & Changed Fields
+
+  ### Bank Fields
+
+  - `zero_util_rate`
+    Base interest rate at **0% utilization**.
+
+    - Percentage stored as `u32`, scaled to **1000%**
+    - Example: 100% = `0.1 * u32::MAX`
+
+  - `hundred_util_rate`
+    Base interest rate at **100% utilization**.
+
+    - Same scaling as `zero_util_rate`
+
+  - `points`
+    Exactly **five intermediate curve points** between 0% and 100%.
+
+    - Each point contains:
+      - `util`: utilization %, scaled to 100%
+      - `rate`: interest rate %, scaled to 1000%
+    - Unused points must have `util = 0`
+
+  - `curve_type`
+
+    - `INTEREST_CURVE_LEGACY (0)` — banks created before v1.6
+    - `INTEREST_CURVE_SEVEN_POINT (1)` — banks created after v1.6
+    - All banks will migrate to seven-point curves post-migration
+
+  - `bank.config.fixed_price`
+    - Type: `WrappedI80F48`
+    - Used only when `OracleSetup::Fixed` is active
+
+  ### Group Fields
+
+  - `deleverage_withdraw_window_cache`
+    Limits how much the `risk_admin` can deleverage per day
+  - `risk_admin`
+    Authorized to perform bankruptcies and deleverages
+  - `metadata_admin`
+    Authorized to update bank metadata
+
+  ***
+
+  ## ⚠️ Breaking Changes
+
+  ### Liquidators
+
+  - The `liquidate` instruction now requires **two additional arguments**:
+    - Length of the liquidator’s remaining accounts slice
+    - Length of the liquidatee’s remaining accounts slice
+  - All liquidator implementations must be updated accordingly.
+
+  ***
+
 ## 6.1.4
 
 ### Patch Changes
