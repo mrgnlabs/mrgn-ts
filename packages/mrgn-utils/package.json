@@ -37,7 +37,7 @@
     "decimal.js": "^10.4.3",
     "jsonwebtoken": "^9.0.2",
     "lodash.debounce": "^4.0.8",
-    "next": "^14.2.30",
+    "next": "14.2.35",
     "numeral": "^2.0.6",
     "posthog-js": "^1.104.4",
     "react-responsive": "^9.0.2",
