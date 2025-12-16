@@ -443,7 +443,7 @@ export async function closePositionBuilder({
   borrowBank,
   quote,
   connection,
-}: ClosePositionProps) {
+}: ClosePositionProps): Promise<FlashloanBuilderResponse> {
   const jupiterQuoteApi = createJupiterApiClient({
     basePath: "https://lite-api.jup.ag/swap/v1",
   });
