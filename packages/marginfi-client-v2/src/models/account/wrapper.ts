@@ -1905,20 +1905,30 @@ class MarginfiAccountWrapper {
    * Creates an instruction to begin a flash loan operation.
    *
    * @param endIndex - The index where the flash loan instructions end in the transaction
+   * @param authority - The authority for the flash loan, infers by default
    * @returns An InstructionsWrapper containing the begin flash loan instruction
    */
-  public async makeBeginFlashLoanIx(endIndex: number): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeBeginFlashLoanIx(this._program, endIndex);
+  public async makeBeginFlashLoanIx(endIndex: number, authority?: PublicKey): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeBeginFlashLoanIx(this._program, endIndex, authority);
   }
 
   /**
    * Creates an instruction to end a flash loan operation.
    *
    * @param projectedActiveBalances - Array of PublicKeys representing the projected active balance accounts after flash loan
+   * @param authority - The authority for the flash loan, infers by default
    * @returns An InstructionsWrapper containing the end flash loan instruction
    */
-  public async makeEndFlashLoanIx(projectedActiveBalances: PublicKey[]): Promise<InstructionsWrapper> {
-    return this._marginfiAccount.makeEndFlashLoanIx(this._program, this.client.banks, projectedActiveBalances);
+  public async makeEndFlashLoanIx(
+    projectedActiveBalances: PublicKey[],
+    authority?: PublicKey
+  ): Promise<InstructionsWrapper> {
+    return this._marginfiAccount.makeEndFlashLoanIx(
+      this._program,
+      this.client.banks,
+      projectedActiveBalances,
+      authority
+    );
   }
 
   public async flashLoan(
@@ -1937,7 +1947,8 @@ class MarginfiAccountWrapper {
 
   public async buildFlashLoanTx(
     args: FlashLoanArgs,
-    lookupTables?: AddressLookupTableAccount[]
+    lookupTables?: AddressLookupTableAccount[],
+    authority?: PublicKey
   ): Promise<ExtendedV0Transaction> {
     const endIndex = args.ixs.length + 1;
 
@@ -1946,8 +1957,8 @@ class MarginfiAccountWrapper {
       args.ixs
     );
 
-    const beginFlashLoanIx = await this.makeBeginFlashLoanIx(endIndex);
-    const endFlashLoanIx = await this.makeEndFlashLoanIx(projectedActiveBalances);
+    const beginFlashLoanIx = await this.makeBeginFlashLoanIx(endIndex, authority);
+    const endFlashLoanIx = await this.makeEndFlashLoanIx(projectedActiveBalances, authority);
 
     const flashloanIxs = [...beginFlashLoanIx.instructions, ...args.ixs, ...endFlashLoanIx.instructions];
     const totalLookupTables = [...(lookupTables ?? []), ...(args.addressLookupTableAccounts ?? [])];
