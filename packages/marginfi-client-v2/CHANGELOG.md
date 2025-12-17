@@ -1,5 +1,11 @@
 # @mrgnlabs/marginfi-client-v2
 
+## 6.3.1
+
+### Patch Changes
+
+- 5c28c54: Adding optional param to update authority for flashloans
+
 ## 6.3.0
 
 ### Minor Changes
