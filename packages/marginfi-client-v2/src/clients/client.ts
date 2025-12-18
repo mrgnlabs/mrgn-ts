@@ -55,6 +55,7 @@ import { MarginfiAccountWrapper } from "../models/account/wrapper";
 import { ProcessTransactionError, ProcessTransactionErrorType, parseTransactionError } from "../errors";
 import { findOracleKey, PythPushFeedIdMap, buildFeedIdMap } from "../utils";
 import {
+  AssetTag,
   ProcessTransactionOpts,
   ProcessTransactionStrategy,
   ProcessTransactionsClientOpts,
@@ -664,12 +665,28 @@ class MarginfiClient {
 
   getBankByMint(mint: Address): Bank | null {
     const _mint = translateAddress(mint);
-    return [...this.banks.values()].find((bank) => bank.mint.equals(_mint)) ?? null;
+    return (
+      [...this.banks.values()].find(
+        (bank) =>
+          bank.mint.equals(_mint) &&
+          (bank.config.assetTag === AssetTag.DEFAULT ||
+            bank.config.assetTag === AssetTag.SOL ||
+            bank.config.assetTag === AssetTag.STAKED)
+      ) ?? null
+    );
   }
 
   getBankByTokenSymbol(tokenSymbol: string): Bank | null {
     if (tokenSymbol === undefined) return null;
-    return [...this.banks.values()].find((bank) => bank.tokenSymbol === tokenSymbol) ?? null;
+    return (
+      [...this.banks.values()].find(
+        (bank) =>
+          bank.tokenSymbol === tokenSymbol &&
+          (bank.config.assetTag === AssetTag.DEFAULT ||
+            bank.config.assetTag === AssetTag.SOL ||
+            bank.config.assetTag === AssetTag.STAKED)
+      ) ?? null
+    );
   }
 
   getOraclePriceByBank(bankAddress: Address): OraclePrice | null {
