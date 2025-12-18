@@ -1,5 +1,11 @@
 # @mrgnlabs/marginfi-client-v2
 
+## 6.3.2
+
+### Patch Changes
+
+- 348cad7: Exclude non-p0 venue from getBank functions
+
 ## 6.3.1
 
 ### Patch Changes
