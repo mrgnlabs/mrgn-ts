@@ -1124,12 +1124,14 @@ class MarginfiAccount implements MarginfiAccountType {
     program: MarginfiProgram,
     newMarginfiAccount: PublicKey,
     newAuthority: PublicKey,
+    globalFeeWallet: PublicKey,
     feePayer: PublicKey
   ): Promise<InstructionsWrapper> {
     const accountTransferToNewAccountIx = await instructions.makeAccountTransferToNewAccountIx(program, {
       oldMarginfiAccount: this.address,
       newMarginfiAccount,
       newAuthority,
+      globalFeeWallet,
       feePayer,
     });
     return { instructions: [accountTransferToNewAccountIx], keys: [] };
