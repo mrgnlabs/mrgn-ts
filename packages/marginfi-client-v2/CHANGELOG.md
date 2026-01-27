@@ -1,5 +1,22 @@
 # @mrgnlabs/marginfi-client-v2
 
+## 6.4.0
+
+### Minor Changes
+
+- b4e8f43: ## Release 1.7
+
+  This release aligns the SDK with the latest program changes.
+
+  ### Highlights
+
+  - References the corresponding program release:
+    https://github.com/mrgnlabs/marginfi-v2/releases/tag/mrgn-0.1.7-rc3
+  - Adds support for updated bank fields introduced in the program
+  - **No breaking changes** if you are not using the Kamino-related fields
+  - Full support for **Kamino** and **Drift** integrations is available in the P0 SDK:
+    https://github.com/0dotxyz/p0-ts-sdk
+
 ## 6.3.2
 
 ### Patch Changes
