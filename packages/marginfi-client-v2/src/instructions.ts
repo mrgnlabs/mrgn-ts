@@ -477,7 +477,7 @@ async function makeGroupInitIx(
   }
 ) {
   return mfProgram.methods
-    .marginfiGroupInitialize(args?.isArenaGroup ?? false)
+    .marginfiGroupInitialize()
     .accounts({
       marginfiGroup: accounts.marginfiGroup,
       admin: accounts.admin,

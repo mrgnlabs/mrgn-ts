@@ -53,12 +53,18 @@ export enum OracleSetup {
   KaminoPythPush = "KaminoPythPush",
   KaminoSwitchboardPull = "KaminoSwitchboardPull",
   Fixed = "Fixed",
+  DriftPythPull = "DriftPythPull",
+  DriftSwitchboardPull = "DriftSwitchboardPull",
+  SolendPythPull = "SolendPythPull",
+  SolendSwitchboardPull = "SolendSwitchboardPull",
 }
 export enum AssetTag {
   DEFAULT = 0,
   SOL = 1,
   STAKED = 2,
   KAMINO = 3,
+  DRIFT = 4,
+  SOLEND = 5,
 }
 
 export enum BankConfigFlag {
@@ -159,8 +165,19 @@ export interface BankType {
   lendingPositionCount?: BigNumber;
   borrowingPositionCount?: BigNumber;
 
-  kaminoReserve: PublicKey;
-  kaminoObligation: PublicKey;
+  kaminoIntegrationAccounts?: {
+    kaminoReserve: PublicKey;
+    kaminoObligation: PublicKey;
+  };
+  driftIntegrationAccounts?: {
+    driftSpotMarket: PublicKey;
+    driftUser: PublicKey;
+    driftUserStats: PublicKey;
+  };
+  solendIntegrationAccounts?: {
+    solendReserve: PublicKey;
+    solendObligation: PublicKey;
+  };
 }
 
 /**

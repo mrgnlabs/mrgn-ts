@@ -41,8 +41,25 @@ interface BankRaw {
   emissionsRemaining: WrappedI80F48;
   emissionsMint: PublicKey;
 
-  kaminoReserve: PublicKey;
-  kaminoObligation: PublicKey;
+  /**
+   * Integration account slot 1 (default Pubkey for non-integrations).
+   * - Kamino: reserve
+   * - Drift: spot market
+   * - Solend: reserve
+   */
+  integrationAcc1: PublicKey;
+  /**
+   * Integration account slot 2 (default Pubkey for non-integrations).
+   * - Kamino: obligation
+   * - Drift: user
+   * - Solend: obligation
+   */
+  integrationAcc2: PublicKey;
+  /**
+   * Integration account slot 3 (default Pubkey for non-integrations).
+   * - Drift: user stats
+   */
+  integrationAcc3: PublicKey;
 
   emode: EmodeSettingsRaw;
   feesDestinationAccount?: PublicKey;
@@ -157,7 +174,12 @@ type OracleSetupRaw =
   | { stakedWithPythPush: {} }
   | { kaminoPythPush: {} }
   | { kaminoSwitchboardPull: {} }
-  | { fixed: {} };
+  | { fixed: {} }
+  | { kaminoSwitchboardPull: {} }
+  | { driftPythPull: {} }
+  | { driftSwitchboardPull: {} }
+  | { solendPythPull: {} }
+  | { solendSwitchboardPull: {} };
 
 interface OracleConfigOptRaw {
   setup: OracleSetupRaw;
