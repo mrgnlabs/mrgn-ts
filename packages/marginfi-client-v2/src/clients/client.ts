@@ -336,10 +336,13 @@ class MarginfiClient {
       let bankAccountsData = await program.account.bank.all([
         { memcmp: { offset: 8 + 32 + 1, bytes: groupAddress.toBase58() } },
       ]);
-      bankDatasKeyed = bankAccountsData.map((account: any) => ({
-        address: account.publicKey,
-        data: account.account as any as BankRaw,
-      }));
+      // filter out all integrators (KAMINO, DRIFT, SOLEND)
+      bankDatasKeyed = bankAccountsData
+        .filter((data) => data.account.config.assetTag < AssetTag.KAMINO)
+        .map((account: any) => ({
+          address: account.publicKey,
+          data: account.account as any as BankRaw,
+        }));
     }
 
     // const oracleKeys = bankDatasKeyed.map((b) => b.data.config.oracleKeys[0]);

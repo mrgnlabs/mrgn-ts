@@ -50,16 +50,20 @@ export const categorizePythBanks = (banks: { address: PublicKey; data: BankRaw }
     (bank) => bank.data.config.oracleSetup && "stakedWithPythPush" in bank.data.config.oracleSetup
   );
 
-  // Pyth push kaminos banks
-  const pythPushKaminosBanks = banks.filter(
-    (bank) => bank.data.config.oracleSetup && "kaminoPythPush" in bank.data.config.oracleSetup
+  // Pyth push integration banks
+  const pythPushIntegrationBanks = banks.filter(
+    (bank) =>
+      bank.data.config.oracleSetup &&
+      ("kaminoPythPush" in bank.data.config.oracleSetup ||
+        "driftPythPull" in bank.data.config.oracleSetup ||
+        "solendPythPull" in bank.data.config.oracleSetup)
   );
 
   return {
     pythLegacyBanks,
     pythPushBanks,
     pythStakedCollateralBanks,
-    pythPushKaminosBanks,
+    pythPushIntegrationBanks,
   };
 };
 
@@ -223,9 +227,9 @@ export const fetchPythOracleData = async (
   };
 }> => {
   // Step 1: Categorize banks by oracle type
-  const { pythPushBanks, pythStakedCollateralBanks, pythPushKaminosBanks } = categorizePythBanks(banks);
+  const { pythPushBanks, pythStakedCollateralBanks, pythPushIntegrationBanks } = categorizePythBanks(banks);
 
-  if (!pythPushBanks.length && !pythStakedCollateralBanks.length && !pythPushKaminosBanks.length) {
+  if (!pythPushBanks.length && !pythStakedCollateralBanks.length && !pythPushIntegrationBanks.length) {
     // Return empty structures when there are no banks to process
     return {
       pythFeedMap: new Map<string, { feedId: PublicKey; shardId?: number }>(),
@@ -265,7 +269,7 @@ export const fetchPythOracleData = async (
   }
 
   // Step 4: Extract oracle keys for price fetching
-  const combinedPythBanks = [...pythPushBanks, ...pythPushKaminosBanks];
+  const combinedPythBanks = [...pythPushBanks, ...pythPushIntegrationBanks];
   const pythOracleKeys = extractPythOracleKeys(combinedPythBanks);
 
   // Step 5: Fetch oracle prices
@@ -317,7 +321,9 @@ export const fetchSwbOracleData = async (
       bank.data.config.oracleSetup &&
       ("switchboardPull" in bank.data.config.oracleSetup ||
         "switchboardV2" in bank.data.config.oracleSetup ||
-        "kaminoSwitchboardPull" in bank.data.config.oracleSetup)
+        "kaminoSwitchboardPull" in bank.data.config.oracleSetup ||
+        "driftSwitchboardPull" in bank.data.config.oracleSetup ||
+        "solendSwitchboardPull" in bank.data.config.oracleSetup)
   );
 
   let oracleKeyMap: Record<string, { feedId: string; stdev: string; rawPrice: string }>;

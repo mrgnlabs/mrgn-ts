@@ -506,6 +506,14 @@ export function parseOracleSetup(oracleSetupRaw: OracleSetupRaw): OracleSetup {
       return OracleSetup.KaminoSwitchboardPull;
     case "fixed":
       return OracleSetup.Fixed;
+    case "driftpythpull":
+      return OracleSetup.DriftPythPull;
+    case "driftswitchboardpull":
+      return OracleSetup.DriftSwitchboardPull;
+    case "solendpythpull":
+      return OracleSetup.SolendPythPull;
+    case "solendswitchboardpull":
+      return OracleSetup.SolendSwitchboardPull;
     default:
       return OracleSetup.None;
   }

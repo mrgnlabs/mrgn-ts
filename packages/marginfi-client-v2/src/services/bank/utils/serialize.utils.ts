@@ -127,6 +127,14 @@ function serializeOracleSetupToIndex(oracleSetup: OracleSetup): number {
       return 7;
     case OracleSetup.Fixed:
       return 8;
+    case OracleSetup.DriftPythPull:
+      return 9;
+    case OracleSetup.DriftSwitchboardPull:
+      return 10;
+    case OracleSetup.SolendPythPull:
+      return 11;
+    case OracleSetup.SolendSwitchboardPull:
+      return 12;
     default:
       return 0;
   }
@@ -152,6 +160,14 @@ function serializeOracleSetup(oracleSetup: OracleSetup): OracleSetupRaw {
       return { kaminoSwitchboardPull: {} };
     case OracleSetup.Fixed:
       return { fixed: {} };
+    case OracleSetup.DriftPythPull:
+      return { driftPythPull: {} };
+    case OracleSetup.DriftSwitchboardPull:
+      return { driftSwitchboardPull: {} };
+    case OracleSetup.SolendPythPull:
+      return { solendPythPull: {} };
+    case OracleSetup.SolendSwitchboardPull:
+      return { solendSwitchboardPull: {} };
     default:
       throw new Error(`Invalid oracle setup "${oracleSetup}"`);
   }

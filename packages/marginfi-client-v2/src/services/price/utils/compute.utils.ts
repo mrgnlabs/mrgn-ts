@@ -102,7 +102,9 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, fixedPr
     }
     case OracleSetup.PythPushOracle:
     case OracleSetup.StakedWithPythPush:
-    case OracleSetup.KaminoPythPush: {
+    case OracleSetup.KaminoPythPush:
+    case OracleSetup.DriftPythPull:
+    case OracleSetup.SolendPythPull: {
       let bytesWithoutDiscriminator = rawData.slice(8);
       let data = parsePriceInfo(bytesWithoutDiscriminator);
 
@@ -185,7 +187,9 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, fixedPr
       };
     }
     case OracleSetup.SwitchboardPull:
-    case OracleSetup.KaminoSwitchboardPull: {
+    case OracleSetup.KaminoSwitchboardPull:
+    case OracleSetup.DriftSwitchboardPull:
+    case OracleSetup.SolendSwitchboardPull: {
       const pullFeedDAta = decodeSwitchboardPullFeedData(rawData);
 
       const swbPrice = new BigNumber(pullFeedDAta.result.value.toString()).div(

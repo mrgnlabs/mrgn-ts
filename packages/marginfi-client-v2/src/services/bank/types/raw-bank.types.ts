@@ -175,7 +175,6 @@ type OracleSetupRaw =
   | { kaminoPythPush: {} }
   | { kaminoSwitchboardPull: {} }
   | { fixed: {} }
-  | { kaminoSwitchboardPull: {} }
   | { driftPythPull: {} }
   | { driftSwitchboardPull: {} }
   | { solendPythPull: {} }
