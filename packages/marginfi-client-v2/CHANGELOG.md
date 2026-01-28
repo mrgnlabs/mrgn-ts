@@ -1,5 +1,11 @@
 # @mrgnlabs/marginfi-client-v2
 
+## 6.4.1
+
+### Patch Changes
+
+- 10f1133: Fix: prevent integration banks from loading on initialize
+
 ## 6.4.0
 
 ### Minor Changes
