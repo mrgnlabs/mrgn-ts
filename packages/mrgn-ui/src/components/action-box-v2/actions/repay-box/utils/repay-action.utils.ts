@@ -50,6 +50,7 @@ export async function calculateRepayTransactions(props: CalculateRepayTransactio
       slippageMode: props.jupiterOptions?.slippageMode,
       slippageBps: props.jupiterOptions?.slippageBps,
       withdrawAmount: props.repayAmount,
+      configParams: props.jupiterOptions?.configParams,
     });
 
     return {

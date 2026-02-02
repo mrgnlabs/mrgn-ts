@@ -1,4 +1,4 @@
-import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
+import { createJupiterApiClient, QuoteResponse, Configuration } from "@jup-ag/api";
 import { TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 
 import { createMarginfiAccountTx, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
@@ -100,9 +100,9 @@ export async function createSwapTx(props: GenerateDepositSwapTxnsProps) {
     throw new ActionProcessingError(STATIC_SIMULATION_ERRORS.BANK_NOT_PROVIDED_CHECK);
   }
 
-  const jupiterQuoteApi = createJupiterApiClient({
-    basePath: "https://lite-api.jup.ag/swap/v1",
-  });
+  const jupiterQuoteApi = props.jupiterOptions?.configParams?.basePath
+    ? createJupiterApiClient(new Configuration(props.jupiterOptions.configParams))
+    : createJupiterApiClient({ basePath: "https://lite-api.jup.ag/swap/v1" });
   const mintDecimals = isExtendedBankInfo(props.swapBank)
     ? props.swapBank.info.state.mintDecimals
     : props.swapBank.mintDecimals;
@@ -110,14 +110,19 @@ export async function createSwapTx(props: GenerateDepositSwapTxnsProps) {
     ? props.swapBank.info.state.mint.toBase58()
     : props.swapBank.address.toBase58();
 
-  const swapQuote = await getSwapQuoteWithRetry({
-    swapMode: "ExactIn",
-    amount: uiToNative(props.amount, mintDecimals).toNumber(),
-    inputMint: inputMint,
-    outputMint: props.depositBank.info.state.mint.toBase58(),
-    slippageBps: props.jupiterOptions?.slippageMode === "FIXED" ? props.jupiterOptions?.slippageBps : undefined,
-    dynamicSlippage: props.jupiterOptions?.slippageMode === "DYNAMIC" ? true : false,
-  });
+  const swapQuote = await getSwapQuoteWithRetry(
+    {
+      swapMode: "ExactIn",
+      amount: uiToNative(props.amount, mintDecimals).toNumber(),
+      inputMint: inputMint,
+      outputMint: props.depositBank.info.state.mint.toBase58(),
+      slippageBps: props.jupiterOptions?.slippageMode === "FIXED" ? props.jupiterOptions?.slippageBps : undefined,
+      dynamicSlippage: props.jupiterOptions?.slippageMode === "DYNAMIC" ? true : false,
+    },
+    5,
+    1500,
+    props.jupiterOptions?.configParams
+  );
 
   const { computeBudgetInstructions, swapInstruction, setupInstructions, addressLookupTableAddresses } =
     await jupiterQuoteApi.swapInstructionsPost({

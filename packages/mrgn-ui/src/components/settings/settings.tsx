@@ -28,6 +28,7 @@ export const defaultJupiterOptions: JupiterOptions = {
   slippageMode: "DYNAMIC",
   slippageBps: 100,
   directRoutesOnly: false,
+  configParams: { basePath: "/api/jupiter/swap/v1" },
 };
 
 const broadcastTypes: {

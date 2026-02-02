@@ -1,5 +1,5 @@
 import { BN } from "@coral-xyz/anchor";
-import { QuoteResponse } from "@jup-ag/api";
+import { QuoteResponse, ConfigurationParameters } from "@jup-ag/api";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import { Connection, PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import * as solanaStakePool from "@solana/spl-stake-pool";
@@ -131,6 +131,7 @@ export interface CalculateLoopingProps
   platformFeeBps: number;
   setupBankAddresses?: PublicKey[];
   emodeImpact?: { activePair?: { assetWeightInit: BigNumber } };
+  configParams?: ConfigurationParameters;
 }
 
 export interface CalculateRepayCollateralProps
@@ -141,6 +142,7 @@ export interface CalculateRepayCollateralProps
   slippageBps: number;
   slippageMode: "DYNAMIC" | "FIXED";
   platformFeeBps: number;
+  configParams?: ConfigurationParameters;
 }
 
 export interface CalculateClosePositionProps
@@ -148,6 +150,7 @@ export interface CalculateClosePositionProps
   slippageBps: number;
   slippageMode: "DYNAMIC" | "FIXED";
   platformFeeBps: number;
+  configParams?: ConfigurationParameters;
 }
 
 export type ClosePositionProps = {
@@ -156,6 +159,7 @@ export type ClosePositionProps = {
   borrowBank: ActiveBankInfo;
   quote: QuoteResponse;
   connection: Connection;
+  configParams?: ConfigurationParameters;
 };
 
 export type RepayProps = {
@@ -177,6 +181,7 @@ export type RepayWithCollatProps = {
   depositBank: ExtendedBankInfo;
   quote: QuoteResponse;
   connection: Connection;
+  configParams?: ConfigurationParameters;
 
   multiStepToast?: MultiStepToastController;
 };
@@ -201,6 +206,7 @@ export type LoopingProps = {
   quote: QuoteResponse;
   connection: Connection;
   setupBankAddresses?: PublicKey[];
+  configParams?: ConfigurationParameters;
   multiStepToast?: MultiStepToastController;
   overrideInferAccounts?: {
     group?: PublicKey;

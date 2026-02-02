@@ -1,4 +1,4 @@
-import { QuoteGetRequest } from "@jup-ag/api";
+import { QuoteGetRequest, ConfigurationParameters } from "@jup-ag/api";
 import BigNumber from "bignumber.js";
 
 import { computeLoopingParams, MarginfiAccountWrapper, MarginfiClient } from "@mrgnlabs/marginfi-client-v2";
@@ -89,7 +89,8 @@ export async function calculateMaxRepayableCollateral(
   borrowBank: ExtendedBankInfo,
   depositBank: ExtendedBankInfo,
   slippageBps: number,
-  slippageMode: "DYNAMIC" | "FIXED"
+  slippageMode: "DYNAMIC" | "FIXED",
+  configParams?: ConfigurationParameters
 ): Promise<{ amount: number; maxOverflowHit: boolean }> {
   // if the bank is not active, a bug is occurring.
   if (!depositBank.isActive || !borrowBank.isActive) {
@@ -141,7 +142,7 @@ export async function calculateMaxRepayableCollateral(
   };
 
   try {
-    const swapQuote = await getSwapQuoteWithRetry(quoteParams, 2);
+    const swapQuote = await getSwapQuoteWithRetry(quoteParams, 2, undefined, configParams);
 
     if (!swapQuote) throw new Error("Swap quote failed");
 

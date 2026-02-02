@@ -1,6 +1,12 @@
 import { PublicKey, TransactionInstruction, Connection, AddressLookupTableAccount } from "@solana/web3.js";
 
-import { createJupiterApiClient, QuoteGetRequest, QuoteResponse } from "@jup-ag/api";
+import {
+  createJupiterApiClient,
+  QuoteGetRequest,
+  QuoteResponse,
+  Configuration,
+  ConfigurationParameters,
+} from "@jup-ag/api";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import bs58 from "bs58";
 
@@ -102,11 +108,16 @@ export const formatAmount = (
 export async function getSwapQuoteWithRetry(
   quoteParams: QuoteGetRequest,
   maxRetries = 5,
-  timeout = 1500
+  timeout = 1500,
+  configParams?: ConfigurationParameters
 ): Promise<QuoteResponse> {
-  const jupiterQuoteApi = createJupiterApiClient({
-    basePath: "https://lite-api.jup.ag/swap/v1",
-  });
+  // Use custom basePath from configParams if provided, otherwise use default Jupiter API
+  const jupiterQuoteApi = configParams?.basePath
+    ? createJupiterApiClient(new Configuration(configParams))
+    : createJupiterApiClient({
+        basePath: "https://lite-api.jup.ag/swap/v1",
+      });
+
   let attempt = 0;
   while (attempt < maxRetries) {
     try {

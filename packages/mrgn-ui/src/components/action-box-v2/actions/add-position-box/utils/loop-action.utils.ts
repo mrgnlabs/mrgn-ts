@@ -46,6 +46,7 @@ export async function generateAddPositionTxns(props: CalculateTradingProps): Pro
         slippageBps: props.slippageBps,
         slippageMode: props.slippageMode,
         directRoutesOnly: false,
+        configParams: props.configParams,
       },
       platformFeeBps: props.platformFeeBps,
     });

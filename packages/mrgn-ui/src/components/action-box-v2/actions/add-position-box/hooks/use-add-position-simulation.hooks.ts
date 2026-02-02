@@ -138,6 +138,7 @@ export function useAddPositionSimulation({
           platformFeeBps: platformFeeBps,
           tradeState: tradeSide === TradeSide.LONG ? "long" : "short",
           connection: marginfiClient.provider.connection,
+          configParams: jupiterOptions.configParams,
         };
 
         const actionTxns = await generateAddPositionTxns(props);

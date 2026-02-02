@@ -1,4 +1,4 @@
-import { createJupiterApiClient, QuoteGetRequest } from "@jup-ag/api";
+import { createJupiterApiClient, QuoteGetRequest, Configuration } from "@jup-ag/api";
 import { AccountInfo, AddressLookupTableAccount, PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 
@@ -56,6 +56,7 @@ export async function calculateRepayCollateralParams({
   slippageBps,
   platformFeeBps,
   slippageMode,
+  configParams,
   ...repayProps
 }: CalculateRepayCollateralProps): Promise<{
   repayCollatObject: RepayActionTxns;
@@ -81,7 +82,7 @@ export async function calculateRepayCollateralParams({
       dynamicSlippage: slippageMode === "DYNAMIC" ? true : false,
     } as QuoteGetRequest;
 
-    const swapQuote = await getSwapQuoteWithRetry(quoteParams, 2, 1000);
+    const swapQuote = await getSwapQuoteWithRetry(quoteParams, 2, 1000, configParams);
 
     if (!maxAccounts) {
       firstQuote = swapQuote;
@@ -99,6 +100,7 @@ export async function calculateRepayCollateralParams({
       ...repayProps,
       quote: swapQuote,
       repayAmount: amountToRepay,
+      configParams,
     });
 
     if (txn.transactions.length) {
@@ -121,6 +123,7 @@ export async function calculateBorrowLendPositionParams({
   slippageBps,
   slippageMode,
   platformFeeBps,
+  configParams,
   ...closePostionProps
 }: CalculateClosePositionProps): Promise<ClosePositionActionTxns> {
   let firstQuote;
@@ -133,7 +136,8 @@ export async function calculateBorrowLendPositionParams({
     closePostionProps.borrowBank,
     closePostionProps.depositBank,
     slippageBps,
-    slippageMode
+    slippageMode,
+    configParams
   ).catch((error) => {
     if (error instanceof ActionProcessingError) {
       if (error.details.code === STATIC_SIMULATION_ERRORS.MAX_AMOUNT_CALCULATION_FAILED.code) {
@@ -157,7 +161,7 @@ export async function calculateBorrowLendPositionParams({
       swapMode: "ExactIn",
     };
 
-    const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+    const swapQuote = await getSwapQuoteWithRetry(quoteParams, 2, 1000, configParams);
 
     if (!maxAccounts) {
       firstQuote = swapQuote;
@@ -166,6 +170,7 @@ export async function calculateBorrowLendPositionParams({
     const txn = await verifyTxSizeCloseBorrowLendPosition({
       ...closePostionProps,
       quote: swapQuote,
+      configParams,
     });
 
     if (txn.transactions.length) {
@@ -189,6 +194,7 @@ export async function calculateLoopingParams({
   slippageMode,
   platformFeeBps,
   setupBankAddresses,
+  configParams,
   ...loopingProps
 }: CalculateLoopingProps): Promise<LoopActionTxns> {
   if (!loopingProps.marginfiAccount && !marginfiClient) {
@@ -242,7 +248,7 @@ export async function calculateLoopingParams({
       swapMode: "ExactIn",
     };
 
-    const swapQuote = await getSwapQuoteWithRetry(quoteParams);
+    const swapQuote = await getSwapQuoteWithRetry(quoteParams, 5, 1500, configParams);
 
     if (!maxAccounts) {
       firstQuote = swapQuote;
@@ -269,6 +275,7 @@ export async function calculateLoopingParams({
           borrowAmount: borrowAmount,
           actualDepositAmount: actualDepositAmountUi,
           setupBankAddresses,
+          configParams,
         });
       }
       return {
@@ -311,12 +318,13 @@ export async function loopingBuilder({
   connection,
   setupBankAddresses,
   overrideInferAccounts,
+  configParams,
 }: LoopingProps): Promise<FlashloanBuilderResponse> {
   if (!marginfiAccount) throw new Error("not initialized");
 
-  const jupiterQuoteApi = createJupiterApiClient({
-    basePath: "https://lite-api.jup.ag/swap/v1",
-  });
+  const jupiterQuoteApi = configParams?.basePath
+    ? createJupiterApiClient(new Configuration(configParams))
+    : createJupiterApiClient({ basePath: "https://lite-api.jup.ag/swap/v1" });
   let feeAccountInfo: AccountInfo<any> | null = null;
 
   const feeMint = quote.swapMode === "ExactIn" ? quote.outputMint : quote.inputMint;
@@ -388,10 +396,11 @@ export async function repayWithCollatBuilder({
   withdrawAmount,
   quote,
   connection,
+  configParams,
 }: RepayWithCollatProps): Promise<FlashloanBuilderResponse> {
-  const jupiterQuoteApi = createJupiterApiClient({
-    basePath: "https://lite-api.jup.ag/swap/v1",
-  });
+  const jupiterQuoteApi = configParams?.basePath
+    ? createJupiterApiClient(new Configuration(configParams))
+    : createJupiterApiClient({ basePath: "https://lite-api.jup.ag/swap/v1" });
   let feeAccountInfo: AccountInfo<any> | null = null;
 
   const feeMint = quote.swapMode === "ExactIn" ? quote.outputMint : quote.inputMint;
@@ -443,10 +452,11 @@ export async function closePositionBuilder({
   borrowBank,
   quote,
   connection,
+  configParams,
 }: ClosePositionProps): Promise<FlashloanBuilderResponse> {
-  const jupiterQuoteApi = createJupiterApiClient({
-    basePath: "https://lite-api.jup.ag/swap/v1",
-  });
+  const jupiterQuoteApi = configParams?.basePath
+    ? createJupiterApiClient(new Configuration(configParams))
+    : createJupiterApiClient({ basePath: "https://lite-api.jup.ag/swap/v1" });
   let feeAccountInfo: AccountInfo<any> | null = null;
 
   const feeMint = quote.swapMode === "ExactIn" ? quote.outputMint : quote.inputMint;

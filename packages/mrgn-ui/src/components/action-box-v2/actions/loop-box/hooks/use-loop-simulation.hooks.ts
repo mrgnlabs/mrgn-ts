@@ -129,6 +129,7 @@ export function useLoopSimulation({
       connection: props.marginfiClient.provider.connection,
       platformFeeBps: props.platformFeeBps,
       emodeImpact: props.emodeImpact || undefined,
+      configParams: props.jupiterOptions?.configParams,
     });
     return {
       actionTxns: loopingResult,
