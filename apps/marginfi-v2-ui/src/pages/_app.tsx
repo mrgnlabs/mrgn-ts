@@ -27,6 +27,7 @@ import GlobalActionBoxPortal from "~/components/common/global-actionbox-portal/g
 import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
 import { Tutorial } from "~/components/common/Tutorial";
+import { Maintenance } from "~/components/common/Maintenance/Maintenance";
 
 import "swiper/css";
 import "swiper/css/pagination";
@@ -55,6 +56,8 @@ initializeConfig({
   rpcUrl: rpcConfig.rpcEndpoint,
   mrgnConfig: config.mfiConfig,
 });
+
+const MAINTENANCE_MODE = true;
 
 export default function MrgnApp({ Component, pageProps }: AppProps) {
   const [
@@ -98,6 +101,15 @@ export default function MrgnApp({ Component, pageProps }: AppProps) {
 
     init();
   }, []);
+
+  if (MAINTENANCE_MODE) {
+    return (
+      <>
+        <Meta path="/" />
+        <Maintenance />
+      </>
+    );
+  }
 
   return (
     <>
