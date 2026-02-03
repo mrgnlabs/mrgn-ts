@@ -57,7 +57,7 @@ initializeConfig({
   mrgnConfig: config.mfiConfig,
 });
 
-const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = false;
 
 export default function MrgnApp({ Component, pageProps }: AppProps) {
   const [
