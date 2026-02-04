@@ -83,6 +83,10 @@ function createUiStore() {
           state.jupiterOptions.slippageBps = 100;
         }
 
+        if (state?.jupiterOptions && !state.jupiterOptions.configParams) {
+          state.jupiterOptions.configParams = { basePath: "/api/jupiter/swap/v1" };
+        }
+
         if (state?.globalActionBoxProps) {
           state.globalActionBoxProps = {
             isOpen: false,

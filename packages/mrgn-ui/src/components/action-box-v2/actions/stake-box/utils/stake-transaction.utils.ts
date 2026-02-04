@@ -1,6 +1,6 @@
 // this holds all the logic to create the stake transactions
 
-import { createJupiterApiClient, QuoteResponse } from "@jup-ag/api";
+import { createJupiterApiClient, QuoteResponse, Configuration } from "@jup-ag/api";
 import * as SplStakePool from "@solana/spl-stake-pool";
 import { makeUnwrapSolIx } from "@mrgnlabs/marginfi-client-v2";
 import { ExtendedBankInfo, ActionType } from "@mrgnlabs/mrgn-state";
@@ -334,19 +334,24 @@ export const createSwapToSolTx = async ({
   jupiterOptions,
   platformFeeBps,
 }: CreateSwapToSolTxProps): Promise<{ quote?: QuoteResponse; tx?: SolanaTransaction; error?: ActionMessageType }> => {
-  const jupiterQuoteApi = createJupiterApiClient({
-    basePath: "https://lite-api.jup.ag/swap/v1",
-  });
+  const jupiterQuoteApi = jupiterOptions?.configParams?.basePath
+    ? createJupiterApiClient(new Configuration(jupiterOptions.configParams))
+    : createJupiterApiClient({ basePath: "https://lite-api.jup.ag/swap/v1" });
 
-  const swapQuote = await getSwapQuoteWithRetry({
-    amount: uiToNative(inputMintOpts.amount, inputMintOpts.mintDecimals).toNumber(),
-    inputMint: inputMintOpts.mint.toBase58(),
-    outputMint: NATIVE_MINT.toBase58(),
-    platformFeeBps: platformFeeBps,
-    slippageBps: jupiterOptions?.slippageMode === "FIXED" ? jupiterOptions?.slippageBps : undefined,
-    dynamicSlippage: jupiterOptions?.slippageMode === "DYNAMIC" ? true : false,
-    swapMode: "ExactIn",
-  });
+  const swapQuote = await getSwapQuoteWithRetry(
+    {
+      amount: uiToNative(inputMintOpts.amount, inputMintOpts.mintDecimals).toNumber(),
+      inputMint: inputMintOpts.mint.toBase58(),
+      outputMint: NATIVE_MINT.toBase58(),
+      platformFeeBps: platformFeeBps,
+      slippageBps: jupiterOptions?.slippageMode === "FIXED" ? jupiterOptions?.slippageBps : undefined,
+      dynamicSlippage: jupiterOptions?.slippageMode === "DYNAMIC" ? true : false,
+      swapMode: "ExactIn",
+    },
+    5,
+    1500,
+    jupiterOptions?.configParams
+  );
 
   if (!swapQuote) {
     return { error: STATIC_SIMULATION_ERRORS.STAKE_SWAP_SIMULATION_FAILED };

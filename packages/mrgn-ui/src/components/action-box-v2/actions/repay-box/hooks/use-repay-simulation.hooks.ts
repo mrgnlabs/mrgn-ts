@@ -238,7 +238,8 @@ export function useRepaySimulation({
         selectedBank,
         selectedSecondaryBank,
         jupiterOptions.slippageBps,
-        jupiterOptions.slippageMode
+        jupiterOptions.slippageMode,
+        jupiterOptions.configParams
       );
       if (!maxAmount.amount) {
         setMaxAmountCollateral(0);

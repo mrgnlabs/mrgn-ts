@@ -1,4 +1,4 @@
-import { QuoteResponse, createJupiterApiClient } from "@jup-ag/api";
+import { QuoteResponse, createJupiterApiClient, Configuration, ConfigurationParameters } from "@jup-ag/api";
 import { ExtendedBankInfo } from "@mrgnlabs/mrgn-state";
 import {
   SolanaTransaction,
@@ -28,6 +28,7 @@ export type JupiterOptions = {
   slippageMode: SlippageModes;
   slippageBps: number;
   directRoutesOnly: boolean;
+  configParams?: ConfigurationParameters;
 };
 
 type CreateSwapTxProps = {
@@ -54,19 +55,24 @@ export async function createSwapTx({
   jupiterOptions,
   platformFeeBps,
 }: CreateSwapTxProps): Promise<CreateSwapTxResponse> {
-  const jupiterQuoteApi = createJupiterApiClient({
-    basePath: "https://lite-api.jup.ag/swap/v1",
-  });
+  const jupiterQuoteApi = jupiterOptions.configParams?.basePath
+    ? createJupiterApiClient(new Configuration(jupiterOptions.configParams))
+    : createJupiterApiClient({ basePath: "https://lite-api.jup.ag/swap/v1" });
 
-  const swapQuote = await getSwapQuoteWithRetry({
-    swapMode: "ExactIn",
-    amount: uiToNative(swapAmount, inputBank.info?.rawBank.mintDecimals).toNumber(),
-    outputMint: outputBank.info.state.mint.toBase58(),
-    inputMint: inputBank.info.state.mint.toBase58(),
-    slippageBps: jupiterOptions?.slippageMode === "FIXED" ? jupiterOptions?.slippageBps : undefined,
-    platformFeeBps: platformFeeBps,
-    dynamicSlippage: jupiterOptions?.slippageMode === "DYNAMIC" ? true : false,
-  });
+  const swapQuote = await getSwapQuoteWithRetry(
+    {
+      swapMode: "ExactIn",
+      amount: uiToNative(swapAmount, inputBank.info?.rawBank.mintDecimals).toNumber(),
+      outputMint: outputBank.info.state.mint.toBase58(),
+      inputMint: inputBank.info.state.mint.toBase58(),
+      slippageBps: jupiterOptions?.slippageMode === "FIXED" ? jupiterOptions?.slippageBps : undefined,
+      platformFeeBps: platformFeeBps,
+      dynamicSlippage: jupiterOptions?.slippageMode === "DYNAMIC" ? true : false,
+    },
+    5,
+    1500,
+    jupiterOptions.configParams
+  );
 
   const {
     computeBudgetInstructions,
