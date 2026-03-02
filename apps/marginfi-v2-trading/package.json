@@ -65,8 +65,6 @@
     "csv-parse": "^5.5.5",
     "dayjs": "^1.11.11",
     "embla-carousel-react": "^8.1.6",
-    "firebase": "^10.6.0",
-    "firebase-admin": "^11.9.0",
     "framer-motion": "^11.3.7",
     "html-to-image": "^1.11.11",
     "lodash.debounce": "^4.0.8",

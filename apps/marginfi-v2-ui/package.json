@@ -70,8 +70,6 @@
     "clsx": "^2.0.0",
     "cmdk": "^0.2.0",
     "csv-parse": "^5.5.5",
-    "firebase": "^10.6.0",
-    "firebase-admin": "^11.9.0",
     "jsonwebtoken": "^9.0.2",
     "lodash.debounce": "^4.0.8",
     "lodash.shuffle": "^4.2.0",

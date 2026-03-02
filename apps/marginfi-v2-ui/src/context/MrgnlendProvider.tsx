@@ -1,6 +1,7 @@
 import React from "react";
 import { useRouter } from "next/router";
 import { identify } from "@mrgnlabs/mrgn-utils";
+import { Connection } from "@solana/web3.js";
 
 import { ActionBoxProvider, AuthDialog, useWallet } from "@mrgnlabs/mrgn-ui";
 import { useUiStore } from "~/store";
@@ -33,14 +34,10 @@ export const MrgnlendProvider: React.FC<{
   const { data: lstRates } = useLstRates();
   const { data: emissionsRates } = useEmissionsRates();
 
-  const [fetchPriorityFee, fetchAccountLabels, accountLabels, setDisplaySettings] = useUiStore((state) => [
+  const [fetchPriorityFee, setDisplaySettings] = useUiStore((state) => [
     state.fetchPriorityFee,
-    state.fetchAccountLabels,
-    state.accountLabels,
     state.setDisplaySettings,
   ]);
-
-  const [hasFetchedAccountLabels, setHasFetchedAccountLabels] = React.useState(false);
 
   // identify user if logged in
   React.useEffect(() => {
@@ -50,6 +47,7 @@ export const MrgnlendProvider: React.FC<{
       wallet: walletAddress,
     });
   }, [wallet.publicKey]);
+
 
   // if account set in query param then store inn local storage and remove from url
   React.useEffect(() => {
@@ -62,14 +60,6 @@ export const MrgnlendProvider: React.FC<{
     localStorage.setItem("mfiAccount", account as string);
     router.replace(router.pathname, undefined, { shallow: true });
   }, [router.query]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Fetch account labels
-  React.useEffect(() => {
-    if (marginfiAccounts && marginfiAccounts.length > 0 && isSuccessMarginfiAccounts) {
-      setHasFetchedAccountLabels(true);
-      fetchAccountLabels(marginfiAccounts);
-    }
-  }, [marginfiAccounts, isSuccessMarginfiAccounts, fetchAccountLabels]);
 
   return (
     <WalletStateProvider walletAddress={walletAddress}>

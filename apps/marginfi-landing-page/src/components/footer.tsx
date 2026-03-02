@@ -50,7 +50,7 @@ const CONTENT: {
         },
         // {
         //   icon: <IconBrandDiscordFilled />,
-        //   href: "https://discord.gg/pJ3U7gHJFe",
+        //   href: "https://discord.com/invite/c2kNj7y9w8",
         //   label: "Discord",
         // },
         {

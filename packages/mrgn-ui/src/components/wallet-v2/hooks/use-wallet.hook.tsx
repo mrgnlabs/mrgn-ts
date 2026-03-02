@@ -392,17 +392,6 @@ const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
           setWeb3AuthLoginType(loginType!);
 
-          fetch("/api/user/web3authlogs", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              walletAddress: accounts[0],
-              email: userData.email,
-              loginType,
-            }),
-          }).catch((err) => console.error("Error logging Web3Auth login:", err));
 
           if (userData.email) {
             setWeb3AuthEmail(userData.email);

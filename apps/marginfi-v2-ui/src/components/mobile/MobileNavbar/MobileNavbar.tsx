@@ -15,7 +15,6 @@ import {
 import { cn } from "@mrgnlabs/mrgn-utils";
 
 import { useUiStore } from "~/store";
-import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 import { useOs } from "~/hooks/use-os";
 
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
@@ -72,7 +71,6 @@ const additionalLinks: NavLinkInfo[] = [
 ];
 
 const MobileNavbar = () => {
-  useFirebaseAccount();
 
   const router = useRouter();
   const [isMenuModalOpen, setIsMenuModalOpen] = useUiStore((state) => [

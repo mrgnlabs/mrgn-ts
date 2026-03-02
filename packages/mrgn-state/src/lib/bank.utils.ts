@@ -32,7 +32,7 @@ import {
   historicBankChartData,
   StakePoolMetadata,
 } from "../types";
-import { FEE_MARGIN } from "./firebase.utils";
+export const FEE_MARGIN = 0.01;
 
 export function makeExtendedBankMetadata(
   bank: Bank,

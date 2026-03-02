@@ -9,6 +9,7 @@ import {
 import { TokenAccount } from "./token.types";
 import { BankState } from "./bank.types";
 
+
 export interface UserInfo {
   tokenAccount: TokenAccount;
   maxDeposit: number;

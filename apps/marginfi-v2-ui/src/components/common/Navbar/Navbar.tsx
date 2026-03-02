@@ -9,7 +9,6 @@ import { cn, capture } from "@mrgnlabs/mrgn-utils";
 import { ResponsiveSettingsWrapper, Settings, useWallet, Wallet } from "@mrgnlabs/mrgn-ui";
 
 import { useUiStore, useUserProfileStore } from "~/store";
-import { useFirebaseAccount } from "~/hooks/useFirebaseAccount";
 
 import { useConnection } from "~/hooks/use-connection";
 
@@ -32,7 +31,6 @@ import { PublicKey } from "@solana/web3.js";
 
 // @todo implement second pretty navbar row
 export const Navbar: FC = () => {
-  useFirebaseAccount();
 
   const { connection } = useConnection();
   const router = useRouter();
@@ -55,8 +53,6 @@ export const Navbar: FC = () => {
     priorityFees,
     maxCapType,
     setTransactionSettings,
-    accountLabels,
-    fetchAccountLabels,
     displaySettings,
     setDisplaySettings,
     jupiterOptions,
@@ -69,8 +65,6 @@ export const Navbar: FC = () => {
     priorityFees: state.priorityFees,
     maxCapType: state.maxCapType,
     setTransactionSettings: state.setTransactionSettings,
-    accountLabels: state.accountLabels,
-    fetchAccountLabels: state.fetchAccountLabels,
     displaySettings: state.displaySettings,
     setDisplaySettings: state.setDisplaySettings,
     jupiterOptions: state.jupiterOptions,
@@ -79,7 +73,6 @@ export const Navbar: FC = () => {
     globalActionBoxProps: state.globalActionBoxProps,
   }));
 
-  const [userPointsData] = useUserProfileStore((state) => [state.userPointsData]);
 
   const setSelectedKey = useSetSelectedAccountKey();
 
@@ -296,7 +289,6 @@ export const Navbar: FC = () => {
               extendedBankInfos={extendedBanks}
               isLoadingUserBalances={isLoadingUserBalances}
               walletTokens={[...tokenBalances, ...nativeStakeBalances]}
-              userPointsData={userPointsData}
               accountSummary={accountSummary}
               setSelectedAccount={setSelectedAccount}
               refreshState={refreshUserData}
@@ -304,8 +296,6 @@ export const Navbar: FC = () => {
                 ...priorityFees,
                 broadcastType,
               }}
-              accountLabels={accountLabels}
-              fetchAccountLabels={fetchAccountLabels}
             />
           </div>
         </div>

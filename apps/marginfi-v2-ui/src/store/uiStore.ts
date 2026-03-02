@@ -46,7 +46,6 @@ interface UiState {
   priorityType: TransactionPriorityType;
   maxCapType: MaxCapType;
   priorityFees: PriorityFees;
-  accountLabels: Record<string, string>;
   displaySettings: boolean;
   jupiterOptions: JupiterOptions;
   globalActionBoxProps: GlobalActionBoxProps;
@@ -62,7 +61,6 @@ interface UiState {
   setAssetListSearch: (search: string) => void;
   setTransactionSettings: (settings: TransactionSettings, connection: Connection) => void;
   fetchPriorityFee: (connection: Connection, settings?: TransactionSettings) => void;
-  fetchAccountLabels: (accounts: PublicKey[]) => Promise<void>;
   setDisplaySettings: (displaySettings: boolean) => void;
   setJupiterOptions: (jupiterOptions: JupiterOptions) => void;
   setGlobalActionBoxProps: (props: GlobalActionBoxProps) => void;
@@ -114,7 +112,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
   tokenFilter: TokenFilters.ALL,
   assetListSearch: "",
   priorityFees: {},
-  accountLabels: {},
   ...DEFAULT_PRIORITY_SETTINGS,
   displaySettings: false,
   jupiterOptions: defaultJupiterOptions,
@@ -169,52 +166,6 @@ const stateCreator: StateCreator<UiState, [], []> = (set, get) => ({
     } catch (error) {
       console.error(error);
     }
-  },
-  fetchAccountLabels: async (accounts: PublicKey[]) => {
-    const labels: Record<string, string> = {};
-
-    const fetchLabel = async (account: PublicKey) => {
-      try {
-        const response = await fetch(`/api/user/account-label?account=${account.toBase58()}`);
-        if (!response.ok) throw new Error(`Error fetching account label for ${account.toBase58()}`);
-
-        const { data } = await response.json();
-        return data.label || `Account`;
-      } catch (error) {
-        console.error(error);
-        return `Account`;
-      }
-    };
-
-    const accountLabelsWithAddresses = await Promise.all(
-      accounts.map(async (account) => {
-        const label = await fetchLabel(account);
-        return { address: account.toBase58(), label };
-      })
-    );
-
-    // Sort labels by order: first anything that is not starting with "Account", then "Account 1", "Account 2", ...
-    accountLabelsWithAddresses.sort((a, b) => {
-      const isAAccountLabel = /^Account (\d+)$/.test(a.label);
-      const isBAccountLabel = /^Account (\d+)$/.test(b.label);
-
-      if (!isAAccountLabel && isBAccountLabel) return -1;
-      if (isAAccountLabel && !isBAccountLabel) return 1;
-
-      if (isAAccountLabel && isBAccountLabel) {
-        const numA = parseInt(a.label.match(/^Account (\d+)$/)[1], 10);
-        const numB = parseInt(b.label.match(/^Account (\d+)$/)[1], 10);
-        return numA - numB;
-      }
-
-      return a.label.localeCompare(b.label, undefined, { sensitivity: "base" });
-    });
-
-    accountLabelsWithAddresses.forEach(({ address, label }) => {
-      labels[address] = label;
-    });
-
-    set({ accountLabels: labels });
   },
   setDisplaySettings: (displaySettings: boolean) => set({ displaySettings }),
   setJupiterOptions: (jupiterOptions: JupiterOptions) => {

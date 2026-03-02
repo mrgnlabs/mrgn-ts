@@ -61,7 +61,6 @@ interface PortfolioAssetCardProps {
   bank: ActiveBankInfo;
   isInLendingMode: boolean;
   isBorrower?: boolean;
-  accountLabels?: Record<string, string>;
   variant?: "accordion" | "simple";
 
   onCardClick?: () => void;
@@ -71,7 +70,6 @@ export const PortfolioAssetCard = ({
   bank,
   isInLendingMode,
   isBorrower = true,
-  accountLabels,
   variant = "accordion",
   onCardClick,
 }: PortfolioAssetCardProps) => {
@@ -568,7 +566,6 @@ export const PortfolioAssetCard = ({
             extendedBankInfos={extendedBanks}
             nativeSolBalance={userBalances?.nativeSolBalance ?? 0}
             accountSummary={accountSummary}
-            accountLabels={accountLabels}
           />
         </AccordionContent>
       </AccordionItem>
