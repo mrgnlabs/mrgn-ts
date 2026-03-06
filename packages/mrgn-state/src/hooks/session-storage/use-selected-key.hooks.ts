@@ -25,10 +25,8 @@ export function useSelectedAccountKey(keys: PublicKey[] | undefined) {
           const firstKey = base58Keys[0];
           localStorage.setItem(storageKey, firstKey);
           setSelectedKeyState(firstKey);
-          // Invalidate React Query cache when auto-selecting
-          queryClient.invalidateQueries({
-            queryKey: ["marginfiAccount"],
-          });
+          // No need to invalidate -- the query key includes selectedAccountKey,
+          // so changing selectedKeyState produces a new query key which fetches automatically
         } else {
           setSelectedKeyState(null);
         }
@@ -38,10 +36,8 @@ export function useSelectedAccountKey(keys: PublicKey[] | undefined) {
       const firstKey = keys[0].toBase58();
       localStorage.setItem(storageKey, firstKey);
       setSelectedKeyState(firstKey);
-      // Invalidate React Query cache when auto-selecting
-      queryClient.invalidateQueries({
-        queryKey: ["marginfiAccount"],
-      });
+      // No need to invalidate -- the query key includes selectedAccountKey,
+      // so changing selectedKeyState produces a new query key which fetches automatically
     }
   }, [keys, queryClient]);
 

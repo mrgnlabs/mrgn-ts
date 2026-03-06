@@ -6,6 +6,19 @@ import { PublicKey } from "@solana/web3.js";
 import { getEmodePairs } from "../../lib";
 import { useMarginfiAccount, useRawBanks } from "../react-query";
 
+// Module-level cache: parse banks once, reuse across all component instances
+let _cachedRawBanksRef: any = null;
+let _cachedParsedBanks: Bank[] | null = null;
+
+function getParsedBanks(rawBanks: any[]): Bank[] {
+  if (_cachedRawBanksRef === rawBanks && _cachedParsedBanks) {
+    return _cachedParsedBanks;
+  }
+  _cachedParsedBanks = rawBanks.map((bank) => Bank.fromAccountParsed(bank.address, bank.data));
+  _cachedRawBanksRef = rawBanks;
+  return _cachedParsedBanks;
+}
+
 export function useEmode() {
   const { data: rawBanks, isLoading: isLoadingRawBanks, isError: isErrorRawBanks } = useRawBanks();
   const {
@@ -15,7 +28,7 @@ export function useEmode() {
   } = useMarginfiAccount();
 
   const parsedBanks = React.useMemo(() => {
-    return rawBanks?.map((bank) => Bank.fromAccountParsed(bank.address, bank.data));
+    return rawBanks ? getParsedBanks(rawBanks) : undefined;
   }, [rawBanks]);
 
   const emodePairs = React.useMemo(() => {
@@ -30,13 +43,26 @@ export function useEmode() {
     return marginfiAccountClass ? marginfiAccountClass.computeActiveEmodePairs(emodePairs) : [];
   }, [marginfiAccountClass, emodePairs]);
 
-  const emodeImpacts = React.useMemo(() => {
-    return marginfiAccountClass && rawBanks
-      ? marginfiAccountClass.computeEmodeImpacts(
+  // Defer computeEmodeImpacts to avoid blocking initial render.
+  // It runs O(banks × emodePairs × 4 simulations) and is only needed for
+  // emode weight overrides on maxBorrow calculations.
+  const [emodeImpacts, setEmodeImpacts] = React.useState<Record<string, any>>({});
+  React.useEffect(() => {
+    if (marginfiAccountClass && rawBanks) {
+      // Use requestIdleCallback (or setTimeout fallback) to defer heavy computation
+      const id = (window.requestIdleCallback || ((cb: Function) => setTimeout(cb, 0)))(() => {
+        const impacts = marginfiAccountClass.computeEmodeImpacts(
           emodePairs,
           rawBanks.map((bank) => bank.address)
-        )
-      : {};
+        );
+        setEmodeImpacts(impacts);
+      });
+      return () => {
+        (window.cancelIdleCallback || clearTimeout)(id);
+      };
+    } else {
+      setEmodeImpacts({});
+    }
   }, [marginfiAccountClass, emodePairs, rawBanks]);
 
   return {

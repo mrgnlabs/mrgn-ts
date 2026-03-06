@@ -5,6 +5,21 @@ import React from "react";
 import BigNumber from "bignumber.js";
 import { makeExtendedBankInfo } from "../../lib/bank.utils";
 import { MarginfiAccount } from "@mrgnlabs/marginfi-client-v2";
+import { ExtendedBankInfo } from "../../types";
+
+// Module-level cache to avoid recomputing across multiple component instances
+let _extBanksCache: {
+  banks: any;
+  banksMap: any;
+  metadata: any;
+  oracleData: any;
+  userBalances: any;
+  emissionPriceMap: any;
+  marginfiAccount: any;
+  emodeImpacts: any;
+  originalWeights: any;
+  result: ExtendedBankInfo[];
+} | null = null;
 
 export function useExtendedBanks() {
   const { banks, banksMap, originalWeights, isLoading: isLoadingRawBanks, isError: isErrorRawBanks } = useBanks();
@@ -49,12 +64,31 @@ export function useExtendedBanks() {
       !userBalances ||
       !emissionPriceMap ||
       !activeEmodePairs ||
-      !emodePairs ||
-      !emodeImpacts
+      !emodePairs
     )
       return [];
 
-    return banks.map((bank) => {
+    // Check module-level cache — avoids recomputation when multiple components
+    // call useExtendedBanks() with the same underlying data
+    if (
+      _extBanksCache &&
+      _extBanksCache.banks === banks &&
+      _extBanksCache.banksMap === banksMap &&
+      _extBanksCache.metadata === metadata &&
+      _extBanksCache.oracleData === oracleData &&
+      _extBanksCache.userBalances === userBalances &&
+      _extBanksCache.emissionPriceMap === emissionPriceMap &&
+      _extBanksCache.marginfiAccount === marginfiAccount &&
+      _extBanksCache.emodeImpacts === emodeImpacts &&
+      _extBanksCache.originalWeights === originalWeights
+    ) {
+      return _extBanksCache.result;
+    }
+
+    // Hoist outside map — previously called once per bank (~50+ times)
+    const parsedMarginfiAccount = marginfiAccount ? MarginfiAccount.fromAccountType(marginfiAccount) : null;
+
+    const result = banks.map((bank) => {
       const emissionTokenPriceData = emissionPriceMap[bank.emissionsMint.toBase58()];
 
       let oraclePrice = oracleData.oracleMap.get(bank.address.toBase58());
@@ -107,15 +141,31 @@ export function useExtendedBanks() {
         {
           nativeSolBalance: userBalances.nativeSolBalance,
           tokenAccount,
-          marginfiAccount: marginfiAccount ? MarginfiAccount.fromAccountType(marginfiAccount) : null,
+          marginfiAccount: parsedMarginfiAccount,
           banks: banksMap,
           oraclePrices: oracleData.oracleMap,
         },
         false,
         originalWeights?.[bank.address.toBase58()],
-        emodeImpacts
+        emodeImpacts || undefined
       );
     });
+
+    // Update module-level cache
+    _extBanksCache = {
+      banks,
+      banksMap,
+      metadata,
+      oracleData,
+      userBalances,
+      emissionPriceMap,
+      marginfiAccount,
+      emodeImpacts,
+      originalWeights,
+      result,
+    };
+
+    return result;
   }, [
     banks,
     banksMap,

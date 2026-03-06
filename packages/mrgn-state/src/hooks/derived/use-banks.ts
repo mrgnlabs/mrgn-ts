@@ -4,6 +4,27 @@ import { useMetadata, useOracleData, useRawBanks, useLstRates } from "../react-q
 import { useEmode } from "./use-emode";
 import { adjustBankWeightsWithEmodePairs } from "../../lib";
 
+// Module-level cache: parse banks once, reuse across all component instances
+let _cachedInputs: { rawBanks: any; pythFeedIdMap: any; bankMetadataMap: any } | null = null;
+let _cachedBanksWithoutEmode: Bank[] | null = null;
+
+function getParsedBanksForUseBanks(rawBanks: any[], pythFeedIdMap: any, bankMetadataMap: any): Bank[] {
+  if (
+    _cachedInputs &&
+    _cachedInputs.rawBanks === rawBanks &&
+    _cachedInputs.pythFeedIdMap === pythFeedIdMap &&
+    _cachedInputs.bankMetadataMap === bankMetadataMap &&
+    _cachedBanksWithoutEmode
+  ) {
+    return _cachedBanksWithoutEmode;
+  }
+  _cachedBanksWithoutEmode = rawBanks.map((bank) =>
+    Bank.fromAccountParsed(bank.address, bank.data, pythFeedIdMap, bankMetadataMap?.[bank.address.toBase58()])
+  );
+  _cachedInputs = { rawBanks, pythFeedIdMap, bankMetadataMap };
+  return _cachedBanksWithoutEmode;
+}
+
 export function useBanks() {
   const { data: rawBanks, isLoading: isLoadingRawBanks, isError: isErrorRawBanks } = useRawBanks();
   const { data: oracleData, isLoading: isLoadingOracleData, isError: isErrorOracleData } = useOracleData();
@@ -17,14 +38,7 @@ export function useBanks() {
   const [banks, banksMap, originalWeights] = React.useMemo(() => {
     if (!rawBanks || !oracleData) return [];
 
-    const banksWithoutEmode = rawBanks.map((bank) =>
-      Bank.fromAccountParsed(
-        bank.address,
-        bank.data,
-        oracleData?.pythFeedIdMap,
-        metadata?.bankMetadataMap?.[bank.address.toBase58()]
-      )
-    );
+    const banksWithoutEmode = getParsedBanksForUseBanks(rawBanks, oracleData?.pythFeedIdMap, metadata?.bankMetadataMap);
 
     const { adjustedBanks: banks, originalWeights } = adjustBankWeightsWithEmodePairs(
       banksWithoutEmode,
