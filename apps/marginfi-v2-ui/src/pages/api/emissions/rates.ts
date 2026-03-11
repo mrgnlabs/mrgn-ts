@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const totalDeposits = totalAssetShares.toNumber() / Math.pow(10, usdsBank.mintDecimals);
 
         if (totalDeposits > 0) {
-          usdsRate = (365 * 2000) / 7 / totalDeposits;
+          usdsRate = (365 * 558) / 7 / totalDeposits;
         }
       } catch (error) {
         console.error("Error fetching USDS bank data:", error);
