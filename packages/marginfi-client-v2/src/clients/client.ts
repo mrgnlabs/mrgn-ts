@@ -702,7 +702,7 @@ class MarginfiClient {
    *
    * @returns transaction instruction
    */
-  async makeCreateMarginfiAccountIx(marginfiAccountPk: PublicKey): Promise<InstructionsWrapper> {
+  async makeCreateMarginfiAccountIx(marginfiAccountPk: PublicKey, feePayer: PublicKey): Promise<InstructionsWrapper> {
     const dbg = require("debug")("mfi:client");
 
     dbg("Generating marginfi account ix for %s", marginfiAccountPk);
@@ -711,7 +711,7 @@ class MarginfiClient {
       marginfiGroup: this.groupAddress,
       marginfiAccount: marginfiAccountPk,
       authority: this.provider.wallet.publicKey,
-      feePayer: this.provider.wallet.publicKey,
+      feePayer: feePayer ?? this.provider.wallet.publicKey,
     });
 
     const ixs = [initMarginfiAccountIx];
