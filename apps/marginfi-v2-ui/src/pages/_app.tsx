@@ -27,6 +27,7 @@ import GlobalActionBoxPortal from "~/components/common/global-actionbox-portal/g
 import { Meta } from "~/components/common/Meta";
 import { MobileNavbar } from "~/components/mobile/MobileNavbar";
 import { Tutorial } from "~/components/common/Tutorial";
+import { DeprecationDialog } from "~/components/common/Deprecation";
 import { Maintenance } from "~/components/common/Maintenance/Maintenance";
 
 import "swiper/css";
@@ -154,6 +155,7 @@ export default function MrgnApp({ Component, pageProps }: AppProps) {
 
                           <Analytics />
                           <Tutorial />
+                          <DeprecationDialog />
 
                           <ToastProvider />
                           {globalActionBoxProps.isOpen && <GlobalActionBoxPortal />}
