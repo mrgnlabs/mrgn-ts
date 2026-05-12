@@ -154,7 +154,7 @@ export default function MrgnApp({ Component, pageProps }: AppProps) {
                           </Mobile>
 
                           <Analytics />
-                          <Tutorial />
+                          {/* <Tutorial /> */}
                           <DeprecationDialog />
 
                           <ToastProvider />
