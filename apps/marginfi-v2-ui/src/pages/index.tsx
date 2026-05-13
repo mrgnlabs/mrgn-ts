@@ -73,7 +73,7 @@ export default function HomePage() {
               />
             )}
             {annoucements.length > 0 ? <Announcements items={annoucements} /> : <AnnouncementsSkeleton />}
-            <AnnouncementsDialog />
+            {/* <AnnouncementsDialog /> */}
             <div className="p-4 space-y-4 w-full">
               <ActionBox.BorrowLend
                 useProvider={true}
@@ -101,7 +101,7 @@ export default function HomePage() {
       <Mobile>
         <>
           {annoucements.length > 0 ? <Announcements items={annoucements} /> : <AnnouncementsSkeleton />}
-          <AnnouncementsDialog />
+          {/* <AnnouncementsDialog /> */}
           <div className="p-4 space-y-3 w-full">
             {emodePairs.length > 0 && (
               <div className="max-w-[480px] mx-auto">
