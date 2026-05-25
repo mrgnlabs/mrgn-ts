@@ -1,4 +1,4 @@
-export const DEPRECATION_PHASE: 1 | 2 = 1; // See linear for details
+export const DEPRECATION_PHASE: 1 | 2 = 2; // See linear for details
 
 export const P0_APP_URL = "https://app.0.xyz";
 
