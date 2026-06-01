@@ -12,10 +12,16 @@ import { Desktop, Mobile } from "~/mediaQueryUtils";
 import { DEPRECATION_COPY, DEPRECATION_PHASE, P0_APP_URL } from "./deprecation.config";
 
 export const DeprecationDialog = () => {
+  const hasBypassParam = React.useMemo(() => {
+    if (typeof window === "undefined") return false;
+    const params = new URLSearchParams(window.location.search);
+    return params.get("b") === "t"; // bypass = true
+  }, []);
+
   // Open on mount. Since this component is mounted in `_app.tsx`, it does not
   // remount on client-side route changes, so the modal won't re-appear on
   // page navigations — only on full page loads (refresh, new tab, direct link).
-  const [isOpen, setIsOpen] = React.useState(true);
+  const [isOpen, setIsOpen] = React.useState(!hasBypassParam);
   const phase = DEPRECATION_PHASE;
   const copy = DEPRECATION_COPY[phase];
   const isDismissable = phase === 1;
