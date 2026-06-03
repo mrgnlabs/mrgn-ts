@@ -1,5 +1,12 @@
 # @mrgnlabs/marginfi-client-v2
 
+## 6.4.2
+
+### Patch Changes
+
+- Mark the SDK as deprecated. SDK consumers should migrate to https://github.com/0dotxyz/p0-ts-sdk for continued support of the marginfi program.
+- Support new types and exclude non-P0 asset tags.
+
 ## 6.4.1
 
 ### Patch Changes
