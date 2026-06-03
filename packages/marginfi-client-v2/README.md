@@ -1,5 +1,12 @@
 # marginfi-client-v2: A TypeScript SDK
 
+> [!WARNING]
+> ## ⚠️ DEPRECATED
+>
+> **This SDK is deprecated and is no longer actively maintained.**
+>
+> Please migrate to **[p0-ts-sdk](https://github.com/0dotxyz/p0-ts-sdk)** for continued support of the marginfi program.
+
 ## Getting Started
 
 ### Step 1: Initialize the marginfi client

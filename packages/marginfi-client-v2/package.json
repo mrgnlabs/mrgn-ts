@@ -1,6 +1,7 @@
 {
   "name": "@mrgnlabs/marginfi-client-v2",
   "version": "6.4.1",
+  "deprecated": "This SDK is deprecated and no longer actively maintained. Please migrate to https://github.com/0dotxyz/p0-ts-sdk for continued support of the marginfi program.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",

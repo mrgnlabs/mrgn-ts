@@ -24,6 +24,13 @@
   </h4>
 </div>
 
+> [!WARNING]
+> ## ⚠️ DEPRECATED
+>
+> **This repository is deprecated and is no longer actively maintained.**
+>
+> SDK consumers should migrate to **[p0-ts-sdk](https://github.com/0dotxyz/p0-ts-sdk)** for continued support of the marginfi program.
+
 A monorepo for [marginfi](https://app.marginfi.com)-related TypeScript projects managed with Turbo.
 
 ## About
