@@ -59,7 +59,7 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, fixedPr
       const pythConfidenceRealtimeCapped = capConfidenceInterval(
         pythPriceRealtime,
         pythConfidenceRealtime,
-        PYTH_PRICE_CONF_INTERVALS
+        MAX_CONFIDENCE_INTERVAL_RATIO
       );
       const pythLowestPriceRealtime = pythPriceRealtime.minus(pythConfidenceRealtimeCapped);
       const pythHighestPriceRealtime = pythPriceRealtime.plus(pythConfidenceRealtimeCapped);
@@ -71,7 +71,7 @@ function parseOraclePriceData(oracleSetup: OracleSetup, rawData: Buffer, fixedPr
       const pythConfIntervalWeightedCapped = capConfidenceInterval(
         pythPriceWeighted,
         pythConfIntervalWeighted,
-        PYTH_PRICE_CONF_INTERVALS
+        MAX_CONFIDENCE_INTERVAL_RATIO
       );
       const pythLowestPrice = pythPriceWeighted.minus(pythConfIntervalWeightedCapped);
       const pythHighestPrice = pythPriceWeighted.plus(pythConfIntervalWeightedCapped);
