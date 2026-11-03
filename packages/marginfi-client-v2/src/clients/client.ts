@@ -15,6 +15,7 @@ import {
 } from "@solana/web3.js";
 import bs58 from "bs58";
 import { AccountType, Environment, MarginfiConfig, MarginfiProgram } from "../types";
+import { MarginfiIdlType } from "../idl";
 import { getConfig } from "../config";
 import instructions from "../instructions";
 import { MarginfiAccount, MarginRequirementType } from "../models/account";
@@ -22,6 +23,7 @@ import {
   addTransactionMetadata,
   BankMetadataMap,
   chunkedGetRawMultipleAccountInfoOrdered,
+  chunkedGetRawMultipleAccountInfoOrderedWithNulls,
   DEFAULT_COMMITMENT,
   InstructionsWrapper,
   isV0Tx,
@@ -303,6 +305,31 @@ class MarginfiClient {
     });
   }
 
+  /**
+   * Decode a batch of raw Bank accounts, skipping (and warning on) any bank that fails to
+   * decode instead of throwing for the whole batch. A bank can fail to decode if its on-chain
+   * data uses an enum variant (e.g. `OracleSetup`) that isn't declared in the SDK's bundled IDL
+   * yet - see https://github.com/mrgnlabs/mrgn-ts/issues/1139.
+   */
+  private static decodeBanksSkippingFailures(
+    accounts: { address: PublicKey; data: Buffer }[],
+    idl: MarginfiIdlType
+  ): { address: PublicKey; data: BankRaw }[] {
+    const decoded: { address: PublicKey; data: BankRaw }[] = [];
+    for (const { address, data } of accounts) {
+      try {
+        decoded.push({ address, data: Bank.decodeBankRaw(data, idl) });
+      } catch (error) {
+        console.warn(
+          `[MarginfiClient] Skipping bank ${address.toBase58()}: failed to decode (${
+            error instanceof Error ? error.message : error
+          }). This usually means the bank uses an enum variant (e.g. OracleSetup) that the SDK's bundled IDL doesn't know about yet.`
+        );
+      }
+    }
+    return decoded;
+  }
+
   // NOTE: 2 RPC calls
   // Pass in bankAddresses to skip the gpa call
   static async fetchGroupData(
@@ -320,29 +347,37 @@ class MarginfiClient {
   }> {
     const debug = require("debug")("mfi:client");
     // Fetch & shape all accounts of Bank type (~ bank discovery)
+    //
+    // NOTE: accounts are fetched raw and decoded one-by-one (rather than via Anchor's
+    // program.account.bank.fetchMultiple/all, which decode in bulk) so that a single
+    // undecodable bank doesn't abort the whole batch. See decodeBanksSkippingFailures above.
     let bankDatasKeyed: { address: PublicKey; data: BankRaw }[] = [];
     if (bankAddresses && bankAddresses.length > 0) {
       debug("Using preloaded bank addresses, skipping gpa call", bankAddresses.length, "banks");
-      let bankAccountsData = await program.account.bank.fetchMultiple(bankAddresses);
-      for (let i = 0; i < bankAccountsData.length; i++) {
-        if (bankAccountsData[i] !== null) {
-          bankDatasKeyed.push({
-            address: bankAddresses[i],
-            data: bankAccountsData[i] as any as BankRaw,
-          });
-        }
-      }
+      const bankAis = await chunkedGetRawMultipleAccountInfoOrderedWithNulls(
+        program.provider.connection,
+        bankAddresses.map((pk) => pk.toBase58())
+      );
+      const rawBankAccounts = bankAis.flatMap((ai, i) => (ai ? [{ address: bankAddresses[i], data: ai.data }] : []));
+      bankDatasKeyed = MarginfiClient.decodeBanksSkippingFailures(rawBankAccounts, program.idl);
     } else {
-      let bankAccountsData = await program.account.bank.all([
-        { memcmp: { offset: 8 + 32 + 1, bytes: groupAddress.toBase58() } },
-      ]);
+      const bankAccounts = await program.provider.connection.getProgramAccounts(program.programId, {
+        commitment: program.provider.connection.commitment,
+        filters: [
+          { memcmp: { offset: 8 + 32 + 1, bytes: groupAddress.toBase58() } },
+          {
+            memcmp: {
+              offset: 0,
+              bytes: bs58.encode(new BorshAccountsCoder(program.idl).accountDiscriminator(AccountType.Bank)),
+            },
+          },
+        ],
+      });
+      const rawBankAccounts = bankAccounts.map((a) => ({ address: a.pubkey, data: a.account.data }));
       // filter out all integrators (KAMINO, DRIFT, SOLEND)
-      bankDatasKeyed = bankAccountsData
-        .filter((data) => data.account.config.assetTag < AssetTag.KAMINO)
-        .map((account: any) => ({
-          address: account.publicKey,
-          data: account.account as any as BankRaw,
-        }));
+      bankDatasKeyed = MarginfiClient.decodeBanksSkippingFailures(rawBankAccounts, program.idl).filter(
+        (bank) => bank.data.config.assetTag < AssetTag.KAMINO
+      );
     }
 
     // const oracleKeys = bankDatasKeyed.map((b) => b.data.config.oracleKeys[0]);
